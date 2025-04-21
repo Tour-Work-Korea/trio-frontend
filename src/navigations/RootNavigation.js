@@ -9,7 +9,7 @@ const RootNavigation = () => {
   return (
     <NavigationContainer>
       <Stack.Navigator
-        initialRouteName="Home" // 시작 화면 Home
+        initialRouteName="EXHome" // 시작 화면 EXHome
         screenOptions={{ headerShown: false }}
       >
         {Object.entries(Screens).map(([name, Component]) => (
