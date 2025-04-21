@@ -7,7 +7,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   header: {
-    backgroundColor: COLORS.bb,
+    backgroundColor: COLORS.scarlet,
     padding: 24,
     alignItems: 'center',
   },

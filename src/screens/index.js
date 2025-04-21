@@ -1,2 +1,8 @@
-export { default as Home } from './Home';
+export { default as BottomTabs } from './(Common)/BottomTabs';
+export { default as Employ } from './(Common)/BottomTabs/Employ';
+export { default as Guesthouse } from './(Common)/BottomTabs/Guesthouse';
+export { default as Home } from './(Common)/BottomTabs/Home';
+export { default as My } from './(Common)/BottomTabs/My';
+export { default as Party } from './(Common)/BottomTabs/Party';
+export { default as EXHome } from './EXHome';
 export { default as Login } from './Login';
