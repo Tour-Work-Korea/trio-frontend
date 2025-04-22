@@ -5,6 +5,7 @@ import Logo from '@assets/images/Logo.svg'; // svg이미지 불러오기
 import styles from './Home.styles';
 import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 불러오기
 import ButtonWhite from '@components/ButtonWhite';
+import Header from '@components/Header'; //헤더 컴포넌트 불러오기
 
 const EXHome = () => {
   const navigation = useNavigation();
@@ -15,9 +16,9 @@ const EXHome = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>🧡 Welcome to Trio App</Text>
-      </View>
+      {/* 헤더 불러오기 2가지 */}
+      <Header />
+      {/* <Header title="지원자 조회" /> */}
       <View style={styles.body}>
         <Logo width={100} height={100} />  {/* svg 이미지 */}
         <Text style={styles.text}>이 홈 화면은 예시 화면</Text>
