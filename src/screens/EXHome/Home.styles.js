@@ -13,8 +13,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
   },
   text: {
-    fontSize: 16,
-    color: COLORS.black,
     textAlign: 'center',
   },
 });

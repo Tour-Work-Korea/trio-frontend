@@ -2,6 +2,7 @@ import React from 'react';
 import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
+import { FONTS } from '@constants/fonts';
 import ChevronLeft from '@assets/images/chevron_left.svg';
 
 //props로 적힐 내용 받음 - title
@@ -19,10 +20,10 @@ const Header = ({ title }) => {
           <TouchableOpacity style={styles.backContainer} onPress={navigation.goBack}>
             <ChevronLeft width={24} height={24} />
           </TouchableOpacity>
-          <Text style={styles.subTitle}>{title}</Text>
+          <Text style={[FONTS.fs_h2_bold, styles.subTitle]}>{title}</Text>
         </View>
       ) : (
-        <Text style={styles.mainTitle}>Tour Work Korea</Text>
+        <Text style={[FONTS.fs_h2_bold, styles.mainTitle]}>Tour Work Korea</Text>
       )}
     </View>
   );
@@ -44,14 +45,10 @@ const styles = StyleSheet.create({
   backContainer: {
   },
   subTitle: {
-    fontSize: 14,
-    fontWeight: '700',
     color: COLORS.black,
   },
   mainTitle: {
     textAlign: 'center',
-    fontSize: 16,
-    fontWeight: '700',
     color: COLORS.scarlet,
   },
 });

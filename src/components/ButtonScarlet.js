@@ -2,6 +2,7 @@ import React from 'react';
 import { TouchableOpacity, Text, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
+import { FONTS } from '@constants/fonts';
 
 // props로  
 // 1. 버튼 안에 글씨 - title
@@ -22,7 +23,7 @@ const ButtonScarlet = ({ title, to, marginHorizontal = 15 }) => {
       style={[styles.button, { marginHorizontal }]}
       onPress={handlePress}
     >
-      <Text style={styles.text}>{title}</Text>
+      <Text style={[FONTS.fs_body_bold, styles.text]}>{title}</Text>
     </TouchableOpacity>
   );
 };
@@ -37,8 +38,6 @@ const styles = StyleSheet.create({
   },
   text: {
     color: COLORS.white,
-    fontSize: 12,
-    fontWeight: '600',
     lineHeight: 22,
   },
 });

@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Platform, View, Text } from 'react-native';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import { COLORS } from '@constants/colors';
+import { FONTS } from '@constants/fonts';
 
 import GuesthouseIcon from '@assets/images/Guesthouse.svg';
 import EmployIcon from '@assets/images/Employ.svg';
@@ -55,6 +56,7 @@ const BottomTabs = () => {
               <IconComponent {...iconProps} />
               <Text
                 style={[
+                  FONTS.fs_body,
                   styles.label,
                   { color: focused ? COLORS.scarlet : COLORS.gray },
                 ]}
@@ -102,8 +104,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   label: {
-    fontSize: 12,
-    fontWeight: '700',
     marginTop: 4,
   },
 });
