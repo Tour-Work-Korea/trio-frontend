@@ -111,7 +111,7 @@ const Register = () => {
         </View>
       </ScrollView>
 
-      <ButtonScarlet title="가입하기" />
+      <ButtonScarlet title="가입하기" to="EXHome" />
     </SafeAreaView>
   );
 };
