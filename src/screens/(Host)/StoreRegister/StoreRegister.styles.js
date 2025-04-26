@@ -1,6 +1,5 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '../../../constants/fonts';
 
 export default StyleSheet.create({
   container: {
@@ -12,41 +11,21 @@ export default StyleSheet.create({
     paddingHorizontal: 15,
     paddingVertical: 20,
   },
-  agreementContainer: {
+  headerContainer: {
     marginBottom: 12,
     borderRadius: 10,
     borderColor: COLORS.stroke_gray,
     borderWidth: 1,
-  },
-  agreementTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.stroke_gray,
-  },
-  agreementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
     padding: 15,
     backgroundColor: COLORS.light_gray,
   },
-  checkboxContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
+  sectionContainer: {
+    marginTop: 12,
   },
   sectionTitle: {
     fontSize: 16,
     fontWeight: 'bold',
     marginBottom: 10,
-    marginTop: 20,
   },
   input: {
     backgroundColor: 'white',
@@ -62,6 +41,18 @@ export default StyleSheet.create({
   },
   inputFlex: {
     flex: 1,
-    marginRight: 10,
+  },
+  imageUploadContainer: {
+    alignItems: 'center',
+    marginTop: 12,
+    width: '100%',
+  },
+  imageUploadBox: {
+    height: 150,
+    width: '100%',
+    backgroundColor: COLORS.light_gray,
+    borderRadius: 10,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 });

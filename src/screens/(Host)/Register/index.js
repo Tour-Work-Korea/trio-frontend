@@ -37,7 +37,6 @@ const Register = () => {
               <Text style={styles.highlightText}>[필수]</Text> 서비스 이용약관
               동의
             </Text>
-            <View style={styles.arrowIcon}>{/* 화살표 아이콘 자리 */}</View>
           </View>
 
           <View style={styles.agreementRow}>
@@ -45,7 +44,6 @@ const Register = () => {
               <Text style={styles.highlightText}>[필수]</Text> 개인정보 수집 및
               이용 동의
             </Text>
-            <View style={styles.arrowIcon}>{/* 화살표 아이콘 자리 */}</View>
           </View>
         </View>
 
@@ -104,7 +102,7 @@ const Register = () => {
           <View style={styles.inputRow}>
             <TextInput
               style={[styles.input, styles.inputFlex]}
-              placeholder="-없이 숫자만 입력해 주세요"
+              placeholder="-없이 숫자만 입력해주세요"
             />
             <ButtonScarlet title="확인" to="" />
           </View>

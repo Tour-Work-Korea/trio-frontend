@@ -7,3 +7,4 @@ export {default as Party} from './(Common)/BottomTabs/Party';
 export {default as EXHome} from './EXHome';
 export {default as Login} from './Login';
 export {default as HostRegister} from './(Host)/Register';
+export {default as StoreRegister} from './(Host)/StoreRegister';
