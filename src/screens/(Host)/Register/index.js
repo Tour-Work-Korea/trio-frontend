@@ -9,7 +9,7 @@ import {
 import ButtonScarlet from '@components/ButtonScarlet';
 import Header from '@components/Header';
 import styles from './Register.styles';
-import {FONTS} from '../../../constants/fonts';
+import {FONTS} from '@constants/fonts';
 
 /*
  * 사장님 회원가입

@@ -34,9 +34,13 @@ const EXHome = () => {
         </Text>{' '}
         {/* 텍스트 크기,볼드 지정한거 사용 */}
       </View>
-      <ButtonScarlet title="회원가입 페이지로 이동" to="HostRegister" />
+      <ButtonScarlet
+        title="일반 유저 회원가입 페이지로 이동"
+        to="UserRegisterIntro"
+      />
+      <ButtonScarlet title="사장님 회원가입 페이지로 이동" to="HostRegister" />
       <ButtonScarlet title="입점신청 페이지로 이동" to="StoreRegister" />
-      <ButtonScarlet title="로그인 페이지로 이동" to="Login" />{' '}
+      <ButtonScarlet title="로그인 페이지로 이동" to="Login" />
       {/* 버튼 컴포넌트 사용 */}
       <ButtonWhite title="하단바 있는 페이지로 이동" to="BottomTabs" />
     </SafeAreaView>

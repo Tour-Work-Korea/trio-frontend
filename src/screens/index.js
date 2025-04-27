@@ -8,3 +8,5 @@ export {default as EXHome} from './EXHome';
 export {default as Login} from './Login';
 export {default as HostRegister} from './(Host)/Register';
 export {default as StoreRegister} from './(Host)/StoreRegister';
+export {default as UserRegisterIntro} from './(User)/PU-U/Intro';
+export {default as UserRegisterAgree} from './(User)/PU-U/Agree';
