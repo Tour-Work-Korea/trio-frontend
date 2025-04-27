@@ -6,7 +6,12 @@ export {default as My} from './(Common)/BottomTabs/My';
 export {default as Party} from './(Common)/BottomTabs/Party';
 export {default as EXHome} from './EXHome';
 export {default as Login} from './Login';
+
+//사장님 회원가입
 export {default as HostRegister} from './(Host)/Register';
 export {default as StoreRegister} from './(Host)/StoreRegister';
-export {default as UserRegisterIntro} from './(User)/PU-U/Intro';
-export {default as UserRegisterAgree} from './(User)/PU-U/Agree';
+
+//유저 회원가입
+export {default as UserRegisterIntro} from './(User)/Register/Intro';
+export {default as UserRegisterAgree} from './(User)/Register/Agree';
+export {default as UserRegisterInfo} from './(User)/Register/UserInfo';

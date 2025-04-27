@@ -74,7 +74,7 @@ const Agree = () => {
           </View>
         </View>
       </ScrollView>
-      <ButtonScarlet title="다음" to="EXHome" />
+      <ButtonScarlet title="다음" to="UserRegisterInfo" />
     </SafeAreaView>
   );
 };
