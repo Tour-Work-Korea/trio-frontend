@@ -38,6 +38,10 @@ const EXHome = () => {
         title="일반 유저 회원가입 페이지로 이동"
         to="UserRegisterIntro"
       />
+      <ButtonScarlet
+        title="사장님 나의 공고 페이지로 이동"
+        to="MyRecruitmentList"
+      />
       <ButtonScarlet title="사장님 회원가입 페이지로 이동" to="HostRegister" />
       <ButtonScarlet title="입점신청 페이지로 이동" to="StoreRegister" />
       <ButtonScarlet title="로그인 페이지로 이동" to="Login" />

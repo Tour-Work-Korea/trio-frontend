@@ -16,3 +16,6 @@ export {default as StoreRegister} from './(Host)/StoreRegister';
 export {default as UserRegisterIntro} from './(User)/Register/Intro';
 export {default as UserRegisterAgree} from './(User)/Register/Agree';
 export {default as UserRegisterInfo} from './(User)/Register/UserInfo';
+
+//사장님 구인공고
+export {default as MyRecruitmentList} from './(Host)/Recruitment/MyRecruitmentList';
