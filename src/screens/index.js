@@ -19,3 +19,4 @@ export {default as UserRegisterInfo} from './(User)/Register/UserInfo';
 
 //사장님 구인공고
 export {default as MyRecruitmentList} from './(Host)/Recruitment/MyRecruitmentList';
+export {default as PostRecruitment} from './(Host)/Recruitment/PostRecruitment';
