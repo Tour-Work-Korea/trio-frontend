@@ -11,6 +11,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import Header from '@components/Header';
 import styles from './UserInfo.styles';
 import {FONTS} from '@constants/fonts';
+import {useNavigation} from '@react-navigation/native';
 
 /*
  * 일반 유저 회원가입 정보 입력
@@ -23,10 +24,21 @@ const UserInfo = () => {
   const [gender, setGender] = useState(null); // 상태 관리: 성별
   const [nickname, setNickname] = useState(''); // 상태 관리: 닉네임
 
+  const navigation = useNavigation();
+
   const handleGenderChange = selectedGender => {
     setGender(selectedGender); // 성별 변경
+    console.log(gender);
   };
 
+  const handleRegister = () => {
+    // 회원가입 요청 api 호출
+    // 성공 시 complete Result 화면으로 이동
+    navigation.navigate('Result', {
+      text: '성공적으로 가입되었습니다!',
+      to: 'EXHome',
+    });
+  };
   return (
     <SafeAreaView style={styles.container}>
       <Header />
@@ -104,7 +116,7 @@ const UserInfo = () => {
         </View>
       </ScrollView>
 
-      <ButtonScarlet title="가입하기" to="" />
+      <Button title="가입하기" onPress={() => handleRegister()} />
     </SafeAreaView>
   );
 };

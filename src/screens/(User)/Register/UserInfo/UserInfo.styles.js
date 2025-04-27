@@ -73,4 +73,8 @@ export default StyleSheet.create({
     flex: 1,
     marginRight: 10,
   },
+  selectedButton: {
+    backgroundColor: COLORS.scarlet, // Example selected color
+    color: 'white',
+  },
 });

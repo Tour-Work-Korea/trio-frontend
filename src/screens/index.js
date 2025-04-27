@@ -6,6 +6,7 @@ export {default as My} from './(Common)/BottomTabs/My';
 export {default as Party} from './(Common)/BottomTabs/Party';
 export {default as EXHome} from './EXHome';
 export {default as Login} from './Login';
+export {default as Result} from './(Common)/Result';
 
 //사장님 회원가입
 export {default as HostRegister} from './(Host)/Register';
