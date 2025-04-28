@@ -5,6 +5,7 @@ export { default as Home } from './(Common)/BottomTabs/Home';
 export { default as My } from './(Common)/BottomTabs/My';
 export { default as Party } from './(Common)/BottomTabs/Party';
 export { default as HostMyPage } from './(Host)/HostMyPage';
+export { default as HostEditProfile } from './(Host)/HostMyPage/HostEditProfile';
 export { default as UserMyPage } from './(User)/UserMyPage';
 export { default as EXHome } from './EXHome';
 export { default as Login } from './Login';

@@ -2,6 +2,8 @@ import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import HostMyPage from '@screens/(Host)/HostMyPage';
 import UserMyPage from '@screens/(User)/UserMyPage';
+import HostEditProfile from '@screens/(Host)/HostMyPage/HostEditProfile';
+import UserEditProfile from '@screens/(User)/UserMyPage/UserEditProfile';
 
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -41,6 +43,8 @@ const My = () => {
       <Stack.Screen name="MyMain" component={MyMainScreen} />
       <Stack.Screen name="HostMyPage" component={HostMyPage} />
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
+      <Stack.Screen name="HostEditProfile" component={HostEditProfile} /> 
+      <Stack.Screen name="UserEditProfile" component={UserEditProfile} /> 
     </Stack.Navigator>
   );
 };
