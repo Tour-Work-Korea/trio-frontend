@@ -23,6 +23,3 @@ export { default as HostMyPage } from './(Host)/HostMyPage';
 export { default as HostEditProfile } from './(Host)/HostMyPage/HostEditProfile';
 export { default as UserMyPage } from './(User)/UserMyPage';
 export { default as UserEditProfile } from './(User)/UserMyPage/UserEditProfile';
-export { default as EXHome } from './EXHome';
-export { default as Login } from './Login';
-
