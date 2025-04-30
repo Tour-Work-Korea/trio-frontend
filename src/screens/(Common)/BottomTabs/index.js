@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Platform, View, Text } from 'react-native';
-import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {StyleSheet, Platform, View, Text} from 'react-native';
+import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 import GuesthouseIcon from '@assets/images/Guesthouse.svg';
 import EmployIcon from '@assets/images/Employ.svg';
@@ -10,13 +10,7 @@ import HomeIcon from '@assets/images/Home.svg';
 import PartyIcon from '@assets/images/Party.svg';
 import MyIcon from '@assets/images/My.svg';
 
-import {
-  Guesthouse,
-  Employ,
-  Home,
-  Party,
-  My,
-} from '@screens';
+import {Guesthouse, Employ, Home, Party, My} from '@screens';
 
 const Tab = createBottomTabNavigator();
 
@@ -24,8 +18,8 @@ const BottomTabs = () => {
   return (
     <Tab.Navigator
       initialRouteName="홈"
-      screenOptions={({ route }) => ({
-        tabBarIcon: ({ focused }) => {
+      screenOptions={({route}) => ({
+        tabBarIcon: ({focused}) => {
           const iconProps = {
             width: 32,
             height: 32,
@@ -58,9 +52,8 @@ const BottomTabs = () => {
                 style={[
                   FONTS.fs_body,
                   styles.label,
-                  { color: focused ? COLORS.scarlet : COLORS.gray },
-                ]}
-              >
+                  {color: focused ? COLORS.scarlet : COLORS.gray},
+                ]}>
                 {route.name}
               </Text>
             </View>
@@ -69,8 +62,7 @@ const BottomTabs = () => {
         tabBarShowLabel: false,
         tabBarStyle: styles.tabBar,
         headerShown: false,
-      })}
-    >
+      })}>
       <Tab.Screen name="게하" component={Guesthouse} />
       <Tab.Screen name="채용" component={Employ} />
       <Tab.Screen name="홈" component={Home} />
@@ -90,7 +82,7 @@ const styles = StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: COLORS.scarlet,
-        shadowOffset: { width: 0, height: 0 },
+        shadowOffset: {width: 0, height: 0},
         shadowOpacity: 2,
         shadowRadius: 1.5,
       },
