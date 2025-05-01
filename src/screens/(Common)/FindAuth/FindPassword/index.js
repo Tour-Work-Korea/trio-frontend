@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Header from '@components/Header';
-import styles from './FindId.styles';
+import styles from './FindPassword.styles';
 import {FONTS} from '@constants/fonts';
 import {useNavigation} from '@react-navigation/native';
 

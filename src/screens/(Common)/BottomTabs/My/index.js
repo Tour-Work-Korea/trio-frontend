@@ -1,9 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
-import HostMyPage from '@screens/(Host)/HostMyPage';
-import UserMyPage from '@screens/(User)/UserMyPage';
-import HostEditProfile from '@screens/(Host)/HostMyPage/HostEditProfile';
-import UserEditProfile from '@screens/(User)/UserMyPage/UserEditProfile';
+
+import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile} from '@screens';
 
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
