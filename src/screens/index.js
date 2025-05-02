@@ -10,6 +10,7 @@ export { default as EditProfileFieldScreen } from './(Common)/EditProfileFieldSc
 export { default as FindId } from './(Common)/FindAuth/FindId';
 export { default as FindPassword } from './(Common)/FindAuth/FindPassword';
 export { default as Result } from './(Common)/Result';
+export { default as RoomDetail } from './(Common)/RoomDetail';
 export { default as HostMyPage } from './(Host)/HostMyPage';
 export { default as HostEditProfile } from './(Host)/HostMyPage/HostEditProfile';
 export { default as Register } from './(Host)/Register';

@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   FlatList,
 } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
 
 import styles from './GuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
@@ -36,6 +37,7 @@ const serviceIcons = [
 ];
 
 const GuesthouseDetail = ({ route }) => {
+  const navigation = useNavigation();
   const { id, name } = route.params;
 
   const [modalVisible, setModalVisible] = useState(false);
@@ -109,16 +111,26 @@ const GuesthouseDetail = ({ route }) => {
           </View>
 
           {rooms.map((room) => (
-            <View key={room.id} style={styles.roomCard}>
-              <Image source={room.image} style={styles.roomImage} />
-              <View style={styles.roomInfo}>
-                <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{room.type}</Text>
-                <Text style={[FONTS.fs_body, styles.checkin]}>{room.checkin}</Text>
-                <Text style={[FONTS.fs_h2_bold, styles.roomPrice]}>
-                {room.price.toLocaleString()}원
-                </Text>
+            <TouchableOpacity
+              key={room.id}
+              onPress={() =>
+                navigation.navigate('RoomDetail', {
+                  roomType: room.type,
+                  roomPrice: room.price,
+                })
+              }
+            >
+              <View style={styles.roomCard}>
+                <Image source={room.image} style={styles.roomImage} />
+                <View style={styles.roomInfo}>
+                  <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{room.type}</Text>
+                  <Text style={[FONTS.fs_body, styles.checkin]}>{room.checkin}</Text>
+                  <Text style={[FONTS.fs_h2_bold, styles.roomPrice]}>
+                    {room.price.toLocaleString()}원
+                  </Text>
+                </View>
               </View>
-            </View>
+            </TouchableOpacity>
           ))}
         </View>
 
