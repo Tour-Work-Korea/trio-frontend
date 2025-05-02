@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
     color: COLORS.gray,
   },
   dateText: {
-    color: COLORS.black,
   },
   button: {
     

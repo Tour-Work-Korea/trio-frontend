@@ -19,34 +19,34 @@ const RoomDetail = ({ route }) => {
             />
 
             <View style={styles.contentWrapper}>
-            <View style={styles.roomInfo}>
-                <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{roomType}</Text>
-                <Text style={[FONTS.fs_body, styles.description]}>
-                간단 소개글{'\n'}소개소개소개소개소개소개소개소개소개{'\n'}소개소개소개소개소개소개소개소개소개
-                </Text>
-                <Text style={[FONTS.fs_h1_bold, styles.price]}>
-                {roomPrice.toLocaleString()}원
-                </Text>
-            </View>
+                <View style={styles.roomInfo}>
+                    <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{roomType}</Text>
+                    <Text style={[FONTS.fs_body, styles.description]}>
+                    간단 소개글{'\n'}소개소개소개소개소개소개소개소개소개{'\n'}소개소개소개소개소개소개소개소개소개
+                    </Text>
+                    <Text style={[FONTS.fs_h1_bold, styles.price]}>
+                    {roomPrice.toLocaleString()}원
+                    </Text>
+                </View>
 
-            <Text style={[FONTS.fs_h2_bold, styles.dateTitle]}>선택 날짜</Text>
-            <View style={styles.dateBoxContainer}>
-                <View style={styles.dateBoxCheckIn}>
-                <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크인</Text>
-                <Text style={FONTS.fs_body}>25.04.15 (화)</Text>
-                <Text style={FONTS.fs_body}>14:00</Text>
+                <Text style={[FONTS.fs_h2_bold, styles.dateTitle]}>선택 날짜</Text>
+                <View style={styles.dateBoxContainer}>
+                    <View style={styles.dateBoxCheckIn}>
+                    <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크인</Text>
+                    <Text style={FONTS.fs_body}>25.04.15 (화)</Text>
+                    <Text style={FONTS.fs_body}>14:00</Text>
+                    </View>
+                    <View style={styles.dateBoxCheckOut}>
+                    <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크아웃</Text>
+                    <Text style={FONTS.fs_body}>25.04.16 (수)</Text>
+                    <Text style={FONTS.fs_body}>11:00</Text>
+                    </View>
                 </View>
-                <View style={styles.dateBoxCheckOut}>
-                <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크아웃</Text>
-                <Text style={FONTS.fs_body}>25.04.16 (수)</Text>
-                <Text style={FONTS.fs_body}>11:00</Text>
-                </View>
-            </View>
             </View>
         </ScrollView>
 
         <View style={styles.button}>
-            <ButtonScarlet title="숙박 예약" marginHorizontal="0" />
+            <ButtonScarlet title="숙박 예약" marginHorizontal="0" to="GuesthouseReservation" />
         </View>
     </View>
   );

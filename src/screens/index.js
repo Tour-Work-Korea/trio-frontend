@@ -9,6 +9,7 @@ export { default as Party } from './(Common)/BottomTabs/Party';
 export { default as EditProfileFieldScreen } from './(Common)/EditProfileFieldScreen';
 export { default as FindId } from './(Common)/FindAuth/FindId';
 export { default as FindPassword } from './(Common)/FindAuth/FindPassword';
+export { default as GuesthouseReservation } from './(Common)/GuesthouseReservation';
 export { default as Result } from './(Common)/Result';
 export { default as RoomDetail } from './(Common)/RoomDetail';
 export { default as HostMyPage } from './(Host)/HostMyPage';
