@@ -87,7 +87,10 @@ const GuesthouseList = () => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('GuesthouseDetail', { id: item.id })}>
+    <TouchableOpacity onPress={() => navigation.navigate('GuesthouseDetail', {
+      id: item.id,
+      name: item.name,
+    })}>
       <View style={styles.card}>
         <Image
           source={require('@assets/images/exphoto.jpeg')}
