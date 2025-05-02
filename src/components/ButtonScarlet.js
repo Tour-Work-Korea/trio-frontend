@@ -12,11 +12,23 @@ import {FONTS} from '@constants/fonts';
 const ButtonScarlet = ({title, to, onPress, marginHorizontal = 15}) => {
   const navigation = useNavigation();
 
+  // const handlePress = () => {
+  //   if (onPress) {
+  //     onPress(); // 함수가 있으면 함수 실행
+  //   } else if (to) {
+  //     navigation.navigate(to); // 문자열이면 페이지 이동
+  //   }
+  // };
+
   const handlePress = () => {
     if (onPress) {
-      onPress(); // 함수가 있으면 함수 실행
-    } else if (to) {
-      navigation.navigate(to); // 문자열이면 페이지 이동
+      onPress(); // 함수 있으면 그거 실행
+    } else if (typeof to === 'string') {
+      navigation.navigate(to); // 단순한 스크린 이름
+    } else if (typeof to === 'object' && to?.tab && to?.screen) {
+      navigation.navigate(to.tab, { screen: to.screen }); // 탭 내 스크린
+    } else if (typeof to === 'object' && to?.tab) {
+      navigation.navigate(to.tab); // 탭 이동
     }
   };
 
