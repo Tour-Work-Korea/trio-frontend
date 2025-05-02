@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   View,
   Text,
@@ -12,6 +12,7 @@ import styles from './GuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
 import { rooms, reviews } from './mockData';
 import Header from '@components/Header';
+import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 
 import ThinEmptyHeart from '@assets/images/Thin_Empty_Heart.svg';
 import ShareIcon from '@assets/images/Share.svg';
@@ -36,6 +37,8 @@ const serviceIcons = [
 
 const GuesthouseDetail = ({ route }) => {
   const { id, name } = route.params;
+
+  const [modalVisible, setModalVisible] = useState(false);
   
   return (
     <ScrollView style={styles.container}>
@@ -83,14 +86,16 @@ const GuesthouseDetail = ({ route }) => {
             </View>
           </View>
 
-          <View style={styles.iconServiceRow}>
-            {serviceIcons.map(({ icon: Icon, label }, i) => (
-              <View key={i} style={styles.iconWrapper}>
-                <Icon width={24} height={24} />
-                <Text style={[FONTS.fs_body, styles.iconServiceText]}>{label}</Text>
-              </View>
-            ))}
-          </View>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <View style={styles.iconServiceRow}>
+              {serviceIcons.map(({ icon: Icon, label }, i) => (
+                <View key={i} style={styles.iconWrapper}>
+                  <Icon width={24} height={24} />
+                  <Text style={[FONTS.fs_body, styles.iconServiceText]}>{label}</Text>
+                </View>
+              ))}
+            </View>
+          </TouchableOpacity>
 
           <View style={styles.dateInfoRow}>
             <View style={styles.dateInfoContainer}>
@@ -203,6 +208,7 @@ const GuesthouseDetail = ({ route }) => {
           ))}
         </View>
       </View>
+      <ServiceInfoModal visible={modalVisible} onClose={() => setModalVisible(false)} />
     </ScrollView>
   );
 };
