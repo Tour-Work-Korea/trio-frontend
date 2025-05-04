@@ -8,6 +8,7 @@ import {
   Image,
 } from 'react-native';
 import styles from './PostRecruitment.styles';
+import Header from '@components/Header';
 
 /*
  * 공고 등록 페이지
@@ -16,6 +17,7 @@ import styles from './PostRecruitment.styles';
 const PostRecruitment = () => {
   return (
     <SafeAreaView style={styles.container}>
+      <Header title="구인공고" />
       <ScrollView contentContainerStyle={styles.scrollContainer}>
         {/* 기본정보 섹션 */}
         <View style={styles.section}>
