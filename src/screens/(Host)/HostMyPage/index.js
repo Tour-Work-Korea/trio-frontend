@@ -39,7 +39,11 @@ const HostMyPage = () => {
         {/* 숙박 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>숙박</Text>
-          <MenuItem IconComponent={MyGuesthouseIcon} label="나의 게스트하우스" />
+          <MenuItem
+            IconComponent={MyGuesthouseIcon}
+            label="나의 게스트하우스"
+            onPress={() => navigation.navigate('MyGuesthouseList')}
+          />
           <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
           <MenuItem IconComponent={GuesthouseReviewIcon} label="게하 리뷰" />
           <MenuItem IconComponent={StoreApplyIcon} label="입점 신청" />
@@ -58,8 +62,8 @@ const HostMyPage = () => {
   );
 };
 
-const MenuItem = ({ IconComponent, label }) => (
-  <TouchableOpacity style={styles.menuItem}>
+const MenuItem = ({ IconComponent, label, onPress }) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={28} height={28} />
