@@ -5,20 +5,17 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import styles from './MyGuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
-import { rooms, reviews } from './mockData';
+import { rooms } from './mockData';
 import Header from '@components/Header';
 import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
-import ThinEmptyHeart from '@assets/images/Thin_Empty_Heart.svg';
-import ShareIcon from '@assets/images/Share.svg';
 import LocationPin from '@assets/images/Gray_Location_Pin.svg';
 import Star from '@assets/images/Star.svg';
 import WifiIcon from '@assets/images/Wifi.svg';
@@ -164,7 +161,7 @@ const MyGuesthouseDetail = ({ route }) => {
         <View style={styles.buttonContainer}>
           <View style={styles.whiteBtnContainer}>
             <View style={styles.halfButtonWrapper}>
-              <ButtonWhite title="수정하기" marginHorizontal="0" />
+              <ButtonWhite title="수정하기" marginHorizontal="0" to="MyGuesthouseAddEdit"/>
             </View>
             <View style={styles.halfButtonWrapper}>
               <ButtonWhite title="숨기기" marginHorizontal="0" />

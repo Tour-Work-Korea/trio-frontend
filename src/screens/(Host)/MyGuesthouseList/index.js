@@ -30,7 +30,7 @@ const mockData = [
 
 const MyGuesthouseList = () => {
   const navigation = useNavigation();
-  
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Image source={item.image} style={styles.image} />
@@ -55,7 +55,7 @@ const MyGuesthouseList = () => {
     <View style={styles.container}>
       <Header title="마이페이지" />
       <View style={styles.buttonContainer}>
-        <ButtonScarlet title="게스트 하우스 등록" marginHorizontal="0"/>
+        <ButtonScarlet title="게스트 하우스 등록" marginHorizontal="0" to="MyGuesthouseAddEdit"/>
       </View>
       <FlatList
         data={mockData}
