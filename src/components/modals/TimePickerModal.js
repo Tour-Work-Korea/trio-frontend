@@ -88,7 +88,7 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   pickerContainer: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.white,
     borderTopStartRadius: 10,
     borderTopEndRadius: 10,
     paddingHorizontal: 20,
