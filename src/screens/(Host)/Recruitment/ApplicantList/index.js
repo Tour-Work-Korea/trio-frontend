@@ -12,12 +12,12 @@ import {
 } from 'react-native';
 import Header from '@components/Header';
 
-const RecruitmentDetail = () => {
+const ApplicantList = () => {
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="나의 공고 상세" />
-      <View style={styles.body}>공고 상세 페이지</View>
+      <Header title="지원자 상세 페이지" />
+      <View style={styles.body}>지원자 상세 페이지</View>
     </SafeAreaView>
   );
 };
-export default RecruitmentDetail;
+export default ApplicantList;

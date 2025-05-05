@@ -1,147 +1,210 @@
 import {StyleSheet} from 'react-native';
-import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: COLORS.white,
   },
   scrollContainer: {
     padding: 16,
   },
   section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
+    marginBottom: 24,
   },
-  sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
+  sectionTitle: {
+    ...FONTS.fs_h2_bold,
+    color: COLORS.black,
     marginBottom: 8,
-    color: '#212529',
   },
   divider: {
     height: 1,
-    backgroundColor: '#E9ECEF',
+    backgroundColor: COLORS.stroke_gray,
     marginBottom: 16,
   },
-  inputContainer: {
+  formGroup: {
     marginBottom: 16,
   },
   input: {
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    ...FONTS.fs_body,
+    color: COLORS.black,
   },
   textArea: {
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
+    ...FONTS.fs_body,
+    color: COLORS.black,
     minHeight: 100,
     textAlignVertical: 'top',
   },
-  dropdownContainer: {
+  dropdown: {
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     padding: 12,
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   dropdownText: {
-    fontSize: 16,
-    color: '#ADB5BD',
+    ...FONTS.fs_body,
+    color: COLORS.gray,
   },
-  activeText: {
-    color: '#212529',
+
+  // Tag section styles
+  tagDescription: {
+    ...FONTS.fs_body,
+    color: COLORS.gray,
+    marginBottom: 16,
   },
-  addButton: {
-    backgroundColor: '#E9ECEF',
+  tagGrid: {
+    marginBottom: 16,
+  },
+  tagRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  tagOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioButtonSelected: {
+    borderColor: COLORS.scarlet,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.scarlet,
+  },
+  tagText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+  },
+  addTagButton: {
+    backgroundColor: COLORS.light_gray,
     borderRadius: 4,
     padding: 12,
     alignItems: 'center',
+    marginBottom: 24,
   },
-  addButtonText: {
-    color: '#495057',
-    fontWeight: '500',
+  addTagButtonText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.gray,
+  },
+
+  // Date section styles
+  subsectionTitle: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.black,
+    marginBottom: 8,
   },
   dateRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  dateContainer: {
+  dateInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     padding: 12,
-    backgroundColor: '#FFFFFF',
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginRight: 8,
   },
-  dateText: {
-    fontSize: 16,
-    color: '#212529',
+  dateLabel: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
   },
-  spacer: {
-    width: 16,
-  },
+
+  // Count section styles
   countRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  countContainer: {
+  countItem: {
     flex: 1,
+    marginRight: 8,
   },
   countLabel: {
-    fontSize: 14,
+    ...FONTS.fs_body,
+    color: COLORS.black,
     marginBottom: 4,
-    color: '#495057',
   },
+  countInput: {
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 4,
+    padding: 12,
+    ...FONTS.fs_body,
+  },
+
+  // Age section styles
   ageRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
     marginBottom: 16,
   },
-  ageContainer: {
+  ageItem: {
     flex: 1,
+    marginRight: 8,
   },
   ageLabel: {
-    fontSize: 14,
+    ...FONTS.fs_body,
+    color: COLORS.black,
     marginBottom: 4,
-    color: '#495057',
   },
-  photoSection: {
-    marginTop: 8,
+  ageInput: {
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 4,
+    padding: 12,
+    ...FONTS.fs_body,
   },
-  photoLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-    color: '#495057',
+
+  // Photo section styles
+  photoSectionTitle: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.black,
+    marginBottom: 4,
   },
-  photoRow: {
+  photoDescription: {
+    ...FONTS.fs_body,
+    color: COLORS.gray,
+    marginBottom: 12,
+  },
+  photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginHorizontal: -4,
   },
-  photoContainer: {
-    width: '33.33%',
+  photoItem: {
+    width: '30%',
     aspectRatio: 1,
-    padding: 4,
+    marginRight: '3%',
+    marginBottom: 12,
     position: 'relative',
   },
   photo: {
@@ -149,53 +212,67 @@ const styles = StyleSheet.create({
     height: '100%',
     borderRadius: 4,
   },
-  addPhotoContainer: {
+  removePhotoButton: {
+    position: 'absolute',
+    top: -8,
+    right: -8,
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    width: 24,
+    height: 24,
+    justifyContent: 'center',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
+  },
+  removePhotoText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.gray,
+  },
+  addPhotoButton: {
+    width: 100,
+    height: 100,
+    aspectRatio: 1,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     borderStyle: 'dashed',
     justifyContent: 'center',
     alignItems: 'center',
   },
-  removePhotoButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
-  },
+
+  // Button section styles
   buttonContainer: {
-    marginTop: 16,
+    marginTop: 24,
     marginBottom: 32,
   },
   submitButton: {
-    backgroundColor: '#4263EB',
+    backgroundColor: COLORS.scarlet,
     borderRadius: 4,
-    padding: 16,
+    padding: 12,
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 8,
   },
   submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
+    ...FONTS.fs_body_bold,
+    color: COLORS.white,
   },
   secondaryButtonsRow: {
     flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
   },
   secondaryButton: {
     flex: 1,
     borderWidth: 1,
-    borderColor: '#CED4DA',
+    borderColor: COLORS.stroke_gray,
     borderRadius: 4,
     padding: 12,
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
   },
   secondaryButtonText: {
-    color: '#495057',
-    fontSize: 14,
-    fontWeight: '500',
+    ...FONTS.fs_body_bold,
+    color: COLORS.gray,
   },
 });
 
