@@ -32,7 +32,7 @@ export {default as Login} from './Login';
 //사장님 구인구직
 export {default as MyRecruitmentList} from './(Host)/Recruitment/MyRecruitmentList';
 export {default as PostRecruitment} from './(Host)/Recruitment/PostRecruitment';
-export {default as MyDetailRecruitment} from './(Host)/Recruitment/ReruitmentDetail';
+export {default as RecruitmentDetail} from './(Host)/Recruitment/RecruitmentDetail';
 export {default as ApplicantList} from './(Host)/Recruitment/ApplicantList';
 
 export {default as EmployList} from './(Common)/BottomTabs/Employ/EmployList';

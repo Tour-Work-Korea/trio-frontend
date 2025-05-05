@@ -51,7 +51,7 @@ const MyRecruitmentList = () => {
 
   // 페이지 이동 함수
   const handleViewDetail = id => {
-    navigation.navigate('MyDetailRecruitment');
+    navigation.navigate('RecruitmentDetail', {id});
   };
 
   const handleViewApplicants = id => {
