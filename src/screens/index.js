@@ -19,6 +19,7 @@ export { default as AddressSearch } from './(Host)/MyGuesthouseAddEdit/AddressSe
 export { default as RegisterRoomInfo } from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
 export { default as MyGuesthouseDetail } from './(Host)/MyGuesthouseDetail';
 export { default as MyGuesthouseList } from './(Host)/MyGuesthouseList';
+export { default as MyGuesthouseReviewList } from './(Host)/MyGuesthouseReviewList';
 export { default as Register } from './(Host)/Register';
 export { default as StoreRegister } from './(Host)/StoreRegister';
 export { default as Agree } from './(User)/Register/Agree';
