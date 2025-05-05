@@ -1,7 +1,7 @@
 import React from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile} from '@screens';
+import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile, MyGuesthouseList, MyGuesthouseDetail, MyGuesthouseAddEdit} from '@screens';
 
 import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
@@ -43,6 +43,9 @@ const My = () => {
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} /> 
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} /> 
+      <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} /> 
+      <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} /> 
+      <Stack.Screen name="MyGuesthouseAddEdit" component={MyGuesthouseAddEdit} /> 
     </Stack.Navigator>
   );
 };
