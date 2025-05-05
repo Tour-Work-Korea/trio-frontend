@@ -56,7 +56,7 @@ const MyRecruitmentList = () => {
 
   const handleViewApplicants = id => {
     // 지원자 목록 페이지로 이동하는 로직
-    navigation.navigate('ApplicantsList', {postingId: id});
+    navigation.navigate('ApplicantList', {id});
   };
 
   const handleDeletePosting = id => {

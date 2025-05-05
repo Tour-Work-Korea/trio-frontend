@@ -281,9 +281,9 @@ const RecruitmentDetail = () => {
         <TouchableOpacity
           style={styles.applyButton}
           onPress={() => {
-            navigation.navigate('PostRecruitment', {id});
+            navigation.navigate('ApplicantList', {id});
           }}>
-          <Text style={styles.applyButtonText}>지원하기기</Text>
+          <Text style={styles.applyButtonText}>지원자 보기</Text>
         </TouchableOpacity>
       </View>
     </SafeAreaView>
