@@ -17,4 +17,10 @@ export const tags = [
     '파티', '파티X', '감성', '바다전망', '조용한', '투어',
     '애견동반', '서핑강습', '조식제공',
 ];
+
+export const roomTypes = ['1인실', '2인실', '3인실', '4인실', '5인실', '6인실', '7인실', '8인실',];
+  
+export const partyOptions = ['필참', '불참가능'];
+
+export const genderOptions = ['혼숙', '여성전용', '남성전용'];
   
