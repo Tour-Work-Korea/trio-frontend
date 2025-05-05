@@ -48,10 +48,10 @@ const MyRecruitmentList = () => {
     },
   ];
 
-  const navigation = useNavigation;
+  const navigation = useNavigation();
 
   const moveToDetailPage = id => {
-    navigation.navigate('');
+    navigation.navigate('MyDetailRecruitment');
   };
 
   const renderPostingItem = ({item}) => (

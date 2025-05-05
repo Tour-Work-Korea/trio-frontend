@@ -23,6 +23,6 @@ export {default as UserMyPage} from './(User)/UserMyPage';
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as EXHome} from './EXHome';
 export {default as Login} from './Login';
-//사장님 구인공고
 export {default as MyRecruitmentList} from './(Host)/Recruitment/MyRecruitmentList';
 export {default as PostRecruitment} from './(Host)/Recruitment/PostRecruitment';
+export {default as MyDetailRecruitment} from './(Host)/Recruitment/ReruitmentDetail';
