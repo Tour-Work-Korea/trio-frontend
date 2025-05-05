@@ -10,7 +10,6 @@ import Header from '@components/Header';
 import styles from './MyRecruitmentList.styles';
 import Person from '@assets/images/Person.svg';
 import Trash from '@assets/images/Trash.svg';
-import BottomTabs from '../../../(Common)/BottomTabs';
 import {FONTS} from '@constants/fonts';
 import {useNavigation} from '@react-navigation/native';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -103,7 +102,6 @@ const MyRecruitmentList = () => {
           />
         </ScrollView>
       </View>
-      <BottomTabs />
     </SafeAreaView>
   );
 };
