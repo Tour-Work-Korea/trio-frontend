@@ -77,14 +77,14 @@ const EmployList = () => {
 
   const handleApply = id => {
     // 지원하기 버튼 클릭 시 상세 페이지로 이동
-    navigation.navigate('RecruitmentDetail', {id});
+    navigation.navigate('EmployDetail', {id});
   };
 
   const renderJobItem = ({item}) => (
     <View style={styles.jobItem}>
       <TouchableOpacity
         style={styles.jobItemContent}
-        onPress={() => navigation.navigate('RecruitmentDetail', {id: item.id})}>
+        onPress={() => navigation.navigate('EmployDetail', {id: item.id})}>
         <Image
           source={require('@assets/images/exphoto.jpeg')}
           style={styles.jobImage}
