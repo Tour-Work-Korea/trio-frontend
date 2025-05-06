@@ -219,7 +219,7 @@ const ApplicantDetail = () => {
       <TouchableOpacity
         style={styles.applyButton}
         onPress={() => {
-          navigation.navigate('ApplicantList', applicantData.id);
+          navigation.navigate('ApplicantForm', applicantData.id);
         }}>
         <Text style={styles.applyButtonText}>수정하기</Text>
       </TouchableOpacity>

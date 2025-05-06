@@ -83,7 +83,7 @@ const MyApplicantList = () => {
     <SafeAreaView style={styles.container}>
       <Header title="나의 이력서" />
       <View style={styles.body}>
-        <ButtonScarlet title="새 이력서" to="PostRecruitment" />
+        <ButtonScarlet title="새 이력서" to="ApplicantForm" />
 
         <FlatList
           data={postings}
