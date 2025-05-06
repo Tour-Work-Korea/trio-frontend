@@ -43,11 +43,14 @@ export default StyleSheet.create({
   checkboxContainer: {
     width: 24,
     height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
     marginRight: 10,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  agreementText: {
+    flex: 1,
+  },
+  highlightText: {
+    color: COLORS.scarlet,
   },
 });

@@ -14,73 +14,24 @@ const styles = StyleSheet.create({
     flexGrow: 1,
     paddingHorizontal: 20,
     paddingTop: 40,
-    paddingBottom: 80,
   },
   title: {
     ...FONTS.fs_h1_bold,
     textAlign: 'center',
-    marginBottom: 40,
+    marginBottom: 60,
   },
   inputSection: {
-    marginBottom: 20,
+    marginBottom: 30,
   },
   label: {
     ...FONTS.fs_body_bold,
     marginBottom: 10,
   },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    ...FONTS.fs_body,
-    justifyContent: 'center',
-  },
-  inputText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  placeholderText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-  },
-  genderContainer: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  genderOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 40,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  radioButtonSelected: {
-    borderColor: COLORS.scarlet,
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.scarlet,
-  },
-  genderText: {
-    ...FONTS.fs_body,
-  },
-  nicknameContainer: {
+  emailInputContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  nicknameInput: {
+  emailInput: {
     flex: 1,
     height: 50,
     borderWidth: 1,
@@ -89,14 +40,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 15,
     ...FONTS.fs_body,
   },
-  checkButton: {
+  verifyButton: {
     position: 'absolute',
     right: 10,
     paddingHorizontal: 10,
   },
-  checkButtonText: {
+  verifyButtonText: {
     ...FONTS.fs_body_small,
     color: COLORS.scarlet,
+  },
+  verificationContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  verificationInput: {
+    flex: 1,
+    height: 50,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    ...FONTS.fs_body,
+  },
+  timer: {
+    position: 'absolute',
+    right: 15,
+    ...FONTS.fs_body,
+    color: COLORS.scarlet,
+  },
+  resendButton: {
+    alignSelf: 'flex-end',
+    marginTop: 10,
+  },
+  resendText: {
+    ...FONTS.fs_body_small,
+    color: COLORS.black,
+    textDecorationLine: 'underline',
+  },
+  disabledText: {
+    color: COLORS.stroke_gray,
   },
   nextButton: {
     backgroundColor: COLORS.scarlet,
@@ -104,14 +86,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignItems: 'center',
     margin: 20,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+  },
+  disabledButton: {
+    backgroundColor: COLORS.scarlet,
   },
   nextButtonText: {
     ...FONTS.fs_body_bold,
     color: COLORS.white,
   },
 });
+
 export default styles;

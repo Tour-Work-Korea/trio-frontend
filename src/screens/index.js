@@ -19,11 +19,16 @@ export {default as AddressSearch} from './(Host)/MyGuesthouseAddEdit/AddressSear
 export {default as RegisterRoomInfo} from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
 export {default as MyGuesthouseDetail} from './(Host)/MyGuesthouseDetail';
 export {default as MyGuesthouseList} from './(Host)/MyGuesthouseList';
-export {default as Register} from './(Host)/Register';
+export {default as HostRegister} from './(Host)/Register';
 export {default as StoreRegister} from './(Host)/StoreRegister';
-export {default as Agree} from './(User)/Register/Agree';
-export {default as Intro} from './(User)/Register/Intro';
-export {default as UserInfo} from './(User)/Register/UserInfo';
+
+//유저 회원가입
+export {default as UserRegisterAgree} from './(User)/Register/Agree';
+export {default as UserRegisterIntro} from './(User)/Register/Intro';
+export {default as UserPhoneCertificate} from './(User)/Register/PhoneCertificate';
+export {default as UserEmailCertificate} from './(User)/Register/EmailCertificate';
+export {default as UserRegisterInfo} from './(User)/Register/UserInfo';
+
 export {default as UserMyPage} from './(User)/UserMyPage';
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as EXHome} from './EXHome';
