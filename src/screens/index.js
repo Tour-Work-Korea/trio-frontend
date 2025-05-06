@@ -37,3 +37,4 @@ export {default as ApplicantList} from './(Host)/Recruitment/ApplicantList';
 
 export {default as EmployList} from './(Common)/BottomTabs/Employ/EmployList';
 export {default as EmployDetail} from './(Common)/BottomTabs/Employ/EmployDetail';
+export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';

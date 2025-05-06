@@ -1,6 +1,6 @@
 import React from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
 import SettingIcon from '@assets/images/Gray_Setting.svg';
@@ -15,7 +15,7 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 
 import Header from '@components/Header';
 import styles from './UserMyPage.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 
 const UserMyPage = () => {
   // 가짜 유저 데이터 (사진 없음)
@@ -25,7 +25,7 @@ const UserMyPage = () => {
   };
 
   const navigation = useNavigation();
-  
+
   const goToEditProfile = () => {
     navigation.navigate('UserEditProfile');
   };
@@ -35,9 +35,12 @@ const UserMyPage = () => {
       <Header />
       <View style={styles.container}>
         <View style={styles.header}>
-        <View style={styles.profileContainer}>
+          <View style={styles.profileContainer}>
             {user.profileImage ? (
-              <Image source={{ uri: user.profileImage }} style={styles.profileImage} />
+              <Image
+                source={{uri: user.profileImage}}
+                style={styles.profileImage}
+              />
             ) : (
               <View style={styles.profilePlaceholder}>
                 <PersonIcon width={32} height={32} />
@@ -46,7 +49,12 @@ const UserMyPage = () => {
             <Text style={[FONTS.fs_h1_bold, styles.name]}>{user.name}</Text>
           </View>
           <View style={styles.headerIcons}>
-            <PersonIcon width={26} height={26} style={styles.icon} onPress={goToEditProfile} />
+            <PersonIcon
+              width={26}
+              height={26}
+              style={styles.icon}
+              onPress={goToEditProfile}
+            />
             <SettingIcon width={26} height={26} style={styles.icon} />
           </View>
         </View>
@@ -54,27 +62,36 @@ const UserMyPage = () => {
         {/* 숙박 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>숙박</Text>
-          <MenuItem IconComponent={FavoriteGuesthouseIcon} label="즐겨찾는 게하" />
+          <MenuItem
+            IconComponent={FavoriteGuesthouseIcon}
+            label="즐겨찾는 게하"
+          />
           <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
-          <MenuItem IconComponent={GuesthouseReviewIcon} label="나의 게하 리뷰" />
+          <MenuItem
+            IconComponent={GuesthouseReviewIcon}
+            label="나의 게하 리뷰"
+          />
         </View>
 
         {/* 공고 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>공고</Text>
           <MenuItem IconComponent={FavoritePostIcon} label="즐겨찾는 공고" />
-          <MenuItem IconComponent={MyApplicationIcon} label="나의 지원서" />
+          <MenuItem
+            IconComponent={MyApplicationIcon}
+            label="나의 지원서"
+            onPress={() => navigation.navigate('MyApplicantList')}
+          />
           <MenuItem IconComponent={ApplicationStatusIcon} label="지원 현황" />
           <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" />
         </View>
-
       </View>
     </ScrollView>
   );
 };
 
-const MenuItem = ({ IconComponent, label }) => (
-  <TouchableOpacity style={styles.menuItem}>
+const MenuItem = ({IconComponent, label, onPress}) => (
+  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={28} height={28} />
