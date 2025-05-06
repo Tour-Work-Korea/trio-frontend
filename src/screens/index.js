@@ -41,3 +41,4 @@ export {default as EmployDetail} from './(Common)/BottomTabs/Employ/EmployDetail
 export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';
 export {default as ApplicantDetail} from './(User)/Employ/ApplicantDetail';
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
+export {default as Applicant} from './(Common)/BottomTabs/Employ/Applicant';

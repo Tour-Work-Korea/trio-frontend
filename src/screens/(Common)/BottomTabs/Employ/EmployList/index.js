@@ -77,7 +77,7 @@ const EmployList = () => {
 
   const handleApply = id => {
     // 지원하기 버튼 클릭 시 상세 페이지로 이동
-    navigation.navigate('EmployDetail', {id});
+    navigation.navigate('Applicant', {id});
   };
 
   const renderJobItem = ({item}) => (
