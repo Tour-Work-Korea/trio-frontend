@@ -14,8 +14,6 @@ import Share from '@assets/images/Share.svg';
 import Header from '@components/Header';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
-import ButtonWhite from '@components/ButtonWhite';
-import ButtonScarlet from '../../../../components/ButtonScarlet';
 
 const {width} = Dimensions.get('window');
 

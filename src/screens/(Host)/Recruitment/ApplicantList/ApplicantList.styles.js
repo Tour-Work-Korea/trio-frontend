@@ -1,200 +1,170 @@
 import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F8F9FA',
+    backgroundColor: COLORS.light_gray,
   },
-  scrollContainer: {
+  scrollView: {
+    flex: 1,
+  },
+  filterButtonsContainer: {
+    flexDirection: 'row',
     padding: 16,
+    backgroundColor: COLORS.white,
+  },
+  filterButton: {
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 20,
+    marginRight: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  selectedFilterButton: {
+    backgroundColor: COLORS.stroke_gray,
+  },
+  filterButtonText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
   },
   section: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 8,
-    padding: 16,
     marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 1},
-    shadowOpacity: 0.1,
-    shadowRadius: 2,
-    elevation: 2,
   },
   sectionHeader: {
-    fontSize: 18,
-    fontWeight: '600',
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+  },
+  latestHeaderLeft: {
+    flex: 1,
+  },
+  sectionTitle: {
+    ...FONTS.fs_h2_bold,
+    color: COLORS.black,
+  },
+  highlightedText: {
+    color: COLORS.scarlet,
+  },
+  subTitle: {
+    ...FONTS.fs_body,
+    color: COLORS.gray,
+  },
+  pageIndicator: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.scarlet,
+  },
+  dropdownButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 4,
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  dropdownButtonText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+    marginRight: 4,
+  },
+  applicantCard: {
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 16,
+    marginHorizontal: 16,
     marginBottom: 8,
-    color: '#212529',
   },
-  divider: {
-    height: 1,
-    backgroundColor: '#E9ECEF',
-    marginBottom: 16,
-  },
-  inputContainer: {
-    marginBottom: 16,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-  },
-  textArea: {
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    padding: 12,
-    fontSize: 16,
-    backgroundColor: '#FFFFFF',
-    minHeight: 100,
-    textAlignVertical: 'top',
-  },
-  dropdownContainer: {
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
+  cardHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  dropdownText: {
-    fontSize: 16,
-    color: '#ADB5BD',
-  },
-  activeText: {
-    color: '#212529',
-  },
-  addButton: {
-    backgroundColor: '#E9ECEF',
-    borderRadius: 4,
-    padding: 12,
-    alignItems: 'center',
-  },
-  addButtonText: {
-    color: '#495057',
-    fontWeight: '500',
-  },
-  dateRow: {
-    flexDirection: 'row',
     marginBottom: 16,
   },
-  dateContainer: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    padding: 12,
-    backgroundColor: '#FFFFFF',
+  tagContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+  },
+  tag: {
+    backgroundColor: COLORS.light_gray,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
+    marginRight: 8,
+  },
+  tagText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+  },
+  favoriteButton: {
+    padding: 4,
+  },
+  applicantInfo: {
+    flexDirection: 'row',
+  },
+  profileImageContainer: {
     alignItems: 'center',
+    marginRight: 16,
   },
-  dateText: {
-    fontSize: 16,
-    color: '#212529',
+  profileImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    marginBottom: 8,
   },
-  spacer: {
-    width: 16,
+  nameText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.black,
+    textAlign: 'center',
   },
-  countRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
+  genderAgeText: {
+    ...FONTS.fs_body,
+    color: COLORS.gray,
+    textAlign: 'center',
   },
-  countContainer: {
+  detailsContainer: {
     flex: 1,
   },
-  countLabel: {
-    fontSize: 14,
+  introductionText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.black,
+    marginBottom: 8,
+  },
+  tagsRow: {
+    flexDirection: 'row',
+    marginBottom: 12,
+  },
+  hashTag: {
+    ...FONTS.fs_body,
+    color: COLORS.scarlet,
+    marginRight: 8,
+  },
+  infoRow: {
+    flexDirection: 'row',
     marginBottom: 4,
-    color: '#495057',
   },
-  ageRow: {
-    flexDirection: 'row',
-    marginBottom: 16,
+  infoLabel: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+    width: 50,
   },
-  ageContainer: {
+  infoValue: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
     flex: 1,
   },
-  ageLabel: {
-    fontSize: 14,
-    marginBottom: 4,
-    color: '#495057',
-  },
-  photoSection: {
+  careerYears: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.scarlet,
     marginTop: 8,
   },
-  photoLabel: {
-    fontSize: 14,
-    marginBottom: 8,
-    color: '#495057',
-  },
-  photoRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginHorizontal: -4,
-  },
-  photoContainer: {
-    width: '33.33%',
-    aspectRatio: 1,
-    padding: 4,
-    position: 'relative',
-  },
-  photo: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 4,
-  },
-  addPhotoContainer: {
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    borderStyle: 'dashed',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  removePhotoButton: {
-    position: 'absolute',
-    top: 8,
-    right: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.8)',
-    borderRadius: 12,
-  },
-  buttonContainer: {
-    marginTop: 16,
-    marginBottom: 32,
-  },
-  submitButton: {
-    backgroundColor: '#4263EB',
-    borderRadius: 4,
-    padding: 16,
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  submitButtonText: {
-    color: '#FFFFFF',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  secondaryButtonsRow: {
-    flexDirection: 'row',
-  },
-  secondaryButton: {
-    flex: 1,
-    borderWidth: 1,
-    borderColor: '#CED4DA',
-    borderRadius: 4,
-    padding: 12,
-    alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-  },
-  secondaryButtonText: {
-    color: '#495057',
-    fontSize: 14,
-    fontWeight: '500',
+  separator: {
+    height: 8,
   },
 });
 
