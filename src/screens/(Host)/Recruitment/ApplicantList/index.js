@@ -110,68 +110,70 @@ const ApplicantList = () => {
 
   const handleApplicantPress = id => {
     // 지원자 상세 페이지로 이동
-    navigation.navigate('ApplicantDetail', {id});
+    navigation.navigate('MyApplicantDetail', {id});
   };
 
   const renderApplicantItem = ({item}) => (
-    <View style={styles.applicantCard}>
-      <View style={styles.cardHeader}>
-        <View style={styles.tagContainer}>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>설렙 게스트하우스</Text>
+    <TouchableOpacity onPress={() => handleApplicantPress(item.id)}>
+      <View style={styles.applicantCard}>
+        <View style={styles.cardHeader}>
+          <View style={styles.tagContainer}>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>설렙 게스트하우스</Text>
+            </View>
+            <View style={styles.tag}>
+              <Text style={styles.tagText}>공고제목</Text>
+            </View>
           </View>
-          <View style={styles.tag}>
-            <Text style={styles.tagText}>공고제목</Text>
+          <TouchableOpacity
+            style={styles.favoriteButton}
+            onPress={() => toggleFavorite(item.id)}>
+            {favorites[item.id] ? (
+              <FilledHeartIcon width={24} height={24} color={COLORS.scarlet} />
+            ) : (
+              <HeartIcon width={24} height={24} />
+            )}
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.applicantInfo}>
+          <View style={styles.profileImageContainer}>
+            <Image
+              source={require('@assets/images/exphoto.jpeg')}
+              style={styles.profileImage}
+              resizeMode="cover"
+            />
+            <Text style={styles.nameText}>{item.name}</Text>
+            <Text style={styles.genderAgeText}>
+              ({item.gender}, {item.age}세)
+            </Text>
+          </View>
+
+          <View style={styles.detailsContainer}>
+            <Text style={styles.introductionText}>{item.introduction}</Text>
+            <View style={styles.tagsRow}>
+              {item.tags.map((tag, index) => (
+                <Text key={index} style={styles.hashTag}>
+                  {tag}
+                </Text>
+              ))}
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>MBTI</Text>
+              <Text style={styles.infoValue}>{item.mbti}</Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={styles.infoLabel}>경력</Text>
+              <Text style={styles.infoValue}>{item.careerDetails}</Text>
+            </View>
+
+            <Text style={styles.careerYears}>{item.careerYears}</Text>
           </View>
         </View>
-        <TouchableOpacity
-          style={styles.favoriteButton}
-          onPress={() => toggleFavorite(item.id)}>
-          {favorites[item.id] ? (
-            <FilledHeartIcon width={24} height={24} color={COLORS.scarlet} />
-          ) : (
-            <HeartIcon width={24} height={24} />
-          )}
-        </TouchableOpacity>
       </View>
-
-      <View style={styles.applicantInfo}>
-        <View style={styles.profileImageContainer}>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={styles.profileImage}
-            resizeMode="cover"
-          />
-          <Text style={styles.nameText}>{item.name}</Text>
-          <Text style={styles.genderAgeText}>
-            ({item.gender}, {item.age}세)
-          </Text>
-        </View>
-
-        <View style={styles.detailsContainer}>
-          <Text style={styles.introductionText}>{item.introduction}</Text>
-          <View style={styles.tagsRow}>
-            {item.tags.map((tag, index) => (
-              <Text key={index} style={styles.hashTag}>
-                {tag}
-              </Text>
-            ))}
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>MBTI</Text>
-            <Text style={styles.infoValue}>{item.mbti}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>경력</Text>
-            <Text style={styles.infoValue}>{item.careerDetails}</Text>
-          </View>
-
-          <Text style={styles.careerYears}>{item.careerYears}</Text>
-        </View>
-      </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderFilterButtons = () => (

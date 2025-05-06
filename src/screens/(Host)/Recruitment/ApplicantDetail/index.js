@@ -10,13 +10,11 @@ import {
   Alert,
 } from 'react-native';
 import styles from './ApplicantDetail.styles';
-import {useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
-import ApplicantAttachments from './components/ApplicantAttachments';
-import ApplicantExperienceSection from './components/ApplicantExperienceSection';
-import ApplicantProfileHeader from './components/ApplicantProfileHeader';
-import ApplicantSelfIntroduction from './components/ApplicantSelfIntroduction';
-
+import ApplicantAttachments from '../../../(User)/Employ/ApplicantDetail/components/ApplicantAttachments';
+import ApplicantExperienceSection from '../../../(User)/Employ/ApplicantDetail/components/ApplicantExperienceSection';
+import ApplicantProfileHeader from '../../../(User)/Employ/ApplicantDetail/components/ApplicantProfileHeader';
+import ApplicantSelfIntroduction from '../../../(User)/Employ/ApplicantDetail/components/ApplicantSelfIntroduction';
 // 목업 데이터
 const applicantData = {
   id: '1',
@@ -63,57 +61,17 @@ const applicantData = {
     {id: '1', name: '첨부파일1'},
     {id: '2', name: '첨부파일2'},
   ],
+  wishDuration: {
+    from: '2000.00.00',
+    to: '2000.00.01',
+  },
+  toHost: '열심히 하겠습니다!!',
 };
 
 const ApplicantDetail = () => {
-  const navigation = useNavigation();
-
-  const handleDelete = () => {
-    // 삭제 기능 구현
-    Alert.alert(
-      '지원자 삭제',
-      '정말로 이 지원자를 삭제하시겠습니까?',
-      [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => {
-            // 삭제 로직 구현
-            Alert.alert('알림', '삭제되었습니다.');
-            navigation.goBack();
-          },
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const renderActionButtons = () => (
-    <View style={styles.bottomButtonContainer}>
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => {
-          handleDelete();
-        }}>
-        <Text style={styles.secondaryButtonText}>삭제하기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.applyButton}
-        onPress={() => {
-          navigation.navigate('ApplicantForm', applicantData.id);
-        }}>
-        <Text style={styles.applyButtonText}>수정하기</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
-      <Header title={'나의 이력서 상세'} />
+      <Header title={'이력서 상세'} />
       <ScrollView style={styles.scrollView}>
         <ApplicantProfileHeader data={applicantData} />
         <ApplicantExperienceSection
@@ -122,8 +80,22 @@ const ApplicantDetail = () => {
         />
         <ApplicantSelfIntroduction text={applicantData.selfIntroduction} />
         <ApplicantAttachments attachments={applicantData.attachments} />
+
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>근무 희망기간</Text>
+          <View style={styles.introductionCard}>
+            <Text style={styles.introductionText}>
+              {applicantData.wishDuration.from}~{applicantData.wishDuration.to}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.sectionContainer}>
+          <Text style={styles.sectionTitle}>사장님께 한마디</Text>
+          <View style={styles.introductionCard}>
+            <Text style={styles.introductionText}>{applicantData.toHost}</Text>
+          </View>
+        </View>
       </ScrollView>
-      {renderActionButtons()}
     </SafeAreaView>
   );
 };
