@@ -51,7 +51,11 @@ const HostMyPage = () => {
           />
           <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
           <MenuItem IconComponent={GuesthouseReviewIcon} label="게하 리뷰" />
-          <MenuItem IconComponent={StoreApplyIcon} label="입점 신청" />
+          <MenuItem
+            IconComponent={StoreApplyIcon}
+            label="입점 신청"
+            onPress={() => navigation.navigate('StoreRegister')}
+          />
         </View>
 
         {/* 공고 섹션 */}
