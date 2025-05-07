@@ -257,18 +257,6 @@ const RecruitmentDetail = () => {
 
       {/* 하단 버튼 */}
       <View style={styles.bottomButtonContainer}>
-        {/* <ButtonWhite
-          title={'수정하기'}
-          onPress={() => {
-            navigation.navigate('PostRecruitment', {id});
-          }}
-        />
-        <ButtonScarlet
-          title={'지원하기'}
-          onPress={() => {
-            navigation.navigate('PostRecruitment', {id});
-          }}
-        /> */}
         <TouchableOpacity
           style={styles.secondaryButton}
           onPress={() => {

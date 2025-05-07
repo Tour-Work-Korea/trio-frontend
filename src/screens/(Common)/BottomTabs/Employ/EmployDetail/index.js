@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {useRoute} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 const {width} = Dimensions.get('window');
 
 const EmployDetail = () => {
+  const navigation = useNavigation();
   const route = useRoute();
   const {id} = route.params;
   const [activeTab, setActiveTab] = useState('모집조건');
@@ -256,7 +257,11 @@ const EmployDetail = () => {
 
       {/* 하단 버튼 */}
       <View style={styles.bottomButtonContainer}>
-        <TouchableOpacity style={styles.applyButton}>
+        <TouchableOpacity
+          style={styles.applyButton}
+          onPress={() => {
+            navigation.navigate('Applicant');
+          }}>
           <Text style={styles.applyButtonText}>지원하기</Text>
         </TouchableOpacity>
       </View>
