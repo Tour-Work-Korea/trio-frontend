@@ -45,6 +45,7 @@ const EXHome = () => {
           navigation.navigate('UserPhoneCertificate', {user: 'Host'});
         }}
       />
+      <ButtonWhite title="예시 로그인 & 저장 페이지로 이동" to="EXLogin" />
       {/* 버튼 컴포넌트 사용 */}
       <ButtonWhite title="하단바 있는 페이지로 이동" to="BottomTabs" />
     </SafeAreaView>
