@@ -8,7 +8,9 @@ const authApi = {
 
   //사업자 번호 인증
   verifyBusiness: businessNumber =>
-    axiosInstance.post('/auth/business/verify', businessNumber),
+    axiosInstance.post('/auth/business/verify', null, {
+      params: {businessNumber},
+    }),
 
   //사장님 회원가입
   hostSignUp: hostData => axiosInstance.post('/auth/host/signup', hostData),

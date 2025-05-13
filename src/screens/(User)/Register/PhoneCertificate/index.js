@@ -77,7 +77,7 @@ const PhoneCertificate = ({route}) => {
 
     // 인증번호 확인 로직 (실제로는 API 호출)
     // 성공 시 다음 화면으로 이동
-    navigation.navigate('UserEmailCertificate', {user: user});
+    navigation.navigate('UserEmailCertificate', {user, phoneNumber});
   };
 
   // 타이머 포맷 함수
