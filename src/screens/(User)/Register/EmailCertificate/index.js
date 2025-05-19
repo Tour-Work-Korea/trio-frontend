@@ -59,7 +59,7 @@ const EmailCertificate = ({route}) => {
       return;
     }
     try {
-      await authApi.sendEmail({email}); // 실제 API 호출
+      await authApi.sendEmail(email); // 실제 API 호출
       setIsCodeSent(true);
       setTimeLeft(180);
       setIsTimerActive(true);
@@ -85,7 +85,7 @@ const EmailCertificate = ({route}) => {
         if (user === 'User') {
           navigation.navigate('UserRegisterInfo', {email, phoneNumber});
         } else {
-          navigation.navigate('HostRegister', {email, phoneNumber});
+          navigation.navigate('Register', {email, phoneNumber});
         }
       } else {
         Alert.alert('오류', '인증에 실패했습니다.');

@@ -63,8 +63,14 @@ const Register = ({route}) => {
 
   // 비밀번호 확인
   const confirmPassword = () => {
-    if (!signupForm.password || signupForm.password.length < 6) {
-      Alert.alert('알림', '비밀번호는 6자 이상이어야 합니다.');
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=])[A-Za-z\d!@#$%^&*()_\-+=]{8,20}$/;
+
+    if (!passwordRegex.test(signupForm.password)) {
+      Alert.alert(
+        '알림',
+        '비밀번호는 영문 대/소문자, 숫자, 특수문자를 포함한 8~20자리여야 합니다.',
+      );
       return;
     }
     setIsPasswordConfirmed(true);
