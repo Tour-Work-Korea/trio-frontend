@@ -19,6 +19,9 @@ const authApi = {
 
   //사장님 회원가입
   hostSignUp: hostData => api.post('/auth/host/signup', hostData),
+
+  //로그인
+  login: (email, password) => api.post('/auth/login', {email, password}),
 };
 
 export default authApi;
