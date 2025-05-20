@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   ScrollView,
   TextInput,
@@ -12,25 +11,34 @@ import {
   Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
+import styles from './Register.styles';
 import Header from '@components/Header';
+import authApi from '../../../utils/api/authApi';
 
-const Register = () => {
+const Register = ({route}) => {
+  const {email, phoneNumber} = route.params;
   const navigation = useNavigation();
 
-  // 약관 동의 상태
+  const [signupForm, setSignupForm] = useState({
+    password: '',
+    passwordConfirm: '',
+    name: '',
+    businessNumber: '',
+    userRole: 'ADMIN',
+    phoneNum: phoneNumber,
+    email: email,
+  });
+
+  const [isPasswordConfirmed, setIsPasswordConfirmed] = useState(false);
+  const [isBusinessNumberVerified, setIsBusinessNumberVerified] =
+    useState(false);
   const [allAgreed, setAllAgreed] = useState(false);
   const [serviceAgreed, setServiceAgreed] = useState(false);
   const [privacyAgreed, setPrivacyAgreed] = useState(false);
 
-  const [password, setPassword] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [isPasswordConfirmed, setIsPasswordConfirmed] = useState(false);
-  const [name, setName] = useState('');
-  const [businessNumber, setBusinessNumber] = useState('');
-  const [isBusinessNumberVerified, setIsBusinessNumberVerified] =
-    useState(false);
+  const handleSignupFormChange = (key, value) => {
+    setSignupForm(prev => ({...prev, [key]: value}));
+  };
 
   // 전체 동의 처리
   const handleAllAgree = () => {
@@ -55,36 +63,47 @@ const Register = () => {
 
   // 비밀번호 확인
   const confirmPassword = () => {
-    if (!password || password.length < 6) {
-      Alert.alert('알림', '비밀번호는 6자 이상이어야 합니다.');
+    const passwordRegex =
+      /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[!@#$%^&*()_\-+=])[A-Za-z\d!@#$%^&*()_\-+=]{8,20}$/;
+
+    if (!passwordRegex.test(signupForm.password)) {
+      Alert.alert(
+        '알림',
+        '비밀번호는 영문 대/소문자, 숫자, 특수문자를 포함한 8~20자리여야 합니다.',
+      );
       return;
     }
-
-    // 실제로는 비밀번호 유효성 검사
     setIsPasswordConfirmed(true);
-    Alert.alert('알림', '비밀번호가 확인되었습니다.');
   };
 
   // 사업자등록번호 확인
-  const verifyBusinessNumber = () => {
-    if (!businessNumber || businessNumber.length !== 10) {
+  const verifyBusinessNumber = async () => {
+    if (!signupForm.businessNumber || signupForm.businessNumber.length !== 10) {
       Alert.alert('알림', '유효한 사업자등록번호를 입력해주세요.');
       return;
     }
 
-    // 실제로는 사업자등록번호 확인 API 호출
-    setIsBusinessNumberVerified(true);
-    Alert.alert('알림', '사업자등록번호가 확인되었습니다.');
+    try {
+      const response = await authApi.verifyBusiness(signupForm.businessNumber);
+      if (response.status === 200) {
+        setIsBusinessNumberVerified(true);
+        Alert.alert('알림', '사업자등록번호가 확인되었습니다.');
+      } else {
+        Alert.alert('오류', '사업자등록번호 확인에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '사업자등록번호 확인에 실패했습니다.');
+    }
   };
 
   // 회원가입 완료 처리
-  const handleSignup = () => {
+  const handleSignup = async () => {
     if (!isPasswordConfirmed) {
       Alert.alert('알림', '비밀번호 확인이 필요합니다.');
       return;
     }
 
-    if (!name) {
+    if (!signupForm.name) {
       Alert.alert('알림', '이름을 입력해주세요.');
       return;
     }
@@ -94,10 +113,29 @@ const Register = () => {
       return;
     }
 
-    // 회원가입 완료 처리
-    Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
-      {text: '확인', onPress: () => navigation.navigate('Login')},
-    ]);
+    const signupData = {
+      userRole: 'ADMIN',
+      phoneNum: phoneNumber,
+      email: email,
+      password: signupForm.password,
+      passwordConfirm: signupForm.passwordConfirm,
+      name: signupForm.name,
+      bussinessNum: signupForm.businessNumber,
+    };
+
+    try {
+      const response = await authApi.hostSignUp(signupData);
+      if (response.status === 200 || response.status === 201) {
+        Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
+          {text: '확인', onPress: () => navigation.navigate('Login')},
+        ]);
+      } else {
+        Alert.alert('오류', '회원가입에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '회원가입 요청 중 문제가 발생했습니다.');
+      console.error(error);
+    }
   };
 
   return (
@@ -161,8 +199,8 @@ const Register = () => {
             <TextInput
               style={styles.fullInput}
               placeholder="비밀번호 입력"
-              value={password}
-              onChangeText={setPassword}
+              value={signupForm.password}
+              onChangeText={text => handleSignupFormChange('password', text)}
               secureTextEntry
               editable={!isPasswordConfirmed}
             />
@@ -175,8 +213,10 @@ const Register = () => {
               <TextInput
                 style={styles.input}
                 placeholder="비밀번호를 한번 더 입력해 주세요"
-                value={passwordConfirm}
-                onChangeText={setPasswordConfirm}
+                value={signupForm.passwordConfirm}
+                onChangeText={text =>
+                  handleSignupFormChange('passwordConfirm', text)
+                }
                 secureTextEntry
                 editable={!isPasswordConfirmed}
               />
@@ -198,8 +238,8 @@ const Register = () => {
             <TextInput
               style={styles.fullInput}
               placeholder="이름"
-              value={name}
-              onChangeText={setName}
+              value={signupForm.name}
+              onChangeText={text => handleSignupFormChange('name', text)}
             />
           </View>
 
@@ -210,8 +250,10 @@ const Register = () => {
               <TextInput
                 style={styles.input}
                 placeholder="'-'없이 숫자만 입력해 주세요"
-                value={businessNumber}
-                onChangeText={setBusinessNumber}
+                value={signupForm.businessNumber}
+                onChangeText={text =>
+                  handleSignupFormChange('businessNumber', text)
+                }
                 keyboardType="number-pad"
                 maxLength={10}
                 editable={!isBusinessNumberVerified}
@@ -237,160 +279,5 @@ const Register = () => {
     </SafeAreaView>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: COLORS.white,
-  },
-  keyboardAvoidingView: {
-    flex: 1,
-  },
-  scrollView: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  agreementSection: {
-    marginBottom: 20,
-    backgroundColor: COLORS.background_gray,
-    padding: 15,
-    borderRadius: 8,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.gray,
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: COLORS.scarlet,
-    borderColor: COLORS.scarlet,
-  },
-  checkmark: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  checkboxLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  requiredAgreements: {
-    marginLeft: 10,
-  },
-  requiredTag: {
-    color: COLORS.scarlet,
-  },
-  verificationSection: {
-    marginBottom: 20,
-    backgroundColor: COLORS.background_gray,
-    padding: 15,
-    borderRadius: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'column',
-  },
-  sectionTitle: {
-    ...FONTS.fs_body_bold,
-    marginBottom: 5,
-  },
-  sectionDescription: {
-    ...FONTS.fs_body,
-    color: COLORS.dark_gray,
-    marginBottom: 10,
-  },
-  verifyButton: {
-    backgroundColor: COLORS.scarlet,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    alignSelf: 'flex-end',
-  },
-  verifyButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.white,
-  },
-  inputSection: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    ...FONTS.fs_body_bold,
-    marginBottom: 10,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  input: {
-    flex: 1,
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.white,
-    ...FONTS.fs_body,
-  },
-  fullInput: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.white,
-    ...FONTS.fs_body,
-  },
-  verifyCodeButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-  },
-  verifyCodeButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  confirmButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-  },
-  confirmButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  disabledButton: {
-    backgroundColor: COLORS.light_gray,
-    borderColor: COLORS.light_gray,
-  },
-  signupButton: {
-    backgroundColor: COLORS.scarlet,
-    paddingVertical: 15,
-    borderRadius: 5,
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  signupButtonText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.white,
-  },
-});
 
 export default Register;

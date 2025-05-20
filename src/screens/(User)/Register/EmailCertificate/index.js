@@ -14,9 +14,10 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import styles from './EmailCertificate.styles';
 import Header from '@components/Header';
+import authApi from '../../../../utils/api/authApi';
 
 const EmailCertificate = ({route}) => {
-  const {user} = route.params;
+  const {user, phoneNumber} = route.params;
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [verificationCode, setVerificationCode] = useState('');
@@ -51,42 +52,47 @@ const EmailCertificate = ({route}) => {
   };
 
   // 인증번호 전송 함수
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     // 이메일 유효성 검사
     if (!email || !isValidEmail(email)) {
       Alert.alert('알림', '유효한 이메일 주소를 입력해주세요.');
       return;
     }
-
-    // 인증번호 전송 로직 (실제로는 API 호출)
-    setIsCodeSent(true);
-    setTimeLeft(180);
-    setIsTimerActive(true);
-    Alert.alert('알림', '인증번호가 전송되었습니다.');
-  };
-
-  // 인증번호 재전송 함수
-  const resendVerificationCode = () => {
-    setVerificationCode('');
-    setTimeLeft(180);
-    setIsTimerActive(true);
-    Alert.alert('알림', '인증번호가 재전송되었습니다.');
+    try {
+      await authApi.sendEmail(email); // 실제 API 호출
+      setIsCodeSent(true);
+      setTimeLeft(180);
+      setIsTimerActive(true);
+      Alert.alert('알림', '인증번호가 전송되었습니다.');
+    } catch (error) {
+      Alert.alert('오류', '인증번호 전송에 실패했습니다.');
+      console.error(error);
+    }
   };
 
   // 인증 확인 함수
-  const verifyCode = () => {
-    // 인증번호 유효성 검사
-    // if (!verificationCode || verificationCode.length < 4) {
-    //   Alert.alert('알림', '유효한 인증번호를 입력해주세요.');
-    //   return;
-    // }
+  const verifyCode = async () => {
+    if (!verificationCode || verificationCode.length < 4) {
+      Alert.alert('알림', '유효한 인증번호를 입력해주세요.');
+      return;
+    }
 
-    // 인증번호 확인 로직 (실제로는 API 호출)
-    // 성공 시 다음 화면으로 이동
-    if (user == 'User') {
-      navigation.navigate('UserRegisterInfo');
-    } else {
-      navigation.navigate('HostRegister');
+    try {
+      const response = await authApi.verifyEmail(email, verificationCode);
+      if (response.status === 200) {
+        Alert.alert('알림', '인증에 성공했습니다.');
+
+        if (user === 'User') {
+          navigation.navigate('UserRegisterInfo', {email, phoneNumber});
+        } else {
+          navigation.navigate('Register', {email, phoneNumber});
+        }
+      } else {
+        Alert.alert('오류', '인증에 실패했습니다.');
+      }
+    } catch (error) {
+      Alert.alert('오류', '인증번호 확인에 실패했습니다.');
+      console.error(error);
     }
   };
 
@@ -145,7 +151,7 @@ const EmailCertificate = ({route}) => {
 
             <TouchableOpacity
               style={styles.resendButton}
-              onPress={resendVerificationCode}
+              onPress={sendVerificationCode}
               disabled={!isCodeSent}>
               <Text
                 style={[styles.resendText, !isCodeSent && styles.disabledText]}>

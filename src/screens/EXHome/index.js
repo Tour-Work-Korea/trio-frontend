@@ -42,7 +42,7 @@ const EXHome = () => {
       <ButtonScarlet
         title="사장님 회원가입 페이지로 이동"
         onPress={() => {
-          navigation.navigate('UserPhoneCertificate', {user: 'Host'});
+          navigation.navigate('PhoneCertificate', {user: 'Host'});
         }}
       />
       <ButtonWhite title="예시 로그인 & 저장 페이지로 이동" to="EXLogin" />

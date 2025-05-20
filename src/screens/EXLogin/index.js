@@ -1,35 +1,34 @@
-import React, { useEffect } from 'react';
-import { View, Text } from 'react-native';
+import React, {useEffect} from 'react';
+import {View, Text} from 'react-native';
 import axios from 'axios';
 import useUserStore from '@stores/userStore'; // store 만든거 불러옴
-import { API_BASE_URL } from '@env'; // api 백 주소 불러오기
+import {API_BASE_URL} from '@env'; // api 백 주소 불러오기
+import authApi from '../../utils/api/authApi';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
-  const accessToken = useUserStore((state) => state.accessToken);
-  const userRole = useUserStore((state) => state.userRole);
+  const accessToken = useUserStore(state => state.accessToken);
+  const userRole = useUserStore(state => state.userRole);
 
   // 로그인 함수 예시
-  const login = async ({ email, password, userRole }) => {
+  const login = async ({email, password}) => {
     try {
       // 로그인 요청
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
-        email,
-        password,
-        userRole,
-      });
+      const response = await authApi.login(email, password);
 
-      // 응답에서 accessToken, refreshToken 추출
-      const { accessToken, refreshToken } = response.data;
+      const authorizationHeader = response.headers?.authorization;
+      const accessToken = authorizationHeader?.replace('Bearer ', '');
 
-      // store의 setter 가져오기
-      const { setTokens, setUserRole } = useUserStore.getState();
+      if (!accessToken) {
+        console.error('토큰 없음');
+        return;
+      }
 
-      // zustand에 토큰 및 사용자 역할 저장
-      setTokens({ accessToken, refreshToken });
+      const {setTokens, setUserRole} = useUserStore.getState();
+
+      // 토큰과 역할 저장
+      setTokens({accessToken, refreshToken: null}); // refreshToken은 없는 것으로 간주
       setUserRole(userRole);
-
-      // persist로 인해 앱 껐다 켜도 로그인 정보 유지됨
     } catch (error) {
       console.error('로그인 실패:', error);
     }
@@ -38,9 +37,9 @@ const EXLogin = () => {
   useEffect(() => {
     // 더미 데이터로 로그인 호출
     login({
-      email: 'test@example.com',
-      password: '12345678',
-      userRole: 'USER',
+      email: 'balamogoulish@naver.com',
+      password: 'Pw12345678!',
+      userRole: 'ADMIN',
     });
   }, []);
 
