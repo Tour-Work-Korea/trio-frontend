@@ -9,9 +9,10 @@ const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
   const accessToken = useUserStore(state => state.accessToken);
   const userRole = useUserStore(state => state.userRole);
+  const refreshToken = useUserStore(state => state.refreshToken);
 
   // 로그인 함수 예시
-  const login = async ({email, password}) => {
+  const login = async ({email, password, userRole}) => {
     try {
       // 로그인 요청
       const response = await authApi.login(email, password);
@@ -29,6 +30,14 @@ const EXLogin = () => {
       // 토큰과 역할 저장
       setTokens({accessToken, refreshToken: null}); // refreshToken은 없는 것으로 간주
       setUserRole(userRole);
+
+      // 토큰과 역할 읽어오기 예시
+      const { accessToken: savedAccess, refreshToken: savedRefresh, userRole: savedRole } = useUserStore.getState();
+
+      console.log('accessToken:', savedAccess);
+      console.log('refreshToken:', savedRefresh);
+      console.log('userRole:', savedRole);
+      
     } catch (error) {
       console.error('로그인 실패:', error);
     }

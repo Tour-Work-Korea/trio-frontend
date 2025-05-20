@@ -1,9 +1,10 @@
 import qs from 'qs'; // qs는 query string을 stringify할 때 유용함
 import axios from 'axios';
 import useUserStore from '@stores/userStore';
+import {API_BASE_URL} from '@env'; // api 백 주소 불러오기
 
 const api = axios.create({
-  baseURL: 'http://52.78.210.107:8080/api/v1',
+  baseURL: API_BASE_URL,
   timeout: 5000,
   headers: {
     'Content-Type': 'application/json',
