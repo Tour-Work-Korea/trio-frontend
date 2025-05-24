@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: params => qs.stringify(params),
 });
 
 api.interceptors.request.use(
