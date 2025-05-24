@@ -1,10 +1,11 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   FlatList,
   TouchableOpacity,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
@@ -14,45 +15,35 @@ import Trash from '@assets/images/Trash.svg';
 import styles from './MyRecruitmentList.styles';
 import {FONTS} from '@constants/fonts';
 import hostEmployApi from '@utils/api/hostEmployApi';
-
+// 샘플 데이터
+const postings = [
+  {
+    recruitId: 1,
+    recruitTitle: '공고 제목',
+    guesthouseId: 1,
+    guesthouseName: '게스트하우스 이름',
+  },
+];
 /*
  * 공고 목록 페이지
  */
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
+  const [myRecruits, setMyRecruits] = useState([]);
 
-  // 샘플 데이터
-  const postings = [
-    {
-      id: '1',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '2',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '3',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '4',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-  ];
+  useEffect(() => {
+    // getMyRecruits();
+    setMyRecruits(postings);
+  }, []);
+
   const getMyRecruits = async () => {
     try {
       const response = await hostEmployApi.getMyRecruits();
-    } catch (error) {}
+      setMyRecruits(response.data);
+    } catch (error) {
+      Alert('내 공고 조회에 실패했습니다.');
+    }
   };
 
   const handleViewDetail = id => {
@@ -76,25 +67,22 @@ const MyRecruitmentList = () => {
       <View style={styles.postingCard}>
         <View style={styles.guestHouseTag}>
           <Text style={[styles.guestHouseText, FONTS.fs_body]}>
-            {item.guestHouseName}
+            {item.guesthouseName}
           </Text>
         </View>
 
         <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_h2_bold]}>{item.title}</Text>
+          <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>
           <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={() => handleViewApplicants(item.id)}>
+            <TouchableOpacity
+              onPress={() => handleViewApplicants(item.recruitId)}>
               <Person />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeletePosting(item.id)}>
+            <TouchableOpacity
+              onPress={() => handleDeletePosting(item.recruitId)}>
               <Trash />
             </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.dateRow}>
-          <Text style={[styles.dateLabel, FONTS.fs_body]}>최종수정일</Text>
-          <Text style={[styles.date, FONTS.fs_body]}>{item.lastModified}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -110,7 +98,7 @@ const MyRecruitmentList = () => {
         </Text>
 
         <FlatList
-          data={postings}
+          data={myRecruits}
           renderItem={renderPostingItem}
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
