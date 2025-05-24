@@ -14,11 +14,8 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import styles from './PostRecruitment.styles';
 import Header from '@components/Header';
-import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import Calendar from '@assets/images/Calendar.svg';
-import {FONTS} from '@constants/fonts';
-
 const PostRecruitment = () => {
   // Form state
   const [formData, setFormData] = useState({

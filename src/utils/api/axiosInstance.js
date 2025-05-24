@@ -16,7 +16,7 @@ api.interceptors.request.use(
     const method = config.method?.toUpperCase() || 'GET';
     const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
     const endpoint = config.url?.replace(/^\//, '') || '';
-
+    console.log('baseUrl: ', API_BASE_URL);
     // 토큰 주입
     const token = useUserStore.getState().accessToken; // 메모리에서 바로 꺼냄
     if (token) {
