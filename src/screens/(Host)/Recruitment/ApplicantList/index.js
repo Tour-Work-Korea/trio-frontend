@@ -49,7 +49,7 @@ const mockApplicants = [
 
 const ApplicantList = () => {
   const route = useRoute();
-  const {recruitId} = route.params;
+  const recruitId = route.params?.recruitId ?? null;
   const navigation = useNavigation();
   const [favorites, setFavorites] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');
@@ -90,7 +90,7 @@ const ApplicantList = () => {
   };
 
   const handleApplicantPress = resumeId => {
-    navigation.navigate('MyApplicantDetail', {id: resumeId});
+    navigation.navigate('ApplicantDetail', {resumeId});
   };
 
   const parseYears = str => {

@@ -22,11 +22,11 @@ const hostEmployApi = {
   //지원서 전체 조회
   getAllApplicants: () => api.get('/host/recruits/applications'),
 
-  //게스트하우스 별 지원서 조회
-  getApplicantDetail: applicantId =>
-    api.get(`/host/recruits/applications/${applicantId}`),
-
   //지원서 상세 조회
+  getApplicantDetail: applicantId =>
+    api.get(`/host/recruits/applications/detail/${applicantId}`),
+
+  //게스트하우스 별 지원서 조회
   getApplicantsByGuesthouse: guesthouseId =>
     api.get(`/host/recruits/applications/${guesthouseId}`),
 };
