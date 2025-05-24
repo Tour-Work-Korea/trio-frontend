@@ -46,8 +46,8 @@ const MyRecruitmentList = () => {
     }
   };
 
-  const handleViewDetail = id => {
-    navigation.navigate('RecruitmentDetail', {id});
+  const handleViewDetail = recruitId => {
+    navigation.navigate('RecruitmentDetail', {recruitId});
   };
 
   const handleViewApplicants = recruitId => {
@@ -63,7 +63,7 @@ const MyRecruitmentList = () => {
 
   // 공고 아이템 렌더링
   const renderPostingItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleViewDetail(item.id)}>
+    <TouchableOpacity onPress={() => handleViewDetail(item.recruitId)}>
       <View style={styles.postingCard}>
         <View style={styles.guestHouseTag}>
           <Text style={[styles.guestHouseText, FONTS.fs_body]}>
