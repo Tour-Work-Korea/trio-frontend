@@ -127,7 +127,7 @@ const Register = ({route}) => {
       const response = await authApi.hostSignUp(signupData);
       if (response.status === 200 || response.status === 201) {
         Alert.alert('회원가입 완료', '회원가입이 완료되었습니다.', [
-          {text: '확인', onPress: () => navigation.navigate('Login')},
+          {text: '확인', onPress: () => navigation.navigate('EXLogin')},
         ]);
       } else {
         Alert.alert('오류', '회원가입에 실패했습니다.');
