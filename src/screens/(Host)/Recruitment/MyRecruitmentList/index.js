@@ -13,6 +13,7 @@ import Person from '@assets/images/Person.svg';
 import Trash from '@assets/images/Trash.svg';
 import styles from './MyRecruitmentList.styles';
 import {FONTS} from '@constants/fonts';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
 /*
  * 공고 목록 페이지
@@ -48,8 +49,12 @@ const MyRecruitmentList = () => {
       lastModified: '2025.04.13',
     },
   ];
+  const getMyRecruits = async () => {
+    try {
+      const response = await hostEmployApi.getMyRecruits();
+    } catch (error) {}
+  };
 
-  // 페이지 이동 함수
   const handleViewDetail = id => {
     navigation.navigate('RecruitmentDetail', {id});
   };

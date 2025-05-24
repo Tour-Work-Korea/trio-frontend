@@ -32,12 +32,15 @@ const EXLogin = () => {
       setUserRole(userRole);
 
       // 토큰과 역할 읽어오기 예시
-      const { accessToken: savedAccess, refreshToken: savedRefresh, userRole: savedRole } = useUserStore.getState();
+      const {
+        accessToken: savedAccess,
+        refreshToken: savedRefresh,
+        userRole: savedRole,
+      } = useUserStore.getState();
 
       console.log('accessToken:', savedAccess);
       console.log('refreshToken:', savedRefresh);
       console.log('userRole:', savedRole);
-      
     } catch (error) {
       console.error('로그인 실패:', error);
     }
@@ -46,9 +49,9 @@ const EXLogin = () => {
   useEffect(() => {
     // 더미 데이터로 로그인 호출
     login({
-      email: 'balamogoulish@naver.com',
-      password: 'Pw12345678!',
-      userRole: 'ADMIN',
+      email: 'sal091625@gmail.com',
+      password: 'Pw123456!',
+      userRole: 'HOST',
     });
   }, []);
 

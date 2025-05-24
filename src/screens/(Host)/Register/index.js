@@ -114,7 +114,7 @@ const Register = ({route}) => {
     }
 
     const signupData = {
-      userRole: 'ADMIN',
+      userRole: 'HOST',
       phoneNum: phoneNumber,
       email: email,
       password: signupForm.password,
