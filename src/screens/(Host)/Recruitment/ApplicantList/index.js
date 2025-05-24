@@ -1,105 +1,86 @@
-import React, {useState} from 'react';
+// 기존 import 문은 동일하게 유지합니다
+
+import React, {useState, useEffect} from 'react';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import {
   View,
   Text,
   Image,
   TouchableOpacity,
   ScrollView,
-  StyleSheet,
   SafeAreaView,
   FlatList,
+  Alert,
 } from 'react-native';
-import {COLORS} from '@constants/colors';
-import {useNavigation} from '@react-navigation/native';
 import styles from './ApplicantList.styles';
-
-// 아이콘 불러오기
+import hostEmployApi from '@utils/api/hostEmployApi';
 import FilterIcon from '@assets/images/gray_search.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import ChevronDown from '@assets/images/arrow_drop_down.svg';
 import Header from '@components/Header';
+import {COLORS} from '@constants/colors';
 
-// 목업 데이터
-const applicantsData = [
+const mockApplicants = [
   {
-    id: '1',
-    name: '최원곤',
-    gender: '남',
-    age: 28,
-    profileImage: 'exphoto.jpeg',
-    guesthouse: '설렙 게스트하우스',
-    jobTitle: '공고제목',
-    introduction: '조용하지만 착실한 일꾼입니다.',
-    tags: ['#작심삼일', '#저분한'],
-    mbti: 'ISTJ',
-    careerDetails: '편의점(6개월), 음식점(1년 6개월)',
-    careerYears: '경력 2년',
-    isFavorite: false,
-    isRecommended: true,
-  },
-  {
-    id: '2',
-    name: '최원곤',
-    gender: '남',
-    age: 28,
-    profileImage: 'exphoto.jpeg',
-    guesthouse: '설렙 게스트하우스',
-    jobTitle: '공고제목',
-    introduction: '조용하지만 착실한 일꾼입니다.',
-    tags: ['#작심삼일', '#저분한'],
-    mbti: 'ISTJ',
-    careerDetails: '편의점(6개월), 음식점(1년 6개월)',
-    careerYears: '경력 2년',
-    isFavorite: false,
-    isRecommended: false,
-  },
-  {
-    id: '3',
-    name: '이원하',
-    gender: '여',
-    age: 22,
-    profileImage: 'exphoto.jpeg',
-    guesthouse: '설렙 게스트하우스',
-    jobTitle: '공고제목',
-    introduction: '다양한 알바로 다져진 경험으로 일하겠습니다.',
-    tags: ['#경험', '#활발'],
-    mbti: 'ESFP',
-    careerDetails: '학원(2년), 피팅모델(6개월), 카페(1년), 과외(3개월), ...',
-    careerYears: '경력 2년 10개월',
-    isFavorite: true,
-    isRecommended: false,
-  },
-  {
-    id: '4',
-    name: '김지수',
-    gender: '여',
-    age: 25,
-    profileImage: 'exphoto.jpeg',
-    guesthouse: '설렙 게스트하우스',
-    jobTitle: '공고제목',
-    introduction: '성실하고 책임감 있게 일하겠습니다.',
-    tags: ['#성실함', '#책임감'],
-    mbti: 'INFJ',
-    careerDetails: '카페(1년), 호텔(6개월)',
-    careerYears: '경력 1년 6개월',
-    isFavorite: false,
-    isRecommended: false,
+    resumeId: 3,
+    resumeTitle: '열정 가득한 알바생',
+    recruitId: 1,
+    recruitTitle: '수정 2번된 겨울 방학 스키장 스태프 모집',
+    guesthouseName: 'testname',
+    photoUrl: 'https://via.placeholder.com/150',
+    nickname: 'host',
+    mbti: 'INFP',
+    gender: 'F',
+    age: 29,
+    totalExperience: '2년 11개월',
+    workExperience: [
+      {companyName: '맥도날드 A', workType: '카운터'},
+      {companyName: '버거킹 B', workType: '씽크'},
+    ],
+    userHashtag: [
+      {id: 10, hashtag: '파티'},
+      {id: 11, hashtag: '파티X'},
+      {id: 12, hashtag: '바다전망'},
+    ],
+    isLiked: true,
   },
 ];
 
 const ApplicantList = () => {
+  const route = useRoute();
+  const {recruitId} = route.params;
   const navigation = useNavigation();
-  const [favorites, setFavorites] = useState({
-    3: true,
-  });
+  const [favorites, setFavorites] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [selectedGuesthouse, setSelectedGuesthouse] =
-    useState('설렙 게스트하우스');
+  const [applicants, setApplicants] = useState(mockApplicants);
+  const [selectedGuesthouse, setSelectedGuesthouse] = useState(
+    mockApplicants[0].guesthouseName,
+  );
   const [currentRecommendedIndex, setCurrentRecommendedIndex] = useState(1);
-  const totalRecommended = applicantsData.filter(
-    item => item.isRecommended,
-  ).length;
+
+  useEffect(() => {
+    const fetchApplicants = async () => {
+      try {
+        let response;
+        if (recruitId) {
+          response = await hostEmployApi.getApplicantDetail(recruitId);
+        } else {
+          response = await hostEmployApi.getAllApplicants();
+        }
+
+        const data = response.data;
+        setApplicants(data);
+        if (data.length > 0) {
+          setSelectedGuesthouse(data[0].guesthouseName);
+        }
+      } catch (error) {
+        Alert.alert('지원서 조회에 실패했습니다');
+      }
+    };
+
+    // fetchApplicants();
+  }, []);
 
   const toggleFavorite = id => {
     setFavorites(prev => ({
@@ -108,27 +89,101 @@ const ApplicantList = () => {
     }));
   };
 
-  const handleApplicantPress = id => {
-    // 지원자 상세 페이지로 이동
-    navigation.navigate('MyApplicantDetail', {id});
+  const handleApplicantPress = resumeId => {
+    navigation.navigate('MyApplicantDetail', {id: resumeId});
   };
 
+  const parseYears = str => {
+    const matched = str.match(/(\d+)년/);
+    return matched ? parseInt(matched[1], 10) : 0;
+  };
+
+  const filteredApplicants = applicants.filter(applicant => {
+    switch (selectedFilter) {
+      case 'career1':
+        return parseYears(applicant.totalExperience) >= 1;
+      case 'age20':
+        return applicant.age >= 20 && applicant.age < 30;
+      case 'age30':
+        return applicant.age >= 30 && applicant.age < 40;
+      case 'genderF':
+        return applicant.gender === 'F';
+      case 'genderM':
+        return applicant.gender === 'M';
+      default:
+        return true;
+    }
+  });
+
+  const renderFilterButtons = () => (
+    <View style={styles.filterButtonsContainer}>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'all' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('all')}>
+        <Text style={styles.filterButtonText}>전체</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'career1' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('career1')}>
+        <Text style={styles.filterButtonText}>1년 이상</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'age20' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('age20')}>
+        <Text style={styles.filterButtonText}>20대</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'age30' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('age30')}>
+        <Text style={styles.filterButtonText}>30대</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'genderF' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('genderF')}>
+        <Text style={styles.filterButtonText}>여자</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={[
+          styles.filterButton,
+          selectedFilter === 'genderM' && styles.selectedFilterButton,
+        ]}
+        onPress={() => setSelectedFilter('genderM')}>
+        <Text style={styles.filterButtonText}>남자</Text>
+      </TouchableOpacity>
+    </View>
+  );
+
   const renderApplicantItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleApplicantPress(item.id)}>
+    <TouchableOpacity onPress={() => handleApplicantPress(item.resumeId)}>
       <View style={styles.applicantCard}>
         <View style={styles.cardHeader}>
           <View style={styles.tagContainer}>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>설렙 게스트하우스</Text>
+              <Text style={styles.tagText}>{item.guesthouseName}</Text>
             </View>
             <View style={styles.tag}>
-              <Text style={styles.tagText}>공고제목</Text>
+              <Text style={styles.tagText}>{item.recruitTitle}</Text>
             </View>
           </View>
           <TouchableOpacity
             style={styles.favoriteButton}
-            onPress={() => toggleFavorite(item.id)}>
-            {favorites[item.id] ? (
+            onPress={() => toggleFavorite(item.resumeId)}>
+            {favorites[item.resumeId] || item.isLiked ? (
               <FilledHeartIcon width={24} height={24} color={COLORS.scarlet} />
             ) : (
               <HeartIcon width={24} height={24} />
@@ -139,22 +194,22 @@ const ApplicantList = () => {
         <View style={styles.applicantInfo}>
           <View style={styles.profileImageContainer}>
             <Image
-              source={require('@assets/images/exphoto.jpeg')}
+              source={{uri: item.photoUrl}}
               style={styles.profileImage}
               resizeMode="cover"
             />
-            <Text style={styles.nameText}>{item.name}</Text>
+            <Text style={styles.nameText}>{item.nickname}</Text>
             <Text style={styles.genderAgeText}>
               ({item.gender}, {item.age}세)
             </Text>
           </View>
 
           <View style={styles.detailsContainer}>
-            <Text style={styles.introductionText}>{item.introduction}</Text>
+            <Text style={styles.introductionText}>{item.resumeTitle}</Text>
             <View style={styles.tagsRow}>
-              {item.tags.map((tag, index) => (
-                <Text key={index} style={styles.hashTag}>
-                  {tag}
+              {item.userHashtag.map(tag => (
+                <Text key={tag.id} style={styles.hashTag}>
+                  #{tag.hashtag}
                 </Text>
               ))}
             </View>
@@ -166,114 +221,32 @@ const ApplicantList = () => {
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>경력</Text>
-              <Text style={styles.infoValue}>{item.careerDetails}</Text>
+              <Text style={styles.infoValue}>
+                {item.workExperience
+                  .map(w => `${w.companyName}(${w.workType})`)
+                  .join(', ')}
+              </Text>
             </View>
 
-            <Text style={styles.careerYears}>{item.careerYears}</Text>
+            <Text style={styles.careerYears}>{item.totalExperience}</Text>
           </View>
         </View>
       </View>
     </TouchableOpacity>
   );
 
-  const renderFilterButtons = () => (
-    <View style={styles.filterButtonsContainer}>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'all' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('all')}>
-        <FilterIcon width={20} height={20} />
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'career' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('career')}>
-        <Text style={styles.filterButtonText}>경력</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'age' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('age')}>
-        <Text style={styles.filterButtonText}>나이</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'gender' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('gender')}>
-        <Text style={styles.filterButtonText}>성별</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderRecommendedSection = () => {
-    const recommendedApplicants = applicantsData.filter(
-      item => item.isRecommended,
-    );
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <Text style={styles.sectionTitle}>
-            <Text style={styles.highlightedText}>추천</Text> 지원자
-          </Text>
-          <Text style={styles.subTitle}>이런 지원자는 어떠세요?</Text>
-          <Text style={styles.pageIndicator}>
-            {currentRecommendedIndex}/{totalRecommended}
-          </Text>
-        </View>
-
-        {recommendedApplicants.length > 0 &&
-          renderApplicantItem({item: recommendedApplicants[0]})}
-      </View>
-    );
-  };
-
-  const renderLatestSection = () => {
-    const latestApplicants = applicantsData.filter(item => !item.isRecommended);
-
-    return (
-      <View style={styles.section}>
-        <View style={styles.sectionHeader}>
-          <View style={styles.latestHeaderLeft}>
-            <Text style={styles.sectionTitle}>
-              <Text style={styles.highlightedText}>최신</Text> 지원자
-            </Text>
-            <Text style={styles.subTitle}>최근에 지원한 인재를 확인하세요</Text>
-          </View>
-
-          <TouchableOpacity style={styles.dropdownButton}>
-            <Text style={styles.dropdownButtonText}>{selectedGuesthouse}</Text>
-            <ChevronDown width={20} height={20} />
-          </TouchableOpacity>
-        </View>
-
-        <FlatList
-          data={latestApplicants}
-          renderItem={renderApplicantItem}
-          keyExtractor={item => item.id}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      </View>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Header title="지원자 조회" />
       {renderFilterButtons()}
-
       <ScrollView style={styles.scrollView}>
-        {renderRecommendedSection()}
-        {renderLatestSection()}
+        <FlatList
+          data={filteredApplicants}
+          renderItem={renderApplicantItem}
+          keyExtractor={item => item.resumeId.toString()}
+          scrollEnabled={false}
+          ItemSeparatorComponent={() => <View style={styles.separator} />}
+        />
       </ScrollView>
     </SafeAreaView>
   );
