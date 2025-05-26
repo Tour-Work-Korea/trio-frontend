@@ -1,42 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import axios from 'axios';
 
 import Header from '@components/Header';
 import styles from './MyGuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import { formatDate } from '@utils/formatDate';
 
-const mockData = [
-  {
-    id: '1',
-    name: '로맨틱 게하',
-    date: '2025/04/14',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: '2',
-    name: '서울 하우스',
-    date: '2025/04/10',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: '3',
-    name: '한옥 게스트하우스',
-    date: '2025/04/08',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-];
+import fixedImage from '@assets/images/exphoto.jpeg'; // 임시 이미지 사용
 
 const MyGuesthouseList = () => {
   const navigation = useNavigation();
+  const [guesthouses, setGuesthouses] = useState([]);
+
+  useEffect(() => { // 게스트 하우스 전체 목록 불러오기
+    const fetchGuesthouses = async () => {
+      try {
+        const response = await hostGuesthouseApi.getMyGuesthouses();
+        setGuesthouses(response.data);
+      } catch (error) {
+        console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+      }
+    };
+
+    fetchGuesthouses();
+  }, []);
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={item.image} style={styles.image} />
+      {/* 실제 이미지 불러올 때 */}
+      {/* <Image source={item.thumbnailImg} style={styles.image} /> */}
+      <Image source={fixedImage} style={styles.image} />
       <View style={styles.cardContent}>
-        <Text style={[FONTS.fs_h2_bold, styles.name]}>{item.name}</Text>
-        <Text style={[FONTS.fs_body, styles.date]}>{item.date}</Text>
+        <Text style={[FONTS.fs_h2_bold, styles.name]}>{item.guesthouseName}</Text>
+        <Text style={[FONTS.fs_body, styles.date]}>{formatDate(item.updatedAt)}</Text>
       </View>
       <View style={styles.cardBtnContainer}>
         <ButtonScarlet
@@ -44,7 +44,7 @@ const MyGuesthouseList = () => {
           marginHorizontal={0}
           onPress={() => navigation.navigate('MyGuesthouseDetail', {
             id: item.id,
-            name: item.name,
+            name: item.guesthouseName,
           })}
         />
       </View>
@@ -58,9 +58,9 @@ const MyGuesthouseList = () => {
         <ButtonScarlet title="게스트 하우스 등록" marginHorizontal="0" to="MyGuesthouseAddEdit"/>
       </View>
       <FlatList
-        data={mockData}
+        data={guesthouses}
         renderItem={renderItem}
-        keyExtractor={(item) => item.id}
+        keyExtractor={(item) => item.id.toString()}
         contentContainerStyle={styles.listContainer}
       />
     </View>
