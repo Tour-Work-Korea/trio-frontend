@@ -6,3 +6,7 @@ export const formatDate = (isoString) => {
   const day = (`0${date.getDate()}`).slice(-2);
   return `${year}/${month}/${day}`;
 };
+
+// 사용
+// import { formatDate } from '@utils/formatDate';
+// <Text>{formatDate(변환할 값)}</Text>
