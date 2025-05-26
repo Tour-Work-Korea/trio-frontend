@@ -5,7 +5,9 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
+  Modal,
   Alert,
+  TextInput,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
@@ -15,7 +17,7 @@ import Trash from '@assets/images/Trash.svg';
 import styles from './MyRecruitmentList.styles';
 import {FONTS} from '@constants/fonts';
 import hostEmployApi from '@utils/api/hostEmployApi';
-// 샘플 데이터
+
 const postings = [
   {
     recruitId: 1,
@@ -24,16 +26,15 @@ const postings = [
     guesthouseName: '게스트하우스 이름',
   },
 ];
-/*
- * 공고 목록 페이지
- */
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
   const [myRecruits, setMyRecruits] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
   useEffect(() => {
-    // getMyRecruits();
     setMyRecruits(postings);
   }, []);
 
@@ -42,7 +43,7 @@ const MyRecruitmentList = () => {
       const response = await hostEmployApi.getMyRecruits();
       setMyRecruits(response.data);
     } catch (error) {
-      Alert('내 공고 조회에 실패했습니다.');
+      Alert.alert('내 공고 조회에 실패했습니다.');
     }
   };
 
@@ -51,17 +52,38 @@ const MyRecruitmentList = () => {
   };
 
   const handleViewApplicants = recruitId => {
-    // 지원자 목록 페이지로 이동하는 로직
     navigation.navigate('ApplicantList', {recruitId});
   };
 
   const handleDeletePosting = id => {
-    // 공고 삭제 로직
-    // 실제 구현 시 확인 다이얼로그 추가 필요
-    console.log(`Delete posting ${id}`);
+    setSelectedRecruitId(id);
+    setModalVisible(true);
   };
 
-  // 공고 아이템 렌더링
+  const confirmDelete = () => {
+    if (!cancelReason.trim()) {
+      Alert.alert('취소 사유를 입력해주세요.');
+      return;
+    }
+    Alert.alert(
+      `Deleting posting ${selectedRecruitId} with reason: ${cancelReason}`,
+    );
+    const fetchDeleteRecruit = async () => {
+      try {
+        const response = await hostEmployApi.requestDeleteRecruit(
+          selectedRecruitId,
+          cancelReason,
+        );
+        Alert.alert('성공적으로 삭제 요청했습니다.');
+      } catch (error) {
+        Alert.alert('삭제 요청에 실패했습니다.');
+      }
+    };
+    // fetchDeleteRecruit();
+    setModalVisible(false);
+    setCancelReason('');
+  };
+
   const renderPostingItem = ({item}) => (
     <TouchableOpacity onPress={() => handleViewDetail(item.recruitId)}>
       <View style={styles.postingCard}>
@@ -100,10 +122,40 @@ const MyRecruitmentList = () => {
         <FlatList
           data={myRecruits}
           renderItem={renderPostingItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.recruitId.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
+
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>공고를 취소하시겠습니까?</Text>
+              <TextInput
+                placeholder="취소 사유를 입력하세요"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                multiline
+              />
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButtonCancel}
+                  onPress={() => setModalVisible(false)}>
+                  <Text style={styles.modalButtonText}>닫기</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalButtonConfirm}
+                  onPress={confirmDelete}>
+                  <Text style={styles.modalButtonText}>제출</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
