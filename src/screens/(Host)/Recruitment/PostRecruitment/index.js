@@ -16,6 +16,10 @@ import styles from './PostRecruitment.styles';
 import Header from '@components/Header';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import Calendar from '@assets/images/Calendar.svg';
+import hostEmployApi from '@utils/api/hostEmployApi';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import RNPickerSelect from 'react-native-picker-select';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 const dummyData = {
   recruitTitle: '0524 테스트 여름 시즌 게스트하우스 스태프 모집',
@@ -58,7 +62,11 @@ const dummyData = {
   ],
   guesthouseId: 1,
 };
-
+const guesthouseListDummy = [
+  {label: '게스트하우스 1', value: '게스트하우스 1 (id: 1)'},
+  {label: '게스트하우스 2', value: '게스트하우스 2 (id: 2)'},
+  {label: '게스트하우스 3', value: '게스트하우스 3 (id: 3)'},
+];
 const PostRecruitment = () => {
   const [formData, setFormData] = useState({
     title: '',
@@ -92,6 +100,13 @@ const PostRecruitment = () => {
     photos: [],
     detailedInfo: '',
   });
+  const [guesthouseList, setGuesthouseList] = useState([]);
+  const [showStartDate, setShowStartDate] = useState(false);
+  const [showEndDate, setShowEndDate] = useState(false);
+  const [showArrivalDate, setShowArrivalDate] = useState(false);
+  const route = useRoute();
+  const recruitId = route.params?.recruitId ?? null;
+  const navigation = useNavigation();
 
   useEffect(() => {
     //하나씩 치기 귀찮아서 더미 데이터 설정
@@ -120,12 +135,22 @@ const PostRecruitment = () => {
       photos: dummyData.recruitImage.map(img => img.recruitImageUrl),
       detailedInfo: dummyData.recruitDetail,
     }));
-
-    const fetchMyGuestHouse = async () => {};
+    //나의 게스트하우스 리스트 조회
+    const fetchMyGuestHouse = async () => {
+      try {
+        const response = await hostGuesthouseApi.getMyGuesthouse();
+        const options = response.data.map(g => ({
+          label: g.guesthouseName,
+          value: `${g.id}`,
+        }));
+        setGuesthouseList(options);
+      } catch (error) {
+        Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
+      }
+    };
+    // fetchMyGuestHouse();
+    setGuesthouseList(guesthouseListDummy);
   }, []);
-  const [showStartDate, setShowStartDate] = useState(false);
-  const [showEndDate, setShowEndDate] = useState(false);
-  const [showArrivalDate, setShowArrivalDate] = useState(false);
 
   const handleInputChange = (field, value) => {
     setFormData({
@@ -214,7 +239,6 @@ const PostRecruitment = () => {
   };
 
   const handleSubmit = () => {
-    // Validate form
     if (!formData.title) {
       Alert.alert('입력 오류', '공고 제목을 입력해주세요.');
       return;
@@ -225,11 +249,33 @@ const PostRecruitment = () => {
       return;
     }
 
-    // Submit form data
-    console.log('Form Data:', formData);
+    const fetchNewRecruit = async () => {
+      try {
+        const response = await hostEmployApi.createRecruit(formData);
+        Alert.alert('새로운 공고를 등록했습니다.');
+        navigation.navigate('MyRecruitmentList');
+      } catch (error) {
+        Alert.alert('새로운 공고를 등록에 실패했습니다.');
+      }
+    };
+    const fetchUpdateRecruit = async updatedRecruitId => {
+      try {
+        const response = await hostEmployApi.updateRecruit(
+          updatedRecruitId,
+          formData,
+        );
+        Alert.alert('공고를 성공적으로 수정했습니다.');
+        navigation.navigate('MyRecruitmentList');
+      } catch (error) {
+        Alert.alert('공고 수정에 실패했습니다.');
+      }
+    };
 
-    // Here you would typically send the data to your API
-    Alert.alert('성공', '공고가 등록되었습니다.');
+    if (recruitId != null) {
+      // fetchUpdateRecruit(recruitId);
+    } else {
+      // fetchNewRecruit();
+    }
   };
 
   // Handle temporary save
@@ -265,19 +311,19 @@ const PostRecruitment = () => {
           </View>
 
           <View style={styles.formGroup}>
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() =>
-                Alert.alert(
-                  '알림',
-                  '게스트하우스 선택 기능은 아직 구현 중입니다.',
-                )
-              }>
-              <Text style={styles.dropdownText}>
-                {formData.guesthouse ||
-                  '공고를 등록할 게스트하우스를 선택해주세요.'}
-              </Text>
-            </TouchableOpacity>
+            <RNPickerSelect
+              onValueChange={value => handleInputChange('guesthouse', value)}
+              items={guesthouseList}
+              placeholder={{
+                label: '공고를 등록할 게스트하우스를 선택해주세요.',
+                value: '',
+              }}
+              value={formData.guesthouse}
+              style={{
+                inputIOS: styles.dropdownText,
+                inputAndroid: styles.dropdownText,
+              }}
+            />
           </View>
 
           <View style={styles.formGroup}>

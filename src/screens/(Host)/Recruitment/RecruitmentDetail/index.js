@@ -17,7 +17,7 @@ import Share from '@assets/images/Share.svg';
 import Header from '@components/Header';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
-import hostEmployApi from '../../../../utils/api/hostEmployApi';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
 const {width} = Dimensions.get('window');
 
@@ -269,12 +269,12 @@ const RecruitmentDetail = () => {
       <View style={styles.bottomButtonContainer}>
         <TouchableOpacity
           style={styles.secondaryButton}
-          onPress={() => navigation.navigate('PostRecruitment', {id})}>
+          onPress={() => navigation.navigate('PostRecruitment', {recruitId})}>
           <Text style={styles.secondaryButtonText}>수정하기</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.applyButton}
-          onPress={() => navigation.navigate('ApplicantList', {id})}>
+          onPress={() => navigation.navigate('ApplicantList', {recruitId})}>
           <Text style={styles.applyButtonText}>지원자 보기</Text>
         </TouchableOpacity>
       </View>
