@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -16,8 +16,50 @@ import styles from './PostRecruitment.styles';
 import Header from '@components/Header';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import Calendar from '@assets/images/Calendar.svg';
+
+const dummyData = {
+  recruitTitle: '0524 테스트 여름 시즌 게스트하우스 스태프 모집',
+  recruitShortDescription:
+    '바다 근처 게스트하우스에서 즐겁게 일하실 분을 모집합니다!',
+  recruitStart: '2025-11-23T10:00:00',
+  recruitEnd: '2025-11-25T23:59:00',
+  recruitNumberMale: 2,
+  recruitNumberFemale: 2,
+  location: '강원도 속초시 해변로 123',
+  recruitCondition: '숙식 제공, 주 1회 휴무, 유니폼 제공',
+  recruitMinAge: 20,
+  recruitMaxAge: 30,
+  workType: '풀타임',
+  workStartDate: '2025-12-01T09:00:00',
+  workEndDate: '2025-12-15T18:00:00',
+  workPart: '청소 및 손님 응대',
+  welfare: '숙식 제공, 워케이션 환경, 바다 근처 활동 가능',
+  recruitDetail:
+    '속초 바닷가 바로 앞에 위치한 게스트하우스에서 여름 시즌을 함께 보낼 스태프를 모집합니다. 숙식이 제공되며, 일과 후에는 다양한 해양 활동을 즐길 수 있습니다.',
+  recruitImage: [
+    {
+      recruitImageUrl: 'https://example.com/image1.jpg',
+      isThumbnail: 1,
+    },
+    {
+      recruitImageUrl: 'https://example.com/image2.jpg',
+      isThumbnail: 0,
+    },
+  ],
+  hashtags: [
+    {
+      hashtag: '파티',
+      hashtagType: 'RECRUIT_HASHTAG',
+    },
+    {
+      hashtag: '투어가능',
+      hashtagType: 'RECRUIT_HASHTAG',
+    },
+  ],
+  guesthouseId: 1,
+};
+
 const PostRecruitment = () => {
-  // Form state
   const [formData, setFormData] = useState({
     title: '',
     guesthouse: '',
@@ -51,6 +93,36 @@ const PostRecruitment = () => {
     detailedInfo: '',
   });
 
+  useEffect(() => {
+    //하나씩 치기 귀찮아서 더미 데이터 설정
+    setFormData(prev => ({
+      ...prev,
+      title: dummyData.recruitTitle,
+      guesthouse: '게스트하우스 이름 (id: ' + dummyData.guesthouseId + ')',
+      introduction: dummyData.recruitShortDescription,
+      tags: dummyData.hashtags.reduce((acc, cur) => {
+        acc[cur.hashtag] = true;
+        return acc;
+      }, {}),
+      startDate: new Date(dummyData.recruitStart),
+      endDate: new Date(dummyData.recruitEnd),
+      arrivalDate: new Date(dummyData.workStartDate),
+      femaleCount: dummyData.recruitNumberFemale.toString(),
+      maleCount: dummyData.recruitNumberMale.toString(),
+      minAge: dummyData.recruitMinAge.toString(),
+      maxAge: dummyData.recruitMaxAge.toString(),
+      preferences: dummyData.recruitCondition,
+      workEnvironment: dummyData.workType,
+      mainDuties: dummyData.workPart,
+      minWorkPeriod: `${dummyData.workStartDate} ~ ${dummyData.workEndDate}`,
+      benefits: dummyData.welfare,
+      location: dummyData.location,
+      photos: dummyData.recruitImage.map(img => img.recruitImageUrl),
+      detailedInfo: dummyData.recruitDetail,
+    }));
+
+    const fetchMyGuestHouse = async () => {};
+  }, []);
   const [showStartDate, setShowStartDate] = useState(false);
   const [showEndDate, setShowEndDate] = useState(false);
   const [showArrivalDate, setShowArrivalDate] = useState(false);
