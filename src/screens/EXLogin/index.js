@@ -1,8 +1,6 @@
 import React, {useEffect} from 'react';
-import {View, Text} from 'react-native';
-import axios from 'axios';
+import {View, Text, TouchableOpacity} from 'react-native';
 import useUserStore from '@stores/userStore'; // store 만든거 불러옴
-import {API_BASE_URL} from '@env'; // api 백 주소 불러오기
 import authApi from '../../utils/api/authApi';
 
 const EXLogin = () => {
@@ -46,18 +44,30 @@ const EXLogin = () => {
     }
   };
 
-  useEffect(() => {
-    // 더미 데이터로 로그인 호출
+  const handleHostLogin = () => {
     login({
       email: 'sal091625@gmail.com',
       password: 'Pw123456!',
       userRole: 'HOST',
     });
-  }, []);
+  };
+  const handleUserLogin = () => {
+    login({
+      email: 'balamogoulish09@uos.ac.kr',
+      password: 'userPw1234!',
+      userRole: 'USER',
+    });
+  };
 
   return (
     <View>
-      <Text>EXLogin Screen</Text>
+      <Text style={{marginBottom: 30}}>EXLogin Screen</Text>
+      <TouchableOpacity onPress={handleHostLogin}>
+        <Text>사장님 자동 로그인하기</Text>
+      </TouchableOpacity>
+      <TouchableOpacity onPress={handleUserLogin}>
+        <Text>유저 자동 로그인하기</Text>
+      </TouchableOpacity>
     </View>
   );
 };

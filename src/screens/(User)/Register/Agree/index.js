@@ -143,7 +143,7 @@ const Agree = () => {
       <ButtonScarlet
         title="다음"
         onPress={() => {
-          navigation.navigate('UserPhoneCertificate', {user: 'User'});
+          navigation.navigate('PhoneCertificate', {user: 'User'});
         }}
       />
     </SafeAreaView>

@@ -24,6 +24,9 @@ const authApi = {
   hostSignUp: hostData =>
     api.post('/auth/host/signup', hostData, {withAuth: false}),
 
+  userSignUp: userData =>
+    api.post('/auth/user/signup', userData, {withAuth: false}),
+
   //로그인
   login: (email, password) =>
     api.post('/auth/login', {email, password}, {withAuth: false}),
