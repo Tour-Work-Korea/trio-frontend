@@ -1,7 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
-import axios from 'axios';
 
 import Header from '@components/Header';
 import styles from './MyGuesthouseList.styles';

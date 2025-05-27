@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+// 콘솔에만 출력
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -7,6 +8,7 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import styles from './MyGuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
@@ -39,6 +41,20 @@ const MyGuesthouseDetail = ({ route }) => {
   const { id, name } = route.params;
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  // 게스트하우스 상세 정보 요청
+  useEffect(() => {
+    const fetchGuesthouseDetail = async () => {
+      try {
+        const response = await hostGuesthouseApi.getGuesthouseDetail(id);
+        console.log('게스트하우스 상세 정보:', response.data);
+      } catch (error) {
+        console.error('게스트하우스 상세 조회 실패:', error);
+      }
+    };
+
+    fetchGuesthouseDetail();
+  }, [id]);
   
   return (
     <ScrollView style={styles.container}>
@@ -161,7 +177,11 @@ const MyGuesthouseDetail = ({ route }) => {
         <View style={styles.buttonContainer}>
           <View style={styles.whiteBtnContainer}>
             <View style={styles.halfButtonWrapper}>
-              <ButtonWhite title="수정하기" marginHorizontal="0" to="MyGuesthouseAddEdit"/>
+              <ButtonWhite
+                title="수정하기"
+                marginHorizontal="0"
+                onPress={() => navigation.navigate('MyGuesthouseAddEdit', { guesthouseId: id })}
+              />
             </View>
             <View style={styles.halfButtonWrapper}>
               <ButtonWhite title="숨기기" marginHorizontal="0" />

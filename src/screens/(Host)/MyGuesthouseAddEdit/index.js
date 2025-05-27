@@ -1,3 +1,4 @@
+// 콘솔에만 출력
 import React, { useState } from 'react';
 import {
   View,
@@ -10,6 +11,8 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import TimePickerModal from '@components/modals/TimePickerModal';
 import { useNavigation } from '@react-navigation/native';
+import { useRoute } from '@react-navigation/native';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import Header from '@components/Header';
 import styles from './MyGuesthouseAddEdit.styles';
@@ -40,6 +43,126 @@ const MyGuesthouseAddEdit = () => {
   const [checkOutTime, setCheckOutTime] = useState('오후 01:00'); 
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
+
+  const route = useRoute();
+  const guesthouseId = route.params?.guesthouseId;
+
+  // 게스트하우스 등록&수정
+  const handleSubmit = async () => {
+    // 임시 데이터
+    const payload = {
+      guesthouseName: '트리오 게하',
+      guesthouseAddress: '서울시 강남구 어딘가',
+      guesthousePhone: '010-1234-5678',
+      guesthouseShortIntro: '따뜻한 분위기의 게스트하우스입니다.',
+      guesthouseLongDesc: '트리오 게스트하우스는 도심 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.',
+      applicationId: 6,
+      checkIn: {
+        hour: 15,
+        minute: 0,
+        second: 0,
+        nano: 0,
+      },
+      checkOut: {
+        hour: 11,
+        minute: 0,
+        second: 0,
+        nano: 0,
+      },
+      guesthouseImages: [
+        {
+          guesthouseImageUrl: 'http://example.com/guesthouse1.jpg',
+          isThumbnail: true,
+        },
+        {
+          guesthouseImageUrl: 'http://example.com/guesthouse2.jpg',
+          isThumbnail: false,
+        },
+      ],
+      roomInfos: [
+        {
+          roomName: '여성 도미토리',
+          roomType: 'FEMALE_ONLY',
+          roomCapacity: 4,
+          roomMaxCapacity: 6,
+          roomDesc: '편안한 2층 침대가 있는 여성 전용 도미토리입니다.',
+          roomPrice: 30000,
+          roomImages: [
+            {
+              roomImageUrl: 'http://example.com/room1-1.jpg',
+              isThumbnail: true,
+            },
+            {
+              roomImageUrl: 'http://example.com/room1-2.jpg',
+              isThumbnail: false,
+            },
+          ],
+          roomExtraFees: [
+            {
+              startDate: '2025-07-01',
+              endDate: '2025-07-10',
+              addPrice: 20000,
+            },
+            {
+              startDate: '2025-08-01',
+              endDate: '2025-08-15',
+              addPrice: 30000,
+            },
+          ],
+        },
+        {
+          roomName: '혼숙 도미토리',
+          roomType: 'MIXED',
+          roomCapacity: 2,
+          roomMaxCapacity: 4,
+          roomDesc: '혼숙이 가능한 객실입니다.',
+          roomPrice: 85000,
+          roomImages: [
+            {
+              roomImageUrl: 'http://example.com/room2-1.jpg',
+              isThumbnail: true,
+            },
+          ],
+          roomExtraFees: [
+            {
+              startDate: '2025-07-05',
+              endDate: '2025-07-20',
+              addPrice: 25000,
+            },
+          ],
+        },
+      ],
+      amenities: [
+        {
+          amenityId: 1,
+          count: 2,
+        },
+        {
+          amenityId: 5,
+          count: 1,
+        },
+        {
+          amenityId: 12,
+          count: 3,
+        },
+      ],
+      hashtagIds: [1, 4, 8],
+    };
+
+    try {
+    let response;
+    if (guesthouseId) { // 수정일 때
+      response = await hostGuesthouseApi.updateGuesthouse(guesthouseId, payload);
+      console.log('수정 성공:', response.data);
+    } else { // 등록일 때
+      response = await hostGuesthouseApi.registerGuesthouse(payload);
+      console.log('등록 성공:', response.data);
+    }
+    navigation.goBack();
+    } catch (error) {
+      console.error('요청 실패:', error.response?.data || error.message);
+    }
+  };
 
   const selectImage = () => {
     launchImageLibrary({ mediaType: 'photo', selectionLimit: 1 }, (response) => {
@@ -183,7 +306,7 @@ const MyGuesthouseAddEdit = () => {
         <ButtonScarlet
           title="게스트 하우스 등록"
           marginHorizontal="0"
-          onPress={() => navigation.goBack()}
+          onPress={handleSubmit}
         />
         <View style={styles.whiteBtnContainer}>
           <View style={styles.halfButtonWrapper}>
