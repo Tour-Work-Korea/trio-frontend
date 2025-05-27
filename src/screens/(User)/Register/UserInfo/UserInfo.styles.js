@@ -1,80 +1,117 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '../../../constants/fonts';
+import {FONTS} from '@constants/fonts';
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.white,
   },
-  body: {
+  keyboardAvoidingView: {
     flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
   },
-  titleContainer: {
-    marginTop: 40,
-    marginBottom: 40,
+  scrollView: {
+    flexGrow: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+    paddingBottom: 80,
   },
   title: {
-    fontSize: 22,
-    fontWeight: 'bold',
+    ...FONTS.fs_h1_bold,
     textAlign: 'center',
+    marginBottom: 40,
   },
-  agreementContainer: {
-    marginBottom: 12,
-    borderRadius: 10,
-    borderColor: COLORS.stroke_gray,
-    borderWidth: 1,
+  inputSection: {
+    marginBottom: 20,
   },
-  agreementTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.stroke_gray,
-  },
-  agreementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: COLORS.light_gray,
-  },
-  checkboxContainer: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  sectionTitle: {
-    fontSize: 16,
-    fontWeight: 'bold',
+  label: {
+    ...FONTS.fs_body_bold,
     marginBottom: 10,
-    marginTop: 20,
   },
   input: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 12,
-    marginBottom: 10,
+    height: 50,
     borderWidth: 1,
     borderColor: COLORS.stroke_gray,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    ...FONTS.fs_body,
+    justifyContent: 'center',
   },
-  inputRow: {
+  inputText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+  },
+  placeholderText: {
+    ...FONTS.fs_body,
+    color: COLORS.gray,
+  },
+  genderContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+  },
+  genderOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginRight: 40,
+  },
+  radioButton: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 8,
+  },
+  radioButtonSelected: {
+    borderColor: COLORS.scarlet,
+  },
+  radioButtonInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.scarlet,
+  },
+  genderText: {
+    ...FONTS.fs_body,
+  },
+  nicknameContainer: {
     flexDirection: 'row',
     alignItems: 'center',
   },
-  inputFlex: {
+  nicknameInput: {
     flex: 1,
-    marginRight: 10,
+    height: 50,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    borderRadius: 8,
+    paddingHorizontal: 15,
+    ...FONTS.fs_body,
   },
-  selectedButton: {
-    backgroundColor: COLORS.scarlet, // Example selected color
-    color: 'white',
+  checkButton: {
+    position: 'absolute',
+    right: 10,
+    paddingHorizontal: 10,
+  },
+  checkButtonText: {
+    ...FONTS.fs_body_small,
+    color: COLORS.scarlet,
+  },
+  nextButton: {
+    backgroundColor: COLORS.scarlet,
+    paddingVertical: 16,
+    borderRadius: 8,
+    alignItems: 'center',
+    margin: 20,
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+  },
+  nextButtonText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.white,
   },
 });
+export default styles;
