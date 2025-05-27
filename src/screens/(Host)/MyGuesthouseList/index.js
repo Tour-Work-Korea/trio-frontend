@@ -15,7 +15,8 @@ const MyGuesthouseList = () => {
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
 
-  useEffect(() => { // 게스트 하우스 전체 목록 불러오기
+  // 게스트 하우스 전체 목록 불러오기
+  useEffect(() => { 
     const fetchGuesthouses = async () => {
       try {
         const response = await hostGuesthouseApi.getMyGuesthouses();
@@ -27,6 +28,19 @@ const MyGuesthouseList = () => {
 
     fetchGuesthouses();
   }, []);
+
+  // 게스트 하우스 삭제
+  const handleDelete = async (guesthouseId) => {
+    try {
+      await hostGuesthouseApi.deleteGuesthouse(guesthouseId);
+      console.log('삭제 성공:', guesthouseId);
+
+      // 삭제 후 목록 새로고침
+      setGuesthouses(prev => prev.filter(item => item.id !== guesthouseId));
+    } catch (error) {
+      console.error('삭제 실패:', error.response?.data || error.message);
+    }
+  };
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
@@ -46,6 +60,13 @@ const MyGuesthouseList = () => {
             name: item.guesthouseName,
           })}
         />
+        {/* 임시 삭제 버튼 */}
+        <TouchableOpacity
+          style={[styles.deleteButton]}
+          onPress={() => handleDelete(item.id)}
+        >
+          <Text style={[FONTS.fs_body, { color: 'red' }]}>삭제</Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
