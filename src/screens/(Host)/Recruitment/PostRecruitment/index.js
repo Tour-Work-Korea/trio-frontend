@@ -105,36 +105,39 @@ const PostRecruitment = () => {
   const [showEndDate, setShowEndDate] = useState(false);
   const [showArrivalDate, setShowArrivalDate] = useState(false);
   const route = useRoute();
-  const recruitId = route.params?.recruitId ?? null;
+  const recruit = route.params?.recruit ?? null;
   const navigation = useNavigation();
 
   useEffect(() => {
     //하나씩 치기 귀찮아서 더미 데이터 설정
-    setFormData(prev => ({
-      ...prev,
-      title: dummyData.recruitTitle,
-      guesthouse: '게스트하우스 이름 (id: ' + dummyData.guesthouseId + ')',
-      introduction: dummyData.recruitShortDescription,
-      tags: dummyData.hashtags.reduce((acc, cur) => {
-        acc[cur.hashtag] = true;
-        return acc;
-      }, {}),
-      startDate: new Date(dummyData.recruitStart),
-      endDate: new Date(dummyData.recruitEnd),
-      arrivalDate: new Date(dummyData.workStartDate),
-      femaleCount: dummyData.recruitNumberFemale.toString(),
-      maleCount: dummyData.recruitNumberMale.toString(),
-      minAge: dummyData.recruitMinAge.toString(),
-      maxAge: dummyData.recruitMaxAge.toString(),
-      preferences: dummyData.recruitCondition,
-      workEnvironment: dummyData.workType,
-      mainDuties: dummyData.workPart,
-      minWorkPeriod: `${dummyData.workStartDate} ~ ${dummyData.workEndDate}`,
-      benefits: dummyData.welfare,
-      location: dummyData.location,
-      photos: dummyData.recruitImage.map(img => img.recruitImageUrl),
-      detailedInfo: dummyData.recruitDetail,
-    }));
+    if (recruit) {
+      setFormData(prev => ({
+        ...prev,
+        title: recruit.recruitTitle,
+        guesthouse: '게스트하우스 이름 (id: ' + recruit.guesthouseId + ')',
+        introduction: recruit.recruitShortDescription,
+        tags: recruit.hashtags.reduce((acc, cur) => {
+          acc[cur.hashtag] = true;
+          return acc;
+        }, {}),
+        startDate: new Date(recruit.recruitStart),
+        endDate: new Date(recruit.recruitEnd),
+        arrivalDate: new Date(recruit.workStartDate),
+        femaleCount: recruit.recruitNumberFemale.toString(),
+        maleCount: recruit.recruitNumberMale.toString(),
+        minAge: recruit.recruitMinAge.toString(),
+        maxAge: recruit.recruitMaxAge.toString(),
+        preferences: recruit.recruitCondition,
+        workEnvironment: recruit.workType,
+        mainDuties: recruit.workPart,
+        minWorkPeriod: `${recruit.workStartDate} ~ ${recruit.workEndDate}`,
+        benefits: recruit.welfare,
+        location: recruit.location,
+        photos: recruit.recruitImage.map(img => img.recruitImageUrl),
+        detailedInfo: recruit.recruitDetail,
+      }));
+    }
+
     //나의 게스트하우스 리스트 조회
     const fetchMyGuestHouse = async () => {
       try {
@@ -150,6 +153,10 @@ const PostRecruitment = () => {
     };
     // fetchMyGuestHouse();
     setGuesthouseList(guesthouseListDummy);
+    setFormData(prev => ({
+      ...prev,
+      guesthouse: '초기값',
+    }));
   }, []);
 
   const handleInputChange = (field, value) => {
@@ -271,8 +278,8 @@ const PostRecruitment = () => {
       }
     };
 
-    if (recruitId != null) {
-      // fetchUpdateRecruit(recruitId);
+    if (recruit?.recruitId != null) {
+      // fetchUpdateRecruit(recruit.recruitId);
     } else {
       // fetchNewRecruit();
     }
@@ -312,13 +319,13 @@ const PostRecruitment = () => {
 
           <View style={styles.formGroup}>
             <RNPickerSelect
+              value={formData.guesthouse}
               onValueChange={value => handleInputChange('guesthouse', value)}
               items={guesthouseList}
               placeholder={{
                 label: '공고를 등록할 게스트하우스를 선택해주세요.',
                 value: '',
               }}
-              value={formData.guesthouse}
               style={{
                 inputIOS: styles.dropdownText,
                 inputAndroid: styles.dropdownText,
@@ -742,7 +749,9 @@ const PostRecruitment = () => {
         {/* 버튼 섹션 */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>공고 등록하기</Text>
+            <Text style={styles.submitButtonText}>
+              {!recruit ? '공고 수정하기' : '공고 등록하기'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.secondaryButtonsRow}>
