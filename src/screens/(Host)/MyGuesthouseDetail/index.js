@@ -187,7 +187,13 @@ const MyGuesthouseDetail = ({ route }) => {
               <ButtonWhite title="숨기기" marginHorizontal="0" />
             </View>
           </View>
-          <ButtonScarlet title="리뷰 보러 가기" marginHorizontal="0"/>
+          <ButtonScarlet
+            title="리뷰 보러 가기"
+            marginHorizontal="0"
+            onPress={() =>
+              navigation.navigate('MyGuesthouseReviewList', { guesthouseId: id })
+            }
+          />
         </View>
         
       </View>
