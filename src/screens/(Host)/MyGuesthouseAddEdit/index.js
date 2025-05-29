@@ -48,6 +48,7 @@ const MyGuesthouseAddEdit = () => {
   const guesthouseId = route.params?.guesthouseId;
 
   // 게스트하우스 등록&수정
+  //applicationId 받아오는 api 추가 예정
   const handleSubmit = async () => {
     // 임시 데이터
     const payload = {
@@ -56,19 +57,9 @@ const MyGuesthouseAddEdit = () => {
       guesthousePhone: '010-1234-5678',
       guesthouseShortIntro: '따뜻한 분위기의 게스트하우스입니다.',
       guesthouseLongDesc: '트리오 게스트하우스는 도심 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.',
-      applicationId: 6,
-      checkIn: {
-        hour: 15,
-        minute: 0,
-        second: 0,
-        nano: 0,
-      },
-      checkOut: {
-        hour: 11,
-        minute: 0,
-        second: 0,
-        nano: 0,
-      },
+      applicationId: 4,
+      checkIn: '15:00:00',
+      checkOut: '11:00:00',
       guesthouseImages: [
         {
           guesthouseImageUrl: 'http://example.com/guesthouse1.jpg',

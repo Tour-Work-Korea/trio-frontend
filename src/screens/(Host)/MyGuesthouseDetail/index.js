@@ -28,6 +28,8 @@ import ParkingIcon from '@assets/images/Free_Parking.svg';
 import CalendarIcon from '@assets/images/Calendar.svg';
 import PersonIcon from '@assets/images/Person.svg';
 
+import fixedImage from '@assets/images/exphoto.jpeg'; // 임시 이미지 사용
+
 const serviceIcons = [
   { icon: WifiIcon, label: '무선인터넷' },
   { icon: PetFriendlyIcon, label: '반려견동반' },
@@ -38,16 +40,17 @@ const serviceIcons = [
 
 const MyGuesthouseDetail = ({ route }) => {
   const navigation = useNavigation();
-  const { id, name } = route.params;
+  const { id } = route.params;
 
   const [modalVisible, setModalVisible] = useState(false);
+  const [guesthouseData, setGuesthouseData] = useState(null);
 
   // 게스트하우스 상세 정보 요청
   useEffect(() => {
     const fetchGuesthouseDetail = async () => {
       try {
         const response = await hostGuesthouseApi.getGuesthouseDetail(id);
-        console.log('게스트하우스 상세 정보:', response.data);
+        setGuesthouseData(response.data);
       } catch (error) {
         console.error('게스트하우스 상세 조회 실패:', error);
       }
@@ -55,6 +58,8 @@ const MyGuesthouseDetail = ({ route }) => {
 
     fetchGuesthouseDetail();
   }, [id]);
+
+  if (!guesthouseData) return <Text>로딩 중...</Text>;
   
   return (
     <ScrollView style={styles.container}>
@@ -62,35 +67,32 @@ const MyGuesthouseDetail = ({ route }) => {
 
       <View>
         <View>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={styles.mainImage}
-          />
+          <Image source={fixedImage} style={styles.mainImage} />
         </View>
 
         <View style={styles.contentWrapper}>
           <View style={styles.contentTopWrapper}>
             <Text style={[FONTS.fs_h1_bold, styles.name]}>
-              {name}
+              {guesthouseData.guesthouseName}
             </Text>
             <View style={styles.rowWithIcon}>
               <LocationPin width={16} height={16} />
               <Text style={[FONTS.fs_body, styles.address]}>
-                제주특별자치도 서귀포시 남원읍 위미중앙로300번길 24
+                {guesthouseData.guesthouseAddress}
               </Text>
             </View>
 
             <View style={styles.sectionSpacing}>
               <Text style={FONTS.fs_body}>간단 소개글</Text>
-              <Text style={FONTS.fs_body}>블라블라블라라라~</Text>
+              <Text style={FONTS.fs_body}>{guesthouseData.guesthouseShortIntro}</Text>
             </View>
 
             <View style={styles.reviewRow}>
               <View style={styles.ratingBox}>
                 <Star width={16} height={16} />
-                <Text style={[FONTS.fs_body, styles.rating]}>3.7</Text>
+                <Text style={[FONTS.fs_body, styles.rating]}>{guesthouseData.rating?.toFixed(1) ?? '0.0'}</Text>
               </View>
-              <Text style={[FONTS.fs_body, styles.reviewCount]}>226 reviews</Text>
+              <Text style={[FONTS.fs_body, styles.reviewCount]}>{guesthouseData.reviewCount ?? 0} reviews</Text>
             </View>
           </View>
 
@@ -108,22 +110,22 @@ const MyGuesthouseDetail = ({ route }) => {
           <View style={styles.dateInfoRow}>
             <View style={styles.dateInfoContainer}>
               <CalendarIcon width={20} height={20} />
-              <Text style={FONTS.fs_body_bold}>3.28 금 - 3.29 토</Text>
+              <Text style={FONTS.fs_body_bold}>입실: {guesthouseData.checkIn}</Text>
             </View>
             <View style={styles.dateInfoContainer}>
               <PersonIcon width={18} height={18} style={{ marginLeft: 16 }} />
-              <Text style={FONTS.fs_body_bold}>인원 1, 객실 1</Text>
+              <Text style={FONTS.fs_body_bold}>퇴실: {guesthouseData.checkOut}</Text>
             </View>
           </View>
 
-          {rooms.map((room) => (
-            <View style={styles.roomCard}>
-              <Image source={room.image} style={styles.roomImage} />
+          {guesthouseData.roomInfos.map((room) => (
+            <View key={room.id} style={styles.roomCard}>
+              <Image source={fixedImage} style={styles.roomImage} />
               <View style={styles.roomInfo}>
-                <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{room.type}</Text>
+                <Text style={[FONTS.fs_h1_bold, styles.roomType]}>{room.roomName}</Text>
                 <Text style={[FONTS.fs_body, styles.checkin]}>{room.checkin}</Text>
                 <Text style={[FONTS.fs_h2_bold, styles.roomPrice]}>
-                  {room.price.toLocaleString()}원
+                  {room.roomPrice.toLocaleString()}원
                 </Text>
               </View>
             </View>
@@ -133,23 +135,7 @@ const MyGuesthouseDetail = ({ route }) => {
         <View style={styles.introductionContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>숙소 소개</Text>
           <Text style={[FONTS.fs_body, styles.introductionText]}>
-            환영합니다!^^ 숙소는 한옥마을 안에 있습니다. {'\n'}방, 욕실은 예약자 전용입니다.{'\n'}...
-            환영합니다!^^{'\n'}
-            숙소는 한옥마을 안에 있습니다.{'\n'}
-            방.욕실은 예약자.예약자 일행.전용 입니다.{'\n'}
-            모르는 사람과 방.욕실 같이 사용하지 않습니다.{'\n'}
-            원룸 생각 하시면 됩니다.{'\n'}
-            수건은 1인당 2장씩 제공합니다.{'\n'}
-            부족하시면 공용 공간에서 셀프로 가져다 사용 하시면 됩 니다.{'\n'}
-            3층 입니다.{'\n'}
-            야간 전망 괜찮습니다.{'\n'}
-            1개의 방.욕실은 예약자 개인 전용 입니다.{'\n'}
-            원룸식 으로 생각 하시면 됩니다.{'\n'}
-            공용공간에 정수기.커피포트.전자렌지.냉장고.종이컵. 있습니다.{'\n'}
-            모든 개인 방 에는 에어컨.TV. 드라이기. 샴푸.린스.바디.{'\n'}
-            치약.비누.수건. 있습니다.{'\n'}
-            칫솔만 가져 오시면 됩니다.{'\n'}
-            숙소의 부족한 부분 감안해서 추가요금와 가격에 반영 했습니다^^
+            {guesthouseData.guesthouseLongDesc}
           </Text>
         </View>
         
