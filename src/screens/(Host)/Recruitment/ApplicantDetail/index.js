@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -9,90 +9,121 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
+import {useRoute} from '@react-navigation/native';
 import styles from './ApplicantDetail.styles';
 import Header from '@components/Header';
 import ApplicantAttachments from '../../../(User)/Employ/ApplicantDetail/components/ApplicantAttachments';
 import ApplicantExperienceSection from '../../../(User)/Employ/ApplicantDetail/components/ApplicantExperienceSection';
 import ApplicantProfileHeader from '../../../(User)/Employ/ApplicantDetail/components/ApplicantProfileHeader';
 import ApplicantSelfIntroduction from '../../../(User)/Employ/ApplicantDetail/components/ApplicantSelfIntroduction';
-// 목업 데이터
+import hostEmployApi from '../../../../utils/api/hostEmployApi';
+
 const applicantData = {
-  id: '1',
-  name: '김지원',
-  gender: '여자',
-  birthYear: 2002,
-  age: 22,
-  phone: '010-0000-0000',
+  resumeId: 3,
+  resumeTitle: '열정 가득한 알바생',
+  photoUrl: 'https://via.placeholder.com/150',
+  nickname: '김지원',
+  gender: 'F',
+  age: 29,
+  birthDate: '1995-08-24',
+  userHashtag: [
+    {id: 10, hashtag: '파티'},
+    {id: 11, hashtag: '파티X'},
+    {id: 12, hashtag: '바다전망'},
+  ],
+  phone: '01012311245',
   email: 'email@email.com',
-  address: '서울특별시 성동구',
-  mbti: 'ENFP',
-  socialMedia: 'instaID',
-  hashtag: '#활발 #발랄',
-  totalExperience: '총 2년 6개월',
-  experiences: [
+  address: '서울 종로구',
+  resumeMbti: 'INFP',
+  instagramId: 'insta1234',
+  totalExperience: '2년 11개월',
+  workExperience: [
     {
-      id: '1',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
+      companyName: '맥도날드 A',
+      workType: '카운터',
+      startDate: '2022-01-01',
+      endDate: '2023-06-30',
+      description: null,
     },
     {
-      id: '2',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-    {
-      id: '3',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-    {
-      id: '4',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
+      companyName: '버거킹 B',
+      workType: '씽크',
+      startDate: '2023-07-01',
+      endDate: '2025-01-01',
+      description: null,
     },
   ],
-  selfIntroduction:
-    '자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다.',
-  attachments: [
-    {id: '1', name: '첨부파일1'},
-    {id: '2', name: '첨부파일2'},
-  ],
-  wishDuration: {
-    from: '2000.00.00',
-    to: '2000.00.01',
-  },
-  toHost: '열심히 하겠습니다!!',
+  selfIntro: '끈기와 책임감이 가득한 청년입니다.',
+  startDate: '2025-07-07',
+  endDate: '2025-08-08',
+  message: '안녕하세요',
 };
 
 const ApplicantDetail = () => {
+  const route = useRoute();
+  const resumeId = route.params?.resumeId ?? null;
+  const [applicant, setApplicant] = useState(applicantData);
+  const formattedExperiences = applicant.workExperience.map((exp, index) => ({
+    id: String(index + 1),
+    period: `${exp.startDate} - ${exp.endDate}`,
+    company: exp.companyName,
+    duties: exp.workType,
+  }));
+
+  const attachments = []; // 첨부파일이 없으므로 비워둠
+
+  useEffect(() => {
+    const fetchApplicantById = async () => {
+      try {
+        const response = await hostEmployApi.getApplicantDetail(resumeId);
+        setApplicant(response.data);
+      } catch (error) {
+        Alert('지원서 상세 조회에 실패했습니다.');
+      }
+    };
+    // fetchApplicantById();
+  }, []);
+
   return (
     <SafeAreaView style={styles.container}>
       <Header title={'이력서 상세'} />
       <ScrollView style={styles.scrollView}>
-        <ApplicantProfileHeader data={applicantData} />
-        <ApplicantExperienceSection
-          experiences={applicantData.experiences}
-          totalExperience={applicantData.totalExperience}
+        <ApplicantProfileHeader
+          data={{
+            id: applicant.resumeId,
+            name: applicant.nickname,
+            gender: applicant.gender === 'F' ? '여자' : '남자',
+            birthYear: new Date(applicant.birthDate).getFullYear(),
+            age: applicant.age,
+            phone: applicant.phone,
+            email: applicant.email,
+            address: applicant.address,
+            mbti: applicant.resumeMbti,
+            socialMedia: applicant.instagramId,
+            hashtag: applicant.userHashtag
+              .map(tag => `#${tag.hashtag}`)
+              .join(' '),
+          }}
         />
-        <ApplicantSelfIntroduction text={applicantData.selfIntroduction} />
-        <ApplicantAttachments attachments={applicantData.attachments} />
+        <ApplicantExperienceSection
+          experiences={formattedExperiences}
+          totalExperience={`총 ${applicant.totalExperience}`}
+        />
+        <ApplicantSelfIntroduction text={applicant.selfIntro} />
+        <ApplicantAttachments attachments={attachments} />
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>근무 희망기간</Text>
           <View style={styles.introductionCard}>
             <Text style={styles.introductionText}>
-              {applicantData.wishDuration.from}~{applicantData.wishDuration.to}
+              {applicant.startDate}~{applicant.endDate}
             </Text>
           </View>
         </View>
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>사장님께 한마디</Text>
           <View style={styles.introductionCard}>
-            <Text style={styles.introductionText}>{applicantData.toHost}</Text>
+            <Text style={styles.introductionText}>{applicant.message}</Text>
           </View>
         </View>
       </ScrollView>

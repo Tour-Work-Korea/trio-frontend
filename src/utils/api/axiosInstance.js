@@ -9,6 +9,7 @@ const api = axios.create({
   headers: {
     'Content-Type': 'application/json',
   },
+  paramsSerializer: params => qs.stringify(params),
 });
 
 api.interceptors.request.use(
@@ -17,15 +18,18 @@ api.interceptors.request.use(
     const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
     const endpoint = config.url?.replace(/^\//, '') || '';
 
-    // 토큰 주입
-    const token = useUserStore.getState().accessToken; // 메모리에서 바로 꺼냄
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    //토큰 주입 => 토큰 미포함시, withAuth: false처리(authApi에 예시 있음)
+    if (config.withAuth !== false) {
+      const token = useUserStore.getState().accessToken;
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
+
     // 쿼리스트링 조합
     let fullUrl = `${baseUrl}/${endpoint}`;
     if (config.params) {
-      const queryString = qs.stringify(config.params, {encode: false});
+      const queryString = qs.stringify(config.params, {encode: true});
       fullUrl += `?${queryString}`;
     }
 

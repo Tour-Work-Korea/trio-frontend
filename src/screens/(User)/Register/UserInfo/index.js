@@ -11,93 +11,77 @@ import {
   Platform,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import styles from './UserInfo.styles';
 import Header from '@components/Header';
+import authApi from '@utils/api/authApi';
 
 const UserInfo = () => {
+  const route = useRoute();
+  const {email, phoneNumber} = route.params;
   const navigation = useNavigation();
-  const [name, setName] = useState('');
-  const [birthdate, setBirthdate] = useState('');
-  const [gender, setGender] = useState(''); // 'male' 또는 'female'
-  const [nickname, setNickname] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
+  const [formData, setFormData] = useState({
+    userRole: 'USER',
+    email: email || '',
+    phoneNum: phoneNumber || '',
+    name: '',
+    birthday: '',
+    gender: '',
+    nickname: '',
+    password: '',
+    passwordConfirm: '',
+  });
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
-  const [isDatePickerVisible, setDatePickerVisibility] = useState(false);
 
-  // 생년월일 선택 함수
-  const showDatePicker = () => {
-    setDatePickerVisibility(true);
+  const updateField = (key, value) => {
+    setFormData(prev => ({...prev, [key]: value}));
   };
 
-  const hideDatePicker = () => {
-    setDatePickerVisibility(false);
-  };
-
-  const handleConfirm = date => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    setBirthdate(`${year}.${month}.${day}`);
-    hideDatePicker();
-  };
-
-  // 닉네임 중복 확인 함수
   const checkNicknameDuplicate = () => {
-    if (!nickname) {
+    if (!formData.nickname) {
       Alert.alert('알림', '닉네임을 입력해주세요.');
       return;
     }
-
-    // 닉네임 중복 확인 로직 (실제로는 API 호출)
-    // 예시로 성공했다고 가정
     setIsNicknameChecked(true);
     Alert.alert('알림', '사용 가능한 닉네임입니다.');
   };
 
-  // 폼 제출 함수
   const handleSubmit = () => {
-    navigation.navigate('Result', {
-      text: '성공적으로 가입되었습니다!',
-      to: 'EXHome',
-    });
-
-    // 필수 입력 필드 검증
-    if (!name) {
-      Alert.alert('알림', '이름을 입력해주세요.');
-      return;
+    if (!formData.name) {
+      return Alert.alert('알림', '이름을 입력해주세요.');
+    }
+    if (!formData.birthday) {
+      return Alert.alert('알림', '생년월일을 입력해주세요.');
     }
 
-    if (!birthdate) {
-      Alert.alert('알림', '생년월일을 입력해주세요.');
-      return;
+    if (!formData.gender) {
+      return Alert.alert('알림', '성별을 선택해주세요.');
     }
-
-    if (!gender) {
-      Alert.alert('알림', '성별을 선택해주세요.');
-      return;
+    if (!formData.nickname) {
+      return Alert.alert('알림', '닉네임을 입력해주세요.');
     }
-
-    if (!nickname) {
-      Alert.alert('알림', '닉네임을 입력해주세요.');
-      return;
-    }
-
     if (!isNicknameChecked) {
-      Alert.alert('알림', '닉네임 중복 확인을 해주세요.');
-      return;
+      return Alert.alert('알림', '닉네임 중복 확인을 해주세요.');
     }
-
-    if (!password) {
-      Alert.alert('알림', '비밀번호를 입력해주세요.');
-      return;
+    if (!formData.password) {
+      return Alert.alert('알림', '비밀번호를 입력해주세요.');
     }
-
-    if (password !== confirmPassword) {
-      Alert.alert('알림', '비밀번호가 일치하지 않습니다.');
-      return;
+    if (formData.password !== formData.passwordConfirm) {
+      return Alert.alert('알림', '비밀번호가 일치하지 않습니다.');
     }
+    const tryUserSignUp = async () => {
+      try {
+        console.log(formData);
+        const response = await authApi.userSignUp(formData);
+        navigation.navigate('Result', {
+          text: '성공적으로 가입되었습니다!',
+          to: 'EXHome',
+        });
+      } catch (error) {
+        Alert.alert('회원가입에 실패했습니다.');
+      }
+    };
+    tryUserSignUp();
   };
 
   return (
@@ -114,19 +98,41 @@ const UserInfo = () => {
             <TextInput
               style={styles.input}
               placeholder="이름"
-              value={name}
-              onChangeText={setName}
+              value={formData.name}
+              onChangeText={text => updateField('name', text)}
             />
           </View>
 
           <View style={styles.inputSection}>
             <Text style={styles.label}>생년월일</Text>
-            <TouchableOpacity style={styles.input} onPress={showDatePicker}>
-              <Text
-                style={birthdate ? styles.inputText : styles.placeholderText}>
-                {birthdate || '생년월일'}
-              </Text>
-            </TouchableOpacity>
+            <TextInput
+              style={styles.input}
+              placeholder="예: 19990101"
+              keyboardType="numeric"
+              maxLength={8}
+              value={formData.birthday.replace(/-/g, '')}
+              onChangeText={text => {
+                const onlyDigits = text.replace(/[^0-9]/g, '');
+
+                if (onlyDigits.length === 8) {
+                  const year = onlyDigits.slice(0, 4);
+                  const month = onlyDigits.slice(4, 6);
+                  const day = onlyDigits.slice(6, 8);
+                  const mm = parseInt(month, 10);
+                  const dd = parseInt(day, 10);
+                  if (mm < 1 || mm > 12 || dd < 1 || dd > 31) {
+                    Alert.alert(
+                      '날짜 형식 오류',
+                      '올바른 날짜를 입력해주세요.',
+                    );
+                    return;
+                  }
+                  updateField('birthday', `${year}-${month}-${day}`);
+                } else {
+                  updateField('birthday', onlyDigits);
+                }
+              }}
+            />
           </View>
 
           <View style={styles.inputSection}>
@@ -135,15 +141,15 @@ const UserInfo = () => {
               <TouchableOpacity
                 style={[
                   styles.genderOption,
-                  gender === 'male' && styles.selectedGender,
+                  formData.gender === 'M' && styles.selectedGender,
                 ]}
-                onPress={() => setGender('male')}>
+                onPress={() => updateField('gender', 'M')}>
                 <View
                   style={[
                     styles.radioButton,
-                    gender === 'male' && styles.radioButtonSelected,
+                    formData.gender === 'M' && styles.radioButtonSelected,
                   ]}>
-                  {gender === 'male' && (
+                  {formData.gender === 'M' && (
                     <View style={styles.radioButtonInner} />
                   )}
                 </View>
@@ -153,15 +159,15 @@ const UserInfo = () => {
               <TouchableOpacity
                 style={[
                   styles.genderOption,
-                  gender === 'female' && styles.selectedGender,
+                  formData.gender === 'F' && styles.selectedGender,
                 ]}
-                onPress={() => setGender('female')}>
+                onPress={() => updateField('gender', 'F')}>
                 <View
                   style={[
                     styles.radioButton,
-                    gender === 'female' && styles.radioButtonSelected,
+                    formData.gender === 'F' && styles.radioButtonSelected,
                   ]}>
-                  {gender === 'female' && (
+                  {formData.gender === 'F' && (
                     <View style={styles.radioButtonInner} />
                   )}
                 </View>
@@ -176,9 +182,9 @@ const UserInfo = () => {
               <TextInput
                 style={styles.nicknameInput}
                 placeholder="닉네임"
-                value={nickname}
+                value={formData.nickname}
                 onChangeText={text => {
-                  setNickname(text);
+                  updateField('nickname', text);
                   setIsNicknameChecked(false);
                 }}
               />
@@ -195,8 +201,8 @@ const UserInfo = () => {
             <TextInput
               style={styles.input}
               placeholder="비밀번호"
-              value={password}
-              onChangeText={setPassword}
+              value={formData.password}
+              onChangeText={text => updateField('password', text)}
               secureTextEntry
             />
           </View>
@@ -205,8 +211,8 @@ const UserInfo = () => {
             <TextInput
               style={styles.input}
               placeholder="비밀번호를 한번 더 입력해 주세요."
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
+              value={formData.passwordConfirm}
+              onChangeText={text => updateField('passwordConfirm', text)}
               secureTextEntry
             />
           </View>

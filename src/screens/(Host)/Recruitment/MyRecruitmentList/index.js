@@ -1,10 +1,13 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   SafeAreaView,
   FlatList,
   TouchableOpacity,
+  Modal,
+  Alert,
+  TextInput,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
@@ -13,83 +16,95 @@ import Person from '@assets/images/Person.svg';
 import Trash from '@assets/images/Trash.svg';
 import styles from './MyRecruitmentList.styles';
 import {FONTS} from '@constants/fonts';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
-/*
- * 공고 목록 페이지
- */
+const postings = [
+  {
+    recruitId: 1,
+    recruitTitle: '공고 제목',
+    guesthouseId: 1,
+    guesthouseName: '게스트하우스 이름',
+  },
+];
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
+  const [myRecruits, setMyRecruits] = useState([]);
+  const [modalVisible, setModalVisible] = useState(false);
+  const [cancelReason, setCancelReason] = useState('');
+  const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
-  // 샘플 데이터
-  const postings = [
-    {
-      id: '1',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '2',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '3',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '4',
-      guestHouseName: '게스트하우스 이름',
-      title: '공고 제목',
-      lastModified: '2025.04.13',
-    },
-  ];
+  useEffect(() => {
+    setMyRecruits(postings);
+  }, []);
 
-  // 페이지 이동 함수
-  const handleViewDetail = id => {
-    navigation.navigate('RecruitmentDetail', {id});
+  const getMyRecruits = async () => {
+    try {
+      const response = await hostEmployApi.getMyRecruits();
+      setMyRecruits(response.data);
+    } catch (error) {
+      Alert.alert('내 공고 조회에 실패했습니다.');
+    }
   };
 
-  const handleViewApplicants = id => {
-    // 지원자 목록 페이지로 이동하는 로직
-    navigation.navigate('ApplicantList', {id});
+  const handleViewDetail = recruitId => {
+    navigation.navigate('RecruitmentDetail', {recruitId});
+  };
+
+  const handleViewApplicants = recruitId => {
+    navigation.navigate('ApplicantList', {recruitId});
   };
 
   const handleDeletePosting = id => {
-    // 공고 삭제 로직
-    // 실제 구현 시 확인 다이얼로그 추가 필요
-    console.log(`Delete posting ${id}`);
+    setSelectedRecruitId(id);
+    setModalVisible(true);
   };
 
-  // 공고 아이템 렌더링
+  const confirmDelete = () => {
+    if (!cancelReason.trim()) {
+      Alert.alert('취소 사유를 입력해주세요.');
+      return;
+    }
+    Alert.alert(
+      `Deleting posting ${selectedRecruitId} with reason: ${cancelReason}`,
+    );
+    const fetchDeleteRecruit = async () => {
+      try {
+        const response = await hostEmployApi.requestDeleteRecruit(
+          selectedRecruitId,
+          cancelReason,
+        );
+        Alert.alert('성공적으로 삭제 요청했습니다.');
+      } catch (error) {
+        Alert.alert('삭제 요청에 실패했습니다.');
+      }
+    };
+    // fetchDeleteRecruit();
+    setModalVisible(false);
+    setCancelReason('');
+  };
+
   const renderPostingItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleViewDetail(item.id)}>
+    <TouchableOpacity onPress={() => handleViewDetail(item.recruitId)}>
       <View style={styles.postingCard}>
         <View style={styles.guestHouseTag}>
           <Text style={[styles.guestHouseText, FONTS.fs_body]}>
-            {item.guestHouseName}
+            {item.guesthouseName}
           </Text>
         </View>
 
         <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_h2_bold]}>{item.title}</Text>
+          <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>
           <View style={styles.iconsContainer}>
-            <TouchableOpacity onPress={() => handleViewApplicants(item.id)}>
+            <TouchableOpacity
+              onPress={() => handleViewApplicants(item.recruitId)}>
               <Person />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => handleDeletePosting(item.id)}>
+            <TouchableOpacity
+              onPress={() => handleDeletePosting(item.recruitId)}>
               <Trash />
             </TouchableOpacity>
           </View>
-        </View>
-
-        <View style={styles.dateRow}>
-          <Text style={[styles.dateLabel, FONTS.fs_body]}>최종수정일</Text>
-          <Text style={[styles.date, FONTS.fs_body]}>{item.lastModified}</Text>
         </View>
       </View>
     </TouchableOpacity>
@@ -105,12 +120,42 @@ const MyRecruitmentList = () => {
         </Text>
 
         <FlatList
-          data={postings}
+          data={myRecruits}
           renderItem={renderPostingItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.recruitId.toString()}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
+
+        <Modal
+          visible={modalVisible}
+          animationType="slide"
+          transparent={true}
+          onRequestClose={() => setModalVisible(false)}>
+          <View style={styles.modalOverlay}>
+            <View style={styles.modalContainer}>
+              <Text style={styles.modalTitle}>공고를 취소하시겠습니까?</Text>
+              <TextInput
+                placeholder="취소 사유를 입력하세요"
+                value={cancelReason}
+                onChangeText={setCancelReason}
+                multiline
+              />
+              <View style={styles.modalButtonRow}>
+                <TouchableOpacity
+                  style={styles.modalButtonCancel}
+                  onPress={() => setModalVisible(false)}>
+                  <Text style={styles.modalButtonText}>닫기</Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.modalButtonConfirm}
+                  onPress={confirmDelete}>
+                  <Text style={styles.modalButtonText}>제출</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </Modal>
       </View>
     </SafeAreaView>
   );
