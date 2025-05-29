@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,13 +14,20 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import styles from './PostRecruitment.styles';
 import Header from '@components/Header';
-import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import Calendar from '@assets/images/Calendar.svg';
-import {FONTS} from '@constants/fonts';
+import hostEmployApi from '@utils/api/hostEmployApi';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import DropDownPicker from 'react-native-dropdown-picker';
+import {useNavigation, useRoute} from '@react-navigation/native';
+
+const guesthouseListDummy = [
+  {label: '게스트하우스 1', value: '1'},
+  {label: '게스트하우스 2', value: '2'},
+  {label: '게스트하우스 3', value: '3'},
+];
 
 const PostRecruitment = () => {
-  // Form state
   const [formData, setFormData] = useState({
     title: '',
     guesthouse: '',
@@ -36,9 +43,9 @@ const PostRecruitment = () => {
       루프탑: false,
       즉시입도: false,
     },
-    startDate: new Date(),
-    endDate: new Date(),
-    arrivalDate: new Date(),
+    startDate: null,
+    endDate: null,
+    arrivalDate: null,
     femaleCount: '',
     maleCount: '',
     anyGenderCount: '',
@@ -53,10 +60,68 @@ const PostRecruitment = () => {
     photos: [],
     detailedInfo: '',
   });
-
+  const [guesthouseList, setGuesthouseList] = useState([]);
   const [showStartDate, setShowStartDate] = useState(false);
   const [showEndDate, setShowEndDate] = useState(false);
   const [showArrivalDate, setShowArrivalDate] = useState(false);
+  const [guesthouseOpen, setGuesthouseOpen] = useState(false);
+
+  const route = useRoute();
+  const recruit = route.params?.recruit ?? null;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (recruit) {
+      // 수정인 경우, 기존 데이터
+      setFormData(prev => ({
+        ...prev,
+        title: recruit.recruitTitle,
+        guesthouse: '게스트하우스 이름 (id: ' + recruit.guesthouseId + ')',
+        introduction: recruit.recruitShortDescription,
+        tags: recruit.hashtags.reduce((acc, cur) => {
+          acc[cur.hashtag] = true;
+          return acc;
+        }, {}),
+        startDate: new Date(recruit.recruitStart),
+        endDate: new Date(recruit.recruitEnd),
+        arrivalDate: new Date(recruit.workStartDate),
+        femaleCount: recruit.recruitNumberFemale.toString(),
+        maleCount: recruit.recruitNumberMale.toString(),
+        minAge: recruit.recruitMinAge.toString(),
+        maxAge: recruit.recruitMaxAge.toString(),
+        preferences: recruit.recruitCondition,
+        workEnvironment: recruit.workType,
+        mainDuties: recruit.workPart,
+        minWorkPeriod: `${recruit.workStartDate} ~ ${recruit.workEndDate}`,
+        benefits: recruit.welfare,
+        location: recruit.location,
+        photos: recruit.recruitImage.map(img => img.recruitImageUrl),
+        detailedInfo: recruit.recruitDetail,
+      }));
+      setGuesthouseList(
+        guesthouseListDummy.map(item => ({
+          label: item.label,
+          value: item.value,
+        })),
+      );
+    }
+
+    //나의 게스트하우스 리스트 조회
+    const fetchMyGuestHouse = async () => {
+      try {
+        const response = await hostGuesthouseApi.getMyGuesthouse();
+        const options = response.data.map(g => ({
+          label: g.guesthouseName,
+          value: `${g.id}`,
+        }));
+        setGuesthouseList(options);
+      } catch (error) {
+        Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
+      }
+    };
+    // fetchMyGuestHouse();
+    setGuesthouseList(guesthouseListDummy);
+  }, []);
 
   const handleInputChange = (field, value) => {
     setFormData({
@@ -99,10 +164,10 @@ const PostRecruitment = () => {
     if (dateField === 'endDate') setShowEndDate(false);
     if (dateField === 'arrivalDate') setShowArrivalDate(false);
 
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [dateField]: currentDate,
-    });
+    }));
   };
 
   const pickImage = () => {
@@ -145,7 +210,6 @@ const PostRecruitment = () => {
   };
 
   const handleSubmit = () => {
-    // Validate form
     if (!formData.title) {
       Alert.alert('입력 오류', '공고 제목을 입력해주세요.');
       return;
@@ -156,11 +220,33 @@ const PostRecruitment = () => {
       return;
     }
 
-    // Submit form data
-    console.log('Form Data:', formData);
+    const fetchNewRecruit = async () => {
+      try {
+        const response = await hostEmployApi.createRecruit(formData);
+        Alert.alert('새로운 공고를 등록했습니다.');
+        navigation.navigate('MyRecruitmentList');
+      } catch (error) {
+        Alert.alert('새로운 공고를 등록에 실패했습니다.');
+      }
+    };
+    const fetchUpdateRecruit = async updatedRecruitId => {
+      try {
+        const response = await hostEmployApi.updateRecruit(
+          updatedRecruitId,
+          formData,
+        );
+        Alert.alert('공고를 성공적으로 수정했습니다.');
+        navigation.navigate('MyRecruitmentList');
+      } catch (error) {
+        Alert.alert('공고 수정에 실패했습니다.');
+      }
+    };
 
-    // Here you would typically send the data to your API
-    Alert.alert('성공', '공고가 등록되었습니다.');
+    if (recruit?.recruitId != null) {
+      // fetchUpdateRecruit(recruit.recruitId);
+    } else {
+      // fetchNewRecruit();
+    }
   };
 
   // Handle temporary save
@@ -194,21 +280,19 @@ const PostRecruitment = () => {
               onChangeText={text => handleInputChange('title', text)}
             />
           </View>
-
-          <View style={styles.formGroup}>
-            <TouchableOpacity
-              style={styles.dropdown}
-              onPress={() =>
-                Alert.alert(
-                  '알림',
-                  '게스트하우스 선택 기능은 아직 구현 중입니다.',
-                )
-              }>
-              <Text style={styles.dropdownText}>
-                {formData.guesthouse ||
-                  '공고를 등록할 게스트하우스를 선택해주세요.'}
-              </Text>
-            </TouchableOpacity>
+          <View style={{zIndex: 1000}}>
+            <DropDownPicker
+              open={guesthouseOpen}
+              value={formData.guesthouse}
+              items={guesthouseList}
+              setOpen={setGuesthouseOpen}
+              setValue={val => handleInputChange('guesthouse', val())}
+              setItems={setGuesthouseList}
+              placeholder="공고를 등록할 게스트하우스를 선택해주세요."
+              zIndex={1000}
+              zIndexInverse={3000}
+              listMode="SCROLLVIEW" // ← 핵심
+            />
           </View>
 
           <View style={styles.formGroup}>
@@ -391,21 +475,29 @@ const PostRecruitment = () => {
             <TouchableOpacity
               style={styles.dateInput}
               onPress={() => setShowStartDate(true)}>
-              <Text style={styles.dateLabel}>시작일자</Text>
+              <Text style={styles.dateLabel}>
+                {formData.startDate
+                  ? new Date(formData.startDate).toLocaleDateString('ko-KR')
+                  : '시작일자'}
+              </Text>
               <Calendar />
             </TouchableOpacity>
 
             <TouchableOpacity
               style={styles.dateInput}
               onPress={() => setShowEndDate(true)}>
-              <Text style={styles.dateLabel}>마감일자</Text>
+              <Text style={styles.dateLabel}>
+                {formData.endDate
+                  ? new Date(formData.endDate).toLocaleDateString('ko-KR')
+                  : '마감일자'}
+              </Text>
               <Calendar />
             </TouchableOpacity>
           </View>
 
           {showStartDate && (
             <DateTimePicker
-              value={formData.startDate}
+              value={formData.startDate ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
@@ -416,7 +508,7 @@ const PostRecruitment = () => {
 
           {showEndDate && (
             <DateTimePicker
-              value={formData.endDate}
+              value={formData.endDate ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
@@ -429,14 +521,18 @@ const PostRecruitment = () => {
             <TouchableOpacity
               style={styles.dateInput}
               onPress={() => setShowArrivalDate(true)}>
-              <Text style={styles.dateLabel}>입도 날짜</Text>
+              <Text style={styles.dateLabel}>
+                {formData.arrivalDate
+                  ? new Date(formData.arrivalDate).toLocaleDateString('ko-KR')
+                  : '입도일자'}
+              </Text>
               <Calendar />
             </TouchableOpacity>
           </View>
 
           {showArrivalDate && (
             <DateTimePicker
-              value={formData.arrivalDate}
+              value={formData.arrivalDate ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
@@ -627,7 +723,9 @@ const PostRecruitment = () => {
         {/* 버튼 섹션 */}
         <View style={styles.buttonContainer}>
           <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>공고 등록하기</Text>
+            <Text style={styles.submitButtonText}>
+              {recruit ? '공고 수정하기' : '공고 등록하기'}
+            </Text>
           </TouchableOpacity>
 
           <View style={styles.secondaryButtonsRow}>

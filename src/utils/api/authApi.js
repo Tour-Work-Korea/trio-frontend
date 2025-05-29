@@ -5,23 +5,31 @@ const authApi = {
   sendEmail: email =>
     api.post('/auth/email/send', null, {
       params: {email},
+      withAuth: false, // 토큰 미포함시
     }),
   verifyEmail: (email, authCode) =>
     api.post('/auth/email/verify', null, {
       params: {email, authCode},
+      withAuth: false,
     }),
 
   //사업자 번호 인증
   verifyBusiness: businessNumber =>
     api.post('/auth/business/verify', null, {
       params: {businessNumber},
+      withAuth: false,
     }),
 
   //사장님 회원가입
-  hostSignUp: hostData => api.post('/auth/host/signup', hostData),
+  hostSignUp: hostData =>
+    api.post('/auth/host/signup', hostData, {withAuth: false}),
+
+  userSignUp: userData =>
+    api.post('/auth/user/signup', userData, {withAuth: false}),
 
   //로그인
-  login: (email, password) => api.post('/auth/login', {email, password}),
+  login: (email, password) =>
+    api.post('/auth/login', {email, password}, {withAuth: false}),
 };
 
 export default authApi;
