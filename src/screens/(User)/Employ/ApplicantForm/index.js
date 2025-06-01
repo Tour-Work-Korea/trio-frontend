@@ -66,14 +66,14 @@ const resumeData = {
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const isEditMode = route.params?.isEditMode || false;
+  const {id = null, isEditMode = false} = route.params || {};
 
   const [formData, setFormData] = useState(
     isEditMode
       ? resumeData
       : {
           id: '1',
-          name: '김지원',
+          name: '초본',
           gender: '여자',
           birthYear: 2002,
           age: 22,

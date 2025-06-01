@@ -47,7 +47,7 @@ const MyApplicantList = () => {
 
   // 페이지 이동 함수
   const handleViewDetail = id => {
-    navigation.navigate('ApplicantDetail', {id});
+    navigation.navigate('MyApplicantDetail', {id});
   };
 
   const handleDeletePosting = id => {

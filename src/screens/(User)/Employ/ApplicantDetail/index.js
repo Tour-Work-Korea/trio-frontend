@@ -104,7 +104,10 @@ const ApplicantDetail = () => {
       <TouchableOpacity
         style={styles.applyButton}
         onPress={() => {
-          navigation.navigate('ApplicantForm', applicantData.id);
+          navigation.navigate('ApplicantForm', {
+            id: applicantData.id,
+            isEditMode: true,
+          });
         }}>
         <Text style={styles.applyButtonText}>수정하기</Text>
       </TouchableOpacity>
