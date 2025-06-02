@@ -271,6 +271,38 @@ const styles = StyleSheet.create({
     ...FONTS.fs_body_bold,
     color: COLORS.white,
   },
+  tagGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+    rowGap: 12,
+  },
+
+  tagButton: {
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.white,
+    borderRadius: 20,
+    paddingVertical: 8,
+    paddingHorizontal: 16,
+    marginRight: 8,
+    marginBottom: 8,
+  },
+
+  tagButtonSelected: {
+    borderColor: COLORS.scarlet,
+    backgroundColor: '#FFF0F0',
+  },
+
+  tagButtonText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+  },
+
+  tagButtonTextSelected: {
+    color: COLORS.scarlet,
+    fontWeight: 'bold',
+  },
 });
 
 export default styles;
