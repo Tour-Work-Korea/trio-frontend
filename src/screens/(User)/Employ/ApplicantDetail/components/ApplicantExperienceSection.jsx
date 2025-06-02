@@ -12,7 +12,7 @@ const ApplicantExperienceSection = ({experiences, totalExperience}) => {
       <View style={styles.experienceCard}>
         <View style={styles.timelineContainer}>
           {experiences.map((exp, idx) => (
-            <View key={exp.id} style={styles.timelineItem}>
+            <View key={idx} style={styles.timelineItem}>
               <View style={styles.timelineDot} />
               <View
                 style={[
@@ -21,9 +21,14 @@ const ApplicantExperienceSection = ({experiences, totalExperience}) => {
                 ]}
               />
               <View style={styles.experienceContent}>
-                <Text style={styles.experiencePeriod}>{exp.period}</Text>
-                <Text style={styles.experienceCompany}>{exp.company}</Text>
-                <Text style={styles.experienceDuties}>{exp.duties}</Text>
+                <Text style={styles.experiencePeriod}>
+                  {' '}
+                  {new Date(exp.startDate).toISOString().split('T')[0]} -{' '}
+                  {new Date(exp.endDate).toISOString().split('T')[0]}
+                </Text>
+                <Text style={styles.experienceCompany}>{exp.companyName}</Text>
+                <Text style={styles.experienceDuties}>{exp.workType}</Text>
+                <Text style={styles.experienceDuties}>{exp.description}</Text>
               </View>
             </View>
           ))}

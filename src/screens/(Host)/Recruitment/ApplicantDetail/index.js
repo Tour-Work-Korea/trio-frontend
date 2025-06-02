@@ -12,7 +12,7 @@ import {
 import {useRoute} from '@react-navigation/native';
 import styles from './ApplicantDetail.styles';
 import Header from '@components/Header';
-import ApplicantAttachments from '../../../(User)/Employ/ApplicantDetail/components/ApplicantAttachments';
+
 import ApplicantExperienceSection from '../../../(User)/Employ/ApplicantDetail/components/ApplicantExperienceSection';
 import ApplicantProfileHeader from '../../../(User)/Employ/ApplicantDetail/components/ApplicantProfileHeader';
 import ApplicantSelfIntroduction from '../../../(User)/Employ/ApplicantDetail/components/ApplicantSelfIntroduction';
@@ -110,7 +110,6 @@ const ApplicantDetail = () => {
           totalExperience={`총 ${applicant.totalExperience}`}
         />
         <ApplicantSelfIntroduction text={applicant.selfIntro} />
-        <ApplicantAttachments attachments={attachments} />
 
         <View style={styles.sectionContainer}>
           <Text style={styles.sectionTitle}>근무 희망기간</Text>

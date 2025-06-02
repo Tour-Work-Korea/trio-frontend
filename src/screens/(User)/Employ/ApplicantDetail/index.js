@@ -1,72 +1,88 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   Alert,
 } from 'react-native';
 import styles from './ApplicantDetail.styles';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Header from '@components/Header';
-import ApplicantAttachments from './components/ApplicantAttachments';
 import ApplicantExperienceSection from './components/ApplicantExperienceSection';
 import ApplicantProfileHeader from './components/ApplicantProfileHeader';
 import ApplicantSelfIntroduction from './components/ApplicantSelfIntroduction';
+import userEmployApi from '@utils/api/userEmployApi';
 
 // 목업 데이터
-const applicantData = {
-  id: '1',
-  name: '김지원',
-  gender: '여자',
-  birthYear: 2002,
-  age: 22,
-  phone: '010-0000-0000',
-  email: 'email@email.com',
-  address: '서울특별시 성동구',
-  mbti: 'ENFP',
-  socialMedia: 'instaID',
-  hashtag: '#활발 #발랄',
-  totalExperience: '총 2년 6개월',
-  experiences: [
-    {
-      id: '1',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-    {
-      id: '2',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-    {
-      id: '3',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-    {
-      id: '4',
-      period: '2022.03 - 2022.09',
-      company: '음식점',
-      duties: '서빙, 설거지, 손님응대, 계산, 청소',
-    },
-  ],
-  selfIntroduction:
-    '자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다. 자기소개서입니다.',
-  attachments: [
-    {id: '1', name: '첨부파일1'},
-    {id: '2', name: '첨부파일2'},
-  ],
-};
+// const applicantData = {
+//   id: 1,
+//   resumeTitle: '열정 가득한 알바생',
+//   photoUrl: '사진을 추가해주세요',
+//   mbti: 'ENFP',
+//   selfIntroduction: '끈기와 책임감이 가득한 청년입니다.',
+//   instagramId: 'ID를 추가해주세요',
+//   totalExperience: '2년 11개월',
+//   nickname: 'test',
+//   gender: 'M',
+//   age: 0,
+//   birthDate: '2025-05-28',
+//   phone: '01012345678',
+//   email: 'test@gmail.com',
+//   address: '주소를 추가해주세요',
+//   workExperience: [
+//     {
+//       companyName: '맥도날드 A',
+//       workType: '카운터',
+//       startDate: '2022-01-01',
+//       endDate: '2023-06-30',
+//       description: '주문 처리 및 고객 응대',
+//     },
+//     {
+//       companyName: '버거킹 B',
+//       workType: '씽크',
+//       startDate: '2023-07-01',
+//       endDate: '2025-01-01',
+//       description: '설거지',
+//     },
+//   ],
+//   hashtag: [
+//     {
+//       hashtag: '성실함',
+//       hashtagType: 'USER_HASHTAG',
+//     },
+//     {
+//       hashtag: '영어가능',
+//       hashtagType: 'USER_HASHTAG',
+//     },
+//     {
+//       hashtag: '동반지원O',
+//       hashtagType: 'USER_HASHTAG',
+//     },
+//   ],
+// };
 
 const ApplicantDetail = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const {id} = route.params || {};
+  console.log(id);
+  const [applicantData, setApplicantData] = useState();
+
+  useEffect(() => {
+    tryFetchResumeById();
+  }, []);
+
+  const tryFetchResumeById = async () => {
+    try {
+      const response = await userEmployApi.getResumeById(id);
+      console.log(response.data.workExperience);
+      setApplicantData(response.data);
+    } catch (error) {
+      Alert.alert('이력서를 불러오는데 실패했습니다.');
+    }
+  };
 
   const handleDelete = () => {
     // 삭제 기능 구현
@@ -120,11 +136,10 @@ const ApplicantDetail = () => {
       <ScrollView style={styles.scrollView}>
         <ApplicantProfileHeader data={applicantData} />
         <ApplicantExperienceSection
-          experiences={applicantData.experiences}
+          experiences={applicantData.workExperience}
           totalExperience={applicantData.totalExperience}
         />
-        <ApplicantSelfIntroduction text={applicantData.selfIntroduction} />
-        <ApplicantAttachments attachments={applicantData.attachments} />
+        <ApplicantSelfIntroduction text={applicantData.selfIntro} />
       </ScrollView>
       {renderActionButtons()}
     </SafeAreaView>

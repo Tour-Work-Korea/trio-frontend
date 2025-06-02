@@ -13,8 +13,8 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import Trash from '@assets/images/Trash.svg';
 import styles from './MyApplicantList.styles';
 import {FONTS} from '@constants/fonts';
-import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
+import userEmployApi from '@utils/api/userEmployApi';
 
 /*
  * 공고 목록 페이지
@@ -87,7 +87,7 @@ const MyApplicantList = () => {
         <FlatList
           data={postings}
           renderItem={renderPostingItem}
-          keyExtractor={item => item.id}
+          keyExtractor={item => item.resumeId}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContainer}
         />
