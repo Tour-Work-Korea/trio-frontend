@@ -3,7 +3,7 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop
+      - develop  # 배포 트리거 브랜치
 
 jobs:
   build:
@@ -12,6 +12,14 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: yarn install
 
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
