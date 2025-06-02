@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -13,38 +13,28 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import Trash from '@assets/images/Trash.svg';
 import styles from './MyApplicantList.styles';
 import {FONTS} from '@constants/fonts';
+import userEmployApi from '@utils/api/userEmployApi';
+import {COLORS} from '@constants/colors';
 
 /*
  * 공고 목록 페이지
  */
-
 const MyApplicantList = () => {
   const navigation = useNavigation();
+  const [postings, setPostings] = useState();
 
-  // 샘플 데이터
-  const postings = [
-    {
-      id: '1',
-      title: '이력서 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '2',
-      title: '이력서 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '3',
-      title: '이력서 제목',
-      lastModified: '2025.04.13',
-    },
-    {
-      id: '4',
-      title: '이력서 제목',
-      lastModified: '2025.04.13',
-    },
-  ];
+  useEffect(() => {
+    tryFetchMyResumes();
+  }, []);
 
+  const tryFetchMyResumes = async () => {
+    try {
+      const response = await userEmployApi.getResumes();
+      setPostings(response.data);
+    } catch (error) {
+      Alert.alert('나의 이력서를 가져오는데 실패했습니다.');
+    }
+  };
   // 페이지 이동 함수
   const handleViewDetail = id => {
     navigation.navigate('MyApplicantDetail', {id});
@@ -63,17 +53,26 @@ const MyApplicantList = () => {
 
   // 공고 아이템 렌더링
   const renderPostingItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleViewDetail(item.id)}>
+    <TouchableOpacity onPress={() => handleViewDetail(item.resumeId)}>
       <View style={styles.postingCard}>
         <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_h2_bold]}>{item.title}</Text>
-          <TouchableOpacity onPress={() => handleDeletePosting(item.id)}>
+          <Text style={[FONTS.fs_h2_bold]}>{item.resumeTitle}</Text>
+          <TouchableOpacity onPress={() => handleDeletePosting(item.resumeId)}>
             <Trash />
           </TouchableOpacity>
         </View>
         <View style={styles.dateRow}>
-          <Text style={[styles.dateLabel, FONTS.fs_body]}>최종수정일</Text>
-          <Text style={[styles.date, FONTS.fs_body]}>{item.lastModified}</Text>
+          {item.hashtags.map((tag, idx) => (
+            <Text key={idx} style={[FONTS.fs_body, {color: COLORS.scarlet}]}>
+              #{tag.hashtag}
+            </Text>
+          ))}
+        </View>
+        <View style={styles.dateRow}>
+          <Text style={[styles.dateLabel, FONTS.fs_body]}>
+            최종수정일 {'  '}
+            {new Date(item.updatedAt).toISOString().split('T')[0]}
+          </Text>
         </View>
       </View>
     </TouchableOpacity>
