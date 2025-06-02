@@ -22,7 +22,7 @@ import {Image} from 'react-native-svg';
 import userEmployApi from '@utils/api/userEmployApi';
 
 const dummy = {
-  resumeTitle: '열정 가득한 알바생',
+  resumeTitle: '열정 가득한 알바생!!!!',
   selfIntro: '끈기와 책임감이 가득한 청년입니다.',
   workExperience: [
     {
@@ -68,7 +68,7 @@ const ApplicantForm = () => {
 
   useEffect(() => {
     getMyInfo();
-    setFormData(dummy);
+    // setFormData(dummy);
     if (id != null) {
       tryFetchResumeData();
     }
@@ -88,8 +88,16 @@ const ApplicantForm = () => {
   const tryFetchResumeData = async () => {
     try {
       const response = await userEmployApi.getResumeById(id);
-      console.log(response.data);
-      setFormData(response.data);
+      const data = response.data;
+      const parsedFormData = {
+        resumeTitle: data.resumeTitle || '',
+        selfIntro: data.selfIntro || '',
+        workExperience: data.workExperience || [],
+        // hashtags: data.hashtag?.map(item => item.hashtag) || [],
+        hashtags: [],
+      };
+
+      setFormData(parsedFormData);
     } catch (error) {
       Alert.alert('기존 정보를 불러오는데 실패했습니다');
     }
@@ -179,9 +187,11 @@ const ApplicantForm = () => {
       if (id == null) {
         userEmployApi.addResume(payload);
         Alert.alert('제출 완료', '이력서가 저장되었습니다.');
-        navigation.goBack();
+        navigation.navigate('MyApplicantList');
       } else {
         userEmployApi.updateResume(id, payload);
+        Alert.alert('제출 완료', '이력서가 수정되었습니다.');
+        navigation.navigate('MyApplicantList');
       }
     } catch (error) {
       Alert.alert(' 이력서 등록/수정에 실패했습니다.');
@@ -428,7 +438,7 @@ const ApplicantForm = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="이력서 작성/수정" />
+      <Header title={`이력서 ${isEditMode ? '수정' : '등록'}`} />
       <ScrollView style={styles.scrollView}>
         {renderBasicInfo()}
         {renderExperienceSection()}

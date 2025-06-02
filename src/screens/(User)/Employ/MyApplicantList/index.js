@@ -35,6 +35,16 @@ const MyApplicantList = () => {
       Alert.alert('나의 이력서를 가져오는데 실패했습니다.');
     }
   };
+
+  const tryDeleteResumeById = async id => {
+    try {
+      await userEmployApi.deleteResume(id);
+    } catch (error) {
+      Alert.alert('알림', '삭제되었습니다.');
+      navigation.navigate('MyApplicantList');
+    }
+  };
+
   // 페이지 이동 함수
   const handleViewDetail = id => {
     navigation.navigate('MyApplicantDetail', {id});
@@ -46,7 +56,9 @@ const MyApplicantList = () => {
       {
         text: '삭제',
         style: 'destructive',
-        onPress: () => console.log(`Delete posting ${id}`),
+        onPress: () => {
+          tryDeleteResumeById(id);
+        },
       },
     ]);
   };
