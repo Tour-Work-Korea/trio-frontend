@@ -42,7 +42,7 @@ jobs:
       - name: Set up provisioning profile
         run: |
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< $(/usr/libexec/PlistBuddy -x -c "Print" ios/WorkAwayAppStoreProfile.mobileprovision))
+          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)")
           cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
 
       - name: Build and Deploy with Fastlane
