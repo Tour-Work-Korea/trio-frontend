@@ -91,17 +91,6 @@ jobs:
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 9. 프로비저닝 프로파일에 포함된 인증서 확인
-      - name: Verify provisioning profile certificates
-        working-directory: ios
-        run: |
-          echo "==> ls of ios/WorkAwayAppStoreProfile.mobileprovision =="
-          ls -lh ios/WorkAwayAppStoreProfile.mobileprovision
-
-          echo "==> Listing certificates embedded in the provisioning profile"
-          security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision \
-            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" /dev/stdin
-
       # 10. List installed Code Signing identities
       - name: List installed Code Signing identities
         run: |
