@@ -90,6 +90,12 @@ jobs:
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
+      - name: Verify provisioning profile certificates
+        run: |
+          echo "==> Listing certificates embedded in the provisioning profile"
+          security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision \
+            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" /dev/stdin
+
       - name: List installed Code Signing identities
         run: |
           security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
