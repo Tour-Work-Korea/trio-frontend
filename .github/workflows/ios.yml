@@ -63,6 +63,11 @@ jobs:
       # 8. Provisioning Profile 디코딩 및 복사 (디버깅 정보 추가)
       - name: Decode and debug provisioning profile
         run: |
+          
+          echo "==> Cleaning up old provisioning profiles..."
+          rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          
           echo "==> PROFILE_BASE64 length: ${#PROFILE_BASE64}"
           if [ -z "$PROFILE_BASE64" ]; then
             echo "::error::[!] PROFILE_BASE64 environment variable is empty!"
