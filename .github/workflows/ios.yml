@@ -1,0 +1,55 @@
+name: iOS CI/CD to TestFlight
+
+on:
+  push:
+    branches:
+      - develop  # 배포 트리거 브랜치
+
+jobs:
+  build:
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: yarn install
+
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+
+      - name: Install Fastlane
+        run: sudo gem install fastlane
+
+      - name: Install CocoaPods
+        run: pod install
+        working-directory: ios
+
+      - name: Decode provisioning profile
+        run: |
+          echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
+        env:
+          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Set up provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)")
+          cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
+
+      - name: Build and Deploy with Fastlane
+        run: fastlane beta
+        working-directory: ios
+        env:
+          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
