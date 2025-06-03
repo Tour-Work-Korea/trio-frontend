@@ -64,8 +64,8 @@ jobs:
       - name: Decode and debug provisioning profile
         run: |
           echo "==> Cleaning up old provisioning profiles..."
-          rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          rm -rf "$HOME/Library/MobileDevice/Provisioning Profiles"/*
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
 
           echo "==> PROFILE_BASE64 length: ${#PROFILE_BASE64}"
           if [ -z "$PROFILE_BASE64" ]; then
@@ -88,31 +88,40 @@ jobs:
           fi
           echo "Provisioning Profile UUID: $uuid"
 
-          echo "==> Copying to ~/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          echo "==> Copying to $HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp ios/WorkAwayAppStoreProfile.mobileprovision \
-             ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision
+             "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
       # 9. 프로비저닝 프로파일 메타데이터 출력 (디버깅)
       - name: Inspect installed provisioning profile
         run: |
-          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/09e0a3e1-5704-476e-86f7-4294f1f2457a.mobileprovision
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/09e0a3e1-5704-476e-86f7-4294f1f2457a.mobileprovision"
 
+          echo "===== 프로파일이 존재하는지 확인 (ls) ====="
+          ls -lh "$PROFILE_PATH" || (echo "::error::프로파일 파일을 찾을 수 없습니다: $PROFILE_PATH"; exit 1)
+
+          echo ""
           echo "===== 프로파일 이름(Name) ====="
-          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :Name" -
+          security cms -D -i "$PROFILE_PATH" \
+            | /usr/libexec/PlistBuddy -c "Print :Name" - \
+            || (echo "::error::':Name' 항목을 꺼내는 데 실패했습니다"; exit 1)
 
           echo ""
           echo "===== application-identifier ====="
-          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" -
+          security cms -D -i "$PROFILE_PATH" \
+            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - \
+            || (echo "::error::':Entitlements:application-identifier' 항목을 꺼내는 데 실패했습니다"; exit 1)
 
           echo ""
           echo "===== 포함된 인증서(DeveloperCertificates) 개수 ====="
-          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - \
-            | grep -c "-----BEGIN CERTIFICATE-----" || echo "0"
-        # PROFILE_PATH 변수의 이름 부분(09e0a3e1-5704-476e-86f7-4294f1f2457a)은
-        # 실제 `uuid` 값과 동일해야 합니다. 필요 시 적절히 수정하세요.
+          security cms -D -i "$PROFILE_PATH" \
+            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - \
+            | grep -c "-----BEGIN CERTIFICATE-----" \
+            || echo "0"
+        # PROFILE_PATH 안의 UUID(09e0a3e1-... 부분)는 8번 스텝에서 복사된 실제 파일 이름과 반드시 일치해야 합니다.
 
       # 10. 설치된 Code Signing 인증서 목록 출력 (디버깅)
       - name: List installed Code Signing identities
