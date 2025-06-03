@@ -1,8 +1,8 @@
 import api from './axiosInstance';
 
 const userEmployApi = {
-  //유저가 지원한 채용 공고 목록 조회
-  getRecruits: () => api.get('/user/recruits'),
+  //채용 공고 목록 조회
+  getRecruits: page => api.get('/user/recruits', page),
 
   //특정 채용공고 상세 조회
   getRecruitById: recruitId => api.get(`/user/recruits/${recruitId}`),

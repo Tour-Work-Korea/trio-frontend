@@ -1,14 +1,13 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
   Image,
   TextInput,
   TouchableOpacity,
-  ScrollView,
-  StyleSheet,
   SafeAreaView,
   FlatList,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import styles from './EmployList.styles';
@@ -19,61 +18,65 @@ import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import ChevronRight from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
+import userEmployApi from '@utils/api/userEmployApi';
 
 // 목업 데이터
 const jobListings = [
   {
-    id: '1',
-    category: 'guesthouse',
-    type: '업체명',
-    title: '제목',
-    tags: ['#해시태그1', '#해시태그2'],
-    location: '근무지',
-    period: '기간',
-    deadline: '3/23',
-    image: 'exphoto.jpeg',
-    isFavorite: true,
-  },
-  {
-    id: '2',
-    category: 'guesthouse',
-    type: '농명이 연구소',
-    title: '농명이 연구소에서 N 달 살이 스텝 모집',
-    tags: ['#해시태그1', '#해시태그2'],
-    location: '제주시 애월리 20002-7',
-    period: '기간 | 2개월 이상',
-    deadline: '3/23',
-    image: 'exphoto.jpeg',
-    isFavorite: false,
-  },
-  {
-    id: '3',
-    category: 'guesthouse',
-    type: '조브라더스',
-    title: '조브라더스에서 여성 스텝 모집',
-    tags: ['#해시태그1', '#해시태그2'],
-    location: '제주시 애월리 20002-7',
-    period: '기간 | 1개월 이상',
-    deadline: '3/25',
-    image: 'exphoto.jpeg',
-    isFavorite: false,
+    recruitId: 2,
+    recruitTitle: '수정한 테스트 여름 시즌 게스트하우스 스태프 모집',
+    guesthouseId: 1,
+    guesthouseName: '임시게하',
+    thumbnailImage: 'https://example.com/image1.jpg',
+    hashtags: [
+      {
+        hashtag: '투어가능',
+        hashtagType: 'RECRUIT_HASHTAG',
+      },
+      {
+        hashtag: '숙식제공',
+        hashtagType: 'RECRUIT_HASHTAG',
+      },
+      {
+        hashtag: '즉시입도O',
+        hashtagType: 'RECRUIT_HASHTAG',
+      },
+    ],
+    address: '강원도 속초시 해변로 123',
+    workDate: '2주',
+    deadline: '2025-11-25',
+    isLiked: true,
   },
 ];
 
 const EmployList = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
-  const [favorites, setFavorites] = useState({
-    1: true,
-  });
-  const [selectedCategory, setSelectedCategory] = useState('all');
+  const [recruitList, setRecruitList] = useState([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const [loading, setLoading] = useState(false);
 
-  const toggleFavorite = id => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  useEffect(() => {
+    fetchRecruitList();
+  }, []);
+
+  const fetchRecruitList = async () => {
+    if (loading || !hasNext) return;
+    setLoading(true);
+    try {
+      const res = await userEmployApi.getRecruits({page, size: 10}); // ← 페이지 기반 API 호출
+      const newContent = res.data.content;
+      setRecruitList(prev => [...prev, ...newContent]);
+      setPage(prev => prev + 1);
+      setHasNext(!res.data.last); // 'last'가 true이면 더 없음
+    } catch (error) {
+      Alert.alert('채용 공고 불러오기에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
   };
+  const toggleFavorite = id => {};
 
   const handleApply = id => {
     // 지원하기 버튼 클릭 시 상세 페이지로 이동
@@ -84,27 +87,29 @@ const EmployList = () => {
     <View style={styles.jobItem}>
       <TouchableOpacity
         style={styles.jobItemContent}
-        onPress={() => navigation.navigate('EmployDetail', {id: item.id})}>
+        onPress={() =>
+          navigation.navigate('EmployDetail', {id: item.recruitId})
+        }>
         <Image
-          source={require('@assets/images/exphoto.jpeg')}
+          source={require('@assets/images/exphoto.jpeg')} //item.thumbnailImage
           style={styles.jobImage}
           resizeMode="cover"
         />
         <View style={styles.jobDetails}>
           <View style={styles.jobHeader}>
-            <Text style={styles.jobType}>{item.type}</Text>
+            <Text style={styles.jobType}>{item.guesthouseName}</Text>
             {item.deadline && (
               <Text style={styles.deadline}>{item.deadline}</Text>
             )}
           </View>
           <View style={styles.jobHeader}>
             <Text style={styles.jobTitle} numberOfLines={1}>
-              {item.title}
+              {item.recruitTitle}
             </Text>
             <TouchableOpacity
               style={styles.favoriteButton}
-              onPress={() => toggleFavorite(item.id)}>
-              {favorites[item.id] ? (
+              onPress={() => toggleFavorite(item.recruitId)}>
+              {item.isLiked ? (
                 <FilledHeartIcon width={20} height={20} />
               ) : (
                 <HeartIcon width={20} height={20} />
@@ -113,21 +118,21 @@ const EmployList = () => {
           </View>
           <View style={styles.jobHeader}>
             <View>
-              {item.tags && (
+              {item.hashtags && (
                 <View style={styles.tagsContainer}>
-                  {item.tags.map((tag, index) => (
+                  {item.hashtags.map((tag, index) => (
                     <Text key={index} style={styles.tag}>
-                      {tag}
+                      {tag.hashtag}
                     </Text>
                   ))}
                 </View>
               )}
-              <Text style={styles.jobLocation}>{item.location}</Text>
-              <Text style={styles.jobPeriod}>{item.period}</Text>
+              <Text style={styles.jobLocation}>{item.address}</Text>
+              <Text style={styles.jobPeriod}>{item.workDate}</Text>
             </View>
             <TouchableOpacity
               style={styles.applyButton}
-              onPress={() => handleApply(item.id)}>
+              onPress={() => handleApply(item.recruitId)}>
               <Text style={styles.applyButtonText}>지원하기</Text>
             </TouchableOpacity>
           </View>
@@ -146,85 +151,45 @@ const EmployList = () => {
     </View>
   );
 
-  const renderCategoryChips = () => {
-    const categories = [
-      {id: 'cafe', label: '카페 스텝'},
-      {id: 'restaurant', label: '외식/음료'},
-      {id: 'activity', label: '물류/택배'},
-    ];
-
-    return (
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.categoryChipsContainer}>
-        {categories.map(category => (
-          <TouchableOpacity
-            key={category.id}
-            style={[
-              styles.categoryChip,
-              selectedCategory === category.id && styles.selectedCategoryChip,
-            ]}
-            onPress={() => setSelectedCategory(category.id)}>
-            <Text
-              style={[
-                styles.categoryChipText,
-                selectedCategory === category.id &&
-                  styles.selectedCategoryChipText,
-              ]}>
-              {category.label}
-            </Text>
-          </TouchableOpacity>
-        ))}
-      </ScrollView>
-    );
-  };
-
   return (
     <SafeAreaView style={styles.container}>
       <Header />
-      <ScrollView style={styles.scrollView}>
-        {/* 검색 섹션 */}
-        <View style={styles.searchSection}>
-          <View style={styles.searchInputContainer}>
-            <SearchIcon width={20} height={20} style={styles.searchIcon} />
-            <TextInput
-              style={styles.searchInput}
-              placeholder="지역, 직군으로 검색"
-              value={searchText}
-              onChangeText={setSearchText}
-            />
-          </View>
-          <TouchableOpacity style={styles.searchButton}>
-            <Text style={styles.searchButtonText}>검색하기</Text>
-          </TouchableOpacity>
-        </View>
-        <View style={styles.bodyContainer}>
-          {/* 게스트하우스 섹션 */}
-          <View style={styles.section}>
-            {renderSectionHeader('알바 + 게스트하우스를 한번에', () => {})}
-            <FlatList
-              data={jobListings.filter(job => job.category === 'guesthouse')}
-              renderItem={renderJobItem}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
-          </View>
-          {/* 추천 알바 섹션 */}
-          <View style={styles.section}>
+      <FlatList
+        ListHeaderComponent={
+          <>
+            {/* 검색 섹션 */}
+            <View style={styles.searchSection}>
+              <View style={styles.searchInputContainer}>
+                <SearchIcon width={20} height={20} style={styles.searchIcon} />
+                <TextInput
+                  style={styles.searchInput}
+                  placeholder="지역, 직군으로 검색"
+                  value={searchText}
+                  onChangeText={setSearchText}
+                />
+              </View>
+              <TouchableOpacity style={styles.searchButton}>
+                <Text style={styles.searchButtonText}>검색하기</Text>
+              </TouchableOpacity>
+            </View>
+
             {renderSectionHeader('추천 알바', () => {})}
-            {renderCategoryChips()}
-            <FlatList
-              data={jobListings.filter(job => job.category)}
-              renderItem={renderJobItem}
-              keyExtractor={item => item.id}
-              scrollEnabled={false}
-              ItemSeparatorComponent={() => <View style={styles.separator} />}
-            />
-          </View>
-        </View>
-      </ScrollView>
+          </>
+        }
+        data={recruitList}
+        renderItem={renderJobItem}
+        keyExtractor={item => item.recruitId.toString()}
+        onEndReached={fetchRecruitList}
+        onEndReachedThreshold={0.5}
+        ListFooterComponent={
+          loading && (
+            <View style={{padding: 16}}>
+              <Text style={{textAlign: 'center'}}>불러오는 중...</Text>
+            </View>
+          )
+        }
+        ItemSeparatorComponent={() => <View style={styles.separator} />}
+      />
     </SafeAreaView>
   );
 };
