@@ -42,7 +42,7 @@ jobs:
       # 7. 인증서(.p12) 디코딩 및 키체인에 설치
       - name: Decode and install iOS Distribution Certificate
         run: |
-          echo "$CERTIFICATE_BASE64" | base64 --decode > ios/haneul_distribution.p12
+          echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
           
           ls -lh ios/haneul_distribution.p12
           
@@ -50,15 +50,15 @@ jobs:
 
           security import ios/haneul_distribution.p12 \
             -k ~/Library/Keychains/login.keychain-db \
-            -P "$CERTIFICATE_PASSWORD" \
+            -P "$CERT_PASSWORD" \
             -T /usr/bin/codesign \
             -A
           
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
 
         env:
-          CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
-          CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
+          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
       # 8. Provisioning Profile 디코딩 및 복사
       - name: Decode provisioning profile
