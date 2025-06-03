@@ -3,36 +3,60 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop  # 배포 트리거 브랜치
+      - develop
 
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
+      # 1. 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # 2. Node.js 설치
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
+      # 3. Node 패키지 설치
       - name: Install Node dependencies
         run: yarn install
 
+      # 4. Ruby 설치
       - name: Set up Ruby
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
 
+      # 5. Fastlane 설치
       - name: Install Fastlane
         run: sudo gem install fastlane
 
+      # 6. CocoaPods 설치
       - name: Install CocoaPods
-        run: pod install
+        run: |
+          cd ios
+          pod install
         working-directory: ios
 
+      # 7. 인증서(.p12) 디코딩 및 키체인에 설치
+      - name: Decode and install iOS Distribution Certificate
+        run: |
+          echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
+
+          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain
+
+          security import ios/haneul_distribution.p12 \
+            -k ~/Library/Keychains/login.keychain \
+            -P "$CERT_PASSWORD" \
+            -T /usr/bin/codesign
+        env:
+          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+
+      # 8. Provisioning Profile 디코딩 및 복사
       - name: Decode provisioning profile
         run: |
           echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
@@ -45,8 +69,9 @@ jobs:
           uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)")
           cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
 
+      # 9. Fastlane을 통해 빌드 후 TestFlight 배포
       - name: Build and Deploy with Fastlane
-        run: fastlane beta
+        run: bundle exec fastlane beta
         working-directory: ios
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
