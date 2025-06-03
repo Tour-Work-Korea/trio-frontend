@@ -53,7 +53,7 @@ jobs:
               -A
           
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain
-          
+
         env:
           CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
