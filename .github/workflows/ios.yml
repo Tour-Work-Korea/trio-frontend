@@ -44,15 +44,17 @@ jobs:
         run: |
           echo "$CERTIFICATE_BASE64" | base64 --decode > ios/haneul_distribution.p12
           
-          security unlock-keychain -p "" ~/Library/Keychains/login.keychain
+          ls -lh ios/haneul_distribution.p12
+          
+          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
 
           security import ios/haneul_distribution.p12 \
-              -k ~/Library/Keychains/login.keychain \
-              -P "$CERTIFICATE_PASSWORD" \
-              -T /usr/bin/codesign \
-              -A
+            -k ~/Library/Keychains/login.keychain-db \
+            -P "$CERTIFICATE_PASSWORD" \
+            -T /usr/bin/codesign \
+            -A
           
-          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain
+          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
 
         env:
           CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
