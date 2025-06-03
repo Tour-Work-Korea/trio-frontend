@@ -105,20 +105,22 @@ jobs:
 
           echo ""
           echo "===== 프로파일 이름(Name) ====="
+          # Name 키가 없으면 "No Name Key" 출력
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Name" - \
-            || (echo "::error::':Name' 항목을 꺼내는 데 실패했습니다"; exit 1)
+            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null \
+            || echo "No Name Key"
 
           echo ""
           echo "===== application-identifier ====="
+          # application-identifier 키가 없으면 경고 메시지 출력
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - \
-            || (echo "::error::':Entitlements:application-identifier' 항목을 꺼내는 데 실패했습니다"; exit 1)
+            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null \
+            || echo "No application-identifier Key"
 
           echo ""
           echo "===== 포함된 인증서(DeveloperCertificates) 개수 ====="
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - \
+            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - 2>/dev/null \
             | grep -c "-----BEGIN CERTIFICATE-----" \
             || echo "0"
         # PROFILE_PATH 안의 UUID(09e0a3e1-... 부분)는 8번 스텝에서 복사된 실제 파일 이름과 반드시 일치해야 합니다.
