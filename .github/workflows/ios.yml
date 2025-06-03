@@ -24,15 +24,16 @@ jobs:
       - name: Install Node dependencies
         run: yarn install
 
-      # 4. Ruby 설치
-      - name: Set up Ruby
+      - name: Set up Ruby & Bundler
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
+          bundler-cache: true   # Gemfile.lock 기준으로 gem 캐시 활성화
 
-      # 5. Fastlane 설치
-      - name: Install Fastlane
-        run: sudo gem install fastlane
+      # → Gemfile에 fastlane, cocoapods 등이 정의되어 있다면 bundle install로 설치
+      - name: Install Ruby gems (Fastlane 등)
+        working-directory: ios
+        run: bundle install
 
       # 6. CocoaPods 설치
       - name: Install CocoaPods
