@@ -3,64 +3,16 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop  # develop 브랜치에 푸시되면 워크플로우가 실행됩니다
+      - develop
 
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
-      # 1. 코드 체크아웃
-      - name: Checkout code
-        uses: actions/checkout@v3
+      # … (1~7번 스텝 생략) …
 
-      # 2. Node.js 설치
-      - name: Set up Node.js
-        uses: actions/setup-node@v3
-        with:
-          node-version: '18'
-
-      # 3. Node 패키지 설치
-      - name: Install Node dependencies
-        run: yarn install
-
-      # 4. Ruby & Bundler 설치
-      - name: Set up Ruby & Bundler
-        uses: ruby/setup-ruby@v1
-        with:
-          ruby-version: 3.1
-          bundler-cache: true
-
-      # 5. RubyGem 설치 (Fastlane 등)
-      - name: Install Ruby gems (Fastlane 등)
-        working-directory: ios
-        run: bundle install
-
-      # 6. CocoaPods 설치
-      - name: Install CocoaPods
-        working-directory: ios
-        run: pod install
-
-      # 7. 인증서(.p12) 디코딩 및 키체인에 설치
-      - name: Decode and install iOS Distribution Certificate
-        run: |
-          echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
-          ls -lh ios/haneul_distribution.p12
-
-          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
-
-          security import ios/haneul_distribution.p12 \
-            -k ~/Library/Keychains/login.keychain-db \
-            -P "$CERT_PASSWORD" \
-            -T /usr/bin/codesign \
-            -A
-
-          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
-        env:
-          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-
-      # 8. Provisioning Profile 디코딩 및 복사 (디버깅 정보 추가)
+      # 8. Provisioning Profile 디코딩, UUID 추출, 그리고 GITHUB_ENV에 export
       - name: Decode and debug provisioning profile
         run: |
           echo "==> Cleaning up old provisioning profiles..."
@@ -88,6 +40,9 @@ jobs:
           fi
           echo "Provisioning Profile UUID: $uuid"
 
+          # → GITHUB_ENV에 PROFILE_UUID를 저장해서 다음 스텝에서도 사용하도록 함
+          echo "PROFILE_UUID=$uuid" >> $GITHUB_ENV
+
           echo "==> Copying to $HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp ios/WorkAwayAppStoreProfile.mobileprovision \
@@ -95,24 +50,22 @@ jobs:
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 9. 프로비저닝 프로파일 메타데이터 출력 (디버깅)
+      # 9. 프로비저닝 프로파일 메타데이터 출력 (전역 uuid 사용)
       - name: Inspect installed provisioning profile
         run: |
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/09e0a3e1-5704-476e-86f7-4294f1f2457a.mobileprovision"
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
 
           echo "===== 프로파일이 존재하는지 확인 (ls) ====="
           ls -lh "$PROFILE_PATH" || (echo "::error::프로파일 파일을 찾을 수 없습니다: $PROFILE_PATH"; exit 1)
 
           echo ""
           echo "===== 프로파일 이름(Name) ====="
-          # Name 키가 없으면 "No Name Key" 출력
           security cms -D -i "$PROFILE_PATH" \
             | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null \
             || echo "No Name Key"
 
           echo ""
           echo "===== application-identifier ====="
-          # application-identifier 키가 없으면 경고 메시지 출력
           security cms -D -i "$PROFILE_PATH" \
             | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null \
             || echo "No application-identifier Key"
@@ -123,7 +76,8 @@ jobs:
             | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - 2>/dev/null \
             | grep -c "-----BEGIN CERTIFICATE-----" \
             || echo "0"
-        # PROFILE_PATH 안의 UUID(09e0a3e1-... 부분)는 8번 스텝에서 복사된 실제 파일 이름과 반드시 일치해야 합니다.
+        env:
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
       # 10. 설치된 Code Signing 인증서 목록 출력 (디버깅)
       - name: List installed Code Signing identities
