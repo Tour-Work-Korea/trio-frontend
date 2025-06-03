@@ -10,58 +10,98 @@ jobs:
     runs-on: macos-latest
 
     steps:
+      ########################################
       # 1. 코드 체크아웃
+      ########################################
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # 2. Node.js 설치
+      ########################################
+      # 2. Node.js 설치 및 Yarn 캐시
+      ########################################
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # 3. Node 패키지 설치
-      - name: Install Node dependencies
-        run: yarn install
+      - name: Cache Yarn Dependencies
+        uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            ~/.cache/yarn
+          key: ${{ runner.os }}-yarn-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-
 
-      # 4. Ruby & Bundler 설치
+      - name: Install Node dependencies
+        run: yarn install --frozen-lockfile
+
+      ########################################
+      # 3. Ruby & Bundler 설치
+      ########################################
       - name: Set up Ruby & Bundler
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
           bundler-cache: true
 
-      # 5. RubyGem 설치 (Fastlane 등)
-      - name: Install Ruby gems
+      - name: Install Ruby gems (Fastlane 등)
         working-directory: ios
-        run: bundle install
+        run: bundle install --jobs 4 --retry 3
 
-      # 6. CocoaPods 설치
+      ########################################
+      # 4. CocoaPods 설치 (캐시 + 병렬 코드사인)
+      ########################################
+      - name: Cache CocoaPods Pods directory
+        uses: actions/cache@v3
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
       - name: Install CocoaPods
         working-directory: ios
-        run: pod install
+        env:
+          COCOAPODS_PARALLEL_CODE_SIGN: true   # ← 병렬 코드사인 활성화
+        run: pod install --repo-update
 
-      # 7. 인증서(.p12) 디코딩 및 키체인에 설치
+      ########################################
+      # 5. 키체인 언락 & 코드사인 권한 부여
+      ########################################
+      - name: Unlock login keychain & allow codesign
+        run: |
+          # 키체인 언락
+          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
+          # codesign이 인증서를 사용할 수 있도록 권한 부여
+          security set-key-partition-list -S apple-tool:,apple: -s -k "" ~/Library/Keychains/login.keychain-db
+
+      ########################################
+      # 6. 인증서(.p12) 디코딩 및 임포트
+      ########################################
       - name: Decode and install iOS Distribution Certificate
         run: |
           echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
           ls -lh ios/haneul_distribution.p12
 
-          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
-
+          # 인증서를 로그인 키체인에 import
           security import ios/haneul_distribution.p12 \
             -k ~/Library/Keychains/login.keychain-db \
             -P "$CERT_PASSWORD" \
             -T /usr/bin/codesign \
             -A
 
+          # 키체인 잠금 해제 상태 유지
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
         env:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
-      # 8. Provisioning Profile 디코딩 및 복사 (UUID를 GITHUB_ENV에 저장)
-      - name: Decode and debug provisioning profile
+      ########################################
+      # 7. Provisioning Profile 디코딩 및 설치
+      ########################################
+      - name: Decode and install provisioning profile
         run: |
           echo "==> Cleaning up old provisioning profiles..."
           rm -rf "$HOME/Library/MobileDevice/Provisioning Profiles"/*
@@ -73,69 +113,76 @@ jobs:
             exit 1
           fi
 
-          echo "==> Decoding PROFILE_BASE64 into ios/WorkAwayAppStoreProfile.mobileprovision..."
+          echo "==> Decoding PROFILE_BASE64 into WorkAwayAppStoreProfile.mobileprovision..."
           echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
 
-          echo "==> After decode, listing file:"
-          ls -lh ios/WorkAwayAppStoreProfile.mobileprovision
-
-          echo "==> Extracting UUID from mobileprovision with PlistBuddy..."
+          echo "==> Extracting UUID from mobileprovision..."
           uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< \
             "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)" 2>/dev/null)
           if [ -z "$uuid" ]; then
-            echo "::error::[!] Failed to extract UUID from provisioning profile. The file may be corrupted."
+            echo "::error::[!] Failed to extract UUID from provisioning profile"
             exit 1
           fi
           echo "Provisioning Profile UUID: $uuid"
 
-          echo "PROFILE_UUID=$uuid" >> $GITHUB_ENV
-
           echo "==> Copying to $HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp ios/WorkAwayAppStoreProfile.mobileprovision \
              "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 9. 프로비저닝 프로파일 메타데이터 출력 (동적 UUID 사용)
+      ########################################
+      # 8. (선택) 프로비저닝 프로파일 확인용 디버깅
+      ########################################
       - name: Inspect installed provisioning profile
+        if: ${{ always() }}
         run: |
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
-
-          echo "===== 프로파일이 존재하는지 확인 (ls) ====="
-          ls -lh "$PROFILE_PATH" || (echo "::error::프로파일 파일을 찾을 수 없습니다: $PROFILE_PATH"; exit 1)
+          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+          echo "===== 프로파일 존재 여부 확인 ====="
+          ls -lh "$PROFILE_PATH" || (echo "::error:: 프로파일이 없습니다: $PROFILE_PATH"; exit 1)
 
           echo ""
-          echo "===== 프로파일 이름(Name) ====="
+          echo "===== 프로파일 Name ====="
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null \
-            || echo "No Name Key"
+            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null || echo "No Name Key"
 
           echo ""
-          echo "===== application-identifier ====="
+          echo "===== application-identifier (Entitlements) ====="
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null \
-            || echo "No application-identifier Key"
+            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null || echo "No application-identifier Key"
 
           echo ""
-          echo "===== 포함된 인증서(DeveloperCertificates) 개수 ====="
+          echo "===== DeveloperCertificates Count ====="
           security cms -D -i "$PROFILE_PATH" \
             | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - 2>/dev/null \
-            | grep -c "-----BEGIN CERTIFICATE-----" \
-            || echo "0"
+            | grep -c "-----BEGIN CERTIFICATE-----" || echo "0"
         env:
-          PROFILE_UUID: ${{ env.PROFILE_UUID }}
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 10. 설치된 Code Signing 인증서 목록 출력 (디버깅)
+      ########################################
+      # 9. (선택) 설치된 코드사인 인증서 목록 확인
+      ########################################
       - name: List installed Code Signing identities
+        if: ${{ always() }}
         run: |
-          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
           security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
 
-      # 11. Fastlane을 통해 빌드 후 TestFlight 배포
+      ########################################
+      # 10. DerivedData 캐시 (선택)
+      ########################################
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v3
+        with:
+          path: ios/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ github.sha }}
+          restore-keys: |
+            ${{ runner.os }}-deriveddata-
+
+      ########################################
+      # 11. Fastlane을 통한 빌드 및 TestFlight 배포
+      ########################################
       - name: Build and Deploy with Fastlane
         working-directory: ios
-        run: bundle exec fastlane beta
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
@@ -144,3 +191,6 @@ jobs:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+          # 아래 플래그는 CI 용 “빠른 빌드” 목적이므로, 최종 Archive 시에는 제거해 주세요.
+          FASTLANE_XCODEBUILD_SETTINGS: "COMPILER_INDEX_STORE_ENABLE=NO BUILD_ONLY_ACTIVE_ARCH=YES"
+        run: bundle exec fastlane beta
