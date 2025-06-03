@@ -249,14 +249,12 @@ const PostRecruitment = () => {
     }
   };
 
-  // Handle temporary save
   const handleTemporarySave = () => {
     // Save to local storage or state management solution
     console.log('Temporary saved:', formData);
     Alert.alert('임시 저장', '공고가 임시 저장되었습니다.');
   };
 
-  // Handle preview
   const handlePreview = () => {
     // Navigate to preview screen with current form data
     console.log('Preview:', formData);

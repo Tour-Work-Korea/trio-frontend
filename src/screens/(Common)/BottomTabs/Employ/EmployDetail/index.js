@@ -287,7 +287,12 @@ const EmployDetail = () => {
         <TouchableOpacity
           style={styles.applyButton}
           onPress={() => {
-            navigation.navigate('Applicant', recruit?.recruitId);
+            navigation.navigate('Applicant', {
+              recruitId: recruit?.recruitId,
+              recruitTitle: recruit.recruitTitle,
+              guesthouseName: recruit.guesthouseName,
+              recruitEnd: recruit.recruitEnd,
+            });
           }}>
           <Text style={styles.applyButtonText}>지원하기</Text>
         </TouchableOpacity>
