@@ -88,7 +88,13 @@ jobs:
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
           cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision
         env:
-          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
+
+      - name: List installed Code Signing identities
+        run: |
+          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
+          security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
+
 
       # 9. Fastlane을 통해 빌드 후 TestFlight 배포
       - name: Build and Deploy with Fastlane
