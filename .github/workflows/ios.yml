@@ -14,6 +14,7 @@ jobs:
 
       # 8. Provisioning Profile 디코딩, UUID 추출, 그리고 GITHUB_ENV에 export
       - name: Decode and debug provisioning profile
+        working-directory: ios
         run: |
           echo "==> Cleaning up old provisioning profiles..."
           rm -rf "$HOME/Library/MobileDevice/Provisioning Profiles"/*
