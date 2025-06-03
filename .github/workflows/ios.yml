@@ -63,11 +63,10 @@ jobs:
       # 8. Provisioning Profile 디코딩 및 복사 (디버깅 정보 추가)
       - name: Decode and debug provisioning profile
         run: |
-          
           echo "==> Cleaning up old provisioning profiles..."
           rm -rf ~/Library/MobileDevice/Provisioning\ Profiles/*
           mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          
+
           echo "==> PROFILE_BASE64 length: ${#PROFILE_BASE64}"
           if [ -z "$PROFILE_BASE64" ]; then
             echo "::error::[!] PROFILE_BASE64 environment variable is empty!"
@@ -96,7 +95,26 @@ jobs:
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 10. List installed Code Signing identities
+      # 9. 프로비저닝 프로파일 메타데이터 출력 (디버깅)
+      - name: Inspect installed provisioning profile
+        run: |
+          PROFILE_PATH=~/Library/MobileDevice/Provisioning\ Profiles/09e0a3e1-5704-476e-86f7-4294f1f2457a.mobileprovision
+
+          echo "===== 프로파일 이름(Name) ====="
+          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :Name" -
+
+          echo ""
+          echo "===== application-identifier ====="
+          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" -
+
+          echo ""
+          echo "===== 포함된 인증서(DeveloperCertificates) 개수 ====="
+          security cms -D -i "$PROFILE_PATH" | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - \
+            | grep -c "-----BEGIN CERTIFICATE-----" || echo "0"
+        # PROFILE_PATH 변수의 이름 부분(09e0a3e1-5704-476e-86f7-4294f1f2457a)은
+        # 실제 `uuid` 값과 동일해야 합니다. 필요 시 적절히 수정하세요.
+
+      # 10. 설치된 Code Signing 인증서 목록 출력 (디버깅)
       - name: List installed Code Signing identities
         run: |
           security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
@@ -111,3 +129,6 @@ jobs:
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
+          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
+          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
+          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
