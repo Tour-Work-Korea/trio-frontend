@@ -42,17 +42,18 @@ jobs:
       # 7. 인증서(.p12) 디코딩 및 키체인에 설치
       - name: Decode and install iOS Distribution Certificate
         run: |
-          # Base64로 인코딩된 인증서를 p12 파일로 디코딩
           echo "$CERTIFICATE_BASE64" | base64 --decode > ios/haneul_distribution.p12
+          
+          security unlock-keychain -p "" ~/Library/Keychains/login.keychain
 
-          # 로그인 키체인을 unlock (필요하다면 비밀번호를 입력)
-          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain
-
-          # 인증서를 키체인에 import
           security import ios/haneul_distribution.p12 \
-            -k ~/Library/Keychains/login.keychain \
-            -P "$CERTIFICATE_PASSWORD" \
-            -T /usr/bin/codesign
+              -k ~/Library/Keychains/login.keychain \
+              -P "$CERTIFICATE_PASSWORD" \
+              -T /usr/bin/codesign \
+              -A
+          
+          security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain
+          
         env:
           CERTIFICATE_BASE64: ${{ secrets.CERTIFICATE_BASE64 }}
           CERTIFICATE_PASSWORD: ${{ secrets.CERTIFICATE_PASSWORD }}
