@@ -95,11 +95,11 @@ jobs:
       - name: Verify provisioning profile certificates
         working-directory: ios
         run: |
-          echo "==> (ls로 파일 확인) =="
-          ls -lh WorkAwayAppStoreProfile.mobileprovision
+          echo "==> ls of ios/WorkAwayAppStoreProfile.mobileprovision =="
+          ls -lh ios/WorkAwayAppStoreProfile.mobileprovision
 
           echo "==> Listing certificates embedded in the provisioning profile"
-          security cms -D -i WorkAwayAppStoreProfile.mobileprovision \
+          security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision \
             | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" /dev/stdin
 
       # 10. List installed Code Signing identities
