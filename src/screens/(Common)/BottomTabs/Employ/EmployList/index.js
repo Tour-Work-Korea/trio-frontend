@@ -20,35 +20,6 @@ import ChevronRight from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
 
-// 목업 데이터
-const jobListings = [
-  {
-    recruitId: 2,
-    recruitTitle: '수정한 테스트 여름 시즌 게스트하우스 스태프 모집',
-    guesthouseId: 1,
-    guesthouseName: '임시게하',
-    thumbnailImage: 'https://example.com/image1.jpg',
-    hashtags: [
-      {
-        hashtag: '투어가능',
-        hashtagType: 'RECRUIT_HASHTAG',
-      },
-      {
-        hashtag: '숙식제공',
-        hashtagType: 'RECRUIT_HASHTAG',
-      },
-      {
-        hashtag: '즉시입도O',
-        hashtagType: 'RECRUIT_HASHTAG',
-      },
-    ],
-    address: '강원도 속초시 해변로 123',
-    workDate: '2주',
-    deadline: '2025-11-25',
-    isLiked: true,
-  },
-];
-
 const EmployList = () => {
   const navigation = useNavigation();
   const [searchText, setSearchText] = useState('');
@@ -76,7 +47,22 @@ const EmployList = () => {
       setLoading(false);
     }
   };
-  const toggleFavorite = id => {};
+  const toggleFavorite = async (id, isLiked) => {
+    try {
+      if (isLiked) {
+        await userEmployApi.deleteLikeRecruitById(id);
+      } else {
+        await userEmployApi.addLikeRecruitById(id);
+      }
+      setRecruitList(prev =>
+        prev.map(item =>
+          item.recruitId === id ? {...item, isLiked: !isLiked} : item,
+        ),
+      );
+    } catch (error) {
+      Alert.alert('좋아요 처리 중 오류가 발생했습니다.');
+    }
+  };
 
   const handleApply = id => {
     // 지원하기 버튼 클릭 시 상세 페이지로 이동
@@ -108,7 +94,7 @@ const EmployList = () => {
             </Text>
             <TouchableOpacity
               style={styles.favoriteButton}
-              onPress={() => toggleFavorite(item.recruitId)}>
+              onPress={() => toggleFavorite(item.recruitId, item.isLiked)}>
               {item.isLiked ? (
                 <FilledHeartIcon width={20} height={20} />
               ) : (
