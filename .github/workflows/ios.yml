@@ -33,6 +33,18 @@ jobs:
         run: pod install
         working-directory: ios
 
+      - name: Decode provisioning profile
+        run: |
+          echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
+        env:
+          PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
+
+      - name: Set up provisioning profile
+        run: |
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          uuid=$(grep -a -o '<uuid>.*</uuid>' ios/WorkAwayAppStoreProfile.mobileprovision | sed -e 's/<[^>]*>//g' | tr -d '[:space:]')
+          cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
+
       - name: Build and Deploy with Fastlane
         run: fastlane beta
         working-directory: ios
