@@ -61,18 +61,34 @@ jobs:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
-      # 8. Provisioning Profile 디코딩 및 복사
-      - name: Decode provisioning profile
+      # 8. Provisioning Profile 디코딩 및 복사 (디버깅 정보 추가)
+      - name: Decode and debug provisioning profile
         run: |
+          echo "==> PROFILE_BASE64 length: ${#PROFILE_BASE64}"
+          if [ -z "$PROFILE_BASE64" ]; then
+            echo "::error::[!] PROFILE_BASE64 environment variable is empty!"
+            exit 1
+          fi
+
+          echo "==> Decoding PROFILE_BASE64 into ios/WorkAwayAppStoreProfile.mobileprovision..."
           echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
+
+          echo "==> After decode, listing file:"
+          ls -lh ios/WorkAwayAppStoreProfile.mobileprovision
+
+          echo "==> Extracting UUID from mobileprovision with PlistBuddy..."
+          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)" 2>/dev/null)
+          if [ -z "$uuid" ]; then
+            echo "::error::[!] Failed to extract UUID from provisioning profile. The file may be corrupted."
+            exit 1
+          fi
+          echo "Provisioning Profile UUID: $uuid"
+
+          echo "==> Copying to ~/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
+          cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/${uuid}.mobileprovision
         env:
           PROFILE_BASE64: ${{ secrets.PROVISIONING_PROFILE_BASE64 }}
-
-      - name: Set up provisioning profile
-        run: |
-          mkdir -p ~/Library/MobileDevice/Provisioning\ Profiles
-          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)")
-          cp ios/WorkAwayAppStoreProfile.mobileprovision ~/Library/MobileDevice/Provisioning\ Profiles/$uuid.mobileprovision
 
       # 9. Fastlane을 통해 빌드 후 TestFlight 배포
       - name: Build and Deploy with Fastlane
