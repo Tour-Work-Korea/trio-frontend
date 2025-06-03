@@ -28,7 +28,7 @@ platform :ios do
 
     build_app(
       scheme: "trioFrontendApp",
-      export_method: "app-store"
+      export_method: "development"
     )
 
     upload_to_testflight(
