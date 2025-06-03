@@ -29,7 +29,11 @@ platform :ios do
     build_app(
       scheme: "trioFrontendApp",
       export_method: "app-store"
-
+      export_options: {
+        provisioningProfiles: {
+            "com.haneul.workaway" => "WorkAwayAppStoreProfile"
+        }
+      }
     )
 
     upload_to_testflight(
