@@ -50,6 +50,15 @@ jobs:
         working-directory: ios
         run: pod install
 
+      # 8. Xcode DerivedData 캐시 복원
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v3
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-deriveddata-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+           ${{ runner.os }}-deriveddata-
+
       # 7. 인증서(.p12) 디코딩 및 키체인에 설치
       - name: Decode and install iOS Distribution Certificate
         run: |
