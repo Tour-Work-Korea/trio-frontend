@@ -40,6 +40,11 @@ jobs:
         working-directory: ios
         run: bundle install
 
+
+      # 6. CocoaPods 설치
+      - name: Upgrade CocoaPods to latest
+        run: gem install cocoapods
+
       # 6. CocoaPods 캐시 복원
       - name: Cache CocoaPods
         uses: actions/cache@v3
@@ -49,10 +54,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # 6. CocoaPods 설치
+      # 그 뒤에 실제로 pod install
       - name: Install CocoaPods
         working-directory: ios
-        run: pod install
+        run: pod install --repo-update
+
 
       # 8. Xcode DerivedData 캐시 복원
       - name: Cache Xcode DerivedData
