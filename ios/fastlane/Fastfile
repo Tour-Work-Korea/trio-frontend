@@ -1,23 +1,9 @@
-# This file contains the fastlane.tools configuration
-# You can find the documentation at https://docs.fastlane.tools
-#
-# For a list of all available actions, check out
-#
-#     https://docs.fastlane.tools/actions
-#
-# For a list of all available plugins, check out
-#
-#     https://docs.fastlane.tools/plugins/available-plugins
-#
-
-# Uncomment the line if you want fastlane to automatically update itself
-# update_fastlane
-
 default_platform(:ios)
 
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
+    # ① App Store Connect API 키 설정
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
@@ -26,20 +12,39 @@ platform :ios do
       in_house: false
     )
 
+    # ② React Native JS 사전 번들링
+    #    릴리스 빌드시 Xcode의 번들 스크립트를 건너뛰기 위해 main.jsbundle을 미리 생성
+    sh <<-SHELL
+      # 리포지토리 루트에서 실행된다고 가정 (Fastlane이 ios/ 폴더에서 실행되니, 상위 디렉토리로 이동)
+      cd ../
+      yarn react-native bundle \
+        --platform ios \
+        --dev false \
+        --entry-file index.js \
+        --bundle-output ios/trioFrontendApp/main.jsbundle \
+        --assets-dest ios/trioFrontendApp
+    SHELL
+
+    # ③ Xcode 빌드 (Bitcode 비활성화, 프로비저닝 프로파일 지정)
     build_app(
-      scheme: "trioFrontendApp",
+      workspace: "trioFrontendApp.xcworkspace",     # .xcworkspace 파일 이름
+      scheme: "trioFrontendApp",                     # 빌드할 Scheme
       export_options: {
-          compileBitcode: false,
-          method: "app-store",
-          provisioningProfiles: {
-            "com.haneul.workaway" => "WorkAwayAppStoreProfile"
-          }
-      }
+        compileBitcode: false,
+        method: "app-store",
+        provisioningProfiles: {
+          "com.haneul.workaway" => "WorkAwayAppStoreProfile"
+        }
+      },
+      clean: false,       # 캐시가 잘 먹힐 수 있도록 Clean 생략
+      output_directory: ".", # ipa/DWARF를 저장할 디렉토리 (필요에 따라 변경)
+      quiet: true         # 빌드 로그를 최소화
     )
 
+    # ④ TestFlight 업로드
     upload_to_testflight(
-      api_key: api_key
+      api_key: api_key,
+      skip_waiting_for_build_processing: false    # 빌드 처리 완료까지 대기할지 여부
     )
   end
 end
-
