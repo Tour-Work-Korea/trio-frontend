@@ -42,8 +42,8 @@ jobs:
 
 
       # 6. CocoaPods 설치
-      - name: Upgrade CocoaPods to latest
-        run: gem install cocoapods
+      - name: Install CocoaPods 1.2 β
+        run: gem install cocoapods --pre
 
       # 6. CocoaPods 캐시 복원
       - name: Cache CocoaPods
