@@ -11,7 +11,10 @@ platform :ios do
       in_house: false
     )
 
-    # React Native JS 사전 번들링
+    # 0. DerivedData 삭제
+    sh "rm -rf ~/Library/Developer/Xcode/DerivedData"
+
+    # 1. React Native JS 사전 번들링
     sh <<-SHELL
       cd ../
       yarn react-native bundle \
@@ -22,13 +25,15 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
-    # Xcode 빌드 (Bitcode 비활성화, 프로비저닝 프로파일 지정)
+    # 2. Xcode 빌드
     build_app(
-      workspace: "trioFrontendApp.xcworkspace",     # .xcworkspace 파일 경로
-      scheme: "trioFrontendApp",                     # Scheme 이름
-      clean: false,                                  # 캐시를 살리려면 false
-      output_directory: ".",                         # ipa를 저장할 디렉토리
-      silent: true,                                  # 로그를 최소화하는 올바른 옵션
+      workspace: "trioFrontendApp.xcworkspace",
+      scheme: "trioFrontendApp",
+      clean: false,
+      output_directory: ".",
+      output_name: "trioFrontendApp.ipa",
+      silent: false,
+      disable_parallelization: true, # 추가
       export_options: {
         compileBitcode: false,
         method: "app-store",
@@ -38,6 +43,7 @@ platform :ios do
       }
     )
 
+    # 3. TestFlight 업로드
     upload_to_testflight(
       api_key: api_key,
       skip_waiting_for_build_processing: false

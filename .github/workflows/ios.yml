@@ -3,49 +3,40 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop  # develop 브랜치에 푸시되면 워크플로우가 실행됩니다
+      - develop
 
 jobs:
   build:
     runs-on: macos-latest
 
     steps:
-      # 1. 코드 체크아웃
       - name: Checkout code
         uses: actions/checkout@v3
 
-      # → 여기서 바로 Xcode 버전 확인
       - name: Check Xcode version
         run: xcodebuild -version
 
-      # 2. Node.js 설치
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
           node-version: '18'
 
-      # 3. Node 패키지 설치
       - name: Install Node dependencies
         run: yarn install
 
-      # 4. Ruby & Bundler 설치
       - name: Set up Ruby & Bundler
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
           bundler-cache: true
 
-      # 5. RubyGem 설치 (Fastlane 등)
       - name: Install Ruby gems
         working-directory: ios
         run: bundle install
 
-
-      # 6. CocoaPods 설치
       - name: Install CocoaPods 1.2 β
         run: gem install cocoapods --pre
 
-      # 6. CocoaPods 캐시 복원
       - name: Cache CocoaPods
         uses: actions/cache@v3
         with:
@@ -54,119 +45,72 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      # 그 뒤에 실제로 pod install
       - name: Install CocoaPods
         working-directory: ios
         run: pod install --repo-update
 
+      # ✅ DerivedData 삭제 (Embed Script 멈춤 방지)
+      - name: Clean Xcode DerivedData
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
-      # 8. Xcode DerivedData 캐시 복원
       - name: Cache Xcode DerivedData
         uses: actions/cache@v3
         with:
           path: ~/Library/Developer/Xcode/DerivedData
           key: ${{ runner.os }}-deriveddata-${{ hashFiles('ios/Podfile.lock') }}
           restore-keys: |
-           ${{ runner.os }}-deriveddata-
+            ${{ runner.os }}-deriveddata-
 
-      # 7. 인증서(.p12) 디코딩 및 키체인에 설치
+      # ✅ Embed Script 권한 부여
+      - name: Fix Embed Pods Frameworks script permissions
+        run: |
+          chmod +x ios/Pods/Target\ Support\ Files/Pods-*/Pods-*-frameworks.sh || true
+
       - name: Decode and install iOS Distribution Certificate
         run: |
           echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
           ls -lh ios/haneul_distribution.p12
-
-          # 로그인 키체인 언락
           security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
-
-          # p12 인증서를 로그인 키체인에 import
           security import ios/haneul_distribution.p12 \
             -k ~/Library/Keychains/login.keychain-db \
             -P "$CERT_PASSWORD" \
             -T /usr/bin/codesign \
             -A
-
-          # 키체인 잠금 해제 상태 유지
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
         env:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
-      # 8. Provisioning Profile 디코딩 및 복사 (UUID를 GITHUB_ENV에 저장)
       - name: Decode and install provisioning profile
         run: |
-          echo "==> Cleaning up old provisioning profiles..."
           rm -rf "$HOME/Library/MobileDevice/Provisioning Profiles"/*
           mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-
-          echo "==> PROFILE_BASE64 length: ${#PROFILE_BASE64}"
-          if [ -z "$PROFILE_BASE64" ]; then
-            echo "::error::[!] PROFILE_BASE64 environment variable is empty!"
-            exit 1
-          fi
-
-          echo "==> Decoding PROFILE_BASE64 into ios/WorkAwayAppStoreProfile.mobileprovision..."
           echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
-
-          echo "==> After decode, listing file:"
-          ls -lh ios/WorkAwayAppStoreProfile.mobileprovision
-
-          echo "==> Extracting UUID from mobileprovision with PlistBuddy..."
           uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< \
             "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)" 2>/dev/null)
-          if [ -z "$uuid" ]; then
-            echo "::error::[!] Failed to extract UUID from provisioning profile. The file may be corrupted."
-            exit 1
-          fi
-          echo "Provisioning Profile UUID: $uuid"
-
-          # → GITHUB_ENV에 PROFILE_UUID를 저장해서 다음 스텝에서도 사용하도록 함
           echo "PROFILE_UUID=$uuid" >> $GITHUB_ENV
-
-          echo "==> Copying to \$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
           cp ios/WorkAwayAppStoreProfile.mobileprovision \
-             "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
+            "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
         env:
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
 
-      # 9. 프로비저닝 프로파일 메타데이터 출력 (동적 UUID 사용)
       - name: Inspect installed provisioning profile
         run: |
-          # GITHUB_ENV에 기록된 변수가 자동으로 환경변수로 주입되므로,
-          # 아래에서 PROFILE_UUID를 그대로 사용할 수 있습니다.
           PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
-
-          echo "===== 프로파일 존재 여부 확인 ====="
           ls -lh "$PROFILE_PATH" || (echo "::error:: 프로파일이 없습니다: $PROFILE_PATH"; exit 1)
-
-          echo ""
-          echo "===== 프로파일 Name ====="
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null \
-            || echo "No Name Key"
-
-          echo ""
-          echo "===== application-identifier ====="
+            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null || echo "No Name Key"
           security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null \
-            || echo "No application-identifier Key"
-
-          echo ""
-          echo "===== 포함된 인증서(DeveloperCertificates) 개수 ====="
+            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null || echo "No application-identifier Key"
           security cms -D -i "$PROFILE_PATH" \
             | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - 2>/dev/null \
-            | grep -c "-----BEGIN CERTIFICATE-----" \
-            || echo "0"
-        # ★ 이 단계에서는 env: PROFILE_UUID를 따로 지정할 필요가 없습니다.
-        #    8번에서 작성한 GITHUB_ENV가 그대로 이 스텝에 반영됩니다.
+            | grep -c "-----BEGIN CERTIFICATE-----" || echo "0"
 
-      # 10. 설치된 Code Signing 인증서 목록 출력 (디버깅)
       - name: List installed Code Signing identities
         run: |
           security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
           security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
 
-      # 11. Fastlane을 통해 빌드 후 TestFlight 배포
       - name: Build and Deploy with Fastlane
         working-directory: ios
         run: bundle exec fastlane beta
