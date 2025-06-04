@@ -36,6 +36,15 @@ jobs:
         working-directory: ios
         run: bundle install
 
+      # 6. CocoaPods 캐시 복원
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
       # 6. CocoaPods 설치
       - name: Install CocoaPods
         working-directory: ios
