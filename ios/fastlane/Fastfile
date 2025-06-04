@@ -33,7 +33,6 @@ platform :ios do
       output_directory: ".",
       output_name: "trioFrontendApp.ipa",
       silent: false,
-      disable_parallelization: true, # 추가
       export_options: {
         compileBitcode: false,
         method: "app-store",
