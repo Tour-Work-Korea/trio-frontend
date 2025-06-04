@@ -159,10 +159,7 @@ jobs:
       # 11. Fastlane을 통해 빌드 후 TestFlight 배포
       - name: Build and Deploy with Fastlane
         working-directory: ios
-        run: |
-          # Bitcode 비활성화를 위해 export_xcargs에 DISABLE_BITCODE=YES 전달
-          bundle exec fastlane beta \
-            --export_xcargs "BITCODE_GENERATION_MODE=bitcode DISABLE_BITCODE=YES"
+        run: bundle exec fastlane beta
         env:
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}

@@ -29,6 +29,7 @@ platform :ios do
     build_app(
       scheme: "trioFrontendApp",
       export_options: {
+            compileBitcode: false
           method: "app-store",
           provisioningProfiles: {
             "com.haneul.workaway" => "WorkAwayAppStoreProfile"
