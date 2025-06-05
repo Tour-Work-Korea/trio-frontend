@@ -81,16 +81,14 @@ jobs:
             -T /usr/bin/codesign \
             -A
 
-          # 키체인 설정 유지
+          # 키체인 잠금 해제 없이 partition-list만 설정해 줍니다.
+          security set-key-partition-list -S apple-tool:,apple:codesign: -s -k "" ~/Library/Keychains/login.keychain-db
+
+          # 키체인 설정 유지 (timeout 연장)
           security set-keychain-settings -lut 21600 ~/Library/Keychains/login.keychain-db
         env:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-
-      - name: Unlock keychain & set partition list
-        run: |
-          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
-          security set-key-partition-list -S apple-tool:,apple:codesign: -s -k "" ~/Library/Keychains/login.keychain-db
 
 
       - name: Decode and install provisioning profile
