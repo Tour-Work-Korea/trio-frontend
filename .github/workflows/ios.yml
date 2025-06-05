@@ -153,7 +153,9 @@ jobs:
 
       - name: Build IPA (Fastlane build_ipa)
         working-directory: ios
-        run: bundle exec fastlane build_ipa
+        run: |
+          set -x
+          bundle exec fastlane build_ipa
         env:
           API_BASE_URL: ${{ secrets.API_BASE_URL }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
