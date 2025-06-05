@@ -101,6 +101,25 @@ jobs:
         run: |
           security list-keychains -s ~/Library/Keychains/build.keychain ~/Library/Keychains/login.keychain-db
 
+
+      - name: Verify build.keychain and list code signing identities
+        run: |
+          echo "=== Registered keychains (user domain) ==="
+          security list-keychains -d user
+          echo
+
+          echo "=== Currently active/unlocked keychains ==="
+          security list-keychains
+          echo
+
+          echo "=== Identities in build.keychain ==="
+          security find-identity -v -p codesigning ~/Library/Keychains/build.keychain
+          echo
+
+          echo "=== Identities in login keychain (for reference) ==="
+          security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
+        shell: bash
+
       # ─────────────────────────────────────────────────────────────────────────
       # 4) 프로비저닝 프로파일 설치
       - name: Decode and install provisioning profile
