@@ -132,14 +132,20 @@ jobs:
         run: |
           security find-identity -v -p codesigning ~/Library/Keychains/build.keychain
 
-      - name: Build and Deploy with Fastlane
+      - name: Build IPA (Fastlane build_ipa)
         working-directory: ios
-        run: bundle exec fastlane beta
+        run: bundle exec fastlane build_ipa
         env:
+          API_BASE_URL: ${{ secrets.API_BASE_URL }}
           APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
           APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ISSUER_ID }}
           APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
           PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+
+      - name: Upload IPA artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ios-ipa
+          path: output/trioFrontendApp.ipa

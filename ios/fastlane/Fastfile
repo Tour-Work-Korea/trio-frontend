@@ -1,22 +1,9 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "Build and upload to TestFlight"
-  lane :beta do
-    # setup_ci(force: true) 호출을 제거했습니다.
-
-    api_key = app_store_connect_api_key(
-      key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"],
-      duration: 1200,
-      in_house: false
-    )
-
-    # DerivedData 클린
-    sh "rm -rf ~/Library/Developer/Xcode/DerivedData"
-
-    # React Native JS 번들링
+  desc "Build IPA (JS 번들링 + Archive)"
+  lane :build_ipa do
+    # JS 번들링
     sh <<-SHELL
       cd ..
       yarn react-native bundle \
@@ -27,28 +14,36 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
-    # Xcode 빌드
     build_app(
       workspace: "trioFrontendApp.xcworkspace",
       scheme:    "trioFrontendApp",
       clean:     false,
-
-      # export_method을 반드시 지정
       export_method: "app-store",
-
       export_options: {
         compileBitcode: false,
         provisioningProfiles: {
           "com.haneul.workaway" => "WorkAwayAppStoreProfile"
         }
       },
+      output_directory: "../output",       # 예: 상위 폴더에 output 디렉터리 지정
+      output_name:      "trioFrontendApp.ipa"
+    )
+  end
 
-      output_directory: ".",
-      output_name:      "trioFrontendApp.ipa",
-      silent:           false
+  desc "Upload existing IPA to TestFlight"
+  lane :upload_ipa do
+    api_key = app_store_connect_api_key(
+      key_id:     ENV["APP_STORE_CONNECT_KEY_ID"],
+      issuer_id:  ENV["APP_STORE_CONNECT_KEY_ISSUER_ID"],
+      key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"],
+      duration:   1200,
+      in_house:   false
     )
 
-    # TestFlight 업로드
-    upload_to_testflight(api_key: api_key)
+    upload_to_testflight(
+      api_key:       api_key,
+      ipa:           "../output/trioFrontendApp.ipa",
+      skip_waiting_for_build_processing: true  # 빌드 프로세싱 완료 대기 없이 바로 종료
+    )
   end
 end
