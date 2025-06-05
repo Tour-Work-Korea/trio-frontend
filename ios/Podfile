@@ -1,3 +1,5 @@
+# ios/Podfile
+
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
   'require.resolve(
@@ -24,17 +26,33 @@ target 'trioFrontendApp' do
   )
 
   post_install do |installer|
-    # https://github.com/facebook/react-native/blob/main/packages/react-native/scripts/react_native_pods.rb#L197-L202
+    # ① 기존 React Native post_install 호출
     react_native_post_install(
       installer,
       config[:reactNativePath],
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    # ───────────────────────────────────────────────────────────────────
+    # ② Pods 프로젝트 내부 모든 타겟에 대해 코드 서명 비활성화
+    installer.pods_project.targets.each do |target|
+      target.build_configurations.each do |config|
+        # Embed Pods Frameworks 단계에서 서명하지 않도록 설정
+        config.build_settings['CODE_SIGNING_REQUIRED'] = 'NO'
+        config.build_settings['CODE_SIGNING_ALLOWED']  = 'NO'
+        # (선택) Bitcode도 비활성화하려면:
+        # config.build_settings['ENABLE_BITCODE'] = 'NO'
+      end
+    end
+
+    # ───────────────────────────────────────────────────────────────────
+    # ③ (기존에 사용 중이던) 변경되지 않은 프레임워크 스킵 옵션
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['CP_NO_UNCHANGED_FRAMEWORKS'] = 'YES'
       end
     end
+    # ───────────────────────────────────────────────────────────────────
   end
 end

@@ -11,8 +11,6 @@ platform :ios do
       in_house: false
     )
 
-    setup_ci
-
     # 0. DerivedData 삭제
     sh "rm -rf ~/Library/Developer/Xcode/DerivedData"
 
