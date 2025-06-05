@@ -1,5 +1,4 @@
-# ios/Podfile
-ENV['COCOAPODS_PARALLEL_CODE_SIGN'] = 'true'
+install! 'cocoapods', :disable_input_output_paths => true
 
 # Resolve react_native_pods.rb with node to allow for hoisting
 require Pod::Executable.execute_command('node', ['-p',
@@ -48,7 +47,7 @@ target 'trioFrontendApp' do
     end
 
     # ───────────────────────────────────────────────────────────────────
-    # ③ (기존에 사용 중이던) 변경되지 않은 프레임워크 스킵 옵션
+    # ③ 변경되지 않은 프레임워크 스킵 옵션
     installer.pods_project.targets.each do |target|
       target.build_configurations.each do |config|
         config.build_settings['CP_NO_UNCHANGED_FRAMEWORKS'] = 'YES'

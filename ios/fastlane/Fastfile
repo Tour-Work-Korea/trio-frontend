@@ -1,12 +1,12 @@
-
-# ios/Fastfile
-
 default_platform(:ios)
 
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
-    xcode_select "/Applications/Xcode_15.4.app"    # (필요하다면)
+    # (필요 시) 특정 Xcode 버전을 명시하고 싶으면 uncomment
+    # xcode_select "/Applications/Xcode_15.4.app"
+
+    # CI용 키체인 설정
     setup_ci(force: true)
 
     api_key = app_store_connect_api_key(
@@ -17,9 +17,10 @@ platform :ios do
       in_house: false
     )
 
-    match(type: "appstore", readonly: is_ci)
+    # DerivedData 클린
     sh "rm -rf ~/Library/Developer/Xcode/DerivedData"
 
+    # React Native JS 번들링
     sh <<-SHELL
       cd ..
       yarn react-native bundle \
@@ -30,6 +31,7 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
+    # Xcode 빌드
     build_app(
       workspace: "trioFrontendApp.xcworkspace",
       scheme:    "trioFrontendApp",
@@ -51,6 +53,7 @@ platform :ios do
       silent:           false
     )
 
+    # TestFlight 업로드
     upload_to_testflight(api_key: api_key)
   end
 end
