@@ -34,8 +34,11 @@ jobs:
         working-directory: ios
         run: bundle install
 
-      - name: Install CocoaPods 1.2 β
-        run: gem install cocoapods --pre
+      - name: Install CocoaPods 1.2+ (or beta)
+        run: |
+          gem install cocoapods --pre
+          pod --version
+      # ← 여기서 1.2.x 이상인지 로그에 반드시 찍히는지 확인
 
       - name: Cache CocoaPods
         uses: actions/cache@v3
@@ -48,6 +51,7 @@ jobs:
       - name: Install CocoaPods
         working-directory: ios
         run: pod install --repo-update
+
 
       # ✅ DerivedData 삭제 (Embed Script 멈춤 방지)
       - name: Clean Xcode DerivedData
