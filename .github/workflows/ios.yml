@@ -51,7 +51,6 @@ jobs:
         working-directory: ios
         run: pod install --repo-update
 
-
       # ✅ DerivedData 삭제 (Embed Script 멈춤 방지)
       - name: Clean Xcode DerivedData
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
@@ -64,17 +63,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-deriveddata-
 
-      # Embed Pods Frameworks 스크립트 경로 및 권한 확인
-      - name:
-        Debug: Embed 스크립트 경로 및 권한 확인
-        working-directory: ios
-        run: |
-          echo "→ 파일 경로 리스트:"
-          ls -l "Pods/Target Support Files/Pods-*/Pods-*-frameworks.sh" || echo "스크립트 파일을 찾을 수 없습니다!"
-          echo ""
-          echo "→ 권한 부여 (필요 시) + 재확인:"
-          chmod +x Pods/Target\ Support\ Files/Pods-*/Pods-*-frameworks.sh || echo "chmod 실패"
-          ls -l Pods/Target\ Support\ Files/Pods-*/Pods-*-frameworks.sh
 
       # ✅ Embed Script 권한 부여
       - name: Fix Embed Pods Frameworks script permissions
