@@ -145,7 +145,7 @@ jobs:
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
 
       - name: Upload IPA artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ios-ipa
           path: output/trioFrontendApp.ipa
