@@ -26,7 +26,8 @@ platform :ios do
         }
       },
       output_directory: "../output",       # 예: 상위 폴더에 output 디렉터리 지정
-      output_name:      "trioFrontendApp.ipa"
+      output_name:      "trioFrontendApp.ipa",
+      xcargs: "CODE_SIGNING_ALLOWED=NO CODE_SIGN_IDENTITY=\"\""
     )
   end
 
