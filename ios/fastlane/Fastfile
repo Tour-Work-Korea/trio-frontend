@@ -3,11 +3,7 @@ default_platform(:ios)
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
-    # (필요 시) 특정 Xcode 버전을 명시하고 싶으면 uncomment
-    # xcode_select "/Applications/Xcode_15.4.app"
-
-    # CI용 키체인 설정
-    setup_ci(force: true)
+    # setup_ci(force: true) 호출을 제거했습니다.
 
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
@@ -37,11 +33,11 @@ platform :ios do
       scheme:    "trioFrontendApp",
       clean:     false,
 
-      # ─── 반드시 export_method를 따로 지정 ───
+      # export_method을 반드시 지정
       export_method: "app-store",
 
       export_options: {
-        compileBitcode:        false,
+        compileBitcode: false,
         provisioningProfiles: {
           # Bundle ID  => 프로파일 이름
           "com.haneul.workaway" => "WorkAwayAppStoreProfile"
