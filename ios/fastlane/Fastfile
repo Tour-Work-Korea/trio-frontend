@@ -1,8 +1,14 @@
+
+# ios/Fastfile
+
 default_platform(:ios)
 
 platform :ios do
   desc "Build and upload to TestFlight"
   lane :beta do
+    xcode_select "/Applications/Xcode_15.4.app"    # (필요하다면)
+    setup_ci(force: true)
+
     api_key = app_store_connect_api_key(
       key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
       issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
@@ -11,12 +17,11 @@ platform :ios do
       in_house: false
     )
 
-    # 0. DerivedData 삭제
+    match(type: "appstore", readonly: is_ci)
     sh "rm -rf ~/Library/Developer/Xcode/DerivedData"
 
-    # 1. React Native JS 사전 번들링
     sh <<-SHELL
-      cd ../
+      cd ..
       yarn react-native bundle \
         --platform ios \
         --dev false \
@@ -25,27 +30,27 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
-    # 2. Xcode 빌드
     build_app(
       workspace: "trioFrontendApp.xcworkspace",
-      scheme: "trioFrontendApp",
-      clean: false,
-      output_directory: ".",
-      output_name: "trioFrontendApp.ipa",
-      silent: false,
+      scheme:    "trioFrontendApp",
+      clean:     false,
+
+      # ─── 반드시 export_method를 따로 지정 ───
+      export_method: "app-store",
+
       export_options: {
-        compileBitcode: false,
-        method: "app-store",
+        compileBitcode:        false,
         provisioningProfiles: {
+          # Bundle ID  => 프로파일 이름
           "com.haneul.workaway" => "WorkAwayAppStoreProfile"
         }
-      }
+      },
+
+      output_directory: ".",
+      output_name:      "trioFrontendApp.ipa",
+      silent:           false
     )
 
-    # 3. TestFlight 업로드
-    upload_to_testflight(
-      api_key: api_key,
-      skip_waiting_for_build_processing: false
-    )
+    upload_to_testflight(api_key: api_key)
   end
 end
