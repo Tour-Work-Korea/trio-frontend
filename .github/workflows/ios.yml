@@ -48,9 +48,9 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      - name: Install CocoaPods dependencies
+      - name: Install CocoaPods dependencies (pin to 1.12.1)
         working-directory: ios
-        run: pod install --repo-update
+        run: pod _1.12.1_ install --repo-update
 
       # DerivedData 삭제
       - name: Clean Xcode DerivedData
