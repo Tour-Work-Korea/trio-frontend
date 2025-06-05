@@ -23,7 +23,8 @@ platform :ios do
         compileBitcode: false,
         provisioningProfiles: {
           "com.haneul.workaway" => "WorkAwayAppStoreProfile"
-        }
+        },
+        teamID: "59P3UT5738"
       },
       output_directory: "../output",       # 예: 상위 폴더에 output 디렉터리 지정
       output_name:      "trioFrontendApp.ipa",
