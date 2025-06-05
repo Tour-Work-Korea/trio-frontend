@@ -63,10 +63,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-derivedata-
 
-      # Embed 스크립트 권한 부여
       - name: Fix Embed Pods Frameworks script permissions
         run: |
-          chmod +x ios/Pods/Target\ Support\ Files/Pods-*/Pods-*-frameworks.sh || true
+          chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
+
 
       - name: Decode and install iOS Distribution Certificate
         run: |
@@ -86,6 +86,12 @@ jobs:
         env:
           CERT_BASE64: ${{ secrets.CERT_BASE64 }}
           CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
+
+      - name: Unlock keychain & set partition list
+        run: |
+          security unlock-keychain -p "" ~/Library/Keychains/login.keychain-db
+          security set-key-partition-list -S apple-tool:,apple:codesign: -s -k "" ~/Library/Keychains/login.keychain-db
+
 
       - name: Decode and install provisioning profile
         run: |

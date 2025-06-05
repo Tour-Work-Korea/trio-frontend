@@ -39,7 +39,6 @@ platform :ios do
       export_options: {
         compileBitcode: false,
         provisioningProfiles: {
-          # Bundle ID  => 프로파일 이름
           "com.haneul.workaway" => "WorkAwayAppStoreProfile"
         }
       },
