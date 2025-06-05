@@ -28,6 +28,12 @@ platform :ios do
         method: "app-store",
         signingStyle: "manual"
       },
+      xcargs: [
+          "CODE_SIGNING_REQUIRED=NO",      # 서명 전면 금지
+          "CODE_SIGNING_ALLOWED=NO",
+          "CODE_SIGN_IDENTITY=\"\"",       # 서명 아이덴티티 빈 문자열
+          "OTHER_CODE_SIGN_FLAGS=\"--keychain build.keychain\""
+      ].join(" "),
       output_directory: "../output",       # 예: 상위 폴더에 output 디렉터리 지정
       output_name:      "trioFrontendApp.ipa",
     )
