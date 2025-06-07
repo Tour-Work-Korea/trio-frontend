@@ -46,6 +46,7 @@ platform :ios do
         signingStyle: "manual",
         teamID:       ENV["TEAM_ID"]
       },
+      export_xcargs: "-allowProvisioningUpdates",
       output_directory:"../output",
       output_name:     "trioFrontendApp.ipa"
       # provisioningProfiles 등은 match가 설정해 줍니다
