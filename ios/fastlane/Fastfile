@@ -21,6 +21,13 @@ platform :ios do
         team_id:    ENV["TEAM_ID"]
       )
 
+    update_project_provisioning(
+        xcodeproj:        "ios/trioFrontendApp.xcodeproj",
+        target_filter:    "trioFrontendApp",
+        code_sign_style:  "Automatic",
+        development_team: ENV["TEAM_ID"]
+    )
+    
     # ② JS 번들링
     sh <<-SHELL
       cd ..
@@ -32,12 +39,7 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
-    update_project_provisioning(
-        xcodeproj:        "ios/trioFrontendApp.xcodeproj",
-        target_filter:    "trioFrontendApp",
-        code_sign_style:  "Automatic",
-        development_team: ENV["TEAM_ID"]
-    )
+
 
     # ③ 빌드 & export
     build_app(
