@@ -7,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Dimensions,
   Alert,
 } from 'react-native';
 import styles from './EmployDetail.styles';
@@ -16,17 +15,13 @@ import Header from '@components/Header';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import userEmployApi from '@utils/api/userEmployApi';
-
-const {width} = Dimensions.get('window');
+import {toggleLikeRecruit} from '@utils/handleFavorite';
 
 const EmployDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {id} = route.params;
   const [activeTab, setActiveTab] = useState('모집조건');
-  const [favorites, setFavorites] = useState({
-    1: true,
-  });
   const [recruit, setRecruit] = useState();
 
   useEffect(() => {
@@ -43,19 +38,12 @@ const EmployDetail = () => {
   };
 
   const toggleFavorite = async isLiked => {
-    try {
-      if (isLiked) {
-        await userEmployApi.deleteLikeRecruitById(id);
-      } else {
-        await userEmployApi.addLikeRecruitById(id);
-      }
-      setRecruit(prev => {
-        return {...prev, liked: !isLiked};
-      });
-    } catch (error) {
-      Alert.alert('좋아요 처리 중 오류가 발생했습니다.');
-    }
+    toggleLikeRecruit(id, isLiked);
+    setRecruit(prev => {
+      return {...prev, liked: !isLiked};
+    });
   };
+
   const handleTabPress = tabName => {
     setActiveTab(tabName);
   };

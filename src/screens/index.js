@@ -33,6 +33,7 @@ export {default as StoreRegister} from './(Host)/StoreRegister';
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';
 export {default as MyApplicantDetail} from './(User)/Employ/ApplicantDetail';
+export {default as MyLikeRecruitList} from './(User)/Employ/MyLikeRecruitList';
 export {default as Agree} from './(User)/Register/Agree';
 export {default as EmailCertificate} from './(User)/Register/EmailCertificate';
 export {default as Intro} from './(User)/Register/Intro';

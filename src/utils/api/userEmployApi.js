@@ -42,7 +42,7 @@ const userEmployApi = {
   getUserHashtags: () => api.get('/user/recruits/hashtags'),
 
   //즐겨찾기한 공고 조회
-  getLikeRecruit: () => api.get('/user/my/recruit'),
+  getLikeRecruits: () => api.get('/user/my/recruit'),
 
   //나의 지원현황 조회
   getMyApplications: () => api.get('/user/my/applications'),
