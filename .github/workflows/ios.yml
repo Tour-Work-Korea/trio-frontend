@@ -25,6 +25,16 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Start ssh-agent & add deploy key
+        uses: webfactory/ssh-agent@v0.8.1
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Ensure known_hosts for GitHub
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
       - name: Check Xcode version
         run: xcodebuild -version
 
