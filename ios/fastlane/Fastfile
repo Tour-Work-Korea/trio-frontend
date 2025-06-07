@@ -2,6 +2,21 @@ default_platform(:ios)
 
 platform :ios do
   desc "빌드 전에 인증서/프로파일 받아오고 IPA 생성"
+
+  before_all do
+      # ① CI 전용 키체인 만들기 (unlock, default 설정)
+      create_keychain(
+        name:              "ci-build.keychain",
+        password:          ENV["CI_KEYCHAIN_PASSWORD"],
+        default_keychain:  true,
+        unlock:            true,
+        timeout:           3600,  # 초 단위
+        lock_when_sleeps:  false
+      )
+      # ② 인증서 복사: 기본 로그인 키체인에서 가져오지 않고, 이 키체인에만 설치
+      ENV["MATCH_KEYCHAIN_NAME"]     = "ci-build.keychain"
+      ENV["MATCH_KEYCHAIN_PASSWORD"] = ENV["CI_KEYCHAIN_PASSWORD"]
+    end
   lane :build_ipa do
     # ① match 로 App Store 프로비전 가져오기
     match(
@@ -43,6 +58,7 @@ platform :ios do
       configuration:   "Release",
       clean:           true,
       export_method:   "app-store",
+      keychain:       ENV["MATCH_KEYCHAIN_NAME"],
       # CI 에서 프로파일 자동 갱신 허용
       xcargs: "-allowProvisioningUpdates",
       export_xcargs: "-allowProvisioningUpdates",
