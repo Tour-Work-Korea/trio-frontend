@@ -36,14 +36,22 @@ platform :ios do
     build_app(
       workspace:       "trioFrontendApp.xcworkspace",
       scheme:          "trioFrontendApp",
-      configuration: "Release",
-      clean:           false,
-      xcargs:          "-allowProvisioningUpdates",
+      configuration:   "Release",
+      clean:           true,
       export_method:   "app-store",
+
+      # export_options 에서 provisioningProfiles, manual 서명 설정을 몽땅 제거
+      export_options: {
+        signingStyle: "automatic",
+        # teamID: ENV["TEAM_ID"]   # 필요하면 남겨도 됩니다
+      },
+
+      # CI 에서 프로파일 자동 갱신 허용
+      xcargs: "-allowProvisioningUpdates",
       export_xcargs: "-allowProvisioningUpdates",
-      output_directory:"../output",
-      output_name:     "trioFrontendApp.ipa"
-      # provisioningProfiles 등은 match가 설정해 줍니다
+
+      output_directory: "../output",
+      output_name:      "trioFrontendApp.ipa"
     )
   end
 
