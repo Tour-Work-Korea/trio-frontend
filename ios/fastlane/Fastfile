@@ -22,12 +22,12 @@ platform :ios do
       )
 
     update_project_provisioning(
-        xcodeproj:        "ios/trioFrontendApp.xcodeproj",
+        xcodeproj:        "../trioFrontendApp.xcodeproj",
         target_filter:    "trioFrontendApp",
         code_sign_style:  "Automatic",
         development_team: ENV["TEAM_ID"]
     )
-    
+
     # ② JS 번들링
     sh <<-SHELL
       cd ..
