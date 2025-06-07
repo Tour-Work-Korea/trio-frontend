@@ -5,6 +5,18 @@ on:
     branches:
       - develop
 
+env:
+  # Match (인증서 저장소) 설정
+  MATCH_GIT_URL:  ${{ secrets.MATCH_GIT_URL }}
+  MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+  APPLE_ID:       ${{ secrets.APPLE_ID }}
+  TEAM_ID:        ${{ secrets.TEAM_ID }}
+  # Fastlane upload_to_testflight 에 쓸 시크릿
+  API_BASE_URL:                   ${{ secrets.API_BASE_URL }}
+  APP_STORE_CONNECT_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+  APP_STORE_CONNECT_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+  APP_STORE_CONNECT_PRIVATE_KEY:  ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
 jobs:
   build:
     runs-on: macos-latest
@@ -34,7 +46,6 @@ jobs:
         working-directory: ios
         run: bundle install
 
-      # CocoaPods 버전을 1.12.0 이상으로 고정
       - name: Install CocoaPods 1.15.2
         run: |
           gem install cocoapods -v 1.15.2
@@ -48,11 +59,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-pods-
 
-      - name: Install CocoaPods dependencies (pin to 1.15.2)
+      - name: Install CocoaPods dependencies
         working-directory: ios
         run: pod _1.15.2_ install --repo-update
 
-      # DerivedData 삭제
       - name: Clean Xcode DerivedData
         run: rm -rf ~/Library/Developer/Xcode/DerivedData
 
@@ -64,109 +74,11 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-derivedata-
 
-      # Embed 스크립트 권한 부여
       - name: Fix Embed Pods Frameworks script permissions
-        run: |
-          chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
+        run: chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
 
-      # ─────────────────────────────────────────────────────────────────────────
-      # 1) build.keychain 생성 및 설정
-      - name: Create & configure custom keychain
-        run: |
-          security create-keychain -p "" build.keychain
-          security list-keychains -s build.keychain
-          security unlock-keychain -p "" build.keychain
-
-      # ─────────────────────────────────────────────────────────────────────────
-      # 2) iOS 배포용 인증서를 build.keychain에 import
-      - name: Decode and import iOS Distribution Certificate
-        run: |
-          echo "$CERT_BASE64" | base64 --decode > ios/haneul_distribution.p12
-          ls -lh ios/haneul_distribution.p12
-
-          security import ios/haneul_distribution.p12 \
-            -k ~/Library/Keychains/build.keychain \
-            -P "$CERT_PASSWORD" \
-            -T /usr/bin/codesign \
-            -A
-
-          security set-key-partition-list -S apple-tool:,apple:codesign: -s -k "" ~/Library/Keychains/build.keychain
-        env:
-          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-
-      # ─────────────────────────────────────────────────────────────────────────
-      # 3) (선택) 로그인 키체인을 뒤로 배치
-      - name: Restore login keychain to default position
-        run: |
-          security list-keychains -s ~/Library/Keychains/build.keychain ~/Library/Keychains/login.keychain-db
-
-
-      - name: Verify build.keychain and list code signing identities
-        run: |
-          echo "=== Registered keychains (user domain) ==="
-          security list-keychains -d user
-          echo
-
-          echo "=== Currently active/unlocked keychains ==="
-          security list-keychains
-          echo
-
-          echo "=== Identities in build.keychain ==="
-          security find-identity -v -p codesigning ~/Library/Keychains/build.keychain
-          echo
-
-          echo "=== Identities in login keychain (for reference) ==="
-          security find-identity -v -p codesigning ~/Library/Keychains/login.keychain-db
-        shell: bash
-
-      # ─────────────────────────────────────────────────────────────────────────
-      # 4) 프로비저닝 프로파일 설치
-      - name: Decode and install provisioning profile
-        run: |
-          rm -rf "$HOME/Library/MobileDevice/Provisioning Profiles"/*
-          mkdir -p "$HOME/Library/MobileDevice/Provisioning Profiles"
-          echo "$PROFILE_BASE64" | base64 --decode > ios/WorkAwayAppStoreProfile.mobileprovision
-          uuid=$(/usr/libexec/PlistBuddy -c "Print :UUID" /dev/stdin <<< \
-            "$(security cms -D -i ios/WorkAwayAppStoreProfile.mobileprovision)" 2>/dev/null)
-          echo "PROFILE_UUID=$uuid" >> $GITHUB_ENV
-          cp ios/WorkAwayAppStoreProfile.mobileprovision \
-            "$HOME/Library/MobileDevice/Provisioning Profiles/${uuid}.mobileprovision"
-        env:
-          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
-
-      - name: Inspect installed provisioning profile
-        run: |
-          PROFILE_PATH="$HOME/Library/MobileDevice/Provisioning Profiles/${PROFILE_UUID}.mobileprovision"
-          ls -lh "$PROFILE_PATH" || (echo "::error:: 프로파일이 없습니다: $PROFILE_PATH"; exit 1)
-          security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Name" - 2>/dev/null || echo "No Name Key"
-          security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :Entitlements:application-identifier" - 2>/dev/null || echo "No application-identifier Key"
-          security cms -D -i "$PROFILE_PATH" \
-            | /usr/libexec/PlistBuddy -c "Print :DeveloperCertificates" - 2>/dev/null \
-            | grep -c "-----BEGIN CERTIFICATE-----" || echo "0"
-
-      - name: List installed Code Signing identities
-        run: |
-          security find-identity -v -p codesigning ~/Library/Keychains/build.keychain
-
-      - name: Build IPA (Fastlane build_ipa)
+      - name: Build & Deploy to TestFlight
         working-directory: ios
-        run: |
-          set -x
-          bundle exec fastlane build_ipa
         env:
-          API_BASE_URL: ${{ secrets.API_BASE_URL }}
-          APP_STORE_CONNECT_KEY_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
-          APP_STORE_CONNECT_ISSUER_ID: ${{ secrets.APP_STORE_CONNECT_KEY_ISSUER_ID }}
-          APP_STORE_CONNECT_PRIVATE_KEY: ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
-          PROFILE_BASE64: ${{ secrets.PROFILE_BASE64 }}
-          CERT_BASE64: ${{ secrets.CERT_BASE64 }}
-          CERT_PASSWORD: ${{ secrets.CERT_PASSWORD }}
-
-      - name: Upload IPA artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: ios-ipa
-          path: output/trioFrontendApp.ipa
+          CI: "true"
+        run: bundle exec fastlane build_ipa && bundle exec fastlane upload_ipa
