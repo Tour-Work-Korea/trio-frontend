@@ -27,8 +27,16 @@ platform :ios do
     build_app(
       workspace:       "trioFrontendApp.xcworkspace",
       scheme:          "trioFrontendApp",
+      configuration: "Release",
       clean:           false,
       export_method:   "app-store",
+      export_options: {
+            provisioningProfiles: {
+              "com.haneul.workaway" => "WorkAwayAppStoreProfile"
+            },
+            compileBitcode: false,
+            signingStyle: "manual"
+          },
       output_directory:"../output",
       output_name:     "trioFrontendApp.ipa"
       # provisioningProfiles 등은 match가 설정해 줍니다
