@@ -9,7 +9,8 @@ platform :ios do
         readonly:   ENV["CI"] == "true",
         git_url:    ENV["MATCH_GIT_URL"],
         username:   ENV["APPLE_ID"],
-        team_id:    ENV["TEAM_ID"]
+        team_id:    ENV["TEAM_ID"],
+        keychain_password: ENV["KEYCHAIN_PASSWORD"]
       )
 
       # ② 배포용 프로파일
@@ -18,7 +19,8 @@ platform :ios do
         readonly:   ENV["CI"] == "true",
         git_url:    ENV["MATCH_GIT_URL"],
         username:   ENV["APPLE_ID"],
-        team_id:    ENV["TEAM_ID"]
+        team_id:    ENV["TEAM_ID"],
+        keychain_password: ENV["KEYCHAIN_PASSWORD"]
       )
 
     # ② JS 번들링
