@@ -32,6 +32,13 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
+    update_project_provisioning(
+        xcodeproj:        "ios/trioFrontendApp.xcodeproj",
+        target_filter:    "trioFrontendApp",
+        code_sign_style:  "Automatic",
+        development_team: ENV["TEAM_ID"]
+    )
+
     # ③ 빌드 & export
     build_app(
       workspace:       "trioFrontendApp.xcworkspace",
@@ -43,7 +50,7 @@ platform :ios do
       # export_options 에서 provisioningProfiles, manual 서명 설정을 몽땅 제거
       export_options: {
         signingStyle: "automatic",
-        # teamID: ENV["TEAM_ID"]   # 필요하면 남겨도 됩니다
+        teamID: ENV["TEAM_ID"]
       },
 
       # CI 에서 프로파일 자동 갱신 허용
