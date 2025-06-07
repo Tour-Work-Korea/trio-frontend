@@ -25,6 +25,7 @@ platform :ios do
         git_url:    ENV["MATCH_GIT_URL"],
         username:   ENV["APPLE_ID"],
         team_id:    ENV["TEAM_ID"],
+        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
         keychain_password: ENV["KEYCHAIN_PASSWORD"]
       )
 
@@ -35,6 +36,7 @@ platform :ios do
         git_url:    ENV["MATCH_GIT_URL"],
         username:   ENV["APPLE_ID"],
         team_id:    ENV["TEAM_ID"],
+        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
         keychain_password: ENV["KEYCHAIN_PASSWORD"]
       )
 
@@ -58,7 +60,6 @@ platform :ios do
       configuration:   "Release",
       clean:           true,
       export_method:   "app-store",
-      keychain:       ENV["MATCH_KEYCHAIN_NAME"],
       # CI 에서 프로파일 자동 갱신 허용
       xcargs: "-allowProvisioningUpdates",
       export_xcargs: "-allowProvisioningUpdates",
