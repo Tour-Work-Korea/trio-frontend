@@ -21,7 +21,7 @@ const ApplicantProfileHeader = ({data}) => {
           <InfoRow label="주소" value={data.address} />
           <InfoRow label="MBTI" value={data.mbti} />
           <InfoRow label="인스타그램" value={data.instagramId} />
-          <InfoRow label="해시태그" value={data.hashtag} isHashtag />
+          <InfoRow label="해시태그" value={data.hashtags} isHashtag />
         </View>
       </View>
     </View>

@@ -17,37 +17,15 @@ import CalendarIcon from '@assets/images/Calendar.svg';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '@components/Header';
 import styles from './ApplicantForm.styles';
-import userInfoApi from '@utils/api/userInfoApi';
 import {Image} from 'react-native-svg';
 import userEmployApi from '@utils/api/userEmployApi';
-
-const dummy = {
-  resumeTitle: '열정 가득한 알바생!!!!',
-  selfIntro: '끈기와 책임감이 가득한 청년입니다.',
-  workExperience: [
-    {
-      companyName: '맥도날드 A',
-      workType: '카운터',
-      startDate: '2022-01-01',
-      endDate: '2023-06-30',
-      description: '주문 처리 및 고객 응대',
-    },
-    {
-      companyName: '버거킹 B',
-      workType: '씽크',
-      startDate: '2023-07-01',
-      endDate: '2025-01-01',
-      description: '설거지',
-    },
-  ],
-  hashtags: [1, 2, 3],
-};
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {id = null, isEditMode = false} = route.params || {};
   const [baseInfo, setBaseInfo] = useState();
+  const [hashtags, setHashtags] = useState();
   const [currentJob, setCurrentJob] = useState({
     companyName: '',
     startDate: new Date(),
@@ -72,15 +50,27 @@ const ApplicantForm = () => {
     if (id != null) {
       tryFetchResumeData();
     }
+    getHashtags();
   }, []);
 
   //기본 정보 조회
   const getMyInfo = async () => {
     try {
-      const response = await userInfoApi.getMyInfo();
+      const response = await userEmployApi.getMyBasicInfo();
       setBaseInfo(response.data);
     } catch (error) {
-      Alert.alert('기본 정보를 불러오는데 실패했습니다..');
+      Alert.alert('기본 정보를 불러오는데 실패했습니다.');
+    }
+  };
+
+  //해시태그 조회
+  const getHashtags = async () => {
+    try {
+      const response = await userEmployApi.getUserHashtags();
+      setHashtags(response.data);
+    } catch (error) {
+      console.error(error);
+      Alert.alert('해시태그 조회에 실패했습니다.');
     }
   };
 
@@ -93,10 +83,10 @@ const ApplicantForm = () => {
         resumeTitle: data.resumeTitle || '',
         selfIntro: data.selfIntro || '',
         workExperience: data.workExperience || [],
-        // hashtags: data.hashtag?.map(item => item.hashtag) || [],
-        hashtags: [],
+        hashtags: data.hashtags?.map(item => item.id) || [],
+        // hashtags: [],
       };
-
+      console.log(parsedFormData);
       setFormData(parsedFormData);
     } catch (error) {
       Alert.alert('기존 정보를 불러오는데 실패했습니다');
@@ -237,8 +227,8 @@ const ApplicantForm = () => {
           )}
         </View>
         <Text style={styles.profileName}>
-          {baseInfo?.name} {baseInfo?.gender} • {baseInfo?.age}세(
-          {baseInfo?.birthYear})
+          {baseInfo?.nickname} {baseInfo?.gender} • {baseInfo?.age}세(
+          {baseInfo?.birthDate?.split('-')[0]})
         </Text>
         <View style={styles.infoContainer}>
           <View style={styles.infoRow}>
@@ -396,14 +386,6 @@ const ApplicantForm = () => {
   );
 
   const renderTags = () => {
-    const tagOptions = [
-      {label: '성실함', id: 1},
-      {label: '책임감', id: 2},
-      {label: '친화력', id: 3},
-      {label: '파티O', id: 4},
-      {label: '파티X', id: 5},
-    ];
-
     return (
       <View style={styles.sectionContainer}>
         <Text style={styles.sectionTitle}>태그</Text>
@@ -411,7 +393,7 @@ const ApplicantForm = () => {
           태그는 나의 특징을 나타내줘요! (최대 3개 선택가능)
         </Text>
         <View style={styles.tagGrid}>
-          {tagOptions.map(tag => {
+          {hashtags?.map(tag => {
             const isSelected = formData.hashtags.includes(tag.id);
             return (
               <TouchableOpacity
@@ -426,7 +408,7 @@ const ApplicantForm = () => {
                     styles.tagButtonText,
                     isSelected && styles.tagButtonTextSelected,
                   ]}>
-                  {tag.label}
+                  {tag.hashtag}
                 </Text>
               </TouchableOpacity>
             );

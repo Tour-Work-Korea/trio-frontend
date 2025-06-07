@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useIsFocused} from '@react-navigation/native';
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Trash from '@assets/images/Trash.svg';
@@ -22,10 +22,13 @@ import userEmployApi from '@utils/api/userEmployApi';
 const MyApplicantList = () => {
   const navigation = useNavigation();
   const [postings, setPostings] = useState();
+  const isFocused = useIsFocused();
 
   useEffect(() => {
-    tryFetchMyResumes();
-  }, []);
+    if (isFocused) {
+      tryFetchMyResumes();
+    }
+  }, [isFocused]);
 
   const tryFetchMyResumes = async () => {
     try {

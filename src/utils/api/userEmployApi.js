@@ -34,6 +34,22 @@ const userEmployApi = {
   //지원하기
   apply: (recruitId, applyData) =>
     api.post(`/user/recruits/${recruitId}/apply`, applyData),
+
+  //이력서 작성 시, 내 기본 정보 조회
+  getMyBasicInfo: () => api.get('/user/recruits/resume/myInfo'),
+
+  //이력서 작성 시, 유저 해시태그 조회
+  getUserHashtags: () => api.get('/user/recruits/hashtags'),
+
+  //즐겨찾기한 공고 조회
+  getLikeRecruit: () => api.get('/user/my/recruit'),
+
+  //나의 지원현황 조회
+  getMyApplications: () => api.get('/user/my/applications'),
+
+  //지원현황에서 지원서 상세 조회
+  getMyApplicationById: applicationId =>
+    api.get(`/user/my/applications/${applicationId}`),
 };
 
 export default userEmployApi;
