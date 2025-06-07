@@ -38,6 +38,7 @@ platform :ios do
       scheme:          "trioFrontendApp",
       configuration: "Release",
       clean:           false,
+      xcargs:          "-allowProvisioningUpdates",
       export_method:   "app-store",
       export_options: {
         provisioningProfiles: {
