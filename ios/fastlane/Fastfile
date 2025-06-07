@@ -40,13 +40,6 @@ platform :ios do
       clean:           false,
       xcargs:          "-allowProvisioningUpdates",
       export_method:   "app-store",
-      export_options: {
-        provisioningProfiles: {
-          "com.haneul.workaway" => "match AppStore com.haneul.workaway"
-        },
-        signingStyle: "manual",
-        teamID:       ENV["TEAM_ID"]
-      },
       export_xcargs: "-allowProvisioningUpdates",
       output_directory:"../output",
       output_name:     "trioFrontendApp.ipa"
