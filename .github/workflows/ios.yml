@@ -26,6 +26,9 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      - name: Use Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
       - name: Start ssh-agent & add deploy key
         uses: webfactory/ssh-agent@v0.5.4
         with:
