@@ -11,6 +11,7 @@ env:
   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
   APPLE_ID:       ${{ secrets.APPLE_ID }}
   TEAM_ID:        ${{ secrets.TEAM_ID }}
+  CI_KEYCHAIN_PASSWORD:  ${{ secrets.CI_KEYCHAIN_PASSWORD }}
   # Fastlane upload_to_testflight 에 쓸 시크릿
   API_BASE_URL:                   ${{ secrets.API_BASE_URL }}
   APP_STORE_CONNECT_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
