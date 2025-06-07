@@ -44,12 +44,9 @@ platform :ios do
 
       # export_options 에서 provisioningProfiles, manual 서명 설정을 몽땅 제거
       export_options: {
-          signingStyle: "manual",   # 수동 서명으로 전환
-          teamID:       ENV["TEAM_ID"],
-          provisioningProfiles: {
-            "com.haneul.workaway" => "match AppStore com.haneul.workaway"
-          }
-        },
+        signingStyle: "automatic",
+        teamID: ENV["TEAM_ID"]
+      },
 
       # CI 에서 프로파일 자동 갱신 허용
       xcargs: "-allowProvisioningUpdates",
