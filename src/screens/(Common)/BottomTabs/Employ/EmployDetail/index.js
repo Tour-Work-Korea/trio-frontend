@@ -189,8 +189,8 @@ const EmployDetail = () => {
           <View style={styles.titleSection}>
             <Text style={styles.title}>{recruit.recruitTitle}</Text>
             <View style={styles.tagsContainer}>
-              {recruit?.hashtags?.map((tag, idx) => (
-                <View style={styles.tag}>
+              {recruit?.hashtags?.map(tag => (
+                <View style={styles.tag} key={tag.id}>
                   <Text style={styles.tagText}>#{tag.hashtag}</Text>
                 </View>
               ))}

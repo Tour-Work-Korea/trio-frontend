@@ -3,7 +3,7 @@ import {View, Text} from 'react-native';
 import ProfileIcon from '@assets/images/Gray_Person.svg';
 import styles from '../ApplicantDetail.styles';
 
-const ApplicantProfileHeader = ({data}) => {
+const ApplicantProfileHeader = ({data, hashtags}) => {
   return (
     <View style={styles.profileHeaderContainer}>
       <Text style={styles.pageTitle}>{data.resumeTitle}</Text>
@@ -21,7 +21,7 @@ const ApplicantProfileHeader = ({data}) => {
           <InfoRow label="주소" value={data.address} />
           <InfoRow label="MBTI" value={data.mbti} />
           <InfoRow label="인스타그램" value={data.instagramId} />
-          <InfoRow label="해시태그" value={data.hashtags} isHashtag />
+          <InfoRow label="해시태그" value={hashtags} isHashtag />
         </View>
       </View>
     </View>

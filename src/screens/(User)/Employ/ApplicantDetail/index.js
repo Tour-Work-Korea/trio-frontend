@@ -93,7 +93,10 @@ const ApplicantDetail = () => {
       {applicantData ? (
         <>
           <ScrollView style={styles.scrollView}>
-            <ApplicantProfileHeader data={applicantData} />
+            <ApplicantProfileHeader
+              data={applicantData}
+              hashtags={applicantData.hashtags}
+            />
             <ApplicantExperienceSection
               experiences={applicantData?.workExperience}
               totalExperience={applicantData?.totalExperience}

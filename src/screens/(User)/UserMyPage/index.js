@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
@@ -86,8 +86,12 @@ const UserMyPage = () => {
             label="나의 지원서"
             onPress={() => navigation.navigate('MyApplicantList')}
           />
-          <MenuItem IconComponent={ApplicationStatusIcon} label="지원 현황" />
-          <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" />
+          <MenuItem
+            IconComponent={ApplicationStatusIcon}
+            label="지원 현황"
+            onPress={() => navigation.navigate('MyApplyRecruitList')}
+          />
+          {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>
       </View>
     </ScrollView>
