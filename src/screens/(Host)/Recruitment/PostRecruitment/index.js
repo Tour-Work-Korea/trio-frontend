@@ -248,10 +248,7 @@ const PostRecruitment = () => {
 
     const fetchUpdateRecruit = async updatedRecruitId => {
       try {
-        const response = await hostEmployApi.updateRecruit(
-          updatedRecruitId,
-          formData,
-        );
+        await hostEmployApi.updateRecruit(updatedRecruitId, formData);
         Alert.alert('공고를 성공적으로 수정했습니다.');
         navigation.navigate('MyRecruitmentList');
       } catch (error) {
