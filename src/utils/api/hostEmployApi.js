@@ -29,6 +29,9 @@ const hostEmployApi = {
   //게스트하우스 별 지원서 조회
   getApplicantsByGuesthouse: guesthouseId =>
     api.get(`/host/recruits/applications/${guesthouseId}`),
+
+  //host 해시태그 조회
+  getHostHashtags: () => api.get('/host/recruits/hashtags'),
 };
 
 export default hostEmployApi;

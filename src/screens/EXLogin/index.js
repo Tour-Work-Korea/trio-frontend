@@ -46,8 +46,8 @@ const EXLogin = () => {
 
   const handleHostLogin = () => {
     login({
-      email: 'sal091625@gmail.com',
-      password: 'Pw123456!',
+      email: 'hostTest@gmail.com',
+      password: 'Hostpassword1!',
       userRole: 'HOST',
     });
   };
