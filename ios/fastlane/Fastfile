@@ -2,15 +2,43 @@ default_platform(:ios)
 
 platform :ios do
   desc "빌드 전에 인증서/프로파일 받아오고 IPA 생성"
+
+  before_all do
+      # ① CI 전용 키체인 만들기 (unlock, default 설정)
+      create_keychain(
+        name:              "ci-build.keychain",
+        password:          ENV["CI_KEYCHAIN_PASSWORD"],
+        default_keychain:  true,
+        unlock:            true,
+        timeout:           3600,  # 초 단위
+        lock_when_sleeps:  false
+      )
+      # ② 인증서 복사: 기본 로그인 키체인에서 가져오지 않고, 이 키체인에만 설치
+      ENV["MATCH_KEYCHAIN_NAME"]     = "ci-build.keychain"
+      ENV["MATCH_KEYCHAIN_PASSWORD"] = ENV["CI_KEYCHAIN_PASSWORD"]
+    end
   lane :build_ipa do
     # ① match 로 App Store 프로비전 가져오기
     match(
-      type: "appstore",              # or :appstore
-      readonly: ENV["CI"] == "true", # CI 환경이면 readonly:true
-      git_url: ENV["MATCH_GIT_URL"], # Secrets에 저장한 URL
-      username: ENV["APPLE_ID"],     # Apple ID (팀 계정)
-      team_id: ENV["TEAM_ID"]        # "59P3UT5738"
-    )
+        type:       "development",
+        readonly:   ENV["CI"] == "true",
+        git_url:    ENV["MATCH_GIT_URL"],
+        username:   ENV["APPLE_ID"],
+        team_id:    ENV["TEAM_ID"],
+        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
+        keychain_password: ENV["KEYCHAIN_PASSWORD"]
+      )
+
+      # ② 배포용 프로파일
+      match(
+        type:       "appstore",
+        readonly:   ENV["CI"] == "true",
+        git_url:    ENV["MATCH_GIT_URL"],
+        username:   ENV["APPLE_ID"],
+        team_id:    ENV["TEAM_ID"],
+        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
+        keychain_password: ENV["KEYCHAIN_PASSWORD"]
+      )
 
     # ② JS 번들링
     sh <<-SHELL
@@ -23,15 +51,21 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
+
+
     # ③ 빌드 & export
     build_app(
       workspace:       "trioFrontendApp.xcworkspace",
       scheme:          "trioFrontendApp",
-      clean:           false,
+      configuration:   "Release",
+      clean:           true,
       export_method:   "app-store",
-      output_directory:"../output",
-      output_name:     "trioFrontendApp.ipa"
-      # provisioningProfiles 등은 match가 설정해 줍니다
+      # CI 에서 프로파일 자동 갱신 허용
+      xcargs: "-allowProvisioningUpdates",
+      export_xcargs: "-allowProvisioningUpdates",
+
+      output_directory: "../output",
+      output_name:      "trioFrontendApp.ipa"
     )
   end
 
