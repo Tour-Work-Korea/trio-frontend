@@ -29,9 +29,13 @@ export {default as MyRecruitmentList} from './(Host)/Recruitment/MyRecruitmentLi
 export {default as PostRecruitment} from './(Host)/Recruitment/PostRecruitment';
 export {default as RecruitmentDetail} from './(Host)/Recruitment/RecruitmentDetail';
 export {default as Register} from './(Host)/Register';
+export {default as MyApplyRecruitList} from './(User)/Employ/MyApplyRecruitList';
+export {default as MyApplyRecruitDetail} from './(User)/Employ/MyApplyRecruitDetail';
 export {default as StoreRegister} from './(Host)/StoreRegister';
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';
+export {default as MyApplicantDetail} from './(User)/Employ/ApplicantDetail';
+export {default as MyLikeRecruitList} from './(User)/Employ/MyLikeRecruitList';
 export {default as Agree} from './(User)/Register/Agree';
 export {default as EmailCertificate} from './(User)/Register/EmailCertificate';
 export {default as Intro} from './(User)/Register/Intro';
