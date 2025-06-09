@@ -1,16 +1,21 @@
 import React from 'react';
-import {StyleSheet, Platform, View, Text} from 'react-native';
+import {StyleSheet, View, Text} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-import GuesthouseIcon from '@assets/images/Guesthouse.svg';
-import EmployIcon from '@assets/images/Employ.svg';
-import HomeIcon from '@assets/images/Home.svg';
-import PartyIcon from '@assets/images/Party.svg';
-import MyIcon from '@assets/images/My.svg';
+import GuesthouseIcon from '@assets/images/guesthouse_black.svg';
+import GuesthouseIconFilled from '@assets/images/guesthouse_black_filled.svg';
+import EmployIcon from '@assets/images/work_black.svg';
+import EmployIconFilled from '@assets/images/work_black_filled.svg';
+import HomeIcon from '@assets/images/home_black.svg';
+import HomeIconFilled from '@assets/images/home_black_filled.svg';
+import MeetIcon from '@assets/images/meet_black.svg';
+import MeetIconFilled from '@assets/images/meet_black_filled.svg';
+import MyIcon from '@assets/images/person_black.svg';
+import MyIconFilled from '@assets/images/person_black_filled.svg';
 
-import {Guesthouse, Employ, Home, Party, My} from '@screens';
+import {Guesthouse, Employ, Home, Meet, My} from '@screens';
 
 const Tab = createBottomTabNavigator();
 
@@ -21,27 +26,27 @@ const BottomTabs = () => {
       screenOptions={({route}) => ({
         tabBarIcon: ({focused}) => {
           const iconProps = {
-            width: 32,
-            height: 32,
-            style: focused ? styles.shadow : null,
+            width: 24,
+            height: 24,
           };
 
           let IconComponent;
+
           switch (route.name) {
             case '게하':
-              IconComponent = GuesthouseIcon;
+              IconComponent = focused ? GuesthouseIconFilled : GuesthouseIcon;
               break;
             case '채용':
-              IconComponent = EmployIcon;
+              IconComponent = focused ? EmployIconFilled : EmployIcon;
               break;
             case '홈':
-              IconComponent = HomeIcon;
+              IconComponent = focused ? HomeIconFilled : HomeIcon;
               break;
-            case '파티':
-              IconComponent = PartyIcon;
+            case '모임':
+              IconComponent = focused ? MeetIconFilled : MeetIcon;
               break;
-            case 'MY':
-              IconComponent = MyIcon;
+            case '마이':
+              IconComponent = focused ? MyIconFilled : MyIcon;
               break;
           }
 
@@ -50,9 +55,8 @@ const BottomTabs = () => {
               <IconComponent {...iconProps} />
               <Text
                 style={[
-                  FONTS.fs_body,
+                  FONTS.fs_12_medium,
                   styles.label,
-                  {color: focused ? COLORS.scarlet : COLORS.gray},
                 ]}>
                 {route.name}
               </Text>
@@ -66,8 +70,8 @@ const BottomTabs = () => {
       <Tab.Screen name="게하" component={Guesthouse} />
       <Tab.Screen name="채용" component={Employ} />
       <Tab.Screen name="홈" component={Home} />
-      <Tab.Screen name="파티" component={Party} />
-      <Tab.Screen name="MY" component={My} />
+      <Tab.Screen name="모임" component={Meet} />
+      <Tab.Screen name="마이" component={My} />
     </Tab.Navigator>
   );
 };
@@ -75,21 +79,9 @@ const BottomTabs = () => {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: COLORS.white,
-    height: 55,
-    paddingTop: 10,
-  },
-  shadow: {
-    ...Platform.select({
-      ios: {
-        shadowColor: COLORS.scarlet,
-        shadowOffset: {width: 0, height: 0},
-        shadowOpacity: 2,
-        shadowRadius: 1.5,
-      },
-      android: {
-        elevation: 3,
-      },
-    }),
+    height: 60,
+    paddingTop: 16,
+    paddingHorizontal: 28,
   },
   iconWrapper: {
     alignItems: 'center',

@@ -18,11 +18,11 @@ import ButtonWhite from '@components/ButtonWhite';
 
 import LocationPin from '@assets/images/Gray_Location_Pin.svg';
 import Star from '@assets/images/Star.svg';
-import WifiIcon from '@assets/images/Wifi.svg';
-import PetFriendlyIcon from '@assets/images/Pet_Friendly.svg';
-import LuggageIcon from '@assets/images/Luggage_Storage.svg';
-import LoungeIcon from '@assets/images/Shared_Lounge.svg';
-import ParkingIcon from '@assets/images/Free_Parking.svg';
+import WifiIcon from '@assets/images/wifi_black.svg';
+import PetFriendlyIcon from '@assets/images/pet_friendly_black.svg';
+import LuggageIcon from '@assets/images/luggage_storage_black.svg';
+import LoungeIcon from '@assets/images/shared_lounge_black.svg';
+import ParkingIcon from '@assets/images/free_parking_black.svg';
 import CalendarIcon from '@assets/images/Calendar.svg';
 import PersonIcon from '@assets/images/Person.svg';
 
