@@ -59,7 +59,6 @@ const PostRecruitment = () => {
     hashtags: [11, 13, 18],
     guesthouseId: 29,
   });
-
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [showRecruitStart, setShowRecruitStart] = useState(false);
   const [showRecruitEnd, setShowRecruitEnd] = useState(false);
@@ -69,18 +68,15 @@ const PostRecruitment = () => {
   const [hashtags, setHashtags] = useState();
 
   const route = useRoute();
-  const recruit = route.params?.recruit ?? null;
+  const recruit = route.params ?? null;
   const navigation = useNavigation();
 
   useEffect(() => {
+    // 수정인 경우, 기존 데이터
     if (recruit) {
-      // 수정인 경우, 기존 데이터
       setFormData(prev => ({
-        ...prev,
         recruitTitle: recruit.recruitTitle,
-        guesthouseId: recruit.guesthouseId,
         recruitShortDescription: recruit.recruitShortDescription,
-        hashtags: recruit.hashtags?.map(item => item.id),
         recruitStart: new Date(recruit.recruitStart),
         recruitEnd: new Date(recruit.recruitEnd),
         workStartDate: new Date(recruit.workStartDate),
@@ -100,6 +96,8 @@ const PostRecruitment = () => {
             isThumbnail: img.isThumbnail || false,
           })) || [],
         recruitDetail: recruit.recruitDetail,
+        hashtags: recruit.hashtags?.map(tag => tag.id) || [],
+        // guesthouseId: recruit.guesthouseId,
       }));
     }
 
@@ -116,7 +114,7 @@ const PostRecruitment = () => {
     //나의 게스트하우스 리스트 조회
     const fetchMyGuestHouse = async () => {
       try {
-        const response = await hostGuesthouseApi.getMyGuesthouse();
+        const response = await hostGuesthouseApi.getMyGuesthouses();
         const options = response.data.map(g => ({
           label: g.guesthouseName,
           value: g.id,

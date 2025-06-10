@@ -14,10 +14,8 @@ import {
 } from 'react-native';
 import styles from './ApplicantList.styles';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import FilterIcon from '@assets/images/gray_search.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
-import ChevronDown from '@assets/images/arrow_drop_down.svg';
 import Header from '@components/Header';
 import {COLORS} from '@constants/colors';
 
@@ -49,7 +47,7 @@ const mockApplicants = [
 
 const ApplicantList = () => {
   const route = useRoute();
-  const recruitId = route.params?.recruitId ?? null;
+  const recruitId = route.params ?? null;
   const navigation = useNavigation();
   const [favorites, setFavorites] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Person from '@assets/images/Person.svg';
@@ -25,9 +25,14 @@ const MyRecruitmentList = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
-  useEffect(() => {
-    getMyRecruits();
-  }, []);
+  // useEffect(() => {
+  //   getMyRecruits();
+  // }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getMyRecruits();
+    }, []),
+  );
 
   const getMyRecruits = async () => {
     try {
@@ -61,7 +66,7 @@ const MyRecruitmentList = () => {
     );
     const fetchDeleteRecruit = async () => {
       try {
-        const response = await hostEmployApi.requestDeleteRecruit(
+        await hostEmployApi.requestDeleteRecruit(
           selectedRecruitId,
           cancelReason,
         );
@@ -70,7 +75,7 @@ const MyRecruitmentList = () => {
         Alert.alert('삭제 요청에 실패했습니다.');
       }
     };
-    // fetchDeleteRecruit();
+    fetchDeleteRecruit();
     setModalVisible(false);
     setCancelReason('');
   };
@@ -121,7 +126,6 @@ const MyRecruitmentList = () => {
         <Modal
           visible={modalVisible}
           animationType="slide"
-          transparent={true}
           onRequestClose={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
