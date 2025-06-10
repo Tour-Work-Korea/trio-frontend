@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
@@ -76,14 +76,22 @@ const UserMyPage = () => {
         {/* 공고 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>공고</Text>
-          <MenuItem IconComponent={FavoritePostIcon} label="즐겨찾는 공고" />
+          <MenuItem
+            IconComponent={FavoritePostIcon}
+            label="즐겨찾는 공고"
+            onPress={() => navigation.navigate('MyLikeRecruitList')}
+          />
           <MenuItem
             IconComponent={MyApplicationIcon}
             label="나의 지원서"
             onPress={() => navigation.navigate('MyApplicantList')}
           />
-          <MenuItem IconComponent={ApplicationStatusIcon} label="지원 현황" />
-          <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" />
+          <MenuItem
+            IconComponent={ApplicationStatusIcon}
+            label="지원 현황"
+            onPress={() => navigation.navigate('MyApplyRecruitList')}
+          />
+          {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>
       </View>
     </ScrollView>

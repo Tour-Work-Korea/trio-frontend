@@ -24,16 +24,16 @@ const ButtonScarlet = ({title, to, onPress, marginHorizontal = 15}) => {
     <TouchableOpacity
       style={[styles.button, {marginHorizontal}]}
       onPress={handlePress}>
-      <Text style={[FONTS.fs_body_bold, styles.text]}>{title}</Text>
+      <Text style={[FONTS.fs_16_semibold, styles.text]}>{title}</Text>
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: COLORS.scarlet,
-    height: 40,
-    borderRadius: 5,
+    backgroundColor: COLORS.primary_orange,
+    height: 42,
+    borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
     paddingHorizontal: 8,

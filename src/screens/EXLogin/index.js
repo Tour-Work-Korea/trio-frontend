@@ -53,8 +53,8 @@ const EXLogin = () => {
   };
   const handleUserLogin = () => {
     login({
-      email: 'balamogoulish09@uos.ac.kr',
-      password: 'userPw1234!',
+      email: 'test@gmail.com',
+      password: 'Testpassword1!',
       userRole: 'USER',
     });
   };
