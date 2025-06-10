@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,50 +20,53 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
-const guesthouseListDummy = [
-  {label: '게스트하우스 1', value: '1'},
-  {label: '게스트하우스 2', value: '2'},
-  {label: '게스트하우스 3', value: '3'},
-];
+function formatDateToLocalISOString(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  const hours = `${d.getHours()}`.padStart(2, '0');
+  const minutes = `${d.getMinutes()}`.padStart(2, '0');
+  const seconds = `${d.getSeconds()}`.padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
 
 const PostRecruitment = () => {
   const [formData, setFormData] = useState({
-    title: '',
-    guesthouse: '',
-    introduction: '',
-    tags: {
-      파티: false,
-      바다전망: false,
-      동반입장: false,
-      파티X: false,
-      야외공간X: false,
-      객실샤워X: false,
-      옥상정원: false,
-      루프탑: false,
-      즉시입도: false,
-    },
-    startDate: null,
-    endDate: null,
-    arrivalDate: null,
-    femaleCount: '',
-    maleCount: '',
-    anyGenderCount: '',
-    minAge: '',
-    maxAge: '',
-    preferences: '',
-    workEnvironment: '',
-    mainDuties: '',
-    minWorkPeriod: '',
-    benefits: '',
-    location: '',
-    photos: [],
-    detailedInfo: '',
+    recruitTitle: 'title1',
+    recruitShortDescription: 'descrip1',
+    recruitStart: null,
+    recruitEnd: null,
+    recruitNumberMale: 1,
+    recruitNumberFemale: 1,
+    location: 'address1',
+    recruitCondition: 'prefer1',
+    recruitMinAge: 20,
+    recruitMaxAge: 30,
+    workType: 'workType1',
+    workStartDate: null,
+    workEndDate: null,
+    workPart: 'work1',
+    welfare: 'welfare1',
+    recruitDetail: 'descrip1',
+    recruitImage: [
+      {
+        recruitImageUrl:
+          'file:///data/user/0/com.triofrontendapp/cache/rn_image_picker_lib_temp_6153ff11-b8df-49b9-98ba-da32d49a8d08.jpg',
+        isThumbnail: true,
+      },
+    ],
+    hashtags: [11, 13, 18],
+    guesthouseId: 29,
   });
+
   const [guesthouseList, setGuesthouseList] = useState([]);
-  const [showStartDate, setShowStartDate] = useState(false);
-  const [showEndDate, setShowEndDate] = useState(false);
-  const [showArrivalDate, setShowArrivalDate] = useState(false);
+  const [showRecruitStart, setShowRecruitStart] = useState(false);
+  const [showRecruitEnd, setShowRecruitEnd] = useState(false);
+  const [showWorkStartDate, setShowWorkStartDate] = useState(false);
+  const [showWorkEndDate, setShowWorkEndDate] = useState(false);
   const [guesthouseOpen, setGuesthouseOpen] = useState(false);
+  const [hashtags, setHashtags] = useState();
 
   const route = useRoute();
   const recruit = route.params?.recruit ?? null;
@@ -75,36 +77,41 @@ const PostRecruitment = () => {
       // 수정인 경우, 기존 데이터
       setFormData(prev => ({
         ...prev,
-        title: recruit.recruitTitle,
-        guesthouse: '게스트하우스 이름 (id: ' + recruit.guesthouseId + ')',
-        introduction: recruit.recruitShortDescription,
-        tags: recruit.hashtags.reduce((acc, cur) => {
-          acc[cur.hashtag] = true;
-          return acc;
-        }, {}),
-        startDate: new Date(recruit.recruitStart),
-        endDate: new Date(recruit.recruitEnd),
-        arrivalDate: new Date(recruit.workStartDate),
-        femaleCount: recruit.recruitNumberFemale.toString(),
-        maleCount: recruit.recruitNumberMale.toString(),
-        minAge: recruit.recruitMinAge.toString(),
-        maxAge: recruit.recruitMaxAge.toString(),
-        preferences: recruit.recruitCondition,
-        workEnvironment: recruit.workType,
-        mainDuties: recruit.workPart,
-        minWorkPeriod: `${recruit.workStartDate} ~ ${recruit.workEndDate}`,
-        benefits: recruit.welfare,
+        recruitTitle: recruit.recruitTitle,
+        guesthouseId: recruit.guesthouseId,
+        recruitShortDescription: recruit.recruitShortDescription,
+        hashtags: recruit.hashtags?.map(item => item.id),
+        recruitStart: new Date(recruit.recruitStart),
+        recruitEnd: new Date(recruit.recruitEnd),
+        workStartDate: new Date(recruit.workStartDate),
+        workEndDate: new Date(recruit.workEndDate),
+        recruitNumberFemale: recruit.recruitNumberFemale,
+        recruitNumberMale: recruit.recruitNumberMale,
+        recruitMinAge: recruit.recruitMinAge,
+        recruitMaxAge: recruit.recruitMaxAge,
+        recruitCondition: recruit.recruitCondition,
+        workType: recruit.workType,
+        workPart: recruit.workPart,
+        welfare: recruit.welfare,
         location: recruit.location,
-        photos: recruit.recruitImage.map(img => img.recruitImageUrl),
-        detailedInfo: recruit.recruitDetail,
+        recruitImage:
+          recruit.recruitImage?.map(img => ({
+            recruitImageUrl: img.recruitImageUrl,
+            isThumbnail: img.isThumbnail || false,
+          })) || [],
+        recruitDetail: recruit.recruitDetail,
       }));
-      setGuesthouseList(
-        guesthouseListDummy.map(item => ({
-          label: item.label,
-          value: item.value,
-        })),
-      );
     }
+
+    //해시태그 조회
+    const fetchHostHashtags = async () => {
+      try {
+        const response = await hostEmployApi.getHostHashtags();
+        setHashtags(response.data);
+      } catch (error) {
+        Alert.alert('해시태그 조회에 실패했습니다.');
+      }
+    };
 
     //나의 게스트하우스 리스트 조회
     const fetchMyGuestHouse = async () => {
@@ -112,15 +119,15 @@ const PostRecruitment = () => {
         const response = await hostGuesthouseApi.getMyGuesthouse();
         const options = response.data.map(g => ({
           label: g.guesthouseName,
-          value: `${g.id}`,
+          value: g.id,
         }));
         setGuesthouseList(options);
       } catch (error) {
         Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
       }
     };
-    // fetchMyGuestHouse();
-    setGuesthouseList(guesthouseListDummy);
+    fetchMyGuestHouse();
+    fetchHostHashtags();
   }, []);
 
   const handleInputChange = (field, value) => {
@@ -135,34 +142,36 @@ const PostRecruitment = () => {
     const numericValue = value.replace(/[^0-9]/g, '');
     setFormData({
       ...formData,
-      [field]: numericValue,
+      [field]: parseInt(numericValue) || 0,
     });
   };
 
-  const handleTagToggle = tag => {
-    // Count selected tags
-    const selectedTagsCount = Object.values(formData.tags).filter(
-      Boolean,
-    ).length;
-    if (!formData.tags[tag] && selectedTagsCount >= 3) {
-      Alert.alert('태그 제한', '최대 3개까지 선택 가능합니다.');
+  const handleTagToggle = tagId => {
+    const isSelected = formData.hashtags.includes(tagId);
+
+    // 선택되지 않았고 이미 3개라면 막기
+    if (!isSelected && formData.hashtags.length >= 3) {
+      Alert.alert('알림', '태그는 최대 3개까지 선택할 수 있어요.');
       return;
     }
 
-    setFormData({
-      ...formData,
-      tags: {
-        ...formData.tags,
-        [tag]: !formData.tags[tag],
-      },
-    });
+    const updatedHashtags = isSelected
+      ? formData.hashtags.filter(hashtagId => hashtagId !== tagId)
+      : [...formData.hashtags, tagId];
+
+    setFormData(prev => ({
+      ...prev,
+      hashtags: updatedHashtags,
+    }));
   };
+
   const handleDateChange = (event, selectedDate, dateField) => {
     const currentDate = selectedDate || formData[dateField];
 
-    if (dateField === 'startDate') setShowStartDate(false);
-    if (dateField === 'endDate') setShowEndDate(false);
-    if (dateField === 'arrivalDate') setShowArrivalDate(false);
+    if (dateField === 'recruitStart') setShowRecruitStart(false);
+    if (dateField === 'recruitEnd') setShowRecruitEnd(false);
+    if (dateField === 'workStartDate') setShowWorkStartDate(false);
+    if (dateField === 'workEndDate') setShowWorkEndDate(false);
 
     setFormData(prev => ({
       ...prev,
@@ -187,10 +196,14 @@ const PostRecruitment = () => {
 
         if (response.assets && response.assets.length > 0) {
           const uri = response.assets[0].uri;
-          if (formData.photos.length < 6) {
+          if (formData.recruitImage.length < 6) {
+            const newImage = {
+              recruitImageUrl: uri,
+              isThumbnail: formData.recruitImage.length === 0, // 첫 번째 이미지를 썸네일로 설정
+            };
             setFormData({
               ...formData,
-              photos: [...formData.photos, uri],
+              recruitImage: [...formData.recruitImage, newImage],
             });
           } else {
             Alert.alert('사진 제한', '최대 6장까지 등록 가능합니다.');
@@ -201,40 +214,52 @@ const PostRecruitment = () => {
   };
 
   const removePhoto = index => {
-    const newPhotos = [...formData.photos];
-    newPhotos.splice(index, 1);
+    const newImage = [...formData.recruitImage];
+    newImage.splice(index, 1);
+
+    // 썸네일이었던 이미지를 삭제한 경우, 첫 번째 이미지를 썸네일로 설정
+    if (newImage.length > 0 && index === 0) {
+      newImage[0].isThumbnail = true;
+    }
+
     setFormData({
       ...formData,
-      photos: newPhotos,
+      recruitImage: newImage,
     });
   };
 
   const handleSubmit = () => {
-    if (!formData.title) {
+    if (!formData.recruitTitle) {
       Alert.alert('입력 오류', '공고 제목을 입력해주세요.');
       return;
     }
 
-    if (!formData.guesthouse) {
+    if (!formData.guesthouseId) {
       Alert.alert('입력 오류', '게스트하우스를 선택해주세요.');
       return;
     }
 
+    const payload = {
+      ...formData,
+      recruitStart: formatDateToLocalISOString(formData.recruitStart),
+      recruitEnd: formatDateToLocalISOString(formData.recruitEnd),
+      workStartDate: formatDateToLocalISOString(formData.workStartDate),
+      workEndDate: formatDateToLocalISOString(formData.workEndDate),
+    };
+
     const fetchNewRecruit = async () => {
       try {
-        const response = await hostEmployApi.createRecruit(formData);
+        await hostEmployApi.createRecruit(payload);
         Alert.alert('새로운 공고를 등록했습니다.');
         navigation.navigate('MyRecruitmentList');
       } catch (error) {
         Alert.alert('새로운 공고를 등록에 실패했습니다.');
       }
     };
+
     const fetchUpdateRecruit = async updatedRecruitId => {
       try {
-        const response = await hostEmployApi.updateRecruit(
-          updatedRecruitId,
-          formData,
-        );
+        await hostEmployApi.updateRecruit(updatedRecruitId, payload);
         Alert.alert('공고를 성공적으로 수정했습니다.');
         navigation.navigate('MyRecruitmentList');
       } catch (error) {
@@ -243,20 +268,18 @@ const PostRecruitment = () => {
     };
 
     if (recruit?.recruitId != null) {
-      // fetchUpdateRecruit(recruit.recruitId);
+      fetchUpdateRecruit(recruit.recruitId);
     } else {
-      // fetchNewRecruit();
+      fetchNewRecruit();
     }
   };
 
   const handleTemporarySave = () => {
-    // Save to local storage or state management solution
     console.log('Temporary saved:', formData);
     Alert.alert('임시 저장', '공고가 임시 저장되었습니다.');
   };
 
   const handlePreview = () => {
-    // Navigate to preview screen with current form data
     console.log('Preview:', formData);
     Alert.alert('미리 보기', '미리 보기 기능은 아직 구현 중입니다.');
   };
@@ -274,22 +297,22 @@ const PostRecruitment = () => {
             <TextInput
               style={styles.input}
               placeholder="공고제목을 입력해주세요."
-              value={formData.title}
-              onChangeText={text => handleInputChange('title', text)}
+              value={formData.recruitTitle}
+              onChangeText={text => handleInputChange('recruitTitle', text)}
             />
           </View>
           <View style={{zIndex: 1000}}>
             <DropDownPicker
               open={guesthouseOpen}
-              value={formData.guesthouse}
+              value={formData.guesthouseId}
               items={guesthouseList}
               setOpen={setGuesthouseOpen}
-              setValue={val => handleInputChange('guesthouse', val())}
+              setValue={val => handleInputChange('guesthouseId', val())}
               setItems={setGuesthouseList}
               placeholder="공고를 등록할 게스트하우스를 선택해주세요."
               zIndex={1000}
               zIndexInverse={3000}
-              listMode="SCROLLVIEW" // ← 핵심
+              listMode="SCROLLVIEW"
             />
           </View>
 
@@ -299,8 +322,10 @@ const PostRecruitment = () => {
               placeholder="간략하게 들어갈 공고 소개를 200자 이내로 작성해주세요."
               multiline={true}
               numberOfLines={4}
-              value={formData.introduction}
-              onChangeText={text => handleInputChange('introduction', text)}
+              value={formData.recruitShortDescription}
+              onChangeText={text =>
+                handleInputChange('recruitShortDescription', text)
+              }
               maxLength={200}
             />
           </View>
@@ -316,146 +341,26 @@ const PostRecruitment = () => {
           </Text>
 
           <View style={styles.tagGrid}>
-            <View style={styles.tagRow}>
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('파티')}>
-                <View
+            {hashtags?.map(tag => {
+              const isSelected = formData.hashtags?.includes(tag.id);
+              return (
+                <TouchableOpacity
+                  key={tag.id}
                   style={[
-                    styles.radioButton,
-                    formData.tags['파티'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['파티'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>파티</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('바다전망')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['바다전망'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['바다전망'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>바다전망</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('동반입장')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['동반입장'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['동반입장'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>동반입장</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.tagRow}>
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('파티X')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['파티X'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['파티X'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>파티X</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('야외공간X')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['야외공간X'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['야외공간X'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>야외공간X</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('객실샤워X')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['객실샤워X'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['객실샤워X'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>객실샤워X</Text>
-              </TouchableOpacity>
-            </View>
-
-            <View style={styles.tagRow}>
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('옥상정원')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['옥상정원'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['옥상정원'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>옥상정원</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('루프탑')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['루프탑'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['루프탑'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>루프탑</Text>
-              </TouchableOpacity>
-
-              <TouchableOpacity
-                style={styles.tagOption}
-                onPress={() => handleTagToggle('즉시입도')}>
-                <View
-                  style={[
-                    styles.radioButton,
-                    formData.tags['즉시입도'] && styles.radioButtonSelected,
-                  ]}>
-                  {formData.tags['즉시입도'] && (
-                    <View style={styles.radioButtonInner} />
-                  )}
-                </View>
-                <Text style={styles.tagText}>즉시입도</Text>
-              </TouchableOpacity>
-            </View>
+                    styles.tagButton,
+                    isSelected && styles.tagButtonSelected,
+                  ]}
+                  onPress={() => handleTagToggle(tag.id)}>
+                  <Text
+                    style={[
+                      styles.tagButtonText,
+                      isSelected && styles.tagButtonTextSelected,
+                    ]}>
+                    {tag.hashtag}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
         </View>
 
@@ -472,10 +377,10 @@ const PostRecruitment = () => {
           <View style={styles.dateRow}>
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={() => setShowStartDate(true)}>
+              onPress={() => setShowRecruitStart(true)}>
               <Text style={styles.dateLabel}>
-                {formData.startDate
-                  ? new Date(formData.startDate).toLocaleDateString('ko-KR')
+                {formData.recruitStart
+                  ? new Date(formData.recruitStart).toLocaleDateString('ko-KR')
                   : '시작일자'}
               </Text>
               <Calendar />
@@ -483,58 +388,81 @@ const PostRecruitment = () => {
 
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={() => setShowEndDate(true)}>
+              onPress={() => setShowRecruitEnd(true)}>
               <Text style={styles.dateLabel}>
-                {formData.endDate
-                  ? new Date(formData.endDate).toLocaleDateString('ko-KR')
+                {formData.recruitEnd
+                  ? new Date(formData.recruitEnd).toLocaleDateString('ko-KR')
                   : '마감일자'}
               </Text>
               <Calendar />
             </TouchableOpacity>
           </View>
 
-          {showStartDate && (
+          {showRecruitStart && (
             <DateTimePicker
-              value={formData.startDate ?? new Date()}
+              value={formData.recruitStart ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
-                handleDateChange(event, date, 'startDate')
+                handleDateChange(event, date, 'recruitStart')
               }
             />
           )}
 
-          {showEndDate && (
+          {showRecruitEnd && (
             <DateTimePicker
-              value={formData.endDate ?? new Date()}
+              value={formData.recruitEnd ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
-                handleDateChange(event, date, 'endDate')
+                handleDateChange(event, date, 'recruitEnd')
               }
             />
           )}
 
-          <View style={styles.formGroup}>
+          <Text style={styles.subsectionTitle}>근무기간</Text>
+          <View style={styles.dateRow}>
             <TouchableOpacity
               style={styles.dateInput}
-              onPress={() => setShowArrivalDate(true)}>
+              onPress={() => setShowWorkStartDate(true)}>
               <Text style={styles.dateLabel}>
-                {formData.arrivalDate
-                  ? new Date(formData.arrivalDate).toLocaleDateString('ko-KR')
-                  : '입도일자'}
+                {formData.workStartDate
+                  ? new Date(formData.workStartDate).toLocaleDateString('ko-KR')
+                  : '근무 시작일'}
+              </Text>
+              <Calendar />
+            </TouchableOpacity>
+
+            <TouchableOpacity
+              style={styles.dateInput}
+              onPress={() => setShowWorkEndDate(true)}>
+              <Text style={styles.dateLabel}>
+                {formData.workEndDate
+                  ? new Date(formData.workEndDate).toLocaleDateString('ko-KR')
+                  : '근무 종료일'}
               </Text>
               <Calendar />
             </TouchableOpacity>
           </View>
 
-          {showArrivalDate && (
+          {showWorkStartDate && (
             <DateTimePicker
-              value={formData.arrivalDate ?? new Date()}
+              value={formData.workStartDate ?? new Date()}
               mode="date"
               display="default"
               onChange={(event, date) =>
-                handleDateChange(event, date, 'arrivalDate')
+                handleDateChange(event, date, 'workStartDate')
+              }
+            />
+          )}
+
+          {showWorkEndDate && (
+            <DateTimePicker
+              value={formData.workEndDate ?? new Date()}
+              mode="date"
+              display="default"
+              onChange={(event, date) =>
+                handleDateChange(event, date, 'workEndDate')
               }
             />
           )}
@@ -547,8 +475,10 @@ const PostRecruitment = () => {
                 style={styles.countInput}
                 placeholder="명"
                 keyboardType="numeric"
-                value={formData.femaleCount}
-                onChangeText={text => handleNumericInput('femaleCount', text)}
+                value={formData.recruitNumberFemale.toString()}
+                onChangeText={text =>
+                  handleNumericInput('recruitNumberFemale', text)
+                }
               />
             </View>
 
@@ -558,20 +488,9 @@ const PostRecruitment = () => {
                 style={styles.countInput}
                 placeholder="명"
                 keyboardType="numeric"
-                value={formData.maleCount}
-                onChangeText={text => handleNumericInput('maleCount', text)}
-              />
-            </View>
-
-            <View style={styles.countItem}>
-              <Text style={styles.countLabel}>성별 무관</Text>
-              <TextInput
-                style={styles.countInput}
-                placeholder="명"
-                keyboardType="numeric"
-                value={formData.anyGenderCount}
+                value={formData.recruitNumberMale.toString()}
                 onChangeText={text =>
-                  handleNumericInput('anyGenderCount', text)
+                  handleNumericInput('recruitNumberMale', text)
                 }
               />
             </View>
@@ -585,8 +504,8 @@ const PostRecruitment = () => {
                 style={styles.ageInput}
                 placeholder="최소 연령"
                 keyboardType="numeric"
-                value={formData.minAge}
-                onChangeText={text => handleNumericInput('minAge', text)}
+                value={formData.recruitMinAge.toString()}
+                onChangeText={text => handleNumericInput('recruitMinAge', text)}
               />
             </View>
 
@@ -596,8 +515,8 @@ const PostRecruitment = () => {
                 style={styles.ageInput}
                 placeholder="최대 연령"
                 keyboardType="numeric"
-                value={formData.maxAge}
-                onChangeText={text => handleNumericInput('maxAge', text)}
+                value={formData.recruitMaxAge.toString()}
+                onChangeText={text => handleNumericInput('recruitMaxAge', text)}
               />
             </View>
           </View>
@@ -608,8 +527,8 @@ const PostRecruitment = () => {
               placeholder="우대조건"
               multiline={true}
               numberOfLines={4}
-              value={formData.preferences}
-              onChangeText={text => handleInputChange('preferences', text)}
+              value={formData.recruitCondition}
+              onChangeText={text => handleInputChange('recruitCondition', text)}
             />
           </View>
         </View>
@@ -622,11 +541,11 @@ const PostRecruitment = () => {
           <View style={styles.formGroup}>
             <TextInput
               style={styles.textArea}
-              placeholder="근무 환경을 입력해주세요. ex) 3인 2교대 4일 휴무"
+              placeholder="근무 형태를 입력해주세요. ex) 3인 2교대 4일 휴무"
               multiline={true}
               numberOfLines={4}
-              value={formData.workEnvironment}
-              onChangeText={text => handleInputChange('workEnvironment', text)}
+              value={formData.workType}
+              onChangeText={text => handleInputChange('workType', text)}
             />
           </View>
 
@@ -634,17 +553,8 @@ const PostRecruitment = () => {
             <TextInput
               style={styles.input}
               placeholder="주요 업무를 작성해주세요."
-              value={formData.mainDuties}
-              onChangeText={text => handleInputChange('mainDuties', text)}
-            />
-          </View>
-
-          <View style={styles.formGroup}>
-            <TextInput
-              style={styles.input}
-              placeholder="최소 근무 기간을 작성해주세요."
-              value={formData.minWorkPeriod}
-              onChangeText={text => handleInputChange('minWorkPeriod', text)}
+              value={formData.workPart}
+              onChangeText={text => handleInputChange('workPart', text)}
             />
           </View>
 
@@ -652,8 +562,8 @@ const PostRecruitment = () => {
             <TextInput
               style={styles.input}
               placeholder="복지를 입력해주세요"
-              value={formData.benefits}
-              onChangeText={text => handleInputChange('benefits', text)}
+              value={formData.welfare}
+              onChangeText={text => handleInputChange('welfare', text)}
             />
           </View>
         </View>
@@ -679,18 +589,26 @@ const PostRecruitment = () => {
             </Text>
 
             <View style={styles.photoGrid}>
-              {formData.photos.map((uri, index) => (
+              {formData.recruitImage.map((imageObj, index) => (
                 <View key={index} style={styles.photoItem}>
-                  <Image source={{uri}} style={styles.photo} />
+                  <Image
+                    source={{uri: imageObj.recruitImageUrl}}
+                    style={styles.photo}
+                  />
                   <TouchableOpacity
                     style={styles.removePhotoButton}
                     onPress={() => removePhoto(index)}>
                     <Text style={styles.removePhotoText}>X</Text>
                   </TouchableOpacity>
+                  {imageObj.isThumbnail && (
+                    <View style={styles.thumbnailBadge}>
+                      <Text style={styles.thumbnailText}>대표</Text>
+                    </View>
+                  )}
                 </View>
               ))}
 
-              {formData.photos.length < 6 && (
+              {formData.recruitImage.length < 6 && (
                 <TouchableOpacity
                   style={styles.addPhotoButton}
                   onPress={pickImage}>
@@ -712,8 +630,8 @@ const PostRecruitment = () => {
               placeholder="공고에 대한 상세 정보를 입력해주세요."
               multiline={true}
               numberOfLines={4}
-              value={formData.detailedInfo}
-              onChangeText={text => handleInputChange('detailedInfo', text)}
+              value={formData.recruitDetail}
+              onChangeText={text => handleInputChange('recruitDetail', text)}
             />
           </View>
         </View>

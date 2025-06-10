@@ -269,13 +269,12 @@ const Register = ({route}) => {
               </TouchableOpacity>
             </View>
           </View>
-
-          {/* 회원가입 버튼 */}
-          <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
-            <Text style={styles.signupButtonText}>회원가입</Text>
-          </TouchableOpacity>
         </ScrollView>
       </KeyboardAvoidingView>
+      {/* 회원가입 버튼 */}
+      <TouchableOpacity style={styles.signupButton} onPress={handleSignup}>
+        <Text style={styles.signupButtonText}>회원가입</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

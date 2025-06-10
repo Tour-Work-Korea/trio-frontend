@@ -77,6 +77,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flex: 1,
   },
+  tagButtonSelected: {
+    borderColor: COLORS.scarlet,
+    backgroundColor: '#FFF0F0',
+  },
+  tagButtonTextSelected: {
+    color: COLORS.scarlet,
+    fontWeight: 'bold',
+  },
   radioButton: {
     width: 20,
     height: 20,

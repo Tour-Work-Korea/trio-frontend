@@ -18,15 +18,6 @@ import styles from './MyRecruitmentList.styles';
 import {FONTS} from '@constants/fonts';
 import hostEmployApi from '@utils/api/hostEmployApi';
 
-const postings = [
-  {
-    recruitId: 1,
-    recruitTitle: '공고 제목',
-    guesthouseId: 1,
-    guesthouseName: '게스트하우스 이름',
-  },
-];
-
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
   const [myRecruits, setMyRecruits] = useState([]);
@@ -35,7 +26,7 @@ const MyRecruitmentList = () => {
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
   useEffect(() => {
-    setMyRecruits(postings);
+    getMyRecruits();
   }, []);
 
   const getMyRecruits = async () => {
