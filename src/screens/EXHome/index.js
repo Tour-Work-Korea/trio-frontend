@@ -14,6 +14,7 @@ import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 �
 import ButtonWhite from '@components/ButtonWhite';
 import Header from '@components/Header'; //헤더 컴포넌트 불러오기
 import {FONTS} from '@constants/fonts'; // 폰트 크기, 볼드 지정해놓은거 불러오기
+import {tryLogout} from '@utils/auth/login';
 
 const EXHome = () => {
   const navigation = useNavigation();
@@ -39,6 +40,12 @@ const EXHome = () => {
         title="사장님 회원가입 페이지로 이동"
         onPress={() => {
           navigation.navigate('PhoneCertificate', {user: 'Host'});
+        }}
+      />
+      <ButtonScarlet
+        title="로그아웃"
+        onPress={() => {
+          tryLogout();
         }}
       />
       <ButtonWhite title="예시 로그인 & 저장 페이지로 이동" to="EXLogin" />

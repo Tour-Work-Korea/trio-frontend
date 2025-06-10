@@ -6,82 +6,33 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import useUserStore from '@stores/userStore';
-import EncryptedStorage from 'react-native-encrypted-storage';
-import authApi from '@utils/api/authApi';
+
 import {COLORS} from '@constants/colors';
 import {useNavigation} from '@react-navigation/native';
+import {tryLogin} from '@utils/auth/login';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
-  const accessToken = useUserStore(state => state.accessToken);
-  const userRole = useUserStore(state => state.userRole);
-  const refreshToken = useUserStore(state => state.refreshToken);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-  // 로그인 요청
-  const login = async ({email, password, userRole}) => {
-    try {
-      const response = await authApi.login(email, password);
-      const authorizationHeader = response.headers?.authorization;
-      const accessToken = authorizationHeader?.replace('Bearer ', '');
-
-      if (!accessToken) {
-        console.error('토큰 없음');
-        return;
-      }
-
-      const {setTokens, setUserRole} = useUserStore.getState();
-
-      await EncryptedStorage.setItem(
-        'user-credentials',
-        JSON.stringify({email, password, userRole}),
-      );
-
-      setTokens({accessToken, refreshToken: null}); // refreshToken은 없는 것으로 간주
-      setUserRole(userRole);
-
-      navigation.goBack();
-
-      // // 토큰과 역할 읽어오기 예시
-      // const {
-      //   accessToken: savedAccess,
-      //   refreshToken: savedRefresh,
-      //   userRole: savedRole,
-      // } = useUserStore.getState();
-
-      // console.log('accessToken:', savedAccess);
-      // console.log('refreshToken:', savedRefresh);
-      // console.log('userRole:', savedRole);
-    } catch (error) {
-      console.error('로그인 실패:', error);
-    }
-  };
 
   const handleLogin = role => {
-    login({
-      email,
-      password,
-      userRole: role,
-    });
+    tryLogin(email, password, role);
+    navigation.goBack();
   };
 
   const handleHostLogin = () => {
-    login({
+    tryLogin(
       // email: 'hostTest@gmail.com',
       // password: 'Hostpassword1!',
-      email: 'sal091625@gmail.com',
-      password: 'Pw123456!',
-      userRole: 'HOST',
-    });
+      'sal091625@gmail.com',
+      'Pw123456!',
+      'HOST',
+    );
   };
   const handleUserLogin = () => {
-    login({
-      email: 'test@gmail.com',
-      password: 'Testpassword1!',
-      userRole: 'USER',
-    });
+    tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
   };
 
   return (

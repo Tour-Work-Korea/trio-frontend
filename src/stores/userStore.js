@@ -29,8 +29,4 @@ const useUserStore = create(
   ),
 );
 
-//로그아웃 시, 다음 코드를 작성해야 함
-// await EncryptedStorage.removeItem('user-credentials');
-// useUserStore.getState().clearUser();
-
 export default useUserStore;
