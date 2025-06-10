@@ -8,7 +8,7 @@ import {
   Button,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import Logo from '@assets/images/Logo.svg'; // svg이미지 불러오기
+import Logo from '@assets/images/logo_orange.svg'; // svg이미지 불러오기
 import styles from './Home.styles';
 import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 불러오기
 import ButtonWhite from '@components/ButtonWhite';
@@ -26,10 +26,12 @@ const EXHome = () => {
       {/* <Header title="지원자 조회" /> */}
       <View style={styles.body}>
         <Logo width={100} height={100} /> {/* svg 이미지 */}
-        <Text style={[FONTS.fs_h2_bold, styles.text]}>
+        <Text style={[FONTS.fs_18_medium, styles.text]}>
           이 홈 화면은 예시 화면
         </Text>{' '}
-        {/* 텍스트 크기,볼드 지정한거 사용 */}
+        {/* 텍스트 크기,볼드 지정한거 사용 예시 */}
+        <Text style={FONTS.fs_14_semibold}>14pt Semibold 텍스트</Text>
+        <Text style={FONTS.fs_18_bold}>18pt Bold 텍스트</Text>
       </View>
       <ButtonScarlet
         title="일반 유저 회원가입 페이지로 이동"

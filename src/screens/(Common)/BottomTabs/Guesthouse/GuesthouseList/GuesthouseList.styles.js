@@ -61,9 +61,6 @@ const styles = StyleSheet.create({
     color: COLORS.scarlet,
     marginRight: 4,
   },
-  title: {
-    marginBottom: 4,
-  },
   name: {
     marginBottom: 6,
   },

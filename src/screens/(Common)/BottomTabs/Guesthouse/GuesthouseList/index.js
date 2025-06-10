@@ -1,10 +1,11 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
   Image,
   FlatList,
   TouchableOpacity,
+  ActivityIndicator,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
 
@@ -19,94 +20,98 @@ import Star from '@assets/images/Star.svg';
 import Header from '@components/Header';
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
+import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
-const mockData = [
-  {
-    id: '1',
-    tags: ['감성'],
-    title: '제목제목제목제목제목',
-    name: '낭만 가득 청춘 하우스',
-    address: '제주시 애월리 20002-7',
-    rating: 4.2,
-    price: 55000,
-    liked: false,
-  },
-  {
-    id: '2',
-    tags: ['외국인친화', '자연'],
-    title: '어서오세요 게하',
-    name: '자연 게스트하우스',
-    address: '제주시 애월리 20002-7',
-    rating: 3.7,
-    price: 45000,
-    liked: false,
-  },
-  {
-    id: '3',
-    tags: ['바다뷰'],
-    title: '바닷소리가 들리는 낭만',
-    name: '파도소리 게스트하우스',
-    address: '제주시 애월리 20002-7',
-    rating: 4.8,
-    price: 67000,
-    liked: false,
-  },
-  {
-    id: '4',
-    tags: ['감성', '커플추천'],
-    title: '감성 듬뿍~',
-    name: '로맨틱 무드 숙소',
-    address: '제주시 애월리 20002-7',
-    rating: 4.5,
-    price: 62000,
-    liked: false,
-  },
-  {
-    id: '5',
-    tags: ['자연'],
-    title: '자연속에 빠져보기',
-    name: '숲속 힐링하우스',
-    address: '제주시 애월리 20002-7',
-    rating: 4.3,
-    price: 49000,
-    liked: false,
-  },
-];
 // 달력 아이콘 누르면 캘린더 나와서 수정할 수 있게 - 예정
 // 사람 아이콘 누르면 인원, ? 나와서 수정할 수 있게 - 예정
 
 const GuesthouseList = () => {
-  const [guesthouses, setGuesthouses] = useState(mockData);
   const navigation = useNavigation();
+  const [guesthouses, setGuesthouses] = useState([]);
+  const [page, setPage] = useState(0);
+  const [isLast, setIsLast] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
 
-  const toggleLike = (id) => {
-    const updated = guesthouses.map((item) =>
-      item.id === id ? { ...item, liked: !item.liked } : item
-    );
-    setGuesthouses(updated);
+  // 게하 검색 후 불러오기
+  const fetchGuesthouses = async (pageToFetch = 0) => {
+    if (loading || isLast || error) return;
+    setLoading(true);
+
+    try {
+      // 보낼 임의 데이터
+      const params = {
+        checkIn: '2025-05-20',
+        checkOut: '2025-05-21',
+        guestCount: 2,
+        roomCount: 1,
+        page: pageToFetch,
+        size: 10,
+        sort: 'id',
+      };
+      const response = await userGuesthouseApi.getGuesthouseList(params);
+      const { content, last } = response.data;
+      setGuesthouses(prev => pageToFetch === 0 ? content : [...prev, ...content]);
+      setIsLast(last);
+    } catch (e) {
+      setError(true); // 한번이라도 실패하면 더이상 호출X
+      setIsLast(true); // (추가) 무한호출도 막음
+      console.warn('게스트하우스 조회 실패', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // 무한스크롤
+  useEffect(() => {
+    fetchGuesthouses(page);
+  }, [page]);
+
+  const handleEndReached = () => {
+    if (!loading && !isLast) {
+      setPage(prev => prev + 1);
+    }
+  };
+
+  const toggleLike = async (id, liked) => {
+    try {
+      if (liked) {
+        await userGuesthouseApi.unfavoriteGuesthouse(id);
+      } else {
+        await userGuesthouseApi.favoriteGuesthouse(id);
+      }
+      setGuesthouses(prev =>
+        prev.map(item =>
+          item.id === id ? { ...item, favorite: !item.favorite } : item
+        )
+      );
+    } catch (e) {
+      console.warn('찜 실패', e);
+    }
   };
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('GuesthouseDetail', {
-      id: item.id,
-      name: item.name,
+      id: item.id
     })}>
       <View style={styles.card}>
         <Image
           source={require('@assets/images/exphoto.jpeg')}
           style={styles.image}
         />
+        {/* 실제 이미지 데이터 사용할 때 */}
+        {/* <Image
+          source={{ uri: item.thumbnailImgUrl }}
+          style={styles.image}
+        /> */}
         <View style={styles.cardContent}>
           <View style={styles.tagRow}>
-            {item.tags.map((tag, index) => (
+            {item.hashtags && item.hashtags.map((tag, index) => (
               <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
                 #{tag}
               </Text>
             ))}
           </View>
-          <Text style={[FONTS.fs_body, styles.title]} numberOfLines={1}>
-            {item.title}
-          </Text>
           <Text style={[FONTS.fs_body_bold, styles.name]} numberOfLines={1}>
             {item.name}
           </Text>
@@ -114,18 +119,20 @@ const GuesthouseList = () => {
           <View style={styles.bottomRow}>
             <View style={styles.rating}>
               <Star width={12} height={12} />
-              <Text style={styles.ratingText}>{item.rating}</Text>
+              <Text style={styles.ratingText}>
+                {item.averageRating?.toFixed(1) ?? '0.0'}
+              </Text>
             </View>
             <Text style={[FONTS.fs_body_bold, styles.price]}>
-              {item.price.toLocaleString()}원
+              {item.minPrice.toLocaleString()}원
             </Text>
           </View>
         </View>
         <TouchableOpacity
           style={styles.heartIcon}
-          onPress={() => toggleLike(item.id)}
+          onPress={() => toggleLike(item.id, item.favorite)}
         >
-          {item.liked ? <FillHeart /> : <EmptyHeart />}
+          {item.favorite ? <FillHeart /> : <EmptyHeart />}
         </TouchableOpacity>
       </View>
     </TouchableOpacity>
@@ -152,9 +159,12 @@ const GuesthouseList = () => {
 
       <FlatList
         data={guesthouses}
-        keyExtractor={(item) => item.id}
+        keyExtractor={item => String(item.id)}
         renderItem={renderItem}
         contentContainerStyle={styles.listContent}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.7}
+        ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
       />
     </View>
   );

@@ -1,12 +1,12 @@
 import React from 'react';
 import { View, Text } from 'react-native';
 
-const Party = () => {
+const Meet = () => {
   return (
     <View>
-      <Text>Party Screen</Text>
+      <Text>Meet Screen</Text>
     </View>
   );
 };
 
-export default Party;
+export default Meet;

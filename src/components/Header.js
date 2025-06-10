@@ -4,9 +4,10 @@ import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import ChevronLeft from '@assets/images/chevron_left.svg';
+import Logo from '@assets/images/logo_orange.svg';
 
 //props로 적힐 내용 받음 - title
-//title을 안 넘기고 사용하면 다홍색으로 Tour Work Korea 글씨 있는 헤더로 나옴
+//title을 안 넘기고 사용하면 로고만 있는 헤더로 나옴
 //왼쪽 화살표 누르면 뒤로가기가 되도록 해놓았음
 //예시는 EXHome에 있습니다
 
@@ -23,7 +24,9 @@ const Header = ({ title }) => {
           <Text style={[FONTS.fs_h2_bold, styles.subTitle]}>{title}</Text>
         </View>
       ) : (
-        <Text style={[FONTS.fs_h2_bold, styles.mainTitle]}>Tour Work Korea</Text>
+        <View style={styles.logoWrapper}>
+          <Logo />
+        </View>
       )}
     </View>
   );
@@ -34,8 +37,6 @@ const styles = StyleSheet.create({
     height: 36,
     paddingVertical: 4,
     backgroundColor: COLORS.white,
-    borderBottomWidth: 2,
-    borderBottomColor: COLORS.scarlet,
   },
   subTitleWrapper: {
     flexDirection: 'row',
@@ -47,9 +48,8 @@ const styles = StyleSheet.create({
   subTitle: {
     color: COLORS.black,
   },
-  mainTitle: {
-    textAlign: 'center',
-    color: COLORS.scarlet,
+  logoWrapper: {
+    alignSelf: 'center', // 로고를 수평 가운데로
   },
 });
 

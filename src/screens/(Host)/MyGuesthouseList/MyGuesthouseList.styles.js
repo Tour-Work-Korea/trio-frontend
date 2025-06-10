@@ -38,6 +38,12 @@ const styles = StyleSheet.create({
   cardBtnContainer: {
     width: "30%",
   }, 
+
+  deleteButton: { // 임시 삭제 버튼
+    marginTop: 8,
+    alignItems: 'center',
+    paddingVertical: 4,
+  },
 });
 
 export default styles;
