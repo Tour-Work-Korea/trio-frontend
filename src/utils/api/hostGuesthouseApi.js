@@ -1,8 +1,41 @@
 import api from './axiosInstance';
 
 const hostGuesthouseApi = {
-  //사장님 나의 게스트하우스 목록 조회
-  getMyGuesthouse: () => api.get('/host/guesthouses'),
+  // 사장님 전체 게스트하우스 조회
+  getMyGuesthouses: () => api.get('/host/guesthouses'),
+
+  // 특정 게스트하우스 상세 조회
+  getGuesthouseDetail: guesthouseId =>
+    api.get(`/host/guesthouses/${guesthouseId}`),
+
+  // 게스트하우스 등록
+  registerGuesthouse: guesthouseData =>
+    api.post('/host/guesthouses', guesthouseData),
+
+  // 게스트하우스 수정
+  updateGuesthouse: (guesthouseId, updatedData) =>
+    api.put(`/host/guesthouses/${guesthouseId}`, updatedData),
+
+  // 게스트하우스 삭제
+  deleteGuesthouse: guesthouseId =>
+    api.delete(`/host/guesthouses/${guesthouseId}`),
+
+  // 게스트하우스 리뷰 목록 조회 
+  // (page, size, sort)
+  getGuesthouseReviews: (guesthouseId, page = 0, size = 10, sort = 'createdAt,desc') =>
+    api.get(`/guesthouses/${guesthouseId}/reviews`, {
+      params: { page, size, sort }
+    }),
+
+  // 리뷰에 대한 답글 작성
+  postReviewReply: (reviewId, reply) =>
+    api.post(`/host/reviews/${reviewId}/replies`, { reply }),
+
+  // 리뷰 삭제
+  deleteReview: (reviewId, reason) =>
+    api.delete(`/host/reviews/${reviewId}`, {
+      data: { reason }
+    }),
 };
 
 export default hostGuesthouseApi;

@@ -34,7 +34,7 @@
 		<true/>
 		<key>NSExceptionDomains</key>
 		<dict>
-			<key>52.78.210.107</key>
+			<key>..</key>
 			<dict>
 				<key>NSIncludesSubdomains</key>
 				<true/>
