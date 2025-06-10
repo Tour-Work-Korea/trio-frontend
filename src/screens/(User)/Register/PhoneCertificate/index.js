@@ -68,6 +68,7 @@ const PhoneCertificate = ({route}) => {
       Alert.alert('알림', '유효한 인증번호를 입력해주세요.');
       return;
     }
+    setIsTimerActive(false);
     navigation.navigate('EmailCertificate', {user, phoneNumber});
   };
 

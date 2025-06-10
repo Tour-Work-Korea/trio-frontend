@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   Alert,
   KeyboardAvoidingView,
@@ -39,46 +38,46 @@ const UserInfo = () => {
 
   const checkNicknameDuplicate = () => {
     if (!formData.nickname) {
-      Alert.alert('알림', '닉네임을 입력해주세요.');
+      Alert.alert('닉네임을 입력해주세요.');
       return;
     }
     setIsNicknameChecked(true);
-    Alert.alert('알림', '사용 가능한 닉네임입니다.');
+    Alert.alert('사용 가능한 닉네임입니다.');
   };
 
   const handleSubmit = () => {
     if (!formData.name) {
-      return Alert.alert('알림', '이름을 입력해주세요.');
+      return Alert.alert('이름을 입력해주세요.');
     }
     if (!formData.birthday) {
-      return Alert.alert('알림', '생년월일을 입력해주세요.');
+      return Alert.alert('생년월일을 입력해주세요.');
     }
 
     if (!formData.gender) {
-      return Alert.alert('알림', '성별을 선택해주세요.');
+      return Alert.alert('성별을 선택해주세요.');
     }
     if (!formData.nickname) {
-      return Alert.alert('알림', '닉네임을 입력해주세요.');
+      return Alert.alert('닉네임을 입력해주세요.');
     }
     if (!isNicknameChecked) {
-      return Alert.alert('알림', '닉네임 중복 확인을 해주세요.');
+      return Alert.alert('닉네임 중복 확인을 해주세요.');
     }
     if (!formData.password) {
-      return Alert.alert('알림', '비밀번호를 입력해주세요.');
+      return Alert.alert('비밀번호를 입력해주세요.');
     }
     if (formData.password !== formData.passwordConfirm) {
-      return Alert.alert('알림', '비밀번호가 일치하지 않습니다.');
+      return Alert.alert('비밀번호가 일치하지 않습니다.');
     }
     const tryUserSignUp = async () => {
       try {
         console.log(formData);
-        const response = await authApi.userSignUp(formData);
+        await authApi.userSignUp(formData);
         navigation.navigate('Result', {
           text: '성공적으로 가입되었습니다!',
           to: 'EXHome',
         });
       } catch (error) {
-        Alert.alert('회원가입에 실패했습니다.');
+        Alert.alert('회원가입에 실패했습니다.', error.message);
       }
     };
     tryUserSignUp();
@@ -200,7 +199,7 @@ const UserInfo = () => {
             <Text style={styles.label}>비밀번호</Text>
             <TextInput
               style={styles.input}
-              placeholder="비밀번호"
+              placeholder="비밀번호는 대소문자, 숫자, 특수문자를 포함한 8~20자리여야 합니다."
               value={formData.password}
               onChangeText={text => updateField('password', text)}
               secureTextEntry
@@ -217,11 +216,10 @@ const UserInfo = () => {
             />
           </View>
         </ScrollView>
-
-        <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
-          <Text style={styles.nextButtonText}>다음</Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
+      <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
+        <Text style={styles.nextButtonText}>다음</Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };

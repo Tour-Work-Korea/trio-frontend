@@ -40,7 +40,7 @@ export {default as UserRegisterAgree} from './(User)/Register/Agree';
 export {default as EmailCertificate} from './(User)/Register/EmailCertificate';
 export {default as UserRegisterIntro} from './(User)/Register/Intro';
 export {default as PhoneCertificate} from './(User)/Register/PhoneCertificate';
-export {default as UserInfo} from './(User)/Register/UserInfo';
+export {default as UserRegisterInfo} from './(User)/Register/UserInfo';
 export {default as UserMyPage} from './(User)/UserMyPage';
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as EXHome} from './EXHome';
