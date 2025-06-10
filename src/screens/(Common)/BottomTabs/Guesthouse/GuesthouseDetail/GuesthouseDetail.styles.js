@@ -123,6 +123,20 @@ const styles = StyleSheet.create({
   roomPrice: {
     alignSelf: 'flex-end',
   },
+  tabMenuWrapper: {
+  flexDirection: 'row',
+  justifyContent: 'space-around',
+  marginVertical: 16,
+  },
+  tabButton: {
+    alignItems: 'center',
+  },
+  tabUnderline: {
+    marginTop: 4,
+    height: 2,
+    width: 20,
+    backgroundColor: COLORS.primary_blue,
+  },
   introductionContainer: {
     backgroundColor: COLORS.white,
     marginTop: 8,
