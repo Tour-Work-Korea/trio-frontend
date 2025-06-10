@@ -17,7 +17,13 @@ platform :ios do
       ENV["MATCH_KEYCHAIN_NAME"]     = "ci-build.keychain"
       ENV["MATCH_KEYCHAIN_PASSWORD"] = ENV["CI_KEYCHAIN_PASSWORD"]
     end
+
   lane :build_ipa do
+
+    # 날짜 기반 빌드 넘버
+    build_number = Time.now.strftime("%Y%m%d%H%M")
+    increment_build_number(build_number: build_number)
+
     # ① match 로 App Store 프로비전 가져오기
     match(
         type:       "development",
