@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  StyleSheet,
   SafeAreaView,
   Alert,
   KeyboardAvoidingView,
@@ -27,7 +26,6 @@ const PhoneCertificate = ({route}) => {
   // 타이머 기능
   useEffect(() => {
     let interval = null;
-
     if (isTimerActive && timeLeft > 0) {
       interval = setInterval(() => {
         setTimeLeft(timeLeft - 1);
@@ -35,48 +33,41 @@ const PhoneCertificate = ({route}) => {
     } else if (timeLeft === 0) {
       clearInterval(interval);
       setIsTimerActive(false);
-      Alert.alert(
-        '알림',
-        '인증 시간이 만료되었습니다. 인증번호를 재전송해주세요.',
-      );
+      Alert.alert('인증 시간이 만료되었습니다. 인증번호를 재전송해주세요.');
     }
-
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft]);
 
-  // 인증번호 전송 함수
-  const sendVerificationCode = () => {
-    // 휴대폰 번호 유효성 검사
-    if (!phoneNumber || phoneNumber.length < 10) {
-      Alert.alert('알림', '유효한 휴대폰 번호를 입력해주세요.');
-      return;
-    }
-
-    // 인증번호 전송 로직 (실제로는 API 호출)
+  //인증번호 발송
+  const fetchPhoneValid = async () => {
     setIsCodeSent(true);
     setTimeLeft(180);
     setIsTimerActive(true);
-    Alert.alert('알림', '인증번호가 전송되었습니다.');
+    Alert.alert('인증번호가 전송되었습니다.');
   };
 
-  // 인증번호 재전송 함수
+  // 인증번호 전송 함수
+  const sendVerificationCode = () => {
+    if (!phoneNumber || phoneNumber.length < 10) {
+      Alert.alert('유효한 휴대폰 번호를 입력해주세요.');
+      return;
+    }
+    fetchPhoneValid();
+  };
+
+  // 인증번호 재전송
   const resendVerificationCode = () => {
     setVerificationCode('');
-    setTimeLeft(180);
-    setIsTimerActive(true);
-    Alert.alert('알림', '인증번호가 재전송되었습니다.');
+    fetchPhoneValid();
   };
 
-  // 인증 확인 함수
+  // 인증 확인 TODO: API 연동
   const verifyCode = () => {
     // 인증번호 유효성 검사
     if (!verificationCode || verificationCode.length < 4) {
       Alert.alert('알림', '유효한 인증번호를 입력해주세요.');
       return;
     }
-
-    // 인증번호 확인 로직 (실제로는 API 호출)
-    // 성공 시 다음 화면으로 이동
     navigation.navigate('EmailCertificate', {user, phoneNumber});
   };
 
@@ -101,10 +92,9 @@ const PhoneCertificate = ({route}) => {
             <View style={styles.phoneInputContainer}>
               <TextInput
                 style={styles.phoneInput}
-                placeholder="휴대폰 번호 입력"
+                placeholder="-없이 입력"
                 value={phoneNumber}
                 onChangeText={setPhoneNumber}
-                keyboardType="phone-pad"
                 maxLength={11}
               />
             </View>
@@ -115,10 +105,9 @@ const PhoneCertificate = ({route}) => {
             <View style={styles.verificationContainer}>
               <TextInput
                 style={styles.verificationInput}
-                placeholder="인증번호 입력"
+                placeholder="인증번호"
                 value={verificationCode}
                 onChangeText={setVerificationCode}
-                keyboardType="number-pad"
                 maxLength={6}
                 editable={isCodeSent}
               />
@@ -138,20 +127,16 @@ const PhoneCertificate = ({route}) => {
             </TouchableOpacity>
           </View>
         </ScrollView>
-
-        <TouchableOpacity
-          style={[
-            styles.nextButton,
-            (!isCodeSent || !verificationCode) && styles.disabledButton,
-          ]}
-          onPress={
-            isCodeSent && verificationCode ? verifyCode : sendVerificationCode
-          }>
-          <Text style={styles.nextButtonText}>
-            {isCodeSent && verificationCode ? '다음' : '인증번호 받기'}
-          </Text>
-        </TouchableOpacity>
       </KeyboardAvoidingView>
+      <TouchableOpacity
+        style={styles.nextButton}
+        onPress={
+          isCodeSent && verificationCode ? verifyCode : sendVerificationCode
+        }>
+        <Text style={styles.nextButtonText}>
+          {isCodeSent && verificationCode ? '다음' : '인증번호 받기'}
+        </Text>
+      </TouchableOpacity>
     </SafeAreaView>
   );
 };
