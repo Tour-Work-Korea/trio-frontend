@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
   Image,
   Alert,
-  Platform,
 } from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import DateTimePicker from '@react-native-community/datetimepicker';
@@ -21,33 +20,44 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import DropDownPicker from 'react-native-dropdown-picker';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
-const guesthouseListDummy = [
-  {label: '게스트하우스 1', value: '1'},
-  {label: '게스트하우스 2', value: '2'},
-  {label: '게스트하우스 3', value: '3'},
-];
+function formatDateToLocalISOString(date) {
+  const d = new Date(date);
+  const year = d.getFullYear();
+  const month = `${d.getMonth() + 1}`.padStart(2, '0');
+  const day = `${d.getDate()}`.padStart(2, '0');
+  const hours = `${d.getHours()}`.padStart(2, '0');
+  const minutes = `${d.getMinutes()}`.padStart(2, '0');
+  const seconds = `${d.getSeconds()}`.padStart(2, '0');
+  return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+}
 
 const PostRecruitment = () => {
   const [formData, setFormData] = useState({
-    recruitTitle: '',
-    recruitShortDescription: '',
+    recruitTitle: 'title1',
+    recruitShortDescription: 'descrip1',
     recruitStart: null,
     recruitEnd: null,
-    recruitNumberMale: 0,
-    recruitNumberFeMale: 0,
-    location: '',
-    recruitCondition: '',
-    recruitMinAge: 0,
-    recruitMaxAge: 0,
-    workType: '',
+    recruitNumberMale: 1,
+    recruitNumberFemale: 1,
+    location: 'address1',
+    recruitCondition: 'prefer1',
+    recruitMinAge: 20,
+    recruitMaxAge: 30,
+    workType: 'workType1',
     workStartDate: null,
     workEndDate: null,
-    workPart: '',
-    welfare: '',
-    recruitDetail: '',
-    recruitImages: [],
-    hashtags: [],
-    guesthouseId: null,
+    workPart: 'work1',
+    welfare: 'welfare1',
+    recruitDetail: 'descrip1',
+    recruitImage: [
+      {
+        recruitImageUrl:
+          'file:///data/user/0/com.triofrontendapp/cache/rn_image_picker_lib_temp_6153ff11-b8df-49b9-98ba-da32d49a8d08.jpg',
+        isThumbnail: true,
+      },
+    ],
+    hashtags: [11, 13, 18],
+    guesthouseId: 29,
   });
 
   const [guesthouseList, setGuesthouseList] = useState([]);
@@ -75,7 +85,7 @@ const PostRecruitment = () => {
         recruitEnd: new Date(recruit.recruitEnd),
         workStartDate: new Date(recruit.workStartDate),
         workEndDate: new Date(recruit.workEndDate),
-        recruitNumberFeMale: recruit.recruitNumberFeMale,
+        recruitNumberFemale: recruit.recruitNumberFemale,
         recruitNumberMale: recruit.recruitNumberMale,
         recruitMinAge: recruit.recruitMinAge,
         recruitMaxAge: recruit.recruitMaxAge,
@@ -84,19 +94,13 @@ const PostRecruitment = () => {
         workPart: recruit.workPart,
         welfare: recruit.welfare,
         location: recruit.location,
-        recruitImages:
+        recruitImage:
           recruit.recruitImage?.map(img => ({
             recruitImageUrl: img.recruitImageUrl,
             isThumbnail: img.isThumbnail || false,
           })) || [],
         recruitDetail: recruit.recruitDetail,
       }));
-      setGuesthouseList(
-        guesthouseListDummy.map(item => ({
-          label: item.label,
-          value: item.value,
-        })),
-      );
     }
 
     //해시태그 조회
@@ -115,15 +119,14 @@ const PostRecruitment = () => {
         const response = await hostGuesthouseApi.getMyGuesthouse();
         const options = response.data.map(g => ({
           label: g.guesthouseName,
-          value: `${g.id}`,
+          value: g.id,
         }));
         setGuesthouseList(options);
       } catch (error) {
         Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
       }
     };
-    // fetchMyGuestHouse();
-    setGuesthouseList(guesthouseListDummy);
+    fetchMyGuestHouse();
     fetchHostHashtags();
   }, []);
 
@@ -193,14 +196,14 @@ const PostRecruitment = () => {
 
         if (response.assets && response.assets.length > 0) {
           const uri = response.assets[0].uri;
-          if (formData.recruitImages.length < 6) {
+          if (formData.recruitImage.length < 6) {
             const newImage = {
               recruitImageUrl: uri,
-              isThumbnail: formData.recruitImages.length === 0, // 첫 번째 이미지를 썸네일로 설정
+              isThumbnail: formData.recruitImage.length === 0, // 첫 번째 이미지를 썸네일로 설정
             };
             setFormData({
               ...formData,
-              recruitImages: [...formData.recruitImages, newImage],
+              recruitImage: [...formData.recruitImage, newImage],
             });
           } else {
             Alert.alert('사진 제한', '최대 6장까지 등록 가능합니다.');
@@ -211,17 +214,17 @@ const PostRecruitment = () => {
   };
 
   const removePhoto = index => {
-    const newImages = [...formData.recruitImages];
-    newImages.splice(index, 1);
+    const newImage = [...formData.recruitImage];
+    newImage.splice(index, 1);
 
     // 썸네일이었던 이미지를 삭제한 경우, 첫 번째 이미지를 썸네일로 설정
-    if (newImages.length > 0 && index === 0) {
-      newImages[0].isThumbnail = true;
+    if (newImage.length > 0 && index === 0) {
+      newImage[0].isThumbnail = true;
     }
 
     setFormData({
       ...formData,
-      recruitImages: newImages,
+      recruitImage: newImage,
     });
   };
 
@@ -236,9 +239,17 @@ const PostRecruitment = () => {
       return;
     }
 
+    const payload = {
+      ...formData,
+      recruitStart: formatDateToLocalISOString(formData.recruitStart),
+      recruitEnd: formatDateToLocalISOString(formData.recruitEnd),
+      workStartDate: formatDateToLocalISOString(formData.workStartDate),
+      workEndDate: formatDateToLocalISOString(formData.workEndDate),
+    };
+
     const fetchNewRecruit = async () => {
       try {
-        const response = await hostEmployApi.createRecruit(formData);
+        await hostEmployApi.createRecruit(payload);
         Alert.alert('새로운 공고를 등록했습니다.');
         navigation.navigate('MyRecruitmentList');
       } catch (error) {
@@ -248,7 +259,7 @@ const PostRecruitment = () => {
 
     const fetchUpdateRecruit = async updatedRecruitId => {
       try {
-        await hostEmployApi.updateRecruit(updatedRecruitId, formData);
+        await hostEmployApi.updateRecruit(updatedRecruitId, payload);
         Alert.alert('공고를 성공적으로 수정했습니다.');
         navigation.navigate('MyRecruitmentList');
       } catch (error) {
@@ -464,9 +475,9 @@ const PostRecruitment = () => {
                 style={styles.countInput}
                 placeholder="명"
                 keyboardType="numeric"
-                value={formData.recruitNumberFeMale.toString()}
+                value={formData.recruitNumberFemale.toString()}
                 onChangeText={text =>
-                  handleNumericInput('recruitNumberFeMale', text)
+                  handleNumericInput('recruitNumberFemale', text)
                 }
               />
             </View>
@@ -578,7 +589,7 @@ const PostRecruitment = () => {
             </Text>
 
             <View style={styles.photoGrid}>
-              {formData.recruitImages.map((imageObj, index) => (
+              {formData.recruitImage.map((imageObj, index) => (
                 <View key={index} style={styles.photoItem}>
                   <Image
                     source={{uri: imageObj.recruitImageUrl}}
@@ -597,7 +608,7 @@ const PostRecruitment = () => {
                 </View>
               ))}
 
-              {formData.recruitImages.length < 6 && (
+              {formData.recruitImage.length < 6 && (
                 <TouchableOpacity
                   style={styles.addPhotoButton}
                   onPress={pickImage}>

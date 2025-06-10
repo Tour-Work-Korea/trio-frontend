@@ -1,6 +1,13 @@
 import React, {useState, useEffect} from 'react';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {View, Text, ScrollView, SafeAreaView, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  ScrollView,
+  SafeAreaView,
+  Alert,
+  TouchableOpacity,
+} from 'react-native';
 import styles from './RecruitmentDetail.styles';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
@@ -13,6 +20,7 @@ const RecruitmentDetail = () => {
   const recruitId = route.params?.recruitId;
   const id = recruitId;
   const [recruit, setRecruit] = useState();
+  const navigation = useNavigation();
 
   useEffect(() => {
     const fetchRecruitDetail = async () => {
@@ -32,19 +40,35 @@ const RecruitmentDetail = () => {
       {recruit == null ? (
         <></>
       ) : (
-        <ScrollView style={styles.scrollView}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View style={styles.headerButton}>
-              <Text style={styles.headerButtonText}>
-                {recruit.guesthouseName}
-              </Text>
+        <>
+          {' '}
+          <ScrollView style={styles.scrollView}>
+            <View style={styles.header}>
+              <View style={styles.headerButton}>
+                <Text style={styles.headerButtonText}>
+                  {recruit.guesthouseName}
+                </Text>
+              </View>
             </View>
+            <RecruitProfileSection recruit={recruit} />
+            <RecruitTapSection recruit={recruit} />
+            <RecruitDescriptionSection description={recruit.recruitDetail} />
+          </ScrollView>
+          <View style={styles.bottomButtonContainer}>
+            <TouchableOpacity
+              style={styles.secondaryButton}
+              onPress={() =>
+                navigation.navigate('PostRecruitment', {recruitId})
+              }>
+              <Text style={styles.secondaryButtonText}>수정하기</Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.applyButton}
+              onPress={() => navigation.navigate('ApplicantList', {recruitId})}>
+              <Text style={styles.applyButtonText}>지원자 보기</Text>
+            </TouchableOpacity>
           </View>
-          <RecruitProfileSection recruit={recruit} />
-          <RecruitTapSection recruit={recruit} />
-          <RecruitDescriptionSection description={recruit.recruitDetail} />
-        </ScrollView>
+        </>
       )}
     </SafeAreaView>
   );

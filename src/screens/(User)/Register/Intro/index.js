@@ -1,11 +1,24 @@
-import {View, Text, SafeAreaView, ScrollView} from 'react-native';
+import {View, Alert, SafeAreaView, ScrollView} from 'react-native';
 import ButtonWhite from '@components/ButtonWhite';
 import Header from '@components/Header';
 import styles from './Intro.styles';
 import {FONTS} from '@constants/fonts';
 import Logo from '@assets/images/Logo.svg';
-// 유저 회원가입 초기 페이지
+import {useNavigation} from '@react-navigation/native';
+
 const Intro = () => {
+  const navigation = useNavigation();
+
+  const handleKakaoButton = () => {
+    Alert.alert('카카오 회원가입 기능은 구현 중입니다.');
+  };
+  const handleNaverButton = () => {
+    Alert.alert('네이버 회원가입 기능은 구현 중입니다.');
+  };
+  const handleEmailButton = () => {
+    navigation.navigate('UserRegisterAgree');
+  };
+
   return (
     <SafeAreaView style={styles.container}>
       <Header />
@@ -14,9 +27,9 @@ const Intro = () => {
           <Logo width={100} height={100} />
         </View>
         <View style={styles.buttonContainer}>
-          <ButtonWhite title="카카오로 시작하기" to="UserRegisterAgree" />
-          <ButtonWhite title="네이버로 시작하기" to="UserRegisterAgree" />
-          <ButtonWhite title="이메일로 시작하기" to="UserRegisterAgree" />
+          <ButtonWhite title="카카오로 시작하기" onPress={handleKakaoButton} />
+          <ButtonWhite title="네이버로 시작하기" onPress={handleNaverButton} />
+          <ButtonWhite title="이메일로 시작하기" onPress={handleEmailButton} />
         </View>
       </ScrollView>
     </SafeAreaView>

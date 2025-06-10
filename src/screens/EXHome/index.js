@@ -18,10 +18,6 @@ import {FONTS} from '@constants/fonts'; // 폰트 크기, 볼드 지정해놓은
 const EXHome = () => {
   const navigation = useNavigation();
 
-  const goToLogin = () => {
-    navigation.navigate('Login');
-  }; // 화면 이동 예시 함수
-
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 불러오기 2가지 */}
