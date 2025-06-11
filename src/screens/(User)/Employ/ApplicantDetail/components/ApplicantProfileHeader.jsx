@@ -12,7 +12,8 @@ const ApplicantProfileHeader = ({data, hashtags}) => {
           <ProfileIcon width={80} height={80} />
         </View>
         <Text style={styles.profileName}>
-          {data.nickname} {data.gender} • {data.age}세(
+          {data.nickname} {data.gender === 'F' ? '여자' : '남자'} • {data.age}
+          세(
           {data.birthDate.split('-')[0]})
         </Text>
         <View>

@@ -24,7 +24,7 @@ const hostEmployApi = {
 
   //지원서 상세 조회
   getApplicantDetail: applicantId =>
-    api.get(`/host/recruits/applications/detail/${applicantId}`),
+    api.get(`/host/recruits/application/detail/${applicantId}`),
 
   //게스트하우스 별 지원서 조회
   getApplicantsByGuesthouse: guesthouseId =>

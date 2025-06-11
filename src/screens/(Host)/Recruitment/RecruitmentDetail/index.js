@@ -17,15 +17,14 @@ import RecruitDescriptionSection from '../../../(Common)/BottomTabs/Employ/Emplo
 
 const RecruitmentDetail = () => {
   const route = useRoute();
-  const recruitId = route.params?.recruitId;
-  const id = recruitId;
+  const recruitId = route.params ?? null;
   const [recruit, setRecruit] = useState();
   const navigation = useNavigation();
 
   useEffect(() => {
     const fetchRecruitDetail = async () => {
       try {
-        const response = await hostEmployApi.getRecruitDetail(id);
+        const response = await hostEmployApi.getRecruitDetail(recruitId);
         setRecruit(response.data);
       } catch (error) {
         Alert('공고 상세 조회에 실패했습니다.');
@@ -57,14 +56,12 @@ const RecruitmentDetail = () => {
           <View style={styles.bottomButtonContainer}>
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() =>
-                navigation.navigate('PostRecruitment', {recruitId})
-              }>
+              onPress={() => navigation.navigate('PostRecruitment', recruit)}>
               <Text style={styles.secondaryButtonText}>수정하기</Text>
             </TouchableOpacity>
             <TouchableOpacity
               style={styles.applyButton}
-              onPress={() => navigation.navigate('ApplicantList', {recruitId})}>
+              onPress={() => navigation.navigate('ApplicantList', recruitId)}>
               <Text style={styles.applyButtonText}>지원자 보기</Text>
             </TouchableOpacity>
           </View>

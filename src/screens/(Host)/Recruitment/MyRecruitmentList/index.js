@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Alert,
   TextInput,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Person from '@assets/images/Person.svg';
@@ -25,9 +25,11 @@ const MyRecruitmentList = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
-  useEffect(() => {
-    getMyRecruits();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      getMyRecruits();
+    }, []),
+  );
 
   const getMyRecruits = async () => {
     try {
@@ -39,11 +41,11 @@ const MyRecruitmentList = () => {
   };
 
   const handleViewDetail = recruitId => {
-    navigation.navigate('RecruitmentDetail', {recruitId});
+    navigation.navigate('RecruitmentDetail', recruitId);
   };
 
-  const handleViewApplicants = recruitId => {
-    navigation.navigate('ApplicantList', {recruitId});
+  const handleViewApplicants = guesthouseId => {
+    navigation.navigate('ApplicantList', guesthouseId);
   };
 
   const handleDeletePosting = id => {
@@ -61,7 +63,7 @@ const MyRecruitmentList = () => {
     );
     const fetchDeleteRecruit = async () => {
       try {
-        const response = await hostEmployApi.requestDeleteRecruit(
+        await hostEmployApi.requestDeleteRecruit(
           selectedRecruitId,
           cancelReason,
         );
@@ -70,7 +72,7 @@ const MyRecruitmentList = () => {
         Alert.alert('삭제 요청에 실패했습니다.');
       }
     };
-    // fetchDeleteRecruit();
+    fetchDeleteRecruit();
     setModalVisible(false);
     setCancelReason('');
   };
@@ -88,7 +90,7 @@ const MyRecruitmentList = () => {
           <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>
           <View style={styles.iconsContainer}>
             <TouchableOpacity
-              onPress={() => handleViewApplicants(item.recruitId)}>
+              onPress={() => handleViewApplicants(item.guesthouseId)}>
               <Person />
             </TouchableOpacity>
             <TouchableOpacity
@@ -121,7 +123,6 @@ const MyRecruitmentList = () => {
         <Modal
           visible={modalVisible}
           animationType="slide"
-          transparent={true}
           onRequestClose={() => setModalVisible(false)}>
           <View style={styles.modalOverlay}>
             <View style={styles.modalContainer}>
