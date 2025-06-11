@@ -17,7 +17,7 @@ import RecruitDescriptionSection from '../../../(Common)/BottomTabs/Employ/Emplo
 
 const RecruitmentDetail = () => {
   const route = useRoute();
-  const recruitId = route.params?.recruitId;
+  const recruitId = route.params ?? null;
   const [recruit, setRecruit] = useState();
   const navigation = useNavigation();
 

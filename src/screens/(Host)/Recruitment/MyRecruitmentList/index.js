@@ -25,9 +25,6 @@ const MyRecruitmentList = () => {
   const [cancelReason, setCancelReason] = useState('');
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
-  // useEffect(() => {
-  //   getMyRecruits();
-  // }, []);
   useFocusEffect(
     useCallback(() => {
       getMyRecruits();
@@ -44,11 +41,11 @@ const MyRecruitmentList = () => {
   };
 
   const handleViewDetail = recruitId => {
-    navigation.navigate('RecruitmentDetail', {recruitId});
+    navigation.navigate('RecruitmentDetail', recruitId);
   };
 
-  const handleViewApplicants = recruitId => {
-    navigation.navigate('ApplicantList', {recruitId});
+  const handleViewApplicants = guesthouseId => {
+    navigation.navigate('ApplicantList', guesthouseId);
   };
 
   const handleDeletePosting = id => {
@@ -93,7 +90,7 @@ const MyRecruitmentList = () => {
           <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>
           <View style={styles.iconsContainer}>
             <TouchableOpacity
-              onPress={() => handleViewApplicants(item.recruitId)}>
+              onPress={() => handleViewApplicants(item.guesthouseId)}>
               <Person />
             </TouchableOpacity>
             <TouchableOpacity

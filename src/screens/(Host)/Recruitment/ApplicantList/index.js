@@ -2,93 +2,69 @@
 
 import React, {useState, useEffect} from 'react';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {
-  View,
-  Text,
-  Image,
-  TouchableOpacity,
-  ScrollView,
-  SafeAreaView,
-  FlatList,
-  Alert,
-} from 'react-native';
+import {View, ScrollView, SafeAreaView, FlatList, Alert} from 'react-native';
 import styles from './ApplicantList.styles';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import HeartIcon from '@assets/images/Empty_Heart.svg';
-import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import Header from '@components/Header';
-import {COLORS} from '@constants/colors';
-
-const mockApplicants = [
-  {
-    resumeId: 3,
-    resumeTitle: '열정 가득한 알바생',
-    recruitId: 1,
-    recruitTitle: '수정 2번된 겨울 방학 스키장 스태프 모집',
-    guesthouseName: 'testname',
-    photoUrl: 'https://via.placeholder.com/150',
-    nickname: 'host',
-    mbti: 'INFP',
-    gender: 'F',
-    age: 29,
-    totalExperience: '2년 11개월',
-    workExperience: [
-      {companyName: '맥도날드 A', workType: '카운터'},
-      {companyName: '버거킹 B', workType: '씽크'},
-    ],
-    userHashtag: [
-      {id: 10, hashtag: '파티'},
-      {id: 11, hashtag: '파티X'},
-      {id: 12, hashtag: '바다전망'},
-    ],
-    isLiked: true,
-  },
-];
+import Filter from './Filter';
+import ApplicantItem from './ApplicantItem';
+import DropDownPicker from 'react-native-dropdown-picker';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 const ApplicantList = () => {
   const route = useRoute();
-  const recruitId = route.params ?? null;
+  const guesthouseId = route.params ?? null;
   const navigation = useNavigation();
-  const [favorites, setFavorites] = useState({});
   const [selectedFilter, setSelectedFilter] = useState('all');
-  const [applicants, setApplicants] = useState(mockApplicants);
-  const [selectedGuesthouse, setSelectedGuesthouse] = useState(
-    mockApplicants[0].guesthouseName,
-  );
-  const [currentRecommendedIndex, setCurrentRecommendedIndex] = useState(1);
+  const [applicants, setApplicants] = useState();
+  const [selectedGuesthouse, setSelectedGuesthouse] = useState('all');
+  const [guesthouseOpen, setGuesthouseOpen] = useState(false);
+  const [guesthouseList, setGuesthouseList] = useState([
+    {label: '전체 게스트하우스', value: 'all'},
+  ]);
 
   useEffect(() => {
     const fetchApplicants = async () => {
-      try {
-        let response;
-        if (recruitId) {
-          response = await hostEmployApi.getApplicantDetail(recruitId);
-        } else {
-          response = await hostEmployApi.getAllApplicants();
-        }
-
-        const data = response.data;
-        setApplicants(data);
-        if (data.length > 0) {
-          setSelectedGuesthouse(data[0].guesthouseName);
-        }
-      } catch (error) {
-        Alert.alert('지원서 조회에 실패했습니다');
+      if (guesthouseId) {
+        await handleSelectedGuesthouse(guesthouseId);
+      } else {
+        await handleSelectedGuesthouse('all');
       }
     };
-
-    // fetchApplicants();
+    const fetchMyGuestHouse = async () => {
+      try {
+        const response = await hostGuesthouseApi.getMyGuesthouses();
+        const options = response.data.map(g => ({
+          label: g.guesthouseName,
+          value: g.id,
+        }));
+        setGuesthouseList(prev => [...prev, ...options]);
+      } catch (error) {
+        Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
+      }
+    };
+    fetchMyGuestHouse();
+    fetchApplicants();
   }, []);
 
-  const toggleFavorite = id => {
-    setFavorites(prev => ({
-      ...prev,
-      [id]: !prev[id],
-    }));
+  const handleSelectedGuesthouse = async value => {
+    try {
+      let response;
+      if (value === 'all') {
+        response = await hostEmployApi.getAllApplicants();
+        setSelectedGuesthouse('all');
+      } else {
+        response = await hostEmployApi.getApplicantsByGuesthouse(value);
+        setSelectedGuesthouse(value);
+      }
+      setApplicants(response.data);
+    } catch (error) {
+      Alert.alert('지원서 조회에 실패했습니다.');
+    }
   };
 
   const handleApplicantPress = resumeId => {
-    navigation.navigate('ApplicantDetail', {resumeId});
+    navigation.navigate('ApplicantDetail', resumeId);
   };
 
   const parseYears = str => {
@@ -96,7 +72,7 @@ const ApplicantList = () => {
     return matched ? parseInt(matched[1], 10) : 0;
   };
 
-  const filteredApplicants = applicants.filter(applicant => {
+  const filteredApplicants = applicants?.filter(applicant => {
     switch (selectedFilter) {
       case 'career1':
         return parseYears(applicant.totalExperience) >= 1;
@@ -113,135 +89,39 @@ const ApplicantList = () => {
     }
   });
 
-  const renderFilterButtons = () => (
-    <View style={styles.filterButtonsContainer}>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'all' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('all')}>
-        <Text style={styles.filterButtonText}>전체</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'career1' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('career1')}>
-        <Text style={styles.filterButtonText}>1년 이상</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'age20' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('age20')}>
-        <Text style={styles.filterButtonText}>20대</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'age30' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('age30')}>
-        <Text style={styles.filterButtonText}>30대</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'genderF' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('genderF')}>
-        <Text style={styles.filterButtonText}>여자</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={[
-          styles.filterButton,
-          selectedFilter === 'genderM' && styles.selectedFilterButton,
-        ]}
-        onPress={() => setSelectedFilter('genderM')}>
-        <Text style={styles.filterButtonText}>남자</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
-  const renderApplicantItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleApplicantPress(item.resumeId)}>
-      <View style={styles.applicantCard}>
-        <View style={styles.cardHeader}>
-          <View style={styles.tagContainer}>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{item.guesthouseName}</Text>
-            </View>
-            <View style={styles.tag}>
-              <Text style={styles.tagText}>{item.recruitTitle}</Text>
-            </View>
-          </View>
-          <TouchableOpacity
-            style={styles.favoriteButton}
-            onPress={() => toggleFavorite(item.resumeId)}>
-            {favorites[item.resumeId] || item.isLiked ? (
-              <FilledHeartIcon width={24} height={24} color={COLORS.scarlet} />
-            ) : (
-              <HeartIcon width={24} height={24} />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <View style={styles.applicantInfo}>
-          <View style={styles.profileImageContainer}>
-            <Image
-              source={{uri: item.photoUrl}}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
-            <Text style={styles.nameText}>{item.nickname}</Text>
-            <Text style={styles.genderAgeText}>
-              ({item.gender}, {item.age}세)
-            </Text>
-          </View>
-
-          <View style={styles.detailsContainer}>
-            <Text style={styles.introductionText}>{item.resumeTitle}</Text>
-            <View style={styles.tagsRow}>
-              {item.userHashtag.map(tag => (
-                <Text key={tag.id} style={styles.hashTag}>
-                  #{tag.hashtag}
-                </Text>
-              ))}
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>MBTI</Text>
-              <Text style={styles.infoValue}>{item.mbti}</Text>
-            </View>
-
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>경력</Text>
-              <Text style={styles.infoValue}>
-                {item.workExperience
-                  .map(w => `${w.companyName}(${w.workType})`)
-                  .join(', ')}
-              </Text>
-            </View>
-
-            <Text style={styles.careerYears}>{item.totalExperience}</Text>
-          </View>
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
-
   return (
     <SafeAreaView style={styles.container}>
       <Header title="지원자 조회" />
-      {renderFilterButtons()}
+      <Filter
+        selectedFilter={selectedFilter}
+        setSelectedFilter={setSelectedFilter}
+      />
+      <View style={{zIndex: 1000}}>
+        <DropDownPicker
+          open={guesthouseOpen}
+          value={selectedGuesthouse}
+          items={guesthouseList}
+          setOpen={setGuesthouseOpen}
+          setValue={callback => {
+            const value = callback();
+            handleSelectedGuesthouse(value);
+          }}
+          setItems={setGuesthouseList}
+          zIndex={1000}
+          zIndexInverse={3000}
+          listMode="SCROLLVIEW"
+        />
+      </View>
       <ScrollView style={styles.scrollView}>
         <FlatList
           data={filteredApplicants}
-          renderItem={renderApplicantItem}
-          keyExtractor={item => item.resumeId.toString()}
+          renderItem={({item}) => (
+            <ApplicantItem
+              item={item}
+              handleApplicantPress={handleApplicantPress}
+            />
+          )}
+          keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
           ItemSeparatorComponent={() => <View style={styles.separator} />}
         />

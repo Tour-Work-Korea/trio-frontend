@@ -61,8 +61,8 @@ const applicantData = {
 
 const ApplicantDetail = () => {
   const route = useRoute();
-  const resumeId = route.params?.resumeId ?? null;
-  const [applicant, setApplicant] = useState(applicantData);
+  const resumeId = route.params ?? null;
+  const [applicant, setApplicant] = useState();
   const formattedExperiences = applicant.workExperience.map((exp, index) => ({
     id: String(index + 1),
     period: `${exp.startDate} - ${exp.endDate}`,
@@ -81,7 +81,7 @@ const ApplicantDetail = () => {
         Alert('지원서 상세 조회에 실패했습니다.');
       }
     };
-    // fetchApplicantById();
+    fetchApplicantById();
   }, []);
 
   return (
