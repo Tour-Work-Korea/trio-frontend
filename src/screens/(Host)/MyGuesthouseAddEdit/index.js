@@ -31,113 +31,99 @@ import {
   tags,
 } from '@data/guesthouseOptions';
 
-const MyGuesthouseAddEdit = () => {
+const MyGuesthouseAddEdit = ({ route }) => {
+  const { guesthouseId, guesthouseDetail } = route.params || {};
   const navigation = useNavigation();
+  const [name, setName] = useState(guesthouseDetail?.guesthouseName || '');
+  const [address, setAddress] = useState(guesthouseDetail?.guesthouseAddress || '');
+  const [phone, setPhone] = useState(guesthouseDetail?.guesthousePhone || '');
+  const [shortIntro, setShortIntro] = useState(guesthouseDetail?.guesthouseShortIntro || '');
+  const [longDesc, setLongDesc] = useState(guesthouseDetail?.guesthouseLongDesc || '');
   const [images, setImages] = useState([]);
   const [selectedPublic, setSelectedPublic] = useState([]);
   const [selectedRoom, setSelectedRoom] = useState([]);
   const [selectedServices, setSelectedServices] = useState([]);
-  const [selectedTags, setSelectedTags] = useState([]);
+  const [selectedTags, setSelectedTags] = useState(guesthouseDetail?.hashtagIds || []);
 
   const [checkInTime, setCheckInTime] = useState('오전 01:00');
   const [checkOutTime, setCheckOutTime] = useState('오후 01:00'); 
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
 
-  const route = useRoute();
-  const guesthouseId = route.params?.guesthouseId;
-
   // 게스트하우스 등록&수정
   //applicationId 받아오는 api 추가 예정
   const handleSubmit = async () => {
     // 임시 데이터
     const payload = {
-      guesthouseName: '트리오 게하',
-      guesthouseAddress: '서울시 강남구 어딘가',
-      guesthousePhone: '010-1234-5678',
-      guesthouseShortIntro: '따뜻한 분위기의 게스트하우스입니다.',
-      guesthouseLongDesc: '트리오 게스트하우스는 도심 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.',
-      applicationId: 4,
-      checkIn: '15:00:00',
-      checkOut: '11:00:00',
+      guesthouseName: "트리오 게하1",
+      guesthouseAddress: "서울시 강남구 어딘가",
+      guesthousePhone: phone,   // phone만 입력값으로 덮어씀
+      guesthouseShortIntro: "따뜻한 분위기의 게스트하우스입니다.",
+      guesthouseLongDesc: "트리오 게스트하우스는 도심 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.",
+      checkIn: "15:00:00",
+      checkOut: "11:00:00",
       guesthouseImages: [
         {
-          guesthouseImageUrl: 'http://example.com/guesthouse1.jpg',
-          isThumbnail: true,
+          id: 26,
+          guesthouseImageUrl: "http://example.com/guesthouse1.jpg",
+          isThumbnail: true
         },
         {
-          guesthouseImageUrl: 'http://example.com/guesthouse2.jpg',
-          isThumbnail: false,
-        },
-      ],
-      roomInfos: [
-        {
-          roomName: '여성 도미토리',
-          roomType: 'FEMALE_ONLY',
-          roomCapacity: 4,
-          roomMaxCapacity: 6,
-          roomDesc: '편안한 2층 침대가 있는 여성 전용 도미토리입니다.',
-          roomPrice: 30000,
-          roomImages: [
-            {
-              roomImageUrl: 'http://example.com/room1-1.jpg',
-              isThumbnail: true,
-            },
-            {
-              roomImageUrl: 'http://example.com/room1-2.jpg',
-              isThumbnail: false,
-            },
-          ],
-          roomExtraFees: [
-            {
-              startDate: '2025-07-01',
-              endDate: '2025-07-10',
-              addPrice: 20000,
-            },
-            {
-              startDate: '2025-08-01',
-              endDate: '2025-08-15',
-              addPrice: 30000,
-            },
-          ],
-        },
-        {
-          roomName: '혼숙 도미토리',
-          roomType: 'MIXED',
-          roomCapacity: 2,
-          roomMaxCapacity: 4,
-          roomDesc: '혼숙이 가능한 객실입니다.',
-          roomPrice: 85000,
-          roomImages: [
-            {
-              roomImageUrl: 'http://example.com/room2-1.jpg',
-              isThumbnail: true,
-            },
-          ],
-          roomExtraFees: [
-            {
-              startDate: '2025-07-05',
-              endDate: '2025-07-20',
-              addPrice: 25000,
-            },
-          ],
-        },
+          id: 27,
+          guesthouseImageUrl: "http://example.com/guesthouse2.jpg",
+          isThumbnail: false
+        }
       ],
       amenities: [
         {
           amenityId: 1,
-          count: 2,
+          count: 1
         },
         {
-          amenityId: 5,
-          count: 1,
-        },
-        {
-          amenityId: 12,
-          count: 3,
-        },
+          amenityId: 3,
+          count: 2
+        }
       ],
-      hashtagIds: [1, 4, 8],
+      roomInfos: [
+        {
+          id: 28,
+          roomName: "여성 도미토리",
+          roomType: "FEMALE_ONLY",
+          roomCapacity: 4,
+          roomMaxCapacity: 6,
+          roomDesc: "편안한 2층 침대가 있는 여성 전용 도미토리입니다.",
+          roomPrice: 30000,
+          roomExtraFees: [
+            {
+              id: 29,
+              startDate: "2025-07-01",
+              endDate: "2025-07-10",
+              addPrice: 20000
+            },
+            {
+              id: 30,
+              startDate: "2025-08-01",
+              endDate: "2025-08-15",
+              addPrice: 50000
+            }
+          ],
+          roomImages: [
+            {
+              id: 29,
+              roomImageUrl: "http://example.com/room1-1.jpg",
+              isThumbnail: true
+            },
+            {
+              id: 30,
+              roomImageUrl: "http://example.com/room1-2.jpg",
+              isThumbnail: false
+            }
+          ]
+        }
+      ],
+      "hashtagIds": [
+        1, 4, 8
+      ]
     };
 
     try {
@@ -195,7 +181,12 @@ const MyGuesthouseAddEdit = () => {
         <View style={styles.devide}/>
         <View style={styles.inputContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>게스트하우스 명</Text>
-          <TextInput style={[FONTS.fs_body, styles.input]} placeholder="게스트하우스 이름을 작성해 주세요." />
+          <TextInput
+            style={[FONTS.fs_body, styles.input]}
+            placeholder="게스트하우스 이름을 작성해 주세요."
+            value={name}
+            onChangeText={setName}
+          />
         </View>
         <View style={styles.inputContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>위치</Text>
@@ -206,7 +197,12 @@ const MyGuesthouseAddEdit = () => {
         </View>
         <View style={styles.inputContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>전화번호</Text>
-          <TextInput style={[FONTS.fs_body, styles.input]} placeholder="게스트하우스에 연락할 수 있는 전화번호를 입력해 주세요." />
+          <TextInput
+            style={[FONTS.fs_body, styles.input]}
+            placeholder="게스트하우스에 연락할 수 있는 전화번호를 입력해 주세요."
+            value={phone}
+            onChangeText={setPhone}
+          />
         </View>
 
         <View style={styles.inputContainer}>
@@ -271,6 +267,8 @@ const MyGuesthouseAddEdit = () => {
             multiline
             numberOfLines={6}
             placeholder="간략하게 들어갈 게스트하우스 소개를 200자 이내로 작성해 주세요."
+            value={shortIntro}
+            onChangeText={setShortIntro}
           />
         </View>
 
@@ -289,6 +287,8 @@ const MyGuesthouseAddEdit = () => {
             multiline
             numberOfLines={6}
             placeholder="게스트하우스에 대해 소개하고 싶은 내용을 작성해 주세요."
+            value={longDesc}
+            onChangeText={setLongDesc}
           />
         </View>
       </View>

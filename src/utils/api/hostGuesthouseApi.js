@@ -36,6 +36,11 @@ const hostGuesthouseApi = {
     api.delete(`/host/reviews/${reviewId}`, {
       data: { reason }
     }),
+
+  // 사장님 입점신청서 조회
+  getHostApplications: () =>
+    api.get('/host/my/application'),
+
 };
 
 export default hostGuesthouseApi;
