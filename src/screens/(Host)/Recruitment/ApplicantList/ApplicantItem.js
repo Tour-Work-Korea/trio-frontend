@@ -4,7 +4,7 @@ import styles from './ApplicantList.styles';
 
 export default function ApplicantItem({item, handleApplicantPress}) {
   return (
-    <TouchableOpacity onPress={() => handleApplicantPress(item.resumeId)}>
+    <TouchableOpacity onPress={() => handleApplicantPress(item.id)}>
       <View style={styles.applicantCard}>
         <View style={styles.cardHeader}>
           <View style={styles.tagContainer}>

@@ -63,8 +63,8 @@ const ApplicantList = () => {
     }
   };
 
-  const handleApplicantPress = resumeId => {
-    navigation.navigate('ApplicantDetail', resumeId);
+  const handleApplicantPress = id => {
+    navigation.navigate('ApplicantDetail', id);
   };
 
   const parseYears = str => {
