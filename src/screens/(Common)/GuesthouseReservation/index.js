@@ -44,10 +44,10 @@ const GuesthouseReservation = ({ route }) => {
     // 동의 체크 등 유효성 검사 추가 예정 
     try {
       await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: '2025-05-20',
-        checkOut: '2025-05-21',
+        checkIn: '2025-09-04T15:00:00',
+        checkOut: '2025-09-05T11:00:00',
         guestCount: 1,
-        amount: roomPrice,
+        amount: 30000,
         request: '요청사항',
       });
       Alert.alert('예약이 완료되었습니다.');
