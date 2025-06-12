@@ -1,6 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, Modal, ScrollView, Dimensions } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import styles from './MyGuesthouseList.styles';
@@ -22,18 +22,21 @@ const MyGuesthouseList = () => {
   const [showAppList, setShowAppList] = useState(false);
 
   // 게스트 하우스 전체 목록 불러오기
-  useEffect(() => { 
-    const fetchGuesthouses = async () => {
-      try {
-        const response = await hostGuesthouseApi.getMyGuesthouses();
-        setGuesthouses(response.data);
-      } catch (error) {
-        console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
-      }
-    };
+  const fetchGuesthouses = async () => {
+    try {
+      const response = await hostGuesthouseApi.getMyGuesthouses();
+      setGuesthouses(response.data);
+    } catch (error) {
+      console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+    }
+  };
 
-    fetchGuesthouses();
-  }, []);
+  // ★ 화면 진입/복귀마다 호출!
+  useFocusEffect(
+    useCallback(() => {
+      fetchGuesthouses();
+    }, [])
+  );
 
   // 입점신청서 조회
   const handleRegisterPress = async () => {

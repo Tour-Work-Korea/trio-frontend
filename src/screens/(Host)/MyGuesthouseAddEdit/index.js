@@ -32,7 +32,7 @@ import {
 } from '@data/guesthouseOptions';
 
 const MyGuesthouseAddEdit = ({ route }) => {
-  const { guesthouseId, guesthouseDetail } = route.params || {};
+  const { guesthouseId, guesthouseDetail, applicationId } = route.params || {};
   const navigation = useNavigation();
   const [name, setName] = useState(guesthouseDetail?.guesthouseName || '');
   const [address, setAddress] = useState(guesthouseDetail?.guesthouseAddress || '');
@@ -51,10 +51,10 @@ const MyGuesthouseAddEdit = ({ route }) => {
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
 
   // 게스트하우스 등록&수정
-  //applicationId 받아오는 api 추가 예정
+  // 등록 안된 applicationId 받아오는 api 추가 예정
   const handleSubmit = async () => {
     // 임시 데이터
-    const payload = {
+    const payloadUpdate = {
       guesthouseName: "트리오 게하1",
       guesthouseAddress: "서울시 강남구 어딘가",
       guesthousePhone: phone,   // phone만 입력값으로 덮어씀
@@ -125,14 +125,110 @@ const MyGuesthouseAddEdit = ({ route }) => {
         1, 4, 8
       ]
     };
+    
+    const payloadAdd = {
+      guesthouseName: 'WA게하1',
+      guesthouseAddress: '제주도 어딘가',
+      guesthousePhone: '010-2223-4566',
+      guesthouseShortIntro: '편안한 게하 게하',
+      guesthouseLongDesc: '게스트하우스는 자연 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.',
+      applicationId: applicationId,
+      checkIn: '15:00:00',
+      checkOut: '11:00:00',
+      guesthouseImages: [
+        {
+          guesthouseImageUrl: 'http://example.com/guesthouse1.jpg',
+          isThumbnail: true
+        },
+        {
+          guesthouseImageUrl: 'http://example.com/guesthouse2.jpg',
+          isThumbnail: false
+        }
+      ],
+      roomInfos: [
+        {
+          roomName: '여성 도미토리',
+          roomType: 'FEMALE_ONLY',
+          roomCapacity: 4,
+          roomMaxCapacity: 6,
+          roomDesc: '편안한 2층 침대가 있는 여성 전용 도미토리입니다.',
+          roomPrice: 30000,
+          roomExtraFees: [
+            {
+              startDate: '2025-07-01',
+              endDate: '2025-07-10',
+              addPrice: 20000
+            },
+            {
+              startDate: '2025-08-01',
+              endDate: '2025-08-15',
+              addPrice: 50000
+            }
+          ],
+          roomImages: [
+            {
+              roomImageUrl: 'http://example.com/room1-1.jpg',
+              isThumbnail: true
+            },
+            {
+              roomImageUrl: 'http://example.com/room1-2.jpg',
+              isThumbnail: false
+            }
+          ]
+        },
+        {
+          roomName: '남성 도미토리',
+          roomType: 'MALE_ONLY',
+          roomCapacity: 4,
+          roomMaxCapacity: 6,
+          roomDesc: '편안한 2층 침대가 있는 남성 전용 도미토리입니다.',
+          roomPrice: 30000,
+          roomExtraFees: [
+            {
+              startDate: '2025-07-01',
+              endDate: '2025-07-10',
+              addPrice: 20000
+            },
+            {
+              startDate: '2025-08-01',
+              endDate: '2025-08-15',
+              addPrice: 50000
+            }
+          ],
+          roomImages: [
+            {
+              roomImageUrl: 'http://example.com/room2-1.jpg',
+              isThumbnail: true
+            },
+            {
+              roomImageUrl: 'http://example.com/room2-2.jpg',
+              isThumbnail: false
+            }
+          ]
+        },
+      ],
+      amenities: [
+        {
+          amenityId: 1,
+          count: 1
+        },
+        {
+          amenityId: 3,
+          count: 2
+        }
+      ],
+      hashtagIds: [
+        1, 4, 8
+      ]
+    };   
 
     try {
     let response;
     if (guesthouseId) { // 수정일 때
-      response = await hostGuesthouseApi.updateGuesthouse(guesthouseId, payload);
+      response = await hostGuesthouseApi.updateGuesthouse(guesthouseId, payloadUpdate);
       console.log('수정 성공:', response.data);
     } else { // 등록일 때
-      response = await hostGuesthouseApi.registerGuesthouse(payload);
+      response = await hostGuesthouseApi.registerGuesthouse(payloadAdd);
       console.log('등록 성공:', response.data);
     }
     navigation.goBack();
@@ -191,7 +287,7 @@ const MyGuesthouseAddEdit = ({ route }) => {
         <View style={styles.inputContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>위치</Text>
           <View style={styles.adressContainer}>
-            <Text style={[FONTS.fs_body, styles.sectionTitle]}>제주시 조천읍 함덕 16길 1-4 단독주택</Text>
+            <Text style={[FONTS.fs_body, styles.sectionTitle]}>{address}</Text>
             <ButtonScarlet title="주소 찾기" marginHorizontal="0"/>
           </View>
         </View>

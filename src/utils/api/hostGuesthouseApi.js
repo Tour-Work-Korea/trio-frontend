@@ -20,11 +20,14 @@ const hostGuesthouseApi = {
   deleteGuesthouse: guesthouseId =>
     api.delete(`/host/guesthouses/${guesthouseId}`),
 
-  // 게스트하우스 리뷰 목록 조회 
-  // (page, size, sort)
-  getGuesthouseReviews: (guesthouseId, page = 0, size = 10, sort = 'createdAt,desc') =>
-    api.get(`/guesthouses/${guesthouseId}/reviews`, {
-      params: { page, size, sort }
+  // 특정 게스트하우스 리뷰 목록 조회 
+  getGuesthouseReviews: ({ guesthouseId, page, size, sort }) =>
+    api.get(`/${guesthouseId}/reviews`, {
+      params: {
+        page,
+        size,
+        sort,
+      },
     }),
 
   // 리뷰에 대한 답글 작성
