@@ -1,38 +1,39 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
 import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile, MyGuesthouseList, MyGuesthouseDetail, MyGuesthouseAddEdit, MyGuesthouseReviewList} from '@screens';
 
-import { View, Text, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { Alert } from 'react-native';
+import useUserStore from '@stores/userStore';
 
 const Stack = createNativeStackNavigator();
 
-// 임시 화면
-const MyMainScreen = () => {
-  const navigation = useNavigation();
+// 유저인지 사장님인지에 따라 분기
+const MyMainScreen = ({ navigation }) => {
+  const userRole = useUserStore(state => state.userRole);
 
-  const goToHostMyPage = () => {
-    navigation.navigate('HostMyPage');
-  };
+  useEffect(() => {
+    if (userRole === 'HOST') {
+      navigation.replace('HostMyPage');
+    } else if (userRole === 'USER') {
+      navigation.replace('UserMyPage');
+    } else {
+      // userRole이 없거나 잘못된 값일 때 임시(나중에 로그인 페이지로 가게 수정 예정)
+      Alert.alert(
+        '로그인 필요',
+        '로그인이 필요합니다.',
+        [
+          {
+            text: '확인',
+            onPress: () => navigation.goBack(),
+          },
+        ],
+        { cancelable: false }
+      );
+    }
+  }, [userRole, navigation]);
 
-  const goToUserMyPage = () => {
-    navigation.navigate('UserMyPage');
-  };
-
-  return (
-    <View style={styles.container}>
-      <Text>나중에 로그인 추가되면 사장님인지 유저인지에 따라 다르게 가도록 설정예정</Text>
-
-      <TouchableOpacity style={styles.button} onPress={goToHostMyPage}>
-        <Text style={styles.buttonText}>사장님 마이페이지 가기</Text>
-      </TouchableOpacity>
-
-      <TouchableOpacity style={styles.button} onPress={goToUserMyPage}>
-        <Text style={styles.buttonText}>유저 마이페이지 가기</Text>
-      </TouchableOpacity>
-    </View>
-  );
+  return null;
 };
 
 const My = () => {
@@ -50,20 +51,5 @@ const My = () => {
     </Stack.Navigator>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  button: {
-    marginTop: 16,
-  },
-  buttonText: {
-    fontSize: 16,
-    color: 'blue',
-  },
-});
 
 export default My;
