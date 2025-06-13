@@ -154,7 +154,6 @@ export default StyleSheet.create({
     flexDirection: 'column',
   },
   count: {
-    width: '100%',
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_400,
   },

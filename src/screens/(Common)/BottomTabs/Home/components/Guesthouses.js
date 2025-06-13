@@ -11,24 +11,25 @@ export default function Guesthouses({guesthouses}) {
   const renderGuesthouse = ({item}) => (
     <View style={styles.guesthouseCard}>
       <Image source={item.image} style={styles.guesthouseImage} />
+      {/* <Image source={item.thumbnailImgUrl} style={styles.guesthouseImage} /> */}
       <View style={[styles.titleSection, {marginBottom: 10}]}>
         <Text
           style={styles.guesthouseTitle}
           numberOfLines={1}
           ellipsizeMode="tail">
-          {item.title}
+          {item.name}
         </Text>
         <View style={styles.seeMoreButton}>
           <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
             최저가
           </Text>
           <Text style={FONTS.fs_16_semibold}>
-            {item.price.toLocaleString()}원
+            {item.minPrice.toLocaleString()}원
           </Text>
         </View>
       </View>
       <View style={styles.seeMoreButton}>
-        {item.category.map((hashtag, idx) => (
+        {item.hashtags.map((hashtag, idx) => (
           <View style={styles.hashtagButton} key={idx}>
             <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
               #{hashtag}
