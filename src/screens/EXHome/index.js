@@ -31,7 +31,7 @@ const EXHome = () => {
         </Text>{' '}
         {/* 텍스트 크기,볼드 지정한거 사용 예시 */}
         <Text style={FONTS.fs_14_semibold}>14pt Semibold 텍스트</Text>
-        <Text style={FONTS.fs_18_bold}>18pt Bold 텍스트</Text>
+        <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
       </View>
       <ButtonScarlet
         title="일반 유저 회원가입 페이지로 이동"
