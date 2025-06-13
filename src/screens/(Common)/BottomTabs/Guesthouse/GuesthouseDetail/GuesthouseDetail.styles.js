@@ -4,193 +4,219 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    backgroundColor: COLORS.grayscale_0,
   },
   mainImage: {
     width: '100%',
-    height: 200,
+    height: 280,
   },
-  topIcons: {
+  backButton: {
     position: 'absolute',
-    top: 20,
-    right: 20,
+    left: 20,
+    top: 16,
+  },
+
+  // 이미지 제외 전체 콘텐츠
+  contentWrapper: {
+    padding: 20,
+  },
+  // 이름부터 탭들 위쪽까지
+  contentTopWrapper: {
+  },
+  
+  nameIconContainer: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
+  name: {
+    lineHeight: 28,
+  },
+  // 공유, 좋아요 아이콘 박스
+  topIcons: {
     flexDirection: 'row',
     gap: 12,
   },
-  shareIconContainer: {
-    backgroundColor: COLORS.white,
-    padding: 4,
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignContent: 'center',
-  },
-  heartIconContainer: {
-    backgroundColor: COLORS.white,
-    padding: 4,
-    borderRadius: 100,
-    justifyContent: 'center',
-    alignContent: 'center',
-  },
-  contentWrapper: {
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.white,
-  },
-  contentTopWrapper: {
-    marginTop: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.light_gray,
-  },
-  name: {
-    marginBottom: 8,
-  },
-  rowWithIcon: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: 12,
-  },
+  
   address: {
-    color: COLORS.gray,
-    flexShrink: 1,
+    marginBottom: 20,
   },
-  sectionSpacing: {
+
+  // 리뷰
+  reviewRow: {
+    alignItems: 'flex-start',
+    justifyContent: 'center',
     marginBottom: 12,
   },
-  reviewRow: {
+  reviewBox:{
+    backgroundColor: COLORS.grayscale_800,
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  ratingBox: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.yellow,
-    paddingHorizontal: 4,
+    paddingHorizontal: 10,
     paddingVertical: 2,
-    borderRadius: 15,
-    marginRight: 12,
+    alignContent: 'center',
+    justifyContent: 'center',
+    borderRadius: 100,
   },
   rating: {
+    color: COLORS.grayscale_0,
+    marginLeft: 4,
+  },
+  ratingDevide: {
+    color: COLORS.grayscale_0,
+    marginHorizontal: 2,
   },
   reviewCount: {
-    color: COLORS.gray,
+    color: COLORS.grayscale_0,
+  },
+
+  // 간단 소개글
+  shortIntroContainer: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
+    marginBottom: 20,
+  },
+  shortIntroText: {
+    color: COLORS.grayscale_700,
+  },
+  
+  // 어메너티
+  iconServiceContainer: {
+    marginBottom: 28,
   },
   iconServiceRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 24,
-    marginTop: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_100,
+    marginBottom: 4,
   },
   iconWrapper: {
     alignItems: 'center',
+    justifyContent: 'center',
   },
   iconServiceText: {
-    marginTop: 4,
+    marginTop: 12,
   },
-  dateInfoRow: {
+  readMoreText: {
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+
+  devide: {
+    backgroundColor: COLORS.grayscale_300,
+    width: '100%',
+    height: 1,
+    marginBottom: 28,
+  },
+
+  // 선택된 날짜 인원 객실
+  displayDateGuestRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 24,
-    borderWidth: 1,
-    borderRadius: 4,
-    paddingHorizontal: 8,
-    paddingVertical: 4,
+    marginBottom: 28,
+    gap: 8,
   },
   dateInfoContainer: {
     flexDirection: 'row',
+    backgroundColor: COLORS.primary_orange,
+    padding: 10,
+    borderRadius: 12,
+    width: '48%',
     alignItems: 'center',
-    gap: 4,
-    flex: 1,
+    justifyContent: 'center',
+  },
+  guestInfoContainer: {
+    flexDirection: 'row',
+    backgroundColor: COLORS.primary_orange,
+    padding: 10,
+    borderRadius: 12,
+    width: '48%',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  dateGuestText: {
+    color: COLORS.grayscale_0,
+    marginLeft: 8,
+  },
+
+  // 탭 디자인
+  tabMenuWrapper: {
+    flexDirection: 'row',
+    justifyContent: 'space-around',
+  },
+  tabButton: {
+    alignItems: 'center',
+    height: 24,
+    width: 75,
+  },
+  tabUnderline: {
+    marginTop: 4,
+    height: 1,
+    width: 75,
+    backgroundColor: COLORS.primary_blue,
+  },
+  tabTitle: {
+    color: COLORS.grayscale_800,
+    marginTop: 28,
+    marginBottom: 12,
+  },
+
+  // 방 리스트
+  roomContentWrapper: {
+
   },
   roomCard: {
     marginBottom: 12,
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 8,
+    paddingVertical: 8,
+    borderRadius: 16,
   },
   roomImage: {
     width: '100%',
     height: 160,
-    borderRadius: 5,
+    borderRadius: 8,
   },
   roomInfo: {
-    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 12,
+    marginBottom: 8,
+  },
+  roomNameDescContainer: {
   },
   roomType: {
     marginBottom: 4,
+    color: COLORS.grayscale_800,
+  },
+  checkTimeContainer: {
+    flexDirection: 'row',
+    gap: 4,
   },
   checkin: {
-    marginBottom: 4,
-    color: COLORS.gray,
+    color: COLORS.grayscale_400,
   },
   roomPrice: {
-    alignSelf: 'flex-end',
+    color: COLORS.grayscale_800,
   },
-  tabMenuWrapper: {
-  flexDirection: 'row',
-  justifyContent: 'space-around',
-  marginVertical: 16,
-  },
-  tabButton: {
-    alignItems: 'center',
-  },
-  tabUnderline: {
-    marginTop: 4,
-    height: 2,
-    width: 20,
-    backgroundColor: COLORS.primary_blue,
-  },
+  
+  // 긴 소개
   introductionContainer: {
-    backgroundColor: COLORS.white,
-    marginTop: 8,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    marginBottom: 16,
   },
-  sectionTitle: {
-    marginBottom: 12,
+  longTextContainer: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
   },
   introductionText: {
     lineHeight: 20,
+    color: COLORS.grayscale_700,
   },
-  // reviewContainer: {
-  //   backgroundColor: COLORS.white,
-  //   marginTop: 12,
-  //   paddingHorizontal: 15,
-  //   paddingVertical: 12,
-  // },
-  // devideLine: {
-  //   marginTop: 16,
-  //   height: 1,
-  //   width: '100%',
-  //   backgroundColor: COLORS.stroke_gray,
-  // },
-  // reviewCard: {
-  //   marginBottom: 16,
-  // },
-  // reviewHeader: {
-  //   flexDirection: 'row',
-  //   alignItems: 'center',
-  //   gap: 12,
-  //   marginBottom: 8,
-  // },
-  // profileImage: {
-  //   width: 40,
-  //   height: 40,
-  //   borderRadius: 20,
-  //   backgroundColor: COLORS.light_gray,
-  // },
-  // starRow: {
-  //   flexDirection: 'row',
-  //   marginTop: 4,
-  //   gap: 2,
-  // },
-  // reviewImages: {
-  //   flexDirection: 'row',
-  //   gap: 8,
-  //   marginBottom: 8,
-  // },
-  // reviewImageThumb: {
-  //   width: 100,
-  //   height: 100,
-  //   borderRadius: 5,
-  // },
 });
 
 export default styles;

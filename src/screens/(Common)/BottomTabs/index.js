@@ -74,7 +74,7 @@ const BottomTabs = () => {
 
 const styles = StyleSheet.create({
   tabBar: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     height: 60,
     paddingTop: 16,
     paddingHorizontal: 28,
