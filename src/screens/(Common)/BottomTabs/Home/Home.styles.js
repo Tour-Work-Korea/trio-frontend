@@ -1,20 +1,92 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    flexDirection: 'column',
+    backgroundColor: COLORS.grayscale_100,
+  },
+  boxContainer: {
+    marginBottom: 20,
   },
   bannerContainer: {
-    marginVertical: 15,
+    alignItems: 'center',
+    flexDirection: 'column',
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_0,
+    overflow: 'hidden',
   },
   banner: {
     alignSelf: 'center',
-    width: '90%',
-    height: 160,
+    width: '85%',
+    height: 120,
     borderRadius: 10,
+    marginHorizontal: 4,
   },
+  indicatorRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  indicatorDot: isActive => ({
+    width: 6,
+    height: 6,
+    borderRadius: 4,
+    marginHorizontal: 4,
+    backgroundColor: isActive ? COLORS.grayscale_400 : COLORS.grayscale_200,
+  }),
+
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  button: {
+    width: 60,
+    height: 90,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  buttonText: {
+    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_0,
+    textAlign: 'center',
+  },
+
+  guesthouseContainer: {
+    flexDirection: 'column',
+    paddingVertical: 12,
+    paddingLeft: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  titleSection: {
+    ...FONTS.fs_16_semibold,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    marginBottom: 10,
+  },
+  seeMoreButton: {
+    flexDirection: 'row',
+  },
+  seeMoreText: {
+    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_400,
+  },
+  seeMoreButtonImage: {
+    width: 20,
+    height: 20,
+    marginLeft: 4,
+    tintColor: COLORS.grayscale_400,
+  },
+
   bottomView: {
     backgroundColor: COLORS.white,
     borderTopLeftRadius: 15,
@@ -22,7 +94,7 @@ export default StyleSheet.create({
     ...Platform.select({
       ios: {
         shadowColor: COLORS.black,
-        shadowOffset: { width: 0, height: -2 },
+        shadowOffset: {width: 0, height: -2},
         shadowOpacity: 0.05,
         shadowRadius: 6,
       },
@@ -32,9 +104,7 @@ export default StyleSheet.create({
     }),
   },
   sectionTitle: {
-    marginTop: 24,
-    marginBottom: 4,
-    marginHorizontal: 15,
+    color: COLORS.grayscale_800,
   },
   storyList: {
     paddingHorizontal: 15,
@@ -131,5 +201,5 @@ export default StyleSheet.create({
   },
   applyButtonText: {
     color: COLORS.black,
-  },  
+  },
 });

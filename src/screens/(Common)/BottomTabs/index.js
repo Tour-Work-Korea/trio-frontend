@@ -53,11 +53,7 @@ const BottomTabs = () => {
           return (
             <View style={styles.iconWrapper}>
               <IconComponent {...iconProps} />
-              <Text
-                style={[
-                  FONTS.fs_12_medium,
-                  styles.label,
-                ]}>
+              <Text style={[FONTS.fs_12_medium, styles.label]}>
                 {route.name}
               </Text>
             </View>

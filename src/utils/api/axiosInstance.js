@@ -44,66 +44,66 @@ api.interceptors.request.use(
   error => Promise.reject(error),
 );
 
-let isRefreshing = false;
-let refreshQueue = [];
+// let isRefreshing = false;
+// let refreshQueue = [];
 
-const processQueue = (error, token) => {
-  refreshQueue.forEach(prom => {
-    if (error) prom.reject(error);
-    else prom.resolve(token);
-  });
-  refreshQueue = [];
-};
+// const processQueue = (error, token) => {
+//   refreshQueue.forEach(prom => {
+//     if (error) prom.reject(error);
+//     else prom.resolve(token);
+//   });
+//   refreshQueue = [];
+// };
 
-api.interceptors.response.use(
-  res => res,
-  async err => {
-    const originalRequest = err.config;
+// api.interceptors.response.use(
+//   res => res,
+//   async err => {
+//     const originalRequest = err.config;
 
-    if (
-      err.response &&
-      err.response.status === 403 &&
-      !originalRequest._retry
-    ) {
-      originalRequest._retry = true;
+//     if (
+//       err.response &&
+//       err.response.status === 403 &&
+//       !originalRequest._retry
+//     ) {
+//       originalRequest._retry = true;
 
-      if (isRefreshing) {
-        return new Promise((resolve, reject) => {
-          refreshQueue.push({
-            resolve: token => {
-              originalRequest.headers.Authorization = `Bearer ${token}`;
-              resolve(api(originalRequest));
-            },
-            reject,
-          });
-        });
-      }
+//       if (isRefreshing) {
+//         return new Promise((resolve, reject) => {
+//           refreshQueue.push({
+//             resolve: token => {
+//               originalRequest.headers.Authorization = `Bearer ${token}`;
+//               resolve(api(originalRequest));
+//             },
+//             reject,
+//           });
+//         });
+//       }
 
-      isRefreshing = true;
+//       isRefreshing = true;
 
-      try {
-        const success = await tryAutoLogin();
-        console.log('tryAutoLogin:', success);
-        if (!success) {
-          throw new Error('자동 로그인 실패');
-        }
+//       try {
+//         const success = await tryAutoLogin();
+//         console.log('tryAutoLogin:', success);
+//         if (!success) {
+//           throw new Error('자동 로그인 실패');
+//         }
 
-        const newToken = useUserStore.getState().accessToken;
-        processQueue(null, newToken);
+//         const newToken = useUserStore.getState().accessToken;
+//         processQueue(null, newToken);
 
-        originalRequest.headers.Authorization = `Bearer ${newToken}`;
-        return api(originalRequest);
-      } catch (refreshErr) {
-        processQueue(refreshErr, null);
-        return Promise.reject(refreshErr);
-      } finally {
-        isRefreshing = false;
-      }
-    }
+//         originalRequest.headers.Authorization = `Bearer ${newToken}`;
+//         return api(originalRequest);
+//       } catch (refreshErr) {
+//         processQueue(refreshErr, null);
+//         return Promise.reject(refreshErr);
+//       } finally {
+//         isRefreshing = false;
+//       }
+//     }
 
-    return Promise.reject(err);
-  },
-);
+//     return Promise.reject(err);
+//   },
+// );
 
 // 응답 로깅
 api.interceptors.response.use(
