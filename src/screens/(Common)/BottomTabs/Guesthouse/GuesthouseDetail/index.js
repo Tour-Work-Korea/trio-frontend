@@ -11,11 +11,11 @@ import {useNavigation} from '@react-navigation/native';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
-import {rooms, reviews} from './mockData';
 import { COLORS } from '@constants/colors';
 import Header from '@components/Header';
 import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 
 import ThinEmptyHeart from '@assets/images/Empty_Heart.svg';
 import ShareIcon from '@assets/images/Share.svg';
@@ -245,45 +245,11 @@ const GuesthouseDetail = ({route}) => {
         )}
 
         {activeTab === '리뷰' && (
-          <View style={styles.reviewContainer}>
-            <View style={styles.reviewRow}>
-              <View style={styles.ratingBox}>
-                <Star width={20} height={20} />
-                <Text style={[FONTS.fs_h2_bold, styles.rating]}>3.7</Text>
-              </View>
-              <Text style={[FONTS.fs_h2, styles.reviewCount]}>226개 리뷰</Text>
-            </View>
-            {reviews.map((review, index) => (
-              <View key={review.id} style={styles.reviewCard}>
-                <View style={styles.reviewHeader}>
-                  <Image
-                    source={require('@assets/images/exphoto.jpeg')}
-                    style={styles.profileImage}
-                  />
-                  <View>
-                    <Text style={FONTS.fs_body_bold}>{review.name}</Text>
-                    <View style={styles.starRow}>
-                      {Array(review.rating)
-                        .fill()
-                        .map((_, i) => (
-                          <YellowStar key={i} width={16} height={16} />
-                        ))}
-                    </View>
-                  </View>
-                </View>
-
-                <View style={styles.reviewImages}>
-                  {review.images.map((img, i) => (
-                    <Image key={i} source={img} style={styles.reviewImageThumb} />
-                  ))}
-                </View>
-                <Text style={FONTS.fs_body}>{review.comment}</Text>
-                {index !== reviews.length - 1 && (
-                  <View style={styles.devideLine} />
-                )}
-              </View>
-            ))}
-          </View>
+          <
+            GuesthouseReview guesthouseId={id}
+            averageRating={detail.averageRating}
+            totalCount={50} // 일단 임시로 50
+          />
         )}
 
       </View>

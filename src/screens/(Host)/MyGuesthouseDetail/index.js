@@ -7,12 +7,11 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import styles from './MyGuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
-import { rooms } from './mockData';
 import Header from '@components/Header';
 import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -46,18 +45,20 @@ const MyGuesthouseDetail = ({ route }) => {
   const [guesthouseData, setGuesthouseData] = useState(null);
 
   // 게스트하우스 상세 정보 요청
-  useEffect(() => {
-    const fetchGuesthouseDetail = async () => {
-      try {
-        const response = await hostGuesthouseApi.getGuesthouseDetail(id);
-        setGuesthouseData(response.data);
-      } catch (error) {
-        console.error('게스트하우스 상세 조회 실패:', error);
-      }
-    };
-
-    fetchGuesthouseDetail();
-  }, [id]);
+  useFocusEffect(
+    React.useCallback(() => {
+      // 화면에 진입할 때마다 실행
+      const fetchGuesthouseDetail = async () => {
+        try {
+          const response = await hostGuesthouseApi.getGuesthouseDetail(id);
+          setGuesthouseData(response.data);
+        } catch (error) {
+          console.error('게스트하우스 상세 조회 실패:', error);
+        }
+      };
+      fetchGuesthouseDetail();
+    }, [id])
+  );
 
   if (!guesthouseData) return <Text>로딩 중...</Text>;
   
@@ -166,7 +167,12 @@ const MyGuesthouseDetail = ({ route }) => {
               <ButtonWhite
                 title="수정하기"
                 marginHorizontal="0"
-                onPress={() => navigation.navigate('MyGuesthouseAddEdit', { guesthouseId: id })}
+                onPress={() =>
+                  navigation.navigate('MyGuesthouseAddEdit', {
+                    guesthouseId: id,
+                    guesthouseDetail: guesthouseData, // 전체 상세 정보 통째로 전달
+                  })
+                }
               />
             </View>
             <View style={styles.halfButtonWrapper}>

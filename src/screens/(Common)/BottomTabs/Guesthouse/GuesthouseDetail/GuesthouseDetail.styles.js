@@ -149,48 +149,48 @@ const styles = StyleSheet.create({
   introductionText: {
     lineHeight: 20,
   },
-  reviewContainer: {
-    backgroundColor: COLORS.white,
-    marginTop: 12,
-    paddingHorizontal: 15,
-    paddingVertical: 12,
-  },
-  devideLine: {
-    marginTop: 16,
-    height: 1,
-    width: '100%',
-    backgroundColor: COLORS.stroke_gray,
-  },
-  reviewCard: {
-    marginBottom: 16,
-  },
-  reviewHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    marginBottom: 8,
-  },
-  profileImage: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: COLORS.light_gray,
-  },
-  starRow: {
-    flexDirection: 'row',
-    marginTop: 4,
-    gap: 2,
-  },
-  reviewImages: {
-    flexDirection: 'row',
-    gap: 8,
-    marginBottom: 8,
-  },
-  reviewImageThumb: {
-    width: 100,
-    height: 100,
-    borderRadius: 5,
-  },
+  // reviewContainer: {
+  //   backgroundColor: COLORS.white,
+  //   marginTop: 12,
+  //   paddingHorizontal: 15,
+  //   paddingVertical: 12,
+  // },
+  // devideLine: {
+  //   marginTop: 16,
+  //   height: 1,
+  //   width: '100%',
+  //   backgroundColor: COLORS.stroke_gray,
+  // },
+  // reviewCard: {
+  //   marginBottom: 16,
+  // },
+  // reviewHeader: {
+  //   flexDirection: 'row',
+  //   alignItems: 'center',
+  //   gap: 12,
+  //   marginBottom: 8,
+  // },
+  // profileImage: {
+  //   width: 40,
+  //   height: 40,
+  //   borderRadius: 20,
+  //   backgroundColor: COLORS.light_gray,
+  // },
+  // starRow: {
+  //   flexDirection: 'row',
+  //   marginTop: 4,
+  //   gap: 2,
+  // },
+  // reviewImages: {
+  //   flexDirection: 'row',
+  //   gap: 8,
+  //   marginBottom: 8,
+  // },
+  // reviewImageThumb: {
+  //   width: 100,
+  //   height: 100,
+  //   borderRadius: 5,
+  // },
 });
 
 export default styles;

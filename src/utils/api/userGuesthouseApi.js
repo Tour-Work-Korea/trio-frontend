@@ -28,6 +28,16 @@ const userGuesthouseApi = {
   reserveRoom: (roomId, body) =>
     api.post(`/order/reservation/room/${roomId}`, body),
 
+  // 특정 게스트하우스의 리뷰 조회
+  getGuesthouseReviews: ({ guesthouseId, page, size, sort }) =>
+    api.get(`/${guesthouseId}/reviews`, {
+      params: {
+        page,
+        size,
+        sort,
+      },
+    }),
+
 };
 
 export default userGuesthouseApi;
