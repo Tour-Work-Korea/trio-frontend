@@ -17,7 +17,7 @@ const App = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.bb} />
+      <StatusBar barStyle="light-content" backgroundColor={COLORS.grayscale_0} />
       <RootNavigation />
     </SafeAreaView>
   );
@@ -26,7 +26,7 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
 });
 

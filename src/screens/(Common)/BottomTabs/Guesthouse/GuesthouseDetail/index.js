@@ -12,23 +12,24 @@ import {useNavigation} from '@react-navigation/native';
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
 import { COLORS } from '@constants/colors';
-import Header from '@components/Header';
 import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 
-import ThinEmptyHeart from '@assets/images/Empty_Heart.svg';
-import ShareIcon from '@assets/images/Share.svg';
+import EmptyHeart from '@assets/images/heart_empty.svg';
+import FilledHeart from '@assets/images/heart_filled.svg';
+import LeftArrow from '@assets/images/chevron_left_white.svg';
+import ShareIcon from '@assets/images/share_gray.svg';
 import LocationPin from '@assets/images/Gray_Location_Pin.svg';
-import Star from '@assets/images/Star.svg';
+import Star from '@assets/images/star_white.svg';
+import CalendarIcon from '@assets/images/calendar_white.svg';
+import PersonIcon from '@assets/images/person20_white.svg';
+
 import WifiIcon from '@assets/images/wifi_black.svg';
 import PetFriendlyIcon from '@assets/images/pet_friendly_black.svg';
 import LuggageIcon from '@assets/images/luggage_storage_black.svg';
 import LoungeIcon from '@assets/images/shared_lounge_black.svg';
 import ParkingIcon from '@assets/images/free_parking_black.svg';
-import CalendarIcon from '@assets/images/Calendar.svg';
-import PersonIcon from '@assets/images/Person.svg';
-import YellowStar from '@assets/images/Yellow_Star.svg';
 
 const serviceIcons = [
   {icon: WifiIcon, label: '무선인터넷'},
@@ -47,6 +48,8 @@ const GuesthouseDetail = ({route}) => {
   const [detail, setDetail] = useState(null);
 
   const [modalVisible, setModalVisible] = useState(false);
+
+  const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
@@ -77,154 +80,170 @@ const GuesthouseDetail = ({route}) => {
 
   return (
     <ScrollView style={styles.container}>
-      <Header title="게스트하우스 목록" />
-
       <View>
-        <View>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={styles.mainImage}
-          />
-          {/* 실제 이미지 데이터 사용할 때 */}
-          {/* <Image
-            source={{ uri: detail.guesthouseImageUrl }}
-            style={styles.image}
-          /> */}
+        <Image
+          source={require('@assets/images/exphoto.jpeg')}
+          style={styles.mainImage}
+        />
+        {/* 실제 이미지 데이터 사용할 때 */}
+        {/* <Image
+          source={{ uri: detail.guesthouseImageUrl }}
+          style={styles.mainImage}
+        /> */}
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <LeftArrow width={28} height={28}/>
+        </TouchableOpacity>
+      </View>
+
+    <View style={styles.contentWrapper}>
+      <View style={styles.contentTopWrapper}>
+        <View style={styles.nameIconContainer}>
+          <Text style={[FONTS.fs_20_semibold, styles.name]}>
+            {detail.guesthouseName}
+          </Text>
           <View style={styles.topIcons}>
-            <View style={styles.shareIconContainer}>
-              <ShareIcon width={16} height={16} />
-            </View>
-            <View style={styles.heartIconContainer}>
-              <ThinEmptyHeart width={16} height={16} />
-            </View>
+            <TouchableOpacity>
+              <ShareIcon width={20} height={20} />
+            </TouchableOpacity>
+            <TouchableOpacity>
+              <EmptyHeart width={20} height={20} />
+            </TouchableOpacity>
           </View>
         </View>
 
-        <View style={styles.contentWrapper}>
-          <View style={styles.contentTopWrapper}>
-            <Text style={[FONTS.fs_h1_bold, styles.name]}>
-              {detail.guesthouseName}
+        <Text style={[FONTS.fs_14_regular, styles.address]}>
+          {detail.guesthouseAddress}
+        </Text>
+
+        <View style={styles.reviewRow}>
+          <View style={styles.reviewBox}>
+            <Star width={14} height={14} />
+            <Text style={[FONTS.fs_12_medium, styles.rating]}>
+              {detail.averageRating?.toFixed(1) ?? '0.0'}
             </Text>
-            <View style={styles.rowWithIcon}>
-              <LocationPin width={16} height={16} />
-              <Text style={[FONTS.fs_body, styles.address]}>
-                {detail.guesthouseAddress}
-              </Text>
-            </View>
+            <Text style={styles.ratingDevide}>·</Text>
+            <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+              226 리뷰
+            </Text>
+          </View>
+        </View>
 
-            <View style={styles.sectionSpacing}>
-              <Text style={FONTS.fs_body}>간단 소개글</Text>
-              <Text style={FONTS.fs_body}>
-                {detail.guesthouseShortIntro}
-              </Text>
-            </View>
+        <View style={styles.shortIntroContainer}>
+          <Text style={[FONTS.fs_14_regular, styles.shortIntroText]}>
+            {detail.guesthouseShortIntro}
+          </Text>
+        </View>
 
-            <View style={styles.reviewRow}>
-              <View style={styles.ratingBox}>
-                <Star width={16} height={16} />
-                <Text style={[FONTS.fs_body, styles.rating]}>
-                  {detail.averageRating?.toFixed(1) ?? '0.0'}
+        <View style={styles.iconServiceContainer}>
+          <View style={styles.iconServiceRow}>
+            {serviceIcons.map(({icon: Icon, label}, i) => (
+              <View key={i} style={styles.iconWrapper}>
+                <Icon width={24} height={24} />
+                <Text style={[FONTS.fs_12_medium, styles.iconServiceText]}>
+                  {label}
                 </Text>
               </View>
-              {/* <Text style={[FONTS.fs_body, styles.reviewCount]}>
-                226 reviews
-              </Text> */}
-            </View>
-          </View>
-
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <View style={styles.iconServiceRow}>
-              {serviceIcons.map(({icon: Icon, label}, i) => (
-                <View key={i} style={styles.iconWrapper}>
-                  <Icon width={24} height={24} />
-                  <Text style={[FONTS.fs_body, styles.iconServiceText]}>
-                    {label}
-                  </Text>
-                </View>
-              ))}
-            </View>
-          </TouchableOpacity>
-
-          <View style={styles.dateInfoRow}>
-            <View style={styles.dateInfoContainer}>
-              <CalendarIcon width={20} height={20} />
-              <Text style={FONTS.fs_body_bold}>3.28 금 - 3.29 토</Text>
-            </View>
-            <View style={styles.dateInfoContainer}>
-              <PersonIcon width={18} height={18} style={{marginLeft: 16}} />
-              <Text style={FONTS.fs_body_bold}>인원 1, 객실 1</Text>
-            </View>
-          </View>
-
-          {/* 탭 메뉴 */}
-          <View style={styles.tabMenuWrapper}>
-            {TAB_OPTIONS.map(tab => (
-              <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
-                <View style={styles.tabButton}>
-                  <Text
-                    style={[
-                      FONTS.fs_14_semibold,
-                      { color: activeTab === tab ? COLORS.primary_blue : COLORS.black },
-                    ]}>
-                    {tab}
-                  </Text>
-                  {activeTab === tab && <View style={styles.tabUnderline} />}
-                </View>
-              </TouchableOpacity>
             ))}
           </View>
+          <TouchableOpacity onPress={() => setModalVisible(true)}>
+            <Text style={[FONTS.fs_12_medium, styles.readMoreText]}>더보기</Text>
+          </TouchableOpacity>
         </View>
 
-        {activeTab === '객실' && (
-          <View style={styles.contentWrapper}>
-            {detail.roomInfos?.map(room => (
-            <TouchableOpacity
-              key={room.id}
-              onPress={() =>
-                navigation.navigate('RoomDetail', {
-                  roomId: room.id,
-                  roomName: room.roomName,
-                  roomPrice: room.roomPrice,
-                  roomDesc: room.roomDesc,
-                  guesthouseName: detail.guesthouseName,
-                  checkIn: detail.checkIn,
-                  checkOut: detail.checkOut,
-                })
-              }>
-              <View style={styles.roomCard}>
-                <Image source={require('@assets/images/exphoto.jpeg')} style={styles.roomImage} />
-                <View style={styles.roomInfo}>
-                  <Text style={[FONTS.fs_h1_bold, styles.roomType]}>
+        <View style={styles.devide}/>
+
+        <View style={styles.displayDateGuestRow}>
+          <View style={styles.dateInfoContainer}>
+            <CalendarIcon width={20} height={20} />
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>3.28 금 - 3.29 토</Text>
+          </View>
+          <View style={styles.guestInfoContainer}>
+            <PersonIcon width={20} height={20} />
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>인원 1, 객실 1</Text>
+          </View>
+        </View>
+      </View>
+
+      {/* 탭 메뉴 */}
+      <View style={styles.tabMenuWrapper}>
+        {TAB_OPTIONS.map(tab => (
+          <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+            <View style={styles.tabButton}>
+              <Text
+                style={[
+                  FONTS.fs_14_semibold,
+                  { color: activeTab === tab ? COLORS.primary_blue : COLORS.grayscale_800 },
+                ]}>
+                {tab}
+              </Text>
+              {activeTab === tab && <View style={styles.tabUnderline} />}
+            </View>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {activeTab === '객실' && (
+        <View style={styles.roomContentWrapper}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
+          {detail.roomInfos?.map(room => (
+          <TouchableOpacity
+            key={room.id}
+            onPress={() =>
+              navigation.navigate('RoomDetail', {
+                roomId: room.id,
+                roomName: room.roomName,
+                roomPrice: room.roomPrice,
+                roomDesc: room.roomDesc,
+                guesthouseName: detail.guesthouseName,
+                checkIn: detail.checkIn,
+                checkOut: detail.checkOut,
+              })
+            }>
+            <View style={styles.roomCard}>
+              <Image source={require('@assets/images/exphoto.jpeg')} style={styles.roomImage} />
+              <View style={styles.roomInfo}>
+                <View style={styles.roomNameDescContainer}>
+                  <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
                     {room.roomName}
                   </Text>
-                  <Text style={[FONTS.fs_body, styles.checkin]}>
-                    {room.roomDesc}
-                  </Text>
-                  <Text style={[FONTS.fs_h2_bold, styles.roomPrice]}>
-                    {room.roomPrice?.toLocaleString()}원
-                  </Text>
+                  <View style={styles.checkTimeContainer}>
+                    <Text style={[FONTS.fs_12_medium, styles.checkin]}>
+                      입실 {formatTime(detail.checkIn)}
+                    </Text>
+                    <Text style={[FONTS.fs_12_medium, styles.checkin]}>
+                      퇴실 {formatTime(detail.checkOut)}
+                    </Text>
+                  </View>
                 </View>
+                <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
+                  {room.roomPrice?.toLocaleString()}원
+                </Text>
               </View>
-            </TouchableOpacity>
-            ))}
-          </View>
-        )}
+            </View>
+          </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
-        {activeTab === '소개' && (
-          <View style={styles.introductionContainer}>
-            <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>숙소 소개</Text>
-            <Text style={[FONTS.fs_body, styles.introductionText]}>
+      {activeTab === '소개' && (
+        <View style={styles.introductionContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>소개</Text>
+          <View style={styles.longTextContainer}>
+            <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
               {detail.guesthouseLongDesc}
             </Text>
           </View>
-        )}
+        </View>
+      )}
 
-        {activeTab === '이용규칙' && (
-          <View style={styles.introductionContainer}>
-            <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>
-              숙소 이용규칙
-            </Text>
-            <Text style={[FONTS.fs_body, styles.introductionText]}>
+      {activeTab === '이용규칙' && (
+        <View style={styles.introductionContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>이용 규칙</Text>
+          <View style={styles.longTextContainer}>
+            <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
               숙소 이용 규칙 {'\n'}
               -전 객실 금연 (금연건물로 흡연 시 미환불 강제퇴실) {'\n'}
               -흡연은 옥상과 테라스에서만 가능 {'\n'}
@@ -242,17 +261,19 @@ const GuesthouseDetail = ({route}) => {
               확인 사항 및 기타 {'\n'}• 시즌별 객실 가격 상이하오니 확인바랍니다
             </Text>
           </View>
-        )}
+          
+        </View>
+      )}
 
-        {activeTab === '리뷰' && (
-          <
-            GuesthouseReview guesthouseId={id}
-            averageRating={detail.averageRating}
-            totalCount={50} // 일단 임시로 50
-          />
-        )}
-
-      </View>
+      {activeTab === '리뷰' && (
+        <
+          GuesthouseReview guesthouseId={id}
+          averageRating={detail.averageRating}
+          totalCount={50} // 일단 임시로 50
+        />
+      )}
+    </View>
+      
       <ServiceInfoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
