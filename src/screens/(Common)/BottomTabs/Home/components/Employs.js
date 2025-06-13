@@ -71,7 +71,7 @@ export default function Employs({jobs, setEmployList}) {
 
           {/* 아래쪽: 주소 */}
           <View style={[styles.seeMoreButton, FONTS.fs_12_medium]}>
-            <Text style={{marginRight: 12}}>{item.period}</Text>
+            <Text style={{marginRight: 12}}>{item.workDate}</Text>
             <Text numberOfLines={1} ellipsizeMode="tail">
               {item.address}
             </Text>
