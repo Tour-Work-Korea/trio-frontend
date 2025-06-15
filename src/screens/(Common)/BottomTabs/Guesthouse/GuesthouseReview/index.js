@@ -1,8 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
-import { FONTS } from '@constants/fonts';
-import Star from '@assets/images/Star.svg';
-import YellowStar from '@assets/images/Yellow_Star.svg';
+
+import styles from './GuesthouseReview.styles';
+import {FONTS} from '@constants/fonts';
+import { COLORS } from '@constants/colors';
+
+import Star from '@assets/images/star_white.svg';
+
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
 const PAGE_SIZE = 10;

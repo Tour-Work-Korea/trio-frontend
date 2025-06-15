@@ -20,7 +20,6 @@ import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_gray.svg';
-import LocationPin from '@assets/images/Gray_Location_Pin.svg';
 import Star from '@assets/images/star_white.svg';
 import CalendarIcon from '@assets/images/calendar_white.svg';
 import PersonIcon from '@assets/images/person20_white.svg';
