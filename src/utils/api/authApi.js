@@ -30,6 +30,12 @@ const authApi = {
   //로그인
   login: (email, password) =>
     api.post('/auth/login', {email, password}, {withAuth: false}),
+
+  //토큰 재발급
+  refreshToken: () =>
+    api.post('/auth/refresh', null, {
+      withCredentials: true,
+    }),
 };
 
 export default authApi;
