@@ -22,19 +22,36 @@ export const tryLogin = async (email, password, userRole) => {
     const res = await authApi.login(email, password);
     const authorizationHeader = res.headers?.authorization;
     const accessToken = authorizationHeader?.replace('Bearer ', '');
+    let refreshToken;
+
+    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+    if (rawCookies && rawCookies.length > 0) {
+      const cookie = rawCookies[0];
+      const match = cookie.match(/refreshToken=([^;]+);?/);
+
+      if (match) {
+        refreshToken = match[1];
+      }
+    }
 
     if (!accessToken) {
-      throw new Error('토큰 없음');
+      throw new Error('accessToken 없음');
+    }
+    if (!refreshToken) {
+      throw new Error('refreshToken 없음');
     }
 
     const {setTokens, setUserRole} = useUserStore.getState();
-    setTokens({accessToken, refreshToken: null});
+    setTokens({accessToken, refreshToken});
     setUserRole(userRole);
 
     await EncryptedStorage.setItem(
       'user-credentials',
       JSON.stringify({email, password, userRole}),
     );
+
+    console.log('accessToken: ', accessToken);
+    console.log('refreshToken: ', refreshToken);
 
     return true; // 성공
   } catch (err) {
