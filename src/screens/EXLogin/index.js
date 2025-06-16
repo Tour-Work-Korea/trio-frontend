@@ -10,65 +10,15 @@ import {
 import {COLORS} from '@constants/colors';
 import {useNavigation} from '@react-navigation/native';
 import {tryLogin} from '@utils/auth/login';
-import authApi from '@utils/api/authApi';
+import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
-import api from '@utils/api/axiosInstance';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
-
-  const handleRefreshToken = async () => {
-    console.log('[Auth] 🎯 Token refresh start');
-    try {
-      //refreshToken 쿠키로 /auth/refresh 호출
-      console.log('[Auth] ▶️ Calling authApi.refreshToken()');
-      const res = await authApi.refreshToken();
-      console.log('[Auth] ✅ refreshToken response received', res);
-
-      const accessToken = res.data.accessToken;
-      let refreshToken;
-      const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-      if (rawCookies && rawCookies.length > 0) {
-        const cookie = rawCookies[0];
-        const match = cookie.match(/refreshToken=([^;]+);?/);
-        if (match) {
-          refreshToken = match[1];
-        }
-      }
-      console.log('[Auth] 🔐 New tokens:', {
-        accessToken: accessToken?.slice(0, 10) + '…',
-        refreshToken,
-      });
-      useUserStore.getState().setTokens({accessToken, refreshToken});
-      api.defaults.headers.Authorization = `Bearer ${accessToken}`;
-
-      console.log(
-        '[Auth] 📡 Updated axios default header with new accessToken',
-      );
-      //대기 중이던 요청들에 토큰 전달 및 재시도
-      console.log('[Auth] 📝 Resolved pending requests queue with new token');
-
-      //원래 요청에 새 토큰 붙여서 다시 호출
-      console.log('[Auth] 🔁 Retrying original request');
-    } catch (error) {
-      console.error('[Auth] ❌ refreshToken failed or expired', error);
-
-      console.log('[Auth] 🚫 Cleared pending requests queue with error');
-
-      useUserStore.getState().clearUser();
-      console.log('[Auth] 👤 Cleared user state (logged out)');
-
-      // navigation.replace('Login');
-      console.log('[Auth] 🔄 Redirect to Login suggested');
-
-      return Promise.reject(error);
-    } finally {
-      console.log('[Auth] 🔁 isRefreshing flag set to false');
-    }
-  };
+  const setUserProfile = useUserStore(state => state.setUserProfile);
 
   const handleLogin = role => {
     tryLogin(email, password, role);
@@ -84,8 +34,28 @@ const EXLogin = () => {
       'HOST',
     );
   };
-  const handleUserLogin = () => {
-    tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
+
+  const handleUserLogin = async () => {
+    try {
+      await tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
+
+      const res = await userMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+
+      setUserProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        mbti: mbti ?? '',
+        instagramId: instagramId ?? '',
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.warn('자동 유저 로그인 실패:', error);
+    }
   };
 
   return (
@@ -129,9 +99,6 @@ const EXLogin = () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleUserLogin}>
         <Text style={styles.buttonText}>유저 자동 로그인하기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity style={styles.button} onPress={handleRefreshToken}>
-        <Text style={styles.buttonText}>토큰 재발급 로직 확안</Text>
       </TouchableOpacity>
     </View>
   );

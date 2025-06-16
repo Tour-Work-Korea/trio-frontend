@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
 import PlusIcon from '@assets/images/plus.svg';
@@ -12,6 +12,17 @@ import { FONTS } from '@constants/fonts';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { userInfo } = route.params;
+
+  // 유저 데이터 (사진은 추후에 추가)
+  const [user, setUser] = useState({
+    name: userInfo?.name || '',
+    phone: userInfo?.phone || '',
+    email: userInfo?.email || '',
+    mbti: userInfo?.mbti || '',
+    instagramId: userInfo?.instagramId || '',
+  });
   
   const goToEditProfile = (field, label, value) => {
     navigation.navigate('EditProfileFieldScreen', {
@@ -37,8 +48,8 @@ const UserEditProfile = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.nameButton} onPress={() => goToEditProfile('name', '이름', '김이지')}>
-            <Text style={[FONTS.fs_h2_bold, styles.nameText]}>김이지</Text>
+          <TouchableOpacity style={styles.nameButton} onPress={() => goToEditProfile('name', '이름', user.name)}>
+            <Text style={[FONTS.fs_h2_bold, styles.nameText]}>{user.name}</Text>
             <RightArrow width={20} height={20} />
           </TouchableOpacity>
         </View>
@@ -47,23 +58,23 @@ const UserEditProfile = () => {
         <View style={styles.infoContainer}>
           <InfoItem
             label="휴대폰 번호"
-            value="010-0000-0000"
-            onPress={() => goToEditProfile('phone', '휴대폰 번호', '010-0000-0000')}
+            value={user.phone}
+            onPress={() => goToEditProfile('phone', '휴대폰 번호', user.phone)}
           />
           <InfoItem
             label="이메일 주소"
-            value="1234@gmail.com"
-            onPress={() => goToEditProfile('email', '이메일 주소', '1234@gmail.com')}
+            value={user.email}
+            onPress={() => goToEditProfile('email', '이메일 주소', user.email)}
           />
           <InfoItem
             label="MBTI"
-            value="ISTJ"
-            onPress={() => goToEditProfile('mbti', 'MBTI', 'ISTJ')}
+            value={user.mbti}
+            onPress={() => goToEditProfile('mbti', 'MBTI', user.mbti)}
           />
           <InfoItem
             label="인스타"
-            value="@daaii"
-            onPress={() => goToEditProfile('insta', '인스타', '@daaii')}
+            value={user.instagramId}
+            onPress={() => goToEditProfile('insta', '인스타', user.instagramId)}
           />
         </View>
 

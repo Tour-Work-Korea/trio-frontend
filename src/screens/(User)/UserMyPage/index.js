@@ -16,18 +16,18 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
+import useUserStore from '@stores/userStore';
 
 const UserMyPage = () => {
-  // 가짜 유저 데이터 (사진 없음)
-  const user = {
-    name: '김이지',
-    profileImage: null,
-  };
-
   const navigation = useNavigation();
+  
+  // 저장된 유저 프로필 호출
+  const user = useUserStore(state => state.userProfile);
 
   const goToEditProfile = () => {
-    navigation.navigate('UserEditProfile');
+    navigation.navigate('UserEditProfile', {
+      userInfo: user,
+    });
   };
 
   return (

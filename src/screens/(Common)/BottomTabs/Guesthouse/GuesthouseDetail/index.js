@@ -20,7 +20,6 @@ import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_gray.svg';
-import LocationPin from '@assets/images/Gray_Location_Pin.svg';
 import Star from '@assets/images/star_white.svg';
 import CalendarIcon from '@assets/images/calendar_white.svg';
 import PersonIcon from '@assets/images/person20_white.svg';
@@ -46,6 +45,7 @@ const GuesthouseDetail = ({route}) => {
   const {id} = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
+  const [isFavorite, setIsFavorite] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
 
@@ -62,12 +62,27 @@ const GuesthouseDetail = ({route}) => {
           guestCount: 2,              // 임시값
         });
         setDetail(response.data);
+        setIsFavorite(response.data.isFavorite ?? false);
       } catch (e) {
         console.warn('게스트하우스 상세 조회 실패', e);
       }
     };
     fetchDetail();
   }, [id]);
+
+  // 게하 좋아요, 좋아요 취소
+  const toggleFavorite = async () => {
+    try {
+      if (isFavorite) {
+        await userGuesthouseApi.unfavoriteGuesthouse(id);
+      } else {
+        await userGuesthouseApi.favoriteGuesthouse(id);
+      }
+      setIsFavorite(prev => !prev); // 상태 토글
+    } catch (error) {
+      console.warn('좋아요 토글 실패', error);
+    }
+  };
 
   // 로딩처리 or 데이터 없을 때 예외처리
   if (!detail) {
@@ -108,8 +123,12 @@ const GuesthouseDetail = ({route}) => {
             <TouchableOpacity>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
-            <TouchableOpacity>
-              <EmptyHeart width={20} height={20} />
+            <TouchableOpacity onPress={toggleFavorite}>
+              {isFavorite ? (
+                <FilledHeart width={20} height={20} />
+              ) : (
+                <EmptyHeart width={20} height={20} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
@@ -126,7 +145,7 @@ const GuesthouseDetail = ({route}) => {
             </Text>
             <Text style={styles.ratingDevide}>·</Text>
             <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-              226 리뷰
+              {detail.reviewCount} 리뷰
             </Text>
           </View>
         </View>
@@ -266,11 +285,28 @@ const GuesthouseDetail = ({route}) => {
       )}
 
       {activeTab === '리뷰' && (
-        <
-          GuesthouseReview guesthouseId={id}
-          averageRating={detail.averageRating}
-          totalCount={50} // 일단 임시로 50
-        />
+        <View style={styles.introductionContainer}>
+          <View style={styles.reviewRowContainer}>
+            <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>리뷰</Text>
+            <View style={styles.reviewRow}>
+              <View style={styles.reviewBoxBlue}>
+                <Star width={14} height={14} />
+                <Text style={[FONTS.fs_12_medium, styles.rating]}>
+                  {detail.averageRating?.toFixed(1) ?? '0.0'}
+                </Text>
+                <Text style={styles.ratingDevide}>·</Text>
+                <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+                  {detail.reviewCount} 리뷰
+                </Text>
+              </View>
+            </View>
+          </View>
+          <
+            GuesthouseReview guesthouseId={id}
+            averageRating={detail.averageRating}
+            totalCount={detail.reviewCount}
+          />
+        </View>
       )}
     </View>
       
