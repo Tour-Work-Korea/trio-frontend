@@ -78,65 +78,55 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
 
   const renderItem = useCallback(
     ({ item, index }) => (
-      <View style={{ marginBottom: 24 }}>
-        {/* 프로필, 닉네임, 별점 */}
-        <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 8 }}>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={{ width: 36, height: 36, borderRadius: 18, marginRight: 10 }}
-          />
-          <View>
-            <Text style={FONTS.fs_body_bold}>{item.nickname}</Text>
-            <View style={{ flexDirection: 'row', marginTop: 2 }}>
-              {Array(item.reviewRating)
-                .fill()
-                .map((_, i) => (
-                  <YellowStar key={i} width={16} height={16} />
-                ))}
+      <View style={styles.reviewContainer}>
+        <View style={styles.reviewHeaderContainer}>
+          <View style={styles.userProfileContainer}>
+            <View style={styles.userImage}>
+              {/* 사용자 프로필 이미지 받아오는값 없음 */}
+              {item.profileUrl ? (
+                <Image
+                  source={{ uri: item.profileUrl }}
+                  style={[styles.userImage, { position: 'absolute' }]}
+                />
+              ) : null}
             </View>
+            <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
+          </View>
+          <View style={styles.userRatingContainer}>
+            <Star width={14} height={14} />
+            <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{item.reviewRating}</Text>
           </View>
         </View>
-        {item.imgUrls && item.imgUrls.length > 0 && (
-          <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-            {item.imgUrls.map((imgUrl, i) => (
-              <Image
-                source={require('@assets/images/exphoto.jpeg')}
-                style={{ width: 48, height: 48, borderRadius: 6, marginRight: 4 }}
-              />
-            ))}
-          </View>
-        )}
-        {/* 리뷰 내용 */}
-        <Text style={FONTS.fs_body}>{item.reviewDetail}</Text>
+        <View style={styles.reviewImageContainer}>
+          {item.imgUrls && item.imgUrls.length > 0 && (
+            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+              {item.imgUrls.map((imgUrl, i) => (
+                <Image
+                  source={require('@assets/images/exphoto.jpeg')}
+                  style={styles.reviewImage}
+                />
+              ))}
+            </View>
+          )}
+        </View>
+        <Text style={[FONTS.fs_14_regular, styles.reviewText]}>{item.reviewDetail}</Text>
         {/* 답글이 있으면 표시 */}
         {item.replies && item.replies.length > 0 && (
-          <View style={{ backgroundColor: '#F6F6F6', marginTop: 10, borderRadius: 6, padding: 8 }}>
+          <View style={styles.replyContainer}>
+            <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>사장님의 한마디</Text>
             {item.replies.map((reply, ri) => (
-              <Text key={ri} style={[FONTS.fs_body, { color: '#888' }]}>
-                답글: {reply}
+              <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
+                {reply}
               </Text>
             ))}
           </View>
         )}
-        {/* 구분선 */}
-        <View style={{ height: 1, backgroundColor: '#EEE', marginTop: 16 }} />
       </View>
     ),
-    []
   );
 
   return (
-    <View style={{ flex: 1, paddingHorizontal: 16, paddingVertical: 20 }}>
-      {/* 리뷰 수 */}
-      <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
-        <Star width={20} height={20} />
-        <Text style={[FONTS.fs_h2_bold, { marginLeft: 6 }]}>
-          {averageRating ? averageRating.toFixed(1) : '0.0'}
-        </Text>
-        <Text style={[FONTS.fs_h2, { marginLeft: 12 }]}>
-          {totalCount}개 리뷰
-        </Text>
-      </View>
+    <View style={styles.reviewRowContainer}>
       <FlatList
         data={reviews}
         keyExtractor={item => item.id?.toString()}

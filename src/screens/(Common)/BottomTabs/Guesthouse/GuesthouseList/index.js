@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; 
+import { useNavigation, useFocusEffect } from '@react-navigation/native'; 
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -75,8 +75,23 @@ const GuesthouseList = () => {
 
   // 무한스크롤
   useEffect(() => {
-    fetchGuesthouses(page);
+    if (page !== 0) {
+      fetchGuesthouses(page);
+    }
   }, [page]);
+
+  useFocusEffect(
+    React.useCallback(() => {
+      // 검색을 이미 한 상태에서만 새로고침
+      if (searched) {
+        setPage(0);
+        setIsLast(false);
+        setError(false);
+        setGuesthouses([]);
+        fetchGuesthouses(0);
+      }
+    }, [searched])
+  );
 
   const handleEndReached = () => {
     if (!loading && !isLast) {
