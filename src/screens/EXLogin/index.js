@@ -10,12 +10,15 @@ import {
 import {COLORS} from '@constants/colors';
 import {useNavigation} from '@react-navigation/native';
 import {tryLogin} from '@utils/auth/login';
+import userMyApi from '@utils/api/userMyApi';
+import useUserStore from '@stores/userStore';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const navigation = useNavigation();
+  const setUserProfile = useUserStore(state => state.setUserProfile);
 
   const handleLogin = role => {
     tryLogin(email, password, role);
@@ -31,8 +34,27 @@ const EXLogin = () => {
       'HOST',
     );
   };
-  const handleUserLogin = () => {
-    tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
+
+  const handleUserLogin = async () => {
+    try {
+      await tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
+
+      const res = await userMyApi.getMyProfile();
+      const { name, photoUrl, phone, email, mbti, instagramId } = res.data;
+
+      setUserProfile({
+        name: name ?? '',
+        profileImage: photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        mbti: mbti ?? '',
+        instagramId: instagramId ?? '',
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.warn('자동 유저 로그인 실패:', error);
+    }
   };
 
   return (

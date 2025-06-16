@@ -11,6 +11,16 @@ const useUserStore = create(
       refreshToken: null,
       userRole: null,
 
+      // 유저 프로필
+      userProfile: {
+        name: '',
+        profileImage: null,
+        phone: '',
+        email: '',
+        mbti: '',
+        instagramId: '',
+      },
+
       // 토큰 저장 함수
       setTokens: ({accessToken, refreshToken}) =>
         set({accessToken, refreshToken}),
@@ -18,9 +28,25 @@ const useUserStore = create(
       // 사용자 역할 저장 함수
       setUserRole: role => set({userRole: role}),
 
+      // 유저 프로필 저장 함수
+      setUserProfile: profile => set({userProfile: profile}),
+
       // 전체 초기화 (로그아웃 시 사용)
       clearUser: () =>
-        set({accessToken: null, refreshToken: null, userRole: null}),
+        set({
+          accessToken: null,
+          refreshToken: null,
+          userRole: null,
+          userProfile: {
+            name: '',
+            profileImage: null,
+            phone: '',
+            email: '',
+            mbti: '',
+            instagramId: '',
+          },
+        }),
+
     }),
     {
       name: 'user-store', // AsyncStorage에 저장될 key

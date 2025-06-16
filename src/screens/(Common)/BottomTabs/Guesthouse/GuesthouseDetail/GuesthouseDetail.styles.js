@@ -69,6 +69,21 @@ const styles = StyleSheet.create({
   reviewCount: {
     color: COLORS.grayscale_0,
   },
+  // 리뷰탭 파란 리뷰 카운트
+  reviewBoxBlue:{
+    backgroundColor: COLORS.primary_blue,
+    flexDirection: 'row',
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    alignContent: 'center',
+    justifyContent: 'center',
+    borderRadius: 100,
+    marginTop: 28,
+  },
+  reviewRowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
 
   // 간단 소개글
   shortIntroContainer: {
