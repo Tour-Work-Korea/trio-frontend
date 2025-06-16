@@ -13,6 +13,7 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import styles from './PhoneCertificate.styles';
 import Header from '@components/Header';
+import authApi from '@utils/api/authApi';
 
 const PhoneCertificate = ({route}) => {
   const {user} = route.params;
@@ -39,37 +40,44 @@ const PhoneCertificate = ({route}) => {
   }, [isTimerActive, timeLeft]);
 
   //인증번호 발송
-  const fetchPhoneValid = async () => {
-    setIsCodeSent(true);
-    setTimeLeft(180);
-    setIsTimerActive(true);
-    Alert.alert('인증번호가 전송되었습니다.');
-  };
-
-  // 인증번호 전송 함수
-  const sendVerificationCode = () => {
+  const sendVerificationCode = async () => {
     if (!phoneNumber || phoneNumber.length < 10) {
       Alert.alert('유효한 휴대폰 번호를 입력해주세요.');
       return;
     }
-    fetchPhoneValid();
+    try {
+      await authApi.sendSms(phoneNumber);
+      setIsCodeSent(true);
+      setTimeLeft(180);
+      setIsTimerActive(true);
+      Alert.alert('인증번호가 전송되었습니다.');
+    } catch (error) {
+      Alert.alert('인증번호 전송에 실패했습니다.');
+      console.error('인증번호 전송 실패', error);
+    }
   };
 
   // 인증번호 재전송
   const resendVerificationCode = () => {
     setVerificationCode('');
-    fetchPhoneValid();
+    sendVerificationCode();
   };
 
-  // 인증 확인 TODO: API 연동
-  const verifyCode = () => {
-    // 인증번호 유효성 검사
-    if (!verificationCode || verificationCode.length < 4) {
-      Alert.alert('알림', '유효한 인증번호를 입력해주세요.');
+  //인증번호 확인
+  const verifyCode = async () => {
+    if (!verificationCode || verificationCode.length < 6) {
+      Alert.alert('유효한 인증번호를 입력해주세요.');
       return;
     }
-    setIsTimerActive(false);
-    navigation.navigate('EmailCertificate', {user, phoneNumber});
+    try {
+      await authApi.verifySms(phoneNumber, verificationCode);
+      Alert.alert('인증에 성공했습니다.');
+      setIsTimerActive(false);
+      navigation.navigate('EmailCertificate', {user, phoneNumber});
+    } catch (error) {
+      Alert.alert('인증번호 확인에 실패했습니다.');
+      console.error(error);
+    }
   };
 
   // 타이머 포맷 함수

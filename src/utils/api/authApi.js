@@ -19,7 +19,17 @@ const authApi = {
       params: {businessNumber},
       withAuth: false,
     }),
-
+  //휴대폰 인증
+  sendSms: phoneNum =>
+    api.post('/auth/sms/send', null, {
+      params: {phoneNum},
+      withAuth: false,
+    }),
+  verifySms: (phoneNum, code) =>
+    api.post('/auth/sms/verify', null, {
+      params: {phoneNum, code},
+      withAuth: false,
+    }),
   //사장님 회원가입
   hostSignUp: hostData =>
     api.post('/auth/host/signup', hostData, {withAuth: false}),
