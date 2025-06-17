@@ -21,7 +21,11 @@ export default function Employs({jobs, setEmployList}) {
         moveToDetail(item.recruitId);
       }}>
       <View style={styles.jobCard}>
-        <Image source={item.thumbnailImage} style={styles.jobImage} />
+        <Image
+          source={require('@assets/images/exphoto.jpeg')}
+          style={styles.jobImage}
+        />
+        {/* <Image source={item.thumbnailImage} style={styles.jobImage} /> */}
 
         {/* jobInfo 전체 */}
         <View style={styles.jobInfo}>

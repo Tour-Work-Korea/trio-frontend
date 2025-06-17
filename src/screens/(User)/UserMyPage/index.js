@@ -10,7 +10,6 @@ import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg
 import FavoritePostIcon from '@assets/images/user-favorite-post-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
-import PostReviewIcon from '@assets/images/user-post-review-icon.svg';
 import RightArrow from '@assets/images/gray_chevron_right.svg';
 
 import Header from '@components/Header';
@@ -20,7 +19,7 @@ import useUserStore from '@stores/userStore';
 
 const UserMyPage = () => {
   const navigation = useNavigation();
-  
+
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
 
