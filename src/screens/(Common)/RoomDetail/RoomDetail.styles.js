@@ -6,59 +6,74 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.white,
   },
+
+  // 사진, 뒤로가기 버튼
+  imageContainer: {
+
+  },
   image: {
     width: '100%',
-    height: 260,
+    height: 280,
   },
+  backButton: {
+    position: 'absolute',
+    left: 20,
+    top: 16,
+  },
+
+  // 방이름 ~ 날짜
   contentWrapper: {
-    paddingHorizontal: 15,
-    paddingVertical: 12,
+    paddingHorizontal: 20,
+    paddingVertical: 20,
   },
+  // 방 이름, 설명, 가격
   roomInfo: {
-    marginBottom: 8,
-    borderBottomWidth: 1,
-    borderColor: COLORS.light_gray,
+    borderBottomWidth: 0.4,
+    borderColor: COLORS.grayscale_300,
   },
   roomType: {
-    marginBottom : 4,
+    color: COLORS.grayscale_800,
   },
   description: {
-    marginBottom : 4,
+    marginTop: 4,
+    color: COLORS.grayscale_500,
   },
   price: {
     alignSelf: 'flex-end',
-    marginBottom: 12,
+    marginVertical: 20,
+    color: COLORS.grayscale_800,
   },
+
+  // 날짜
   dateTitle: {
-    marginVertical: 12,
+    marginTop: 20,
+    color: COLORS.grayscale_800,
   },
   dateBoxContainer: {
+    marginTop: 12,
     flexDirection: 'row',
-    marginBottom: 20,
-    paddingHorizontal: 16,
-    gap: 4,
+    gap: 8,
   },
   dateBoxCheckIn: {
-    backgroundColor: COLORS.light_gray,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
     flex: 1,
-    padding: 16,
-    gap: 2,
+    gap: 4,
   },
   dateBoxCheckOut: {
-    backgroundColor: COLORS.light_gray,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
     flex: 1,
-    padding: 16,
-    gap: 2,
+    gap: 4,
   },
   dateLabel: {
-    marginBottom: 4,
-    color: COLORS.gray,
+    marginBottom: 6,
+    color: COLORS.grayscale_400,
   },
   dateText: {
+    color: COLORS.grayscale_700,
   },
   button: {
     

@@ -7,9 +7,17 @@ import styles from './GuesthouseReservation.styles';
 import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import useUserStore from '@stores/userStore';
 
-import Checked from '@assets/images/Scarlet_CheckCircle.svg';
-import Unchecked from '@assets/images/CheckCircle.svg';
+import Checked from '@assets/images/check_orange.svg';
+import Unchecked from '@assets/images/check_gray.svg';
+import DownArrow from '@assets/images/chevron_down_gray.svg';
+
+// 번화번호 사이에 '-' 집어넣기
+const formatPhoneNumber = (phone) => {
+  if (!phone || phone.length !== 11) return phone; // 예외 처리
+  return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+};
 
 const GuesthouseReservation = ({ route }) => {
   const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut } = route.params || {};
@@ -21,6 +29,8 @@ const GuesthouseReservation = ({ route }) => {
     personalInfo: false,
     thirdParty: false,
   });
+  const name = useUserStore(state => state.userProfile.name);
+  const phone = useUserStore(state => state.userProfile.phone);
 
   const toggleAgreement = (key) => {
     setAgreements((prev) => ({
@@ -44,10 +54,10 @@ const GuesthouseReservation = ({ route }) => {
     // 동의 체크 등 유효성 검사 추가 예정 
     try {
       const res = await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: '2025-09-07T15:00:00',
-        checkOut: '2025-09-08T11:00:00',
+        checkIn: '2025-09-08T15:00:00',
+        checkOut: '2025-09-09T11:00:00',
         guestCount: 1,
-        amount: 85000,
+        amount: roomPrice,
         request: '요청사항',
       });
       const reservationId = res.data;
@@ -67,72 +77,93 @@ const GuesthouseReservation = ({ route }) => {
 
   return (
     <View style={styles.container}>
-        <Header title="방 상세보기" />
+        <Header title="예약" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
-            <View style={styles.section}>
-                <Text style={[FONTS.fs_h1_bold, styles.title]}>{guesthouseName}</Text>
-                <View style={styles.dateBoxContainer}>
-                    <View style={styles.dateBoxCheckIn}>
-                        <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크인</Text>
-                        <Text style={FONTS.fs_body}>25.04.15 (화)</Text>
-                        <Text style={FONTS.fs_body}>{formatTime(checkIn)}</Text>
-                    </View>
-                        <View style={styles.dateBoxCheckOut}>
-                        <Text style={[FONTS.fs_body_bold, styles.dateLabel]}>체크아웃</Text>
-                        <Text style={FONTS.fs_body}>25.04.16 (수)</Text>
-                        <Text style={FONTS.fs_body}>{formatTime(checkOut)}</Text>
-                    </View>
+          <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
+          <View style={styles.dateBoxContainer}>
+              <View style={styles.dateBoxCheckIn}>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.15 (화)</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
+              </View>
+              <View style={styles.dateBoxCheckOut}>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.16 (수)</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
+              </View>
+          </View>
+
+          <View style={styles.devide}/>
+
+          <View style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
+              <View style={styles.row}>
+                  <Text style={FONTS.fs_14_medium}>{name}</Text>
+                  <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
+              </View>
+          </View>
+
+          <View style={styles.devide}/>
+
+          <View style={styles.agreeRowContainer}>
+              <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
+              {agreeAll ? 
+              <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> : 
+              <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
+                  <Text style={FONTS.fs_14_semibold}>전체 동의</Text>
+              </TouchableOpacity>
+
+              <View style={styles.agreeRowConent}>
+                <View style={styles.agreeRow}>
+                  <TouchableOpacity onPress={() => toggleAgreement('terms')}>
+                  {agreements.terms ? 
+                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> : 
+                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
+                  </TouchableOpacity>
+                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
+                  </Text>
+                  <TouchableOpacity style={styles.seeMore}>
+                    <DownArrow width={24} height={24}/>
+                  </TouchableOpacity>
                 </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>예약자 정보</Text>
-                <View style={styles.row}>
-                    <Text style={FONTS.fs_body_bold}>김서현</Text>
-                    <Text style={FONTS.fs_body_bold}>010-8888-8888</Text>
+                <View style={styles.agreeRow}>
+                  <TouchableOpacity onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
+                  {agreements.personalInfo ? 
+                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> : 
+                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
+                  </TouchableOpacity>
+                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
+                  </Text>
+                  <TouchableOpacity style={styles.seeMore}>
+                    <DownArrow width={24} height={24}/>
+                  </TouchableOpacity>
                 </View>
-            </View>
 
-            <View style={styles.section}>
-                <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>결제정보</Text>
-                <View style={styles.paymentRow}>
-                    <Text style={FONTS.fs_body_bold}>토스페이</Text>
-                    <Text style={FONTS.fs_body_bold}>무통장입금</Text>
-                    <Text style={FONTS.fs_body_bold}>카카오페이</Text>
+                <View style={styles.agreeRow}>
+                  <TouchableOpacity onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
+                  {agreements.thirdParty ? 
+                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> : 
+                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
+                  </TouchableOpacity>
+                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
+                  </Text>
+                  <TouchableOpacity style={styles.seeMore}>
+                    <DownArrow width={24} height={24}/>
+                  </TouchableOpacity>
                 </View>
-            </View>
-
-            <View style={styles.agreeRowContainer}>
-                <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
-                {agreeAll ? <Checked width={20} height={20} /> : <Unchecked width={20} height={20} />}
-                    <Text style={[FONTS.fs_h2_bold, styles.agreeText]}>전체 동의</Text>
-                </TouchableOpacity>
-
-                <View style={styles.agreeRowConent}>
-                    <TouchableOpacity onPress={() => toggleAgreement('terms')} style={styles.agreeRow}>
-                    {agreements.terms ? <Checked width={20} height={20} /> : <Unchecked width={20} height={20} />}
-                        <Text style={FONTS.fs_body}>[필수] 숙소 취소/환불 규정에 동의합니다.</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
-                    {agreements.personalInfo ? <Checked width={20} height={20} /> : <Unchecked width={20} height={20} />}
-                        <Text style={FONTS.fs_body}>[필수] 개인정보 수집 및 이용에 동의합니다.</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
-                    {agreements.thirdParty ? <Checked width={20} height={20} /> : <Unchecked width={20} height={20} />}
-                        <Text style={FONTS.fs_body}>[필수] 개인정보 제3자 제공에 동의합니다.</Text>
-                    </TouchableOpacity>
-                </View>
-            </View>
+              </View>
+          </View>
 
         </ScrollView>
-
         
         <View style={styles.button}>
             <ButtonScarlet
-            title="예약 확정하기"
-            marginHorizontal="0"
+            title="요청하기"
+            marginHorizontal="20"
             onPress={handleReservation}
             />
         </View>
