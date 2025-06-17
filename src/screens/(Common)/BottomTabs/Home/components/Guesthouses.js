@@ -9,35 +9,45 @@ export default function Guesthouses({guesthouses}) {
   const navigation = useNavigation();
 
   const renderGuesthouse = ({item}) => (
-    <View style={styles.guesthouseCard}>
-      <Image source={item.image} style={styles.guesthouseImage} />
-      {/* <Image source={item.thumbnailImgUrl} style={styles.guesthouseImage} /> */}
-      <View style={[styles.titleSection, {marginBottom: 10}]}>
-        <Text
-          style={styles.guesthouseTitle}
-          numberOfLines={1}
-          ellipsizeMode="tail">
-          {item.name}
-        </Text>
-        <View style={styles.seeMoreButton}>
-          <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-            최저가
+    <TouchableOpacity
+      onPress={() => {
+        navigation.navigate('GuesthouseDetail', {
+          id: item.id,
+        });
+      }}>
+      <View style={styles.guesthouseCard}>
+        <Image
+          source={require('@assets/images/exphoto.jpeg')}
+          style={styles.guesthouseImage}
+        />
+        {/* <Image source={item.thumbnailImgUrl} style={styles.guesthouseImage} /> */}
+        <View style={[styles.titleSection, {marginBottom: 10}]}>
+          <Text
+            style={styles.guesthouseTitle}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {item.name}
           </Text>
-          <Text style={FONTS.fs_16_semibold}>
-            {item.minPrice.toLocaleString()}원
-          </Text>
-        </View>
-      </View>
-      <View style={styles.seeMoreButton}>
-        {item.hashtags.map((hashtag, idx) => (
-          <View style={styles.hashtagButton} key={idx}>
-            <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-              #{hashtag}
+          <View style={styles.seeMoreButton}>
+            <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+              최저가
+            </Text>
+            <Text style={FONTS.fs_16_semibold}>
+              {item.minPrice.toLocaleString()}원
             </Text>
           </View>
-        ))}
+        </View>
+        <View style={styles.seeMoreButton}>
+          {item.hashtags.map((hashtag, idx) => (
+            <View style={styles.hashtagButton} key={idx}>
+              <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
+                #{hashtag}
+              </Text>
+            </View>
+          ))}
+        </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

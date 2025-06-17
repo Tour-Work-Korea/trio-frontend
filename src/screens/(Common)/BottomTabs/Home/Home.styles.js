@@ -73,7 +73,6 @@ export default StyleSheet.create({
     maxHeight: 333,
   },
   titleSection: {
-    ...FONTS.fs_16_semibold,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -94,6 +93,7 @@ export default StyleSheet.create({
   },
   sectionTitle: {
     color: COLORS.grayscale_800,
+    ...FONTS.fs_16_semibold,
   },
   guesthouseCard: {
     width: 249,
