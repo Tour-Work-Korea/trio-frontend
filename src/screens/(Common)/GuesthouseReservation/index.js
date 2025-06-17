@@ -43,17 +43,23 @@ const GuesthouseReservation = ({ route }) => {
   const handleReservation = async () => {
     // 동의 체크 등 유효성 검사 추가 예정 
     try {
-      await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: '2025-09-04T15:00:00',
-        checkOut: '2025-09-05T11:00:00',
+      const res = await userGuesthouseApi.reserveRoom(roomId, {
+        checkIn: '2025-09-07T15:00:00',
+        checkOut: '2025-09-08T11:00:00',
         guestCount: 1,
-        amount: 30000,
+        amount: 85000,
         request: '요청사항',
       });
+      const reservationId = res.data;
+
       Alert.alert('예약이 완료되었습니다.');
-      navigation.pop(2);
-      {/* 하단 바 있는 홈으로 돌아가게 하고 싶은데 시간이 걸릴 것 같음 일단은 뒤로가기 2번으로
-        했음 -> 3번하면 아예 EXHome화면으로 가짐(원인 모름)  */}
+
+      // 예약 성공 후 결제 페이지로 이동
+      navigation.navigate( 'GuesthousePayment' , {
+        reservationId,
+        amount: roomPrice,
+      });
+      
     } catch (err) {
       Alert.alert('예약 실패', '오류가 발생했습니다.');
     }

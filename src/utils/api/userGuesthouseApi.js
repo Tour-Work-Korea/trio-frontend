@@ -28,6 +28,10 @@ const userGuesthouseApi = {
   reserveRoom: (roomId, body) =>
     api.post(`/order/reservation/room/${roomId}`, body),
 
+  // 결제 검증 및 확정
+  verifyPayment: (reservationId, body) =>
+    api.post(`/order/payment/${reservationId}`, body),
+
   // 특정 게스트하우스의 리뷰 조회
   getGuesthouseReviews: ({ guesthouseId, page, size, sort }) =>
     api.get(`/${guesthouseId}/reviews`, {
