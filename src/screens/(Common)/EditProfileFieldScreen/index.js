@@ -22,6 +22,8 @@ const EditProfileFieldScreen = () => {
   const navigation = useNavigation();
   const {field, label, value} = route.params;
   const userRole = useUserStore.getState()?.userRole;
+  const setUserProfile = useUserStore(state => state.setUserProfile);
+  const setHostProfile = useUserStore(state => state.setHostProfile);
 
   const [inputValue, setInputValue] = useState(value);
   const [authCode, setAuthCode] = useState('');
@@ -30,7 +32,14 @@ const EditProfileFieldScreen = () => {
 
   const handleSendAuth = async () => {
     try {
-      await authApi.sendEmail(inputValue);
+      if (field === 'email') {
+        await authApi.sendEmail(inputValue);
+      } else if (field === 'phone') {
+        await authApi.sendSms(inputValue);
+      } else {
+        console.warn('인증 필드가 아닙니다.');
+      }
+
       Alert.alert('인증번호가 전송되었습니다.');
     } catch (error) {
       Alert.alert('인증번호 전송에 실패했습니다.');
@@ -40,7 +49,14 @@ const EditProfileFieldScreen = () => {
 
   const handleConfirmAuth = async () => {
     try {
-      await authApi.verifyEmail(inputValue, authCode);
+      if (field === 'email') {
+        await authApi.verifyEmail(inputValue, authCode);
+      } else if (field === 'phone') {
+        await authApi.verifySms(inputValue, authCode);
+      } else {
+        console.warn('인증 필드가 아닙니다.');
+      }
+
       Alert.alert('인증에 성공했습니다.');
     } catch (error) {
       Alert.alert('인증번호 확인에 실패했습니다.');
@@ -49,7 +65,7 @@ const EditProfileFieldScreen = () => {
   };
 
   const handleSave = () => {
-    tryUpdateProfile(userRole, label, inputValue);
+    tryUpdateProfile(userRole, field, inputValue);
     navigation.goBack();
   };
 
@@ -57,14 +73,52 @@ const EditProfileFieldScreen = () => {
     try {
       if (role === 'USER') {
         await userMyApi.updateMyProfile(updateField, updateData);
+        tryFetchUserProfile();
       } else if (role === 'HOST') {
         await hostMyApi.updateMyProfile(updateField, updateData);
+        tryFetchHostProfile();
       } else {
         console.warn('회원 역할이 올바르지 않습니다.');
       }
     } catch (error) {
       Alert.alert('회원정보를 수정하는데 실패했습니다.');
       console.warn(`${role}: 회원정보 수정 실패`, error);
+    }
+  };
+
+  const tryFetchHostProfile = async () => {
+    try {
+      const res = await hostMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, businessNum} = res.data;
+
+      setHostProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        businessNum: businessNum ?? '',
+      });
+    } catch (error) {
+      console.warn('사장님 프로필 조회 실패:', error);
+    }
+  };
+  const tryFetchUserProfile = async () => {
+    try {
+      const res = await userMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+
+      setUserProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        mbti: mbti ?? '',
+        instagramId: instagramId ?? '',
+      });
+    } catch (error) {
+      console.warn('유저 프로필 조회 실패:', error);
     }
   };
 

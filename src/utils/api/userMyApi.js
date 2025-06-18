@@ -18,8 +18,21 @@ const userMyApi = {
   getMyReviews: () => api.get('/user/reviews/my'),
 
   //유저 프로필 정보 수정
-  updateMyProfile: (label, updateData) =>
-    api.put(`/user/my/${label}`, updateData),
+  updateMyProfile: async (field, value) => {
+    const config = userFieldMap[field];
+    if (!config) throw new Error('지원하지 않는 필드');
+
+    const body = {[config.key]: value};
+    return api.put(`/user/my/${config.path}`, body);
+  },
 };
 
 export default userMyApi;
+
+const userFieldMap = {
+  name: {path: 'nickname', key: 'name'},
+  email: {path: 'email', key: 'email'},
+  phone: {path: 'phone', key: 'phoneNumber'},
+  mbti: {path: 'mbti', key: 'mbti'},
+  instagramId: {path: 'instagram', key: 'instagramId'},
+};

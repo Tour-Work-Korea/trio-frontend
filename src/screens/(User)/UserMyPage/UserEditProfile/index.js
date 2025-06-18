@@ -75,7 +75,9 @@ const UserEditProfile = () => {
           <InfoItem
             label="인스타"
             value={user.instagramId}
-            onPress={() => goToEditProfile('insta', '인스타', user.instagramId)}
+            onPress={() =>
+              goToEditProfile('instagramId', '인스타', user.instagramId)
+            }
           />
         </View>
       </View>
