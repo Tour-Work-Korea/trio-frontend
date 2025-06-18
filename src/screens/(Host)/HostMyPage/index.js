@@ -16,12 +16,16 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
 import styles from './HostMyPage.styles';
 import {FONTS} from '@constants/fonts';
+import useUserStore from '@stores/userStore';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
 
+  //저장된 호스트 프로필 호출
+  const host = useUserStore(state => state.hostProfile);
+
   const goToEditProfile = () => {
-    navigation.navigate('HostEditProfile');
+    navigation.navigate('HostEditProfile', {hostInfo: host});
   };
 
   return (
