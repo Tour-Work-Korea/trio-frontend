@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import styles from './EmployList.styles';
@@ -26,23 +27,30 @@ const EmployList = () => {
   const [loading, setLoading] = useState(false);
 
   useEffect(() => {
-    fetchRecruitList();
-  }, []);
+    fetchRecruitList(page);
+  }, [page]);
 
   //채용 공고 조회
-  const fetchRecruitList = async () => {
+  const fetchRecruitList = async (pageToFetch = 0) => {
     if (loading || !hasNext) return;
     setLoading(true);
     try {
-      const res = await userEmployApi.getRecruits({page, size: 10}); // ← 페이지 기반 API 호출
+      const res = await userEmployApi.getRecruits({pageToFetch, size: 10}); // ← 페이지 기반 API 호출
       const newContent = res.data.content;
       setRecruitList(prev => [...prev, ...newContent]);
-      setPage(prev => prev + 1);
       setHasNext(!res.data.last); // 'last'가 true이면 더 없음
     } catch (error) {
-      Alert.alert('채용 공고 불러오기에 실패했습니다.');
+      setHasNext(false);
+      Alert.alert('공고 조회에 실패했습니다.');
+      console.warn('fetchRecruitList 실패:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleEndReached = () => {
+    if (!loading && hasNext) {
+      setPage(prev => prev + 1);
     }
   };
 
@@ -75,11 +83,15 @@ const EmployList = () => {
       <RecruitList
         data={recruitList}
         loading={loading}
-        onEndReached={fetchRecruitList}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.7}
         onJobPress={handleJobPress}
         onApplyPress={handleApplyPress}
         onToggleFavorite={toggleLikeRecruit}
         setRecruitList={setRecruitList}
+        ListFooterComponent={
+          loading && <ActivityIndicator size="small" color="gray" />
+        }
       />
     </SafeAreaView>
   );
