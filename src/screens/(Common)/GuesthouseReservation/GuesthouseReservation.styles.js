@@ -4,82 +4,116 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
   scrollContent: {
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
+  },
+  devide: {
+    width: '100%',
+    height: 0.4,
+    backgroundColor: COLORS.grayscale_300,
+    marginVertical: 24,
+  },
+
+  // 방 이름
+  title: {
+    marginTop: 20,
+  },
+  // 날짜
+  dateTitle: {
+    marginTop: 20,
+    color: COLORS.grayscale_800,
   },
   dateBoxContainer: {
+    marginTop: 12,
     flexDirection: 'row',
-    marginBottom: 20,
-    paddingHorizontal: 16,
-    gap: 4,
+    gap: 8,
   },
   dateBoxCheckIn: {
-    backgroundColor: COLORS.light_gray,
-    borderTopLeftRadius: 15,
-    borderBottomLeftRadius: 15,
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
     flex: 1,
-    padding: 16,
-    gap: 2,
+    gap: 4,
   },
   dateBoxCheckOut: {
-    backgroundColor: COLORS.light_gray,
-    borderTopRightRadius: 15,
-    borderBottomRightRadius: 15,
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
     flex: 1,
-    padding: 16,
-    gap: 2,
+    gap: 4,
   },
   dateLabel: {
-    marginBottom: 4,
-    color: COLORS.gray,
+    marginBottom: 6,
+    color: COLORS.grayscale_400,
   },
   dateText: {
+    color: COLORS.grayscale_700,
   },
+
+  // 예약자 정보
   section: {
-    borderTopWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    paddingVertical: 24,
     gap: 12,
+  },
+  sectionTitle: {
+    color: COLORS.grayscale_400,
   },
   row: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    gap: 40,
+    color: COLORS.grayscale_800,
   },
-  paymentRow: {
-    flexDirection: 'row',
-    gap: 16,
-  },
+
+  // 약관 동의
   agreeRowContainer: {
+    gap: 12,
+  },
+  checkedBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 4,
+    padding: 2,
     borderWidth: 1,
-    borderRadius: 6,
-    borderColor: COLORS.stroke_gray,
-    overflow: 'hidden',
+    borderColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  uncheckedBox: {
+    width: 28,
+    height: 28,
+    borderRadius: 4,
+    padding: 2,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   agreeRowTitle: {
-    paddingHorizontal: 8,
-    paddingVertical: 4,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    borderBottomWidth: 1,
-    borderColor: COLORS.stroke_gray,
+    gap: 12,
+    color: COLORS.grayscale_800,
   },
   agreeRowConent: {
-    backgroundColor: COLORS.light_gray,
+    gap: 12,
   },
   agreeRow: {
-    paddingHorizontal: 20,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginBottom: 6,
-    marginTop: 6,
+    gap: 12,
+    color: COLORS.grayscale_600,
   },
   agreeText: {
-    marginLeft: 4,
-  },  
+    color: COLORS.grayscale_600,
+  },
+  nessesaryText: {
+    color: COLORS.primary_blue,
+  },
+  seeMore: {
+    position: 'absolute',
+    right: 0,
+  },
   button: {
   },
 });
