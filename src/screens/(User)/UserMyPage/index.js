@@ -45,7 +45,7 @@ const UserMyPage = () => {
                 <PersonIcon width={32} height={32} />
               </View>
             )}
-            <Text style={[FONTS.fs_h1_bold, styles.name]}>{user.name}</Text>
+            <Text style={[FONTS.fs_16_semibold, styles.name]}>{user.name}</Text>
           </View>
           <View style={styles.headerIcons}>
             <PersonIcon

@@ -20,6 +20,14 @@ const useUserStore = create(
         mbti: '',
         instagramId: '',
       },
+      // 사장 프로필
+      hostProfile: {
+        name: '',
+        profileImage: null,
+        phone: '',
+        email: '',
+        businessNum: '',
+      },
 
       // 토큰 저장 함수
       setTokens: ({accessToken, refreshToken}) =>
@@ -30,6 +38,9 @@ const useUserStore = create(
 
       // 유저 프로필 저장 함수
       setUserProfile: profile => set({userProfile: profile}),
+
+      //사장 프로필 저장 함수
+      setHostProfile: profile => set({hostProfile: profile}),
 
       // 전체 초기화 (로그아웃 시 사용)
       clearUser: () =>
@@ -45,8 +56,14 @@ const useUserStore = create(
             mbti: '',
             instagramId: '',
           },
+          hostProfile: {
+            name: '',
+            profileImage: null,
+            phone: '',
+            email: '',
+            businessNum: '',
+          },
         }),
-
     }),
     {
       name: 'user-store', // AsyncStorage에 저장될 key
