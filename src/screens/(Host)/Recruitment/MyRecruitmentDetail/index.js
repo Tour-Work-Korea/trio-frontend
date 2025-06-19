@@ -8,7 +8,7 @@ import {
   Alert,
   TouchableOpacity,
 } from 'react-native';
-import styles from './RecruitmentDetail.styles';
+import styles from './MyRecruitmentDetail.styles';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 
@@ -16,7 +16,7 @@ import RecruitProfileSection from '../../../(Common)/BottomTabs/Employ/EmployDet
 import RecruitTapSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitTapSection';
 import RecruitDescriptionSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitDescriptionSection';
 
-const RecruitmentDetail = () => {
+const MyRecruitmentDetail = () => {
   const route = useRoute();
   const recruitId = route.params ?? null;
   const [recruit, setRecruit] = useState();
@@ -71,4 +71,4 @@ const RecruitmentDetail = () => {
   );
 };
 
-export default RecruitmentDetail;
+export default MyRecruitmentDetail;

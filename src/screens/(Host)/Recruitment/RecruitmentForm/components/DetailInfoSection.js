@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, TextInput} from 'react-native';
-import styles from '../PostRecruitment.styles';
+import styles from '../RecruitmentForm';
 
 export default function DetailInfoSection({formData, handleInputChange}) {
   return (

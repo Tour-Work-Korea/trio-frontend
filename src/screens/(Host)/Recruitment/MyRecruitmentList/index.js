@@ -41,7 +41,7 @@ const MyRecruitmentList = () => {
   };
 
   const handleViewDetail = recruitId => {
-    navigation.navigate('RecruitmentDetail', recruitId);
+    navigation.navigate('MyRecruitmentDetail', recruitId);
   };
 
   const handleViewApplicants = guesthouseId => {

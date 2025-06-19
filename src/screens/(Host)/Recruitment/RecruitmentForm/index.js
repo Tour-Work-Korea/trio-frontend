@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import styles from './PostRecruitment.styles';
+import styles from './RecruitmentForm';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -22,7 +22,7 @@ import {
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
 import {formatDateToLocalISOString} from '@utils/formatDate';
 
-const PostRecruitment = () => {
+const RecruitmentForm = () => {
   const [formData, setFormData] = useState({
     recruitTitle: '',
     recruitShortDescription: '',
@@ -213,4 +213,4 @@ const PostRecruitment = () => {
   );
 };
 
-export default PostRecruitment;
+export default RecruitmentForm;

@@ -55,8 +55,9 @@ const EmployList = () => {
   };
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
+
   const handleApplyPress = recruit =>
-    navigation.navigate('Applicant', {
+    navigation.navigate('ApplicantForm', {
       recruitId: recruit?.recruitId,
       recruitTitle: recruit.recruitTitle,
       guesthouseName: recruit.guesthouseName,

@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
-import styles from '../PostRecruitment.styles';
+import styles from '../RecruitmentForm';
 import Calendar from '@assets/images/Calendar.svg';
 
 import DateTimePicker from '@react-native-community/datetimepicker';

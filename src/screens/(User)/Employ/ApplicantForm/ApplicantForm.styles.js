@@ -1,252 +1,196 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    backgroundColor: COLORS.white,
+  },
+  header: {
+    backgroundColor: COLORS.white,
+    paddingHorizontal: 16,
+    paddingTop: 16,
+    paddingBottom: 8,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.stroke_gray,
+  },
+  headerTitle: {
+    ...FONTS.fs_h1_bold,
+    color: COLORS.black,
+    marginBottom: 16,
+  },
+  tabContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  tabText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
   },
   scrollView: {
     flex: 1,
-    paddingBottom: 80, // 하단 버튼 영역 확보
   },
-  sectionContainer: {
-    marginBottom: 24,
+  section: {
     paddingHorizontal: 16,
-  },
-  sectionHeaderRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 16,
+    paddingVertical: 20,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.stroke_gray,
   },
   sectionTitle: {
     ...FONTS.fs_h2_bold,
     color: COLORS.black,
-    marginBottom: 4,
-  },
-  editMemberButton: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 20,
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-  },
-  editMemberButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  profileCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-  },
-  profileImageContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
-    backgroundColor: '#E6E9F0',
-    alignSelf: 'center',
     marginBottom: 16,
   },
-  profileName: {
-    ...FONTS.fs_h2_bold,
-    color: COLORS.black,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  infoContainer: {
-    flexDirection: 'column',
-  },
-  infoRow: {
+  resumeItem: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    padding: 16,
     marginBottom: 12,
   },
-  infoLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
+  resumeLeftSection: {
+    marginRight: 12,
+    justifyContent: 'center',
   },
-  infoValue: {
-    ...FONTS.fs_body,
+  resumeMiddleSection: {
+    flex: 1,
+  },
+  resumeTitle: {
+    ...FONTS.fs_body_bold,
     color: COLORS.black,
-    textAlign: 'right',
+    marginBottom: 8,
   },
-  experienceTotal: {
+  tagsContainer: {
+    flexDirection: 'row',
+    marginBottom: 8,
+  },
+  tagText: {
     ...FONTS.fs_body,
     color: COLORS.scarlet,
   },
-  experienceCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    marginBottom: 12,
-  },
-  experienceHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 8,
-  },
-  experiencePeriod: {
+  lastModifiedText: {
     ...FONTS.fs_body,
     color: COLORS.gray,
   },
-  experienceActions: {
-    flexDirection: 'row',
-  },
-  actionButton: {
+  editButton: {
+    justifyContent: 'center',
     padding: 4,
-    marginLeft: 8,
-  },
-  experienceCompany: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
-    marginBottom: 8,
-  },
-  experienceDuties: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  addButton: {
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    padding: 12,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  addButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  currentJobSection: {
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    padding: 12,
-    backgroundColor: COLORS.white,
-  },
-  formLabel: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
-    marginBottom: 8,
-  },
-  textInput: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    padding: 12,
-    ...FONTS.fs_body,
-    marginBottom: 16,
   },
   datePickerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 16,
   },
   datePickerButton: {
+    width: '48%',
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    padding: 12,
+  },
+  datePickerLabel: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+    marginBottom: 8,
+  },
+  datePickerContent: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  dateText: {
+    ...FONTS.fs_body,
+    color: COLORS.black,
+  },
+  messageInput: {
+    backgroundColor: COLORS.white,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.stroke_gray,
+    padding: 16,
+    height: 150,
+    ...FONTS.fs_body,
+    textAlignVertical: 'top',
+  },
+  privacyRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkboxContainer: {
+    marginRight: 12,
+  },
+  checkedBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    backgroundColor: COLORS.scarlet,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  uncheckedBox: {
+    width: 20,
+    height: 20,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.gray,
+  },
+  checkmark: {
+    color: COLORS.white,
+    fontSize: 14,
+    fontWeight: 'bold',
+  },
+  privacyTextContainer: {
     flex: 1,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    padding: 12,
-    marginRight: 8,
   },
-  datePickerButtonText: {
+  privacyText: {
     ...FONTS.fs_body,
     color: COLORS.black,
   },
-  textAreaInput: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    padding: 12,
-    ...FONTS.fs_body,
-    height: 150,
+  requiredText: {
+    color: COLORS.scarlet,
   },
-  tagDescription: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-    marginBottom: 16,
-  },
-  tagRow: {
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  tagOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
+  modalContainer: {
+    flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 8,
+    backgroundColor: 'rgba(0, 0, 0, 0.5)',
   },
-  radioButtonSelected: {
-    borderColor: COLORS.scarlet,
+  modalContent: {
+    width: '90%',
+    backgroundColor: COLORS.white,
+    borderRadius: 12,
+    padding: 20,
+    maxHeight: '80%',
   },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.scarlet,
+  modalTitle: {
+    ...FONTS.fs_h2_bold,
+    color: COLORS.black,
+    marginBottom: 16,
+    textAlign: 'center',
   },
-  tagText: {
+  modalScrollView: {
+    maxHeight: 300,
+  },
+  modalText: {
     ...FONTS.fs_body,
     color: COLORS.black,
+    lineHeight: 22,
   },
-  attachmentRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
+  modalCloseButton: {
+    backgroundColor: COLORS.scarlet,
     borderRadius: 8,
     padding: 12,
-    marginBottom: 12,
-  },
-  attachmentName: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  deleteAttachmentButton: {
-    padding: 4,
-  },
-  uploadFileButton: {
-    backgroundColor: COLORS.white,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    padding: 16,
-    borderStyle: 'dashed',
     alignItems: 'center',
+    marginTop: 20,
   },
-  uploadFileText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
+  modalCloseButtonText: {
+    ...FONTS.fs_body_bold,
+    color: COLORS.white,
   },
   bottomPadding: {
     height: 80,
@@ -256,53 +200,20 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: 16,
     backgroundColor: COLORS.white,
+    padding: 16,
     borderTopWidth: 1,
     borderTopColor: COLORS.stroke_gray,
   },
   submitButton: {
     backgroundColor: COLORS.scarlet,
     borderRadius: 8,
-    paddingVertical: 12,
+    padding: 12,
     alignItems: 'center',
   },
   submitButtonText: {
     ...FONTS.fs_body_bold,
     color: COLORS.white,
   },
-  tagGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    rowGap: 12,
-  },
-
-  tagButton: {
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    backgroundColor: COLORS.white,
-    borderRadius: 20,
-    paddingVertical: 8,
-    paddingHorizontal: 16,
-    marginRight: 8,
-    marginBottom: 8,
-  },
-
-  tagButtonSelected: {
-    borderColor: COLORS.scarlet,
-    backgroundColor: '#FFF0F0',
-  },
-
-  tagButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-
-  tagButtonTextSelected: {
-    color: COLORS.scarlet,
-    fontWeight: 'bold',
-  },
 });
-
 export default styles;

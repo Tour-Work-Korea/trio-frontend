@@ -82,13 +82,13 @@ const UserMyPage = () => {
           />
           <MenuItem
             IconComponent={MyApplicationIcon}
-            label="나의 지원서"
-            onPress={() => navigation.navigate('MyApplicantList')}
+            label="나의 이력서"
+            onPress={() => navigation.navigate('MyResumeList')}
           />
           <MenuItem
             IconComponent={ApplicationStatusIcon}
             label="지원 현황"
-            onPress={() => navigation.navigate('MyApplyRecruitList')}
+            onPress={() => navigation.navigate('MyApplicantList')}
           />
           {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>

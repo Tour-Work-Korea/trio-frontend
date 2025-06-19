@@ -6,7 +6,7 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import styles from '../PostRecruitment.styles';
+import styles from '../RecruitmentForm';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import {launchImageLibrary} from 'react-native-image-picker';
 
