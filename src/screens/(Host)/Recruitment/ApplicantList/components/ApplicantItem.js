@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Image, Text, TouchableOpacity} from 'react-native';
-import styles from './ApplicantList.styles';
+import styles from '../ApplicantList.styles';
 
 export default function ApplicantItem({item, handleApplicantPress}) {
   return (

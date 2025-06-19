@@ -85,7 +85,7 @@ const EmployDetail = () => {
         <TouchableOpacity
           style={styles.applyButton}
           onPress={() => {
-            navigation.navigate('Applicant', {
+            navigation.navigate('ApplicantForm', {
               recruitId: recruit?.recruitId,
               recruitTitle: recruit.recruitTitle,
               guesthouseName: recruit.guesthouseName,

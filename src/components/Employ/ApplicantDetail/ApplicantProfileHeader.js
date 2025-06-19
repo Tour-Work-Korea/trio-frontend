@@ -1,7 +1,7 @@
 import React from 'react';
 import {View, Text} from 'react-native';
 import ProfileIcon from '@assets/images/Gray_Person.svg';
-import styles from '../ApplicantDetail.styles';
+import styles from './ApplicantDetail.styles';
 
 const ApplicantProfileHeader = ({data, hashtags}) => {
   return (

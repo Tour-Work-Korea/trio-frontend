@@ -7,15 +7,17 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import styles from './ApplicantDetail.styles';
+import styles from './MyResumeDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Header from '@components/Header';
-import ApplicantExperienceSection from './components/ApplicantExperienceSection';
-import ApplicantProfileHeader from './components/ApplicantProfileHeader';
-import ApplicantSelfIntroduction from './components/ApplicantSelfIntroduction';
+import {
+  ApplicantExperienceSection,
+  ApplicantProfileHeader,
+  ApplicantSelfIntroduction,
+} from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
 
-const ApplicantDetail = () => {
+const MyResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {id} = route.params || {};
@@ -40,7 +42,7 @@ const ApplicantDetail = () => {
       await userEmployApi.deleteResume(id);
     } catch (error) {
       Alert.alert('알림', '삭제되었습니다.');
-      navigation.navigate('MyApplicantList');
+      navigation.navigate('MyResumeList');
     }
   };
 
@@ -77,7 +79,7 @@ const ApplicantDetail = () => {
       <TouchableOpacity
         style={styles.applyButton}
         onPress={() => {
-          navigation.navigate('ApplicantForm', {
+          navigation.navigate('ResumeForm', {
             id: id,
             isEditMode: true,
           });
@@ -112,4 +114,4 @@ const ApplicantDetail = () => {
   );
 };
 
-export default ApplicantDetail;
+export default MyResumeDetail;

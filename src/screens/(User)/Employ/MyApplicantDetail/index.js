@@ -7,15 +7,17 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import styles from './ApplicantDetail.styles';
+import styles from './MyApplicantDetail';
 import {useRoute} from '@react-navigation/native';
 import Header from '@components/Header';
-import ApplicantExperienceSection from '../ApplicantDetail/components/ApplicantExperienceSection';
-import ApplicantProfileHeader from '../ApplicantDetail/components/ApplicantProfileHeader';
-import ApplicantSelfIntroduction from '../ApplicantDetail/components/ApplicantSelfIntroduction';
+import {
+  ApplicantExperienceSection,
+  ApplicantProfileHeader,
+  ApplicantSelfIntroduction,
+} from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
 
-const ApplicantDetail = () => {
+const MyApplicantDetail = () => {
   const route = useRoute();
   const {id} = route.params || {};
   const [applicantData, setApplicantData] = useState();
@@ -74,4 +76,4 @@ const ApplicantDetail = () => {
   );
 };
 
-export default ApplicantDetail;
+export default MyApplicantDetail;

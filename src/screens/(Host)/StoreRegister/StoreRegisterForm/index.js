@@ -15,7 +15,7 @@ import Photo from '@assets/images/Photo.svg';
 import {FONTS} from '@constants/fonts';
 import {useEffect, useState} from 'react';
 import authApi from '@utils/api/authApi';
-import {validateStoreForm} from '@utils/validation';
+import {validateStoreForm} from '@utils/validation/storeRegisterValidation';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import {useNavigation} from '@react-navigation/native';
 

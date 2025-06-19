@@ -6,7 +6,7 @@ import {FONTS} from '@constants/fonts';
 import Logo from '@assets/images/Logo.svg';
 import {useNavigation} from '@react-navigation/native';
 
-const Intro = () => {
+const UserRegisterIntro = () => {
   const navigation = useNavigation();
 
   const handleKakaoButton = () => {
@@ -36,4 +36,4 @@ const Intro = () => {
   );
 };
 
-export default Intro;
+export default UserRegisterIntro;

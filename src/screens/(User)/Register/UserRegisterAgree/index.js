@@ -16,7 +16,7 @@ import UncheckedIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
 import {useNavigation} from '@react-navigation/native';
 import {userRegisterAgrees as initialAgrees} from '@data/agree';
 
-const Agree = () => {
+const UserRegisterAgree = () => {
   const navigation = useNavigation();
   const [agreements, setAgreements] = useState(initialAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
@@ -106,4 +106,4 @@ const Agree = () => {
   );
 };
 
-export default Agree;
+export default UserRegisterAgree;

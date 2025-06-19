@@ -1,29 +1,19 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  Image,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import {View, Text, Image, ScrollView, SafeAreaView, Alert} from 'react-native';
 import {useRoute} from '@react-navigation/native';
 import styles from './ApplicantDetail.styles';
 import Header from '@components/Header';
-
-import ApplicantExperienceSection from '../../../(User)/Employ/ApplicantDetail/components/ApplicantExperienceSection';
-import ApplicantProfileHeader from '../../../(User)/Employ/ApplicantDetail/components/ApplicantProfileHeader';
-import ApplicantSelfIntroduction from '../../../(User)/Employ/ApplicantDetail/components/ApplicantSelfIntroduction';
-import hostEmployApi from '../../../../utils/api/hostEmployApi';
+import {
+  ApplicantExperienceSection,
+  ApplicantProfileHeader,
+  ApplicantSelfIntroduction,
+} from '@components/Employ/ApplicantDetail';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
 const ApplicantDetail = () => {
   const route = useRoute();
   const applyId = route.params ?? null;
   const [applicant, setApplicant] = useState();
-
-  const attachments = []; // 첨부파일이 없으므로 비워둠
 
   useEffect(() => {
     const fetchApplicantById = async () => {
