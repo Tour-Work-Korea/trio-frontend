@@ -3,7 +3,7 @@ import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
-import ChevronLeft from '@assets/images/chevron_left.svg';
+import ChevronLeft from '@assets/images/chevron_left_black.svg';
 import Logo from '@assets/images/logo_orange.svg';
 
 //props로 적힐 내용 받음 - title
@@ -19,9 +19,9 @@ const Header = ({ title }) => {
       {title ? (
         <View style={styles.subTitleWrapper}>
           <TouchableOpacity style={styles.backContainer} onPress={navigation.goBack}>
-            <ChevronLeft width={24} height={24} />
+            <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
-          <Text style={[FONTS.fs_h2_bold, styles.subTitle]}>{title}</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.subTitle]}>{title}</Text>
         </View>
       ) : (
         <View style={styles.logoWrapper}>
@@ -36,14 +36,15 @@ const styles = StyleSheet.create({
   container: {
     height: 36,
     paddingVertical: 4,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
   subTitleWrapper: {
-    flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 15,
+    justifyContent: 'center'
   },
   backContainer: {
+    position: 'absolute',
+    left: 20,
   },
   subTitle: {
     color: COLORS.black,
