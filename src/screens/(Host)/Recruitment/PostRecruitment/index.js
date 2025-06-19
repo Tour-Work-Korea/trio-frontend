@@ -49,13 +49,7 @@ const PostRecruitment = () => {
     workPart: 'work1',
     welfare: 'welfare1',
     recruitDetail: 'descrip1',
-    recruitImage: [
-      {
-        recruitImageUrl:
-          'file:///data/user/0/com.triofrontendapp/cache/rn_image_picker_lib_temp_6153ff11-b8df-49b9-98ba-da32d49a8d08.jpg',
-        isThumbnail: true,
-      },
-    ],
+    recruitImage: [],
     hashtags: [11, 13, 18],
     guesthouseId: 29,
   });
@@ -97,7 +91,7 @@ const PostRecruitment = () => {
           })) || [],
         recruitDetail: recruit.recruitDetail,
         hashtags: recruit.hashtags?.map(tag => tag.id) || [],
-        // guesthouseId: recruit.guesthouseId,
+        guesthouseId: recruit.guesthouseId,
       }));
     }
 
@@ -124,7 +118,10 @@ const PostRecruitment = () => {
         Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
       }
     };
-    fetchMyGuestHouse();
+    if (!recruit) {
+      fetchMyGuestHouse();
+    }
+
     fetchHostHashtags();
   }, []);
 
@@ -245,30 +242,33 @@ const PostRecruitment = () => {
       workEndDate: formatDateToLocalISOString(formData.workEndDate),
     };
 
-    const fetchNewRecruit = async () => {
-      try {
-        await hostEmployApi.createRecruit(payload);
-        Alert.alert('새로운 공고를 등록했습니다.');
-        navigation.navigate('MyRecruitmentList');
-      } catch (error) {
-        Alert.alert('새로운 공고를 등록에 실패했습니다.');
-      }
-    };
-
-    const fetchUpdateRecruit = async updatedRecruitId => {
-      try {
-        await hostEmployApi.updateRecruit(updatedRecruitId, payload);
-        Alert.alert('공고를 성공적으로 수정했습니다.');
-        navigation.navigate('MyRecruitmentList');
-      } catch (error) {
-        Alert.alert('공고 수정에 실패했습니다.');
-      }
-    };
-
     if (recruit?.recruitId != null) {
-      fetchUpdateRecruit(recruit.recruitId);
+      const updatedPayload = {...payload};
+      delete updatedPayload.guesthouseId;
+
+      fetchUpdateRecruit(updatedPayload, recruit.recruitId);
     } else {
-      fetchNewRecruit();
+      fetchNewRecruit(payload);
+    }
+  };
+
+  const fetchNewRecruit = async payload => {
+    try {
+      await hostEmployApi.createRecruit(payload);
+      Alert.alert('새로운 공고를 등록했습니다.');
+      navigation.navigate('MyRecruitmentList');
+    } catch (error) {
+      Alert.alert('새로운 공고를 등록에 실패했습니다.');
+    }
+  };
+
+  const fetchUpdateRecruit = async (payload, updatedRecruitId) => {
+    try {
+      await hostEmployApi.updateRecruit(updatedRecruitId, payload);
+      Alert.alert('공고를 성공적으로 수정했습니다.');
+      navigation.navigate('MyRecruitmentList');
+    } catch (error) {
+      Alert.alert('공고 수정에 실패했습니다.');
     }
   };
 
@@ -299,20 +299,22 @@ const PostRecruitment = () => {
               onChangeText={text => handleInputChange('recruitTitle', text)}
             />
           </View>
-          <View style={{zIndex: 1000}}>
-            <DropDownPicker
-              open={guesthouseOpen}
-              value={formData.guesthouseId}
-              items={guesthouseList}
-              setOpen={setGuesthouseOpen}
-              setValue={val => handleInputChange('guesthouseId', val())}
-              setItems={setGuesthouseList}
-              placeholder="공고를 등록할 게스트하우스를 선택해주세요."
-              zIndex={1000}
-              zIndexInverse={3000}
-              listMode="SCROLLVIEW"
-            />
-          </View>
+          {!recruit && (
+            <View style={{zIndex: 1000}}>
+              <DropDownPicker
+                open={guesthouseOpen}
+                value={formData.guesthouseId}
+                items={guesthouseList}
+                setOpen={setGuesthouseOpen}
+                setValue={val => handleInputChange('guesthouseId', val())}
+                setItems={setGuesthouseList}
+                placeholder="공고를 등록할 게스트하우스를 선택해주세요."
+                zIndex={1000}
+                zIndexInverse={3000}
+                listMode="SCROLLVIEW"
+              />
+            </View>
+          )}
 
           <View style={styles.formGroup}>
             <TextInput
