@@ -15,7 +15,7 @@ import styles from './UserInfo.styles';
 import Header from '@components/Header';
 import authApi from '@utils/api/authApi';
 
-const UserInfo = () => {
+const UserRegisterInfo = () => {
   const route = useRoute();
   const {email, phoneNumber} = route.params;
   const navigation = useNavigation();
@@ -224,4 +224,4 @@ const UserInfo = () => {
   );
 };
 
-export default UserInfo;
+export default UserRegisterInfo;

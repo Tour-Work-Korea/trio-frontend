@@ -21,6 +21,8 @@ export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
 export {default as PaymentSuccess} from './(Common)/GuesthousePayment/PaymentSuccess';
 export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
 export {default as Result} from './(Common)/Result';
+export {default as EmailCertificate} from './(Common)/EmailCertificate';
+export {default as PhoneCertificate} from './(Common)/PhoneCertificate';
 
 //Host ==========================================================
 //Guesthouse
@@ -57,11 +59,9 @@ export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyLikeRecruitList} from './(User)/Employ/MyLikeRecruitList';
 //Register
-export {default as UserRegisterAgree} from './(User)/Register/Agree';
-export {default as EmailCertificate} from './(User)/Register/EmailCertificate';
-export {default as UserRegisterIntro} from './(User)/Register/Intro';
-export {default as PhoneCertificate} from './(User)/Register/PhoneCertificate';
-export {default as UserRegisterInfo} from './(User)/Register/UserInfo';
+export {default as UserRegisterAgree} from './(User)/Register/UserRegisterAgree';
+export {default as UserRegisterIntro} from './(User)/Register/UserRegisterIntro';
+export {default as UserRegisterInfo} from './(User)/Register/UserRegisterInfo';
 export {default as UserMyPage} from './(User)/UserMyPage';
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
