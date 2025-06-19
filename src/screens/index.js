@@ -40,6 +40,7 @@ export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegister
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/Employ/MyApplicantList';
+export {default as MyApplicantDetail} from './(User)/Employ/ApplicantDetail';
 export {default as MyApplyRecruitDetail} from './(User)/Employ/MyApplyRecruitDetail';
 export {default as MyApplyRecruitList} from './(User)/Employ/MyApplyRecruitList';
 export {default as MyLikeRecruitList} from './(User)/Employ/MyLikeRecruitList';
