@@ -44,7 +44,7 @@ const HostMyPage = () => {
                 <PersonIcon width={32} height={32} />
               </View>
             )}
-            <Text style={[FONTS.fs_h1_bold, styles.name]}>{host.name}</Text>
+            <Text style={[FONTS.fs_16_semibold, styles.name]}>{host.name}</Text>
           </View>
           <View style={styles.headerIcons}>
             <PersonIcon
