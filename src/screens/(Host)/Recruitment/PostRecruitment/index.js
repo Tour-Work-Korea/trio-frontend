@@ -66,11 +66,7 @@ const PostRecruitment = () => {
         workPart: recruit.workPart,
         welfare: recruit.welfare,
         location: recruit.location,
-        recruitImage:
-          recruit.recruitImage?.map(img => ({
-            recruitImageUrl: img.recruitImageUrl,
-            isThumbnail: img.isThumbnail || false,
-          })) || [],
+        recruitImage: recruit.recruitImages,
         recruitDetail: recruit.recruitDetail,
         hashtags: recruit.hashtags?.map(tag => tag.id) || [],
         guesthouseId: recruit.guesthouseId,

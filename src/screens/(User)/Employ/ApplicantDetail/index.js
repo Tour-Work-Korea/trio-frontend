@@ -10,9 +10,11 @@ import {
 import styles from './ApplicantDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Header from '@components/Header';
-import ApplicantExperienceSection from './components/ApplicantExperienceSection';
-import ApplicantProfileHeader from './components/ApplicantProfileHeader';
-import ApplicantSelfIntroduction from './components/ApplicantSelfIntroduction';
+import {
+  ApplicantExperienceSection,
+  ApplicantProfileHeader,
+  ApplicantSelfIntroduction,
+} from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
 
 const ApplicantDetail = () => {

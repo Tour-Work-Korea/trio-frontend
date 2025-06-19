@@ -11,6 +11,7 @@ import {
 import styles from './RecruitmentDetail.styles';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
+
 import RecruitProfileSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitProfileSection';
 import RecruitTapSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitTapSection';
 import RecruitDescriptionSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitDescriptionSection';
@@ -40,7 +41,6 @@ const RecruitmentDetail = () => {
         <></>
       ) : (
         <>
-          {' '}
           <ScrollView style={styles.scrollView}>
             <View style={styles.header}>
               <View style={styles.headerButton}>

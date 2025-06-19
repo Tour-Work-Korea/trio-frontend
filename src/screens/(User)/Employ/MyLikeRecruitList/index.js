@@ -2,7 +2,7 @@ import React, {useEffect, useState} from 'react';
 import {SafeAreaView, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import styles from './MyLikeRecruitList.styles';
-import {RecruitList} from '@components/RecruitList';
+import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 
 // 아이콘 불러오기

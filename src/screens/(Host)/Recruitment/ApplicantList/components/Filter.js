@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
-import styles from './ApplicantList.styles';
+import styles from '../ApplicantList.styles';
 
 export default function Filter({selectedFilter, setSelectedFilter}) {
   return (
