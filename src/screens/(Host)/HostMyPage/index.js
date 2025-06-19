@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
@@ -33,7 +33,19 @@ const HostMyPage = () => {
       <Header />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={[FONTS.fs_h1_bold, styles.name]}>김사장</Text>
+          <View style={styles.profileContainer}>
+            {host.profileImage ? (
+              <Image
+                source={{uri: host.profileImage}}
+                style={styles.profileImage}
+              />
+            ) : (
+              <View style={styles.profilePlaceholder}>
+                <PersonIcon width={32} height={32} />
+              </View>
+            )}
+            <Text style={[FONTS.fs_h1_bold, styles.name]}>{host.name}</Text>
+          </View>
           <View style={styles.headerIcons}>
             <PersonIcon
               width={26}

@@ -362,10 +362,6 @@ const PostRecruitment = () => {
           </View>
         </View>
 
-        <TouchableOpacity style={styles.addTagButton}>
-          <Text style={styles.addTagButtonText}>모집 파트 추가</Text>
-        </TouchableOpacity>
-
         {/* 모집조건 섹션 */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>모집조건</Text>
