@@ -25,6 +25,7 @@ export { default as AddressSearch } from './(Host)/MyGuesthouseAddEdit/AddressSe
 export { default as RegisterRoomInfo } from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
 export { default as MyGuesthouseDetail } from './(Host)/MyGuesthouseDetail';
 export { default as MyGuesthouseList } from './(Host)/MyGuesthouseList';
+export { default as MyGuesthouseReview } from './(Host)/MyGuesthouseReview';
 export { default as MyGuesthouseReviewList } from './(Host)/MyGuesthouseReviewList';
 export { default as DeleteReview } from './(Host)/MyGuesthouseReviewList/DeleteReview';
 export { default as MyGuesthouseReviewDetail } from './(Host)/MyGuesthouseReviewList/MyGuesthouseReviewDetail';

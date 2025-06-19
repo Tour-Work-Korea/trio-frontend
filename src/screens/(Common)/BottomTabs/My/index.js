@@ -1,7 +1,7 @@
 import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
-import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile, MyGuesthouseList, MyGuesthouseDetail, MyGuesthouseAddEdit, MyGuesthouseReviewList} from '@screens';
+import {HostMyPage, UserMyPage, HostEditProfile, UserEditProfile, MyGuesthouseList, MyGuesthouseDetail, MyGuesthouseAddEdit, MyGuesthouseReviewList, MyGuesthouseReview} from '@screens';
 
 import { Alert } from 'react-native';
 import useUserStore from '@stores/userStore';
@@ -48,6 +48,7 @@ const My = () => {
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} /> 
       <Stack.Screen name="MyGuesthouseAddEdit" component={MyGuesthouseAddEdit} /> 
       <Stack.Screen name="MyGuesthouseReviewList" component={MyGuesthouseReviewList} /> 
+      <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} /> 
     </Stack.Navigator>
   );
 };
