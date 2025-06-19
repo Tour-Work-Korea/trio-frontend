@@ -50,5 +50,6 @@ export { default as UserInfo } from './(User)/Register/UserInfo';
 export { default as UserMyPage } from './(User)/UserMyPage';
 export { default as UserEditProfile } from './(User)/UserMyPage/UserEditProfile';
 export { default as UserFavoriteGuesthouse } from './(User)/UserMyPage/UserFavoriteGuesthouse';
+export { default as UserReservationCheck } from './(User)/UserMyPage/UserReservationCheck';
 export { default as EXHome } from './EXHome';
 export { default as EXLogin } from './EXLogin';
