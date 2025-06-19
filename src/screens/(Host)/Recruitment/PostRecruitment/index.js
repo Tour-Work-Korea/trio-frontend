@@ -33,42 +33,41 @@ function formatDateToLocalISOString(date) {
 
 const PostRecruitment = () => {
   const [formData, setFormData] = useState({
-    recruitTitle: 'title1',
-    recruitShortDescription: 'descrip1',
+    recruitTitle: '',
+    recruitShortDescription: '',
     recruitStart: null,
     recruitEnd: null,
-    recruitNumberMale: 1,
-    recruitNumberFemale: 1,
-    location: 'address1',
-    recruitCondition: 'prefer1',
-    recruitMinAge: 20,
-    recruitMaxAge: 30,
-    workType: 'workType1',
+    recruitNumberMale: 0,
+    recruitNumberFemale: 0,
+    location: '',
+    recruitCondition: '',
+    recruitMinAge: 0,
+    recruitMaxAge: 0,
+    workType: '',
     workStartDate: null,
     workEndDate: null,
-    workPart: 'work1',
-    welfare: 'welfare1',
-    recruitDetail: 'descrip1',
+    workPart: '',
+    welfare: '',
+    recruitDetail: '',
     recruitImage: [],
-    hashtags: [11, 13, 18],
-    guesthouseId: 29,
+    hashtags: [],
+    guesthouseId: 0,
   });
-  const [guesthouseList, setGuesthouseList] = useState([]);
+  const [guesthouses, setGuesthouses] = useState([]);
+  const [hashtags, setHashtags] = useState();
   const [showRecruitStart, setShowRecruitStart] = useState(false);
   const [showRecruitEnd, setShowRecruitEnd] = useState(false);
   const [showWorkStartDate, setShowWorkStartDate] = useState(false);
   const [showWorkEndDate, setShowWorkEndDate] = useState(false);
   const [guesthouseOpen, setGuesthouseOpen] = useState(false);
-  const [hashtags, setHashtags] = useState();
 
   const route = useRoute();
   const recruit = route.params ?? null;
   const navigation = useNavigation();
 
   useEffect(() => {
-    // 수정인 경우, 기존 데이터
     if (recruit) {
-      setFormData(prev => ({
+      setFormData({
         recruitTitle: recruit.recruitTitle,
         recruitShortDescription: recruit.recruitShortDescription,
         recruitStart: new Date(recruit.recruitStart),
@@ -92,38 +91,39 @@ const PostRecruitment = () => {
         recruitDetail: recruit.recruitDetail,
         hashtags: recruit.hashtags?.map(tag => tag.id) || [],
         guesthouseId: recruit.guesthouseId,
-      }));
+      });
     }
 
-    //해시태그 조회
-    const fetchHostHashtags = async () => {
-      try {
-        const response = await hostEmployApi.getHostHashtags();
-        setHashtags(response.data);
-      } catch (error) {
-        Alert.alert('해시태그 조회에 실패했습니다.');
-      }
-    };
-
-    //나의 게스트하우스 리스트 조회
-    const fetchMyGuestHouse = async () => {
-      try {
-        const response = await hostGuesthouseApi.getMyGuesthouses();
-        const options = response.data.map(g => ({
-          label: g.guesthouseName,
-          value: g.id,
-        }));
-        setGuesthouseList(options);
-      } catch (error) {
-        Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
-      }
-    };
     if (!recruit) {
       fetchMyGuestHouse();
     }
 
     fetchHostHashtags();
   }, []);
+
+  //해시태그 조회
+  const fetchHostHashtags = async () => {
+    try {
+      const response = await hostEmployApi.getHostHashtags();
+      setHashtags(response.data);
+    } catch (error) {
+      Alert.alert('해시태그 조회에 실패했습니다.');
+    }
+  };
+
+  //나의 게스트하우스 리스트 조회
+  const fetchMyGuestHouse = async () => {
+    try {
+      const response = await hostGuesthouseApi.getMyGuesthouses();
+      const options = response.data.map(g => ({
+        label: g.guesthouseName,
+        value: g.id,
+      }));
+      setGuesthouses(options);
+    } catch (error) {
+      Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
+    }
+  };
 
   const handleInputChange = (field, value) => {
     setFormData({
@@ -304,10 +304,10 @@ const PostRecruitment = () => {
               <DropDownPicker
                 open={guesthouseOpen}
                 value={formData.guesthouseId}
-                items={guesthouseList}
+                items={guesthouses}
                 setOpen={setGuesthouseOpen}
                 setValue={val => handleInputChange('guesthouseId', val())}
-                setItems={setGuesthouseList}
+                setItems={setGuesthouses}
                 placeholder="공고를 등록할 게스트하우스를 선택해주세요."
                 zIndex={1000}
                 zIndexInverse={3000}
