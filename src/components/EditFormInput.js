@@ -1,7 +1,13 @@
 import React from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import DeleteIcon from '@assets/images/delete.svg';
@@ -20,46 +26,55 @@ const EditFormInput = ({
 }) => {
   return (
     <View style={styles.container}>
-        {/* 제목 */}
-        <Text style={[FONTS.fs_h1_bold, styles.label]}>{label}</Text>
+      {/* 제목 */}
+      <Text style={[FONTS.fs_h1_bold, styles.label]}>{label}</Text>
 
-        {/* 메인 입력창 */}
-        <View style={styles.inputWrapper}>
-            <TextInput
-                style={[FONTS.fs_h2, styles.input]}
-                value={value}
-                onChangeText={onChangeText}
-                placeholder={placeholder}
-            />
-            {value?.length > 0 && (
-            <TouchableOpacity style={styles.clearButton} onPress={() => onChangeText('')}>
-                <DeleteIcon width={24} height={24} />
-            </TouchableOpacity>
-            )}
+      {/* 메인 입력창 */}
+      <View style={styles.inputWrapper}>
+        <TextInput
+          style={[FONTS.fs_h2, styles.input]}
+          value={value}
+          onChangeText={onChangeText}
+          placeholder={placeholder}
+        />
+        {value?.length > 0 && (
+          <TouchableOpacity
+            style={styles.clearButton}
+            onPress={() => onChangeText('')}>
+            <DeleteIcon width={24} height={24} />
+          </TouchableOpacity>
+        )}
+      </View>
+
+      {/* 인증번호 발급 버튼 */}
+      {showSendAuthButton && (
+        <View style={styles.sendAuthButton}>
+          <ButtonScarlet
+            title="인증 번호 발급"
+            marginHorizontal="0"
+            onPress={onSendAuth}
+          />
         </View>
+      )}
 
-        {/* 인증번호 발급 버튼 */}
-        {showSendAuthButton && (
-            <View style={styles.sendAuthButton}>
-                <ButtonScarlet title="인증 번호 발급" marginHorizontal="0" />
-            </View> 
-        )}
-
-
-        {/* 인증번호 입력창 + 확인 버튼 */}
-        {showAuthInput && (
-            <View style={styles.authInputWrapper}>
-                <TextInput
-                    style={[FONTS.fs_body, styles.authInput]}
-                    value={authValue}
-                    onChangeText={onChangeAuthText}
-                    placeholder="인증번호를 입력해 주세요"
-                />
-                <View style={styles.authInputButton}>
-                    <ButtonWhite title="확인" marginHorizontal="0"/>
-                </View>
-            </View>
-        )}
+      {/* 인증번호 입력창 + 확인 버튼 */}
+      {showAuthInput && (
+        <View style={styles.authInputWrapper}>
+          <TextInput
+            style={[FONTS.fs_body, styles.authInput]}
+            value={authValue}
+            onChangeText={onChangeAuthText}
+            placeholder="인증번호를 입력해 주세요"
+          />
+          <View style={styles.authInputButton}>
+            <ButtonWhite
+              title="확인"
+              marginHorizontal="0"
+              onPress={onConfirmAuth}
+            />
+          </View>
+        </View>
+      )}
     </View>
   );
 };

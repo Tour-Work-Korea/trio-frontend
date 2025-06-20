@@ -6,436 +6,315 @@ import {
   ScrollView,
   TouchableOpacity,
   SafeAreaView,
-  Alert,
+  Modal,
   Platform,
+  Alert,
 } from 'react-native';
-
+import {COLORS} from '@constants/colors';
+import styles from './ApplicantForm.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import ProfileIcon from '@assets/images/Gray_Person.svg';
-import DeleteIcon from '@assets/images/delete.svg';
 import CalendarIcon from '@assets/images/Calendar.svg';
+import EditIcon from '@assets/images/Edit.svg';
+import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
+import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
+import ChevronDownIcon from '@assets/images/arrow_drop_down.svg';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '@components/Header';
-import styles from './ApplicantForm.styles';
-import {Image} from 'react-native-svg';
 import userEmployApi from '@utils/api/userEmployApi';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {id = null, isEditMode = false} = route.params || {};
-  const [baseInfo, setBaseInfo] = useState();
-  const [hashtags, setHashtags] = useState();
-  const [currentJob, setCurrentJob] = useState({
-    companyName: '',
-    startDate: new Date(),
-    endDate: new Date(),
-    workType: '',
-    description: '',
-  });
-  const [formData, setFormData] = useState({
-    resumeTitle: '',
-    selfIntro: '',
-    workExperience: [],
-    hashtags: [],
-  });
+  const {recruitId, recruitTitle, guesthouseName, recruitEnd} = route.params;
 
-  // 날짜 선택 관련 상태
-  const [showStartDatePicker, setShowStartDatePicker] = useState(false);
-  const [showEndDatePicker, setShowEndDatePicker] = useState(false);
+  const [resumes, setResumes] = useState();
+  const [applicant, setApplicant] = useState({
+    message: '',
+    startDate: null,
+    endDate: null,
+    personalInfoConsent: false, // 개인 정보 제 3자 정보 동의 여부
+    resumeId: null, // 선택한 이력서
+  });
+  const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
+  const [showStartDate, setShowStartDate] = useState(false);
+  const [showEndDate, setShowEndDate] = useState(false);
 
   useEffect(() => {
-    getMyInfo();
-    // setFormData(dummy);
-    if (id != null) {
-      tryFetchResumeData();
-    }
-    getHashtags();
+    fetchResumeList();
   }, []);
 
-  //기본 정보 조회
-  const getMyInfo = async () => {
+  const fetchResumeList = async () => {
     try {
-      const response = await userEmployApi.getMyBasicInfo();
-      setBaseInfo(response.data);
+      const response = await userEmployApi.getResumes();
+      setResumes(response.data);
     } catch (error) {
-      Alert.alert('기본 정보를 불러오는데 실패했습니다.');
+      Alert.alert('이력서를 가져오는데 실패했습니다.');
     }
   };
 
-  //해시태그 조회
-  const getHashtags = async () => {
-    try {
-      const response = await userEmployApi.getUserHashtags();
-      setHashtags(response.data);
-    } catch (error) {
-      console.error(error);
-      Alert.alert('해시태그 조회에 실패했습니다.');
-    }
+  const handleEditResume = id => {
+    navigation.navigate('ApplicantForm', {isEditMode: true, id: id});
   };
 
-  //기존 이력서 정보 조회(수정 시)
-  const tryFetchResumeData = async () => {
+  const handleDateChange = (event, selectedDate, dateField) => {
+    const currentDate = selectedDate || applicant[dateField];
+    if (dateField === 'startDate') setShowStartDate(false);
+    if (dateField === 'endDate') setShowEndDate(false);
+    setApplicant(prev => ({...prev, [dateField]: currentDate}));
+  };
+
+  const handleSubmit = async () => {
+    if (!applicant.resumeId) {
+      Alert.alert('이력서를 선택해주세요.');
+      return;
+    }
+    if (!applicant.personalInfoConsent) {
+      Alert.alert('개인정보 제3자 제공에 동의해주세요.');
+      return;
+    }
+    if (!applicant.startDate || !applicant.endDate) {
+      Alert.alert('근무가능기간을 입력해주세요.');
+      return;
+    }
     try {
-      const response = await userEmployApi.getResumeById(id);
-      const data = response.data;
-      const parsedFormData = {
-        resumeTitle: data.resumeTitle || '',
-        selfIntro: data.selfIntro || '',
-        workExperience: data.workExperience || [],
-        hashtags: data.hashtags?.map(item => item.id) || [],
-        // hashtags: [],
+      const parsedData = {
+        message: applicant.message,
+        startDate: formatDate(applicant.startDate),
+        endDate: formatDate(applicant.endDate),
+        personalInfoConsent: applicant.personalInfoConsent,
+        resumeId: applicant.resumeId,
       };
-      console.log(parsedFormData);
-      setFormData(parsedFormData);
+      await userEmployApi.apply(recruitId, parsedData);
+      Alert.alert('지원이 완료되었습니다.');
+      navigation.navigate('MyApplicantList');
     } catch (error) {
-      Alert.alert('기존 정보를 불러오는데 실패했습니다');
+      Alert.alert('지원서 등록에 실패했습니다.');
     }
   };
 
-  //입력값 갱신 함수
-  const handleInputChange = (field, value) => {
-    setFormData(prev => ({
-      ...prev,
-      [field]: value,
-    }));
+  const formatDate = date => {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   };
 
-  //경력 핸들러
-  const handleCurrentJobChange = (field, value) => {
-    setCurrentJob(prev => ({
-      ...prev,
-      [field]: value,
-    }));
-  };
+  const renderResumeSelection = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>이력서 선택</Text>
 
-  //해시태그 핸들러
-  const handleTagToggle = tagId => {
-    const isSelected = formData.hashtags.includes(tagId);
-
-    // 선택되지 않았고 이미 3개라면 막기
-    if (!isSelected && formData.hashtags.length >= 3) {
-      Alert.alert('알림', '태그는 최대 3개까지 선택할 수 있어요.');
-      return;
-    }
-
-    const updatedHashtags = isSelected
-      ? formData.hashtags.filter(hashtagId => hashtagId !== tagId)
-      : [...formData.hashtags, tagId];
-
-    setFormData(prev => ({
-      ...prev,
-      hashtags: updatedHashtags,
-    }));
-  };
-
-  const handleAddExperience = () => {
-    if (!currentJob.companyName || !currentJob.workType) {
-      Alert.alert('알림', '회사명과 담당 업무를 입력해주세요.');
-      return;
-    }
-
-    setFormData(prev => ({
-      ...prev,
-      workExperience: [...prev.workExperience, currentJob],
-    }));
-    setCurrentJob({
-      companyName: '',
-      startDate: new Date(),
-      endDate: new Date(),
-      workType: '',
-      description: '',
-    });
-  };
-
-  const handleDeleteExperience = index => {
-    setFormData(prev => ({
-      ...prev,
-      workExperience: prev.workExperience.filter((_, i) => i !== index),
-    }));
-  };
-
-  const handleSubmit = () => {
-    if (!formData.resumeTitle || !formData.selfIntro) {
-      Alert.alert('알림', '제목과 자기소개를 입력해주세요.');
-      return;
-    }
-
-    const formattedWorkExperience = formData.workExperience.map(exp => ({
-      ...exp,
-      startDate: new Date(exp.startDate).toISOString().split('T')[0],
-      endDate: new Date(exp.endDate).toISOString().split('T')[0],
-    }));
-
-    const payload = {
-      ...formData,
-      workExperience: formattedWorkExperience,
-    };
-    //id가 없을 경우 새 이력서 등록 아닌 경우 수정
-
-    try {
-      if (id == null) {
-        userEmployApi.addResume(payload);
-        Alert.alert('제출 완료', '이력서가 저장되었습니다.');
-        navigation.navigate('MyApplicantList');
-      } else {
-        userEmployApi.updateResume(id, payload);
-        Alert.alert('제출 완료', '이력서가 수정되었습니다.');
-        navigation.navigate('MyApplicantList');
-      }
-    } catch (error) {
-      Alert.alert(' 이력서 등록/수정에 실패했습니다.');
-    }
-  };
-
-  const handleEditMemberInfo = () => {
-    Alert.alert('알림', '회원정보 수정 페이지로 이동합니다.');
-    // 회원정보 수정 페이지로 이동하는 로직
-  };
-
-  const renderBasicInfo = () => (
-    <View style={styles.sectionContainer}>
-      {/* 이력서 제목 */}
-      <Text style={styles.sectionTitle}>이력서 제목</Text>
-      <TextInput
-        style={styles.textInput}
-        placeholder="이력서 제목을 입력하세요."
-        value={formData.resumeTitle}
-        onChangeText={text => handleInputChange('resumeTitle', text)}
-      />
-
-      {/* 기본 정보 */}
-      <View style={styles.sectionHeaderRow}>
-        <Text style={styles.sectionTitle}>기본 정보</Text>
+      {resumes?.map(item => (
         <TouchableOpacity
-          style={styles.editMemberButton}
-          onPress={handleEditMemberInfo}>
-          <Text style={styles.editMemberButtonText}>회원정보 수정</Text>
+          key={item.resumeId}
+          style={styles.resumeItem}
+          onPress={() => {
+            if (item.resumeId === applicant.resumeId) {
+              setApplicant(prev => ({...prev, resumeId: null}));
+            } else {
+              setApplicant(prev => ({...prev, resumeId: item.resumeId}));
+            }
+          }}>
+          <View style={styles.resumeLeftSection}>
+            {applicant.resumeId === item.resumeId ? (
+              <CheckedCircleIcon
+                width={24}
+                height={24}
+                color={COLORS.scarlet}
+              />
+            ) : (
+              <UncheckedCircleIcon width={24} height={24} color={COLORS.gray} />
+            )}
+          </View>
+
+          <View style={styles.resumeMiddleSection}>
+            <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
+            <View style={styles.tagsContainer}>
+              {item.hashtags.map((tag, index) => (
+                <Text key={index} style={styles.tagText}>
+                  #{tag.hashtag}{' '}
+                </Text>
+              ))}
+            </View>
+            <Text style={styles.lastModifiedText}>
+              최종수정일 {item.updatedAt.split('T')[0]}
+            </Text>
+          </View>
+
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => handleEditResume(item.resumeId)}>
+            <EditIcon width={24} height={24} color={COLORS.gray} />
+          </TouchableOpacity>
+        </TouchableOpacity>
+      ))}
+    </View>
+  );
+
+  const renderWorkPeriod = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>희망 근무기간</Text>
+
+      <View style={styles.datePickerRow}>
+        <TouchableOpacity
+          style={styles.datePickerButton}
+          onPress={() => setShowStartDate(true)}>
+          <View style={styles.datePickerContent}>
+            <Text style={styles.dateText}>
+              {applicant.startDate
+                ? new Date(applicant.startDate).toLocaleDateString('ko-KR')
+                : '시작일자'}
+            </Text>
+            <CalendarIcon width={24} height={24} />
+          </View>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.datePickerButton}
+          onPress={() => setShowEndDate(true)}>
+          <View style={styles.datePickerContent}>
+            <Text style={styles.dateText}>
+              {applicant.endDate
+                ? new Date(applicant.endDate).toLocaleDateString('ko-KR')
+                : '마감일자'}
+            </Text>
+            <CalendarIcon width={24} height={24} />
+          </View>
         </TouchableOpacity>
       </View>
 
-      <View style={styles.profileCard}>
-        <View style={styles.profileImageContainer}>
-          {baseInfo?.photoUrl === '사진을 추가해주세요' ? (
-            <ProfileIcon width={80} height={80} />
-          ) : (
-            <Image
-              source={{uri: baseInfo?.photoUrl}}
-              style={{width: 80, height: 80, borderRadius: 40}}
-              resizeMode="cover"
-            />
-          )}
-        </View>
-        <Text style={styles.profileName}>
-          {baseInfo?.nickname} {baseInfo?.gender} • {baseInfo?.age}세(
-          {baseInfo?.birthDate?.split('-')[0]})
-        </Text>
-        <View style={styles.infoContainer}>
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>연락처</Text>
-            <Text style={styles.infoValue}>{baseInfo?.phone}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>이메일</Text>
-            <Text style={styles.infoValue}>{baseInfo?.email}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>주소</Text>
-            <Text style={styles.infoValue}>{baseInfo?.address}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>MBTI</Text>
-            <Text style={styles.infoValue}>{baseInfo?.mbti}</Text>
-          </View>
-
-          <View style={styles.infoRow}>
-            <Text style={styles.infoLabel}>인스타그램</Text>
-            <Text style={styles.infoValue}>{baseInfo?.instagramId}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderExperienceSection = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>경력</Text>
-      {formData.workExperience.map((exp, idx) => (
-        <View key={idx} style={styles.experienceCard}>
-          <View style={styles.experienceHeader}>
-            <Text style={styles.experiencePeriod}>
-              {new Date(exp.startDate).toISOString().split('T')[0]} -{' '}
-              {new Date(exp.endDate).toISOString().split('T')[0]}
-            </Text>
-            <View style={styles.experienceActions}>
-              <TouchableOpacity
-                style={styles.actionButton}
-                onPress={() => handleDeleteExperience(idx)}>
-                <DeleteIcon width={20} height={20} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <Text style={styles.experienceCompany}>{exp.companyName}</Text>
-          <Text style={styles.experienceDuties}>{exp.workType}</Text>
-        </View>
-      ))}
-
-      <TouchableOpacity style={styles.addButton} onPress={handleAddExperience}>
-        <Text style={styles.addButtonText}>경력 추가</Text>
-      </TouchableOpacity>
-
-      <View style={styles.currentJobSection}>
-        <Text style={styles.formLabel}>회사명/직종</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="회사명 또는 업종을 입력하세요."
-          value={currentJob.companyName}
-          onChangeText={text => handleCurrentJobChange('companyName', text)}
-        />
-
-        <Text style={styles.formLabel}>근무 기간</Text>
-        <View style={styles.datePickerRow}>
-          <TouchableOpacity
-            style={styles.datePickerButton}
-            onPress={() => setShowStartDatePicker(true)}>
-            <Text style={styles.datePickerButtonText}>
-              {currentJob.startDate
-                .toISOString()
-                .split('T')[0]
-                .replace(/-/g, '.')}
-            </Text>
-            <CalendarIcon width={20} height={20} />
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={styles.datePickerButton}
-            onPress={() => setShowEndDatePicker(true)}>
-            <Text style={styles.datePickerButtonText}>
-              {currentJob.endDate
-                .toISOString()
-                .split('T')[0]
-                .replace(/-/g, '.')}
-            </Text>
-            <CalendarIcon width={20} height={20} />
-          </TouchableOpacity>
-        </View>
-
-        <Text style={styles.formLabel}>담당 업무</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="담당업무를 적어주세요."
-          value={currentJob.duties}
-          onChangeText={text => handleCurrentJobChange('workType', text)}
-          multiline
-        />
-
-        <Text style={styles.formLabel}>상세 정보</Text>
-        <TextInput
-          style={styles.textInput}
-          placeholder="상세 내용을 적어주세요."
-          value={currentJob.duties}
-          onChangeText={text => handleCurrentJobChange('description', text)}
-          multiline
-        />
-      </View>
-      {showStartDatePicker && (
+      {showStartDate && (
         <DateTimePicker
-          value={currentJob.startDate}
+          value={applicant.startDate ?? new Date()}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            setShowStartDatePicker(false);
-            if (selectedDate) {
-              handleCurrentJobChange('startDate', selectedDate);
-            }
-          }}
+          display="default"
+          onChange={(event, date) => handleDateChange(event, date, 'startDate')}
         />
       )}
-      {showEndDatePicker && (
+
+      {showEndDate && (
         <DateTimePicker
-          value={currentJob.endDate}
+          value={applicant.endDate ?? new Date()}
           mode="date"
-          display={Platform.OS === 'ios' ? 'spinner' : 'default'}
-          onChange={(event, selectedDate) => {
-            setShowEndDatePicker(false);
-            if (selectedDate) {
-              handleCurrentJobChange('endDate', selectedDate);
-            }
-          }}
+          display="default"
+          onChange={(event, date) => handleDateChange(event, date, 'endDate')}
         />
       )}
     </View>
   );
 
-  const renderSelfIntro = () => (
-    <View style={styles.sectionContainer}>
-      <Text style={styles.sectionTitle}>자기소개서</Text>
+  const renderMessageToOwner = () => (
+    <View style={styles.section}>
+      <Text style={styles.sectionTitle}>사장님께 한마디</Text>
+
       <TextInput
-        style={styles.textAreaInput}
-        placeholder="나에 대해 자유롭게 작성해주세요."
-        value={formData.selfIntro}
-        onChangeText={text => handleInputChange('selfIntro', text)}
+        style={styles.messageInput}
+        placeholder="지원 동기나 각오를 입력하거나 사장님께서 따로 작성해달라고 한 항목을 입력해주세요"
+        value={applicant.message}
+        onChangeText={text => setApplicant(prev => ({...prev, message: text}))}
         multiline
-        numberOfLines={6}
         textAlignVertical="top"
       />
     </View>
   );
 
-  const renderTags = () => {
-    return (
-      <View style={styles.sectionContainer}>
-        <Text style={styles.sectionTitle}>태그</Text>
-        <Text style={styles.tagDescription}>
-          태그는 나의 특징을 나타내줘요! (최대 3개 선택가능)
-        </Text>
-        <View style={styles.tagGrid}>
-          {hashtags?.map(tag => {
-            const isSelected = formData.hashtags.includes(tag.id);
-            return (
-              <TouchableOpacity
-                key={tag.id}
-                style={[
-                  styles.tagButton,
-                  isSelected && styles.tagButtonSelected,
-                ]}
-                onPress={() => handleTagToggle(tag.id)}>
-                <Text
-                  style={[
-                    styles.tagButtonText,
-                    isSelected && styles.tagButtonTextSelected,
-                  ]}>
-                  {tag.hashtag}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
+  const renderPrivacyAgreement = () => (
+    <View style={styles.section}>
+      <TouchableOpacity
+        style={styles.privacyRow}
+        onPress={() =>
+          setApplicant(prev => ({
+            ...prev,
+            personalInfoConsent: !prev.personalInfoConsent,
+          }))
+        }>
+        <View style={styles.checkboxContainer}>
+          {applicant.personalInfoConsent ? (
+            <View style={styles.checkedBox}>
+              <Text style={styles.checkmark}>✓</Text>
+            </View>
+          ) : (
+            <View style={styles.uncheckedBox} />
+          )}
         </View>
-      </View>
-    );
-  };
+
+        <TouchableOpacity
+          style={styles.privacyTextContainer}
+          onPress={() => {
+            setIsPrivacyModalOpen(true);
+          }}>
+          <Text style={styles.privacyText}>
+            <Text style={styles.requiredText}>(필수)</Text> 개인정보 제3자 제공
+            동의
+          </Text>
+          <ChevronDownIcon width={24} height={24} />
+        </TouchableOpacity>
+      </TouchableOpacity>
+
+      <Modal
+        visible={isPrivacyModalOpen}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setIsPrivacyModalOpen(false)}>
+        <View style={styles.modalContainer}>
+          <View style={styles.modalContent}>
+            <Text style={styles.modalTitle}>개인정보 제3자 제공 동의</Text>
+
+            <ScrollView style={styles.modalScrollView}>
+              <Text style={styles.modalText}>
+                1. 개인정보를 제공받는 자: 구인 공고 등록 기업{'\n\n'}
+                2. 제공하는 개인정보 항목: 이름, 연락처, 이메일, 경력사항,
+                자기소개서 등 이력서에 기재한 정보{'\n\n'}
+                3. 개인정보를 제공받는 자의 개인정보 이용 목적: 채용 전형 진행,
+                채용 여부 결정{'\n\n'}
+                4. 개인정보를 제공받는 자의 개인정보 보유 및 이용 기간: 채용
+                전형 종료 후 3개월까지{'\n\n'}
+                5. 동의를 거부할 권리 및 동의 거부에 따른 불이익: 지원자는
+                개인정보 제공 동의를 거부할 권리가 있으나, 동의 거부 시 채용
+                전형에 지원이 불가합니다.
+              </Text>
+            </ScrollView>
+
+            <TouchableOpacity
+              style={styles.modalCloseButton}
+              onPress={() => {
+                setIsPrivacyModalOpen(false);
+              }}>
+              <Text style={styles.modalCloseButtonText}>확인</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+
+  const renderSubmitButton = () => (
+    <View style={styles.submitButtonContainer}>
+      <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
+        <Text style={styles.submitButtonText}>지원하기</Text>
+      </TouchableOpacity>
+    </View>
+  );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title={`이력서 ${isEditMode ? '수정' : '등록'}`} />
+      <Header title="지원하기" />
+      <View style={styles.header}>
+        <Text style={styles.headerTitle}>{recruitTitle}</Text>
+        <View style={styles.tabContainer}>
+          <Text style={styles.tabText}>{guesthouseName}</Text>
+          <Text style={styles.tabText}>{recruitEnd?.split('T')[0]}</Text>
+        </View>
+      </View>
+
       <ScrollView style={styles.scrollView}>
-        {renderBasicInfo()}
-        {renderExperienceSection()}
-        {renderSelfIntro()}
-        {renderTags()}
+        {renderResumeSelection()}
+        {renderWorkPeriod()}
+        {renderMessageToOwner()}
+        {renderPrivacyAgreement()}
         <View style={styles.bottomPadding} />
       </ScrollView>
 
-      <View style={styles.submitButtonContainer}>
-        <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-          <Text style={styles.submitButtonText}>
-            이력서 {isEditMode ? '수정' : '등록'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      {renderSubmitButton()}
     </SafeAreaView>
   );
 };

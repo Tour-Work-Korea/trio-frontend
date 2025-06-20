@@ -45,7 +45,7 @@ const UserMyPage = () => {
                 <PersonIcon width={32} height={32} />
               </View>
             )}
-            <Text style={[FONTS.fs_h1_bold, styles.name]}>{user.name}</Text>
+            <Text style={[FONTS.fs_16_semibold, styles.name]}>{user.name}</Text>
           </View>
           <View style={styles.headerIcons}>
             <PersonIcon
@@ -87,13 +87,13 @@ const UserMyPage = () => {
           />
           <MenuItem
             IconComponent={MyApplicationIcon}
-            label="나의 지원서"
-            onPress={() => navigation.navigate('MyApplicantList')}
+            label="나의 이력서"
+            onPress={() => navigation.navigate('MyResumeList')}
           />
           <MenuItem
             IconComponent={ApplicationStatusIcon}
             label="지원 현황"
-            onPress={() => navigation.navigate('MyApplyRecruitList')}
+            onPress={() => navigation.navigate('MyApplicantList')}
           />
           {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>

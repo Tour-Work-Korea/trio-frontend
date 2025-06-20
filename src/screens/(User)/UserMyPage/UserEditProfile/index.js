@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Image } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity, Image} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
 import PlusIcon from '@assets/images/plus.svg';
@@ -8,12 +8,12 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 
 import Header from '@components/Header';
 import styles from './UserEditProfile.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { userInfo } = route.params;
+  const {userInfo} = route.params;
 
   // 유저 데이터 (사진은 추후에 추가)
   const [user, setUser] = useState({
@@ -23,7 +23,7 @@ const UserEditProfile = () => {
     mbti: userInfo?.mbti || '',
     instagramId: userInfo?.instagramId || '',
   });
-  
+
   const goToEditProfile = (field, label, value) => {
     navigation.navigate('EditProfileFieldScreen', {
       field,
@@ -36,7 +36,6 @@ const UserEditProfile = () => {
     <View style={styles.outContainer}>
       <Header title="마이페이지" />
       <View style={styles.container}>
-
         {/* 프로필 영역 */}
         <View style={styles.profileContainer}>
           <View style={styles.profileImageWrapper}>
@@ -48,7 +47,9 @@ const UserEditProfile = () => {
             </TouchableOpacity>
           </View>
 
-          <TouchableOpacity style={styles.nameButton} onPress={() => goToEditProfile('name', '이름', user.name)}>
+          <TouchableOpacity
+            style={styles.nameButton}
+            onPress={() => goToEditProfile('name', '이름', user.name)}>
             <Text style={[FONTS.fs_h2_bold, styles.nameText]}>{user.name}</Text>
             <RightArrow width={20} height={20} />
           </TouchableOpacity>
@@ -74,17 +75,21 @@ const UserEditProfile = () => {
           <InfoItem
             label="인스타"
             value={user.instagramId}
-            onPress={() => goToEditProfile('insta', '인스타', user.instagramId)}
+            onPress={() =>
+              goToEditProfile('instagramId', '인스타', user.instagramId)
+            }
           />
         </View>
-
       </View>
     </View>
   );
 };
 
-const InfoItem = ({ label, value, noArrow, onPress }) => (
-  <TouchableOpacity disabled={noArrow} style={styles.infoItem} onPress={onPress}>
+const InfoItem = ({label, value, noArrow, onPress}) => (
+  <TouchableOpacity
+    disabled={noArrow}
+    style={styles.infoItem}
+    onPress={onPress}>
     <Text style={[FONTS.fs_h2_bold, styles.infoLabel]}>{label}</Text>
     <View style={styles.infoRight}>
       <Text style={[FONTS.fs_h2, styles.infoValue]}>{value}</Text>
@@ -94,4 +99,3 @@ const InfoItem = ({ label, value, noArrow, onPress }) => (
 );
 
 export default UserEditProfile;
-

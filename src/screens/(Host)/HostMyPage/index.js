@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
@@ -16,12 +16,16 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
 import styles from './HostMyPage.styles';
 import {FONTS} from '@constants/fonts';
+import useUserStore from '@stores/userStore';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
 
+  //저장된 호스트 프로필 호출
+  const host = useUserStore(state => state.hostProfile);
+
   const goToEditProfile = () => {
-    navigation.navigate('HostEditProfile');
+    navigation.navigate('HostEditProfile', {hostInfo: host});
   };
 
   return (
@@ -29,7 +33,19 @@ const HostMyPage = () => {
       <Header />
       <View style={styles.container}>
         <View style={styles.header}>
-          <Text style={[FONTS.fs_h1_bold, styles.name]}>김사장</Text>
+          <View style={styles.profileContainer}>
+            {host.profileImage ? (
+              <Image
+                source={{uri: host.profileImage}}
+                style={styles.profileImage}
+              />
+            ) : (
+              <View style={styles.profilePlaceholder}>
+                <PersonIcon width={32} height={32} />
+              </View>
+            )}
+            <Text style={[FONTS.fs_16_semibold, styles.name]}>{host.name}</Text>
+          </View>
           <View style={styles.headerIcons}>
             <PersonIcon
               width={26}

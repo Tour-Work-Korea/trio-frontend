@@ -20,8 +20,8 @@ const hostGuesthouseApi = {
   deleteGuesthouse: guesthouseId =>
     api.delete(`/host/guesthouses/${guesthouseId}`),
 
-  // 특정 게스트하우스 리뷰 목록 조회 
-  getGuesthouseReviews: ({ guesthouseId, page, size, sort }) =>
+  // 특정 게스트하우스 리뷰 목록 조회
+  getGuesthouseReviews: ({guesthouseId, page, size, sort}) =>
     api.get(`/${guesthouseId}/reviews`, {
       params: {
         page,
@@ -32,18 +32,19 @@ const hostGuesthouseApi = {
 
   // 리뷰에 대한 답글 작성
   postReviewReply: (reviewId, reply) =>
-    api.post(`/host/reviews/${reviewId}/replies`, { reply }),
+    api.post(`/host/reviews/${reviewId}/replies`, {reply}),
 
   // 리뷰 삭제
   deleteReview: (reviewId, reason) =>
     api.delete(`/host/reviews/${reviewId}`, {
-      data: { reason }
+      data: {reason},
     }),
 
   // 사장님 입점신청서 조회
-  getHostApplications: () =>
-    api.get('/host/my/application'),
+  getHostApplications: () => api.get('/host/my/application'),
 
+  // 사장님 입점 신청서 등록
+  postHostApplication: body => api.post('/host/my/application', body),
 };
 
 export default hostGuesthouseApi;

@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
   outContainer: {
@@ -15,6 +15,25 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginTop: 30,
     marginBottom: 40,
+  },
+  profileContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  profileImage: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    marginRight: 12,
+  },
+  profilePlaceholder: {
+    width: 60,
+    height: 60,
+    borderRadius: 30,
+    backgroundColor: COLORS.stroke_gray,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
   },
   name: {
     color: COLORS.black,

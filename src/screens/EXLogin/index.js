@@ -12,27 +12,47 @@ import {useNavigation} from '@react-navigation/native';
 import {tryLogin} from '@utils/auth/login';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
+import hostMyApi from '@utils/api/hostMyApi';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [emailInput, setEmailInput] = useState('');
+  const [passwordInput, setPasswordInput] = useState('');
   const navigation = useNavigation();
   const setUserProfile = useUserStore(state => state.setUserProfile);
+  const setHostProfile = useUserStore(state => state.setHostProfile);
 
   const handleLogin = role => {
-    tryLogin(email, password, role);
+    tryLogin(emailInput, passwordInput, role);
     navigation.goBack();
   };
 
-  const handleHostLogin = () => {
-    tryLogin(
-      // email: 'hostTest@gmail.com',
-      // password: 'Hostpassword1!',
-      'sal091625@gmail.com',
-      'Pw123456!',
-      'HOST',
-    );
+  const handleHostLogin = async () => {
+    try {
+      await tryLogin(
+        // email: 'hostTest@gmail.com',
+        // password: 'Hostpassword1!',
+        'sal091625@gmail.com',
+        'Pw123456!',
+        'HOST',
+      );
+
+      const res = await hostMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, businessNum} = res.data;
+
+      setHostProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        businessNum: businessNum ?? '',
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.warn('자동 호스트 로그인 실패:', error);
+    }
   };
 
   const handleUserLogin = async () => {
@@ -65,8 +85,8 @@ const EXLogin = () => {
       <TextInput
         style={styles.input}
         placeholder="이메일"
-        value={email}
-        onChangeText={setEmail}
+        value={emailInput}
+        onChangeText={setEmailInput}
         autoCapitalize="none"
         keyboardType="email-address"
       />
@@ -74,8 +94,8 @@ const EXLogin = () => {
       <TextInput
         style={styles.input}
         placeholder="비밀번호"
-        value={password}
-        onChangeText={setPassword}
+        value={passwordInput}
+        onChangeText={setPasswordInput}
         secureTextEntry
       />
 

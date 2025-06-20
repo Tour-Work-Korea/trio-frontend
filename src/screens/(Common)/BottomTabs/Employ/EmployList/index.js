@@ -10,7 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import styles from './EmployList.styles';
-import {RecruitList} from '@components/RecruitList';
+import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 
 // 아이콘 불러오기
@@ -55,8 +55,9 @@ const EmployList = () => {
   };
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
+
   const handleApplyPress = recruit =>
-    navigation.navigate('Applicant', {
+    navigation.navigate('ApplicantForm', {
       recruitId: recruit?.recruitId,
       recruitTitle: recruit.recruitTitle,
       guesthouseName: recruit.guesthouseName,
