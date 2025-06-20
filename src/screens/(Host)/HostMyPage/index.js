@@ -66,7 +66,11 @@ const HostMyPage = () => {
             onPress={() => navigation.navigate('MyGuesthouseList')}
           />
           <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
-          <MenuItem IconComponent={GuesthouseReviewIcon} label="게하 리뷰" />
+          <MenuItem 
+            IconComponent={GuesthouseReviewIcon} 
+            label="게하 리뷰"
+            onPress={() => navigation.navigate('MyGuesthouseReview')}
+          />
           <MenuItem
             IconComponent={StoreApplyIcon}
             label="입점 신청"

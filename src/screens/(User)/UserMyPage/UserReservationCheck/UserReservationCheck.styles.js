@@ -13,28 +13,20 @@ const styles = StyleSheet.create({
     padding: 12,
     marginBottom: 16,
     alignItems: 'center',
+    shadowColor: '#000',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 4,
+    elevation: 2,
   },
   image: {
-    width: 80,
-    height: 80,
+    width: 100,
+    height: 100,
     borderRadius: 8,
     marginRight: 12,
   },
   content: {
     flex: 1,
-  },
-  hashtagContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    marginTop: 4,
-  },
-  hashtag: {
-    marginRight: 6,
-    color: COLORS.gray600,
-    fontSize: 12,
-  },
-  favoriteButton: {
-    padding: 4,
   },
 });
 

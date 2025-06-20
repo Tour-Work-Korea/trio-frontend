@@ -42,7 +42,10 @@ const MyGuesthouseList = () => {
   const handleRegisterPress = async () => {
     try {
       const res = await hostGuesthouseApi.getHostApplications();
-      setApplicationList(res.data || []);
+
+      // 게하 등록 안된 입점신청서만 출력
+      const unregisteredApplications = (res.data || []).filter(app => !app.registered);
+      setApplicationList(unregisteredApplications);
       setShowAppList(true);
     } catch (error) {
       setApplicationList([]);

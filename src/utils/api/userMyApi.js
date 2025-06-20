@@ -7,6 +7,10 @@ const userMyApi = {
   // 유저 좋아요 누른 게하 리스트
   getMyFavoriteGuesthouses: () => api.get('/user/my/guesthouse'),
 
+  // 유저 게하 좋아요 취소
+  unfavoriteGuesthouse: (guesthouseId) =>
+    api.delete(`/user/guesthouses/favorites/${guesthouseId}`),
+
   // 유저 예약 리스트
   getMyReservations: () => api.get('/order/reservation/room'),
 
