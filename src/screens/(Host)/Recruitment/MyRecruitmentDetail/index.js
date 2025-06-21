@@ -12,9 +12,11 @@ import styles from './MyRecruitmentDetail.styles';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 
-import RecruitProfileSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitProfileSection';
-import RecruitTapSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitTapSection';
-import RecruitDescriptionSection from '../../../(Common)/BottomTabs/Employ/EmployDetail/components/RecruitDescriptionSection';
+import {
+  RecruitProfileSection,
+  RecruitTapSection,
+  RecruitDescriptionSection,
+} from '@components/Employ/EmployDetail';
 
 const MyRecruitmentDetail = () => {
   const route = useRoute();
@@ -56,7 +58,7 @@ const MyRecruitmentDetail = () => {
           <View style={styles.bottomButtonContainer}>
             <TouchableOpacity
               style={styles.secondaryButton}
-              onPress={() => navigation.navigate('PostRecruitment', recruit)}>
+              onPress={() => navigation.navigate('RecruitmentForm', recruit)}>
               <Text style={styles.secondaryButtonText}>수정하기</Text>
             </TouchableOpacity>
             <TouchableOpacity

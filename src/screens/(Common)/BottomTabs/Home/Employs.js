@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
-import styles from '../Home.styles';
+import styles from './Home.styles';
 import {FONTS} from '@constants/fonts';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';

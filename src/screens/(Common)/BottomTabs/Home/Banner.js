@@ -1,7 +1,7 @@
 import React, {useState} from 'react';
 import {View, Image, Dimensions} from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
-import styles from '../Home.styles';
+import styles from './Home.styles';
 
 const {width} = Dimensions.get('window');
 export default function Banner({banners}) {

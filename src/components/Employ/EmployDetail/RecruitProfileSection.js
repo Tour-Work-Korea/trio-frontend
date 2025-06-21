@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, Image} from 'react-native';
-import styles from '../EmployDetail.styles';
+import styles from '../../../screens/(Common)/BottomTabs/Employ/EmployDetail/EmployDetail.styles';
 
 export default function RecruitProfileSection({recruit}) {
   return (

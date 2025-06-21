@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, TouchableOpacity, ImageBackground, Text} from 'react-native';
-import styles from '../Home.styles';
+import styles from './Home.styles';
 import {useNavigation} from '@react-navigation/native';
 import Guesthouse_btn from '@assets/images/home_guesthouse.png';
 import Employ_btn from '@assets/images/home_employ.png';

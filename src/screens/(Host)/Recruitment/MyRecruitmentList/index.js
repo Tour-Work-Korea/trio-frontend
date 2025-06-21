@@ -107,7 +107,7 @@ const MyRecruitmentList = () => {
     <SafeAreaView style={styles.container}>
       <Header title="나의 공고" />
       <View style={styles.body}>
-        <ButtonScarlet title="새 공고" to="PostRecruitment" />
+        <ButtonScarlet title="새 공고" to="RecruitmentForm" />
         <Text style={[styles.headerText, FONTS.fs_body]}>
           사람 아이콘을 누르면 해당 공고의 지원자를 확인할 수 있어요
         </Text>
