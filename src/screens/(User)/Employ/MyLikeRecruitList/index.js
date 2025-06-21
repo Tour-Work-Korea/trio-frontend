@@ -1,6 +1,6 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {SafeAreaView, Alert} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import styles from './MyLikeRecruitList.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -11,19 +11,20 @@ import userEmployApi from '@utils/api/userEmployApi';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
-  const [recruitList, setRecruitList] = useState([]);
+  const [recruits, setRecruits] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    fetchRecruitList();
-  }, []);
-
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecruitList();
+    }, []),
+  );
   //좋아요한 채용 공고 조회
   const fetchRecruitList = async () => {
     setLoading(true);
     try {
-      const res = await userEmployApi.getLikeRecruits(); // ← 페이지 기반 API 호출
-      setRecruitList(res.data);
+      const res = await userEmployApi.getLikeRecruits();
+      setRecruits(res.data);
     } catch (error) {
       Alert.alert('채용 공고 불러오기에 실패했습니다.');
     } finally {
@@ -39,17 +40,23 @@ export default function MyLikeRecruitList() {
       guesthouseName: recruit.guesthouseName,
       recruitEnd: recruit.recruitEnd,
     });
+  const handleLikePress = (recruitId, isLiked, setRecruitList) => {
+    toggleLikeRecruit(recruitId, isLiked, setRecruitList);
+    setTimeout(() => {
+      navigation.replace('MyLikeRecruitList'); // 또는 현재 라우트명
+    }, 500);
+  };
 
   return (
     <SafeAreaView style={styles.container}>
       <Header title={'즐겨찾기한 공고'} />
       <RecruitList
-        data={recruitList}
+        data={recruits}
         loading={loading}
         onJobPress={handleJobPress}
         onApplyPress={handleApplyPress}
-        onToggleFavorite={toggleLikeRecruit}
-        setRecruitList={setRecruitList}
+        onToggleFavorite={handleLikePress}
+        setRecruitList={setRecruits}
       />
     </SafeAreaView>
   );

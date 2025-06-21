@@ -26,6 +26,7 @@ export const checkUserPermission = async navigation => {
       },
     ]);
   }
+  return true;
 };
 
 export const checkHostPermission = async navigation => {

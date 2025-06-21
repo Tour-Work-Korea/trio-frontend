@@ -20,7 +20,6 @@ import {
   DetailInfoSection,
 } from '@components/Employ/RecruitmentForm';
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
-import {formatDateToLocalISOString} from '@utils/formatDate';
 
 const RecruitmentForm = () => {
   const [formData, setFormData] = useState({
@@ -90,10 +89,10 @@ const RecruitmentForm = () => {
 
     const payload = {
       ...formData,
-      recruitStart: formatDateToLocalISOString(formData.recruitStart),
-      recruitEnd: formatDateToLocalISOString(formData.recruitEnd),
-      workStartDate: formatDateToLocalISOString(formData.workStartDate),
-      workEndDate: formatDateToLocalISOString(formData.workEndDate),
+      recruitStart: formData.recruitStart.toISOString(),
+      recruitEnd: formData.recruitEnd.toISOString(),
+      workStartDate: formData.workStartDate.toISOString(),
+      workEndDate: formData.workEndDate.toISOString(),
     };
 
     if (recruit?.recruitId != null) {

@@ -36,8 +36,8 @@ const ApplicantForm = () => {
     message: '',
     startDate: null,
     endDate: null,
-    personalInfoConsent: false, // 개인 정보 제 3자 정보 동의 여부
-    resumeId: null, // 선택한 이력서
+    personalInfoConsent: false,
+    resumeId: null,
   });
   const [isPrivacyModalOpen, setIsPrivacyModalOpen] = useState(false);
   const [showStartDate, setShowStartDate] = useState(false);
@@ -53,7 +53,7 @@ const ApplicantForm = () => {
       };
 
       init();
-    }, [navigation]), // navigation이 바뀔 일은 거의 없지만 명시적으로 넣어둡니다.
+    }, []),
   );
 
   const fetchResumeList = async () => {

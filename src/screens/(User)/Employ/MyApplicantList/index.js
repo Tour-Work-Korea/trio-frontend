@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -7,26 +7,24 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useNavigation, useIsFocused} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Header from '@components/Header';
 import styles from './MyApplicantList.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import userEmployApi from '@utils/api/userEmployApi';
 
-/*
- * 나의 지원서 리스트
- */
 const MyApplicantList = () => {
   const navigation = useNavigation();
   const [postings, setPostings] = useState();
-  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    if (isFocused) {
-      tryFetchMyResumes();
-    }
-  }, [isFocused]);
+  useFocusEffect(
+    useCallback(() => {
+      setTimeout(() => {
+        tryFetchMyResumes();
+      }, 500);
+    }, []),
+  );
 
   const tryFetchMyResumes = async () => {
     try {
