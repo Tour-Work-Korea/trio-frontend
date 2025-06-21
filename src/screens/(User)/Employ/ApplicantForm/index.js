@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -7,12 +7,15 @@ import {
   TouchableOpacity,
   SafeAreaView,
   Modal,
-  Platform,
   Alert,
 } from 'react-native';
 import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import CalendarIcon from '@assets/images/Calendar.svg';
 import EditIcon from '@assets/images/Edit.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
@@ -21,6 +24,7 @@ import ChevronDownIcon from '@assets/images/arrow_drop_down.svg';
 import DateTimePicker from '@react-native-community/datetimepicker';
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
+import {checkUserPermission} from '@utils/auth/verifyPermission';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
@@ -39,9 +43,18 @@ const ApplicantForm = () => {
   const [showStartDate, setShowStartDate] = useState(false);
   const [showEndDate, setShowEndDate] = useState(false);
 
-  useEffect(() => {
-    fetchResumeList();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      const init = async () => {
+        const hasPermission = await checkUserPermission(navigation);
+        if (hasPermission) {
+          fetchResumeList();
+        }
+      };
+
+      init();
+    }, [navigation]), // navigation이 바뀔 일은 거의 없지만 명시적으로 넣어둡니다.
+  );
 
   const fetchResumeList = async () => {
     try {

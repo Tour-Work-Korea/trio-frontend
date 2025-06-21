@@ -1,5 +1,5 @@
 import {View, Text, TextInput} from 'react-native';
-import styles from '../RecruitmentForm';
+import styles from '../../../screens/(Host)/Recruitment/RecruitmentForm/RecruitmentForm';
 
 export default function WorkConditionSection({handleInputChange, formData}) {
   return (

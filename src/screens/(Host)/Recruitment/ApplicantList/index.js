@@ -6,7 +6,7 @@ import {View, ScrollView, SafeAreaView, FlatList, Alert} from 'react-native';
 import styles from './ApplicantList.styles';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import Header from '@components/Header';
-import {Filter, ApplicantItem} from './components';
+import {Filter, ApplicantItem} from '@components/Employ/ApplicantList';
 import DropDownPicker from 'react-native-dropdown-picker';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 

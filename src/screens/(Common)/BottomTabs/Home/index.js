@@ -3,10 +3,10 @@ import {View, Text, ScrollView} from 'react-native';
 import styles from './Home.styles';
 import {banners, guesthouses, jobs} from './mockData';
 import Header from '@components/Header';
-import Banner from './components/Banner';
-import Buttons from './components/Buttons';
-import Guesthouses from './components/Guesthouses';
-import Employ from './components/Employs';
+import Banner from './Banner';
+import Buttons from './Buttons';
+import Guesthouses from './Guesthouses';
+import Employ from './Employs';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
 

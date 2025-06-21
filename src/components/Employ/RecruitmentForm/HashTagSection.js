@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TouchableOpacity, Alert} from 'react-native';
-import styles from '../RecruitmentForm';
+import styles from '../../../screens/(Host)/Recruitment/RecruitmentForm/RecruitmentForm';
 import hostEmployApi from '@utils/api/hostEmployApi';
 
 const HashTagSection = ({handleInputChange, formData}) => {

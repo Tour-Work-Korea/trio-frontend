@@ -18,7 +18,7 @@ import {
   WorkConditionSection,
   WorkInfoSection,
   DetailInfoSection,
-} from './components';
+} from '@components/Employ/RecruitmentForm';
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
 import {formatDateToLocalISOString} from '@utils/formatDate';
 

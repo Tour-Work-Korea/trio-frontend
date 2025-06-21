@@ -8,7 +8,7 @@ import {
   SafeAreaView,
   Alert,
 } from 'react-native';
-import styles from '../EmployDetail.styles';
+import styles from '../../../screens/(Common)/BottomTabs/Employ/EmployDetail/EmployDetail.styles';
 
 export default function RecruitTapSection({recruit}) {
   const [activeTab, setActiveTab] = useState('모집조건');
