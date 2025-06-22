@@ -35,7 +35,7 @@ const EXHome = () => {
       </View>
       <ButtonScarlet
         title="일반 유저 회원가입 페이지로 이동"
-        to="UserRegisterIntro"
+        to="UserRegister"
       />
 
       <ButtonScarlet

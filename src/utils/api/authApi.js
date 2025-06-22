@@ -46,6 +46,14 @@ const authApi = {
     api.post('/auth/refresh', null, {
       withCredentials: true,
     }),
+
+  //카카오 로그인
+  loginKakao: accessCode =>
+    api.post(
+      '/auth/user/social-login',
+      {provider: 'KAKAO', accessCode},
+      {withAuth: false},
+    ),
 };
 
 export default authApi;

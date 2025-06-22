@@ -10,7 +10,7 @@ const UserRegisterIntro = () => {
   const navigation = useNavigation();
 
   const handleKakaoButton = () => {
-    Alert.alert('카카오 회원가입 기능은 구현 중입니다.');
+    navigation.navigate('SocialLogin');
   };
   const handleNaverButton = () => {
     Alert.alert('네이버 회원가입 기능은 구현 중입니다.');

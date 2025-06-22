@@ -47,12 +47,14 @@ export { default as MyLikeRecruitList } from './(User)/Employ/MyLikeRecruitList'
 export { default as MyResumeDetail } from './(User)/Employ/MyResumeDetail';
 export { default as MyResumeList } from './(User)/Employ/MyResumeList';
 export { default as ResumeForm } from './(User)/Employ/ResumeForm';
-export { default as UserRegisterAgree } from './(User)/Register/UserRegisterAgree';
-export { default as UserRegisterInfo } from './(User)/Register/UserRegisterInfo';
-export { default as UserRegisterIntro } from './(User)/Register/UserRegisterIntro';
 export { default as UserMyPage } from './(User)/UserMyPage';
 export { default as UserEditProfile } from './(User)/UserMyPage/UserEditProfile';
 export { default as UserFavoriteGuesthouse } from './(User)/UserMyPage/UserFavoriteGuesthouse';
 export { default as UserReservationCheck } from './(User)/UserMyPage/UserReservationCheck';
+export { default as UserRegister } from './(User)/UserRegister';
+export { default as SocialLogin } from './(User)/UserRegister/SocialLogin';
+export { default as UserRegisterAgree } from './(User)/UserRegister/UserRegisterAgree';
+export { default as UserRegisterInfo } from './(User)/UserRegister/UserRegisterInfo';
+export { default as UserRegisterIntro } from './(User)/UserRegister/UserRegisterIntro';
 export { default as EXHome } from './EXHome';
 export { default as EXLogin } from './EXLogin';
