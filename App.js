@@ -5,7 +5,6 @@ import RootNavigation from '@navigations/RootNavigation';
 import 'react-native-gesture-handler';
 import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
-import DeeplinkHandler from '@utils/deeplinkHandler';
 
 const App = () => {
   //자동 로그인
@@ -19,7 +18,6 @@ const App = () => {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="light-content" backgroundColor={COLORS.grayscale_0} />
-      <DeeplinkHandler />
       <RootNavigation />
     </SafeAreaView>
   );
