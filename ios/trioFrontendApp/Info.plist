@@ -28,7 +28,15 @@
 	<array>
 	<dict>
 		<key>CFBundleURLSchemes</key>
-		<array><string>portone</string></array>
+		<array>
+		<string>portone</string>
+		</array>
+	</dict>
+	<dict>
+		<key>CFBundleURLSchemes</key>
+		<array>
+		<string>workaway</string>
+		</array>
 	</dict>
 	</array>
 	<key>LSApplicationQueriesSchemes</key>

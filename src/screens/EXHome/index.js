@@ -33,6 +33,7 @@ const EXHome = () => {
         <Text style={FONTS.fs_14_semibold}>14pt Semibold 텍스트</Text>
         <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
       </View>
+      <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
       <ButtonScarlet
         title="일반 유저 회원가입 페이지로 이동"
         to="UserRegisterIntro"
