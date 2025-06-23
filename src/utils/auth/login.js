@@ -7,25 +7,24 @@ export const tryAutoLogin = async () => {
     const credentials = await EncryptedStorage.getItem('user-credentials');
     console.log('🔑 Stored Credentials:', credentials);
 
-    if (!credentials) return false;
+    if (!credentials) {
+      return;
+    }
 
-    const {email, password, userRole, provider, accessCode} =
-      JSON.parse(credentials);
+    const {email, password, userRole, provider} = JSON.parse(credentials);
     if (provider === 'KAKAO') {
-      const {success} = await tryKakaoLogin({accessCode, userRole});
-      return success;
+      await tryRefresh();
     } else {
-      return await tryLogin(email, password, userRole);
+      await tryLogin(email, password, userRole);
     }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
-    return false;
   }
 };
 
 const commonLogin = (res, userRole) => {
   const authorizationHeader = res.headers?.authorization;
-  const accessToken = authorizationHeader?.replace('Bearer ', '');
+  let accessToken = authorizationHeader?.replace('Bearer ', '');
   let refreshToken;
 
   const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
@@ -39,7 +38,7 @@ const commonLogin = (res, userRole) => {
   }
 
   if (!accessToken) {
-    throw new Error('accessToken 없음');
+    accessToken = res.data?.accessToken;
   }
   if (!refreshToken) {
     throw new Error('refreshToken 없음');
@@ -71,7 +70,7 @@ export const tryLogin = async (email, password, userRole) => {
   }
 };
 
-export const tryKakaoLogin = async ({accessCode, userRole}) => {
+export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
     commonLogin(res, userRole);
@@ -79,17 +78,33 @@ export const tryKakaoLogin = async ({accessCode, userRole}) => {
     // 소셜 로그인은 아이디/비번이 없으므로 provider 정보만 저장
     await EncryptedStorage.setItem(
       'user-credentials',
-      JSON.stringify({provider: 'KAKAO', userRole, accessCode}),
+      JSON.stringify({provider: 'KAKAO', userRole}),
     );
     return {
       success: true,
       isNewUser: res.data.isNewUser,
     };
   } catch (err) {
+    console.log('실패', err.message);
     useUserStore.getState().clearUser();
     await EncryptedStorage.removeItem('user-credentials');
     return {success: false};
   }
+};
+
+export const tryRefresh = async () => {
+  const res = await authApi.refreshToken();
+  const accessToken = res.data.accessToken;
+  let refreshToken;
+  const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+  if (rawCookies && rawCookies.length > 0) {
+    const cookie = rawCookies[0];
+    const match = cookie.match(/refreshToken=([^;]+);?/);
+    if (match) {
+      refreshToken = match[1];
+    }
+  }
+  useUserStore.getState().setTokens({accessToken, refreshToken});
 };
 
 export const tryLogout = async () => {

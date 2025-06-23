@@ -21,4 +21,11 @@ export default StyleSheet.create({
     flexDirection: 'column',
     gap: 12,
   },
+  kakaoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE500',
+    borderRadius: 12,
+    justifyContent: 'center',
+  },
 });

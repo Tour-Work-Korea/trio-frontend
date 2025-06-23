@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from 'react-native';
 
 import {COLORS} from '@constants/colors';
@@ -13,6 +14,7 @@ import {tryLogin} from '@utils/auth/login';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import hostMyApi from '@utils/api/hostMyApi';
+import KakaoLoginButton from '@assets/images/kakao_login_medium_wide.png';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
@@ -120,6 +122,11 @@ const EXLogin = () => {
       <TouchableOpacity style={styles.button} onPress={handleUserLogin}>
         <Text style={styles.buttonText}>유저 자동 로그인하기</Text>
       </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.kakaoButton}
+        onPress={() => navigation.navigate('SocialLogin')}>
+        <Image source={KakaoLoginButton} resizeMode="contain" />
+      </TouchableOpacity>
     </View>
   );
 };
@@ -148,6 +155,13 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  kakaoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE500',
+    borderRadius: 12,
+    justifyContent: 'center',
   },
 });
 
