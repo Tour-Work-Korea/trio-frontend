@@ -1,5 +1,5 @@
 // 콘솔에만 출력
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,6 @@ import {
 import { launchImageLibrary } from 'react-native-image-picker';
 import TimePickerModal from '@components/modals/TimePickerModal';
 import { useNavigation } from '@react-navigation/native';
-import { useRoute } from '@react-navigation/native';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import Header from '@components/Header';
@@ -19,6 +18,7 @@ import styles from './MyGuesthouseAddEdit.styles';
 import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
+import AddressSearchModal from '@components/AddressSearchModal';
 
 import ImageAddIcon from '@assets/images/Gray_ImageAdd.svg';
 import RadioBtnChecked from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
@@ -50,13 +50,15 @@ const MyGuesthouseAddEdit = ({ route }) => {
   const [showCheckInPicker, setShowCheckInPicker] = useState(false);
   const [showCheckOutPicker, setShowCheckOutPicker] = useState(false);
 
+  const [isAddressModalVisible, setAddressModalVisible] = useState(false);
+
   // 게스트하우스 등록&수정
   // 등록 안된 applicationId 받아오는 api 추가 예정
   const handleSubmit = async () => {
     // 임시 데이터
     const payloadUpdate = {
       guesthouseName: "트리오 게하1",
-      guesthouseAddress: "서울시 강남구 어딘가",
+      guesthouseAddress: address,
       guesthousePhone: phone,   // phone만 입력값으로 덮어씀
       guesthouseShortIntro: "따뜻한 분위기의 게스트하우스입니다.",
       guesthouseLongDesc: "트리오 게스트하우스는 도심 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.",
@@ -128,7 +130,7 @@ const MyGuesthouseAddEdit = ({ route }) => {
     
     const payloadAdd = {
       guesthouseName: 'WA게하1',
-      guesthouseAddress: '제주도 어딘가',
+      guesthouseAddress: address,
       guesthousePhone: '010-2223-4566',
       guesthouseShortIntro: '편안한 게하 게하',
       guesthouseLongDesc: '게스트하우스는 자연 속의 힐링 공간으로, 깔끔한 시설과 편안한 휴식을 제공합니다.',
@@ -288,9 +290,24 @@ const MyGuesthouseAddEdit = ({ route }) => {
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>위치</Text>
           <View style={styles.adressContainer}>
             <Text style={[FONTS.fs_body, styles.sectionTitle]}>{address}</Text>
-            <ButtonScarlet title="주소 찾기" marginHorizontal="0"/>
+            <ButtonScarlet
+              title="주소 찾기"
+              marginHorizontal="0"
+              onPress={() => setAddressModalVisible(true)}
+            />
           </View>
         </View>
+
+        {/* 카카오 우편번호 api */}
+        <AddressSearchModal
+          visible={isAddressModalVisible}
+          onClose={() => setAddressModalVisible(false)}
+          onSelected={(data) => {
+            console.log("최종 선택된 주소:", data);
+            setAddress(data.address);
+          }}
+        />
+
         <View style={styles.inputContainer}>
           <Text style={[FONTS.fs_h2_bold, styles.sectionTitle]}>전화번호</Text>
           <TextInput

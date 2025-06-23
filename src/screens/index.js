@@ -22,7 +22,6 @@ export { default as RoomDetail } from './(Common)/RoomDetail';
 export { default as HostMyPage } from './(Host)/HostMyPage';
 export { default as HostEditProfile } from './(Host)/HostMyPage/HostEditProfile';
 export { default as MyGuesthouseAddEdit } from './(Host)/MyGuesthouseAddEdit';
-export { default as AddressSearch } from './(Host)/MyGuesthouseAddEdit/AddressSearch';
 export { default as RegisterRoomInfo } from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
 export { default as MyGuesthouseDetail } from './(Host)/MyGuesthouseDetail';
 export { default as MyGuesthouseList } from './(Host)/MyGuesthouseList';
