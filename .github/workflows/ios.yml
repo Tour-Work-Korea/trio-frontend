@@ -91,6 +91,15 @@ jobs:
       - name: Fix Embed Pods Frameworks script permissions
         run: chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
 
+      - name: Print environment variables (for debugging)
+        run: |
+          echo "🔧 API_BASE_URL = $API_BASE_URL"
+
+      - name: Test API reachability
+        run: |
+          echo "Curl to check API"
+          curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
+
       - name: Build & Deploy to TestFlight
         working-directory: ios
         env:

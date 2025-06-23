@@ -33,4 +33,7 @@ export const COLORS = {
     grayscale_200: '#EAEBED',
     grayscale_100: '#F7F8FA',
     grayscale_0: '#FFFFFF',
+
+    // 모달창 뒷 배경
+    modal_background: 'rgba(0,0,0,0.5)',
 };
