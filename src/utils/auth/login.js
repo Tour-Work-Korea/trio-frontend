@@ -1,6 +1,8 @@
 import EncryptedStorage from 'react-native-encrypted-storage';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
+import userMyApi from '@utils/api/userMyApi';
+import hostMyApi from '@utils/api/hostMyApi';
 
 export const tryAutoLogin = async () => {
   try {
@@ -11,18 +13,17 @@ export const tryAutoLogin = async () => {
       return;
     }
 
-    const {email, password, userRole, provider} = JSON.parse(credentials);
-    if (provider === 'KAKAO') {
-      await tryRefresh();
-    } else {
-      await tryLogin(email, password, userRole);
+    const {userRole} = JSON.parse(credentials);
+    const isRefreshSuccess = await tryRefresh();
+    if (isRefreshSuccess) {
+      updateProfile(userRole);
     }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
   }
 };
 
-const commonLogin = (res, userRole) => {
+const storeLoginInfo = (res, userRole) => {
   const authorizationHeader = res.headers?.authorization;
   let accessToken = authorizationHeader?.replace('Bearer ', '');
   let refreshToken;
@@ -50,18 +51,19 @@ const commonLogin = (res, userRole) => {
 
   console.log('accessToken: ', accessToken);
   console.log('refreshToken: ', refreshToken);
+
+  updateProfile(userRole);
 };
 
 export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password);
-    commonLogin(res, userRole);
+    storeLoginInfo(res, userRole);
 
     await EncryptedStorage.setItem(
       'user-credentials',
-      JSON.stringify({email, password, userRole}),
+      JSON.stringify({userRole}),
     );
-
     return true; // 성공
   } catch (err) {
     await EncryptedStorage.removeItem('user-credentials');
@@ -73,12 +75,12 @@ export const tryLogin = async (email, password, userRole) => {
 export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
-    commonLogin(res, userRole);
+    storeLoginInfo(res, userRole);
 
     // 소셜 로그인은 아이디/비번이 없으므로 provider 정보만 저장
     await EncryptedStorage.setItem(
       'user-credentials',
-      JSON.stringify({provider: 'KAKAO', userRole}),
+      JSON.stringify({userRole}),
     );
     return {
       success: true,
@@ -93,18 +95,24 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
 };
 
 export const tryRefresh = async () => {
-  const res = await authApi.refreshToken();
-  const accessToken = res.data.accessToken;
-  let refreshToken;
-  const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-  if (rawCookies && rawCookies.length > 0) {
-    const cookie = rawCookies[0];
-    const match = cookie.match(/refreshToken=([^;]+);?/);
-    if (match) {
-      refreshToken = match[1];
+  try {
+    const res = await authApi.refreshToken();
+    const accessToken = res.data.accessToken;
+    let refreshToken;
+    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+    if (rawCookies && rawCookies.length > 0) {
+      const cookie = rawCookies[0];
+      const match = cookie.match(/refreshToken=([^;]+);?/);
+      if (match) {
+        refreshToken = match[1];
+      }
     }
+    useUserStore.getState().setTokens({accessToken, refreshToken});
+    return true;
+  } catch (error) {
+    console.warn('refreshToken 발급 실패', error.message);
+    return false;
   }
-  useUserStore.getState().setTokens({accessToken, refreshToken});
 };
 
 export const tryLogout = async () => {
@@ -114,5 +122,40 @@ export const tryLogout = async () => {
     console.warn('EncryptedStorage 삭제 실패:', err);
   } finally {
     useUserStore.getState().clearUser();
+  }
+};
+
+const updateProfile = async role => {
+  const {setUserProfile, setHostProfile} = useUserStore.getState(); // ✅ 안전하게 접근
+
+  try {
+    if (role === 'HOST') {
+      const res = await hostMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, businessNum} = res.data;
+
+      setHostProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        businessNum: businessNum ?? '',
+      });
+    } else if (role === 'USER') {
+      const res = await userMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+
+      setUserProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        mbti: mbti ?? '',
+        instagramId: instagramId ?? '',
+      });
+    }
+  } catch (error) {
+    console.warn(`${role} 정보를 가져오는데 실패했습니다.`);
   }
 };

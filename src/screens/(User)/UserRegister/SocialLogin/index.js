@@ -5,7 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import {tryKakaoLogin} from '@utils/auth/login';
 
 const KAKAO_CLIENT_ID = 'c9f983fd4f8dc0509b66b4d2ffa99e71';
-const REDIRECT_URI = 'https://workaway.kr:8080/api/v1/auth/user/social-login'; // 포트 제거
+const REDIRECT_URI = 'https://workaway.kr:8080/api/v1/auth/user/social-login';
 
 const getQueryParam = (url, param) => {
   const match = url.match(new RegExp('[?&]' + param + '=([^&]+)'));
@@ -15,7 +15,7 @@ const getQueryParam = (url, param) => {
 export default function SocialLogin() {
   const navigation = useNavigation();
   const webviewRef = useRef(null);
-  const alreadyHandled = useRef(false); // ✅ 중복 방지 플래그
+  const alreadyHandled = useRef(false);
 
   const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}`;
 
@@ -27,11 +27,11 @@ export default function SocialLogin() {
       url.includes('code=') &&
       !alreadyHandled.current
     ) {
-      alreadyHandled.current = true; // ✅ 중복 호출 방지
+      alreadyHandled.current = true;
 
       const code = getQueryParam(url, 'code');
 
-      webviewRef.current?.stopLoading(); // optional
+      webviewRef.current?.stopLoading();
 
       const loginRes = await tryKakaoLogin(code, 'USER');
       if (loginRes.success) {
@@ -53,7 +53,7 @@ export default function SocialLogin() {
         onShouldStartLoadWithRequest={request => {
           const {url} = request;
           if (url.startsWith(REDIRECT_URI)) {
-            return false; // ✅ redirect URL로 이동하지 않음 (즉시 차단)
+            return false; // redirect URL로 이동하지 않음 (즉시 차단)
           }
           return true;
         }}

@@ -29,7 +29,6 @@ api.interceptors.request.use(
     const cookie = useUserStore.getState()?.refreshToken;
     if (cookie) {
       config.headers.Cookie = 'refreshToken=' + cookie;
-      console.log('Cookie 헤더 삽입:', cookie);
     }
     // 쿼리스트링 조합
     let fullUrl = `${baseUrl}/${endpoint}`;
