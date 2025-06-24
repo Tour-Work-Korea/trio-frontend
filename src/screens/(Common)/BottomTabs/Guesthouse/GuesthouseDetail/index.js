@@ -6,6 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
   FlatList,
+  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -15,6 +16,7 @@ import { COLORS } from '@constants/colors';
 import ServiceInfoModal from '@components/modals/ServiceInfoModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
+import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -120,7 +122,11 @@ const GuesthouseDetail = ({route}) => {
             {detail.guesthouseName}
           </Text>
           <View style={styles.topIcons}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={() => {
+                const deepLinkUrl = guesthouseDetailDeeplink(id);
+                copyDeeplinkToClipboard(deepLinkUrl);
+                Alert.alert('복사가 완료되었습니다. 바로 공유해볼까요?');
+            }}>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
             <TouchableOpacity onPress={toggleFavorite}>

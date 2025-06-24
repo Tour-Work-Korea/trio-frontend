@@ -2,12 +2,14 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import * as Screens from '@screens';
+import DeeplinkHandler from '@utils/deeplinkHandler';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => {
   return (
     <NavigationContainer>
+      <DeeplinkHandler />
       <Stack.Navigator
         initialRouteName="EXHome" // 시작 화면 EXHome
         screenOptions={{headerShown: false}}>

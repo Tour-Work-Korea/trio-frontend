@@ -55,3 +55,4 @@ export { default as UserFavoriteGuesthouse } from './(User)/UserMyPage/UserFavor
 export { default as UserReservationCheck } from './(User)/UserMyPage/UserReservationCheck';
 export { default as EXHome } from './EXHome';
 export { default as EXLogin } from './EXLogin';
+export { default as EXDeeplink } from './EXDeeplink';
