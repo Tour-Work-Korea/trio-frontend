@@ -181,7 +181,7 @@ const ResumeForm = () => {
         userEmployApi.updateResume(id, payload);
         Alert.alert('제출 완료', '이력서가 수정되었습니다.');
       }
-      navigation.navigate('MyApplicantList');
+      navigation.navigate('MyResumeList');
     } catch (error) {
       Alert.alert(' 이력서 등록/수정에 실패했습니다.');
     }

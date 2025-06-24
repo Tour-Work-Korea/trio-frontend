@@ -40,16 +40,18 @@ const MyResumeDetail = () => {
   const tryDeleteResumeById = async () => {
     try {
       await userEmployApi.deleteResume(id);
+      Alert.alert('삭제되었습니다.');
     } catch (error) {
-      Alert.alert('알림', '삭제되었습니다.');
-      navigation.navigate('MyResumeList');
+      Alert.alert('이력서 삭제에 실패했습니다.');
+    } finally {
+      navigation.goBack();
     }
   };
 
   const handleDelete = () => {
     Alert.alert(
-      '지원자 삭제',
-      '정말로 이 지원자를 삭제하시겠습니까?',
+      '이력서 삭제',
+      '정말로 이 이력서를 삭제하시겠습니까?',
       [
         {
           text: '취소',

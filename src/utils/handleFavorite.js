@@ -1,8 +1,14 @@
+import useUserStore from '@stores/userStore';
 import userEmployApi from './api/userEmployApi';
 import {Alert} from 'react-native';
 
 const toggleLikeRecruit = async (id, isLiked, setRecruitList = null) => {
   try {
+    const role = useUserStore.getState().userRole;
+
+    if (role !== 'USER') {
+      return Alert.alert('로그인 후 이용할 수 있습니다.');
+    }
     if (isLiked) {
       await userEmployApi.deleteLikeRecruitById(id);
     } else {

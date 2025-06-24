@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   Alert,
 } from 'react-native';
-import {useNavigation, useIsFocused} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Trash from '@assets/images/Trash.svg';
@@ -22,13 +22,14 @@ import userEmployApi from '@utils/api/userEmployApi';
 const MyResumeList = () => {
   const navigation = useNavigation();
   const [postings, setPostings] = useState();
-  const isFocused = useIsFocused();
 
-  useEffect(() => {
-    if (isFocused) {
-      tryFetchMyResumes();
-    }
-  }, [isFocused]);
+  useFocusEffect(
+    useCallback(() => {
+      setTimeout(() => {
+        tryFetchMyResumes();
+      }, 500);
+    }, []),
+  );
 
   const tryFetchMyResumes = async () => {
     try {
@@ -42,9 +43,12 @@ const MyResumeList = () => {
   const tryDeleteResumeById = async id => {
     try {
       await userEmployApi.deleteResume(id);
-    } catch (error) {
       Alert.alert('알림', '삭제되었습니다.');
-      navigation.navigate('MyResumeList');
+      setTimeout(() => {
+        navigation.replace('MyResumeList'); // 또는 현재 라우트명
+      }, 500);
+    } catch (error) {
+      Alert.alert('알림', '삭제에 실패했습니다.');
     }
   };
 

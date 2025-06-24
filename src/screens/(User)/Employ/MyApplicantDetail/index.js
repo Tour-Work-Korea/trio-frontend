@@ -1,12 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import {View, Text, ScrollView, SafeAreaView, Alert} from 'react-native';
 import styles from './MyApplicantDetail';
 import {useRoute} from '@react-navigation/native';
 import Header from '@components/Header';

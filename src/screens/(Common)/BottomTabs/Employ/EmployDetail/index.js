@@ -15,9 +15,11 @@ import HeartIcon from '@assets/images/Empty_Heart.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import userEmployApi from '@utils/api/userEmployApi';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
-import RecruitProfileSection from './components/RecruitProfileSection';
-import RecruitTapSection from './components/RecruitTapSection';
-import RecruitDescriptionSection from './components/RecruitDescriptionSection';
+import {
+  RecruitProfileSection,
+  RecruitTapSection,
+  RecruitDescriptionSection,
+} from '@components/Employ/EmployDetail';
 
 const EmployDetail = () => {
   const navigation = useNavigation();
