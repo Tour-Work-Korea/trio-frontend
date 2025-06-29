@@ -6,8 +6,13 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native'; 
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+
+dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -34,9 +39,20 @@ const GuesthouseList = () => {
   const [error, setError] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // 임의 선택 날짜, 인원, 객실 수 출력
-  const [displayDate, setDisplayDate] = useState('3.28 금 - 3.29 토');
-  const [displayGuest, setDisplayGuest] = useState('인원 1, 객실 1');
+  // 선택 날짜, 인원 출력
+  const [displayDate, setDisplayDate] = useState('');
+  const [guestCount, setGuestCount] = useState(1); // 기본 1명
+  // 인원 선택 임시 모달
+  const [guestModalVisible, setGuestModalVisible] = useState(false);
+
+  // 날짜는 초기에 오늘~내일 날짜로 설정
+  useEffect(() => {
+    const today = dayjs();
+    const tomorrow = today.add(1, 'day');
+    const formattedToday = today.format('M.D ddd');    // 예: 6.29 토
+    const formattedTomorrow = tomorrow.format('M.D ddd'); 
+    setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
+  }, []);
 
   // 게하 검색 후 불러오기
   const fetchGuesthouses = async (pageToFetch = 0) => {
@@ -121,30 +137,70 @@ const GuesthouseList = () => {
     return (
       <View style={styles.container}>
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
-        <View  style={[{ flex: 1, justifyContent: 'center' }]}>
+        <View>
+        {/* <View  style={[{ flex: 1, justifyContent: 'center' }]}> */}
           <View style={[styles.searchContainer]}>
             <TouchableOpacity style={[styles.searchIconContainer]}
               onPress={handleSearch}
             >
               <SearchIcon width={24} height={24} />
               <Text style={[FONTS.fs_14_regular, styles.searchText]}>찾는 숙소가 있으신가요?</Text>
-            </TouchableOpacity><TouchableOpacity>
-                <View style={styles.filterIconContainer}>
-                  <FilterIcon width={24} height={24} />
-                </View>
-              </TouchableOpacity>
+            </TouchableOpacity>
           </View>
           <View style={styles.selectRow}>
-            <View style={styles.dateContainer}>
+            <TouchableOpacity 
+              style={styles.dateContainer}
+
+            >
               <CalendarIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium, styles.dateText]}>날짜</Text>
-            </View>
-            <View style={styles.personRoomContainer}>
+              <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDate}</Text>
+            </TouchableOpacity>
+            <TouchableOpacity 
+              style={styles.personRoomContainer}
+              onPress={() => setGuestModalVisible(true)}
+            >
               <Person width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium, styles.personText]}>인원, 객실 수</Text>
-            </View>
+              <Text style={[FONTS.fs_14_medium, styles.personText]}>인원 {guestCount}</Text>
+            </TouchableOpacity>
           </View>
         </View>
+
+        {/* 임시 인원 수 선택 모달 */}
+        <Modal
+          visible={guestModalVisible}
+          transparent
+          animationType="slide"
+          onRequestClose={() => setGuestModalVisible(false)}
+        >
+          <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)' }}>
+            <View style={{ backgroundColor:'white', padding:20, borderRadius:8, width:300 }}>
+              <Text style={[FONTS.fs_16_medium, { marginBottom: 10 }]}>인원을 선택하세요</Text>
+              <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+                <TouchableOpacity onPress={() => setGuestCount(Math.max(1, guestCount - 1))}>
+                  <Text style={{ fontSize: 24 }}>➖</Text>
+                </TouchableOpacity>
+                <Text style={{ fontSize: 18 }}>{guestCount}명</Text>
+                <TouchableOpacity onPress={() => setGuestCount(guestCount + 1)}>
+                  <Text style={{ fontSize: 24 }}>➕</Text>
+                </TouchableOpacity>
+              </View>
+              <TouchableOpacity
+                style={{
+                  backgroundColor: COLORS.primary_orange,
+                  marginTop: 20,
+                  paddingVertical: 10,
+                  alignItems: 'center',
+                  borderRadius: 4,
+                }}
+                onPress={() => {
+                  setGuestModalVisible(false);
+                }}
+              >
+                <Text style={{ color: 'white' }}>선택 완료</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </Modal>
       </View>
     );
   }
@@ -217,24 +273,19 @@ const GuesthouseList = () => {
       </View>
 
       <View style={styles.selectRow}>
-        <View
-          style={[
-            styles.dateContainer,
-            searched && { backgroundColor: COLORS.primary_orange },
-          ]}
+        <TouchableOpacity
+          style={styles.dateContainer}
         >
           <CalendarIcon width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.dateText]}>날짜</Text>
-        </View>
-        <View
-          style={[
-            styles.personRoomContainer,
-            searched && { backgroundColor: COLORS.primary_orange },
-          ]}
+          <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDate}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.personRoomContainer}
+          onPress={() => setGuestModalVisible(true)}
         >
           <Person width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.personText]}>인원, 객실 수</Text>
-        </View>
+          <Text style={[FONTS.fs_14_medium, styles.personText]}>인원 {guestCount}</Text>
+        </TouchableOpacity>
       </View>
 
       {searched && (
@@ -259,6 +310,44 @@ const GuesthouseList = () => {
         onEndReachedThreshold={0.7}
         ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
       />
+
+      {/* 임시 인원 수 선택 모달 */}
+      <Modal
+        visible={guestModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGuestModalVisible(false)}
+      >
+        <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)' }}>
+          <View style={{ backgroundColor:'white', padding:20, borderRadius:8, width:300 }}>
+            <Text style={[FONTS.fs_16_medium, { marginBottom: 10 }]}>인원을 선택하세요</Text>
+            <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+              <TouchableOpacity onPress={() => setGuestCount(Math.max(1, guestCount - 1))}>
+                <Text style={{ fontSize: 24 }}>➖</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize: 18 }}>{guestCount}명</Text>
+              <TouchableOpacity onPress={() => setGuestCount(guestCount + 1)}>
+                <Text style={{ fontSize: 24 }}>➕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={{
+                backgroundColor: COLORS.primary_orange,
+                marginTop: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                setDisplayGuest(`인원 ${guestCount}`);
+                setGuestModalVisible(false);
+              }}
+            >
+              <Text style={{ color: 'white' }}>선택 완료</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };

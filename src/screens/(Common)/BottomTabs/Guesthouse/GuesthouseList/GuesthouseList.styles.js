@@ -13,12 +13,11 @@ const styles = StyleSheet.create({
   },
   searchContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     marginHorizontal: 20,
     marginVertical: 16,
     alignItems: 'center',
     backgroundColor: COLORS.grayscale_0,
-    paddingVertical: 4,
+    paddingVertical: 10,
     paddingLeft: 8,
     paddingRight: 4,
     borderRadius: 20,
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: 'row',
     height: 40,
-    backgroundColor: COLORS.grayscale_300,
+    backgroundColor: COLORS.primary_orange,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
@@ -59,7 +58,7 @@ const styles = StyleSheet.create({
   personRoomContainer: {
     flexDirection: 'row',
     height: 40,
-    backgroundColor: COLORS.grayscale_300,
+    backgroundColor: COLORS.primary_orange,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
