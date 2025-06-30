@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -7,9 +7,19 @@ import {FONTS} from '@constants/fonts';
 // props로
 // 1. 버튼 안에 글씨 - title
 // 2. 어디 페이지로 이동 할건지 - to
-// 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다)
-// 사용 예시 Home에 있음
-const ButtonWhite = ({title, to, onPress, marginHorizontal = 15}) => {
+// 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다) -> 지웠어요
+// 4. backgroundColor: 노랑색이나 초록색(회원가입시 sns회원가입) 때문에 추가했고, 기본적으로 회색입니다.
+// 5. disabled true하면 버튼 내에 글자가 회색으로 나오게 설정했어요
+// 6. 왼쪽에 아이콘이 있는 경우 Icon으로 아이콘 컴포넌트 넘거주면 됩니다.
+// 사용 예시 UserRegisterIntro에 있음
+const ButtonWhite = ({
+  title,
+  to,
+  onPress,
+  Icon,
+  disabled = false,
+  backgroundColor = COLORS.grayscale_200,
+}) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -22,26 +32,46 @@ const ButtonWhite = ({title, to, onPress, marginHorizontal = 15}) => {
 
   return (
     <TouchableOpacity
-      style={[styles.button, {marginHorizontal}]}
+      style={[styles.button, (backgroundColor = {backgroundColor})]}
       onPress={handlePress}>
-      <Text style={[FONTS.fs_body_bold, styles.text]}>{title}</Text>
+      {Icon ? <Icon width={24} height={24} /> : ''}
+      <Text style={[styles.text, disabled ? styles.textDisabled : '']}>
+        {title}
+      </Text>
+      {Icon ? (
+        <View style={[styles.hiddenButton]}>
+          <View width={24} height={24} />
+        </View>
+      ) : (
+        ''
+      )}
     </TouchableOpacity>
   );
 };
 
 const styles = StyleSheet.create({
   button: {
-    backgroundColor: COLORS.white,
-    height: 40,
-    borderRadius: 5,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.grayscale_200,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    height: 44,
+    borderRadius: 8,
+    alignSelf: 'stretch',
+    gap: 0,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
   },
   text: {
-    color: COLORS.gray,
+    textAlign: 'center',
+    flex: 1,
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
+    lineHeight: 22,
+  },
+  textDisabled: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_400,
     lineHeight: 22,
   },
 });
