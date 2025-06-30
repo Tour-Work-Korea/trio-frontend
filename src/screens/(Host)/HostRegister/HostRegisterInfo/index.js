@@ -13,9 +13,9 @@ import {
 import {useNavigation} from '@react-navigation/native';
 import styles from './Register.styles';
 import Header from '@components/Header';
-import authApi from '../../../utils/api/authApi';
+import authApi from '@utils/api/authApi';
 
-const Register = ({route}) => {
+const HostRegisterInfo = ({route}) => {
   const {email, phoneNumber} = route.params;
   const navigation = useNavigation();
 
@@ -279,4 +279,4 @@ const Register = ({route}) => {
   );
 };
 
-export default Register;
+export default HostRegisterInfo;
