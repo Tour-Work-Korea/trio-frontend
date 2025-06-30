@@ -47,6 +47,10 @@ const UserRegisterAgree = () => {
     navigation.navigate('AgreeDetail', {title, detail});
   };
 
+  const handleMoveNext = () => {
+    navigation.navigate('PhoneCertificate', {user: 'User'});
+  };
+
   const renderCheckbox = (isChecked, onPress) => (
     <View>
       {isChecked ? (
@@ -102,9 +106,7 @@ const UserRegisterAgree = () => {
                         <Text style={[styles.textRequired, styles.textBlue]}>
                           [필수]
                         </Text>
-                      ) : (
-                        ''
-                      )}
+                      ) : null}
                       ]<Text style={styles.textAgreeTitle}>{item.title}</Text>
                     </View>
                     <TouchableOpacity
@@ -121,7 +123,7 @@ const UserRegisterAgree = () => {
             ))}
           </View>
           {isRequiredAgreed ? (
-            <ButtonScarlet title="다음" />
+            <ButtonScarlet title="다음" onPress={handleMoveNext} />
           ) : (
             <ButtonWhite title="다음" disabled={true} />
           )}

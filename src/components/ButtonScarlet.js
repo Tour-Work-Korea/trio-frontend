@@ -22,15 +22,13 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false}) => {
 
   return (
     <TouchableOpacity style={[styles.button]} onPress={handlePress}>
-      {Icon ? <Icon width={24} height={24} /> : ''}
+      {Icon ? <Icon width={24} height={24} /> : null}
       <Text style={[styles.text]}>{title}</Text>
       {Icon ? (
         <View style={[styles.hiddenButton]}>
           <View width={24} height={24} />
         </View>
-      ) : (
-        ''
-      )}
+      ) : null}
     </TouchableOpacity>
   );
 };
