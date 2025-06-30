@@ -18,7 +18,7 @@ import styles from './MyGuesthouseAddEdit.styles';
 import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
-import AddressSearchModal from '@components/AddressSearchModal';
+import AddressSearchModal from '@components/modals/AddressSearchModal';
 
 import ImageAddIcon from '@assets/images/Gray_ImageAdd.svg';
 import RadioBtnChecked from '@assets/images/Scarlet_Radio_Btn_Checked.svg';

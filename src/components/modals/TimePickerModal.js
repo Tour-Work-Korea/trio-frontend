@@ -84,7 +84,7 @@ const TimePickerModal = ({ visible, initialTime, onConfirm, onClose }) => {
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: COLORS.modal_background,
     justifyContent: 'flex-end',
   },
   pickerContainer: {
