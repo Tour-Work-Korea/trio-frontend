@@ -22,15 +22,14 @@ api.interceptors.request.use(
 
     //토큰 주입 => 토큰 미포함시, withAuth: false처리(authApi에 예시 있음)
     const token = useUserStore.getState().accessToken;
+
     if (config.withAuth !== false && token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     const cookie = useUserStore.getState()?.refreshToken;
     if (cookie) {
       config.headers.Cookie = 'refreshToken=' + cookie;
-      console.log('Cookie 헤더 삽입:', cookie);
     }
-
     // 쿼리스트링 조합
     let fullUrl = `${baseUrl}/${endpoint}`;
     if (config.params) {

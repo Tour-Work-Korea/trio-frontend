@@ -1,6 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Alert} from 'react-native';
-import styles from '../../../screens/(Host)/Recruitment/RecruitmentForm/RecruitmentForm';
+import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import DropDownPicker from 'react-native-dropdown-picker';
 

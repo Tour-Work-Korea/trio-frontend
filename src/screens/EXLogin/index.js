@@ -5,77 +5,35 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  Image,
 } from 'react-native';
 
 import {COLORS} from '@constants/colors';
 import {useNavigation} from '@react-navigation/native';
 import {tryLogin} from '@utils/auth/login';
-import userMyApi from '@utils/api/userMyApi';
-import useUserStore from '@stores/userStore';
-import hostMyApi from '@utils/api/hostMyApi';
+import KakaoLoginButton from '@assets/images/kakao_login_medium_wide.png';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
   const [emailInput, setEmailInput] = useState('');
   const [passwordInput, setPasswordInput] = useState('');
   const navigation = useNavigation();
-  const setUserProfile = useUserStore(state => state.setUserProfile);
-  const setHostProfile = useUserStore(state => state.setHostProfile);
 
-  const handleLogin = role => {
-    tryLogin(emailInput, passwordInput, role);
-    navigation.goBack();
+  const handleLogin = async (email, password, role) => {
+    try {
+      await tryLogin(email, password, role);
+      navigation.goBack();
+    } catch (error) {
+      console.warn(`${role} 로그인 실패:`, error);
+    }
   };
 
   const handleHostLogin = async () => {
-    try {
-      await tryLogin(
-        // email: 'hostTest@gmail.com',
-        // password: 'Hostpassword1!',
-        'sal091625@gmail.com',
-        'Pw123456!',
-        'HOST',
-      );
-
-      const res = await hostMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, businessNum} = res.data;
-
-      setHostProfile({
-        name: name ?? '',
-        profileImage:
-          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
-        phone: phone ?? '',
-        email: email ?? '',
-        businessNum: businessNum ?? '',
-      });
-
-      navigation.goBack();
-    } catch (error) {
-      console.warn('자동 호스트 로그인 실패:', error);
-    }
+    handleLogin('sal091625@gmail.com', 'Pw123456!', 'HOST');
   };
 
   const handleUserLogin = async () => {
-    try {
-      await tryLogin('test@gmail.com', 'Testpassword1!', 'USER');
-
-      const res = await userMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
-
-      setUserProfile({
-        name: name ?? '',
-        profileImage:
-          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
-        phone: phone ?? '',
-        email: email ?? '',
-        mbti: mbti ?? '',
-        instagramId: instagramId ?? '',
-      });
-
-      navigation.goBack();
-    } catch (error) {
-      console.warn('자동 유저 로그인 실패:', error);
-    }
+    handleLogin('test@gmail.com', 'Testpassword1!', 'USER');
   };
 
   return (
@@ -101,13 +59,13 @@ const EXLogin = () => {
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handleLogin('USER')}>
+        onPress={() => handleLogin(emailInput, passwordInput, 'USER')}>
         <Text style={styles.buttonText}>유저 로그인</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         style={styles.button}
-        onPress={() => handleLogin('HOST')}>
+        onPress={() => handleLogin(emailInput, passwordInput, 'HOST')}>
         <Text style={styles.buttonText}>사장님 로그인</Text>
       </TouchableOpacity>
 
@@ -119,6 +77,11 @@ const EXLogin = () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleUserLogin}>
         <Text style={styles.buttonText}>유저 자동 로그인하기</Text>
+      </TouchableOpacity>
+      <TouchableOpacity
+        style={styles.kakaoButton}
+        onPress={() => navigation.navigate('SocialLogin')}>
+        <Image source={KakaoLoginButton} resizeMode="contain" />
       </TouchableOpacity>
     </View>
   );
@@ -148,6 +111,13 @@ const styles = StyleSheet.create({
   buttonText: {
     color: '#fff',
     fontWeight: 'bold',
+  },
+  kakaoButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#FEE500',
+    borderRadius: 12,
+    justifyContent: 'center',
   },
 });
 

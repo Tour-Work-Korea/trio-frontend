@@ -44,8 +44,16 @@ const authApi = {
   //토큰 재발급
   refreshToken: () =>
     api.post('/auth/refresh', null, {
-      withCredentials: true,
+      withAuth: false,
     }),
+
+  //카카오 로그인
+  loginKakao: accessCode =>
+    api.post(
+      '/auth/user/social-login',
+      {provider: 'KAKAO', accessCode},
+      {withAuth: false},
+    ),
 };
 
 export default authApi;
