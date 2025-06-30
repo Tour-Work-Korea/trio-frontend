@@ -1,56 +1,105 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
-  container: {
-    flex: 1,
+  signin: {
     backgroundColor: COLORS.white,
-  },
-  body: {
     flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
   },
-  titleContainer: {
-    marginTop: 40,
-    marginBottom: 40,
+  viewFlexBox: {
+    gap: 0,
+    justifyContent: 'space-between',
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    flex: 1,
+    overflow: 'hidden',
+    width: '100%',
   },
-  title: {
-    fontSize: 22,
-    fontWeight: 'bold',
-    textAlign: 'center',
+
+  iconPosition: {
+    maxWidth: '100%',
+    top: '50%',
+    position: 'absolute',
+    overflow: 'hidden',
   },
-  agreementContainer: {
-    marginBottom: 12,
-    borderRadius: 10,
-    borderColor: COLORS.stroke_gray,
+
+  parentWrapperFlexBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    height: 28,
     borderWidth: 1,
-  },
-  agreementTitleRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: COLORS.white,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.stroke_gray,
-  },
-  agreementRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 15,
-    backgroundColor: COLORS.light_gray,
-  },
-  checkboxContainer: {
-    width: 24,
-    height: 24,
-    marginRight: 10,
+    borderStyle: 'solid',
+    width: 28,
+    borderRadius: 4,
+    borderColor: COLORS.grayscale_300,
+    overflow: 'hidden',
+    alignContent: 'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  agreementText: {
+  checked: {
+    borderColor: COLORS.scarlet,
+  },
+  textBlue: {
+    color: COLORS.primary_blue,
+  },
+  titleText: {
+    ...FONTS.fs_20_bold,
+    color: COLORS.grayscale_900,
+  },
+  groupParent: {
+    paddingVertical: 0,
+    gap: 12,
+    alignSelf: 'stretch',
+  },
+  textAllAgree: {
+    textAlign: 'left',
+    ...FONTS.fs_14_semibold,
+  },
+  checkboxParent: {
+    gap: 12,
+    alignSelf: 'stretch',
+  },
+  horizontalLine: {
+    height: 1,
+    backgroundColor: COLORS.grayscale_400,
+  },
+  textRequired: {
+    ...FONTS.fs_14_semibold,
+  },
+  textAgreeTitle: {
+    color: COLORS.grayscale_600,
+    ...FONTS.fs_14_regular,
+  },
+  parent: {
+    gap: 4,
+  },
+  textSmall: {
+    ...FONTS.fs_12_medium,
+  },
+  frameContainer: {
+    gap: 0,
+    justifyContent: 'space-between',
     flex: 1,
   },
-  highlightText: {
-    color: COLORS.scarlet,
+  checkboxGroup: {
+    gap: 12,
+    flex: 1,
+  },
+  frameWrapper: {
+    alignSelf: 'stretch',
+    width: 335,
+    alignContent: 'center',
+    justifyContent: 'center',
+  },
+  frameGroup: {
+    gap: 12,
+  },
+
+  frameParent: {
+    alignSelf: 'stretch',
+    gap: 40,
   },
 });

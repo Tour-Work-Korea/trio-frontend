@@ -1,26 +1,21 @@
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
-import ButtonScarlet from '@components/ButtonScarlet';
-import Header from '@components/Header';
+import {Text, View, TouchableOpacity} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
+
+import Logo from '@assets/images/logo_orange.svg';
+import CheckGray from '@assets/images/check20_gray.svg';
+import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
-import {FONTS} from '@constants/fonts';
-import CheckedIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
-import UncheckedIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
-import {useNavigation} from '@react-navigation/native';
+import ButtonScarlet from '@components/ButtonScarlet';
 import {userRegisterAgrees as initialAgrees} from '@data/agree';
+import ButtonWhite from '@components/ButtonWhite';
+import {useNavigation} from '@react-navigation/native';
 
 const UserRegisterAgree = () => {
-  const navigation = useNavigation();
   const [agreements, setAgreements] = useState(initialAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
+  const navigation = useNavigation();
 
   useEffect(() => {
     const allRequired = agreements
@@ -48,60 +43,90 @@ const UserRegisterAgree = () => {
     }
   };
 
-  const handleMoveNext = () => {
-    if (isRequiredAgreed) {
-      navigation.navigate('PhoneCertificate', {user: 'User'});
-    } else {
-      Alert.alert('필수 약관을 모두 동의해주세요');
-    }
+  const handleAgreeDetail = (title, detail) => {
+    navigation.navigate('AgreeDetail', {title, detail});
   };
 
   const renderCheckbox = (isChecked, onPress) => (
-    <TouchableOpacity style={styles.checkboxContainer} onPress={onPress}>
+    <View>
       {isChecked ? (
-        <CheckedIcon width={24} height={24} />
+        <TouchableOpacity
+          style={[styles.checkbox, styles.checked]}
+          onPress={onPress}>
+          <CheckOrange width={24} height={24} />
+        </TouchableOpacity>
       ) : (
-        <UncheckedIcon width={24} height={24} />
+        <TouchableOpacity style={styles.checkbox} onPress={onPress}>
+          <CheckGray width={24} height={24} />
+        </TouchableOpacity>
       )}
-    </TouchableOpacity>
+    </View>
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header />
-      <ScrollView style={[styles.body, FONTS.fs_h2]}>
-        <View style={styles.titleContainer}>
-          <Text style={styles.title}>초면에 실례지만</Text>
-          <Text style={styles.title}>약관동의 필요해요</Text>
+    <SafeAreaView style={styles.signin}>
+      <View style={[styles.viewFlexBox]}>
+        {/* 로고 및 문구 */}
+        <View style={styles.groupParent}>
+          <Logo style={styles.frameChild} width={60} height={29} />
+          <View>
+            <Text style={[styles.titleText]}>서비스 이용을 위한</Text>
+            <Text style={[styles.titleText]}>약관 동의가 필요해요</Text>
+          </View>
         </View>
 
-        <View style={styles.agreementContainer}>
-          <TouchableOpacity
-            style={styles.agreementTitleRow}
-            onPress={() => handleAgreement('all')}>
-            {renderCheckbox(isAllAgreed, () => handleAgreement('all'))}
-            <Text style={[styles.agreementText, FONTS.fs_h2_bold]}>
-              이용약관에 전체 동의
-            </Text>
-          </TouchableOpacity>
-
-          {agreements.map(item => (
-            <TouchableOpacity
-              key={item.id}
-              style={styles.agreementRow}
-              onPress={() => handleAgreement(item.id)}>
-              {renderCheckbox(item.isAgree, () => handleAgreement(item.id))}
-              <View style={styles.agreementText}>
-                <Text style={styles.highlightText}>
-                  [{item.isRequired ? '필수' : '선택'}]
-                </Text>
-                <Text>{item.title}</Text>
+        <View style={styles.frameParent}>
+          <View style={styles.frameGroup}>
+            {/* 전체 동의 */}
+            <View style={[styles.checkboxParent, styles.parentWrapperFlexBox]}>
+              {renderCheckbox(isAllAgreed, () => handleAgreement('all'))}
+              <View style={styles.parentWrapperFlexBox}>
+                <Text style={[styles.textAllAgree]}>전체동의</Text>
               </View>
-            </TouchableOpacity>
-          ))}
+            </View>
+            {/* 동의 목록 */}
+            <View style={styles.horizontalLine} />
+            {agreements.map(item => (
+              <View style={[styles.parentWrapperFlexBox]}>
+                <View
+                  style={[styles.checkboxGroup, styles.parentWrapperFlexBox]}>
+                  {renderCheckbox(item.isAgree, () => handleAgreement(item.id))}
+                  <View
+                    style={[
+                      styles.frameContainer,
+                      styles.parentWrapperFlexBox,
+                    ]}>
+                    <View style={[styles.parent, styles.parentWrapperFlexBox]}>
+                      [
+                      {item.isRequired ? (
+                        <Text style={[styles.textRequired, styles.textBlue]}>
+                          [필수]
+                        </Text>
+                      ) : (
+                        ''
+                      )}
+                      ]<Text style={styles.textAgreeTitle}>{item.title}</Text>
+                    </View>
+                    <TouchableOpacity
+                      onPress={() =>
+                        handleAgreeDetail(item.title, item.description)
+                      }>
+                      <Text style={[styles.textSmall, styles.textBlue]}>
+                        보기
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </View>
+            ))}
+          </View>
+          {isRequiredAgreed ? (
+            <ButtonScarlet title="다음" />
+          ) : (
+            <ButtonWhite title="다음" disabled={true} />
+          )}
         </View>
-      </ScrollView>
-      <ButtonScarlet title="다음" onPress={handleMoveNext} />
+      </View>
     </SafeAreaView>
   );
 };

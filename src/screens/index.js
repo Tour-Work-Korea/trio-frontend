@@ -16,6 +16,7 @@ export { default as GuesthousePayment } from './(Common)/GuesthousePayment';
 export { default as PaymentSuccess } from './(Common)/GuesthousePayment/PaymentSuccess';
 export { default as GuesthouseReservation } from './(Common)/GuesthouseReservation';
 export { default as Register } from './(Common)/Register';
+export { default as AgreeDetail } from './(Common)/Register/AgreeDetail';
 export { default as EmailCertificate } from './(Common)/Register/EmailCertificate';
 export { default as PhoneCertificate } from './(Common)/Register/PhoneCertificate';
 export { default as RegisterIntro } from './(Common)/Register/RegisterIntro';
