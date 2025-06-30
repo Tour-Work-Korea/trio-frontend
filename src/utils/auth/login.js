@@ -1,58 +1,69 @@
 import EncryptedStorage from 'react-native-encrypted-storage';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
+import userMyApi from '@utils/api/userMyApi';
+import hostMyApi from '@utils/api/hostMyApi';
 
 export const tryAutoLogin = async () => {
   try {
     const credentials = await EncryptedStorage.getItem('user-credentials');
     console.log('🔑 Stored Credentials:', credentials);
 
-    if (!credentials) return false;
+    if (!credentials) {
+      return;
+    }
 
-    const {email, password, userRole} = JSON.parse(credentials);
-    return await tryLogin(email, password, userRole);
+    const {userRole} = JSON.parse(credentials);
+    const isRefreshSuccess = await tryRefresh();
+    if (isRefreshSuccess) {
+      updateProfile(userRole);
+    }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
-    return false;
   }
+};
+
+const storeLoginInfo = (res, userRole) => {
+  const authorizationHeader = res.headers?.authorization;
+  let accessToken = authorizationHeader?.replace('Bearer ', '');
+  let refreshToken;
+
+  const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+  if (rawCookies && rawCookies.length > 0) {
+    const cookie = rawCookies[0];
+    const match = cookie.match(/refreshToken=([^;]+);?/);
+
+    if (match) {
+      refreshToken = match[1];
+    }
+  }
+
+  if (!accessToken) {
+    accessToken = res.data?.accessToken;
+  }
+  if (!refreshToken) {
+    throw new Error('refreshToken 없음');
+  }
+
+  const {setTokens, setUserRole} = useUserStore.getState();
+  setTokens({accessToken, refreshToken});
+  setUserRole(userRole);
+
+  console.log('accessToken: ', accessToken);
+  console.log('refreshToken: ', refreshToken);
+
+  updateProfile(userRole);
 };
 
 export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password);
-    const authorizationHeader = res.headers?.authorization;
-    const accessToken = authorizationHeader?.replace('Bearer ', '');
-    let refreshToken;
-
-    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-    if (rawCookies && rawCookies.length > 0) {
-      const cookie = rawCookies[0];
-      const match = cookie.match(/refreshToken=([^;]+);?/);
-
-      if (match) {
-        refreshToken = match[1];
-      }
-    }
-
-    if (!accessToken) {
-      throw new Error('accessToken 없음');
-    }
-    if (!refreshToken) {
-      throw new Error('refreshToken 없음');
-    }
-
-    const {setTokens, setUserRole} = useUserStore.getState();
-    setTokens({accessToken, refreshToken});
-    setUserRole(userRole);
+    storeLoginInfo(res, userRole);
 
     await EncryptedStorage.setItem(
       'user-credentials',
-      JSON.stringify({email, password, userRole}),
+      JSON.stringify({userRole}),
     );
-
-    console.log('accessToken: ', accessToken);
-    console.log('refreshToken: ', refreshToken);
-
     return true; // 성공
   } catch (err) {
     await EncryptedStorage.removeItem('user-credentials');
@@ -60,6 +71,50 @@ export const tryLogin = async (email, password, userRole) => {
     return false; // 실패
   }
 };
+
+export const tryKakaoLogin = async (accessCode, userRole) => {
+  try {
+    const res = await authApi.loginKakao(accessCode);
+    storeLoginInfo(res, userRole);
+
+    // 소셜 로그인은 아이디/비번이 없으므로 provider 정보만 저장
+    await EncryptedStorage.setItem(
+      'user-credentials',
+      JSON.stringify({userRole}),
+    );
+    return {
+      success: true,
+      isNewUser: res.data.isNewUser,
+    };
+  } catch (err) {
+    console.log('실패', err.message);
+    useUserStore.getState().clearUser();
+    await EncryptedStorage.removeItem('user-credentials');
+    return {success: false};
+  }
+};
+
+export const tryRefresh = async () => {
+  try {
+    const res = await authApi.refreshToken();
+    const accessToken = res.data.accessToken;
+    let refreshToken;
+    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
+    if (rawCookies && rawCookies.length > 0) {
+      const cookie = rawCookies[0];
+      const match = cookie.match(/refreshToken=([^;]+);?/);
+      if (match) {
+        refreshToken = match[1];
+      }
+    }
+    useUserStore.getState().setTokens({accessToken, refreshToken});
+    return true;
+  } catch (error) {
+    console.warn('refreshToken 발급 실패', error.message);
+    return false;
+  }
+};
+
 export const tryLogout = async () => {
   try {
     await EncryptedStorage.removeItem('user-credentials');
@@ -67,5 +122,40 @@ export const tryLogout = async () => {
     console.warn('EncryptedStorage 삭제 실패:', err);
   } finally {
     useUserStore.getState().clearUser();
+  }
+};
+
+const updateProfile = async role => {
+  const {setUserProfile, setHostProfile} = useUserStore.getState(); // ✅ 안전하게 접근
+
+  try {
+    if (role === 'HOST') {
+      const res = await hostMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, businessNum} = res.data;
+
+      setHostProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        businessNum: businessNum ?? '',
+      });
+    } else if (role === 'USER') {
+      const res = await userMyApi.getMyProfile();
+      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+
+      setUserProfile({
+        name: name ?? '',
+        profileImage:
+          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+        phone: phone ?? '',
+        email: email ?? '',
+        mbti: mbti ?? '',
+        instagramId: instagramId ?? '',
+      });
+    }
+  } catch (error) {
+    console.warn(`${role} 정보를 가져오는데 실패했습니다.`);
   }
 };

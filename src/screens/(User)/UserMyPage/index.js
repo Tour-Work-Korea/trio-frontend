@@ -66,9 +66,9 @@ const UserMyPage = () => {
             label="즐겨찾는 게하"
             onPress={() => navigation.navigate('UserFavoriteGuesthouse')}
           />
-          <MenuItem 
-            IconComponent={ReservationCheckIcon} 
-            label="예약 조회" 
+          <MenuItem
+            IconComponent={ReservationCheckIcon}
+            label="예약 조회"
             onPress={() => navigation.navigate('UserReservationCheck')}
           />
           <MenuItem

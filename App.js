@@ -1,23 +1,22 @@
 import 'react-native-reanimated';
-import React, {useEffect} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet} from 'react-native';
+import React, {useState, useEffect} from 'react';
+import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
 import RootNavigation from '@navigations/RootNavigation';
 import 'react-native-gesture-handler';
 import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 
 const App = () => {
-  //자동 로그인
   useEffect(() => {
-    const init = async () => {
-      await tryAutoLogin();
-    };
-    init();
+    tryAutoLogin();
   }, []);
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" backgroundColor={COLORS.grayscale_0} />
+      <StatusBar
+        barStyle="light-content"
+        backgroundColor={COLORS.grayscale_0}
+      />
       <RootNavigation />
     </SafeAreaView>
   );

@@ -1,13 +1,11 @@
 import api from './axiosInstance';
 
 const userGuesthouseApi = {
-
   // 유저 게스트하우스 검색 조회
-  getGuesthouseList: (params) =>
-    api.get('/user/guesthouses', { params }),
+  getGuesthouseList: params => api.get('/user/guesthouses', {params}),
 
   // 유저 게스트하우스 상세 조회
-  getGuesthouseDetail: ({ guesthouseId, checkIn, checkOut, guestCount }) =>
+  getGuesthouseDetail: ({guesthouseId, checkIn, checkOut, guestCount}) =>
     api.get(`/user/guesthouses/${guesthouseId}`, {
       params: {
         checkIn,
@@ -17,11 +15,11 @@ const userGuesthouseApi = {
     }),
 
   // 게스트하우스 좋아요
-  favoriteGuesthouse: (guesthouseId) =>
+  favoriteGuesthouse: guesthouseId =>
     api.post(`/user/guesthouses/favorites/${guesthouseId}`),
 
   // 게스트하우스 좋아요 취소
-  unfavoriteGuesthouse: (guesthouseId) =>
+  unfavoriteGuesthouse: guesthouseId =>
     api.delete(`/user/guesthouses/favorites/${guesthouseId}`),
 
   // 방 예약 생성
@@ -33,7 +31,7 @@ const userGuesthouseApi = {
     api.post(`/order/payment/${reservationId}`, body),
 
   // 특정 게스트하우스의 리뷰 조회
-  getGuesthouseReviews: ({ guesthouseId, page, size, sort }) =>
+  getGuesthouseReviews: ({guesthouseId, page, size, sort}) =>
     api.get(`/${guesthouseId}/reviews`, {
       params: {
         page,
@@ -41,7 +39,6 @@ const userGuesthouseApi = {
         sort,
       },
     }),
-
 };
 
 export default userGuesthouseApi;
