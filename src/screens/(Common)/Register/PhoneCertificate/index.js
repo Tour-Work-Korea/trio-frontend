@@ -5,9 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -16,8 +13,11 @@ import Logo from '@assets/images/logo_orange.svg';
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
+import ErrorModal from '@components/modals/ErrorModal';
+import LogoBlack from '@assets/images/logo_black.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import ButtonScarletLogo from '@components/ButtonScarletLogo';
 
 const PhoneCertificate = ({route}) => {
   const {user} = route.params;
@@ -27,8 +27,15 @@ const PhoneCertificate = ({route}) => {
   const [code, setCode] = useState('');
   const [isCodeValid, setIsCodeValid] = useState(false);
   const [isCodeSent, setIsCodeSent] = useState(false);
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
   const [timeLeft, setTimeLeft] = useState(300); // 5분 타이머
   const [isTimerActive, setIsTimerActive] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
+  const [loading, setLoading] = useState(false);
 
   //휴대폰 번호 유효성 확인
   useEffect(() => {
@@ -58,7 +65,11 @@ const PhoneCertificate = ({route}) => {
     } else if (timeLeft === 0) {
       clearInterval(interval);
       setIsTimerActive(false);
-      Alert.alert('인증 시간이 만료되었습니다. 인증번호를 재전송해주세요.');
+      setErrorModal({
+        visible: true,
+        message: '인증 유효 시간이 만료되었습니다.',
+        buttonText: '확인',
+      });
     }
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft]);
@@ -72,6 +83,11 @@ const PhoneCertificate = ({route}) => {
       setIsTimerActive(true);
     } catch (error) {
       console.error('인증번호 전송 실패', error);
+      setErrorModal({
+        visible: true,
+        message: error.message,
+        buttonText: '확인',
+      });
     }
   };
 
@@ -83,12 +99,21 @@ const PhoneCertificate = ({route}) => {
 
   //인증번호 확인
   const verifyCode = async () => {
+    setLoading(true);
     try {
       await authApi.verifySms(phoneNumber, code);
       setIsTimerActive(false);
-      navigation.navigate('EmailCertificate', {user, phoneNumber});
+      // navigation.navigate('EmailCertificate', {user, phoneNumber});
+      setIsCodeVerified(true);
     } catch (error) {
       console.error(error);
+      setErrorModal({
+        visible: true,
+        message: error.message,
+        buttonText: '다시 인증하기',
+      });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -171,7 +196,7 @@ const PhoneCertificate = ({route}) => {
           </View>
         </View>
 
-        <View style={styles.frameParent}>
+        {/* <View style={styles.frameParent}>
           <View style={styles.frameGroup}>
             {isCodeValid ? (
               <ButtonScarlet title="인증하기" onPress={verifyCode} />
@@ -179,8 +204,31 @@ const PhoneCertificate = ({route}) => {
               <ButtonWhite title="인증하기" disabled={true} />
             )}
           </View>
+        </View> */}
+        <View style={styles.frameParent}>
+          <View style={styles.frameGroup}>
+            {loading ? (
+              <ButtonScarletLogo disabled={true} />
+            ) : isCodeVerified ? (
+              <ButtonScarlet
+                title="다음"
+                onPress={() =>
+                  navigation.navigate('EmailCertificate', {user, phoneNumber})
+                }
+              />
+            ) : isCodeValid ? (
+              <ButtonScarlet title="인증하기" onPress={verifyCode} />
+            ) : (
+              <ButtonWhite title="인증하기" disabled={true} />
+            )}
+          </View>
         </View>
       </View>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+      />
     </SafeAreaView>
   );
 };

@@ -4,8 +4,7 @@ import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import {tryKakaoLogin} from '@utils/auth/login';
 
-const KAKAO_CLIENT_ID = 'c9f983fd4f8dc0509b66b4d2ffa99e71';
-const REDIRECT_URI = 'https://workaway.kr:8080/api/v1/auth/user/social-login';
+import {KAKAO_CLIENT_ID, KAKAO_REDIRECT_URI} from '@env';
 
 const getQueryParam = (url, param) => {
   const match = url.match(new RegExp('[?&]' + param + '=([^&]+)'));
@@ -17,7 +16,7 @@ export default function SocialLogin() {
   const webviewRef = useRef(null);
   const alreadyHandled = useRef(false);
 
-  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${REDIRECT_URI}`;
+  const kakaoAuthUrl = `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${KAKAO_REDIRECT_URI}`;
 
   const handleNavigationChange = async navState => {
     const {url} = navState;
