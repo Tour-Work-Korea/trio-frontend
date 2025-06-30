@@ -1,5 +1,5 @@
 import React from 'react';
-import {TouchableOpacity, Text, StyleSheet} from 'react-native';
+import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -9,7 +9,7 @@ import {FONTS} from '@constants/fonts';
 // 2. 어디 페이지로 이동 할건지 - to
 // 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다)
 // 사용 예시 Home에 있음
-const ButtonScarlet = ({title, to, onPress, marginHorizontal = 15}) => {
+const ButtonScarlet = ({title, to, onPress, Icon, disabled = false}) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -21,10 +21,16 @@ const ButtonScarlet = ({title, to, onPress, marginHorizontal = 15}) => {
   };
 
   return (
-    <TouchableOpacity
-      style={[styles.button, {marginHorizontal}]}
-      onPress={handlePress}>
-      <Text style={[FONTS.fs_16_semibold, styles.text]}>{title}</Text>
+    <TouchableOpacity style={[styles.button]} onPress={handlePress}>
+      {Icon ? <Icon width={24} height={24} /> : ''}
+      <Text style={[styles.text]}>{title}</Text>
+      {Icon ? (
+        <View style={[styles.hiddenButton]}>
+          <View width={24} height={24} />
+        </View>
+      ) : (
+        ''
+      )}
     </TouchableOpacity>
   );
 };
@@ -32,13 +38,20 @@ const ButtonScarlet = ({title, to, onPress, marginHorizontal = 15}) => {
 const styles = StyleSheet.create({
   button: {
     backgroundColor: COLORS.primary_orange,
-    height: 42,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    flexDirection: 'row',
+    height: 44,
     borderRadius: 8,
+    alignSelf: 'stretch',
+    gap: 0,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
-    paddingHorizontal: 8,
   },
   text: {
+    textAlign: 'center',
+    flex: 1,
+    ...FONTS.fs_16_semibold,
     color: COLORS.white,
     lineHeight: 22,
   },
