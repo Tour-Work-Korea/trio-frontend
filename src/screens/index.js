@@ -57,3 +57,4 @@ export { default as UserRegisterInfo } from './(User)/UserRegister/UserRegisterI
 export { default as UserRegisterIntro } from './(User)/UserRegister/UserRegisterIntro';
 export { default as EXHome } from './EXHome';
 export { default as EXLogin } from './EXLogin';
+export { default as EXDeeplink } from './EXDeeplink';
