@@ -9,7 +9,7 @@ import {FONTS} from '@constants/fonts';
 // 2. 어디 페이지로 이동 할건지 - to
 // 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다)
 // 사용 예시 Home에 있음
-const ButtonScarlet = ({title, to, onPress, Icon, disabled = false}) => {
+const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -21,7 +21,7 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false}) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.button]} onPress={handlePress}>
+    <TouchableOpacity style={[styles.button, style]} onPress={handlePress}>
       {Icon ? <Icon width={24} height={24} /> : null}
       <Text style={[styles.text]}>{title}</Text>
       {Icon ? (

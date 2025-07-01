@@ -56,6 +56,7 @@ export { default as UserReservationCheck } from './(User)/UserMyPage/UserReserva
 export { default as SocialLogin } from './(User)/UserRegister/SocialLogin';
 export { default as UserRegisterAgree } from './(User)/UserRegister/UserRegisterAgree';
 export { default as UserRegisterInfo } from './(User)/UserRegister/UserRegisterInfo';
+export { default as UserRegisterProfile } from './(User)/UserRegister/UserRegisterProfile';
 export { default as EXDeeplink } from './EXDeeplink';
 export { default as EXHome } from './EXHome';
 export { default as EXHomePage } from './EXHome/EXHomePage';

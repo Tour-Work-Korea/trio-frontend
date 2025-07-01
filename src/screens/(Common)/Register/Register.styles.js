@@ -37,6 +37,12 @@ export default StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
   },
+  rowBox: {
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
   inputLabel: {...FONTS.fs_16_semibold},
   inputBox: {
     backgroundColor: COLORS.white,

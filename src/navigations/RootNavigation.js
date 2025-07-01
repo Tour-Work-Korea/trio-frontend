@@ -14,7 +14,7 @@ const Stack = createNativeStackNavigator();
 const RootNavigation = () => (
   <NavigationContainer>
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="TestStack" component={TestStack} />
+      <Stack.Screen name="Test" component={TestStack} />
       <Stack.Screen name="undefined" component={undefinedStack} />
       <Stack.Screen name="Employ" component={EmployStack} />
       <Stack.Screen name="Guesthouse" component={GuesthouseStack} />

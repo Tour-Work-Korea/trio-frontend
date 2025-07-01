@@ -9,6 +9,7 @@ import {
   PhoneCertificate,
   HostRegisterInfo,
   AgreeDetail,
+  UserRegisterProfile,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -23,6 +24,10 @@ export default function Register() {
       <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
       <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
       <Stack.Screen name="UserRegisterInfo" component={UserRegisterInfo} />
+      <Stack.Screen
+        name="UserRegisterProfile"
+        component={UserRegisterProfile}
+      />
       <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
     </Stack.Navigator>
   );

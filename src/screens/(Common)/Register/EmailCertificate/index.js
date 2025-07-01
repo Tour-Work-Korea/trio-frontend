@@ -228,8 +228,8 @@ const EmailCertificate = ({route}) => {
           </View>
         </View>
 
-        <View style={styles.frameParent}>
-          <View style={styles.frameGroup}>
+        <View>
+          {/* <View style={styles.frameGroup}>
             {loading ? (
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
@@ -254,7 +254,24 @@ const EmailCertificate = ({route}) => {
             ) : (
               <ButtonWhite title="인증하기" disabled={true} />
             )}
-          </View>
+          </View> */}
+          {/* 임시 */}
+          <ButtonScarlet
+            title="인증 성공!"
+            onPress={() => {
+              if (user === 'USER') {
+                navigation.navigate('UserRegisterInfo', {
+                  email: 'sal091625@gmail.com',
+                  phoneNumber,
+                });
+              } else {
+                navigation.navigate('HostRegisterInfo', {
+                  email: 'sal091625@gmail.com',
+                  phoneNumber,
+                });
+              }
+            }}
+          />
         </View>
       </View>
       <ErrorModal

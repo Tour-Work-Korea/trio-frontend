@@ -18,7 +18,9 @@ const ButtonWhite = ({
   onPress,
   Icon,
   disabled = false,
+  style,
   backgroundColor = COLORS.grayscale_200,
+  textColor = COLORS.grayscale_900,
 }) => {
   const navigation = useNavigation();
 
@@ -32,10 +34,15 @@ const ButtonWhite = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, (backgroundColor = {backgroundColor})]}
+      style={[styles.button, (backgroundColor = {backgroundColor}), style]}
       onPress={handlePress}>
       {Icon ? <Icon width={24} height={24} /> : null}
-      <Text style={[styles.text, disabled ? styles.textDisabled : null]}>
+      <Text
+        style={[
+          {color: textColor},
+          styles.text,
+          disabled ? styles.textDisabled : null,
+        ]}>
         {title}
       </Text>
       {Icon ? (
@@ -64,7 +71,6 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
     ...FONTS.fs_16_semibold,
-    color: COLORS.grayscale_900,
     lineHeight: 22,
   },
   textDisabled: {
