@@ -1,15 +1,7 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-} from 'react-native';
+import React, {useState, useEffect, useCallback} from 'react';
+import {View, Text, TextInput, TouchableOpacity} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import styles from '../Register.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
@@ -37,6 +29,27 @@ const EmailCertificate = ({route}) => {
     buttonText: '',
   });
   const [loading, setLoading] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      // 화면에 진입할 때 실행됨 (뒤로 갔다가 다시 돌아올 때도 포함)
+      setRegisterEmail('');
+      setEmail('');
+      setIsEmailValid(false);
+      setCode('');
+      setIsCodeSent(false);
+      setIsCodeValid(false);
+      setIsCodeVerified(false);
+      setTimeLeft(300);
+      setIsTimerActive(false);
+      setErrorModal({
+        visible: false,
+        message: '',
+        buttonText: '',
+      });
+      setLoading(false);
+    }, []),
+  );
 
   // 타이머 기능
   useEffect(() => {
@@ -75,6 +88,24 @@ const EmailCertificate = ({route}) => {
       setIsCodeValid(false);
     }
   }, [code]);
+
+  useEffect(() => {
+    if (isCodeVerified) {
+      setTimeout(() => {
+        if (user === 'USER') {
+          navigation.navigate('UserRegisterInfo', {
+            registerEmail,
+            phoneNumber,
+          });
+        } else {
+          navigation.navigate('HostRegisterInfo', {
+            registerEmail,
+            phoneNumber,
+          });
+        }
+      }, 850);
+    }
+  }, [isCodeVerified]);
 
   // 인증번호 전송
   const sendVerificationCode = async () => {
@@ -128,71 +159,6 @@ const EmailCertificate = ({route}) => {
   };
 
   return (
-    // <SafeAreaView style={styles.container}>
-    //   <KeyboardAvoidingView
-    //     behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    //     style={styles.keyboardAvoidingView}>
-    //     <ScrollView contentContainerStyle={styles.scrollView}>
-    //       <Text style={styles.title}>이메일 인증</Text>
-
-    //       <View style={styles.inputSection}>
-    //         <Text style={styles.label}>이메일</Text>
-    //         <View style={styles.emailInputContainer}>
-    //           <TextInput
-    //             style={styles.emailInput}
-    //             placeholder="이메일 입력"
-    //             value={email}
-    //             onChangeText={setEmail}
-    //             keyboardType="email-address"
-    //             autoCapitalize="none"
-    //           />
-    //           <TouchableOpacity
-    //             style={styles.verifyButton}
-    //             onPress={sendVerificationCode}
-    //             disabled={isCodeSent}>
-    //             <Text style={styles.verifyButtonText}>인증하기</Text>
-    //           </TouchableOpacity>
-    //         </View>
-    //       </View>
-
-    //       <View style={styles.inputSection}>
-    //         <Text style={styles.label}>인증번호</Text>
-    //         <View style={styles.verificationContainer}>
-    //           <TextInput
-    //             style={styles.verificationInput}
-    //             placeholder="인증번호 입력"
-    //             value={verificationCode}
-    //             onChangeText={setVerificationCode}
-    //             keyboardType="number-pad"
-    //             maxLength={6}
-    //             editable={isCodeSent}
-    //           />
-    //           {isTimerActive && (
-    //             <Text style={styles.timer}>{formatTime(timeLeft)}</Text>
-    //           )}
-    //         </View>
-
-    //         <TouchableOpacity
-    //           style={styles.resendButton}
-    //           onPress={sendVerificationCode}
-    //           disabled={!isCodeSent}>
-    //           <Text
-    //             style={[styles.resendText, !isCodeSent && styles.disabledText]}>
-    //             인증번호 재전송
-    //           </Text>
-    //         </TouchableOpacity>
-    //       </View>
-    //     </ScrollView>
-    //   </KeyboardAvoidingView>
-    //   <TouchableOpacity
-    //     style={[
-    //       styles.nextButton,
-    //       (!isCodeSent || !verificationCode) && styles.disabledButton,
-    //     ]}
-    //     onPress={verifyCode}>
-    //     <Text style={styles.nextButtonText}>다음</Text>
-    //   </TouchableOpacity>
-    // </SafeAreaView>
     <SafeAreaView style={styles.container}>
       <View style={[styles.viewFlexBox]}>
         <View>
@@ -268,7 +234,7 @@ const EmailCertificate = ({route}) => {
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
               <ButtonScarlet
-                title="다음"
+                title="인증 성공!"
                 onPress={() => {
                   if (user === 'USER') {
                     navigation.navigate('UserRegisterInfo', {

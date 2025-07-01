@@ -1,6 +1,6 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useCallback} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Logo from '@assets/images/logo_orange.svg';
 import authApi from '@utils/api/authApi';
@@ -29,6 +29,21 @@ const PhoneCertificate = ({route}) => {
   });
   const [loading, setLoading] = useState(false);
 
+  useFocusEffect(
+    useCallback(() => {
+      setPhoneNumber('');
+      setIsPhoneNumberValid(false);
+      setCode('');
+      setIsCodeValid(false);
+      setIsCodeSent(false);
+      setIsCodeVerified(false);
+      setTimeLeft(300);
+      setIsTimerActive(false);
+      setErrorModal({visible: false, message: '', buttonText: ''});
+      setLoading(false);
+    }, []),
+  );
+
   //휴대폰 번호 유효성 확인
   useEffect(() => {
     if (phoneNumber.length === 11) {
@@ -46,6 +61,17 @@ const PhoneCertificate = ({route}) => {
       setIsCodeValid(false);
     }
   }, [code]);
+
+  useEffect(() => {
+    if (isCodeVerified) {
+      setTimeout(() => {
+        navigation.navigate('EmailCertificate', {
+          user,
+          phoneNumber,
+        });
+      }, 850);
+    }
+  }, [isCodeVerified]);
 
   // 타이머 기능
   useEffect(() => {
@@ -105,12 +131,6 @@ const PhoneCertificate = ({route}) => {
       });
     } finally {
       setLoading(false);
-      setTimeout(() => {
-        navigation.navigate('EmailCertificate', {
-          user,
-          phoneNumber,
-        });
-      }, 850);
     }
   };
 
@@ -125,12 +145,6 @@ const PhoneCertificate = ({route}) => {
     setIsTimerActive(false);
     setIsCodeVerified(true);
     setLoading(false);
-    setTimeout(() => {
-      navigation.navigate('EmailCertificate', {
-        user,
-        phoneNumber,
-      });
-    }, 850);
   };
 
   // 타이머 포맷 함수
