@@ -2,9 +2,9 @@ import api from './axiosInstance';
 
 const authApi = {
   //이메일 인증
-  sendEmail: email =>
+  sendEmail: (email, userRole) =>
     api.post('/auth/email/send', null, {
-      params: {email},
+      params: {email, userRole},
       withAuth: false, // 토큰 미포함시
     }),
   verifyEmail: (email, authCode) =>
@@ -20,9 +20,9 @@ const authApi = {
       withAuth: false,
     }),
   //휴대폰 인증
-  sendSms: phoneNum =>
+  sendSms: (phoneNum, userRole) =>
     api.post('/auth/sms/send', null, {
-      params: {phoneNum},
+      params: {phoneNum, userRole},
       withAuth: false,
     }),
   verifySms: (phoneNum, code) =>

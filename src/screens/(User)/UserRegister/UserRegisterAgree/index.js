@@ -48,7 +48,7 @@ const UserRegisterAgree = () => {
   };
 
   const handleMoveNext = () => {
-    navigation.navigate('PhoneCertificate', {user: 'User'});
+    navigation.navigate('PhoneCertificate', {user: 'USER'});
   };
 
   const renderCheckbox = (isChecked, onPress) => (
