@@ -14,7 +14,6 @@ import {COLORS} from '@constants/colors';
 const EmailCertificate = ({route}) => {
   const {user, phoneNumber} = route.params;
   const navigation = useNavigation();
-  const [registerEmail, setRegisterEmail] = useState();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [code, setCode] = useState('');
@@ -33,7 +32,6 @@ const EmailCertificate = ({route}) => {
   useFocusEffect(
     useCallback(() => {
       // 화면에 진입할 때 실행됨 (뒤로 갔다가 다시 돌아올 때도 포함)
-      setRegisterEmail('');
       setEmail('');
       setIsEmailValid(false);
       setCode('');
@@ -94,12 +92,12 @@ const EmailCertificate = ({route}) => {
       setTimeout(() => {
         if (user === 'USER') {
           navigation.navigate('UserRegisterInfo', {
-            registerEmail,
+            email,
             phoneNumber,
           });
         } else {
           navigation.navigate('HostRegisterInfo', {
-            registerEmail,
+            email,
             phoneNumber,
           });
         }
@@ -133,12 +131,10 @@ const EmailCertificate = ({route}) => {
   // 인증번호 확인
   const verifyCode = async () => {
     setLoading(true);
-    setRegisterEmail('');
     try {
       await authApi.verifyEmail(email, code);
       setIsTimerActive(false);
       setIsCodeVerified(true);
-      setRegisterEmail(email);
     } catch (error) {
       console.error(error);
       setErrorModal({
@@ -229,7 +225,7 @@ const EmailCertificate = ({route}) => {
         </View>
 
         <View>
-          {/* <View style={styles.frameGroup}>
+          <View style={styles.frameGroup}>
             {loading ? (
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
@@ -238,12 +234,12 @@ const EmailCertificate = ({route}) => {
                 onPress={() => {
                   if (user === 'USER') {
                     navigation.navigate('UserRegisterInfo', {
-                      registerEmail,
+                      email,
                       phoneNumber,
                     });
                   } else {
                     navigation.navigate('HostRegisterInfo', {
-                      registerEmail,
+                      email,
                       phoneNumber,
                     });
                   }
@@ -254,9 +250,9 @@ const EmailCertificate = ({route}) => {
             ) : (
               <ButtonWhite title="인증하기" disabled={true} />
             )}
-          </View> */}
+          </View>
           {/* 임시 */}
-          <ButtonScarlet
+          {/* <ButtonScarlet
             title="인증 성공!"
             onPress={() => {
               if (user === 'USER') {
@@ -271,7 +267,7 @@ const EmailCertificate = ({route}) => {
                 });
               }
             }}
-          />
+          /> */}
         </View>
       </View>
       <ErrorModal

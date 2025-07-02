@@ -54,7 +54,7 @@ export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
-export {default as UserRegisterAgree} from './(User)/UserRegister/UserRegisterAgree';
+export {default as RegisterAgree} from './(Common)/Register/RegisterAgree';
 export {default as UserRegisterInfo} from './(User)/UserRegister/UserRegisterInfo';
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
 export {default as EXDeeplink} from './EXDeeplink';

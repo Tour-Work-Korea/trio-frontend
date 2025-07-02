@@ -11,6 +11,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import {COLORS} from '@constants/colors';
 import {validateRegisterProfile} from '@utils/validation/userRegisterValidation';
 import {FONTS} from '@constants/fonts';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const UserRegisterProfile = () => {
   const route = useRoute();
@@ -26,6 +27,11 @@ const UserRegisterProfile = () => {
   const [isNicknameDuplicated, setISNicknameDuplicated] = useState(true);
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isPasswordCheckVisible, setIsPasswordCheckVisible] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   const handleNicknameChange = text => {
     updateField('nickname', text);
@@ -85,7 +91,8 @@ const UserRegisterProfile = () => {
     const passwordValid =
       formValid.password?.hasUpperLowercase &&
       formValid.password?.hasNumber &&
-      formValid.password?.isLengthValid;
+      formValid.password?.isLengthValid &&
+      formValid.password?.hasSpecialChar;
 
     const confirmValid = formValid.passwordConfirm?.isMatched;
 
@@ -94,15 +101,18 @@ const UserRegisterProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      console.log(formData);
-      // await authApi.userSignUp(formData);
+      await authApi.userSignUp(formData);
       navigation.navigate('Result', {
         to: 'BottomTabs',
         nickname: formData.nickname,
         role: formData.userRole,
       });
     } catch (error) {
-      Alert.alert('회원가입에 실패했습니다.', error.message);
+      setErrorModal({
+        visible: true,
+        message: '오류가 발생했습니다\n다시 시도해주세요',
+        buttonText: '확인',
+      });
     }
   };
 
@@ -239,6 +249,13 @@ const UserRegisterProfile = () => {
                 <Text
                   style={[
                     styles.validDefaultText,
+                    formValid.password.hasSpecialChar ? styles.validText : '',
+                  ]}>
+                  특수문자 포함
+                </Text>
+                <Text
+                  style={[
+                    styles.validDefaultText,
                     formValid.password.isLengthValid ? styles.validText : '',
                   ]}>
                   8-20자 이내
@@ -285,6 +302,12 @@ const UserRegisterProfile = () => {
           />
         </View>
       </View>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </SafeAreaView>
   );
 };

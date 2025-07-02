@@ -148,12 +148,12 @@ const UserRegisterInfo = () => {
 
         {/* 하단 버튼 */}
         <View>
-          {/* {isValid ? (
+          {isValid ? (
             <ButtonScarlet title="다음" onPress={handleMoveNext} />
           ) : (
             <ButtonWhite title="다음" disabled={!isValid} />
-          )} */}
-          <ButtonScarlet
+          )}
+          {/* <ButtonScarlet
             title="다음"
             onPress={() => {
               setFormData({
@@ -166,7 +166,7 @@ const UserRegisterInfo = () => {
                 prevData: formData,
               });
             }}
-          />
+          /> */}
         </View>
       </View>
     </SafeAreaView>

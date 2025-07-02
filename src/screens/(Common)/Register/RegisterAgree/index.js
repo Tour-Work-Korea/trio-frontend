@@ -7,12 +7,15 @@ import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
-import {userRegisterAgrees as initialAgrees} from '@data/agree';
+import {userRegisterAgrees, hostRegisterAgrees} from '@data/agree';
 import ButtonWhite from '@components/ButtonWhite';
 import {useNavigation} from '@react-navigation/native';
 
-const UserRegisterAgree = () => {
-  const [agreements, setAgreements] = useState(initialAgrees);
+const RegisterAgree = ({route}) => {
+  const {user} = route.params;
+  const [agreements, setAgreements] = useState(
+    user === 'USER' ? userRegisterAgrees : hostRegisterAgrees,
+  );
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
   const navigation = useNavigation();
@@ -48,7 +51,7 @@ const UserRegisterAgree = () => {
   };
 
   const handleMoveNext = () => {
-    navigation.navigate('PhoneCertificate', {user: 'USER'});
+    navigation.navigate('PhoneCertificate', {user});
   };
 
   const renderCheckbox = (isChecked, onPress) => (
@@ -101,13 +104,12 @@ const UserRegisterAgree = () => {
                       styles.parentWrapperFlexBox,
                     ]}>
                     <View style={[styles.parent, styles.parentWrapperFlexBox]}>
-                      [
                       {item.isRequired ? (
                         <Text style={[styles.textRequired, styles.textBlue]}>
                           [필수]
                         </Text>
                       ) : null}
-                      ]<Text style={styles.textAgreeTitle}>{item.title}</Text>
+                      <Text style={styles.textAgreeTitle}>{item.title}</Text>
                     </View>
                     <TouchableOpacity
                       onPress={() =>
@@ -133,4 +135,4 @@ const UserRegisterAgree = () => {
   );
 };
 
-export default UserRegisterAgree;
+export default RegisterAgree;

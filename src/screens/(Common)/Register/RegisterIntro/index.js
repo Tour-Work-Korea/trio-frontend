@@ -35,13 +35,15 @@ const RegisterIntro = () => {
             />
             <ButtonWhite
               title="이메일로 시작하기"
-              to="UserRegisterAgree"
+              onPress={() =>
+                navigation.navigate('RegisterAgree', {user: 'USER'})
+              }
               Icon={Mail}
             />
           </View>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('PhoneCertificate', {user: 'HOST'})
+              navigation.navigate('RegisterAgree', {user: 'HOST'})
             }>
             <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
           </TouchableOpacity>

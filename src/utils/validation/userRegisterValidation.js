@@ -8,6 +8,7 @@ export const isNicknameLengthValid = nickname =>
 export const hasUppercase = password => /[A-Z]/.test(password);
 export const hasLowercase = password => /[a-z]/.test(password);
 export const hasNumber = password => /\d/.test(password);
+export const hasSpecialChars = password => /[^A-Za-z0-9]/.test(password);
 export const isPasswordLengthValid = password =>
   password.length >= 8 && password.length <= 20;
 
@@ -43,6 +44,7 @@ export const validateRegisterProfile = form => {
       // hasLowercase: hasLowercase(form.password),
       hasNumber: hasNumber(form.password),
       isLengthValid: isPasswordLengthValid(form.password),
+      hasSpecialChar: hasSpecialChars(form.password),
     },
     passwordConfirm: {
       isMatched: isPasswordMatched(form.password, form.passwordConfirm),
