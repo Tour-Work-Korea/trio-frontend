@@ -1,79 +1,109 @@
 import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
-} from 'react-native';
+import {View, Text, TextInput, TouchableOpacity, Alert} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import styles from '../../../(Common)/Register/Register.styles';
 import Logo from '@assets/images/logo_orange.svg';
+import ShowPassword from '@assets/images/show_password.svg';
+import HidePassword from '@assets/images/hide_password.svg';
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
-import ButtonWhite from '@components/ButtonWhite';
 import {COLORS} from '@constants/colors';
+import {validateRegisterProfile} from '@utils/validation/userRegisterValidation';
+import {FONTS} from '@constants/fonts';
 
 const UserRegisterProfile = () => {
   const route = useRoute();
   const {prevData} = route.params;
   const navigation = useNavigation();
   const [formData, setFormData] = useState(prevData);
+  const [formValid, setFormValid] = useState({
+    nickname: [],
+    password: [],
+    passwordConfirm: [],
+  });
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
+  const [isNicknameDuplicated, setISNicknameDuplicated] = useState(true);
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false);
+  const [isPasswordCheckVisible, setIsPasswordCheckVisible] = useState(false);
+
+  const handleNicknameChange = text => {
+    updateField('nickname', text);
+    setIsNicknameChecked(false);
+    const nextValid = {
+      ...formValid,
+      nickname: validateRegisterProfile({...formData, nickname: text}).nickname,
+    };
+    setFormValid(nextValid);
+  };
+
+  const handlePasswordChange = text => {
+    updateField('password', text);
+    const nextValid = {
+      ...formValid,
+      password: validateRegisterProfile({...formData, password: text}).password,
+      passwordConfirm: {
+        isMatched: text === formData.passwordConfirm,
+      },
+    };
+    setFormValid(nextValid);
+  };
+
+  const handlePasswordConfirmChange = text => {
+    updateField('passwordConfirm', text);
+    setFormValid(prev => ({
+      ...prev,
+      passwordConfirm: {
+        isMatched: text === formData.password,
+      },
+    }));
+  };
 
   const updateField = (key, value) => {
-    setFormData(prev => ({...prev, [key]: value}));
+    const updated = {...formData, [key]: value};
+    setFormData(updated);
+    setFormValid(validateRegisterProfile(updated));
   };
 
-  const checkNicknameDuplicate = () => {
-    if (!formData.nickname) {
-      Alert.alert('닉네임을 입력해주세요.');
-      return;
+  const checkNicknameDuplicate = async () => {
+    try {
+      await authApi.checkNickname(formData.nickname);
+      setIsNicknameChecked(true);
+      setISNicknameDuplicated(false);
+    } catch (error) {
+      setIsNicknameChecked(false);
+      setISNicknameDuplicated(true);
     }
-    setIsNicknameChecked(true);
-    Alert.alert('사용 가능한 닉네임입니다.');
   };
 
-  const handleSubmit = () => {
-    if (!formData.name) {
-      return Alert.alert('이름을 입력해주세요.');
-    }
-    if (!formData.birthday) {
-      return Alert.alert('생년월일을 입력해주세요.');
-    }
+  const isFormValid = () => {
+    const nicknameValid =
+      formValid.nickname?.hasNoSpecialChars &&
+      formValid.nickname?.isLengthValid &&
+      isNicknameChecked;
 
-    if (!formData.gender) {
-      return Alert.alert('성별을 선택해주세요.');
+    const passwordValid =
+      formValid.password?.hasUpperLowercase &&
+      formValid.password?.hasNumber &&
+      formValid.password?.isLengthValid;
+
+    const confirmValid = formValid.passwordConfirm?.isMatched;
+
+    return nicknameValid && passwordValid && confirmValid;
+  };
+
+  const handleSubmit = async () => {
+    try {
+      console.log(formData);
+      // await authApi.userSignUp(formData);
+      navigation.navigate('Result', {
+        to: 'BottomTabs',
+        nickname: formData.nickname,
+        role: formData.userRole,
+      });
+    } catch (error) {
+      Alert.alert('회원가입에 실패했습니다.', error.message);
     }
-    if (!formData.nickname) {
-      return Alert.alert('닉네임을 입력해주세요.');
-    }
-    if (!isNicknameChecked) {
-      return Alert.alert('닉네임 중복 확인을 해주세요.');
-    }
-    if (!formData.password) {
-      return Alert.alert('비밀번호를 입력해주세요.');
-    }
-    if (formData.password !== formData.passwordConfirm) {
-      return Alert.alert('비밀번호가 일치하지 않습니다.');
-    }
-    const tryUserSignUp = async () => {
-      try {
-        console.log(formData);
-        await authApi.userSignUp(formData);
-        navigation.navigate('Result', {
-          text: '성공적으로 가입되었습니다!',
-          to: 'EXHome',
-        });
-      } catch (error) {
-        Alert.alert('회원가입에 실패했습니다.', error.message);
-      }
-    };
-    tryUserSignUp();
   };
 
   return (
@@ -91,135 +121,170 @@ const UserRegisterProfile = () => {
               <Text style={[styles.titleText]}>필수정보를 알려주세요</Text>
             </View>
           </View>
-        </View>
-      </View>
-
-      <Text style={styles.title}>필수 입력정보</Text>
-
-      <View style={styles.inputSection}>
-        <Text style={styles.label}>이름</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="이름"
-          value={formData.name}
-          onChangeText={text => updateField('name', text)}
-        />
-      </View>
-
-      <View style={styles.inputSection}>
-        <Text style={styles.label}>생년월일</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="예: 19990101"
-          keyboardType="numeric"
-          maxLength={8}
-          value={formData.birthday.replace(/-/g, '')}
-          onChangeText={text => {
-            const onlyDigits = text.replace(/[^0-9]/g, '');
-
-            if (onlyDigits.length === 8) {
-              const year = onlyDigits.slice(0, 4);
-              const month = onlyDigits.slice(4, 6);
-              const day = onlyDigits.slice(6, 8);
-              const mm = parseInt(month, 10);
-              const dd = parseInt(day, 10);
-              if (mm < 1 || mm > 12 || dd < 1 || dd > 31) {
-                Alert.alert('날짜 형식 오류', '올바른 날짜를 입력해주세요.');
-                return;
-              }
-              updateField('birthday', `${year}-${month}-${day}`);
-            } else {
-              updateField('birthday', onlyDigits);
-            }
-          }}
-        />
-      </View>
-
-      <View style={styles.inputSection}>
-        <Text style={styles.label}>성별</Text>
-        <View style={styles.genderContainer}>
-          <TouchableOpacity
-            style={[
-              styles.genderOption,
-              formData.gender === 'M' && styles.selectedGender,
-            ]}
-            onPress={() => updateField('gender', 'M')}>
-            <View
-              style={[
-                styles.radioButton,
-                formData.gender === 'M' && styles.radioButtonSelected,
-              ]}>
-              {formData.gender === 'M' && (
-                <View style={styles.radioButtonInner} />
+          <View style={styles.inputGroup}>
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>닉네임</Text>
+              <View style={[styles.inputBox, {position: 'relative'}]}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="닉네임을 입력해주세요"
+                  placeholderTextColor={COLORS.grayscale_400}
+                  value={formData.nickname}
+                  onChangeText={handleNicknameChange}
+                  maxLength={10}
+                />
+                <TouchableOpacity
+                  disabled={
+                    !formValid.nickname?.hasNoSpecialChars ||
+                    !formValid.nickname?.isLengthValid
+                  }
+                  style={[
+                    styles.inputButtonAbsolute,
+                    {
+                      backgroundColor:
+                        formValid.nickname?.hasNoSpecialChars &&
+                        formValid.nickname?.isLengthValid
+                          ? COLORS.primary_orange
+                          : COLORS.grayscale_200,
+                    },
+                  ]}
+                  onPress={checkNicknameDuplicate}>
+                  <Text
+                    style={{
+                      ...FONTS.fs_14_medium,
+                      color:
+                        formValid.nickname?.hasNoSpecialChars &&
+                        formValid.nickname?.isLengthValid
+                          ? COLORS.white
+                          : COLORS.grayscale_400,
+                    }}>
+                    중복확인
+                  </Text>
+                </TouchableOpacity>
+              </View>
+              {isNicknameChecked ? (
+                <View style={styles.validBox}>
+                  <Text
+                    style={[
+                      styles.validDefaultText,
+                      !isNicknameDuplicated
+                        ? styles.validText
+                        : styles.invalidText,
+                    ]}>
+                    {!isNicknameDuplicated
+                      ? '사용가능한 닉네임입니다'
+                      : '이미 있는 닉네임입니다. 다른 닉네임을 입력해주세요.'}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.validBox}>
+                  <Text
+                    style={[
+                      styles.validDefaultText,
+                      formValid.nickname?.hasNoSpecialChars
+                        ? styles.validText
+                        : '',
+                    ]}>
+                    특수문자 제외
+                  </Text>
+                  <Text
+                    style={[
+                      styles.validDefaultText,
+                      formValid.nickname?.isLengthValid ? styles.validText : '',
+                    ]}>
+                    2-10자 내외
+                  </Text>
+                </View>
               )}
             </View>
-            <Text style={styles.genderText}>남</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            style={[
-              styles.genderOption,
-              formData.gender === 'F' && styles.selectedGender,
-            ]}
-            onPress={() => updateField('gender', 'F')}>
-            <View
-              style={[
-                styles.radioButton,
-                formData.gender === 'F' && styles.radioButtonSelected,
-              ]}>
-              {formData.gender === 'F' && (
-                <View style={styles.radioButtonInner} />
-              )}
+            <View style={styles.inputContainer}>
+              <Text style={styles.inputLabel}>비밀번호</Text>
+              <View style={styles.inputBox}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="비밀번호를 입력해주세요"
+                  placeholderTextColor={COLORS.grayscale_400}
+                  value={formData.password}
+                  onChangeText={handlePasswordChange}
+                  maxLength={20}
+                  secureTextEntry={!isPasswordVisible}
+                  autoCapitalize="none"
+                />
+                <TouchableOpacity
+                  onPress={() => setIsPasswordVisible(prev => !prev)}>
+                  {isPasswordVisible ? (
+                    <HidePassword width={24} hide={24} />
+                  ) : (
+                    <ShowPassword width={24} hide={24} />
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.validBox}>
+                <Text
+                  style={[
+                    styles.validDefaultText,
+                    formValid.password.hasUpperLowercase
+                      ? styles.validText
+                      : '',
+                  ]}>
+                  영문 대소문자 포함
+                </Text>
+                <Text
+                  style={[
+                    styles.validDefaultText,
+                    formValid.password.hasNumber ? styles.validText : '',
+                  ]}>
+                  숫자 포함
+                </Text>
+                <Text
+                  style={[
+                    styles.validDefaultText,
+                    formValid.password.isLengthValid ? styles.validText : '',
+                  ]}>
+                  8-20자 이내
+                </Text>
+              </View>
             </View>
-            <Text style={styles.genderText}>여</Text>
-          </TouchableOpacity>
+            <View style={styles.inputContainer}>
+              <View style={styles.inputBox}>
+                <TextInput
+                  style={styles.textInput}
+                  placeholder="다시 한 번 입력해주세요"
+                  placeholderTextColor={COLORS.grayscale_400}
+                  value={formData.passwordConfirm}
+                  onChangeText={handlePasswordConfirmChange}
+                  maxLength={10}
+                  secureTextEntry={!isPasswordCheckVisible}
+                />
+                <TouchableOpacity
+                  onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
+                  {isPasswordCheckVisible ? (
+                    <HidePassword width={24} hide={24} />
+                  ) : (
+                    <ShowPassword width={24} hide={24} />
+                  )}
+                </TouchableOpacity>
+              </View>
+              <View style={styles.validBox}>
+                <Text
+                  style={[
+                    styles.validDefaultText,
+                    formValid.passwordConfirm.isMatched ? styles.validText : '',
+                  ]}>
+                  비밀번호 일치
+                </Text>
+              </View>
+            </View>
+          </View>
         </View>
-      </View>
-
-      <View style={styles.inputSection}>
-        <Text style={styles.label}>닉네임</Text>
-        <View style={styles.nicknameContainer}>
-          <TextInput
-            style={styles.nicknameInput}
-            placeholder="닉네임"
-            value={formData.nickname}
-            onChangeText={text => {
-              updateField('nickname', text);
-              setIsNicknameChecked(false);
-            }}
+        <View>
+          <ButtonScarlet
+            title="다음"
+            onPress={handleSubmit}
+            disabled={!isFormValid()}
           />
-          <TouchableOpacity
-            style={styles.checkButton}
-            onPress={checkNicknameDuplicate}>
-            <Text style={styles.checkButtonText}>중복확인</Text>
-          </TouchableOpacity>
         </View>
       </View>
-
-      <View style={styles.inputSection}>
-        <Text style={styles.label}>비밀번호</Text>
-        <TextInput
-          style={styles.input}
-          placeholder="비밀번호는 대소문자, 숫자, 특수문자를 포함한 8~20자리여야 합니다."
-          value={formData.password}
-          onChangeText={text => updateField('password', text)}
-          secureTextEntry
-        />
-      </View>
-
-      <View style={styles.inputSection}>
-        <TextInput
-          style={styles.input}
-          placeholder="비밀번호를 한번 더 입력해 주세요."
-          value={formData.passwordConfirm}
-          onChangeText={text => updateField('passwordConfirm', text)}
-          secureTextEntry
-        />
-      </View>
-
-      <TouchableOpacity style={styles.nextButton} onPress={handleSubmit}>
-        <Text style={styles.nextButtonText}>다음</Text>
-      </TouchableOpacity>
     </SafeAreaView>
   );
 };

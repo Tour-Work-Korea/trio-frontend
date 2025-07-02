@@ -4,8 +4,9 @@ import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   signin: {
-    backgroundColor: '#fff',
+    backgroundColor: COLORS.white,
     flex: 1,
+    color: COLORS.grayscale_900,
   },
   buttonFlexBox: {
     paddingVertical: 10,
@@ -22,6 +23,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
+    flexDirection: 'column',
+    gap: 20,
   },
   pathIcon: {
     height: '93.33%',
@@ -34,6 +37,10 @@ const styles = StyleSheet.create({
   },
   text: {
     ...FONTS.fs_16_semibold,
+  },
+  titleText: {
+    ...FONTS.fs_20_bold,
+    textAlign: 'center',
   },
   hiddenButton: {
     opacity: 0,
@@ -56,13 +63,13 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
   frameParent: {
-    width: 335,
+    width: '100%',
     gap: 20,
     alignItems: 'center',
   },
   view: {
-    height: 812,
-    paddingBottom: 32,
+    paddingVertical: 40,
+    paddingHorizontal: 20,
     gap: 0,
     width: '100%',
     alignItems: 'center',

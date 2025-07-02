@@ -10,6 +10,7 @@ import {
   HostRegisterInfo,
   AgreeDetail,
   UserRegisterProfile,
+  Result,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -29,6 +30,7 @@ export default function Register() {
         component={UserRegisterProfile}
       />
       <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
+      <Stack.Screen name="Result" component={Result} />
     </Stack.Navigator>
   );
 }

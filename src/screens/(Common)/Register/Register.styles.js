@@ -43,6 +43,22 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'space-between',
   },
+  validBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 20,
+    width: '100%',
+  },
+  validDefaultText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+  },
+  validText: {
+    color: COLORS.semantic_green,
+  },
+  invalidText: {
+    color: COLORS.semantic_red,
+  },
   inputLabel: {...FONTS.fs_16_semibold},
   inputBox: {
     backgroundColor: COLORS.white,
@@ -65,6 +81,13 @@ export default StyleSheet.create({
   inputButton: {
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_400,
+  },
+  inputButtonAbsolute: {
+    position: 'absolute',
+    right: 4,
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
   resendText: {...FONTS.fs_12_medium, color: COLORS.grayscale_400},
   resendContainer: {

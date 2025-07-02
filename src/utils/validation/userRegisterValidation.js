@@ -30,3 +30,22 @@ export const validateRegisterInfo = form => {
   }
   return errors;
 };
+
+export const validateRegisterProfile = form => {
+  return {
+    nickname: {
+      hasNoSpecialChars: hasNoSpecialChars(form.nickname),
+      isLengthValid: isNicknameLengthValid(form.nickname),
+    },
+    password: {
+      hasUpperLowercase:
+        hasUppercase(form.password) && hasLowercase(form.password),
+      // hasLowercase: hasLowercase(form.password),
+      hasNumber: hasNumber(form.password),
+      isLengthValid: isPasswordLengthValid(form.password),
+    },
+    passwordConfirm: {
+      isMatched: isPasswordMatched(form.password, form.passwordConfirm),
+    },
+  };
+};

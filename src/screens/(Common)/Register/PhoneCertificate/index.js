@@ -133,20 +133,6 @@ const PhoneCertificate = ({route}) => {
       setLoading(false);
     }
   };
-
-  //테스트용 인증번호 발송
-  const testSendVerificationCode = () => {
-    setIsCodeSent(true);
-    setTimeLeft(300);
-    setIsTimerActive(true);
-  };
-  //테스트용 코드 번호 확인
-  const testVerifyCode = () => {
-    setIsTimerActive(false);
-    setIsCodeVerified(true);
-    setLoading(false);
-  };
-
   // 타이머 포맷 함수
   const formatTime = seconds => {
     const mins = Math.floor(seconds / 60);
@@ -181,7 +167,7 @@ const PhoneCertificate = ({route}) => {
                   maxLength={11}
                 />
                 <TouchableOpacity
-                  onPress={testSendVerificationCode}
+                  onPress={sendVerificationCode}
                   disabled={!isPhoneNumberValid}>
                   <Text
                     style={[
@@ -244,20 +230,15 @@ const PhoneCertificate = ({route}) => {
           </View> */}
           {/* 테스트용 */}
           <View style={styles.frameGroup}>
-            {loading ? (
-              <ButtonScarletLogo disabled={true} />
-            ) : isCodeVerified ? (
-              <ButtonScarlet
-                title="인증 성공!"
-                onPress={() =>
-                  navigation.navigate('EmailCertificate', {user, phoneNumber})
-                }
-              />
-            ) : isCodeValid ? (
-              <ButtonScarlet title="인증하기" onPress={testVerifyCode} />
-            ) : (
-              <ButtonWhite title="인증하기" disabled={true} />
-            )}
+            <ButtonScarlet
+              title="인증 성공!"
+              onPress={() =>
+                navigation.navigate('EmailCertificate', {
+                  user,
+                  phoneNumber: '01012341234',
+                })
+              }
+            />
           </View>
         </View>
       </View>

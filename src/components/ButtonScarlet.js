@@ -21,9 +21,28 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
   };
 
   return (
-    <TouchableOpacity style={[styles.button, style]} onPress={handlePress}>
+    <TouchableOpacity
+      style={[
+        styles.button,
+        {
+          backgroundColor: disabled
+            ? COLORS.grayscale_200
+            : COLORS.primary_orange,
+        },
+        style,
+      ]}
+      onPress={handlePress}
+      disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}
-      <Text style={[styles.text]}>{title}</Text>
+      <Text
+        style={[
+          styles.text,
+          {
+            color: disabled ? COLORS.grayscale_400 : COLORS.white,
+          },
+        ]}>
+        {title}
+      </Text>
       {Icon ? (
         <View style={[styles.hiddenButton]}>
           <View width={24} height={24} />

@@ -54,6 +54,12 @@ const authApi = {
       {provider: 'KAKAO', accessCode},
       {withAuth: false},
     ),
+  //닉네임 중복 확인
+  checkNickname: nickname =>
+    api.get('/auth/user/nickname/check', {
+      params: {nickname},
+      withAuth: false,
+    }),
 };
 
 export default authApi;
