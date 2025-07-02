@@ -9,7 +9,6 @@ import {
 import { useNavigation } from '@react-navigation/native'; 
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-
 dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -50,26 +49,15 @@ const GuesthouseSearch = () => {
   useEffect(() => {
     const today = dayjs();
     const tomorrow = today.add(1, 'day');
-    const formattedToday = today.format('M.D ddd');    // 예: 6.29 토
-    const formattedTomorrow = tomorrow.format('M.D ddd'); 
+    const formattedToday = today.format('M.D dd');
+    const formattedTomorrow = tomorrow.format('M.D dd');
     setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
   }, []);
 
   // 게하 리스트 페이지 이동
   const goToGuesthouseList = (keyword) => {
-    const [start, end] = displayDate.split(" - ");
-    const startMonthDay = start.split(" ")[0];
-    const endMonthDay = end.split(" ")[0];
-    const [startMonth, startDay] = startMonthDay.split(".").map(Number);
-    const [endMonth, endDay] = endMonthDay.split(".").map(Number);
-    const year = dayjs().year();
-
-    const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
-    const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
-
     navigation.navigate('GuesthouseList', {
-        checkIn,
-        checkOut,
+        displayDate,
         guestCount,
         keyword,
     });

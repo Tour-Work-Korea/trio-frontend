@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     lineHeight: 28,
     textAlign: 'center',
+    marginTop: 13,
   },
   searchContainer: {
     flexDirection: 'row',
