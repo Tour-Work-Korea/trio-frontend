@@ -1,7 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {View, Text, TextInput, TouchableOpacity, Alert} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useNavigation,
+  useRoute,
+  useFocusEffect,
+} from '@react-navigation/native';
 import styles from '../../../(Common)/Register/Register.styles';
 import Logo from '@assets/images/logo_orange.svg';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -25,6 +29,23 @@ const UserRegisterInfo = () => {
     passwordConfirm: '',
   });
   const [isValid, setIsValid] = useState(false);
+
+  useFocusEffect(
+    useCallback(() => {
+      setFormData({
+        userRole: 'USER',
+        email: email || '',
+        phoneNum: phoneNumber || '',
+        name: '',
+        birthday: '',
+        gender: '',
+        nickname: '',
+        password: '',
+        passwordConfirm: '',
+      });
+      setIsValid(false);
+    }, [email, phoneNumber]),
+  );
 
   useEffect(() => {
     const validationErrors = validateRegisterInfo(formData);

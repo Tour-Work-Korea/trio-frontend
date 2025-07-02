@@ -376,7 +376,7 @@ const HostRegisterInfo = ({route}) => {
         title={errorModal.message}
         buttonText={errorModal.buttonText}
         onPress={() => {
-          if (errorModal.onPress !== '') {
+          if (errorModal.onPress === 'moveToLogin') {
             navigation.navigate('EXLogin');
           } else {
             setErrorModal(prev => ({...prev, visible: false}));

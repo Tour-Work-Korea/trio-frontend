@@ -226,34 +226,34 @@ const EmailCertificate = ({route}) => {
           </View>
 
           <View>
-            {/* <View style={styles.frameGroup}>
-            {loading ? (
-              <ButtonScarletLogo disabled={true} />
-            ) : isCodeVerified ? (
-              <ButtonScarlet
-                title="인증 성공!"
-                onPress={() => {
-                  if (user === 'USER') {
-                    navigation.navigate('UserRegisterInfo', {
-                      email,
-                      phoneNumber,
-                    });
-                  } else {
-                    navigation.navigate('HostRegisterInfo', {
-                      email,
-                      phoneNumber,
-                    });
-                  }
-                }}
-              />
-            ) : isCodeValid ? (
-              <ButtonScarlet title="인증하기" onPress={verifyCode} />
-            ) : (
-              <ButtonWhite title="인증하기" disabled={true} />
-            )}
-          </View> */}
+            <View style={styles.frameGroup}>
+              {loading ? (
+                <ButtonScarletLogo disabled={true} />
+              ) : isCodeVerified ? (
+                <ButtonScarlet
+                  title="인증 성공!"
+                  onPress={() => {
+                    if (user === 'USER') {
+                      navigation.navigate('UserRegisterInfo', {
+                        email,
+                        phoneNumber,
+                      });
+                    } else {
+                      navigation.navigate('HostRegisterInfo', {
+                        email,
+                        phoneNumber,
+                      });
+                    }
+                  }}
+                />
+              ) : isCodeValid ? (
+                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+              ) : (
+                <ButtonWhite title="인증하기" disabled={true} />
+              )}
+            </View>
             {/* 임시 */}
-            <ButtonScarlet
+            {/* <ButtonScarlet
               title="인증 성공!"
               onPress={() => {
                 if (user === 'USER') {
@@ -268,7 +268,7 @@ const EmailCertificate = ({route}) => {
                   });
                 }
               }}
-            />
+            /> */}
           </View>
         </View>
       </SafeAreaView>

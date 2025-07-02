@@ -213,24 +213,24 @@ const PhoneCertificate = ({route}) => {
             </View>
           </View>
           <View style={styles.frameParent}>
-            {/* <View style={styles.frameGroup}>
-            {loading ? (
-              <ButtonScarletLogo disabled={true} />
-            ) : isCodeVerified ? (
-              <ButtonScarlet
-                title="인증 성공!"
-                onPress={() =>
-                  navigation.navigate('EmailCertificate', {user, phoneNumber})
-                }
-              />
-            ) : isCodeValid ? (
-              <ButtonScarlet title="인증하기" onPress={verifyCode} />
-            ) : (
-              <ButtonWhite title="인증하기" disabled={true} />
-            )}
-          </View> */}
-            {/* 테스트용 */}
             <View style={styles.frameGroup}>
+              {loading ? (
+                <ButtonScarletLogo disabled={true} />
+              ) : isCodeVerified ? (
+                <ButtonScarlet
+                  title="인증 성공!"
+                  onPress={() =>
+                    navigation.navigate('EmailCertificate', {user, phoneNumber})
+                  }
+                />
+              ) : isCodeValid ? (
+                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+              ) : (
+                <ButtonWhite title="인증하기" disabled={true} />
+              )}
+            </View>
+            {/* 테스트용 */}
+            {/* <View style={styles.frameGroup}>
               <ButtonScarlet
                 title="인증 성공!"
                 onPress={() =>
@@ -240,7 +240,7 @@ const PhoneCertificate = ({route}) => {
                   })
                 }
               />
-            </View>
+            </View> */}
           </View>
         </View>
       </SafeAreaView>
