@@ -141,78 +141,79 @@ const PhoneCertificate = ({route}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.viewFlexBox]}>
-        <View>
-          {/* 로고 및 문구 */}
-          <View style={styles.groupParent}>
-            <Logo width={60} height={29} />
-            <Text style={[styles.titleText]}>전화번호 인증</Text>
-          </View>
+    <>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.viewFlexBox]}>
+          <View>
+            {/* 로고 및 문구 */}
+            <View style={styles.groupParent}>
+              <Logo width={60} height={29} />
+              <Text style={[styles.titleText]}>전화번호 인증</Text>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>전화번호</Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="전화번호를 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={phoneNumber}
-                  onChangeText={text => {
-                    const filtered = text.replace(/[^0-9]/g, '');
-                    setPhoneNumber(filtered);
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={11}
-                />
-                <TouchableOpacity
-                  onPress={sendVerificationCode}
-                  disabled={!isPhoneNumberValid}>
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>전화번호</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="전화번호를 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={phoneNumber}
+                    onChangeText={text => {
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setPhoneNumber(filtered);
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={11}
+                  />
+                  <TouchableOpacity
+                    onPress={sendVerificationCode}
+                    disabled={!isPhoneNumberValid}>
+                    <Text
+                      style={[
+                        styles.inputButton,
+                        isPhoneNumberValid ? {color: COLORS.scarlet} : '',
+                      ]}>
+                      인증요청
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>인증번호</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="인증번호를 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={code}
+                    onChangeText={text => {
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setCode(filtered);
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    editable={isCodeSent}
+                  />
                   <Text
                     style={[
                       styles.inputButton,
-                      isPhoneNumberValid ? {color: COLORS.scarlet} : '',
+                      isCodeSent ? {color: COLORS.scarlet} : '',
                     ]}>
-                    인증요청
+                    {isCodeSent ? formatTime(timeLeft) : '00:00'}
                   </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>인증번호</Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="인증번호를 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={code}
-                  onChangeText={text => {
-                    const filtered = text.replace(/[^0-9]/g, '');
-                    setCode(filtered);
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  editable={isCodeSent}
-                />
-                <Text
-                  style={[
-                    styles.inputButton,
-                    isCodeSent ? {color: COLORS.scarlet} : '',
-                  ]}>
-                  {isCodeSent ? formatTime(timeLeft) : '00:00'}
-                </Text>
-              </View>
-              <View style={styles.resendContainer}>
-                <TouchableOpacity onPress={resendVerificationCode}>
-                  <Text style={styles.resendText}>인증번호 재전송</Text>
-                </TouchableOpacity>
+                </View>
+                <View style={styles.resendContainer}>
+                  <TouchableOpacity onPress={resendVerificationCode}>
+                    <Text style={styles.resendText}>인증번호 재전송</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
-        <View style={styles.frameParent}>
-          {/* <View style={styles.frameGroup}>
+          <View style={styles.frameParent}>
+            {/* <View style={styles.frameGroup}>
             {loading ? (
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
@@ -228,27 +229,28 @@ const PhoneCertificate = ({route}) => {
               <ButtonWhite title="인증하기" disabled={true} />
             )}
           </View> */}
-          {/* 테스트용 */}
-          <View style={styles.frameGroup}>
-            <ButtonScarlet
-              title="인증 성공!"
-              onPress={() =>
-                navigation.navigate('EmailCertificate', {
-                  user,
-                  phoneNumber: '01012341234',
-                })
-              }
-            />
+            {/* 테스트용 */}
+            <View style={styles.frameGroup}>
+              <ButtonScarlet
+                title="인증 성공!"
+                onPress={() =>
+                  navigation.navigate('EmailCertificate', {
+                    user,
+                    phoneNumber: '01012341234',
+                  })
+                }
+              />
+            </View>
           </View>
         </View>
-      </View>
+      </SafeAreaView>
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </SafeAreaView>
+    </>
   );
 };
 

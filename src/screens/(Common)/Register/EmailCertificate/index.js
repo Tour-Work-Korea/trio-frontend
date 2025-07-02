@@ -136,7 +136,7 @@ const EmailCertificate = ({route}) => {
       setIsTimerActive(false);
       setIsCodeVerified(true);
     } catch (error) {
-      console.error(error);
+      console.log('모달 띄움');
       setErrorModal({
         visible: true,
         message: error?.response?.data?.message,
@@ -155,77 +155,78 @@ const EmailCertificate = ({route}) => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={[styles.viewFlexBox]}>
-        <View>
-          {/* 로고 및 문구 */}
-          <View style={styles.groupParent}>
-            <Logo width={60} height={29} />
-            <Text style={[styles.titleText]}>이메일 인증</Text>
-          </View>
+    <>
+      <SafeAreaView style={styles.container}>
+        <View style={[styles.viewFlexBox]}>
+          <View>
+            {/* 로고 및 문구 */}
+            <View style={styles.groupParent}>
+              <Logo width={60} height={29} />
+              <Text style={[styles.titleText]}>이메일 인증</Text>
+            </View>
 
-          <View style={styles.inputGroup}>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>이메일</Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="이메일을 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={email}
-                  onChangeText={setEmail}
-                  keyboardType="email-address"
-                  autoCapitalize="none"
-                  maxLength={30}
-                />
-                <TouchableOpacity
-                  onPress={sendVerificationCode}
-                  disabled={!isEmailValid}>
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>이메일</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="이메일을 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={email}
+                    onChangeText={setEmail}
+                    keyboardType="email-address"
+                    autoCapitalize="none"
+                    maxLength={30}
+                  />
+                  <TouchableOpacity
+                    onPress={sendVerificationCode}
+                    disabled={!isEmailValid}>
+                    <Text
+                      style={[
+                        styles.inputButton,
+                        isEmailValid ? {color: COLORS.scarlet} : '',
+                      ]}>
+                      인증요청
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>인증번호</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="인증번호를 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={code}
+                    onChangeText={text => {
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setCode(filtered);
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    editable={isCodeSent}
+                  />
                   <Text
                     style={[
                       styles.inputButton,
-                      isEmailValid ? {color: COLORS.scarlet} : '',
+                      isCodeSent ? {color: COLORS.scarlet} : '',
                     ]}>
-                    인증요청
+                    {isCodeSent ? formatTime(timeLeft) : '00:00'}
                   </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-            <View style={styles.inputContainer}>
-              <Text style={styles.inputLabel}>인증번호</Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="인증번호를 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={code}
-                  onChangeText={text => {
-                    const filtered = text.replace(/[^0-9]/g, '');
-                    setCode(filtered);
-                  }}
-                  keyboardType="number-pad"
-                  maxLength={6}
-                  editable={isCodeSent}
-                />
-                <Text
-                  style={[
-                    styles.inputButton,
-                    isCodeSent ? {color: COLORS.scarlet} : '',
-                  ]}>
-                  {isCodeSent ? formatTime(timeLeft) : '00:00'}
-                </Text>
-              </View>
-              <View style={styles.resendContainer}>
-                <TouchableOpacity onPress={resendVerificationCode}>
-                  <Text style={styles.resendText}>인증번호 재전송</Text>
-                </TouchableOpacity>
+                </View>
+                <View style={styles.resendContainer}>
+                  <TouchableOpacity onPress={resendVerificationCode}>
+                    <Text style={styles.resendText}>인증번호 재전송</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
             </View>
           </View>
-        </View>
 
-        <View>
-          {/* <View style={styles.frameGroup}>
+          <View>
+            {/* <View style={styles.frameGroup}>
             {loading ? (
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
@@ -251,32 +252,33 @@ const EmailCertificate = ({route}) => {
               <ButtonWhite title="인증하기" disabled={true} />
             )}
           </View> */}
-          {/* 임시 */}
-          <ButtonScarlet
-            title="인증 성공!"
-            onPress={() => {
-              if (user === 'USER') {
-                navigation.navigate('UserRegisterInfo', {
-                  email: 'sal091625@gmail.com',
-                  phoneNumber,
-                });
-              } else {
-                navigation.navigate('HostRegisterInfo', {
-                  email: 'sal091625@gmail.com',
-                  phoneNumber,
-                });
-              }
-            }}
-          />
+            {/* 임시 */}
+            <ButtonScarlet
+              title="인증 성공!"
+              onPress={() => {
+                if (user === 'USER') {
+                  navigation.navigate('UserRegisterInfo', {
+                    email: 'sal091625@gmail.com',
+                    phoneNumber,
+                  });
+                } else {
+                  navigation.navigate('HostRegisterInfo', {
+                    email: 'sal091625@gmail.com',
+                    phoneNumber,
+                  });
+                }
+              }}
+            />
+          </View>
         </View>
-      </View>
+      </SafeAreaView>
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </SafeAreaView>
+    </>
   );
 };
 
