@@ -1,0 +1,223 @@
+import React, { useEffect, useState } from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Modal,
+  TextInput,
+} from 'react-native';
+import { useNavigation } from '@react-navigation/native'; 
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+
+dayjs.locale('ko');
+
+import SearchIcon from '@assets/images/search_gray.svg';
+import CalendarIcon from '@assets/images/calendar_white.svg';
+import Person from '@assets/images/person20_white.svg';
+
+import styles from './GuesthouseSearch.styles';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
+
+const regions = [
+  {
+    name: '제주',
+    subRegions: ['제주전체', '제주북부', '제주동부', '제주남부', '제주서부'],
+  },
+  {
+    name: '부산',
+    subRegions: ['해운대', '광안리', '서면', '남포동'],
+  },
+  // 지역 확정되면 나중에 데이터 파일로 빼기
+];
+
+const GuesthouseSearch = () => {
+  const navigation = useNavigation();
+
+  // 지역 선택
+  const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
+  // 검색어 입력
+  const [searchTerm, setSearchTerm] = useState('');
+
+  // 선택 날짜, 인원 출력
+  const [displayDate, setDisplayDate] = useState('');
+  const [guestCount, setGuestCount] = useState(1); // 기본 1명
+  // 인원 선택 임시 모달
+  const [guestModalVisible, setGuestModalVisible] = useState(false);
+
+  // 날짜는 초기에 오늘~내일 날짜로 설정
+  useEffect(() => {
+    const today = dayjs();
+    const tomorrow = today.add(1, 'day');
+    const formattedToday = today.format('M.D ddd');    // 예: 6.29 토
+    const formattedTomorrow = tomorrow.format('M.D ddd'); 
+    setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
+  }, []);
+
+  // 게하 리스트 페이지 이동
+  const goToGuesthouseList = (keyword) => {
+    const [start, end] = displayDate.split(" - ");
+    const startMonthDay = start.split(" ")[0];
+    const endMonthDay = end.split(" ")[0];
+    const [startMonth, startDay] = startMonthDay.split(".").map(Number);
+    const [endMonth, endDay] = endMonthDay.split(".").map(Number);
+    const year = dayjs().year();
+
+    const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+    const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+
+    navigation.navigate('GuesthouseList', {
+        checkIn,
+        checkOut,
+        guestCount,
+        keyword,
+    });
+  };
+
+  // 검색어로 이동
+  const handleSearch = () => {
+    goToGuesthouseList(searchTerm.trim());
+  };
+
+  // 큰 지역
+  const renderRegionItem = (region) => (
+    <TouchableOpacity
+      key={region.name}
+      style={[
+        styles.regionItem,
+        selectedRegion === region.name && styles.regionItemSelected,
+      ]}
+      onPress={() => handleRegionPress(region.name)}
+    >
+      <Text
+        style={[
+          FONTS.fs_14_medium,
+          styles.regionText,
+          selectedRegion === region.name && styles.regionTextSelected,
+        ]}
+      >
+        {region.name}
+      </Text>
+    </TouchableOpacity>
+  );
+
+  // 세부 지역
+  const renderSubRegionItem = (subRegion) => (
+    <TouchableOpacity
+      key={subRegion}
+      style={styles.subRegionItem}
+      onPress={() => goToGuesthouseList(subRegion)}
+    >
+      {/* 이미지 대신 회색 박스 */}
+      <View style={styles.imagePlaceholder} />
+      <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>{subRegion}</Text>
+    </TouchableOpacity>
+  );
+
+  const currentSubRegions = regions.find(r => r.name === selectedRegion)?.subRegions || [];
+
+  return (
+    <View style={styles.container}>
+      <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
+      
+      <View style={styles.searchBar}>
+        <SearchIcon width={24} height={24} />
+        <TextInput
+            style={styles.searchInput}
+            placeholder="찾는 숙소가 있으신가요?"
+            value={searchTerm}
+            onChangeText={setSearchTerm}
+            onSubmitEditing={handleSearch}
+            returnKeyType="search"
+        />
+      </View>
+
+      <View style={styles.selectRow}>
+        <TouchableOpacity style={styles.dateContainer}>
+          <CalendarIcon width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.dateText]}>
+            {displayDate}
+          </Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.personRoomContainer}
+          onPress={() => setGuestModalVisible(true)}
+        >
+          <Person width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.personText]}>
+            인원 {guestCount}
+          </Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* 지역 선택 */}
+      <View style={styles.regionContainer}>
+        <View style={styles.leftRegionList}>
+            {regions.map(renderRegionItem)}
+        </View>
+        <View style={styles.rightSubRegionGrid}>
+            {currentSubRegions.map(renderSubRegionItem)}
+        </View>
+      </View>
+
+      {/* 인원 선택 모달 */}
+      <Modal
+        visible={guestModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGuestModalVisible(false)}
+      >
+        <View style={{ 
+          flex: 1, 
+          justifyContent: 'center', 
+          alignItems: 'center', 
+          backgroundColor: 'rgba(0,0,0,0.5)' 
+        }}>
+          <View style={{ 
+            backgroundColor: 'white', 
+            padding: 20, 
+            borderRadius: 8, 
+            width: 300 
+          }}>
+            <Text style={[FONTS.fs_16_medium, { marginBottom: 10 }]}>
+              인원을 선택하세요
+            </Text>
+            <View style={{ 
+              flexDirection: 'row', 
+              justifyContent: 'space-between', 
+              alignItems: 'center' 
+            }}>
+              <TouchableOpacity
+                onPress={() => setGuestCount(Math.max(1, guestCount - 1))}
+              >
+                <Text style={{ fontSize: 24 }}>➖</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize: 18 }}>{guestCount}명</Text>
+              <TouchableOpacity
+                onPress={() => setGuestCount(guestCount + 1)}
+              >
+                <Text style={{ fontSize: 24 }}>➕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={{
+                backgroundColor: COLORS.primary_orange,
+                marginTop: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+                borderRadius: 4,
+              }}
+              onPress={() => setGuestModalVisible(false)}
+            >
+              <Text style={{ color: 'white' }}>선택 완료</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export default GuesthouseSearch;
