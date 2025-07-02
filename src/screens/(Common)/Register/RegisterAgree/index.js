@@ -94,7 +94,7 @@ const RegisterAgree = ({route}) => {
             {/* 동의 목록 */}
             <View style={styles.horizontalLine} />
             {agreements.map(item => (
-              <View style={[styles.parentWrapperFlexBox]}>
+              <View style={[styles.parentWrapperFlexBox]} key={item.id}>
                 <View
                   style={[styles.checkboxGroup, styles.parentWrapperFlexBox]}>
                   {renderCheckbox(item.isAgree, () => handleAgreement(item.id))}

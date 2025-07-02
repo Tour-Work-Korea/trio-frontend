@@ -41,7 +41,23 @@ export const validateRegisterProfile = form => {
     password: {
       hasUpperLowercase:
         hasUppercase(form.password) && hasLowercase(form.password),
-      // hasLowercase: hasLowercase(form.password),
+      hasNumber: hasNumber(form.password),
+      isLengthValid: isPasswordLengthValid(form.password),
+      hasSpecialChar: hasSpecialChars(form.password),
+    },
+    passwordConfirm: {
+      isMatched: isPasswordMatched(form.password, form.passwordConfirm),
+    },
+  };
+};
+
+export const validateHostRegister = form => {
+  return {
+    name: !form.name?.trim() && form.name.length > 0,
+    bussinessNum: !form.name?.trim() && form.name.length === 10,
+    password: {
+      hasUpperLowercase:
+        hasUppercase(form.password) && hasLowercase(form.password),
       hasNumber: hasNumber(form.password),
       isLengthValid: isPasswordLengthValid(form.password),
       hasSpecialChar: hasSpecialChars(form.password),

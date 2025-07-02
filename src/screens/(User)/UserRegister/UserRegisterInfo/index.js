@@ -7,7 +7,7 @@ import Logo from '@assets/images/logo_orange.svg';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import {COLORS} from '@constants/colors';
-import {validateRegisterInfo} from '@utils/validation/userRegisterValidation';
+import {validateRegisterInfo} from '@utils/validation/registerValidation';
 
 const UserRegisterInfo = () => {
   const route = useRoute();

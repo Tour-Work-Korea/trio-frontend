@@ -212,7 +212,7 @@ const PhoneCertificate = ({route}) => {
           </View>
         </View>
         <View style={styles.frameParent}>
-          <View style={styles.frameGroup}>
+          {/* <View style={styles.frameGroup}>
             {loading ? (
               <ButtonScarletLogo disabled={true} />
             ) : isCodeVerified ? (
@@ -227,9 +227,9 @@ const PhoneCertificate = ({route}) => {
             ) : (
               <ButtonWhite title="인증하기" disabled={true} />
             )}
-          </View>
+          </View> */}
           {/* 테스트용 */}
-          {/* <View style={styles.frameGroup}>
+          <View style={styles.frameGroup}>
             <ButtonScarlet
               title="인증 성공!"
               onPress={() =>
@@ -239,7 +239,7 @@ const PhoneCertificate = ({route}) => {
                 })
               }
             />
-          </View> */}
+          </View>
         </View>
       </View>
       <ErrorModal

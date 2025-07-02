@@ -9,7 +9,7 @@ import HidePassword from '@assets/images/hide_password.svg';
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {COLORS} from '@constants/colors';
-import {validateRegisterProfile} from '@utils/validation/userRegisterValidation';
+import {validateRegisterProfile} from '@utils/validation/registerValidation';
 import {FONTS} from '@constants/fonts';
 import ErrorModal from '@components/modals/ErrorModal';
 
@@ -102,6 +102,7 @@ const UserRegisterProfile = () => {
   const handleSubmit = async () => {
     try {
       await authApi.userSignUp(formData);
+
       navigation.navigate('Result', {
         to: 'BottomTabs',
         nickname: formData.nickname,

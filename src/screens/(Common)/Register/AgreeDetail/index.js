@@ -12,6 +12,7 @@ export default function AgreeDetail({route}) {
   const navigation = useNavigation();
   return (
     <SafeAreaView style={styles.safeareaview}>
+      <View style={{height: 40}}></View>
       <View style={styles.view}>
         <Text style={[styles.titleText]}>{title}</Text>
         <View style={[styles.container]}>
@@ -26,6 +27,7 @@ const styles = StyleSheet.create({
   safeareaview: {
     backgroundColor: COLORS.white,
     flex: 1,
+    justifyContent: 'space-between',
   },
   titleText: {
     ...FONTS.fs_18_semibold,
@@ -45,14 +47,12 @@ const styles = StyleSheet.create({
   view: {
     flex: 1,
     width: '100%',
-    position: 'absolute',
-    top: 80,
-    bottom: 0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     borderStyle: 'solid',
     borderColor: 'rgba(0, 0, 0, 0.1)',
-    borderTopWidth: 1,
+    borderWidth: 1,
+    borderBottomWidth: 0,
     overflow: 'hidden',
     paddingHorizontal: 20,
     paddingTop: 20,

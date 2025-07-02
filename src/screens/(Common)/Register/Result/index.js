@@ -12,6 +12,7 @@ const Result = ({route}) => {
     nickname,
     role,
   } = route.params || {};
+
   return (
     <SafeAreaView style={styles.signin}>
       <View style={styles.view}>
