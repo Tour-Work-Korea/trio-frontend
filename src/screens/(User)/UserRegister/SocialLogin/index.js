@@ -22,7 +22,7 @@ export default function SocialLogin() {
     const {url} = navState;
 
     if (
-      url.startsWith(REDIRECT_URI) &&
+      url.startsWith(KAKAO_REDIRECT_URI) &&
       url.includes('code=') &&
       !alreadyHandled.current
     ) {
@@ -51,7 +51,7 @@ export default function SocialLogin() {
         javaScriptEnabled
         onShouldStartLoadWithRequest={request => {
           const {url} = request;
-          if (url.startsWith(REDIRECT_URI)) {
+          if (url.startsWith(KAKAO_REDIRECT_URI)) {
             return false; // redirect URL로 이동하지 않음 (즉시 차단)
           }
           return true;
