@@ -69,7 +69,7 @@ const EXLogin = () => {
         <Text style={styles.buttonText}>사장님 로그인</Text>
       </TouchableOpacity>
 
-      <Text>
+      {/* <Text>
         임시로 계정 안 만들고 테스트할 때 쓰세요! 미리 계정 넣어뒀어요
       </Text>
       <TouchableOpacity style={styles.button} onPress={handleHostLogin}>
@@ -77,7 +77,7 @@ const EXLogin = () => {
       </TouchableOpacity>
       <TouchableOpacity style={styles.button} onPress={handleUserLogin}>
         <Text style={styles.buttonText}>유저 자동 로그인하기</Text>
-      </TouchableOpacity>
+      </TouchableOpacity> */}
       <TouchableOpacity
         style={styles.kakaoButton}
         onPress={() => navigation.navigate('SocialLogin')}>

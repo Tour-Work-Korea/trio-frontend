@@ -26,6 +26,7 @@ import {
   MyResumeList,
   ResumeForm,
   EmployDetail,
+  EXHome,
 } from '@screens';
 
 import {Alert} from 'react-native';
@@ -50,7 +51,7 @@ const MyMainScreen = ({navigation}) => {
         [
           {
             text: '확인',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('EXHome'),
           },
         ],
         {cancelable: false},
@@ -104,6 +105,7 @@ const My = () => {
       <Stack.Screen name="MyResumeList" component={MyResumeList} />
       <Stack.Screen name="ResumeForm" component={ResumeForm} />
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
+      <Stack.Screen name="EXHome" component={EXHome} />
     </Stack.Navigator>
   );
 };

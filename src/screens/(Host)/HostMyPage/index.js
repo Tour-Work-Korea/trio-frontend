@@ -17,6 +17,8 @@ import Header from '@components/Header';
 import styles from './HostMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
+import ButtonScarlet from '@components/ButtonScarlet';
+import {tryLogout} from '@utils/auth/login';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
@@ -56,7 +58,6 @@ const HostMyPage = () => {
             <SettingIcon width={26} height={26} style={styles.icon} />
           </View>
         </View>
-
         {/* 숙박 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>숙박</Text>
@@ -66,8 +67,8 @@ const HostMyPage = () => {
             onPress={() => navigation.navigate('MyGuesthouseList')}
           />
           <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
-          <MenuItem 
-            IconComponent={GuesthouseReviewIcon} 
+          <MenuItem
+            IconComponent={GuesthouseReviewIcon}
             label="게하 리뷰"
             onPress={() => navigation.navigate('MyGuesthouseReview')}
           />
@@ -77,7 +78,6 @@ const HostMyPage = () => {
             onPress={() => navigation.navigate('StoreRegister')}
           />
         </View>
-
         {/* 공고 섹션 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>공고</Text>
@@ -93,6 +93,7 @@ const HostMyPage = () => {
           />
           <MenuItem IconComponent={PostReviewIcon} label="공고 리뷰" />
         </View>
+        <ButtonScarlet title="로그아웃" onPress={tryLogout} />
       </View>
     </ScrollView>
   );

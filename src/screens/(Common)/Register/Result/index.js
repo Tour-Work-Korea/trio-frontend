@@ -3,7 +3,6 @@ import {SafeAreaView} from 'react-native-safe-area-context';
 import ButtonScarlet from '@components/ButtonScarlet';
 import styles from '../RegisterIntro/Intro.styles';
 import LogoBlue from '@assets/images/logo_blue_smile.svg';
-import {FONTS} from '@constants/fonts';
 
 const Result = ({route}) => {
   const {

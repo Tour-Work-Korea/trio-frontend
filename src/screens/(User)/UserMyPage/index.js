@@ -16,6 +16,8 @@ import Header from '@components/Header';
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
+import ButtonScarlet from '@components/ButtonScarlet';
+import {tryLogout} from '@utils/auth/login';
 
 const UserMyPage = () => {
   const navigation = useNavigation();
@@ -97,6 +99,7 @@ const UserMyPage = () => {
           />
           {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>
+        <ButtonScarlet title="로그아웃" onPress={tryLogout} />
       </View>
     </ScrollView>
   );
