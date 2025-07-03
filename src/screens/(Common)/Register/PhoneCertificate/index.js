@@ -28,6 +28,8 @@ const PhoneCertificate = ({route}) => {
     buttonText: '',
   });
   const [loading, setLoading] = useState(false);
+  const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
+  const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
 
   useFocusEffect(
     useCallback(() => {
@@ -96,9 +98,12 @@ const PhoneCertificate = ({route}) => {
   const sendVerificationCode = async () => {
     try {
       await authApi.sendSms(phoneNumber, user);
+      setHasRequestedCode(true);
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
+      setIsResendEnabled(false);
+      setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
       console.error('인증번호 전송 실패: ', error?.response?.data?.message);
       setErrorModal({
@@ -163,17 +168,22 @@ const PhoneCertificate = ({route}) => {
                     onChangeText={text => {
                       const filtered = text.replace(/[^0-9]/g, '');
                       setPhoneNumber(filtered);
+                      setHasRequestedCode(false); // 전화번호 변경 → 인증 요청 초기화
+                      setIsCodeSent(false);
+                      setIsResendEnabled(false);
                     }}
                     keyboardType="number-pad"
                     maxLength={11}
                   />
                   <TouchableOpacity
                     onPress={sendVerificationCode}
-                    disabled={!isPhoneNumberValid}>
+                    disabled={!isPhoneNumberValid || hasRequestedCode}>
                     <Text
                       style={[
                         styles.inputButton,
-                        isPhoneNumberValid ? {color: COLORS.scarlet} : '',
+                        isPhoneNumberValid && !hasRequestedCode
+                          ? {color: COLORS.scarlet}
+                          : '',
                       ]}>
                       인증요청
                     </Text>
@@ -205,8 +215,18 @@ const PhoneCertificate = ({route}) => {
                   </Text>
                 </View>
                 <View style={styles.resendContainer}>
-                  <TouchableOpacity onPress={resendVerificationCode}>
-                    <Text style={styles.resendText}>인증번호 재전송</Text>
+                  <TouchableOpacity
+                    onPress={resendVerificationCode}
+                    disabled={!hasRequestedCode || !isResendEnabled}>
+                    <Text
+                      style={[
+                        styles.resendText,
+                        hasRequestedCode && isResendEnabled
+                          ? {color: COLORS.primary_orange}
+                          : '',
+                      ]}>
+                      인증번호 재전송
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
