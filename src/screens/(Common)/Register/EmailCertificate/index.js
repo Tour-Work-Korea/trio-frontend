@@ -28,6 +28,8 @@ const EmailCertificate = ({route}) => {
     buttonText: '',
   });
   const [loading, setLoading] = useState(false);
+  const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
+  const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
 
   useFocusEffect(
     useCallback(() => {
@@ -109,9 +111,14 @@ const EmailCertificate = ({route}) => {
   const sendVerificationCode = async () => {
     try {
       await authApi.sendEmail(email, user);
+      setHasRequestedCode(true);
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
+
+      // 재전송은 30초 이후에만 활성화
+      setIsResendEnabled(false);
+      setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
       console.error('인증번호 전송 실패: ', error?.response?.data?.message);
       setErrorModal({
@@ -174,18 +181,25 @@ const EmailCertificate = ({route}) => {
                     placeholder="이메일을 입력해주세요"
                     placeholderTextColor={COLORS.grayscale_400}
                     value={email}
-                    onChangeText={setEmail}
+                    onChangeText={text => {
+                      setEmail(text);
+                      setHasRequestedCode(false);
+                      setIsCodeSent(false);
+                      setIsResendEnabled(false);
+                    }}
                     keyboardType="email-address"
                     autoCapitalize="none"
                     maxLength={30}
                   />
                   <TouchableOpacity
                     onPress={sendVerificationCode}
-                    disabled={!isEmailValid}>
+                    disabled={!isEmailValid || hasRequestedCode}>
                     <Text
                       style={[
                         styles.inputButton,
-                        isEmailValid ? {color: COLORS.scarlet} : '',
+                        isEmailValid && !hasRequestedCode
+                          ? {color: COLORS.scarlet}
+                          : '',
                       ]}>
                       인증요청
                     </Text>
@@ -217,8 +231,18 @@ const EmailCertificate = ({route}) => {
                   </Text>
                 </View>
                 <View style={styles.resendContainer}>
-                  <TouchableOpacity onPress={resendVerificationCode}>
-                    <Text style={styles.resendText}>인증번호 재전송</Text>
+                  <TouchableOpacity
+                    onPress={resendVerificationCode}
+                    disabled={!hasRequestedCode || !isResendEnabled}>
+                    <Text
+                      style={[
+                        styles.resendText,
+                        hasRequestedCode && isResendEnabled
+                          ? {color: COLORS.scarlet}
+                          : {color: COLORS.grayscale_300},
+                      ]}>
+                      인증번호 재전송
+                    </Text>
                   </TouchableOpacity>
                 </View>
               </View>
