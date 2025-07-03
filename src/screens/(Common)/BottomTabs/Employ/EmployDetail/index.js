@@ -20,6 +20,10 @@ import {
   RecruitTapSection,
   RecruitDescriptionSection,
 } from '@components/Employ/EmployDetail';
+import {
+  employDetailDeeplink,
+  copyDeeplinkToClipboard,
+} from '@utils/deeplinkGenerator';
 
 const EmployDetail = () => {
   const navigation = useNavigation();
@@ -71,7 +75,13 @@ const EmployDetail = () => {
                   <HeartIcon width={24} height={24} />
                 )}
               </TouchableOpacity>
-              <TouchableOpacity style={styles.shareButton}>
+              <TouchableOpacity
+                style={styles.shareButton}
+                onPress={() => {
+                  const deepLinkUrl = employDetailDeeplink(recruit.recruitId);
+                  copyDeeplinkToClipboard(deepLinkUrl);
+                  Alert.alert('복사가 완료되었습니다. 바로 공유해볼까요?');
+                }}>
                 <Share width={24} height={24} />
               </TouchableOpacity>
             </View>
