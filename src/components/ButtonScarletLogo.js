@@ -3,13 +3,14 @@ import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import LogoBlack from '@assets/images/logo_black.svg';
 
 // props로
 // 1. 버튼 안에 글씨 - title
 // 2. 어디 페이지로 이동 할건지 - to
 // 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다)
 // 사용 예시 Home에 있음
-const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
+const ButtonScarletLogo = ({to, onPress, disabled = false}) => {
   const navigation = useNavigation();
 
   const handlePress = () => {
@@ -22,32 +23,10 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
 
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        {
-          backgroundColor: disabled
-            ? COLORS.grayscale_200
-            : COLORS.primary_orange,
-        },
-        style,
-      ]}
+      style={[styles.button]}
       onPress={handlePress}
       disabled={disabled}>
-      {Icon ? <Icon width={24} height={24} /> : null}
-      <Text
-        style={[
-          styles.text,
-          {
-            color: disabled ? COLORS.grayscale_400 : COLORS.white,
-          },
-        ]}>
-        {title}
-      </Text>
-      {Icon ? (
-        <View style={[styles.hiddenButton]}>
-          <View width={24} height={24} />
-        </View>
-      ) : null}
+      <LogoBlack />
     </TouchableOpacity>
   );
 };
@@ -62,16 +41,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     alignSelf: 'stretch',
     gap: 0,
-    justifyContent: 'space-between',
+    justifyContent: 'center',
     alignItems: 'center',
-  },
-  text: {
-    textAlign: 'center',
-    flex: 1,
-    ...FONTS.fs_16_semibold,
-    color: COLORS.white,
-    lineHeight: 22,
   },
 });
 
-export default ButtonScarlet;
+export default ButtonScarletLogo;

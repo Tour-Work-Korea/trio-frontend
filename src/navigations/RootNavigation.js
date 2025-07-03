@@ -1,20 +1,18 @@
 import React from 'react';
-import {createNativeStackNavigator} from '@react-navigation/native-stack';
-import {NavigationContainer} from '@react-navigation/native';
+import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import { NavigationContainer } from '@react-navigation/native';
 import undefinedStack from './undefinedStack';
 import EmployStack from './EmployStack';
 import GuesthouseStack from './GuesthouseStack';
 import HomeStack from './HomeStack';
 import MeetStack from './MeetStack';
 import MyStack from './MyStack';
-import TestStack from './TestStack';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
   <NavigationContainer>
-    <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="TestStack" component={TestStack} />
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="undefined" component={undefinedStack} />
       <Stack.Screen name="Employ" component={EmployStack} />
       <Stack.Screen name="Guesthouse" component={GuesthouseStack} />

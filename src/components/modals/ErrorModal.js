@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {
   Modal,
   View,
@@ -7,8 +7,8 @@ import {
   TouchableOpacity,
   Image,
 } from 'react-native';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
 // 제목, 버튼 텍스트만 필수
 // 이미지, 세부 텍스트는 선택
@@ -22,11 +22,11 @@ const ErrorModal = ({
   imageUri,
 }) => {
   return (
-    <Modal transparent animationType="fade" visible={visible}>
+    <Modal transparent={true} animationType="fade" visible={visible}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.image} />
+            <Image source={{uri: imageUri}} style={styles.image} />
           ) : null}
           <Text style={[FONTS.fs_18_semibold, styles.title]}>{title}</Text>
           {message ? (
@@ -35,9 +35,10 @@ const ErrorModal = ({
           <TouchableOpacity
             style={styles.button}
             onPress={onPress}
-            activeOpacity={0.8}
-          >
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>{buttonText}</Text>
+            activeOpacity={0.8}>
+            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>
+              {buttonText}
+            </Text>
           </TouchableOpacity>
         </View>
       </View>

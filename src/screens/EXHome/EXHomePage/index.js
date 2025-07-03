@@ -1,13 +1,5 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  SafeAreaView,
-  StatusBar,
-  Button,
-} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {View, Text, SafeAreaView} from 'react-native';
 import Logo from '@assets/images/logo_orange.svg'; // svg이미지 불러오기
 import styles from './Home.styles';
 import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 불러오기
@@ -17,8 +9,6 @@ import {FONTS} from '@constants/fonts'; // 폰트 크기, 볼드 지정해놓은
 import {tryLogout} from '@utils/auth/login';
 
 const EXHome = () => {
-  const navigation = useNavigation();
-
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 불러오기 2가지 */}
@@ -34,12 +24,7 @@ const EXHome = () => {
         <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
       </View>
       <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
-      <ButtonScarlet
-        title="일반 유저 회원가입 페이지로 이동"
-        to="UserRegister"
-      />
-
-      <ButtonScarlet title="사장님 회원가입 페이지로 이동" to="HostRegister" />
+      <ButtonScarlet title="회원가입 페이지로 이동" to="Register" />
       <ButtonScarlet
         title="로그아웃"
         onPress={() => {
