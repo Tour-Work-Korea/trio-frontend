@@ -70,3 +70,39 @@ export const uploadMultiImage = async limit => {
 
   return uploadedUrls;
 };
+
+/**
+ * 민감 이미지 업로드 (사업자등록증, 신분증 등)
+ * → 백엔드에 직접 multipart/form-data로 업로드
+ */
+export const uploadSensitiveImage = async () => {
+  const result = await new Promise(resolve =>
+    launchImageLibrary({mediaType: 'photo'}, response => resolve(response)),
+  );
+
+  if (result.didCancel || result.errorCode || !result.assets) return null;
+
+  const asset = result.assets[0];
+  const uri = asset.uri;
+  const fileName = `${uuidv4()}.jpg`;
+  const fileType = asset.type || 'image/jpeg';
+
+  // FormData 생성
+  const formData = new FormData();
+  formData.append('image', {
+    uri,
+    name: fileName,
+    type: fileType,
+  });
+
+  try {
+    const response = await commonApi.postImage(formData);
+    return response.data; // S3 public URL
+  } catch (error) {
+    console.error(
+      '민감 이미지 업로드 실패:',
+      error?.response?.data || error.message,
+    );
+    return null;
+  }
+};
