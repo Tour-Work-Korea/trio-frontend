@@ -36,9 +36,9 @@ const HostMyPage = () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.profileContainer}>
-            {host.profileImage ? (
+            {host.photoUrl ? (
               <Image
-                source={{uri: host.profileImage}}
+                source={{uri: host.photoUrl}}
                 style={styles.profileImage}
               />
             ) : (

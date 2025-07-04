@@ -8,7 +8,7 @@ const userMyApi = {
   getMyFavoriteGuesthouses: () => api.get('/user/my/guesthouse'),
 
   // 유저 게하 좋아요 취소
-  unfavoriteGuesthouse: (guesthouseId) =>
+  unfavoriteGuesthouse: guesthouseId =>
     api.delete(`/user/guesthouses/favorites/${guesthouseId}`),
 
   // 유저 예약 리스트
@@ -39,4 +39,5 @@ const userFieldMap = {
   phone: {path: 'phone', key: 'phoneNumber'},
   mbti: {path: 'mbti', key: 'mbti'},
   instagramId: {path: 'instagram', key: 'instagramId'},
+  photoUrl: {path: 'photo', key: 'photoUrl'},
 };
