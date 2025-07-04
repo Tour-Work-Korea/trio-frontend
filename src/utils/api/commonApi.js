@@ -8,7 +8,6 @@ const commonApi = {
   postImage: image =>
     api.post('/common/S3/upload', image, {
       headers: {'Content-Type': 'multipart/form-data'},
-      withAuth: false,
     }),
 };
 

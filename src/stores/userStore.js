@@ -14,7 +14,7 @@ const useUserStore = create(
       // 유저 프로필
       userProfile: {
         name: '',
-        profileImage: null,
+        photoUrl: null,
         phone: '',
         email: '',
         mbti: '',
@@ -23,7 +23,7 @@ const useUserStore = create(
       // 사장 프로필
       hostProfile: {
         name: '',
-        profileImage: null,
+        photoUrl: null,
         phone: '',
         email: '',
         businessNum: '',
@@ -50,7 +50,7 @@ const useUserStore = create(
           userRole: null,
           userProfile: {
             name: '',
-            profileImage: null,
+            photoUrl: null,
             phone: '',
             email: '',
             mbti: '',
@@ -58,7 +58,7 @@ const useUserStore = create(
           },
           hostProfile: {
             name: '',
-            profileImage: null,
+            photoUrl: null,
             phone: '',
             email: '',
             businessNum: '',

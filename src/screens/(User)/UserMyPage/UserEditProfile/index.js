@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, Image} from 'react-native';
+import {View, Text, TouchableOpacity, Image, Alert} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
@@ -9,11 +9,15 @@ import RightArrow from '@assets/images/gray_chevron_right.svg';
 import Header from '@components/Header';
 import styles from './UserEditProfile.styles';
 import {FONTS} from '@constants/fonts';
+import userMyApi from '@utils/api/userMyApi';
+import useUserStore from '@stores/userStore';
+import {uploadSingleImage} from '@utils/imageUploadHandler';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {userInfo} = route.params;
+  const setUserProfile = useUserStore(state => state.setUserProfile);
 
   // 유저 데이터 (사진은 추후에 추가)
   const [user, setUser] = useState({
@@ -22,14 +26,29 @@ const UserEditProfile = () => {
     email: userInfo?.email || '',
     mbti: userInfo?.mbti || '',
     instagramId: userInfo?.instagramId || '',
+    photoUrl: userInfo?.photoUrl || '',
   });
 
   const goToEditProfile = (field, label, value) => {
+    console.log(user.photoUrl);
     navigation.navigate('EditProfileFieldScreen', {
       field,
       label,
       value,
     });
+  };
+
+  const handleEditProfileImage = async () => {
+    try {
+      const imageUrl = await uploadSingleImage();
+      await userMyApi.updateMyProfile('photoUrl', imageUrl);
+      setUserProfile({...user, photoUrl: imageUrl});
+    } catch (error) {
+      console.warn(
+        '프로필 이미지 업로드 실패: ',
+        error?.response?.data?.message || error,
+      );
+    }
   };
 
   return (
@@ -39,10 +58,20 @@ const UserEditProfile = () => {
         {/* 프로필 영역 */}
         <View style={styles.profileContainer}>
           <View style={styles.profileImageWrapper}>
-            <View style={styles.profileImage}>
-              <PersonIcon width={36} height={36} />
-            </View>
-            <TouchableOpacity style={styles.plusButton}>
+            {user.photoUrl ? (
+              <Image
+                source={{uri: user.photoUrl}}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.profileImage}>
+                <PersonIcon width={36} height={36} />
+              </View>
+            )}
+            <TouchableOpacity
+              style={styles.plusButton}
+              onPress={handleEditProfileImage}>
               <PlusIcon width={20} height={20} />
             </TouchableOpacity>
           </View>

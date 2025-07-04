@@ -135,7 +135,7 @@ const updateProfile = async role => {
 
       setHostProfile({
         name: name ?? '',
-        profileImage:
+        photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',
@@ -147,7 +147,7 @@ const updateProfile = async role => {
 
       setUserProfile({
         name: name ?? '',
-        profileImage:
+        photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',

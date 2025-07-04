@@ -37,9 +37,9 @@ const UserMyPage = () => {
       <View style={styles.container}>
         <View style={styles.header}>
           <View style={styles.profileContainer}>
-            {user.profileImage ? (
+            {user.photoUrl ? (
               <Image
-                source={{uri: user.profileImage}}
+                source={{uri: user.photoUrl}}
                 style={styles.profileImage}
               />
             ) : (

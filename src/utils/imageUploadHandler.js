@@ -1,6 +1,16 @@
 import commonApi from './api/commonApi';
-import {v4 as uuidv4} from 'uuid';
 import {launchImageLibrary} from 'react-native-image-picker';
+
+/**
+ *
+ * 단일 이미지 업로드: uploadSingleImage -> 간접적으로 S3에 업로드 후 imageUrl 반환
+ * 복수 이미지 업로드: uploadMultiImage -> 간접적으로 S3에 업로드 후 imageUrl 배열 반환
+ * 민감 이미지 업로드(사업자등록증): uploadSensitiveImage -> 직점 S3에 업로드 후 imageUrl 반환
+ *
+ * 위의 함수 실행 시 자동으로 이미지 선택부터 url 반환까지 됨
+ * 이미지 url 받아서 수정, 등록에 쓰면 됩니다
+ * 예시는 UserEditProfile 참고
+ */
 
 //비민감 이미지 URL 받기
 const getPresignedUrl = async filename => {
@@ -33,7 +43,7 @@ export const uploadSingleImage = async () => {
   const asset = result.assets[0];
   const fileUri = asset.uri;
   const fileType = asset.type || 'image/jpeg';
-  const filename = `${uuidv4()}.jpg`;
+  const filename = generateUniqueFilename();
 
   const presignedUrl = await getPresignedUrl(filename);
   const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
@@ -60,7 +70,7 @@ export const uploadMultiImage = async limit => {
   for (const asset of result.assets) {
     const fileUri = asset.uri;
     const fileType = asset.type || 'image/jpeg';
-    const filename = `${uuidv4()}.jpg`;
+    const filename = generateUniqueFilename();
 
     const presignedUrl = await getPresignedUrl(filename);
     const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
@@ -84,7 +94,7 @@ export const uploadSensitiveImage = async () => {
 
   const asset = result.assets[0];
   const uri = asset.uri;
-  const fileName = `${uuidv4()}.jpg`;
+  const fileName = generateUniqueFilename();
   const fileType = asset.type || 'image/jpeg';
 
   // FormData 생성
@@ -105,4 +115,10 @@ export const uploadSensitiveImage = async () => {
     );
     return null;
   }
+};
+
+export const generateUniqueFilename = (extension = 'jpg') => {
+  const timestamp = Date.now(); // 현재 시간 (ms)
+  const random = Math.floor(Math.random() * 1000000); // 0 ~ 999999
+  return `image_${timestamp}_${random}.${extension}`;
 };
