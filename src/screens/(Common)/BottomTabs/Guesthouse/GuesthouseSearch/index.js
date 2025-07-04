@@ -12,12 +12,13 @@ import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
-import CalendarIcon from '@assets/images/calendar_white.svg';
-import Person from '@assets/images/person20_white.svg';
+import CalendarIcon from '@assets/images/calendar_gray.svg';
+import Person from '@assets/images/person20_gray.svg';
 
 import styles from './GuesthouseSearch.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
+import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
 const regions = [
   {
@@ -54,18 +55,28 @@ const GuesthouseSearch = () => {
     setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
   }, []);
 
-  // 게하 리스트 페이지 이동
-  const goToGuesthouseList = (keyword) => {
+  // 게하 리스트 페이지 지역 선택으로 이동
+  const goToGuesthouseList = (keywordList) => {
     navigation.navigate('GuesthouseList', {
         displayDate,
         guestCount,
-        keyword,
+        keywordList,
     });
   };
 
   // 검색어로 이동
-  const handleSearch = () => {
-    goToGuesthouseList(searchTerm.trim());
+  const handleSearch = async () => {
+    try {
+      const response = await userGuesthouseApi.searchGuesthouseByKeyword(searchTerm.trim());
+      const keywordList = response.data.map(item => item.keyword);
+      navigation.navigate('GuesthouseList', {
+        displayDate,
+        guestCount,
+        keywordList,
+      });
+    } catch (e) {
+      console.warn('키워드 검색 실패', e);
+    }
   };
 
   // 큰 지역

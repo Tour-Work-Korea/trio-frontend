@@ -38,8 +38,14 @@ const GuesthouseList = () => {
   const {
     displayDate,
     guestCount,
-    keyword,
+    keywordList: initialKeywordList = [],
   } = route.params || {};
+
+  // 키워드로 게하 조회
+  const [keywordList] = useState(initialKeywordList);
+  const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
+
+  const currentKeyword = keywordList[currentKeywordIndex] || '';
 
   // api 보낼 날짜 데이터
   const [start, end] = displayDate.split(" - ");
@@ -54,8 +60,8 @@ const GuesthouseList = () => {
   // 인원 선택 임시 모달
   const [guestModalVisible, setGuestModalVisible] = useState(false);
 
-  // 게하 검색 후 불러오기
-  const fetchGuesthouses = async (pageToFetch = 0) => {
+  // 게하 불러오기
+  const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
     if (loading || isLast || error) return;
     setLoading(true);
 
@@ -67,13 +73,27 @@ const GuesthouseList = () => {
         guestCount: guestCount,
         page: pageToFetch,
         size: 10,
-        sort: 'id',
-        keyword: keyword,
+        keyword,
+        sortBy: 'RECOMMEND',
       };
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
+
       setGuesthouses(prev => pageToFetch === 0 ? content : [...prev, ...content]);
-      setIsLast(last);
+      if (last) {
+        if (currentKeywordIndex + 1 < keywordList.length) {
+          // 다음 키워드로 넘어갈 때 즉시 0페이지 호출
+          const nextKeywordIndex = currentKeywordIndex + 1;
+          setCurrentKeywordIndex(nextKeywordIndex);
+          setPage(0);
+          setIsLast(false);
+          return;
+        } else {
+          setIsLast(true);
+        }
+      } else {
+        setIsLast(false);
+      }
     } catch (e) {
       setError(true); // 한번이라도 실패하면 더이상 호출X
       setIsLast(true); // (추가) 무한호출도 막음
@@ -91,16 +111,8 @@ const GuesthouseList = () => {
 
   // 무한스크롤
   useEffect(() => {
-    // 최초 페이지 로드
-    fetchGuesthouses(0);
-  }, []);
-
-  useEffect(() => {
-    // 이후 page가 1 이상일 때만 호출
-    if (page !== 0) {
-      fetchGuesthouses(page);
-    }
-  }, [page]);
+    fetchGuesthouses(page);
+  }, [page, currentKeyword]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -116,10 +128,21 @@ const GuesthouseList = () => {
   );
 
   const handleEndReached = () => {
-    if (!loading && !isLast) {
-      setPage(prev => prev + 1);
+    if (loading) return;
+    if (isLast) {
+      // 다음 키워드가 있다면
+      if (currentKeywordIndex + 1 < keywordList.length) {
+        const nextKeywordIndex = currentKeywordIndex + 1;
+        setCurrentKeywordIndex(nextKeywordIndex);
+        setPage(0); // 다음 키워드 첫 페이지
+        setIsLast(false);
+      }
+      return; // 다음 keyword 넘어갔으면 page +1 하지 않도록
     }
+    // 마지막이 아니라면 현재 페이지 계속
+    setPage(prev => prev + 1);
   };
+
 
   const toggleLike = async (id, liked) => {
     try {

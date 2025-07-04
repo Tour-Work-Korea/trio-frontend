@@ -16,7 +16,7 @@ const userGuesthouseApi = {
     keyword,
     page,
     size = 10,
-    sortBy = 'RECOMMEND'
+    sortBy,
   }) =>
   api.get('/user/guesthouses', {
     params: {

@@ -39,7 +39,9 @@ const styles = StyleSheet.create({
   dateContainer: {
     flexDirection: 'row',
     height: 40,
-    backgroundColor: COLORS.primary_blue,
+    borderColor: COLORS.primary_blue,
+    borderWidth: 1,
+    backgroundColor: COLORS.grayscale_100,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
@@ -47,12 +49,14 @@ const styles = StyleSheet.create({
   },
   dateText: {
     marginLeft: 8,
-    color: COLORS.grayscale_0,
+    color: COLORS.grayscale_600,
   },
   personRoomContainer: {
     flexDirection: 'row',
     height: 40,
-    backgroundColor: COLORS.primary_blue,
+    borderColor: COLORS.primary_blue,
+    borderWidth: 1,
+    backgroundColor: COLORS.grayscale_100,
     alignItems: 'center',
     justifyContent: 'center',
     flex: 1,
@@ -60,7 +64,7 @@ const styles = StyleSheet.create({
   },
   personText: {
     marginLeft: 8,
-    color: COLORS.grayscale_0,
+    color: COLORS.grayscale_600,
   },
 
   // 지역 선택
