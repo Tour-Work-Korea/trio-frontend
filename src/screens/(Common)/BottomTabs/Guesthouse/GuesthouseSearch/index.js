@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Modal,
   TextInput,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native'; 
@@ -14,10 +13,10 @@ dayjs.locale('ko');
 import SearchIcon from '@assets/images/search_gray.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import Person from '@assets/images/person20_gray.svg';
+import AllIcon from '@assets/images/wlogo_blue_left.svg';
 
 import styles from './GuesthouseSearch.styles';
 import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/DateGuestModal';
 
@@ -43,7 +42,8 @@ const GuesthouseSearch = () => {
 
   // 선택 날짜, 인원 출력
   const [displayDate, setDisplayDate] = useState('');
-  const [guestCount, setGuestCount] = useState(1); // 기본 1명
+  const [adultCount, setAdultCount] = useState(1);  // 기본 1명
+  const [childCount, setChildCount] = useState(0);
   // 인원, 날짜 선택 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
 
@@ -60,7 +60,7 @@ const GuesthouseSearch = () => {
   const goToGuesthouseList = (keywordList) => {
     navigation.navigate('GuesthouseList', {
         displayDate,
-        guestCount,
+        guestCount: adultCount + childCount,
         keywordList,
     });
   };
@@ -72,7 +72,7 @@ const GuesthouseSearch = () => {
       const keywordList = response.data.map(item => item.keyword);
       navigation.navigate('GuesthouseList', {
         displayDate,
-        guestCount,
+        guestCount: adultCount + childCount,
         keywordList,
       });
     } catch (e) {
@@ -110,7 +110,13 @@ const GuesthouseSearch = () => {
       onPress={() => goToGuesthouseList(subRegion)}
     >
       {/* 이미지 대신 회색 박스 */}
-      <View style={styles.imagePlaceholder} />
+      {subRegion === '제주전체' ? (
+        <View style={styles.imagePlaceholder}>
+          <AllIcon width={36} height={36} />
+        </View>
+      ) : (
+        <View style={styles.EXimagePlaceholder} />
+      )}
       <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>{subRegion}</Text>
     </TouchableOpacity>
   );
@@ -150,7 +156,10 @@ const GuesthouseSearch = () => {
         >
           <Person width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
-            인원 {guestCount}
+            {childCount > 0
+              ? `성인 ${adultCount}, 아동 ${childCount}`
+              : `인원 ${adultCount}`
+            }
           </Text>
         </TouchableOpacity>
       </View>
@@ -169,12 +178,20 @@ const GuesthouseSearch = () => {
       <DateGuestModal
         visible={dateGuestModalVisible}
         onClose={() => setDateGuestModalVisible(false)}
-        onApply={() => {
-          // 예를 들어 적용 시 받아온 데이터
-          setDisplayDate("07.03(목) - 07.05(토), 2박");
-          setGuestCount(2);
+        onApply={(checkIn, checkOut, adults, children) => {
+          setAdultCount(adults);
+          setChildCount(children);
+
+          const formattedCheckIn = dayjs(checkIn).format('M.D dd');
+          const formattedCheckOut = dayjs(checkOut).format('M.D dd');
+          setDisplayDate(`${formattedCheckIn} - ${formattedCheckOut}`);
+
           setDateGuestModalVisible(false);
         }}
+        initCheckInDate={dayjs().format("YYYY-MM-DD")}
+        initCheckOutDate={dayjs().add(1,"day").format("YYYY-MM-DD")}
+        initAdultGuestCount={adultCount}
+        initChildGuestCount={childCount}
       />
     </View>
   );

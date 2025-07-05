@@ -114,13 +114,19 @@ const styles = StyleSheet.create({
   subRegionText: {
     marginTop: 4,
   },
-    imagePlaceholder: {
+  imagePlaceholder: {
+    width: 50,
+    height: 50,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  EXimagePlaceholder: {
     width: 50,
     height: 50,
     backgroundColor: COLORS.grayscale_300,
     borderRadius: 12,
   },
-
 
 });
 
