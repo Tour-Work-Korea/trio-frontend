@@ -93,7 +93,7 @@ const EditProfileFieldScreen = () => {
 
       setHostProfile({
         name: name ?? '',
-        profileImage:
+        photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',
@@ -110,7 +110,7 @@ const EditProfileFieldScreen = () => {
 
       setUserProfile({
         name: name ?? '',
-        profileImage:
+        photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',

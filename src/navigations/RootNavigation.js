@@ -7,14 +7,15 @@ import GuesthouseStack from './GuesthouseStack';
 import HomeStack from './HomeStack';
 import MeetStack from './MeetStack';
 import MyStack from './MyStack';
-import TestStack from './TestStack';
+import EXHome from '@screens/EXHome';
 
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
   <NavigationContainer>
-    <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="TestStack" component={TestStack} />
+
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
+      <Stack.Screen name="EXHome" component={EXHome} />
       <Stack.Screen name="undefined" component={undefinedStack} />
       <Stack.Screen name="Employ" component={EmployStack} />
       <Stack.Screen name="Guesthouse" component={GuesthouseStack} />
