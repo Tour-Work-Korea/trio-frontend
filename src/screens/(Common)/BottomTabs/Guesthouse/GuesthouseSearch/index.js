@@ -18,7 +18,7 @@ import AllIcon from '@assets/images/wlogo_blue_left.svg';
 import styles from './GuesthouseSearch.styles';
 import { FONTS } from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import DateGuestModal from '@components/modals/DateGuestModal';
+import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 
 const regions = [
   {

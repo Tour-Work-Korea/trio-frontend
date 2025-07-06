@@ -13,7 +13,7 @@ import {useNavigation} from '@react-navigation/native';
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
 import { COLORS } from '@constants/colors';
-import ServiceInfoModal from '@components/modals/ServiceInfoModal';
+import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';

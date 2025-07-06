@@ -18,6 +18,7 @@ import Person from '@assets/images/person20_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
+import LeftChevron from '@assets/images/chevron_left_gray.svg';
 
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';

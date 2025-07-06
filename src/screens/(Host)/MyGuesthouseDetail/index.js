@@ -13,7 +13,7 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import styles from './MyGuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
 import Header from '@components/Header';
-import ServiceInfoModal from '@components/modals/ServiceInfoModal';
+import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
