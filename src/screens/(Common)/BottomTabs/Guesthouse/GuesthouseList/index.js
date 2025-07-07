@@ -6,24 +6,25 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
-  Modal,
+  ScrollView,
 } from 'react-native';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native'; 
 import dayjs from 'dayjs';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
-import CalendarIcon from '@assets/images/calendar_white.svg';
-import Person from '@assets/images/person20_white.svg';
+import CalendarIcon from '@assets/images/calendar_gray.svg';
+import Person from '@assets/images/person20_gray.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
+import SortIcon from '@assets/images/sort_toggle_gray.svg';
 
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import { guesthouseTags } from '@data/guesthouseTags';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -40,6 +41,7 @@ const GuesthouseList = () => {
     displayDate,
     guestCount,
     keywordList: initialKeywordList = [],
+    searchText,
   } = route.params || {};
 
   // 키워드로 게하 조회
@@ -58,16 +60,13 @@ const GuesthouseList = () => {
   const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
   const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
 
-  // 인원 선택 임시 모달
-  const [guestModalVisible, setGuestModalVisible] = useState(false);
-
   // 게하 불러오기
-  const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
+  // const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
+  const fetchGuesthouses = async (pageToFetch = 0, keyword = '외도') => {
     if (loading || isLast || error) return;
     setLoading(true);
 
     try {
-      // 보낼 임의 데이터
       const params = {
         checkIn: checkIn,
         checkOut: checkOut,
@@ -216,11 +215,19 @@ const GuesthouseList = () => {
 
   return (
     <View style={styles.container}>
-      <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
+      <View style={styles.header}>
+        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
+        <TouchableOpacity
+          style={styles.backButton}
+          onPress={() => navigation.goBack()}
+        >
+          <LeftChevron width={24} height={24}/>
+        </TouchableOpacity>
+      </View>
       <View style={styles.searchContainer}>
         <TouchableOpacity style={styles.searchIconContainer}>
           <SearchIcon width={24} height={24}/>
-          <Text style={[FONTS.fs_14_regular, styles.searchText]}>찾는 숙소가 있으신가요?</Text>
+          <Text style={[FONTS.fs_14_regular, styles.searchText]}>{searchText || '찾는 숙소가 있으신가요?'}</Text>
         </TouchableOpacity>
       </View>
 
@@ -240,66 +247,48 @@ const GuesthouseList = () => {
         </TouchableOpacity>
       </View>
 
-      {searched && (
-        <View style={styles.printSelectContainer}>
-          <View style={styles.printSelectBox}>
-            <Text style={[FONTS.fs_14_medium, styles.printDateText]}>
-              {displayDate}
-            </Text>
-            <Text style={[FONTS.fs_14_medium, styles.printGuestText]}>
-              {displayGuest}
-            </Text>
-          </View>
-        </View>
-      )}
-
-      <FlatList
-        data={guesthouses}
-        keyExtractor={item => String(item.id)}
-        renderItem={renderItem}
-        contentContainerStyle={styles.listContent}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.7}
-        ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
-      />
-
-      {/* 임시 인원 수 선택 모달 */}
-      <Modal
-        visible={guestModalVisible}
-        transparent
-        animationType="slide"
-        onRequestClose={() => setGuestModalVisible(false)}
-      >
-        <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)' }}>
-          <View style={{ backgroundColor:'white', padding:20, borderRadius:8, width:300 }}>
-            <Text style={[FONTS.fs_16_medium, { marginBottom: 10 }]}>인원을 선택하세요</Text>
-            <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
-              <TouchableOpacity onPress={() => setGuestCount(Math.max(1, guestCount - 1))}>
-                <Text style={{ fontSize: 24 }}>➖</Text>
-              </TouchableOpacity>
-              <Text style={{ fontSize: 18 }}>{guestCount}명</Text>
-              <TouchableOpacity onPress={() => setGuestCount(guestCount + 1)}>
-                <Text style={{ fontSize: 24 }}>➕</Text>
-              </TouchableOpacity>
-            </View>
-            <TouchableOpacity
-              style={{
-                backgroundColor: COLORS.primary_orange,
-                marginTop: 20,
-                paddingVertical: 10,
-                alignItems: 'center',
-                borderRadius: 4,
-              }}
-              onPress={() => {
-                setDisplayGuest(`인원 ${guestCount}`);
-                setGuestModalVisible(false);
-              }}
-            >
-              <Text style={{ color: 'white' }}>선택 완료</Text>
+      <View style={styles.guesthouseListContainer}>
+        <View style={styles.guesthouseListHeader}>
+          <View style={styles.filterContainer}>
+            <TouchableOpacity style={styles.filterButtonContainer}>
+              <FilterIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
             </TouchableOpacity>
+            {/* 필터 선택 내용 */}
+            <ScrollView
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.selectFilterContainer}
+            >
+              {guesthouseTags.map(tag => (
+                <View style={styles.selectFilter}>
+                  <Text key={tag.id} style={[FONTS.fs_12_medium, styles.selectFilterText]}>
+                    {tag.hashtag}
+                  </Text>
+                </View>
+              ))}
+            </ScrollView>
           </View>
+          <TouchableOpacity style={styles.sortContainer}>
+            <SortIcon width={20} height={20}/>
+            <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
+          </TouchableOpacity>
+          
+
         </View>
-      </Modal>
+
+        <FlatList
+          data={guesthouses}
+          keyExtractor={item => String(item.id)}
+          renderItem={renderItem}
+          contentContainerStyle={styles.listContent}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.7}
+          ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
+        />
+      </View>
+      
+
     </View>
   );
 };

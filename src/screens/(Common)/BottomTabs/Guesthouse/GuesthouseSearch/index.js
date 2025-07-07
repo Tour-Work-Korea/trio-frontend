@@ -62,6 +62,7 @@ const GuesthouseSearch = () => {
         displayDate,
         guestCount: adultCount + childCount,
         keywordList,
+        searchText: keywordList,
     });
   };
 
@@ -74,10 +75,16 @@ const GuesthouseSearch = () => {
         displayDate,
         guestCount: adultCount + childCount,
         keywordList,
+        searchText: searchTerm,
       });
     } catch (e) {
       console.warn('키워드 검색 실패', e);
     }
+  };
+
+  // 큰 지역 전환
+  const handleRegionPress = (regionName) => {
+    setSelectedRegion(regionName);
   };
 
   // 큰 지역
