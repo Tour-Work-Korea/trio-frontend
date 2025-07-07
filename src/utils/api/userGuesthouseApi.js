@@ -1,8 +1,34 @@
 import api from './axiosInstance';
 
 const userGuesthouseApi = {
+
+  // 게하 키워드 검색
+  searchGuesthouseByKeyword: keyword =>
+    api.get('/guesthouse/keyword', {
+      params: { keyword }
+  }),
+
   // 유저 게스트하우스 검색 조회
-  getGuesthouseList: params => api.get('/user/guesthouses', {params}),
+  getGuesthouseList: ({
+    checkIn,
+    checkOut,
+    guestCount,
+    keyword,
+    page,
+    size = 10,
+    sortBy,
+  }) =>
+  api.get('/user/guesthouses', {
+    params: {
+      checkIn,
+      checkOut,
+      guestCount,
+      keyword,
+      page,
+      size,
+      sortBy
+    }
+  }),
 
   // 유저 게스트하우스 상세 조회
   getGuesthouseDetail: ({guesthouseId, checkIn, checkOut, guestCount}) =>

@@ -6,8 +6,10 @@ import {
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
+  Modal,
 } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native'; 
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native'; 
+import dayjs from 'dayjs';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -16,17 +18,17 @@ import Person from '@assets/images/person20_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
+import LeftChevron from '@assets/images/chevron_left_gray.svg';
 
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
-// 달력 아이콘 누르면 캘린더 나와서 수정할 수 있게 - 예정
-// 사람 아이콘 누르면 인원, ? 나와서 수정할 수 있게 - 예정
-
 const GuesthouseList = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
@@ -34,30 +36,65 @@ const GuesthouseList = () => {
   const [error, setError] = useState(false);
   const [searched, setSearched] = useState(false);
 
-  // 임의 선택 날짜, 인원, 객실 수 출력
-  const [displayDate, setDisplayDate] = useState('3.28 금 - 3.29 토');
-  const [displayGuest, setDisplayGuest] = useState('인원 1, 객실 1');
+  const {
+    displayDate,
+    guestCount,
+    keywordList: initialKeywordList = [],
+  } = route.params || {};
 
-  // 게하 검색 후 불러오기
-  const fetchGuesthouses = async (pageToFetch = 0) => {
+  // 키워드로 게하 조회
+  const [keywordList] = useState(initialKeywordList);
+  const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
+
+  const currentKeyword = keywordList[currentKeywordIndex] || '';
+
+  // api 보낼 날짜 데이터
+  const [start, end] = displayDate.split(" - ");
+  const startDateOnly = start.split(' ')[0];
+  const endDateOnly = end.split(' ')[0];
+  const [startMonth, startDay] = startDateOnly.split('.').map(Number);
+  const [endMonth, endDay] = endDateOnly.split('.').map(Number);
+  const year = dayjs().year();
+  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+  const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+
+  // 인원 선택 임시 모달
+  const [guestModalVisible, setGuestModalVisible] = useState(false);
+
+  // 게하 불러오기
+  const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
     if (loading || isLast || error) return;
     setLoading(true);
 
     try {
       // 보낼 임의 데이터
       const params = {
-        checkIn: '2025-05-20',
-        checkOut: '2025-05-21',
-        guestCount: 2,
-        roomCount: 1,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guestCount: guestCount,
         page: pageToFetch,
         size: 10,
-        sort: 'id',
+        keyword,
+        sortBy: 'RECOMMEND',
       };
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
+
       setGuesthouses(prev => pageToFetch === 0 ? content : [...prev, ...content]);
-      setIsLast(last);
+      if (last) {
+        if (currentKeywordIndex + 1 < keywordList.length) {
+          // 다음 키워드로 넘어갈 때 즉시 0페이지 호출
+          const nextKeywordIndex = currentKeywordIndex + 1;
+          setCurrentKeywordIndex(nextKeywordIndex);
+          setPage(0);
+          setIsLast(false);
+          return;
+        } else {
+          setIsLast(true);
+        }
+      } else {
+        setIsLast(false);
+      }
     } catch (e) {
       setError(true); // 한번이라도 실패하면 더이상 호출X
       setIsLast(true); // (추가) 무한호출도 막음
@@ -75,10 +112,8 @@ const GuesthouseList = () => {
 
   // 무한스크롤
   useEffect(() => {
-    if (page !== 0) {
-      fetchGuesthouses(page);
-    }
-  }, [page]);
+    fetchGuesthouses(page);
+  }, [page, currentKeyword]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -94,10 +129,21 @@ const GuesthouseList = () => {
   );
 
   const handleEndReached = () => {
-    if (!loading && !isLast) {
-      setPage(prev => prev + 1);
+    if (loading) return;
+    if (isLast) {
+      // 다음 키워드가 있다면
+      if (currentKeywordIndex + 1 < keywordList.length) {
+        const nextKeywordIndex = currentKeywordIndex + 1;
+        setCurrentKeywordIndex(nextKeywordIndex);
+        setPage(0); // 다음 키워드 첫 페이지
+        setIsLast(false);
+      }
+      return; // 다음 keyword 넘어갔으면 page +1 하지 않도록
     }
+    // 마지막이 아니라면 현재 페이지 계속
+    setPage(prev => prev + 1);
   };
+
 
   const toggleLike = async (id, liked) => {
     try {
@@ -115,39 +161,6 @@ const GuesthouseList = () => {
       console.warn('찜 실패', e);
     }
   };
-
-  // 처음 화면(검색전)
-  if (!searched) {
-    return (
-      <View style={styles.container}>
-        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
-        <View  style={[{ flex: 1, justifyContent: 'center' }]}>
-          <View style={[styles.searchContainer]}>
-            <TouchableOpacity style={[styles.searchIconContainer]}
-              onPress={handleSearch}
-            >
-              <SearchIcon width={24} height={24} />
-              <Text style={[FONTS.fs_14_regular, styles.searchText]}>찾는 숙소가 있으신가요?</Text>
-            </TouchableOpacity><TouchableOpacity>
-                <View style={styles.filterIconContainer}>
-                  <FilterIcon width={24} height={24} />
-                </View>
-              </TouchableOpacity>
-          </View>
-          <View style={styles.selectRow}>
-            <View style={styles.dateContainer}>
-              <CalendarIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium, styles.dateText]}>날짜</Text>
-            </View>
-            <View style={styles.personRoomContainer}>
-              <Person width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium, styles.personText]}>인원, 객실 수</Text>
-            </View>
-          </View>
-        </View>
-      </View>
-    );
-  }
 
   const renderItem = ({ item }) => (
     <TouchableOpacity onPress={() => navigation.navigate('GuesthouseDetail', {
@@ -209,32 +222,22 @@ const GuesthouseList = () => {
           <SearchIcon width={24} height={24}/>
           <Text style={[FONTS.fs_14_regular, styles.searchText]}>찾는 숙소가 있으신가요?</Text>
         </TouchableOpacity>
-        <TouchableOpacity>
-          <View style={styles.filterIconContainer}>
-            <FilterIcon width={24} height={24}/>
-          </View>
-        </TouchableOpacity>
       </View>
 
       <View style={styles.selectRow}>
-        <View
-          style={[
-            styles.dateContainer,
-            searched && { backgroundColor: COLORS.primary_orange },
-          ]}
+        <TouchableOpacity
+          style={styles.dateContainer}
         >
           <CalendarIcon width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.dateText]}>날짜</Text>
-        </View>
-        <View
-          style={[
-            styles.personRoomContainer,
-            searched && { backgroundColor: COLORS.primary_orange },
-          ]}
+          <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDate}</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.personRoomContainer}
+          onPress={() => setGuestModalVisible(true)}
         >
           <Person width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.personText]}>인원, 객실 수</Text>
-        </View>
+          <Text style={[FONTS.fs_14_medium, styles.personText]}>인원 {guestCount}</Text>
+        </TouchableOpacity>
       </View>
 
       {searched && (
@@ -259,6 +262,44 @@ const GuesthouseList = () => {
         onEndReachedThreshold={0.7}
         ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
       />
+
+      {/* 임시 인원 수 선택 모달 */}
+      <Modal
+        visible={guestModalVisible}
+        transparent
+        animationType="slide"
+        onRequestClose={() => setGuestModalVisible(false)}
+      >
+        <View style={{ flex:1, justifyContent:'center', alignItems:'center', backgroundColor:'rgba(0,0,0,0.5)' }}>
+          <View style={{ backgroundColor:'white', padding:20, borderRadius:8, width:300 }}>
+            <Text style={[FONTS.fs_16_medium, { marginBottom: 10 }]}>인원을 선택하세요</Text>
+            <View style={{ flexDirection:'row', justifyContent:'space-between', alignItems:'center' }}>
+              <TouchableOpacity onPress={() => setGuestCount(Math.max(1, guestCount - 1))}>
+                <Text style={{ fontSize: 24 }}>➖</Text>
+              </TouchableOpacity>
+              <Text style={{ fontSize: 18 }}>{guestCount}명</Text>
+              <TouchableOpacity onPress={() => setGuestCount(guestCount + 1)}>
+                <Text style={{ fontSize: 24 }}>➕</Text>
+              </TouchableOpacity>
+            </View>
+            <TouchableOpacity
+              style={{
+                backgroundColor: COLORS.primary_orange,
+                marginTop: 20,
+                paddingVertical: 10,
+                alignItems: 'center',
+                borderRadius: 4,
+              }}
+              onPress={() => {
+                setDisplayGuest(`인원 ${guestCount}`);
+                setGuestModalVisible(false);
+              }}
+            >
+              <Text style={{ color: 'white' }}>선택 완료</Text>
+            </TouchableOpacity>
+          </View>
+        </View>
+      </Modal>
     </View>
   );
 };
