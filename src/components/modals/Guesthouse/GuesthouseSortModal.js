@@ -10,7 +10,8 @@ import {
 
 import XIcon from "@assets/images/x_gray.svg";
 import CheckIcon from "@assets/images/check20_orange.svg";
-import WorkawayIcon from "@assets/images/workaway_text_gray.svg";
+import WorkawayIconGray from "@assets/images/workaway_text_gray.svg";
+import WorkawayIconOrange from "@assets/images/workaway_text_orange.svg";
 
 import { FONTS } from "@constants/fonts";
 import { COLORS } from "@constants/colors";
@@ -18,11 +19,12 @@ import { COLORS } from "@constants/colors";
 const { height } = Dimensions.get("window");
 
 const sortOptions = [
-  "낮은 가격 순",
-  "높은 가격 순",
-  "후기 좋은 순",
-  "후기 많은 순",
-  "찜 많은 순",
+  { label: "추천 순", value: "RECOMMEND" },
+  { label: "낮은 가격 순", value: "LOW_PRICE" },
+  { label: "높은 가격 순", value: "HIGH_PRICE" },
+  { label: "후기 좋은 순", value: "RATING" },
+  { label: "후기 많은 순", value: "REVIEW_COUNT" },
+  { label: "찜 많은 순", value: "LIKE_COUNT" },
 ];
 
 const GuesthouseSortModal = ({ visible, onClose, selected, onSelect }) => {
@@ -32,43 +34,50 @@ const GuesthouseSortModal = ({ visible, onClose, selected, onSelect }) => {
         <View style={styles.modal}>
           {/* 헤더 */}
           <View style={styles.header}>
-            <Text style={[FONTS.fs_16_medium, styles.headerTitle]}>정렬</Text>
+            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>정렬</Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <XIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
 
-          {/* 추천 */}
-          <View style={styles.recommendContainer}>
-            <WorkawayIcon width={80} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.recommendText]}>
-              추천 순
-            </Text>
-          </View>
-
           {/* 목록 */}
-          {sortOptions.map((option) => (
-            <TouchableOpacity
-              key={option}
-              style={[
-                styles.optionItem,
-                selected === option && styles.optionItemSelected,
-              ]}
-              onPress={() => onSelect(option)}
-            >
-              <Text
+          <View style={styles.contentContainer}>
+            {sortOptions.map((option) => (
+              <TouchableOpacity
+                key={option.value}
                 style={[
-                  FONTS.fs_14_medium,
-                  selected === option && styles.optionSelectedText,
+                  styles.optionItem,
+                  selected === option.value && styles.optionItemSelected,
                 ]}
+                onPress={() => onSelect(option.value)}
               >
-                {option}
-              </Text>
-              {selected === option && (
-                <CheckIcon width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          ))}
+                <View style={{ flexDirection: "row", alignItems: "center" }}>
+                  {/* 추천 순만 아이콘 보여주기 */}
+                  {option.value === "RECOMMEND" && (
+                    selected === "RECOMMEND" ? (
+                      <WorkawayIconOrange style={{ marginRight: 4 }} />
+                    ) : (
+                      <WorkawayIconGray style={{ marginRight: 4 }} />
+                    )
+                  )}
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.optionText,
+                      selected === option.value && styles.optionSelectedText,
+                      selected === option.value && FONTS.fs_14_semibold,
+                    ]}
+                  >
+                    {option.label}
+                  </Text>
+                </View>
+                {selected === option.value && (
+                  <CheckIcon width={20} height={20} />
+                )}
+              </TouchableOpacity>
+            ))}
+          </View>
+          
         </View>
       </View>
     </Modal>
@@ -85,44 +94,43 @@ const styles = StyleSheet.create({
   },
   modal: {
     backgroundColor: COLORS.grayscale_0,
-    borderTopLeftRadius: 16,
-    borderTopRightRadius: 16,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
     paddingHorizontal: 20,
-    paddingTop: 20,
     paddingBottom: 40,
-    minHeight: height * 0.5,
+    minHeight: height * 0.4,
   },
+
   header: {
     alignItems: "center",
     justifyContent: "center",
     marginBottom: 20,
+    paddingVertical: 20,
   },
   headerTitle: {
-    color: COLORS.grayscale_900,
   },
   closeButton: {
     position: "absolute",
     right: 0,
   },
-  recommendContainer: {
-    flexDirection: "row",
-    alignItems: "center",
-    marginBottom: 12,
-  },
-  recommendText: {
-    marginLeft: 4,
-    color: COLORS.grayscale_600,
+
+  // 정렬 리스트
+  contentContainer: {
+    gap: 4,
   },
   optionItem: {
     flexDirection: "row",
     alignItems: "center",
-    paddingVertical: 16,
     justifyContent: "space-between",
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+  },
+  optionText: {
+    color: COLORS.grayscale_500,
   },
   optionItemSelected: {
     backgroundColor: COLORS.grayscale_100,
-    borderRadius: 8,
-    paddingHorizontal: 12,
+    borderRadius: 12,
   },
   optionSelectedText: {
     color: COLORS.primary_orange,

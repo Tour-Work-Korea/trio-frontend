@@ -25,6 +25,8 @@ import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { guesthouseTags } from '@data/guesthouseTags';
+import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
+import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -38,11 +40,24 @@ const GuesthouseList = () => {
   const [searched, setSearched] = useState(false);
 
   const {
-    displayDate,
-    guestCount,
+    displayDate: routeDisplayDate,
+    adultCount: routeAdultCount,
+    childCount: routeChildCount,
     keywordList: initialKeywordList = [],
     searchText,
   } = route.params || {};
+
+  // 모달
+  const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  // 정렬 기본 추천순
+  const [selectedSort, setSelectedSort] = useState("RECOMMEND");
+
+  // 상태 - 처음에는 props 값으로 초기화
+  const [adultCount, setAdultCount] = useState(routeAdultCount || 1);
+  const [childCount, setChildCount] = useState(routeChildCount || 0);
+  const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
   // 키워드로 게하 조회
   const [keywordList] = useState(initialKeywordList);
@@ -51,14 +66,15 @@ const GuesthouseList = () => {
   const currentKeyword = keywordList[currentKeywordIndex] || '';
 
   // api 보낼 날짜 데이터
-  const [start, end] = displayDate.split(" - ");
-  const startDateOnly = start.split(' ')[0];
-  const endDateOnly = end.split(' ')[0];
-  const [startMonth, startDay] = startDateOnly.split('.').map(Number);
-  const [endMonth, endDay] = endDateOnly.split('.').map(Number);
-  const year = dayjs().year();
-  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
-  const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+    const [start, end] = displayDateState.split(" - ");
+    const startDateOnly = start.split(' ')[0];
+    const endDateOnly = end.split(' ')[0];
+    const [startMonth, startDay] = startDateOnly.split('.').map(Number);
+    const [endMonth, endDay] = endDateOnly.split('.').map(Number);
+    const year = dayjs().year();
+    const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+    const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+    const [sortBy, setSortBy] = useState("RECOMMEND");
 
   // 게하 불러오기
   // const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
@@ -67,14 +83,16 @@ const GuesthouseList = () => {
     setLoading(true);
 
     try {
+      const guestCount = adultCount + childCount;
+
       const params = {
-        checkIn: checkIn,
-        checkOut: checkOut,
-        guestCount: guestCount,
+        checkIn,
+        checkOut,
+        guestCount,
         page: pageToFetch,
         size: 10,
         keyword,
-        sortBy: 'RECOMMEND',
+        sortBy,
       };
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
@@ -112,7 +130,7 @@ const GuesthouseList = () => {
   // 무한스크롤
   useEffect(() => {
     fetchGuesthouses(page);
-  }, [page, currentKeyword]);
+  }, [page, currentKeyword, sortBy]);
 
   useFocusEffect(
     React.useCallback(() => {
@@ -219,7 +237,13 @@ const GuesthouseList = () => {
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            navigation.navigate("GuesthouseSearch", {
+              displayDate: displayDateState,
+              adultCount,
+              childCount
+            });
+          }}
         >
           <LeftChevron width={24} height={24}/>
         </TouchableOpacity>
@@ -234,16 +258,21 @@ const GuesthouseList = () => {
       <View style={styles.selectRow}>
         <TouchableOpacity
           style={styles.dateContainer}
+          onPress={() => setDateGuestModalVisible(true)}
         >
           <CalendarIcon width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDate}</Text>
+          <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDateState}</Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.personRoomContainer}
-          onPress={() => setGuestModalVisible(true)}
+          onPress={() => setDateGuestModalVisible(true)}
         >
           <Person width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.personText]}>인원 {guestCount}</Text>
+          <Text style={[FONTS.fs_14_medium, styles.personText]}>
+            {childCount > 0
+              ? `성인 ${adultCount}, 아동 ${childCount}`
+              : `인원 ${adultCount}`}
+          </Text>
         </TouchableOpacity>
       </View>
 
@@ -269,7 +298,10 @@ const GuesthouseList = () => {
               ))}
             </ScrollView>
           </View>
-          <TouchableOpacity style={styles.sortContainer}>
+          <TouchableOpacity 
+            style={styles.sortContainer}
+            onPress={() => setSortModalVisible(true)}
+          >
             <SortIcon width={20} height={20}/>
             <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
           </TouchableOpacity>
@@ -288,6 +320,50 @@ const GuesthouseList = () => {
         />
       </View>
       
+      {/* 인원, 날짜 선택 모달 */}
+      <DateGuestModal
+        visible={dateGuestModalVisible}
+        onClose={() => setDateGuestModalVisible(false)}
+        onApply={(checkIn, checkOut, adults, children) => {
+          setAdultCount(adults);
+          setChildCount(children);
+
+          const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+          const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+          setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
+
+          setDateGuestModalVisible(false);
+
+          // 검색 다시 실행
+          setSearched(true);
+          setPage(0);
+          setIsLast(false);
+          setGuesthouses([]);
+        }}
+        initCheckInDate={dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD')}
+        initCheckOutDate={dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD')}
+        initAdultGuestCount={adultCount}
+        initChildGuestCount={childCount}
+      />
+
+      {/* 정렬 모달 */}
+      <GuesthouseSortModal
+        visible={sortModalVisible}
+        onClose={() => setSortModalVisible(false)}
+        selected={selectedSort}
+        onSelect={(option) => {
+          setSelectedSort(option);
+          setSortModalVisible(false);
+
+          // sortBy 업데이트
+          setSortBy(option);
+
+          // 새로 fetch
+          setPage(0);
+          setIsLast(false);
+          setGuesthouses([]);
+        }}
+      />
 
     </View>
   );
