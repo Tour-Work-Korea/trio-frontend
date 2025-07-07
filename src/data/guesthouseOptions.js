@@ -13,6 +13,7 @@ export const services = [
     '카드결제', '무료세탁', '조식운영', '반려동물 동반 가능', '공항 셔틀',
 ];
   
+// 이거 나중에 지우기
 export const tags = [
     '파티', '파티X', '감성', '바다전망', '조용한', '투어',
     '애견동반', '서핑강습', '조식제공',
@@ -23,4 +24,6 @@ export const roomTypes = ['1인실', '2인실', '3인실', '4인실', '5인실',
 export const partyOptions = ['필참', '불참가능'];
 
 export const genderOptions = ['혼숙', '여성전용', '남성전용'];
+
+export const filterServices = ['주차 가능', '라운지', '짐보관', '공항 셔틀', '개별 샤워실', '매일 청소', '금연', '자전거 대여', '에어컨'];
   

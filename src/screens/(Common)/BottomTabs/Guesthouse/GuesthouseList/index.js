@@ -27,6 +27,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { guesthouseTags } from '@data/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
+import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -50,6 +51,14 @@ const GuesthouseList = () => {
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
+
+  // 태그 선택 데이터 (필터에서 온)
+  const [selectedTags, setSelectedTags] = useState(guesthouseTags.map(tag => tag.hashtag));  // 처음엔 전체 선택
+  // console.log로 보여주기(임시)
+  useEffect(() => {
+    console.log("선택된 태그:", selectedTags);
+  }, [selectedTags]);
 
   // 정렬 기본 추천순
   const [selectedSort, setSelectedSort] = useState("RECOMMEND");
@@ -279,7 +288,10 @@ const GuesthouseList = () => {
       <View style={styles.guesthouseListContainer}>
         <View style={styles.guesthouseListHeader}>
           <View style={styles.filterContainer}>
-            <TouchableOpacity style={styles.filterButtonContainer}>
+            <TouchableOpacity 
+              style={styles.filterButtonContainer}
+              onPress={() => setFilterModalVisible(true)}
+            >
               <FilterIcon width={20} height={20}/>
               <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
             </TouchableOpacity>
@@ -289,10 +301,10 @@ const GuesthouseList = () => {
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.selectFilterContainer}
             >
-              {guesthouseTags.map(tag => (
-                <View style={styles.selectFilter}>
-                  <Text key={tag.id} style={[FONTS.fs_12_medium, styles.selectFilterText]}>
-                    {tag.hashtag}
+              {selectedTags.map((tag, index) => (
+                <View key={index} style={styles.selectFilter}>
+                  <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
+                    {tag}
                   </Text>
                 </View>
               ))}
@@ -365,6 +377,17 @@ const GuesthouseList = () => {
         }}
       />
 
+      {/* 필터 모달 */}
+      <GuesthouseFilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        initialSelectedTags={selectedTags}
+        onApply={(filters) => {
+          console.log("필터 적용됨", filters);
+          setSelectedTags(filters.tags);
+          setFilterModalVisible(false);
+        }}
+      />
     </View>
   );
 };
