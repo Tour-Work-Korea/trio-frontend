@@ -11,7 +11,10 @@ import styles from './UserEditProfile.styles';
 import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
-import {uploadSingleImage} from '@utils/imageUploadHandler';
+import {
+  uploadSensitiveImage,
+  uploadSingleImage,
+} from '@utils/imageUploadHandler';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();

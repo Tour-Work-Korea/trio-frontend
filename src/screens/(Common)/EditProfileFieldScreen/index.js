@@ -33,9 +33,9 @@ const EditProfileFieldScreen = () => {
   const handleSendAuth = async () => {
     try {
       if (field === 'email') {
-        await authApi.sendEmail(inputValue);
+        await authApi.sendEmail(inputValue, userRole);
       } else if (field === 'phone') {
-        await authApi.sendSms(inputValue);
+        await authApi.sendSms(inputValue, userRole);
       } else {
         console.warn('인증 필드가 아닙니다.');
       }
