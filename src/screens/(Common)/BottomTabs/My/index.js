@@ -25,6 +25,7 @@ import {
   MyResumeDetail,
   MyResumeList,
   ResumeForm,
+  EditProfileFieldScreen,
   EmployDetail,
 } from '@screens';
 
@@ -69,6 +70,10 @@ const My = () => {
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
+      <Stack.Screen
+        name="EditProfileFieldScreen"
+        component={EditProfileFieldScreen}
+      />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
       <Stack.Screen

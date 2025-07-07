@@ -25,7 +25,7 @@ export const uploadImageToS3 = async (presignedUrl, fileUri, fileType) => {
 
   await fetch(presignedUrl, {
     method: 'PUT',
-    headers: {'Content-Type': fileType},
+    headers: {'Content-Type': 'image/*'},
     body: blob,
   });
 
