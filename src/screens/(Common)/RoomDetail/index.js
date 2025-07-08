@@ -1,6 +1,9 @@
 import React from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
 
 import styles from './RoomDetail.styles';
 import { FONTS } from '@constants/fonts';
@@ -10,8 +13,18 @@ import LeftArrow from '@assets/images/chevron_left_white.svg';
 
 const RoomDetail = ({ route }) => {
   const navigation = useNavigation();
-  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut } = route.params;
-  const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
+  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount } = route.params;
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '시간 없음';
+    const date = dayjs(timeStr);
+    return date.isValid()
+        ? date.format('HH:mm')
+        : timeStr.slice(0, 5);
+  };
+  const formatDateWithDay = (dateStr) => {
+    const date = dayjs(dateStr);
+    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
 
   return (
     <View style={styles.container}>
@@ -44,12 +57,12 @@ const RoomDetail = ({ route }) => {
                 <View style={styles.dateBoxContainer}>
                     <View style={styles.dateBoxCheckIn}>
                         <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
-                        <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.15 (화)</Text>
+                        <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
                         <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
                     </View>
                     <View style={styles.dateBoxCheckOut}>
                         <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
-                        <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.16 (수)</Text>
+                        <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOut)}</Text>
                         <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
                     </View>
                 </View>
@@ -68,6 +81,7 @@ const RoomDetail = ({ route }) => {
                     guesthouseName,
                     checkIn,
                     checkOut,
+                    guestCount,
                     })
                 }
                 />

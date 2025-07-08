@@ -5,7 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native'; 
+import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native'; 
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -34,6 +34,7 @@ const regions = [
 
 const GuesthouseSearch = () => {
   const navigation = useNavigation();
+  const route = useRoute();
 
   // 지역 선택
   const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
@@ -56,12 +57,25 @@ const GuesthouseSearch = () => {
     setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
   }, []);
 
+  // 리스트에서 날짜, 인원값 변경해서 뒤로가기
+  useFocusEffect(
+    React.useCallback(() => {
+      if (route.params?.displayDate) {
+        setDisplayDate(route.params.displayDate);
+        setAdultCount(route.params.adultCount);
+        setChildCount(route.params.childCount);
+      }
+    }, [route.params])
+  );
+
   // 게하 리스트 페이지 지역 선택으로 이동
   const goToGuesthouseList = (keywordList) => {
     navigation.navigate('GuesthouseList', {
         displayDate,
-        guestCount: adultCount + childCount,
+        adultCount: adultCount,
+        childCount: childCount,
         keywordList,
+        searchText: keywordList,
     });
   };
 
@@ -74,10 +88,16 @@ const GuesthouseSearch = () => {
         displayDate,
         guestCount: adultCount + childCount,
         keywordList,
+        searchText: searchTerm,
       });
     } catch (e) {
       console.warn('키워드 검색 실패', e);
     }
+  };
+
+  // 큰 지역 전환
+  const handleRegionPress = (regionName) => {
+    setSelectedRegion(regionName);
   };
 
   // 큰 지역

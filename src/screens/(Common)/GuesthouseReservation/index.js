@@ -1,6 +1,9 @@
 import React, { useState } from 'react';
 import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
 
 import Header from '@components/Header';
 import styles from './GuesthouseReservation.styles';
@@ -20,8 +23,7 @@ const formatPhoneNumber = (phone) => {
 };
 
 const GuesthouseReservation = ({ route }) => {
-  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut } = route.params || {};
-  const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
+  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut, guestCount } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
   const [agreements, setAgreements] = useState({
@@ -31,6 +33,18 @@ const GuesthouseReservation = ({ route }) => {
   });
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
+
+  const formatTime = (timeStr) => {
+      if (!timeStr) return '시간 없음';
+      const date = dayjs(timeStr);
+      return date.isValid()
+          ? date.format('HH:mm')
+          : timeStr.slice(0, 5);
+    };
+    const formatDateWithDay = (dateStr) => {
+      const date = dayjs(dateStr);
+      return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    };
 
   const toggleAgreement = (key) => {
     setAgreements((prev) => ({
@@ -54,15 +68,15 @@ const GuesthouseReservation = ({ route }) => {
     // 동의 체크 등 유효성 검사 추가 예정 
     try {
       const res = await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: '2025-09-08T15:00:00',
-        checkOut: '2025-09-09T11:00:00',
-        guestCount: 1,
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guestCount: guestCount,
         amount: roomPrice,
         request: '요청사항',
       });
       const reservationId = res.data;
 
-      Alert.alert('예약이 완료되었습니다.');
+      console.log('예약이 완료되었습니다.');
 
       // 예약 성공 후 결제 페이지로 이동
       navigation.navigate( 'GuesthousePayment' , {
@@ -83,12 +97,12 @@ const GuesthouseReservation = ({ route }) => {
           <View style={styles.dateBoxContainer}>
               <View style={styles.dateBoxCheckIn}>
                   <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.15 (화)</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
               </View>
               <View style={styles.dateBoxCheckOut}>
                   <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>25.04.16 (수)</Text>
+                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOut)}</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
               </View>
           </View>

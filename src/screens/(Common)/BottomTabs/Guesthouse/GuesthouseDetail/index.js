@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -44,7 +45,7 @@ const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const {id} = route.params;
+  const { id, checkIn, checkOut, guestCount } = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -59,9 +60,9 @@ const GuesthouseDetail = ({route}) => {
       try {
         const response = await userGuesthouseApi.getGuesthouseDetail({
           guesthouseId: id,
-          checkIn: '2025-05-20',      // 임시값
-          checkOut: '2025-05-21',     // 임시값
-          guestCount: 2,              // 임시값
+          checkIn,
+          checkOut,
+          guestCount,
         });
         setDetail(response.data);
         setIsFavorite(response.data.isFavorite ?? false);
@@ -183,11 +184,15 @@ const GuesthouseDetail = ({route}) => {
         <View style={styles.displayDateGuestRow}>
           <View style={styles.dateInfoContainer}>
             <CalendarIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>3.28 금 - 3.29 토</Text>
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+              {dayjs(checkIn).format('M.D ddd')} - {dayjs(checkOut).format('M.D ddd')}
+            </Text>
           </View>
           <View style={styles.guestInfoContainer}>
             <PersonIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>인원 1, 객실 1</Text>
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+              인원 {guestCount}
+            </Text>
           </View>
         </View>
       </View>
@@ -223,8 +228,9 @@ const GuesthouseDetail = ({route}) => {
                 roomPrice: room.roomPrice,
                 roomDesc: room.roomDesc,
                 guesthouseName: detail.guesthouseName,
-                checkIn: detail.checkIn,
-                checkOut: detail.checkOut,
+                checkIn: `${checkIn}T${detail.checkIn}`,
+                checkOut: `${checkOut}T${detail.checkOut}`,
+                guestCount: guestCount,
               })
             }>
             <View style={styles.roomCard}>
