@@ -190,9 +190,14 @@ const GuesthouseList = () => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity onPress={() => navigation.navigate('GuesthouseDetail', {
-      id: item.id
-    })}>
+    <TouchableOpacity 
+      onPress={() => navigation.navigate('GuesthouseDetail', {
+        id: item.id,
+        checkIn,
+        checkOut,
+        guestCount: adultCount + childCount,
+      })}
+    >
       <View style={styles.card}>
         <View style={styles.imgRatingContainer}>
           <Image

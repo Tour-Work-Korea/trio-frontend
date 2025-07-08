@@ -422,6 +422,7 @@ const styles = StyleSheet.create({
     justifyContent: "space-around",
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_300,
+    marginTop: 20,
   },
   tabText: {
     paddingBottom: 12,

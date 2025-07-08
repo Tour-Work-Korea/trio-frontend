@@ -9,7 +9,7 @@ const PaymentSuccess = () => {
   const navigation = useNavigation();
 
   const handleGoHome = () => {
-    navigation.navigate('Home'); // 홈으로 이동 (Stack에 따라 수정)
+    navigation.navigate('MainTabs', { screen: '홈' });
   };
 
   const handleViewReservations = () => {
