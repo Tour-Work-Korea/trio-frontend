@@ -1,3 +1,4 @@
+// 태그 말고 나머지도 값 주고 받을 때 닫기 눌러도 유지 안되게 확인
 import React, { useRef, useState, useEffect } from "react";
 import {
   Modal,
@@ -16,6 +17,7 @@ import { FONTS } from "@constants/fonts";
 import { guesthouseTags } from '@data/guesthouseTags';
 import { roomTypes, filterServices } from '@data/guesthouseOptions';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ButtonWhite from '@components/ButtonWhite';
 
 import UnChecked from '@assets/images/check_gray.svg';
 import Checked from '@assets/images/check_orange.svg';
@@ -31,17 +33,41 @@ const tabList = [
 ];
 
 const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply }) => {
+  const [sectionPositions, setSectionPositions] = useState({});
   const [activeTab, setActiveTab] = useState("price");
 
   const [priceRange, setPriceRange] = useState([10000, 1000000]);
   const [selectedRoomType, setSelectedRoomType] = useState([]);
   const [selectedFacility, setSelectedFacility] = useState([]);
-  const [selectedType, setSelectedType] = useState(initialSelectedTags || []);
+  const [selectedType, setSelectedType] = useState(
+    initialSelectedTags || guesthouseTags.map(tag => tag.hashtag)
+  );
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   useEffect(() => {
-    setSelectedType(initialSelectedTags || []);
+    setSelectedType(initialSelectedTags || guesthouseTags.map(tag => tag.hashtag));
   }, [initialSelectedTags]);
+
+  useEffect(() => {
+    const checkDirty = () => {
+        const isDirtyNow = !isEqualToInitialState();
+        setIsDirty(isDirtyNow);
+    };
+    checkDirty();
+  }, [priceRange, selectedRoomType, selectedFacility, selectedType, onlyAvailable]);
+
+  // 초기화 버튼 활성화 여부
+  const isEqualToInitialState = (next = {}) => {
+    return (
+        (next.priceRange ?? priceRange)[0] === 10000 &&
+        (next.priceRange ?? priceRange)[1] === 1000000 &&
+        (next.selectedRoomType ?? selectedRoomType).length === 0 &&
+        (next.selectedFacility ?? selectedFacility).length === 0 &&
+        (next.onlyAvailable ?? onlyAvailable) === false &&
+        JSON.stringify((next.selectedType ?? selectedType).sort()) ===
+        JSON.stringify(guesthouseTags.map(tag => tag.hashtag).sort())
+    );
+  };
 
   // 초기화 버튼 enable/disable
   const [isDirty, setIsDirty] = useState(false);
@@ -57,27 +83,32 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
   // 현재 영역 감지
   const handleScroll = (e) => {
     const y = e.nativeEvent.contentOffset.y;
-    // 영역별 y좌표를 기준으로 activeTab 갱신
-    // 실제로는 measure() 써도 되고, 여기선 단순히 y 값으로 예제
-    if (y < 300) {
-      setActiveTab("price");
-    } else if (y >= 300 && y < 600) {
-      setActiveTab("type");
-    } else if (y >= 600 && y < 900) {
-      setActiveTab("room");
-    } else {
-      setActiveTab("facility");
+
+    const entries = Object.entries(sectionPositions);
+    let currentTab = activeTab;
+
+    for (let i = 0; i < entries.length; i++) {
+        const [key, positionY] = entries[i];
+        const nextPositionY = entries[i + 1]?.[1] ?? Infinity;
+
+        if (y >= positionY && y < nextPositionY) {
+        currentTab = key;
+        break;
+        }
+    }
+
+    if (currentTab !== activeTab) {
+        setActiveTab(currentTab);
     }
   };
 
+
   // 탭 클릭 → 스크롤 이동
   const handleTabPress = (key) => {
-    sectionRefs[key].current?.measureLayout(
-      scrollViewRef.current.getInnerViewNode(),
-      (x, y) => {
-        scrollViewRef.current.scrollTo({ y, animated: true });
-      }
-    );
+    const y = sectionPositions[key];
+    if (y !== undefined) {
+        scrollViewRef.current?.scrollTo({ y, animated: true });
+    }
   };
 
   // 초기화
@@ -85,7 +116,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
     setPriceRange([10000, 1000000]);
     setSelectedRoomType([]); 
     setSelectedFacility([]);
-    setSelectedType([]);
+    setSelectedType(guesthouseTags.map(tag => tag.hashtag));
     setOnlyAvailable(false);
     setIsDirty(false);
   };
@@ -130,7 +161,14 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
             contentContainerStyle={{ paddingBottom: 120 }}
           >
             {/* 가격 범위 */}
-            <View ref={sectionRefs.price} style={styles.section}>
+            <View 
+              ref={sectionRefs.price} 
+              style={styles.section}
+              onLayout={(e) => {
+                const y = e.nativeEvent.layout.y;
+                setSectionPositions(prev => ({ ...prev, price: y }));
+              }}
+            >
               <View style={styles.priceSectionHeader}>
                 <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>가격 범위</Text>
                 <Text style={[FONTS.fs_12_medium, styles.priceSubtitle]}>성인 1, 1박 기준</Text>
@@ -171,7 +209,14 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
             <View  style={styles.devide}/>
 
             {/* 숙소유형 */}
-            <View ref={sectionRefs.type} style={styles.section}>
+            <View 
+              ref={sectionRefs.type} 
+              style={styles.section}
+              onLayout={(e) => {
+                const y = e.nativeEvent.layout.y;
+                setSectionPositions(prev => ({ ...prev, type: y }));
+              }}
+            >
                 <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>숙소 유형</Text>
                 <View style={styles.tagSelectRow}>
                     {guesthouseTags.map((tag) => {
@@ -208,7 +253,14 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
             <View  style={styles.devide}/>
 
             {/* 객실유형 */}
-            <View ref={sectionRefs.room} style={styles.section}>
+            <View 
+              ref={sectionRefs.room} 
+              style={styles.section}
+              onLayout={(e) => {
+                const y = e.nativeEvent.layout.y;
+                setSectionPositions(prev => ({ ...prev, room: y }));
+              }}
+            >
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>객실 유형</Text>
               <View style={styles.roomSelectRow}>
                 {roomTypes.map((room) => {
@@ -247,7 +299,14 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
             <View  style={styles.devide}/>
 
             {/* 시설/서비스 */}
-            <View ref={sectionRefs.facility} style={styles.section}>
+            <View 
+              ref={sectionRefs.facility} 
+              style={styles.section}
+              onLayout={(e) => {
+                const y = e.nativeEvent.layout.y;
+                setSectionPositions(prev => ({ ...prev, facility: y }));
+              }}
+            >
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>시설/서비스</Text>
               <View style={styles.tagSelectRow}>
                 {filterServices.map((facility) => {
@@ -283,36 +342,34 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
 
             <View  style={styles.devide}/>
 
-            <View style={{ marginTop: 12 }}>
+            {/* 예약 가능 게하 보기 */}
+            <View style={styles.checkBoxSection}>
                 <TouchableOpacity
                     onPress={() => {
                     setOnlyAvailable(prev => !prev);
                     setIsDirty(true);
                     }}
+                    style={[
+                        onlyAvailable ? styles.checkedContainer : styles.uncheckedContainer,
+                    ]}
                 >
-                    <Text style={[
-                    styles.optionText,
-                    onlyAvailable && styles.optionSelectedText
-                    ]}>
-                    예약 가능한 숙소만 보기
-                    </Text>
+                    {onlyAvailable ? <Checked width={24} height={24} /> : <UnChecked width={24} height={24} />}
                 </TouchableOpacity>
+                <Text style={[FONTS.fs_14_medium]}>예약 가능한 게스트하우스만 볼래요.</Text>
             </View>
+
           </ScrollView>
 
-          {/* sticky CTA */}
+          {/* 하단 버튼 */}
           <View style={styles.sticky}>
-            <TouchableOpacity
-              style={[
-                styles.resetButton,
-                !isDirty && styles.resetButtonDisabled,
-              ]}
-              disabled={!isDirty}
-              onPress={handleReset}
-            >
-              <Text>초기화</Text>
-            </TouchableOpacity>
-            <View style={styles.ctaButton}>
+            <View style={styles.resetButton}>
+                <ButtonWhite
+                    title="초기화"
+                    onPress={handleReset}
+                    disabled={!isDirty}
+                />
+            </View>
+            <View style={styles.confirmButton}>
               <ButtonScarlet 
                 title="게스트하우스 보기"
                 onPress={() => {
@@ -487,31 +544,48 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_0,
   },
 
+  // 하단 선택 박스
+  checkBoxSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+  uncheckedContainer: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 4,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+  checkedContainer: {
+    borderColor: COLORS.primary_orange,
+    borderWidth: 1,
+    borderRadius: 4,
+    padding: 2,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginRight: 12,
+  },
+
+  // 하단 버튼
   sticky: {
     position: "absolute",
     left: 0,
     right: 0,
     bottom: 0,
     flexDirection: "row",
-    justifyContent: "space-between",
     backgroundColor: "white",
-    padding: 16,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.grayscale_200,
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    gap: 20,
   },
   resetButton: {
-    backgroundColor: COLORS.grayscale_200,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+    flex: 1,
   },
-  resetButtonDisabled: {
-    opacity: 0.5,
-  },
-  ctaButton: {
-    backgroundColor: COLORS.primary_orange,
-    borderRadius: 8,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  confirmButton: {
+    flex: 3,
   },
 });

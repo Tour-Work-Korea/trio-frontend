@@ -55,6 +55,7 @@ const GuesthouseList = () => {
 
   // 태그 선택 데이터 (필터에서 온)
   const [selectedTags, setSelectedTags] = useState(guesthouseTags.map(tag => tag.hashtag));  // 처음엔 전체 선택
+  const [tempSelectedTags, setTempSelectedTags] = useState([]);
   // console.log로 보여주기(임시)
   useEffect(() => {
     console.log("선택된 태그:", selectedTags);
@@ -290,7 +291,11 @@ const GuesthouseList = () => {
           <View style={styles.filterContainer}>
             <TouchableOpacity 
               style={styles.filterButtonContainer}
-              onPress={() => setFilterModalVisible(true)}
+              onPress={() => {
+                // 현재 선택된 태그를 임시 상태로 저장
+                setTempSelectedTags([...selectedTags]);;
+                setFilterModalVisible(true);
+              }}
             >
               <FilterIcon width={20} height={20}/>
               <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
@@ -381,7 +386,7 @@ const GuesthouseList = () => {
       <GuesthouseFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        initialSelectedTags={selectedTags}
+        initialSelectedTags={tempSelectedTags}
         onApply={(filters) => {
           console.log("필터 적용됨", filters);
           setSelectedTags(filters.tags);
