@@ -506,7 +506,6 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_100,
     borderRadius: 8,
     alignContent: 'center',
-    justifyContent: 'center',
   },
   tagOptionContainer: {
     alignItems: "center",

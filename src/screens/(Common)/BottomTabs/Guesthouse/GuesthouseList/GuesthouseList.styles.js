@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 20,
+    marginBottom: 200,
   },
   guesthouseListHeader: {
     flexDirection: 'row',
@@ -210,6 +211,34 @@ const styles = StyleSheet.create({
   printGuestText: {
     color: COLORS.grayscale_500,
   },
+
+  // 지도 버튼
+  mapButtonContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: COLORS.grayscale_900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mapButtonText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
+  },
+
 });
 
 export default styles;
