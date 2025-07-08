@@ -1,0 +1,107 @@
+name: iOS CI/CD to TestFlight
+
+on:
+  push:
+    branches:
+      - develop
+
+env:
+  # Match (인증서 저장소) 설정
+  MATCH_GIT_URL:  ${{ secrets.MATCH_GIT_URL }}
+  MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+  APPLE_ID:       ${{ secrets.APPLE_ID }}
+  TEAM_ID:        ${{ secrets.TEAM_ID }}
+  CI_KEYCHAIN_PASSWORD:  ${{ secrets.CI_KEYCHAIN_PASSWORD }}
+  # Fastlane upload_to_testflight 에 쓸 시크릿
+  API_BASE_URL:                   ${{ secrets.API_BASE_URL }}
+  APP_STORE_CONNECT_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
+  APP_STORE_CONNECT_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
+  APP_STORE_CONNECT_PRIVATE_KEY:  ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+jobs:
+  build:
+    runs-on: macos-14
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Use Xcode 16.2
+        run: sudo xcode-select -s /Applications/Xcode_16.2.app
+
+      - name: Start ssh-agent & add deploy key
+        uses: webfactory/ssh-agent@v0.5.4
+        with:
+          ssh-private-key: ${{ secrets.SSH_PRIVATE_KEY }}
+
+      - name: Ensure known_hosts for GitHub
+        run: |
+          mkdir -p ~/.ssh
+          ssh-keyscan github.com >> ~/.ssh/known_hosts
+
+      - name: Check Xcode version
+        run: xcodebuild -version
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+
+      - name: Install Node dependencies
+        run: yarn install
+
+      - name: Set up Ruby & Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true
+
+      - name: Install Ruby gems
+        working-directory: ios
+        run: bundle install
+
+      - name: Install CocoaPods 1.15.2
+        run: |
+          gem install cocoapods -v 1.15.2
+          pod --version
+
+      - name: Cache CocoaPods
+        uses: actions/cache@v3
+        with:
+          path: ios/Pods
+          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-pods-
+
+      - name: Install CocoaPods dependencies
+        working-directory: ios
+        run: pod _1.15.2_ install --repo-update
+
+      - name: Clean Xcode DerivedData
+        run: rm -rf ~/Library/Developer/Xcode/DerivedData
+
+      - name: Cache Xcode DerivedData
+        uses: actions/cache@v3
+        with:
+          path: ~/Library/Developer/Xcode/DerivedData
+          key: ${{ runner.os }}-derivedata-${{ hashFiles('ios/Podfile.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-derivedata-
+
+      - name: Fix Embed Pods Frameworks script permissions
+        run: chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
+
+      - name: Print environment variables (for debugging)
+        run: |
+          echo "🔧 API_BASE_URL = $API_BASE_URL"
+
+      - name: Test API reachability
+        run: |
+          echo "Curl to check API"
+          curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
+
+      - name: Build & Deploy to TestFlight
+        working-directory: ios
+        env:
+          CI: "true"
+        run: bundle exec fastlane build_ipa && bundle exec fastlane upload_ipa

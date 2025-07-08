@@ -1,0 +1,160 @@
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+
+export default StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: COLORS.grayscale_100,
+    color: COLORS.grayscale_800,
+  },
+  boxContainer: {
+    marginBottom: 20,
+  },
+
+  //배너
+  bannerContainer: {
+    alignItems: 'center',
+    flexDirection: 'column',
+    paddingVertical: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_0,
+    overflow: 'hidden',
+  },
+  banner: {
+    alignSelf: 'center',
+    width: '85%',
+    height: 120,
+    borderRadius: 10,
+    marginHorizontal: 4,
+  },
+  indicatorRow: {
+    marginTop: 12,
+    flexDirection: 'row',
+    justifyContent: 'center',
+  },
+  indicatorDot: isActive => ({
+    width: 6,
+    height: 6,
+    borderRadius: 4,
+    marginHorizontal: 4,
+    backgroundColor: isActive ? COLORS.grayscale_400 : COLORS.grayscale_200,
+  }),
+
+  //버튼탭
+  buttonContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+    width: '100%',
+  },
+  button: {
+    width: 60,
+    height: 90,
+    justifyContent: 'center',
+    alignContent: 'center',
+  },
+  buttonText: {
+    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_0,
+    textAlign: 'center',
+  },
+
+  //숙박
+  guesthouseContainer: {
+    flexDirection: 'column',
+    paddingVertical: 12,
+    paddingLeft: 16,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_0,
+    alignItems: 'flex-start',
+    maxHeight: 333,
+  },
+  titleSection: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    alignSelf: 'stretch',
+  },
+  seeMoreButton: {
+    flexDirection: 'row',
+  },
+  seeMoreText: {
+    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_400,
+  },
+  seeMoreButtonImage: {
+    width: 20,
+    height: 20,
+    marginLeft: 4,
+    tintColor: COLORS.grayscale_400,
+  },
+  sectionTitle: {
+    color: COLORS.grayscale_800,
+    ...FONTS.fs_16_semibold,
+  },
+  guesthouseCard: {
+    width: 249,
+    marginRight: 20,
+  },
+  guesthouseImage: {
+    width: '100%',
+    height: 212,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  guesthouseTitle: {
+    marginTop: 4,
+    marginRight: 8,
+  },
+  guesthousePriceName: {
+    marginTop: 4,
+    marginRight: 4,
+    color: COLORS.scarlet,
+  },
+  hashtagButton: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    alignItems: 'center',
+    borderRadius: 100,
+  },
+  hashtagText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.primary_blue,
+  },
+
+  //구인구직
+  jobContainer: {
+    width: '100%',
+    flexDirection: 'column',
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_0,
+    alignItems: 'flex-start',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    height: 432,
+  },
+  jobCard: {
+    minWidth: '100%',
+    flexDirection: 'row',
+    marginBottom: 16,
+  },
+  jobImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    marginRight: 10,
+  },
+  jobInfo: {
+    flex: 1,
+    width: '100%',
+    flexDirection: 'column',
+  },
+  count: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+  },
+});
