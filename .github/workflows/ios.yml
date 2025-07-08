@@ -3,7 +3,7 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop
+      - main
 
 env:
   # Match (인증서 저장소) 설정
