@@ -46,31 +46,26 @@ export default StyleSheet.create({
   buttonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
-    alignSelf: 'stretch',
-    width: '100%',
+    paddingHorizontal: 20,
   },
   button: {
-    width: 60,
-    height: 90,
     justifyContent: 'center',
     alignContent: 'center',
   },
   buttonText: {
     ...FONTS.fs_14_semibold,
     color: COLORS.grayscale_0,
-    textAlign: 'center',
+    position: 'absolute',
+    alignSelf: 'center',
   },
 
   //숙박
   guesthouseContainer: {
     flexDirection: 'column',
     paddingVertical: 12,
-    paddingLeft: 16,
+    paddingHorizontal: 16,
     borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
-    alignItems: 'flex-start',
-    maxHeight: 333,
   },
   titleSection: {
     flexDirection: 'row',
@@ -80,6 +75,7 @@ export default StyleSheet.create({
   },
   seeMoreButton: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   seeMoreText: {
     ...FONTS.fs_14_semibold,
@@ -95,9 +91,12 @@ export default StyleSheet.create({
     color: COLORS.grayscale_800,
     ...FONTS.fs_16_semibold,
   },
+  // 게하 카드
+  guesthouseCardContainer: {
+    gap: 20,
+  },
   guesthouseCard: {
     width: 249,
-    marginRight: 20,
   },
   guesthouseImage: {
     width: '100%',
@@ -105,14 +104,40 @@ export default StyleSheet.create({
     borderRadius: 12,
     marginBottom: 8,
   },
+  // 게하 별점
+  ratingBox: {
+    flexDirection: 'row',
+    position: 'absolute',
+    backgroundColor: COLORS.grayscale_800,
+    top: 10,
+    left: 10,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  ratingText: {
+    color: COLORS.grayscale_0,
+    marginLeft: 4,
+  },
+  // 게하 카드 내용
   guesthouseTitle: {
     marginTop: 4,
     marginRight: 8,
   },
+  guesthousePrice: {
+    flexDirection: 'row',
+  },
   guesthousePriceName: {
     marginTop: 4,
     marginRight: 4,
-    color: COLORS.scarlet,
+    color: COLORS.semantic_red,
+  },
+  // 해시태그
+  hashTagContainer: {
+    flexDirection: 'row',
+    gap: 4,
   },
   hashtagButton: {
     backgroundColor: COLORS.grayscale_100,
