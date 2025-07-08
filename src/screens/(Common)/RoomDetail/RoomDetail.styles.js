@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_700,
   },
   button: {
-    
+    paddingHorizontal: 20,
   },
 });
 

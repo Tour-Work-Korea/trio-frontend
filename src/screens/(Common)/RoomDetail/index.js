@@ -13,7 +13,7 @@ import LeftArrow from '@assets/images/chevron_left_white.svg';
 
 const RoomDetail = ({ route }) => {
   const navigation = useNavigation();
-  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount } = route.params;
+  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImage } = route.params;
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
@@ -30,10 +30,16 @@ const RoomDetail = ({ route }) => {
     <View style={styles.container}>
         <ScrollView>
             <View style={styles.imageContainer}>
-                <Image
-                source={require('@assets/images/exphoto.jpeg')}
-                style={styles.image}
-                />
+                {roomImage ? (
+                    <Image source={{ uri: roomImage }} style={styles.image} />
+                ) : (
+                    <View
+                    style={[
+                        styles.image,
+                        { backgroundColor: COLORS.grayscale_200 },
+                    ]}
+                    />
+                )}
                 <TouchableOpacity 
                     style={styles.backButton} 
                     onPress={() => navigation.goBack()}
@@ -72,7 +78,6 @@ const RoomDetail = ({ route }) => {
         <View style={styles.button}>
             <ButtonScarlet
                 title="숙박 예약"
-                marginHorizontal="20"
                 onPress={() =>
                     navigation.navigate('GuesthouseReservation', {
                     roomId,
@@ -84,7 +89,7 @@ const RoomDetail = ({ route }) => {
                     guestCount,
                     })
                 }
-                />
+            />
         </View>
     </View>
   );

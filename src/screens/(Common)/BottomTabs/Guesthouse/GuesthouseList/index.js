@@ -28,6 +28,7 @@ import { guesthouseTags } from '@data/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
+import { COLORS } from '@constants/colors';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -200,15 +201,15 @@ const GuesthouseList = () => {
     >
       <View style={styles.card}>
         <View style={styles.imgRatingContainer}>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={styles.image}
-          />
-          {/* 실제 이미지 데이터 사용할 때 */}
-          {/* <Image
-            source={{ uri: item.thumbnailImgUrl }}
-            style={styles.image}
-          /> */}
+          {/* 이미지 데이터 없을 때 */}
+          {item.thumbnailImgUrl ? (
+            <Image
+              source={{ uri: item.thumbnailImgUrl }}
+              style={styles.image}
+            />
+          ) : (
+            <View style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]} />
+          )}
           <View style={styles.rating}>
             <Star width={14} height={14} />
             <Text style={[FONTS.fs_12_medium, styles.ratingText]}>

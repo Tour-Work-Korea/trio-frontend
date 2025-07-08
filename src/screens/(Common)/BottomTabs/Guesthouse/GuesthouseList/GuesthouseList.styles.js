@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 20,
+    marginBottom: 200,
   },
   guesthouseListHeader: {
     flexDirection: 'row',

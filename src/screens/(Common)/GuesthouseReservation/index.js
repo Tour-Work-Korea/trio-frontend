@@ -8,6 +8,7 @@ dayjs.locale('ko');
 import Header from '@components/Header';
 import styles from './GuesthouseReservation.styles';
 import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import useUserStore from '@stores/userStore';
@@ -33,6 +34,7 @@ const GuesthouseReservation = ({ route }) => {
   });
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
+  const [requestMessage, setRequestMessage] = useState('');
 
   const formatTime = (timeStr) => {
       if (!timeStr) return '시간 없음';
@@ -72,7 +74,7 @@ const GuesthouseReservation = ({ route }) => {
         checkOut: checkOut,
         guestCount: guestCount,
         amount: roomPrice,
-        request: '요청사항',
+        request: requestMessage,
       });
       const reservationId = res.data;
 
@@ -94,6 +96,7 @@ const GuesthouseReservation = ({ route }) => {
         <Header title="예약" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
+          {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
               <View style={styles.dateBoxCheckIn}>
                   <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
@@ -109,16 +112,38 @@ const GuesthouseReservation = ({ route }) => {
 
           <View style={styles.devide}/>
 
+          {/* 예약자 정보 */}
           <View style={styles.section}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
-              <View style={styles.row}>
+              <View style={styles.userInfo}>
+                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>이름</Text>
                   <Text style={FONTS.fs_14_medium}>{name}</Text>
+              </View>
+              <View style={styles.userInfo}>
+                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
                   <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
               </View>
           </View>
 
           <View style={styles.devide}/>
 
+          {/* 요청사항 */}
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>요청 사항 (선택)</Text>
+            <View style={styles.inputWrapper}>
+              <TextInput
+                style={[FONTS.fs_14_regular, styles.requestInput]}
+                placeholder="요청사항을 호스트께 전달해보세요"
+                placeholderTextColor={COLORS.grayscale_400}
+                value={requestMessage}
+                onChangeText={setRequestMessage}
+              />
+            </View>
+          </View>
+
+          <View style={styles.devide}/>
+
+          {/* 약관 동의 */}
           <View style={styles.agreeRowContainer}>
               <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
               {agreeAll ? 
@@ -177,7 +202,6 @@ const GuesthouseReservation = ({ route }) => {
         <View style={styles.button}>
             <ButtonScarlet
             title="요청하기"
-            marginHorizontal="20"
             onPress={handleReservation}
             />
         </View>

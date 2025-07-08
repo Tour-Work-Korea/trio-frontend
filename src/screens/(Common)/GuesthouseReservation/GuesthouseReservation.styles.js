@@ -64,6 +64,24 @@ const styles = StyleSheet.create({
     gap: 40,
     color: COLORS.grayscale_800,
   },
+  userInfo: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  userInfoTitle: {
+    color: COLORS.grayscale_600,
+  },
+
+  // 요청 사항
+  inputWrapper: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    padding: 12,
+  },
+  requestInput: {
+
+  },
 
   // 약관 동의
   agreeRowContainer: {
@@ -115,6 +133,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
   button: {
+    marginHorizontal: 20,
   },
 });
 
