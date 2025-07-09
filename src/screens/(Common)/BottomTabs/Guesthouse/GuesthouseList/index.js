@@ -20,6 +20,7 @@ import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import SortIcon from '@assets/images/sort_toggle_gray.svg';
+import MapIcon from '@assets/images/map_black.svg';
 
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
@@ -28,6 +29,7 @@ import { guesthouseTags } from '@data/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
+import { COLORS } from '@constants/colors';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -200,15 +202,15 @@ const GuesthouseList = () => {
     >
       <View style={styles.card}>
         <View style={styles.imgRatingContainer}>
-          <Image
-            source={require('@assets/images/exphoto.jpeg')}
-            style={styles.image}
-          />
-          {/* 실제 이미지 데이터 사용할 때 */}
-          {/* <Image
-            source={{ uri: item.thumbnailImgUrl }}
-            style={styles.image}
-          /> */}
+          {/* 이미지 데이터 없을 때 */}
+          {item.thumbnailImgUrl ? (
+            <Image
+              source={{ uri: item.thumbnailImgUrl }}
+              style={styles.image}
+            />
+          ) : (
+            <View style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]} />
+          )}
           <View style={styles.rating}>
             <Star width={14} height={14} />
             <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
@@ -340,6 +342,17 @@ const GuesthouseList = () => {
           onEndReachedThreshold={0.7}
           ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
         />
+      </View>
+
+      {/* 지도 버튼 */}
+      <View style={styles.mapButtonContainer}>
+        <TouchableOpacity
+          style={styles.mapButton}
+          onPress={() => navigation.navigate('GuesthouseMap')}
+        >
+          <MapIcon width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
+        </TouchableOpacity>
       </View>
       
       {/* 인원, 날짜 선택 모달 */}

@@ -6,6 +6,7 @@ import {FONTS} from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 
 import Star from '@assets/images/star_white.svg';
+import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
@@ -138,7 +139,14 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          !loading && <Text style={{ textAlign: 'center', color: '#888' }}>아직 등록된 리뷰가 없습니다.</Text>
+          !loading && 
+          <View style={styles.emptyReviewContainer}>
+            <NoReviewIcon />
+            <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
+              아직 등록된 리뷰가 없어요.{'\n'}
+              당신의 첫 리뷰를 남겨주세요!
+            </Text>
+          </View>
         }
       />
     </View>
