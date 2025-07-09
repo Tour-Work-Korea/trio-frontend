@@ -19,6 +19,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: 16,
+    backgroundColor: COLORS.modal_background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
 
   // 방이름 ~ 날짜

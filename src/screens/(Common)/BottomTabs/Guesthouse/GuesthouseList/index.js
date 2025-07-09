@@ -240,7 +240,7 @@ const GuesthouseList = () => {
           <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
           <View style={styles.bottomRow}>
             <Text style={[FONTS.fs_18_semibold, styles.price]}>
-              {item.minPrice.toLocaleString()}원
+              {item.minPrice.toLocaleString()}원 ~
             </Text>
           </View>
         </View>

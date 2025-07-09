@@ -14,6 +14,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: 16,
+    backgroundColor: COLORS.modal_background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   tagContainer: {
     position: 'absolute',
@@ -128,10 +134,16 @@ const styles = StyleSheet.create({
   },
   iconWrapper: {
     alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 52,
+  },
+  iconServiceWrapper: {
+    height: 24,
+    width: 24,
+    alignItems: 'center',
     justifyContent: 'center',
   },
-  iconServiceText: {
-    marginTop: 12,
+  iconServiceText: {  
   },
   readMoreText: {
     color: COLORS.grayscale_400,
@@ -141,7 +153,7 @@ const styles = StyleSheet.create({
   devide: {
     backgroundColor: COLORS.grayscale_300,
     width: '100%',
-    height: 1,
+    height: 0.4,
     marginBottom: 28,
   },
 

@@ -183,7 +183,9 @@ const GuesthouseDetail = ({route}) => {
           <View style={styles.iconServiceRow}>
             {serviceIcons.map(({ icon: Icon, label, width, height }, i) => (
               <View key={i} style={styles.iconWrapper}>
-                <Icon width={width} height={height} />
+                <View style={styles.iconServiceWrapper}>
+                  <Icon width={width} height={height} />
+                </View>
                 <Text style={[FONTS.fs_12_medium, styles.iconServiceText]}>
                   {label}
                 </Text>
