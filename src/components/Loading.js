@@ -1,21 +1,25 @@
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React, {useEffect, useState} from 'react';
-import {Image, LogBox, StyleSheet} from 'react-native';
-import {Text} from 'react-native-gesture-handler';
-import {View} from 'react-native-reanimated/lib/typescript/Animated';
+import {Image, StyleSheet} from 'react-native';
+import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import LoadingImg1 from '@assets/images/loading_1.svg';
+import LoadingImg2 from '@assets/images/loading_2.svg';
+import LoadingImg3 from '@assets/images/loading_3.svg';
+import LoadingImg4 from '@assets/images/loading_4.svg';
+import LoadingImg5 from '@assets/images/loading_5.svg';
 
 const loadingImages = [
-  require('@assets/images/loading_1.svg'),
-  require('@assets/images/loading_2.svg'),
-  require('@assets/images/loading_4.svg'),
-  require('@assets/images/loading_2.svg'),
-  require('@assets/images/loading_3.svg'),
-  require('@assets/images/loading_5.svg'),
-  require('@assets/images/loading_3.svg'),
-  require('@assets/images/loading_4.svg'),
-  require('@assets/images/loading_1.svg'),
+  LoadingImg1,
+  LoadingImg2,
+  LoadingImg4,
+  LoadingImg2,
+  LoadingImg3,
+  LoadingImg5,
+  LoadingImg3,
+  LoadingImg4,
+  LoadingImg1,
 ];
 
 export default function Loading({title}) {
@@ -25,17 +29,14 @@ export default function Loading({title}) {
     let count = 0;
     let countInterval = setInterval(() => {
       setImageNumber(count++ % 9);
-    }, 1000 / 20);
+    }, 500);
     return () => clearInterval(countInterval);
   }, []);
+  const ImageComponent = loadingImages[imageNumber];
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.loadingBox}>
-        <Image
-          source={loadingImages[imageNumber]}
-          key={imageNumber}
-          width={108}
-        />
+        <ImageComponent width={108} />
         <Text style={styles.text}>{title}</Text>
       </View>
     </SafeAreaView>
