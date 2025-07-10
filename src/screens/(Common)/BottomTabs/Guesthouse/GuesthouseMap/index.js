@@ -1,17 +1,20 @@
-import React, { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View, PermissionsAndroid, Platform } from 'react-native';
-import { WebView } from 'react-native-webview';
-import Config from 'react-native-config';
+import React, { useEffect, useState } from 'react';
+import { View, Text, StyleSheet, PermissionsAndroid, Platform, TouchableOpacity } from 'react-native';
+import MapView, { Marker } from 'react-native-maps';
 import Geolocation from '@react-native-community/geolocation';
+import { useNavigation } from '@react-navigation/native'; 
 
-const kakaoJsKey = Config.KAKAO_JS_KEY;
+import { COLORS } from '@constants/colors';
+import { FONTS } from '@constants/fonts';
+
+import LeftChevron from '@assets/images/chevron_left_black.svg';
 
 const GuesthouseMap = () => {
-  const webViewRef = useRef(null);
-  const [coords, setCoords] = useState(null);
+  const navigation = useNavigation();
+  const [region, setRegion] = useState(null);
 
   useEffect(() => {
-    const requestPermission = async () => {
+    const requestLocation = async () => {
       if (Platform.OS === 'android') {
         const granted = await PermissionsAndroid.request(
           PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
@@ -22,109 +25,51 @@ const GuesthouseMap = () => {
         }
       }
       Geolocation.getCurrentPosition(
-        position => {
-          console.log('RN 위치', position.coords);
-          setCoords({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
+        (pos) => {
+          console.log('현재 위치', pos.coords);
+          setRegion({
+            latitude: pos.coords.latitude,
+            longitude: pos.coords.longitude,
+            latitudeDelta: 0.01,
+            longitudeDelta: 0.01
           });
         },
-        error => {
-          console.log('RN 위치 에러', error);
+        (err) => {
+          console.log('위치 에러', err);
         },
         { enableHighAccuracy: true, timeout: 15000 }
       );
     };
-    requestPermission();
+    requestLocation();
   }, []);
 
-  const rawHtml = `
-    <!DOCTYPE html>
-    <html>
-    <head>
-      <meta charset="utf-8" />
-      <title>Kakao Map with RN</title>
-      <style>
-        html, body, #map {
-          margin: 0;
-          padding: 0;
-          width: 100%;
-          height: 100%;
-        }
-        .price-overlay {
-          background-color: #FF5A5F;
-          color: white;
-          padding: 5px 10px;
-          border-radius: 20px;
-          font-weight: bold;
-          font-size: 14px;
-          white-space: nowrap;
-          text-align: center;
-        }
-      </style>
-      <script src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=__KAKAO_JS_KEY__"></script>
-    </head>
-    <body>
-      <div id="map"></div>
-      <script>
-        function handleMessage(e) {
-          try {
-            var data = JSON.parse(e.data);
-            var lat = data.lat;
-            var lng = data.lng;
-            console.log("WebView 좌표 수신", lat, lng);
-
-            var container = document.getElementById('map');
-            var options = {
-              center: new kakao.maps.LatLng(lat, lng),
-              level: 3
-            };
-
-            var map = new kakao.maps.Map(container, options);
-
-            var content = '<div class="price-overlay">₩10,000</div>';
-            var position = new kakao.maps.LatLng(lat, lng);
-
-            var customOverlay = new kakao.maps.CustomOverlay({
-              position: position,
-              content: content,
-              yAnchor: 1
-            });
-            customOverlay.setMap(map);
-          } catch (error) {
-            console.log("handleMessage error", error);
-          }
-        }
-
-        document.addEventListener("message", handleMessage);
-        window.addEventListener("message", handleMessage);
-      </script>
-    </body>
-    </html>
-  `;
-
-  const html = rawHtml.replace('__KAKAO_JS_KEY__', kakaoJsKey);
-
-  // RN → WebView 좌표 전달
-  useEffect(() => {
-    if (coords && webViewRef.current) {
-      console.log('좌표 WebView에 전달', coords);
-      webViewRef.current.postMessage(JSON.stringify(coords));
-    }
-  }, [coords]);
+  if (!region) return <View style={styles.loading}><Text>위치 로딩중...</Text></View>;
 
   return (
-    <View style={styles.container}>
-      <WebView
-        ref={webViewRef}
-        originWhitelist={['*']}
-        source={{ html }}
-        javaScriptEnabled
-        style={styles.webview}
-        onMessage={(e) => {
-          console.log('[WebView log]', e.nativeEvent.data);
-        }}
-      />
+    <View style={{ flex: 1 }}>
+      <MapView
+        style={styles.map}
+        region={region}
+        showsUserLocation
+      >
+        <Marker coordinate={region}>
+          <View style={styles.priceMarker}>
+            <Text style={[FONTS.fs_14_medium, styles.priceText]}>₩10,000</Text>
+          </View>
+        </Marker>
+      </MapView>
+
+      <View style={styles.mapButtonContainer}>
+        <TouchableOpacity
+          style={styles.mapButton}
+          onPress={() => {
+          navigation.goBack();
+          }}
+        >
+          <LeftChevron width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>카테고리로 돌아가기</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };
@@ -132,10 +77,48 @@ const GuesthouseMap = () => {
 export default GuesthouseMap;
 
 const styles = StyleSheet.create({
-  container: {
+  map: {
     flex: 1,
   },
-  webview: {
+  loading: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  priceMarker: {
+    backgroundColor: COLORS.primary_orange,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  priceText: {
+    color: COLORS.grayscale_0,
+  },
+
+  // 돌아가기 버튼
+  mapButtonContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: COLORS.grayscale_900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mapButtonText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
   },
 });

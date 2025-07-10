@@ -77,6 +77,18 @@ const styles = StyleSheet.create({
         color: COLORS.grayscale_800,
         marginTop: 4,
     },
+
+    // 리뷰 없음 화면
+    emptyReviewContainer: {
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: 48,
+        paddingHorizontal: 88,
+    },
+    emptyText: {
+        textAlign: 'center',
+        marginTop: 12,
+    },
 });
 
 export default styles;

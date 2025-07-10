@@ -9,6 +9,7 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -33,18 +34,18 @@ import LoungeIcon from '@assets/images/shared_lounge_black.svg';
 import ParkingIcon from '@assets/images/free_parking_black.svg';
 
 const serviceIcons = [
-  {icon: WifiIcon, label: '무선인터넷'},
-  {icon: PetFriendlyIcon, label: '반려견동반'},
-  {icon: LuggageIcon, label: '짐보관'},
-  {icon: LoungeIcon, label: '공용라운지'},
-  {icon: ParkingIcon, label: '무료주차'},
+  { icon: WifiIcon, label: '무선인터넷', width: 26, height: 26 },
+  { icon: PetFriendlyIcon, label: '반려견동반', width: 24, height: 24 },
+  { icon: LuggageIcon, label: '짐보관', width: 24, height: 24 },
+  { icon: LoungeIcon, label: '공용라운지', width: 28, height: 28 },
+  { icon: ParkingIcon, label: '무료주차', width: 23, height: 23 },
 ];
 
 const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const {id} = route.params;
+  const { id, checkIn, checkOut, guestCount } = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -59,9 +60,9 @@ const GuesthouseDetail = ({route}) => {
       try {
         const response = await userGuesthouseApi.getGuesthouseDetail({
           guesthouseId: id,
-          checkIn: '2025-05-20',      // 임시값
-          checkOut: '2025-05-21',     // 임시값
-          guestCount: 2,              // 임시값
+          checkIn,
+          checkOut,
+          guestCount,
         });
         setDetail(response.data);
         setIsFavorite(response.data.isFavorite ?? false);
@@ -95,24 +96,40 @@ const GuesthouseDetail = ({route}) => {
     );
   }
 
+  const thumbnailImage = detail.guesthouseImages?.find(img => img.isThumbnail)?.guesthouseImageUrl;
+
   return (
     <ScrollView style={styles.container}>
       <View>
-        <Image
-          source={require('@assets/images/exphoto.jpeg')}
-          style={styles.mainImage}
-        />
-        {/* 실제 이미지 데이터 사용할 때 */}
-        {/* <Image
-          source={{ uri: detail.guesthouseImageUrl }}
-          style={styles.mainImage}
-        /> */}
+        {/* 이미지 처리 */}
+        {thumbnailImage ? (
+          <Image
+            source={{ uri: thumbnailImage }}
+            style={styles.mainImage}
+          />
+        ) : (
+          <View style={[styles.mainImage, { backgroundColor: COLORS.grayscale_200 }]} />
+        )}
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => navigation.goBack()}
         >
           <LeftArrow width={28} height={28}/>
         </TouchableOpacity>
+        <View style={styles.tagContainer}>
+          {detail.hashtags?.map((tag, index) => (
+            <View key={tag.id || index} style={styles.tagBox}>
+              <Text style={[FONTS.fs_12_medium, styles.tagText]}>
+                {tag.hashtag}
+              </Text>
+            </View>
+          ))}
+          <View style={styles.tagBox}>
+            <Text style={[FONTS.fs_12_medium, styles.tagText]}>
+              #
+            </Text>
+          </View>
+        </View>
       </View>
 
     <View style={styles.contentWrapper}>
@@ -164,9 +181,9 @@ const GuesthouseDetail = ({route}) => {
 
         <View style={styles.iconServiceContainer}>
           <View style={styles.iconServiceRow}>
-            {serviceIcons.map(({icon: Icon, label}, i) => (
+            {serviceIcons.map(({ icon: Icon, label, width, height }, i) => (
               <View key={i} style={styles.iconWrapper}>
-                <Icon width={24} height={24} />
+                <Icon width={width} height={height} />
                 <Text style={[FONTS.fs_12_medium, styles.iconServiceText]}>
                   {label}
                 </Text>
@@ -183,11 +200,15 @@ const GuesthouseDetail = ({route}) => {
         <View style={styles.displayDateGuestRow}>
           <View style={styles.dateInfoContainer}>
             <CalendarIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>3.28 금 - 3.29 토</Text>
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+              {dayjs(checkIn).format('M.D ddd')} - {dayjs(checkOut).format('M.D ddd')}
+            </Text>
           </View>
           <View style={styles.guestInfoContainer}>
             <PersonIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>인원 1, 객실 1</Text>
+            <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+              인원 {guestCount}
+            </Text>
           </View>
         </View>
       </View>
@@ -223,12 +244,36 @@ const GuesthouseDetail = ({route}) => {
                 roomPrice: room.roomPrice,
                 roomDesc: room.roomDesc,
                 guesthouseName: detail.guesthouseName,
-                checkIn: detail.checkIn,
-                checkOut: detail.checkOut,
+                checkIn: `${checkIn}T${detail.checkIn}`,
+                checkOut: `${checkOut}T${detail.checkOut}`,
+                guestCount: guestCount,
+                roomImage: (
+                  room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
+                  room.roomImages?.[0]?.roomImageUrl ||
+                  null
+                ),
               })
             }>
             <View style={styles.roomCard}>
-              <Image source={require('@assets/images/exphoto.jpeg')} style={styles.roomImage} />
+              {(() => {
+                const thumbnailImage =
+                  room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
+                  room.roomImages?.[0]?.roomImageUrl;
+
+                return thumbnailImage ? (
+                  <Image
+                    source={{ uri: thumbnailImage }}
+                    style={styles.roomImage}
+                  />
+                ) : (
+                  <View
+                    style={[
+                      styles.roomImage,
+                      { backgroundColor: COLORS.grayscale_0 },
+                    ]}
+                  />
+                );
+              })()}
               <View style={styles.roomInfo}>
                 <View style={styles.roomNameDescContainer}>
                   <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
@@ -315,11 +360,13 @@ const GuesthouseDetail = ({route}) => {
         </View>
       )}
     </View>
-      
-      <ServiceInfoModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-      />
+    
+    {/* 편의시설/서비스 모달 */}
+    <ServiceInfoModal
+      visible={modalVisible}
+      onClose={() => setModalVisible(false)}
+      selectedAmenities={detail.amenities}
+    />
     </ScrollView>
   );
 };

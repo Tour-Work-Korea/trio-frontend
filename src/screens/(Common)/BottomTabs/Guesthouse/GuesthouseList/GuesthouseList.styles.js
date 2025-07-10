@@ -6,11 +6,18 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
+  header: {
+    justifyContent: 'center',
+    marginTop: 13,
+  },
   headerText: {
     color: COLORS.grayscale_800,
     lineHeight: 28,
     textAlign: 'center',
-    marginTop: 13,
+  },
+  backButton: {
+    position: 'absolute',
+    left: 20,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -31,50 +38,94 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_600,
     marginLeft: 8,
   },
-  filterIconContainer: {
-    backgroundColor: COLORS.grayscale_100,
-    padding: 4,
-    borderRadius: '100%',
-  },
+  
+  // 인원, 날짜
   selectRow: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     marginBottom: 12,
     marginHorizontal: 20,
-    gap: 8,
+    paddingHorizontal: 12,
+    
   },
+  // 날짜
   dateContainer: {
     flexDirection: 'row',
-    height: 40,
-    backgroundColor: COLORS.primary_orange,
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    borderRadius: 12,
   },
   dateText: {
     marginLeft: 8,
-    color: COLORS.grayscale_0,
+    color: COLORS.grayscale_600,
   },
+  // 인원
   personRoomContainer: {
     flexDirection: 'row',
-    height: 40,
-    backgroundColor: COLORS.primary_orange,
     alignItems: 'center',
-    justifyContent: 'center',
-    flex: 1,
-    borderRadius: 12,
   },
   personText: {
     marginLeft: 8,
-    color: COLORS.grayscale_0,
+    color: COLORS.grayscale_600,
   },
 
   // 게하 리스트 디자인
-  listContent: {
+  guesthouseListContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 20,
+    marginBottom: 200,
+  },
+  guesthouseListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    width: '75%',
+  },
+  // 필터 버튼
+  filterButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  filterText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
+  },
+  // 필터 내용
+  selectFilterContainer: {
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  selectFilter: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  selectFilterText: {
+    color: COLORS.primary_blue,
+  },
+  // 정렬 버튼
+  sortContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    padding: 10,
+    
+  },
+  sortText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
+  },
+  // 게하 리스트
+  listContent: {
     gap: 12,
   },
   card: {
@@ -160,6 +211,34 @@ const styles = StyleSheet.create({
   printGuestText: {
     color: COLORS.grayscale_500,
   },
+
+  // 지도 버튼
+  mapButtonContainer: {
+    position: 'absolute',
+    bottom: 24,
+    left: 0,
+    right: 0,
+    alignItems: 'center',
+    zIndex: 10,
+  },
+  mapButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
+    padding: 10,
+    borderRadius: 12,
+    shadowColor: COLORS.grayscale_900,
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 2,
+    elevation: 2,
+  },
+  mapButtonText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
+  },
+
 });
 
 export default styles;

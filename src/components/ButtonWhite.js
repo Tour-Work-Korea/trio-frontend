@@ -35,7 +35,9 @@ const ButtonWhite = ({
   return (
     <TouchableOpacity
       style={[styles.button, (backgroundColor = {backgroundColor}), style]}
-      onPress={handlePress}>
+      onPress={handlePress}
+      disabled={disabled}
+    >
       {Icon ? <Icon width={24} height={24} /> : null}
       <Text
         style={[

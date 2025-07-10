@@ -15,6 +15,22 @@ const styles = StyleSheet.create({
     left: 20,
     top: 16,
   },
+  tagContainer: {
+    position: 'absolute',
+    flexDirection: 'row',
+    right: 20,
+    bottom: 20,
+    gap: 4,
+  },
+  tagBox: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  tagText: {
+    color: COLORS.primary_blue,
+  },
 
   // 이미지 제외 전체 콘텐츠
   contentWrapper: {
@@ -104,7 +120,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
-    paddingVertical: 8,
+    paddingBottom: 8,
+    paddingTop: 16,
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
     marginBottom: 4,

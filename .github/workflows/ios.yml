@@ -3,7 +3,7 @@ name: iOS CI/CD to TestFlight
 on:
   push:
     branches:
-      - develop
+      - main
 
 env:
   # Match (인증서 저장소) 설정
@@ -17,6 +17,16 @@ env:
   APP_STORE_CONNECT_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
   APP_STORE_CONNECT_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
   APP_STORE_CONNECT_PRIVATE_KEY:  ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
+
+  # env 업데이트 될때마다 여기에 추가
+  PORTONE_STORE_ID:       ${{ secrets.PORTONE_STORE_ID }}
+  PORTONE_CHANNEL_KEY:    ${{ secrets.PORTONE_CHANNEL_KEY }}
+  PORTONE_REDIRECT_URL:   ${{ secrets.PORTONE_REDIRECT_URL }}
+  PORTONE_NOTICE_URL:     ${{ secrets.PORTONE_NOTICE_URL }}
+
+  KAKAO_JS_KEY:           ${{ secrets.KAKAO_JS_KEY }}
+  KAKAO_RESTAPI_KEY:      ${{ secrets.KAKAO_RESTAPI_KEY }}
+  KAKAO_NATIVEAPP_KEY:    ${{ secrets.KAKAO_NATIVEAPP_KEY }}
 
 jobs:
   build:
