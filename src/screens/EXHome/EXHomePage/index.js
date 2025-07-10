@@ -8,7 +8,7 @@ import Header from '@components/Header'; //헤더 컴포넌트 불러오기
 import {FONTS} from '@constants/fonts'; // 폰트 크기, 볼드 지정해놓은거 불러오기
 import {tryLogout} from '@utils/auth/login';
 
-const EXHome = () => {
+const EXHomePage = () => {
   return (
     <SafeAreaView style={styles.container}>
       {/* 헤더 불러오기 2가지 */}
@@ -38,4 +38,4 @@ const EXHome = () => {
   );
 };
 
-export default EXHome;
+export default EXHomePage;
