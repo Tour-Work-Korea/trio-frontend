@@ -118,20 +118,24 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_700,
   },
   
-  // 어메너티
+  // 객실 서비스
   iconServiceContainer: {
     marginBottom: 28,
   },
-  iconServiceRow: {
+  iconServiceRowWithMore: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 8,
     paddingTop: 16,
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
-    marginBottom: 4,
   },
+  // iconServiceRow: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  // },
   iconWrapper: {
     alignItems: 'center',
     justifyContent: 'space-between',
@@ -143,11 +147,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconServiceText: {  
+    iconServiceText: {  
+  },
+  readMoreButton: {
+    alignItems: 'center',
+    marginLeft: 8,
   },
   readMoreText: {
     color: COLORS.grayscale_400,
-    textAlign: 'right',
   },
 
   devide: {

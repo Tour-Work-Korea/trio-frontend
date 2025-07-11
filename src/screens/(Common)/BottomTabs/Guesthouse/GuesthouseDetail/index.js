@@ -5,8 +5,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  FlatList,
-  Alert,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -29,17 +27,20 @@ import CalendarIcon from '@assets/images/calendar_white.svg';
 import PersonIcon from '@assets/images/person20_white.svg';
 
 import WifiIcon from '@assets/images/wifi_black.svg';
+import UnWifiIcon from '@assets/images/wifi_gray.svg';
 import PetFriendlyIcon from '@assets/images/pet_friendly_black.svg';
+import UnPetFriendlyIcon from '@assets/images/pet_friendly_gray.svg';
 import LuggageIcon from '@assets/images/luggage_storage_black.svg';
+import UnLuggageIcon from '@assets/images/luggage_storage_gray.svg';
 import LoungeIcon from '@assets/images/shared_lounge_black.svg';
-import ParkingIcon from '@assets/images/free_parking_black.svg';
+import UnLoungeIcon from '@assets/images/shared_lounge_gray.svg';
+import RightChevron from '@assets/images/chevron_right_gray.svg';
 
 const serviceIcons = [
-  { icon: WifiIcon, label: '무선인터넷', width: 26, height: 26 },
-  { icon: PetFriendlyIcon, label: '반려견동반', width: 24, height: 24 },
-  { icon: LuggageIcon, label: '짐보관', width: 24, height: 24 },
-  { icon: LoungeIcon, label: '공용라운지', width: 28, height: 28 },
-  { icon: ParkingIcon, label: '무료주차', width: 23, height: 23 },
+  { icon: WifiIcon, label: '무선인터넷', width: 26, height: 26, iconName: 'WIFI' },
+  { icon: PetFriendlyIcon, label: '반려견동반', width: 24, height: 24, iconName: 'PET_FRIENDLY' },
+  { icon: LuggageIcon, label: '짐보관', width: 24, height: 24, iconName: 'BAGGAGE_STORAGE' },
+  { icon: LoungeIcon, label: '공용라운지', width: 28, height: 28, iconName: 'LOUNGE' },
 ];
 
 const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
@@ -104,18 +105,17 @@ const GuesthouseDetail = ({route}) => {
     const deepLinkUrl = guesthouseDetailDeeplink(id);
     copyDeeplinkToClipboard(deepLinkUrl);
 
-    console.log('[딥링크 복사됨]', deepLinkUrl);
-
     Toast.show({
       type: 'success',
       text1: '복사되었어요!',
       position: 'top',
       visibilityTime: 2000,
     });
-
-    console.log('[Toast.show 실행됨]');
   };
 
+  // 객실 서비스
+  const amenityNames = detail.amenities.map(a => a.amenityName);
+  
   return (
     <ScrollView style={styles.container}>
       <View>
@@ -193,22 +193,46 @@ const GuesthouseDetail = ({route}) => {
           </Text>
         </View>
 
+        {/* 객실 서비스 */}
         <View style={styles.iconServiceContainer}>
-          <View style={styles.iconServiceRow}>
-            {serviceIcons.map(({ icon: Icon, label, width, height }, i) => (
-              <View key={i} style={styles.iconWrapper}>
-                <View style={styles.iconServiceWrapper}>
-                  <Icon width={width} height={height} />
+          <View style={styles.iconServiceRowWithMore}>
+            {serviceIcons.map(({ icon: Icon, label, width, height, iconName }, i) => {
+              const isEnabled = detail.amenities.map(a => a.amenityName).includes(iconName);
+
+              const GrayscaleIcon = {
+                WIFI: UnWifiIcon,
+                PET_FRIENDLY: UnPetFriendlyIcon,
+                BAGGAGE_STORAGE: UnLuggageIcon,
+                LOUNGE: UnLoungeIcon,
+              }[iconName];
+
+              const DisplayIcon = isEnabled ? Icon : GrayscaleIcon;
+
+              return (
+                <View key={i} style={styles.iconWrapper}>
+                  <View style={styles.iconServiceWrapper}>
+                    <DisplayIcon width={width} height={height} />
+                  </View>
+                  <Text
+                    style={[
+                      FONTS.fs_12_medium,
+                      styles.iconServiceText,
+                      !isEnabled && { color: COLORS.grayscale_400 },
+                    ]}
+                  >
+                    {label}
+                  </Text>
                 </View>
-                <Text style={[FONTS.fs_12_medium, styles.iconServiceText]}>
-                  {label}
-                </Text>
+              );
+            })}
+
+            <TouchableOpacity onPress={() => setModalVisible(true)} style={styles.iconWrapper}>
+              <View style={styles.iconServiceWrapper}>
+                <RightChevron width={24} height={24} />
               </View>
-            ))}
+              <Text style={[FONTS.fs_12_medium, styles.readMoreText]}>더보기</Text>
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
-            <Text style={[FONTS.fs_12_medium, styles.readMoreText]}>더보기</Text>
-          </TouchableOpacity>
         </View>
 
         <View style={styles.devide}/>

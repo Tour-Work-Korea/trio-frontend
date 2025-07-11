@@ -23,10 +23,10 @@ import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import useUserStore from '@stores/userStore';
+import TermsModal from '@components/modals/TermsModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
-import DownArrow from '@assets/images/chevron_down_gray.svg';
 
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = (phone) => {
@@ -85,6 +85,24 @@ const GuesthouseReservation = ({ route }) => {
       setAgreeAll(allChecked);
     }
   }, [agreements]);
+
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState(null);
+
+  const openTermModal = (key) => {
+    setSelectedTerm(key);
+    setModalVisible(true);
+  };
+
+  const handleAgreeModal = () => {
+    if (selectedTerm) {
+      setAgreements(prev => ({
+        ...prev,
+        [selectedTerm]: true,
+      }));
+    }
+    setModalVisible(false);
+  };
 
   // 예약 호출
   const handleReservation = async () => { 
@@ -188,8 +206,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('terms')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -202,8 +220,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -216,8 +234,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -232,6 +250,32 @@ const GuesthouseReservation = ({ route }) => {
               disabled={!isAllRequiredAgreed}
             />
         </View>
+
+        {/* 약관동의 모달 */}
+        <TermsModal
+          visible={isModalVisible}
+          onClose={() => setModalVisible(false)}
+          title={
+            selectedTerm === 'terms'
+              ? '숙소 취소/환불 규정'
+              : selectedTerm === 'personalInfo'
+              ? '개인정보 수집 및 이용'
+              : selectedTerm === 'thirdParty'
+              ? '개인정보 제3자 제공'
+              : ''
+          }
+          content={
+            selectedTerm === 'terms'
+              ? '취소 환불 규정 내용 ...'
+              : selectedTerm === 'personalInfo'
+              ? '개인정보 수집 이용 동의 내용 ...'
+              : selectedTerm === 'thirdParty'
+              ? '개인정보 제3자 제공 동의 내용 ...'
+              : ''
+          }
+          onAgree={handleAgreeModal}
+        />
+
     </View>
     </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
