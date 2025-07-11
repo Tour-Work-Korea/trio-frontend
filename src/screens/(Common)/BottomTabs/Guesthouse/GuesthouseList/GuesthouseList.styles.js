@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 20,
-    marginBottom: 200,
+    flex: 1,
   },
   guesthouseListHeader: {
     flexDirection: 'row',
@@ -185,6 +185,9 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   price: {
+  },
+  emptyPrice: {
+    color: COLORS.grayscale_300,
   },
   heartIcon: {
     position: 'absolute',

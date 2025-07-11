@@ -273,8 +273,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     height: height * 0.9,
-    borderTopWidth: 1,
-    borderTopColor: COLORS.grayscale_600,
   },
 
   // 제목, 닫기 버튼

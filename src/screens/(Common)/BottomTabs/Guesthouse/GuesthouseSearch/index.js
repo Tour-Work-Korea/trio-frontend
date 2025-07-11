@@ -4,6 +4,8 @@ import {
   Text,
   TouchableOpacity,
   TextInput,
+  Keyboard, 
+  TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native'; 
 import dayjs from 'dayjs';
@@ -19,15 +21,12 @@ import styles from './GuesthouseSearch.styles';
 import { FONTS } from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
+import { COLORS } from '@constants/colors';
 
 const regions = [
   {
     name: '제주',
     subRegions: ['제주전체', '제주북부', '제주동부', '제주남부', '제주서부'],
-  },
-  {
-    name: '부산',
-    subRegions: ['해운대', '광안리', '서면', '남포동'],
   },
   // 지역 확정되면 나중에 데이터 파일로 빼기
 ];
@@ -144,6 +143,7 @@ const GuesthouseSearch = () => {
   const currentSubRegions = regions.find(r => r.name === selectedRegion)?.subRegions || [];
 
   return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
     <View style={styles.container}>
       <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
       
@@ -152,6 +152,7 @@ const GuesthouseSearch = () => {
         <TextInput
             style={styles.searchInput}
             placeholder="찾는 숙소가 있으신가요?"
+            placeholderTextColor={COLORS.grayscale_600}
             value={searchTerm}
             onChangeText={setSearchTerm}
             onSubmitEditing={handleSearch}
@@ -214,6 +215,7 @@ const GuesthouseSearch = () => {
         initChildGuestCount={childCount}
       />
     </View>
+    </TouchableWithoutFeedback>
   );
 };
 
