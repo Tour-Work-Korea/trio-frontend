@@ -56,12 +56,27 @@ const GuesthouseList = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   // 태그 선택 데이터 (필터에서 온)
-  const [selectedTags, setSelectedTags] = useState(guesthouseTags.map(tag => tag.hashtag));  // 처음엔 전체 선택
+  const [selectedTags, setSelectedTags] = useState(guesthouseTags);  // 처음엔 전체 선택
   const [tempSelectedTags, setTempSelectedTags] = useState([]);
   // console.log로 보여주기(임시)
   useEffect(() => {
     console.log("선택된 태그:", selectedTags);
   }, [selectedTags]);
+
+  // 필터 정보
+  const [filterOptions, setFilterOptions] = useState({
+    tags: guesthouseTags,                 // id, hashtag 전체 선택
+    minPrice: 10000,
+    maxPrice: 10000000,
+    roomType: [],                         // 제외 (아직 API 미사용)
+    facility: [],                         // amenity object { id, name }
+    onlyAvailable: false,
+  });
+  const [filterApplied, setFilterApplied] = useState(false);
+
+  // id 값 추출
+  const getHashtagIds = (selectedTags) => selectedTags.map(tag => tag.id);
+  const getAmenityIds = (selectedFacility) => selectedFacility.map(service => service.id);
 
   // 정렬 기본 추천순
   const [selectedSort, setSelectedSort] = useState("RECOMMEND");
@@ -105,6 +120,15 @@ const GuesthouseList = () => {
         size: 10,
         keyword,
         sortBy,
+
+        // 필터조건 반영
+        ...(filterApplied && {
+          minPrice: filterOptions.minPrice,
+          maxPrice: filterOptions.maxPrice,
+          hashtagIds: getHashtagIds(filterOptions.tags),
+          amenityIds: getAmenityIds(filterOptions.facility),
+          availableOnly: filterOptions.onlyAvailable,
+        }),
       };
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
@@ -239,9 +263,15 @@ const GuesthouseList = () => {
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
           <View style={styles.bottomRow}>
-            <Text style={[FONTS.fs_18_semibold, styles.price]}>
-              {item.minPrice.toLocaleString()}원 ~
-            </Text>
+            {item.isReserved ? (
+              <Text style={[FONTS.fs_16_semibold, styles.emptyPrice]}>
+                예약마감
+              </Text>
+            ) : (
+              <Text style={[FONTS.fs_18_semibold, styles.price]}>
+                {item.minPrice.toLocaleString()}원 ~
+              </Text>
+            )}
           </View>
         </View>
       </View>
@@ -316,7 +346,7 @@ const GuesthouseList = () => {
               {selectedTags.map((tag, index) => (
                 <View key={index} style={styles.selectFilter}>
                   <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
-                    {tag}
+                    {tag.hashtag}
                   </Text>
                 </View>
               ))}
@@ -404,11 +434,17 @@ const GuesthouseList = () => {
       <GuesthouseFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        initialSelectedTags={tempSelectedTags}
+        initialFilters={filterOptions}
         onApply={(filters) => {
-          console.log("필터 적용됨", filters);
           setSelectedTags(filters.tags);
+          setFilterOptions(filters);
+          setFilterApplied(true);
           setFilterModalVisible(false);
+
+          setSearched(true);
+          setPage(0);
+          setIsLast(false);
+          setGuesthouses([]);
         }}
       />
     </View>

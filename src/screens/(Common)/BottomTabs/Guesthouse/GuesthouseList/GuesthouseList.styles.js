@@ -186,6 +186,9 @@ const styles = StyleSheet.create({
   },
   price: {
   },
+  emptyPrice: {
+    color: COLORS.grayscale_300,
+  },
   heartIcon: {
     position: 'absolute',
     right: 0,

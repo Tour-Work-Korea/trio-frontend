@@ -22,7 +22,7 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
       <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>{title}</Text>
       <View style={styles.tagWrapper}>
         {items.map((item) => {
-          const isSelected = selectedNames.includes(item);
+          const isSelected = selectedNames.includes(item.name);
           return (
             <View key={item} style={styles.tag}>
               <Text
@@ -32,7 +32,7 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
                   isSelected && { color: COLORS.primary_orange },
                   isSelected && FONTS.fs_14_semibold,
                 ]}>
-                {item}
+                {item.name}
               </Text>
             </View>
           );

@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -37,16 +48,19 @@ const GuesthouseReservation = ({ route }) => {
   const [requestMessage, setRequestMessage] = useState('');
 
   const formatTime = (timeStr) => {
-      if (!timeStr) return '시간 없음';
-      const date = dayjs(timeStr);
-      return date.isValid()
-          ? date.format('HH:mm')
-          : timeStr.slice(0, 5);
-    };
-    const formatDateWithDay = (dateStr) => {
-      const date = dayjs(dateStr);
-      return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
-    };
+    if (!timeStr) return '시간 없음';
+    const date = dayjs(timeStr);
+    return date.isValid()
+        ? date.format('HH:mm')
+        : timeStr.slice(0, 5);
+  };
+  const formatDateWithDay = (dateStr) => {
+    const date = dayjs(dateStr);
+    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
+
+  // 유효성 검사
+  const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
 
   const toggleAgreement = (key) => {
     setAgreements((prev) => ({
@@ -65,9 +79,15 @@ const GuesthouseReservation = ({ route }) => {
     });
   };
 
+  useEffect(() => {
+    const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+    if (allChecked !== agreeAll) {
+      setAgreeAll(allChecked);
+    }
+  }, [agreements]);
+
   // 예약 호출
-  const handleReservation = async () => {
-    // 동의 체크 등 유효성 검사 추가 예정 
+  const handleReservation = async () => { 
     try {
       const res = await userGuesthouseApi.reserveRoom(roomId, {
         checkIn: checkIn,
@@ -92,7 +112,13 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 필요 시 값 조정
+    >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={{ flex: 1 }}>
         <Header title="예약" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
@@ -201,11 +227,14 @@ const GuesthouseReservation = ({ route }) => {
         
         <View style={styles.button}>
             <ButtonScarlet
-            title="요청하기"
-            onPress={handleReservation}
+              title="요청하기"
+              onPress={handleReservation}
+              disabled={!isAllRequiredAgreed}
             />
         </View>
     </View>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

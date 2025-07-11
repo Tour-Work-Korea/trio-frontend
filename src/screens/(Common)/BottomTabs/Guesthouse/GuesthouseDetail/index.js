@@ -10,6 +10,7 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
+import Toast from 'react-native-toast-message';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -98,6 +99,23 @@ const GuesthouseDetail = ({route}) => {
 
   const thumbnailImage = detail.guesthouseImages?.find(img => img.isThumbnail)?.guesthouseImageUrl;
 
+  //  공유 링크
+  const handleCopyLink = () => {
+    const deepLinkUrl = guesthouseDetailDeeplink(id);
+    copyDeeplinkToClipboard(deepLinkUrl);
+
+    console.log('[딥링크 복사됨]', deepLinkUrl);
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+
+    console.log('[Toast.show 실행됨]');
+  };
+
   return (
     <ScrollView style={styles.container}>
       <View>
@@ -139,11 +157,7 @@ const GuesthouseDetail = ({route}) => {
             {detail.guesthouseName}
           </Text>
           <View style={styles.topIcons}>
-            <TouchableOpacity onPress={() => {
-                const deepLinkUrl = guesthouseDetailDeeplink(id);
-                copyDeeplinkToClipboard(deepLinkUrl);
-                Alert.alert('복사가 완료되었습니다. 바로 공유해볼까요?');
-            }}>
+            <TouchableOpacity onPress={handleCopyLink}>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
             <TouchableOpacity onPress={toggleFavorite}>
