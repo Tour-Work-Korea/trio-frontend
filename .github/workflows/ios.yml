@@ -105,6 +105,16 @@ jobs:
         run: |
           echo "🔧 API_BASE_URL = $API_BASE_URL"
 
+      - name: Generate .env.production
+        run: |
+          echo "PORTONE_STORE_ID=$PORTONE_STORE_ID" >> .env.production
+          echo "PORTONE_CHANNEL_KEY=$PORTONE_CHANNEL_KEY" >> .env.production
+          echo "PORTONE_REDIRECT_URL=$PORTONE_REDIRECT_URL" >> .env.production
+          echo "PORTONE_NOTICE_URL=$PORTONE_NOTICE_URL" >> .env.production
+          echo "KAKAO_JS_KEY=$KAKAO_JS_KEY" >> .env.production
+          echo "KAKAO_RESTAPI_KEY=$KAKAO_RESTAPI_KEY" >> .env.production
+          echo "KAKAO_NATIVEAPP_KEY=$KAKAO_NATIVEAPP_KEY" >> .env.production
+
       - name: Test API reachability
         run: |
           echo "Curl to check API"
