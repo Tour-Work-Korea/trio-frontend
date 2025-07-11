@@ -34,7 +34,7 @@ const RecruitList = ({
           </View>
         )
       }
-      ItemSeparatorComponent={() => <View style={{height: 12}} />}
+      ItemSeparatorComponent={() => <View style={{height: 16}} />}
     />
   );
 };
