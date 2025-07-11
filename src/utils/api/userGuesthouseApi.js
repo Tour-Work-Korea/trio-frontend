@@ -17,6 +17,11 @@ const userGuesthouseApi = {
     page,
     size = 10,
     sortBy,
+    minPrice,
+    maxPrice,
+    hashtagIds,
+    amenityIds,
+    availableOnly,
   }) =>
   api.get('/user/guesthouses', {
     params: {
@@ -26,7 +31,12 @@ const userGuesthouseApi = {
       keyword,
       page,
       size,
-      sortBy
+      sortBy,
+      minPrice,
+      maxPrice,
+      hashtagIds,
+      amenityIds,
+      availableOnly,
     }
   }),
 

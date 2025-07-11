@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, PermissionsAndroid, Platform, TouchableOpacity } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import Geolocation from '@react-native-community/geolocation';
 import { useNavigation } from '@react-navigation/native'; 
 
 import { COLORS } from '@constants/colors';
@@ -11,50 +10,38 @@ import LeftChevron from '@assets/images/chevron_left_black.svg';
 
 const GuesthouseMap = () => {
   const navigation = useNavigation();
-  const [region, setRegion] = useState(null);
 
-  useEffect(() => {
-    const requestLocation = async () => {
-      if (Platform.OS === 'android') {
-        const granted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION
-        );
-        if (granted !== PermissionsAndroid.RESULTS.GRANTED) {
-          console.log('위치 권한 거부됨');
-          return;
-        }
-      }
-      Geolocation.getCurrentPosition(
-        (pos) => {
-          console.log('현재 위치', pos.coords);
-          setRegion({
-            latitude: pos.coords.latitude,
-            longitude: pos.coords.longitude,
-            latitudeDelta: 0.01,
-            longitudeDelta: 0.01
-          });
-        },
-        (err) => {
-          console.log('위치 에러', err);
-        },
-        { enableHighAccuracy: true, timeout: 15000 }
-      );
-    };
-    requestLocation();
-  }, []);
+  // 제주도 내 임의 좌표 두 개
+  const marker1 = { latitude: 33.499621, longitude: 126.531188 };
+  const marker2 = { latitude: 33.500885, longitude: 126.528199 };
 
-  if (!region) return <View style={styles.loading}><Text>위치 로딩중...</Text></View>;
+  // 랜더링 될 때 기준 좌표
+  const region = {
+    // 좌표
+    latitude: 33.4999,
+    longitude: 126.5300,
+    // 줌 레벨
+    latitudeDelta: 0.01,
+    longitudeDelta: 0.01
+  };
 
   return (
     <View style={{ flex: 1 }}>
       <MapView
         style={styles.map}
         region={region}
-        showsUserLocation
       >
-        <Marker coordinate={region}>
+        {/* 가격 마커 */}
+        <Marker coordinate={marker1}>
           <View style={styles.priceMarker}>
-            <Text style={[FONTS.fs_14_medium, styles.priceText]}>₩10,000</Text>
+            <Text style={[FONTS.fs_14_medium, styles.priceText]}>10,000원</Text>
+          </View>
+        </Marker>
+
+        {/* 마감 마커 */}
+        <Marker coordinate={marker2}>
+          <View style={styles.closedMarker}>
+            <Text style={[FONTS.fs_12_medium, styles.closedText]}>숙박예약 마감</Text>
           </View>
         </Marker>
       </MapView>
@@ -63,7 +50,7 @@ const GuesthouseMap = () => {
         <TouchableOpacity
           style={styles.mapButton}
           onPress={() => {
-          navigation.goBack();
+            navigation.goBack();
           }}
         >
           <LeftChevron width={20} height={20} />
@@ -80,11 +67,7 @@ const styles = StyleSheet.create({
   map: {
     flex: 1,
   },
-  loading: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
+  // 가격 마커
   priceMarker: {
     backgroundColor: COLORS.primary_orange,
     paddingHorizontal: 12,
@@ -93,6 +76,19 @@ const styles = StyleSheet.create({
   },
   priceText: {
     color: COLORS.grayscale_0,
+  },
+
+  // 마감 마커
+  closedMarker: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+  },
+  closedText: {
+    color: COLORS.grayscale_500,
   },
 
   // 돌아가기 버튼

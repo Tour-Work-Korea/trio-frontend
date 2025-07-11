@@ -51,7 +51,7 @@ const GuesthousePayment = () => {
         }}
         onComplete={async complete => {
           try {
-            console.log('💰결제 성공:', complete); // 응답 객체 출력
+            console.log('결제 성공:', complete); // 응답 객체 출력
             console.log('reservationId:', reservationId);
 
             // 백엔드에 결제 검증 요청
@@ -60,7 +60,7 @@ const GuesthousePayment = () => {
               reservationType: 'GUESTHOUSE',
             });
 
-            navigation.replace('PaymentSuccess'); // 임시 추후 수정 예정
+            navigation.replace('PaymentSuccess');
           } catch (err) {
             console.error('결제 검증 실패:', err);
             Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');
