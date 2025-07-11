@@ -9,29 +9,34 @@ import LottieView from 'lottie-react-native';
 
 const App = () => {
   const [appLoaded, setAppLoaded] = useState(false);
+
   useEffect(() => {
     tryAutoLogin();
   }, []);
 
-  return !appLoaded ? (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: 'white',
-      }}>
-      <LottieView
-        source={require('@assets/lottie/splash.json')}
-        style={{width: 180, height: 153}}
-        autoPlay
-        loop={false}
-        onAnimationFinish={() => {
-          setAppLoaded(true);
-        }}
-      />
-    </View>
-  ) : (
+  if (!appLoaded) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          justifyContent: 'center',
+          alignItems: 'center',
+          backgroundColor: 'white',
+        }}>
+        <LottieView
+          source={require('@assets/lottie/splash.json')}
+          style={{width: 180, height: 153}}
+          autoPlay
+          loop={false}
+          onAnimationFinish={() => {
+            setAppLoaded(true);
+          }}
+        />
+      </View>
+    );
+  }
+
+  return (
     <SafeAreaView style={styles.container}>
       <StatusBar
         barStyle="light-content"

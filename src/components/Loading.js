@@ -4,6 +4,7 @@ import React, {useEffect, useState} from 'react';
 import {Image, StyleSheet} from 'react-native';
 import {Text, View} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
+import LottieView from 'lottie-react-native';
 import LoadingImg1 from '@assets/images/loading_1.svg';
 import LoadingImg2 from '@assets/images/loading_2.svg';
 import LoadingImg3 from '@assets/images/loading_3.svg';
@@ -23,23 +24,32 @@ const loadingImages = [
 ];
 
 export default function Loading({title}) {
-  const [imageNumber, setImageNumber] = useState(0);
+  // const [imageNumber, setImageNumber] = useState(0);
 
-  useEffect(() => {
-    let count = 0;
-    let countInterval = setInterval(() => {
-      setImageNumber(count++ % 9);
-    }, 500);
-    return () => clearInterval(countInterval);
-  }, []);
-  const ImageComponent = loadingImages[imageNumber];
+  // useEffect(() => {
+  //   let count = 0;
+  //   let countInterval = setInterval(() => {
+  //     setImageNumber(count++ % 9);
+  //   }, 500);
+  //   return () => clearInterval(countInterval);
+  // }, []);
+  // const ImageComponent = loadingImages[imageNumber];
   return (
-    <SafeAreaView style={styles.container}>
-      <View style={styles.loadingBox}>
-        <ImageComponent width={108} />
-        <Text style={styles.text}>{title}</Text>
-      </View>
-    </SafeAreaView>
+    <View
+      style={{
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: 'white',
+      }}>
+      <LottieView
+        source={require('@assets/lottie/loading.json')}
+        style={{width: 187, height: 90}}
+        autoPlay
+        loop
+      />
+      <Text style={styles.text}>{title}</Text>
+    </View>
   );
 }
 
