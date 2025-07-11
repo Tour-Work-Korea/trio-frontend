@@ -108,6 +108,7 @@ jobs:
 
       - name: Generate .env.production
         run: |
+          echo "API_BASE_URL=$API_BASE_URL" >> .env.production
           echo "PORTONE_STORE_ID=$PORTONE_STORE_ID" >> .env.production
           echo "PORTONE_CHANNEL_KEY=$PORTONE_CHANNEL_KEY" >> .env.production
           echo "PORTONE_REDIRECT_URL=$PORTONE_REDIRECT_URL" >> .env.production
