@@ -132,6 +132,9 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
   },
+  seeMoreText: {
+    color: COLORS.primary_blue,
+  },
   button: {
     marginHorizontal: 20,
   },

@@ -14,6 +14,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: 16,
+    backgroundColor: COLORS.modal_background,
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
   },
   tagContainer: {
     position: 'absolute',
@@ -112,36 +118,49 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_700,
   },
   
-  // 어메너티
+  // 객실 서비스
   iconServiceContainer: {
     marginBottom: 28,
   },
-  iconServiceRow: {
+  iconServiceRowWithMore: {
     flexDirection: 'row',
+    alignItems: 'center',
     justifyContent: 'space-between',
     paddingHorizontal: 20,
     paddingBottom: 8,
     paddingTop: 16,
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
-    marginBottom: 4,
   },
+  // iconServiceRow: {
+  //   flexDirection: 'row',
+  //   flexWrap: 'wrap',
+  // },
   iconWrapper: {
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 52,
+  },
+  iconServiceWrapper: {
+    height: 24,
+    width: 24,
     alignItems: 'center',
     justifyContent: 'center',
   },
-  iconServiceText: {
-    marginTop: 12,
+    iconServiceText: {  
+  },
+  readMoreButton: {
+    alignItems: 'center',
+    marginLeft: 8,
   },
   readMoreText: {
     color: COLORS.grayscale_400,
-    textAlign: 'right',
   },
 
   devide: {
     backgroundColor: COLORS.grayscale_300,
     width: '100%',
-    height: 1,
+    height: 0.4,
     marginBottom: 28,
   },
 

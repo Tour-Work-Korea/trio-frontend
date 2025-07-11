@@ -1,5 +1,16 @@
-import React, { useState } from 'react';
-import { View, Text, TextInput, TouchableOpacity, ScrollView, Alert } from 'react-native';
+import React, { useEffect, useRef, useState } from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  ScrollView,
+  Alert,
+  KeyboardAvoidingView,
+  Platform,
+  Keyboard,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -12,10 +23,10 @@ import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import useUserStore from '@stores/userStore';
+import TermsModal from '@components/modals/TermsModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
-import DownArrow from '@assets/images/chevron_down_gray.svg';
 
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = (phone) => {
@@ -37,16 +48,19 @@ const GuesthouseReservation = ({ route }) => {
   const [requestMessage, setRequestMessage] = useState('');
 
   const formatTime = (timeStr) => {
-      if (!timeStr) return '시간 없음';
-      const date = dayjs(timeStr);
-      return date.isValid()
-          ? date.format('HH:mm')
-          : timeStr.slice(0, 5);
-    };
-    const formatDateWithDay = (dateStr) => {
-      const date = dayjs(dateStr);
-      return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
-    };
+    if (!timeStr) return '시간 없음';
+    const date = dayjs(timeStr);
+    return date.isValid()
+        ? date.format('HH:mm')
+        : timeStr.slice(0, 5);
+  };
+  const formatDateWithDay = (dateStr) => {
+    const date = dayjs(dateStr);
+    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
+
+  // 유효성 검사
+  const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
 
   const toggleAgreement = (key) => {
     setAgreements((prev) => ({
@@ -65,9 +79,33 @@ const GuesthouseReservation = ({ route }) => {
     });
   };
 
+  useEffect(() => {
+    const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+    if (allChecked !== agreeAll) {
+      setAgreeAll(allChecked);
+    }
+  }, [agreements]);
+
+  const [isModalVisible, setModalVisible] = useState(false);
+  const [selectedTerm, setSelectedTerm] = useState(null);
+
+  const openTermModal = (key) => {
+    setSelectedTerm(key);
+    setModalVisible(true);
+  };
+
+  const handleAgreeModal = () => {
+    if (selectedTerm) {
+      setAgreements(prev => ({
+        ...prev,
+        [selectedTerm]: true,
+      }));
+    }
+    setModalVisible(false);
+  };
+
   // 예약 호출
-  const handleReservation = async () => {
-    // 동의 체크 등 유효성 검사 추가 예정 
+  const handleReservation = async () => { 
     try {
       const res = await userGuesthouseApi.reserveRoom(roomId, {
         checkIn: checkIn,
@@ -92,7 +130,13 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   return (
-    <View style={styles.container}>
+    <KeyboardAvoidingView
+      style={styles.container}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 필요 시 값 조정
+    >
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+    <View style={{ flex: 1 }}>
         <Header title="예약" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
@@ -162,8 +206,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('terms')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -176,8 +220,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
@@ -190,8 +234,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore}>
-                    <DownArrow width={24} height={24}/>
+                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
+                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
               </View>
@@ -201,11 +245,40 @@ const GuesthouseReservation = ({ route }) => {
         
         <View style={styles.button}>
             <ButtonScarlet
-            title="요청하기"
-            onPress={handleReservation}
+              title="요청하기"
+              onPress={handleReservation}
+              disabled={!isAllRequiredAgreed}
             />
         </View>
+
+        {/* 약관동의 모달 */}
+        <TermsModal
+          visible={isModalVisible}
+          onClose={() => setModalVisible(false)}
+          title={
+            selectedTerm === 'terms'
+              ? '숙소 취소/환불 규정'
+              : selectedTerm === 'personalInfo'
+              ? '개인정보 수집 및 이용'
+              : selectedTerm === 'thirdParty'
+              ? '개인정보 제3자 제공'
+              : ''
+          }
+          content={
+            selectedTerm === 'terms'
+              ? '취소 환불 규정 내용 ...'
+              : selectedTerm === 'personalInfo'
+              ? '개인정보 수집 이용 동의 내용 ...'
+              : selectedTerm === 'thirdParty'
+              ? '개인정보 제3자 제공 동의 내용 ...'
+              : ''
+          }
+          onAgree={handleAgreeModal}
+        />
+
     </View>
+    </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 

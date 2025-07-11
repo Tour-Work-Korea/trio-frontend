@@ -32,21 +32,26 @@ const tabList = [
   { key: "facility", label: "시설/서비스" },
 ];
 
-const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply }) => {
+const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) => {
   const [sectionPositions, setSectionPositions] = useState({});
   const [activeTab, setActiveTab] = useState("price");
 
-  const [priceRange, setPriceRange] = useState([10000, 1000000]);
+  const [priceRange, setPriceRange] = useState([10000, 10000000]);
   const [selectedRoomType, setSelectedRoomType] = useState([]);
   const [selectedFacility, setSelectedFacility] = useState([]);
-  const [selectedType, setSelectedType] = useState(
-    initialSelectedTags || guesthouseTags.map(tag => tag.hashtag)
-  );
+  const [selectedType, setSelectedType] = useState(guesthouseTags); 
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
   useEffect(() => {
-    setSelectedType(initialSelectedTags || guesthouseTags.map(tag => tag.hashtag));
-  }, [initialSelectedTags]);
+    if (visible && initialFilters) {
+      setPriceRange([initialFilters.minPrice, initialFilters.maxPrice]);
+      setSelectedRoomType(initialFilters.roomType || []);
+      setSelectedFacility(initialFilters.facility || []);
+      setSelectedType(initialFilters.tags || guesthouseTags);
+      setOnlyAvailable(initialFilters.onlyAvailable || false);
+      setIsDirty(false);
+    }
+  }, [visible, initialFilters]);
 
   useEffect(() => {
     const checkDirty = () => {
@@ -58,14 +63,25 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
 
   // 초기화 버튼 활성화 여부
   const isEqualToInitialState = (next = {}) => {
+    const selectedTypeIds = (next.selectedType ?? selectedType)
+      .map(tag => tag.id)
+      .sort((a, b) => a - b);
+    const initialTagIds = guesthouseTags
+      .map(tag => tag.id)
+      .sort((a, b) => a - b);
+
+    const selectedFacilityIds = (next.selectedFacility ?? selectedFacility)
+      .map(f => f.id)
+      .sort((a, b) => a - b);
+    const initialFacilityIds = []; // 초기값은 선택 없음
+
     return (
-        (next.priceRange ?? priceRange)[0] === 10000 &&
-        (next.priceRange ?? priceRange)[1] === 1000000 &&
-        (next.selectedRoomType ?? selectedRoomType).length === 0 &&
-        (next.selectedFacility ?? selectedFacility).length === 0 &&
-        (next.onlyAvailable ?? onlyAvailable) === false &&
-        JSON.stringify((next.selectedType ?? selectedType).sort()) ===
-        JSON.stringify(guesthouseTags.map(tag => tag.hashtag).sort())
+      (next.priceRange ?? priceRange)[0] === 10000 &&
+      (next.priceRange ?? priceRange)[1] === 10000000 &&
+      (next.selectedRoomType ?? selectedRoomType).length === 0 &&
+      (next.onlyAvailable ?? onlyAvailable) === false &&
+      JSON.stringify(selectedTypeIds) === JSON.stringify(initialTagIds) &&
+      JSON.stringify(selectedFacilityIds) === JSON.stringify(initialFacilityIds)
     );
   };
 
@@ -113,10 +129,10 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
 
   // 초기화
   const handleReset = () => {
-    setPriceRange([10000, 1000000]);
+    setPriceRange([10000, 10000000]);
     setSelectedRoomType([]); 
     setSelectedFacility([]);
-    setSelectedType(guesthouseTags.map(tag => tag.hashtag));
+    setSelectedType(guesthouseTags);
     setOnlyAvailable(false);
     setIsDirty(false);
   };
@@ -219,20 +235,20 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
             >
                 <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>숙소 유형</Text>
                 <View style={styles.tagSelectRow}>
-                    {guesthouseTags.map((tag) => {
-                    const isSelected = selectedType.includes(tag.hashtag);
+                  {guesthouseTags.map((tag) => {
+                    const isSelected = selectedType.some(t => t.id === tag.id);
                     return (
                         <TouchableOpacity
-                            key={tag.id}
-                            onPress={() => {
-                                if (isSelected) {
-                                  setSelectedType(prev => prev.filter(item => item !== tag.hashtag));
-                                } else {
-                                  setSelectedType(prev => [...prev, tag.hashtag]);
-                                }
-                                setIsDirty(true);
-                            }}
-                            style={styles.tagOptionContainer}
+                          key={tag.id}
+                          onPress={() => {
+                              if (isSelected) {
+                                setSelectedType(prev => prev.filter(t => t.id !== tag.id));
+                              } else {
+                                setSelectedType(prev => [...prev, tag]);
+                              }
+                              setIsDirty(true);
+                          }}
+                          style={styles.tagOptionContainer}
                         >
                             <Text
                                 style={[
@@ -310,19 +326,19 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>시설/서비스</Text>
               <View style={styles.tagSelectRow}>
                 {filterServices.map((facility) => {
-                const isSelected = selectedFacility.includes(facility);
+                const isSelected = selectedFacility.some(f => f.id === facility.id);
                 return (
                     <TouchableOpacity
-                        key={facility}
-                        onPress={() => {
-                            if (isSelected) {
-                            setSelectedFacility(prev => prev.filter(item => item !== facility));
-                            } else {
-                            setSelectedFacility(prev => [...prev, facility]);
-                            }
-                            setIsDirty(true);
-                        }}
-                        style={styles.tagOptionContainer}
+                      key={facility.id}
+                      onPress={() => {
+                          if (isSelected) {
+                          setSelectedFacility(prev => prev.filter(f => f.id !== facility.id));
+                          } else {
+                          setSelectedFacility(prev => [...prev, facility]);
+                          }
+                          setIsDirty(true);
+                      }}
+                      style={styles.tagOptionContainer}
                     >
                     <Text
                         style={[
@@ -332,7 +348,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
                             isSelected && FONTS.fs_14_semibold,
                         ]}
                     >
-                        {facility}
+                        {facility.name}
                     </Text>
                     </TouchableOpacity>
                 );
@@ -377,7 +393,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialSelectedTags, onApply 
                     tags: selectedType,
                     minPrice: priceRange[0],
                     maxPrice: priceRange[1],
-                    roomType: selectedRoomType,
+                    roomType: selectedRoomType, // 아직 api로 보내지는 않음
                     facility: selectedFacility,
                     onlyAvailable,
                     });
