@@ -3,16 +3,28 @@ import styles from './Intro.styles';
 import {useNavigation} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 
-import * as React from 'react';
+import React, {useState, useEffect} from 'react';
 
 import KakaoLogo from '@assets/images/kakao_logo.svg';
 import NaverLogo from '@assets/images/naver_logo.svg';
 import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import ButtonWhite from '@components/ButtonWhite';
+import Loading from '@components/Loading';
 
 const RegisterIntro = () => {
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    setTimeout(() => {
+      setLoading(false);
+    }, 10000);
+  }, []);
   const navigation = useNavigation();
+
+  if (loading) {
+    return <Loading title="로딩 중..." />;
+  }
   return (
     <SafeAreaView style={styles.signin}>
       <View style={styles.view}>
