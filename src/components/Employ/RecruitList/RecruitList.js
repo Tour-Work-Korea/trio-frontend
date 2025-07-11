@@ -7,7 +7,6 @@ const RecruitList = ({
   onEndReached,
   loading,
   onJobPress,
-  onApplyPress,
   onToggleFavorite,
   setRecruitList,
 }) => {
@@ -19,7 +18,6 @@ const RecruitList = ({
         <RecruitCard
           item={item}
           onPress={() => onJobPress(item.recruitId)}
-          onApply={() => onApplyPress(item)}
           onToggleFavorite={() =>
             onToggleFavorite(item.recruitId, item.isLiked, setRecruitList)
           }

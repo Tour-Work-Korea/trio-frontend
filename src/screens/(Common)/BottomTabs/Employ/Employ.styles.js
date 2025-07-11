@@ -6,12 +6,12 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 20,
+    paddingTop: 60,
   },
   //헤더
   headerBox: {
     flexDirection: 'row',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     width: '100%',
   },
   headerText: {

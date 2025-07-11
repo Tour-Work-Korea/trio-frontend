@@ -2,7 +2,7 @@ import React from 'react';
 import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import styles from './EmployIntro.styles';
+import styles from '../Employ.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 

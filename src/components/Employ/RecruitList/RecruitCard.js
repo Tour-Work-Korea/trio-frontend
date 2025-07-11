@@ -4,7 +4,6 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import styles from './RecruitList.styles';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
-import {COLORS} from '@constants/colors';
 
 const RecruitCard = ({item, onPress, onToggleFavorite}) => {
   return (

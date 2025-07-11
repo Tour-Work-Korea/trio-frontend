@@ -11,51 +11,23 @@ import {useNavigation} from '@react-navigation/native';
 import styles from '../Employ.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
-import {SafeAreaView} from 'react-native-safe-area-context';
-import dayjs from 'dayjs';
 
 // 아이콘 불러오기
 import SearchIcon from '@assets/images/search_gray.svg';
 import userEmployApi from '@utils/api/userEmployApi';
-import WorkAndStay from './WorkAndStay';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
+import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import Loading from '@components/Loading';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
-const EmployIntro = () => {
+const EmploySearchList = () => {
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
-  const [guesthouseList, setGuesthouseList] = useState([]);
-  const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
   const navigation = useNavigation();
   useEffect(() => {
-    tryFetchGuesthouses();
     fetchRecruitList();
   }, []);
-
-  const tryFetchGuesthouses = async () => {
-    const today = dayjs();
-    const tomorrow = today.add(1, 'day');
-
-    try {
-      const params = {
-        checkIn: today.format('YYYY-MM-DD'),
-        checkOut: tomorrow.format('YYYY-MM-DD'),
-        guestCount: 1,
-        page: 0,
-        size: 10,
-        sort: 'RECOMMEND',
-        keyword: '외도',
-      };
-      const response = await userGuesthouseApi.getGuesthouseList(params);
-      setGuesthouseList(response.data.content);
-    } catch (error) {
-      console.warn('게스트하우스 조회 실패', error);
-    } finally {
-      setIsGHLoading(false);
-    }
-  };
 
   //채용 공고 조회
   const fetchRecruitList = async (pageToFetch = 0) => {
@@ -73,49 +45,45 @@ const EmployIntro = () => {
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
-  if (isEmLoading || isGHLoading) {
+  if (isEmLoading) {
     <Loading title="채용 정보를 가져오는 중입니다..." />;
   }
   return (
-    <ScrollView
-      style={[styles.container]}
-      contentContainerStyle={{gap: 16, paddingHorizontal: 20}}>
+    // <SafeAreaView >
+    <ScrollView style={[styles.container]} contentContainerStyle={{gap: 12}}>
       {/* 헤더 */}
-      <View style={styles.headerBox}>
-        <View></View>
-        <Text style={styles.headerText}>채용공고</Text>
-        <View></View>
-      </View>
-      {/* 검색창 */}
-      <TouchableOpacity onPress={() => navigation.navigate('EmploySearchList')}>
-        <View style={styles.searchInputContainer}>
+      <View style={{paddingHorizontal: 20, flexDirection: 'column', gap: 16}}>
+        <View style={[styles.headerBox]}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Chevron_left_black width={28.8} height={28.8} />
+          </TouchableOpacity>
+
+          <Text style={styles.headerText}>채용공고</Text>
+          <View style={{width: 28.8}}></View>
+        </View>
+        {/* 검색창 */}
+        <View style={[styles.searchInputContainer]}>
           <SearchIcon width={24} height={24} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
             placeholder="일할 게스트하우스를 찾아보세요"
+            placeholderTextColor={COLORS.grayscale_600}
             value={searchText}
             onChangeText={setSearchText}
-            editable={false}
           />
         </View>
-      </TouchableOpacity>
-
-      {/* Work+Stay를 한 번에 */}
-      <View>
-        <WorkAndStay guesthouses={guesthouseList} />
       </View>
-      {/* 추천 일자리 */}
+
+      {/* 뽑고 있는 게스트하우스 */}
       <View style={styles.employContainer}>
-        <View style={[styles.titleSection]}>
-          <Text style={styles.sectionTitle}>추천 일자리</Text>
-          <TouchableOpacity
-            style={styles.seeMoreButton}
-            onPress={() => {
-              //   navigation.navigate('');
-            }}>
-            <Text style={styles.seeMoreText}>더보기</Text>
-            <Chevron_right_gray width={24} height={24} />
-          </TouchableOpacity>
+        <View
+          style={[
+            styles.titleSection,
+            {justifyContent: 'center', marginBottom: 4, marginTop: 8},
+          ]}>
+          <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_500}}>
+            채용 중인 게스트하우스
+          </Text>
         </View>
         <RecruitList
           data={recruitList}
@@ -129,7 +97,8 @@ const EmployIntro = () => {
         />
       </View>
     </ScrollView>
+    // </SafeAreaView>
   );
 };
 
-export default EmployIntro;
+export default EmploySearchList;
