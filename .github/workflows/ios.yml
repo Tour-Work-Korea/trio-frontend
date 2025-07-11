@@ -106,21 +106,16 @@ jobs:
         run: |
           echo "🔧 API_BASE_URL = $API_BASE_URL"
 
-      - name: Generate .env.production
-        run: |
-          echo "API_BASE_URL=$API_BASE_URL" >> .env.production
-          echo "PORTONE_STORE_ID=$PORTONE_STORE_ID" >> .env.production
-          echo "PORTONE_CHANNEL_KEY=$PORTONE_CHANNEL_KEY" >> .env.production
-          echo "PORTONE_REDIRECT_URL=$PORTONE_REDIRECT_URL" >> .env.production
-          echo "PORTONE_NOTICE_URL=$PORTONE_NOTICE_URL" >> .env.production
-          echo "KAKAO_JS_KEY=$KAKAO_JS_KEY" >> .env.production
-          echo "KAKAO_RESTAPI_KEY=$KAKAO_RESTAPI_KEY" >> .env.production
-          echo "KAKAO_NATIVEAPP_KEY=$KAKAO_NATIVEAPP_KEY" >> .env.production
 
       - name: Test API reachability
         run: |
           echo "Curl to check API"
           curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
+
+      - name: Write .env.production from Secret
+        run: echo "$ENV_PRODUCTION_CONTENT" > .env.production
+        env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
       - name: Build & Deploy to TestFlight
         working-directory: ios
