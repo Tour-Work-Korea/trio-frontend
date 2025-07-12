@@ -6,7 +6,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 60,
+    paddingTop: 20,
   },
   //헤더
   headerBox: {

@@ -19,6 +19,7 @@ import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const EmploySearchList = () => {
   const [searchText, setSearchText] = useState('');
@@ -65,9 +66,15 @@ const EmploySearchList = () => {
   }
   return (
     // <SafeAreaView >
-    <ScrollView style={[styles.container]} contentContainerStyle={{gap: 12}}>
+    <View style={[styles.container]}>
       {/* 헤더 */}
-      <View style={{paddingHorizontal: 20, flexDirection: 'column', gap: 16}}>
+      <View
+        style={{
+          paddingHorizontal: 20,
+          flexDirection: 'column',
+          gap: 16,
+          paddingBottom: 12,
+        }}>
         <View style={[styles.headerBox]}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
             <Chevron_left_black width={28.8} height={28.8} />
@@ -117,7 +124,7 @@ const EmploySearchList = () => {
           }
         />
       </View>
-    </ScrollView>
+    </View>
     // </SafeAreaView>
   );
 };

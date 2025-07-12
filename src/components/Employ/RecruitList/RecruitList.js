@@ -9,10 +9,12 @@ const RecruitList = ({
   onJobPress,
   onToggleFavorite,
   setRecruitList,
+  scrollEnabled = true,
 }) => {
   return (
     <FlatList
       data={data}
+      scrollEnabled={scrollEnabled}
       keyExtractor={item => item.recruitId.toString()}
       renderItem={({item}) => (
         <RecruitCard

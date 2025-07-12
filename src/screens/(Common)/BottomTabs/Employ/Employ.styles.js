@@ -6,7 +6,16 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 60,
+    paddingTop: 30,
+  },
+  scroll: {
+    flex: 1, // ← scrollView가 하단까지 확장되도록
+  },
+  scrollContent: {
+    flexGrow: 1, // ← 내용이 적어도 꽉 채우기
+    paddingHorizontal: 20,
+    paddingBottom: 32, // 필요한 만큼 여백 (SafeAreaView와 맞춤)
+    justifyContent: 'flex-start',
   },
   //헤더
   headerBox: {
