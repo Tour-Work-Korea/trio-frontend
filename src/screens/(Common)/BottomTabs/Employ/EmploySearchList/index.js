@@ -37,7 +37,10 @@ const EmploySearchList = () => {
     if (isEmLoading || !hasNext) return;
     setIsEmLoading(true);
     try {
-      const res = await userEmployApi.getRecruits({page: pageToFetch, size: 6});
+      const res = await userEmployApi.getRecruits({
+        page: pageToFetch,
+        size: 8,
+      });
       const newContent = res.data.content;
       setRecruitList(prev => [...prev, ...newContent]);
       setHasNext(!res.data.last);
@@ -82,6 +85,10 @@ const EmploySearchList = () => {
             placeholderTextColor={COLORS.grayscale_600}
             value={searchText}
             onChangeText={setSearchText}
+            returnKeyType="search"
+            onSubmitEditing={() =>
+              navigation.navigate('EmploySearchResult', {search: searchText})
+            }
           />
         </View>
       </View>

@@ -127,6 +127,23 @@ const styles = StyleSheet.create({
   },
 
   //일자리 리스트
+  guesthouseListContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    paddingVertical: 12,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  guesthouseListHeader: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+    gap: 8,
+  },
+  filterContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+  },
   employContainer: {
     flexDirection: 'column',
     gap: 16,
@@ -134,6 +151,45 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,
+  },
+  // 필터 버튼
+  filterButtonContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 10,
+    borderRadius: 12,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  filterText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
+  },
+  // 필터 내용
+  selectFilterContainer: {
+    gap: 8,
+    paddingHorizontal: 8,
+  },
+  selectFilter: {
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  selectFilterText: {
+    color: COLORS.primary_blue,
+  },
+  // 정렬 버튼
+  sortContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
+    padding: 10,
+  },
+  sortText: {
+    marginLeft: 8,
+    color: COLORS.grayscale_800,
   },
 });
 export default styles;
