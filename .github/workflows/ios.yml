@@ -5,6 +5,7 @@ on:
     branches:
       - main
 
+
 env:
   # Match (인증서 저장소) 설정
   MATCH_GIT_URL:  ${{ secrets.MATCH_GIT_URL }}
@@ -105,10 +106,16 @@ jobs:
         run: |
           echo "🔧 API_BASE_URL = $API_BASE_URL"
 
+
       - name: Test API reachability
         run: |
           echo "Curl to check API"
           curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
+
+      - name: Write .env.production from Secret
+        run: echo "$ENV_PRODUCTION_CONTENT" > .env.production
+        env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
       - name: Build & Deploy to TestFlight
         working-directory: ios
