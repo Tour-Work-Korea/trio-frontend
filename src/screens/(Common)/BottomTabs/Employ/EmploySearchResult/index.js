@@ -20,38 +20,26 @@ import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
-const EmploySearchList = () => {
+const EmploySearchResult = () => {
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
-  const [isEmLoading, setIsEmLoading] = useState(false);
-  const [page, setPage] = useState(0);
-  const [hasNext, setHasNext] = useState(true);
+  const [isEmLoading, setIsEmLoading] = useState(true);
   const navigation = useNavigation();
-
   useEffect(() => {
-    fetchRecruitList(page);
-  }, [page]);
+    fetchRecruitList();
+  }, []);
 
   //채용 공고 조회
   const fetchRecruitList = async (pageToFetch = 0) => {
-    if (isEmLoading || !hasNext) return;
     setIsEmLoading(true);
     try {
-      const res = await userEmployApi.getRecruits({page: pageToFetch, size: 6});
+      const res = await userEmployApi.getRecruits({pageToFetch, size: 6});
       const newContent = res.data.content;
       setRecruitList(prev => [...prev, ...newContent]);
-      setHasNext(!res.data.last);
     } catch (error) {
-      setHasNext(false);
       console.warn('fetchRecruitList 실패:', error);
     } finally {
       setIsEmLoading(false);
-    }
-  };
-
-  const handleEndReached = () => {
-    if (!isEmLoading && hasNext) {
-      setPage(prev => prev + 1);
     }
   };
 
@@ -100,8 +88,6 @@ const EmploySearchList = () => {
         <RecruitList
           data={recruitList}
           loading={isEmLoading}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.7}
           onJobPress={handleJobPress}
           onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruitList}
@@ -115,4 +101,4 @@ const EmploySearchList = () => {
   );
 };
 
-export default EmploySearchList;
+export default EmploySearchResult;

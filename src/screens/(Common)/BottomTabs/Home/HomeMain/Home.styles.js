@@ -153,11 +153,9 @@ export default StyleSheet.create({
 
   //구인구직
   jobContainer: {
-    width: '100%',
     flexDirection: 'column',
     borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
-    alignItems: 'flex-start',
     paddingHorizontal: 16,
     paddingVertical: 12,
     height: 432,

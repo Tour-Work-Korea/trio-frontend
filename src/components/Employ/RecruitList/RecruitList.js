@@ -5,7 +5,7 @@ import RecruitCard from './RecruitCard';
 const RecruitList = ({
   data,
   onEndReached,
-  loading,
+  loading = false,
   onJobPress,
   onToggleFavorite,
   setRecruitList,

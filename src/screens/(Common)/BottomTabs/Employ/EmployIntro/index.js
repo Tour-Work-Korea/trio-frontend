@@ -58,10 +58,10 @@ const EmployIntro = () => {
   };
 
   //채용 공고 조회
-  const fetchRecruitList = async (pageToFetch = 0) => {
+  const fetchRecruitList = async (page = 0) => {
     setIsEmLoading(true);
     try {
-      const res = await userEmployApi.getRecruits({pageToFetch, size: 6});
+      const res = await userEmployApi.getRecruits({page, size: 6});
       const newContent = res.data.content;
       setRecruitList(prev => [...prev, ...newContent]);
     } catch (error) {

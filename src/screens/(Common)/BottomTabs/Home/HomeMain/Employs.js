@@ -7,6 +7,7 @@ import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import {useNavigation} from '@react-navigation/native';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
+import {RecruitList} from '@components/Employ/RecruitList';
 
 export default function Employs({jobs, setEmployList}) {
   const navigation = useNavigation();
@@ -98,12 +99,12 @@ export default function Employs({jobs, setEmployList}) {
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
       </View>
-      <FlatList
+      <RecruitList
         data={jobs}
-        keyExtractor={item => item.recruitId.toString()}
-        renderItem={renderJob}
-        scrollEnabled={false}
-        contentContainerStyle={{flexGrow: 1}}
+        onEndReached={() => {}}
+        onJobPress={moveToDetail}
+        onToggleFavorite={toggleLikeRecruit}
+        setRecruitList={setEmployList}
       />
     </View>
   );
