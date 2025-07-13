@@ -6,7 +6,7 @@ export {default as Employ} from './(Common)/BottomTabs/Employ';
 export {default as EmployIntro} from './(Common)/BottomTabs/Employ/EmployIntro';
 export {default as EmploySearchList} from './(Common)/BottomTabs/Employ/EmploySearchList';
 export {default as EmploySearchResult} from './(Common)/BottomTabs/Employ/EmploySearchResult';
-export {default as EmployDetail} from './(Common)/BottomTabs/Employ/EmployDetail';
+export {default as EmployDetail} from './(Common)/EmployDetail';
 export {default as EmployList} from './(Common)/BottomTabs/Employ/EmployList';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';

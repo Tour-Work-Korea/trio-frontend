@@ -20,7 +20,6 @@ import WorkAndStay from './WorkAndStay';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Loading from '@components/Loading';
-import {COLORS} from '@constants/colors';
 
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');

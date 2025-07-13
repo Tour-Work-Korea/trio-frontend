@@ -18,7 +18,6 @@ const Employ = () => {
       <Stack.Screen name="EmploySearchList" component={EmploySearchList} />
       <Stack.Screen name="EmploySearchResult" component={EmploySearchResult} />
       <Stack.Screen name="EmployList" component={EmployList} />
-      <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   );
 };
