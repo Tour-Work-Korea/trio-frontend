@@ -5,20 +5,6 @@ import styles from '../../../screens/(Common)/BottomTabs/Employ/EmployDetail/Emp
 export default function RecruitProfileSection({recruit}) {
   return (
     <>
-      {/* 메인 이미지 */}
-      <View style={styles.mainImageContainer}>
-        {recruit?.recruitImages.map((item, idx) =>
-          item.isThumbnail ? (
-            <Image
-              source={require('@assets/images/exphoto.jpeg')} //item.recruitImageUrl
-              style={styles.mainImage}
-              resizeMode="cover"
-            />
-          ) : (
-            ''
-          ),
-        )}
-      </View>
       {/* 공고 제목 및 정보 */}
       <View style={styles.titleSection}>
         <Text style={styles.title}>{recruit.recruitTitle}</Text>

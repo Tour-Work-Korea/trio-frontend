@@ -9,21 +9,23 @@ import {
   Alert,
 } from 'react-native';
 import styles from './EmployDetail.styles';
-import Share from '@assets/images/Share.svg';
-import Header from '@components/Header';
-import HeartIcon from '@assets/images/Empty_Heart.svg';
-import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import userEmployApi from '@utils/api/userEmployApi';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import {
   RecruitProfileSection,
   RecruitTapSection,
   RecruitDescriptionSection,
+  RecruitHeaderSection,
 } from '@components/Employ/EmployDetail';
 import {
   employDetailDeeplink,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
+
+import Share from '@assets/images/Share.svg';
+import HeartIcon from '@assets/images/Empty_Heart.svg';
+import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
+import ChevronLeft from '@assets/images/chevron_left_black.svg';
 
 const EmployDetail = () => {
   const navigation = useNavigation();
@@ -52,45 +54,16 @@ const EmployDetail = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="공고 상세" />
-      {recruit == null ? (
-        <></>
-      ) : (
-        <ScrollView style={styles.scrollView}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View style={styles.headerButton}>
-              <Text style={styles.headerButtonText}>
-                {recruit.guesthouseName}
-              </Text>
-            </View>
-            <View style={styles.headerIcons}>
-              <TouchableOpacity
-                style={styles.shareButton}
-                onPress={() => toggleFavorite(recruit.liked)}>
-                {recruit.liked ? (
-                  <FilledHeartIcon width={24} height={24} />
-                ) : (
-                  <HeartIcon width={24} height={24} />
-                )}
-              </TouchableOpacity>
-              <TouchableOpacity
-                style={styles.shareButton}
-                onPress={() => {
-                  const deepLinkUrl = employDetailDeeplink(recruit.recruitId);
-                  copyDeeplinkToClipboard(deepLinkUrl);
-                  Alert.alert('복사가 완료되었습니다. 바로 공유해볼까요?');
-                }}>
-                <Share width={24} height={24} />
-              </TouchableOpacity>
-            </View>
-          </View>
-          <RecruitProfileSection recruit={recruit} />
-          <RecruitTapSection recruit={recruit} />
-          <RecruitDescriptionSection description={recruit.recruitDetail} />
-        </ScrollView>
-      )}
+    <ScrollView style={styles.container}>
+      <View style={styles.scrollView}>
+        <RecruitHeaderSection
+          tags={recruit.hashtags}
+          guesthouseName={recruit.guesthouseName}
+        />
+        <RecruitProfileSection recruit={recruit} />
+        <RecruitTapSection recruit={recruit} />
+        <RecruitDescriptionSection description={recruit.recruitDetail} />
+      </View>
 
       {/* 하단 버튼 */}
       <View style={styles.bottomButtonContainer}>
@@ -107,7 +80,7 @@ const EmployDetail = () => {
           <Text style={styles.applyButtonText}>지원하기</Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </ScrollView>
   );
 };
 
