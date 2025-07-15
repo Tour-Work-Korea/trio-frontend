@@ -1,6 +1,8 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
+import { navigationRef } from '@utils/navigationService';
+
 import undefinedStack from './undefinedStack';
 import EXHome from '@screens/EXHome';
 
@@ -14,7 +16,7 @@ import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
-  <NavigationContainer>
+  <NavigationContainer ref={navigationRef}>
 
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="EXHome" component={EXHome} />

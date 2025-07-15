@@ -1,10 +1,13 @@
 import 'react-native-reanimated';
 import React, {useState, useEffect} from 'react';
 import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
+import 'react-native-gesture-handler';
+
 import RootNavigation from '@navigations/RootNavigation';
 import Toast from 'react-native-toast-message';
 import BasicToast from '@components/toasts/BasicToast';
-import 'react-native-gesture-handler';
+import DeeplinkHandler from '@utils/deeplinkHandler';
+
 import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 
@@ -25,6 +28,7 @@ const App = () => {
           backgroundColor={COLORS.grayscale_0}
         />
         <RootNavigation />
+        <DeeplinkHandler />
       </SafeAreaView>
       <Toast config={toastConfig} />
     </>

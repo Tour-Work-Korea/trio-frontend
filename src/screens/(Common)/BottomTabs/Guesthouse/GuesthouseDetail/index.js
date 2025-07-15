@@ -47,7 +47,7 @@ const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const { id, checkIn, checkOut, guestCount } = route.params;
+  const { id, checkIn, checkOut, guestCount, isFromDeeplink } = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -130,8 +130,19 @@ const GuesthouseDetail = ({route}) => {
         )}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+          onPress={() => {
+            console.log('isFromDeeplink:', isFromDeeplink);
+            if (isFromDeeplink) {
+              navigation.navigate('MainTabs', {
+                screen: '게하',
+                params: {
+                  screen: 'GuesthouseSearch',
+                },
+              });
+            } else {
+              navigation.goBack(); // 일반 뒤로가기
+            }
+          }}>
           <LeftArrow width={28} height={28}/>
         </TouchableOpacity>
         <View style={styles.tagContainer}>
