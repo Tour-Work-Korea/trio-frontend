@@ -6,8 +6,8 @@ export {default as Employ} from './(Common)/BottomTabs/Employ';
 export {default as EmployIntro} from './(Common)/BottomTabs/Employ/EmployIntro';
 export {default as EmploySearchList} from './(Common)/BottomTabs/Employ/EmploySearchList';
 export {default as EmploySearchResult} from './(Common)/BottomTabs/Employ/EmploySearchResult';
-export {default as EmployDetail} from './(Common)/EmployDetail';
-export {default as EmployList} from './(Common)/BottomTabs/Employ/EmployList';
+export {default as EmployMap} from './(Common)/BottomTabs/Employ/EmployMap';
+export {default as EmployDetail} from './(Common)/Employ/EmployDetail';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';
 export {default as GuesthouseDetail} from './(Common)/BottomTabs/Guesthouse/GuesthouseDetail';
@@ -77,13 +77,13 @@ export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegister
 
 // (User)
 export {default as ApplicantForm} from './(User)/ApplicantForm';
-export {default as MyApplicantDetail} from './(User)/MyApplicantDetail';
-export {default as MyApplicantList} from './(User)/MyApplicantList';
+export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
+export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
-export {default as MyLikeRecruitList} from './(User)/MyLikeRecruitList';
-export {default as MyResumeDetail} from './(User)/MyResumeDetail';
-export {default as MyResumeList} from './(User)/MyResumeList';
-export {default as ResumeForm} from './(User)/ResumeForm';
+export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
+export {default as MyResumeDetail} from './(User)/Employ/MyResumeDetail';
+export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
+export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';

@@ -12,17 +12,18 @@ import styles from './EmploySearchResult.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
+import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
+import {regions} from '@data/filter';
+import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 // 아이콘 불러오기
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
 import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
+import MapIcon from '@assets/images/map_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
-import {regions} from '@data/filter';
-import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 
 const EmploySearchResult = ({route}) => {
   const {search} = route.params;
@@ -220,6 +221,15 @@ const EmploySearchResult = ({route}) => {
             isEmLoading && <ActivityIndicator size="small" color="gray" />
           }
         />
+        {/* 지도 버튼 */}
+        <View style={styles.mapButtonContainer}>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={() => navigation.navigate('EmployMap')}>
+            <MapIcon width={20} height={20} />
+            <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
       <EmployFilterModal

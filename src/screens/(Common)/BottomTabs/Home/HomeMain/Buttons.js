@@ -14,18 +14,16 @@ export default function Buttons() {
         onPress={() => {
           navigation.navigate('GuesthouseList');
         }}
-        style={styles.button}
-      >
+        style={styles.button}>
         <Guesthouse_btn />
         <Text style={styles.buttonText}>숙소</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('EmployList');
+          navigation.navigate('EmployIntro');
         }}
-        style={styles.button}
-      >
+        style={styles.button}>
         <Employ_btn />
         <Text style={styles.buttonText}>일자리</Text>
       </TouchableOpacity>
@@ -34,8 +32,7 @@ export default function Buttons() {
         onPress={() => {
           navigation.navigate('Meet');
         }}
-        style={styles.button}
-      >
+        style={styles.button}>
         <Party_btn />
         <Text style={styles.buttonText}>동행</Text>
       </TouchableOpacity>

@@ -5,8 +5,7 @@ import {
   EmployIntro,
   EmploySearchList,
   EmploySearchResult,
-  EmployList,
-  EmployDetail,
+  EmployMap,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -17,7 +16,7 @@ const Employ = () => {
       <Stack.Screen name="EmployIntro" component={EmployIntro} />
       <Stack.Screen name="EmploySearchList" component={EmploySearchList} />
       <Stack.Screen name="EmploySearchResult" component={EmploySearchResult} />
-      <Stack.Screen name="EmployList" component={EmployList} />
+      <Stack.Screen name="EmployMap" component={EmployMap} />
     </Stack.Navigator>
   );
 };

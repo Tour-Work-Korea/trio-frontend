@@ -8,7 +8,6 @@ import {FONTS} from '@constants/fonts';
 
 export default function RecruitHeaderSection({tags, guesthouseName}) {
   const navigation = useNavigation();
-  console.log(tags);
   return (
     <View>
       <View

@@ -11,7 +11,7 @@ import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
 import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
 import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
 
-import EmployDetail from '@screens/(Common)/EmployDetail';
+import EmployDetail from '@screens/(Common)/Employ/EmployDetail';
 
 const Stack = createNativeStackNavigator();
 

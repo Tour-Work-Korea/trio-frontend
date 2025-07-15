@@ -11,9 +11,12 @@ import {
 } from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import ImageModal from '@components/modals/ImageModal';
 
 export default function RecruitTapSection({recruit}) {
   const [activeTab, setActiveTab] = useState('모집조건');
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [selectedImageId, setSelectedImageId] = useState(0);
 
   const handleTabPress = tabName => {
     setActiveTab(tabName);
@@ -94,11 +97,17 @@ export default function RecruitTapSection({recruit}) {
               showsHorizontalScrollIndicator={false}
               style={styles.photoScroll}>
               {recruit?.recruitImages?.map((item, idx) => (
-                <Image
+                <TouchableOpacity
                   key={idx}
-                  source={require('@assets/images/exphoto.jpeg')} //item.recruitImageUrl
-                  style={styles.workplacePhoto}
-                />
+                  onPress={() => {
+                    setSelectedImageId(idx);
+                    setImageModalVisible(true);
+                  }}>
+                  <Image
+                    source={require('@assets/images/exphoto.jpeg')} //item.recruitImageUrl
+                    style={styles.workplacePhoto}
+                  />
+                </TouchableOpacity>
               ))}
             </ScrollView>
 
@@ -155,6 +164,45 @@ export default function RecruitTapSection({recruit}) {
       </View>
       {/* 탭 내용 */}
       {renderTabContent()}
+      {/* 이미지 선택 모달 */}
+      <ImageModal
+        visible={imageModalVisible}
+        title={recruit.guesthouseName}
+        images={[
+          {
+            id: 0,
+            imageUrl:
+              'https://images.unsplash.com/photo-1682685796002-e05458d61f07?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
+          },
+          {
+            id: 1,
+            imageUrl:
+              'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1752571419088_935096.jpg',
+          },
+          {
+            id: 2,
+            imageUrl:
+              'https://images.unsplash.com/photo-1751677524360-978c93b2c0b2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8',
+          },
+          {
+            id: 3,
+            imageUrl:
+              'https://images.unsplash.com/photo-1751677524360-978c93b2c0b2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8',
+          },
+          {
+            id: 4,
+            imageUrl:
+              'https://images.unsplash.com/photo-1751677524360-978c93b2c0b2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8',
+          },
+          {
+            id: 5,
+            imageUrl:
+              'https://images.unsplash.com/photo-1751677524360-978c93b2c0b2?w=500&auto=format&fit=crop&q=60&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxmZWF0dXJlZC1waG90b3MtZmVlZHwzfHx8ZW58MHx8fHx8',
+          },
+        ]}
+        selectedImageIndex={selectedImageId}
+        onClose={() => setImageModalVisible(false)}
+      />
     </>
   );
 }
