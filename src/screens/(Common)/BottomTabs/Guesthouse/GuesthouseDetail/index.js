@@ -17,6 +17,7 @@ import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';
+import Loading from '@components/Loading';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -89,13 +90,9 @@ const GuesthouseDetail = ({route}) => {
     }
   };
 
-  // 로딩처리 or 데이터 없을 때 예외처리
+  // 로딩처리
   if (!detail) {
-    return (
-      <View style={[styles.container, {flex: 1, justifyContent: 'center', alignItems: 'center'}]}>
-        <Text>로딩중...</Text>
-      </View>
-    );
+    return <Loading title="게스트하우스를 불러오고 있어요" />;
   }
 
   const thumbnailImage = detail.guesthouseImages?.find(img => img.isThumbnail)?.guesthouseImageUrl;
