@@ -19,7 +19,7 @@ const RootNavigation = () => (
   <NavigationContainer ref={navigationRef}>
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="EXHome" component={EXHome} />
-      <Stack.Screen name="undefined" component={UndefinedStack} />
+      <Stack.Screen name="undefined" component={undefinedStack} />
 
       {/* 하단탭 보여하 하는 곳으로 이동할 때 사용 */}
       <Stack.Screen name="MainTabs" component={BottomTabs} />
