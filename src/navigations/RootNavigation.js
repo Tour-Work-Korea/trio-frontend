@@ -17,10 +17,9 @@ const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
   <NavigationContainer ref={navigationRef}>
-
     <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="EXHome" component={EXHome} />
-      <Stack.Screen name="undefined" component={undefinedStack} />
+      <Stack.Screen name="undefined" component={UndefinedStack} />
 
       {/* 하단탭 보여하 하는 곳으로 이동할 때 사용 */}
       <Stack.Screen name="MainTabs" component={BottomTabs} />
@@ -29,7 +28,10 @@ const RootNavigation = () => (
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
-      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
+      <Stack.Screen
+        name="GuesthouseReservation"
+        component={GuesthouseReservation}
+      />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
     </Stack.Navigator>
