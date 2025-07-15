@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
+    paddingBottom: 20,
   },
   devide: {
     width: '100%',
@@ -69,6 +70,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
   userInfoTitle: {
+    color: COLORS.grayscale_600,
+  },
+
+  // 방 이름, 가격
+  roomNameText: {
+
+  },
+  roomPriceText: {
     color: COLORS.grayscale_600,
   },
 

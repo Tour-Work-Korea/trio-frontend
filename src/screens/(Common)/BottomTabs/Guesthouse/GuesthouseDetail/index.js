@@ -47,7 +47,7 @@ const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const { id, checkIn, checkOut, guestCount } = route.params;
+  const { id, checkIn, checkOut, guestCount, isFromDeeplink } = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
@@ -130,8 +130,19 @@ const GuesthouseDetail = ({route}) => {
         )}
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
-        >
+          onPress={() => {
+            console.log('isFromDeeplink:', isFromDeeplink);
+            if (isFromDeeplink) {
+              navigation.navigate('MainTabs', {
+                screen: '게하',
+                params: {
+                  screen: 'GuesthouseSearch',
+                },
+              });
+            } else {
+              navigation.goBack(); // 일반 뒤로가기
+            }
+          }}>
           <LeftArrow width={28} height={28}/>
         </TouchableOpacity>
         <View style={styles.tagContainer}>
@@ -274,67 +285,82 @@ const GuesthouseDetail = ({route}) => {
       {activeTab === '객실' && (
         <View style={styles.roomContentWrapper}>
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
-          {detail.roomInfos?.map(room => (
-          <TouchableOpacity
-            key={room.id}
-            onPress={() =>
-              navigation.navigate('RoomDetail', {
-                roomId: room.id,
-                roomName: room.roomName,
-                roomPrice: room.roomPrice,
-                roomDesc: room.roomDesc,
-                guesthouseName: detail.guesthouseName,
-                checkIn: `${checkIn}T${detail.checkIn}`,
-                checkOut: `${checkOut}T${detail.checkOut}`,
-                guestCount: guestCount,
-                roomImage: (
-                  room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
-                  room.roomImages?.[0]?.roomImageUrl ||
-                  null
-                ),
-              })
-            }>
-            <View style={styles.roomCard}>
-              {(() => {
-                const thumbnailImage =
-                  room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
-                  room.roomImages?.[0]?.roomImageUrl;
+          {detail.roomInfos?.map(room => {
+          const isReserved = room.isReserved;
 
-                return thumbnailImage ? (
-                  <Image
-                    source={{ uri: thumbnailImage }}
-                    style={styles.roomImage}
-                  />
-                ) : (
-                  <View
-                    style={[
-                      styles.roomImage,
-                      { backgroundColor: COLORS.grayscale_0 },
-                    ]}
-                  />
-                );
-              })()}
-              <View style={styles.roomInfo}>
-                <View style={styles.roomNameDescContainer}>
-                  <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
-                    {room.roomName}
-                  </Text>
-                  <View style={styles.checkTimeContainer}>
-                    <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-                      입실 {formatTime(detail.checkIn)}
-                    </Text>
-                    <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-                      퇴실 {formatTime(detail.checkOut)}
-                    </Text>
+          return (
+            <View key={room.id}>
+              <TouchableOpacity
+                disabled={isReserved} // 예약 완료 시 클릭 막기
+                onPress={() => {
+                  if (!isReserved) {
+                    navigation.navigate('RoomDetail', {
+                      roomId: room.id,
+                      roomName: room.roomName,
+                      roomPrice: room.roomPrice,
+                      roomDesc: room.roomDesc,
+                      guesthouseName: detail.guesthouseName,
+                      checkIn: `${checkIn}T${detail.checkIn}`,
+                      checkOut: `${checkOut}T${detail.checkOut}`,
+                      guestCount: guestCount,
+                      roomImage:
+                        room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
+                        room.roomImages?.[0]?.roomImageUrl ||
+                        null,
+                    });
+                  }
+                }}
+              >
+                <View style={styles.roomCard}>
+                  {(() => {
+                    const thumbnailImage =
+                      room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
+                      room.roomImages?.[0]?.roomImageUrl;
+
+                    return thumbnailImage ? (
+                      <Image
+                        source={{ uri: thumbnailImage }}
+                        style={styles.roomImage}
+                      />
+                    ) : (
+                      <View
+                        style={[
+                          styles.roomImage,
+                          { backgroundColor: COLORS.grayscale_0 },
+                        ]}
+                      />
+                    );
+                  })()}
+                  <View style={styles.roomInfo}>
+                    <View style={styles.roomNameDescContainer}>
+                      <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
+                        {room.roomName}
+                      </Text>
+                      <View style={styles.checkTimeContainer}>
+                        <Text style={[FONTS.fs_12_medium, styles.checkin]}>
+                          입실 {formatTime(detail.checkIn)}
+                        </Text>
+                        <Text style={[FONTS.fs_12_medium, styles.checkin]}>
+                          퇴실 {formatTime(detail.checkOut)}
+                        </Text>
+                      </View>
+                    </View>
+                    {isReserved ? (
+                      <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
+                        예약불가
+                      </Text>
+                    ) : (
+                      <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
+                        {room.roomPrice?.toLocaleString()}원
+                      </Text>
+                    )}
                   </View>
                 </View>
-                <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
-                  {room.roomPrice?.toLocaleString()}원
-                </Text>
-              </View>
+              </TouchableOpacity>
             </View>
-          </TouchableOpacity>
-          ))}
+          );
+        })}
+
         </View>
       )}
 
