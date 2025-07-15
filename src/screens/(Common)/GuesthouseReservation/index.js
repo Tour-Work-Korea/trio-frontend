@@ -171,6 +171,18 @@ const GuesthouseReservation = ({ route }) => {
 
           <View style={styles.devide}/>
 
+          {/* 룸이름, 가격 */}
+          <View style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 정보</Text>
+              <View style={styles.userInfo}>
+                  <Text style={[FONTS.fs_14_semibold, styles.roomNameText]}>{roomName}</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>{roomPrice?.toLocaleString()}원</Text>
+              </View>
+          </View>
+
+
+          <View style={styles.devide}/>
+
           {/* 요청사항 */}
           <View style={styles.section}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>요청 사항 (선택)</Text>

@@ -120,16 +120,25 @@ const GuesthouseList = () => {
         size: 10,
         keyword,
         sortBy,
-
-        // 필터조건 반영
-        ...(filterApplied && {
-          minPrice: filterOptions.minPrice,
-          maxPrice: filterOptions.maxPrice,
-          hashtagIds: getHashtagIds(filterOptions.tags),
-          amenityIds: getAmenityIds(filterOptions.facility),
-          availableOnly: filterOptions.onlyAvailable,
-        }),
       };
+
+      // 필터 적용 시 조건 분기
+      if (filterApplied) {
+        const allTagsSelected = filterOptions.tags.length === guesthouseTags.length;
+        const allFacilitiesSelected = filterOptions.facility.length === 0;
+
+        if (!allTagsSelected) {
+          params.hashtagIds = getHashtagIds(filterOptions.tags);
+        }
+        if (!allFacilitiesSelected) {
+          params.amenityIds = getAmenityIds(filterOptions.facility);
+        }
+
+        params.minPrice = filterOptions.minPrice;
+        params.maxPrice = filterOptions.maxPrice;
+        params.availableOnly = filterOptions.onlyAvailable;
+      }
+      
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
 

@@ -63,7 +63,21 @@ const BottomTabs = () => {
         tabBarStyle: styles.tabBar,
         headerShown: false,
       })}>
-      <Tab.Screen name="게하" component={Guesthouse} />
+      <Tab.Screen 
+        name="게하" 
+        component={Guesthouse} 
+        listeners={({ navigation, route }) => ({
+          tabPress: (e) => {
+            // 기본 동작 막기
+            e.preventDefault();
+
+            // '게하' 스택에서 GuesthouseSearch로 이동
+            navigation.navigate('게하', {
+              screen: 'GuesthouseSearch',
+            });
+          },
+        })}
+      />
       <Tab.Screen name="채용" component={Employ} />
       <Tab.Screen name="홈" component={Home} />
       <Tab.Screen name="모임" component={Meet} />
