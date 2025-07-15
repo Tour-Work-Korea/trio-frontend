@@ -13,7 +13,7 @@ export default StyleSheet.create({
   },
   viewFlexBox: {
     gap: 0,
-    justifyContent: 'space-between',
+
     paddingVertical: 40,
     paddingHorizontal: 20,
     flex: 1,

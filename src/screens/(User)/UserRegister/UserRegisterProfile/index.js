@@ -1,5 +1,12 @@
 import React, {useState, useCallback} from 'react';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  KeyboardAvoidingView,
+  ScrollView,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   useNavigation,
@@ -169,194 +176,210 @@ const UserRegisterProfile = () => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={[styles.viewFlexBox]}>
-          {/* 상단+입력창 */}
-          <View>
-            {/* 로고 및 문구 */}
-            <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
-              <View>
-                <Text style={[styles.titleText]}>
-                  workaway에서 활동하기 위한,
-                </Text>
-                <Text style={[styles.titleText]}>필수정보를 알려주세요</Text>
-              </View>
-            </View>
-            <View style={styles.inputGroup}>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>닉네임</Text>
-                <View style={[styles.inputBox, {position: 'relative'}]}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="닉네임을 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.nickname}
-                    onChangeText={handleNicknameChange}
-                    maxLength={10}
-                  />
-                  <TouchableOpacity
-                    disabled={
-                      !formValid.nickname?.hasNoSpecialChars ||
-                      !formValid.nickname?.isLengthValid
-                    }
-                    style={[
-                      styles.inputButtonAbsolute,
-                      {
-                        backgroundColor:
-                          formValid.nickname?.hasNoSpecialChars &&
-                          formValid.nickname?.isLengthValid
-                            ? COLORS.primary_orange
-                            : COLORS.grayscale_200,
-                      },
-                    ]}
-                    onPress={checkNicknameDuplicate}>
-                    <Text
-                      style={{
-                        ...FONTS.fs_14_medium,
-                        color:
-                          formValid.nickname?.hasNoSpecialChars &&
-                          formValid.nickname?.isLengthValid
-                            ? COLORS.white
-                            : COLORS.grayscale_400,
-                      }}>
-                      중복확인
-                    </Text>
-                  </TouchableOpacity>
+        <KeyboardAvoidingView
+          style={{flex: 1}}
+          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // 필요 시 조정
+        >
+          <ScrollView
+            style={[styles.viewFlexBox]}
+            contentContainerStyle={{
+              flexGrow: 1,
+              justifyContent: 'space-between',
+            }}
+            keyboardShouldPersistTaps="handled">
+            {/* 상단+입력창 */}
+            <View>
+              {/* 로고 및 문구 */}
+              <View style={styles.groupParent}>
+                <Logo width={60} height={29} />
+                <View>
+                  <Text style={[styles.titleText]}>
+                    workaway에서 활동하기 위한,
+                  </Text>
+                  <Text style={[styles.titleText]}>필수정보를 알려주세요</Text>
                 </View>
-                {isNicknameChecked ? (
+              </View>
+              <View style={styles.inputGroup}>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>닉네임</Text>
+                  <View style={[styles.inputBox, {position: 'relative'}]}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="닉네임을 입력해주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={formData.nickname}
+                      onChangeText={handleNicknameChange}
+                      maxLength={10}
+                    />
+                    <TouchableOpacity
+                      disabled={
+                        !formValid.nickname?.hasNoSpecialChars ||
+                        !formValid.nickname?.isLengthValid
+                      }
+                      style={[
+                        styles.inputButtonAbsolute,
+                        {
+                          backgroundColor:
+                            formValid.nickname?.hasNoSpecialChars &&
+                            formValid.nickname?.isLengthValid
+                              ? COLORS.primary_orange
+                              : COLORS.grayscale_200,
+                        },
+                      ]}
+                      onPress={checkNicknameDuplicate}>
+                      <Text
+                        style={{
+                          ...FONTS.fs_14_medium,
+                          color:
+                            formValid.nickname?.hasNoSpecialChars &&
+                            formValid.nickname?.isLengthValid
+                              ? COLORS.white
+                              : COLORS.grayscale_400,
+                        }}>
+                        중복확인
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {isNicknameChecked ? (
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          !isNicknameDuplicated
+                            ? styles.validText
+                            : styles.invalidText,
+                        ]}>
+                        {!isNicknameDuplicated
+                          ? '사용가능한 닉네임입니다'
+                          : '이미 있는 닉네임입니다. 다른 닉네임을 입력해주세요.'}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.nickname?.hasNoSpecialChars
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        특수문자 제외
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.nickname?.isLengthValid
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        2-10자 내외
+                      </Text>
+                    </View>
+                  )}
+                </View>
+                <View style={styles.inputContainer}>
+                  <Text style={styles.inputLabel}>비밀번호</Text>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="비밀번호를 입력해주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={formData.password}
+                      onChangeText={handlePasswordChange}
+                      maxLength={20}
+                      secureTextEntry={!isPasswordVisible}
+                      autoCapitalize="none"
+                    />
+                    <TouchableOpacity
+                      onPress={() => setIsPasswordVisible(prev => !prev)}>
+                      {isPasswordVisible ? (
+                        <HidePassword width={24} hide={24} />
+                      ) : (
+                        <ShowPassword width={24} hide={24} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                   <View style={styles.validBox}>
                     <Text
                       style={[
                         styles.validDefaultText,
-                        !isNicknameDuplicated
+                        formValid.password.hasUpperLowercase
                           ? styles.validText
-                          : styles.invalidText,
+                          : '',
                       ]}>
-                      {!isNicknameDuplicated
-                        ? '사용가능한 닉네임입니다'
-                        : '이미 있는 닉네임입니다. 다른 닉네임을 입력해주세요.'}
+                      영문 대소문자 포함
+                    </Text>
+                    <Text
+                      style={[
+                        styles.validDefaultText,
+                        formValid.password.hasNumber ? styles.validText : '',
+                      ]}>
+                      숫자 포함
+                    </Text>
+                    <Text
+                      style={[
+                        styles.validDefaultText,
+                        formValid.password.hasSpecialChar
+                          ? styles.validText
+                          : '',
+                      ]}>
+                      특수문자 포함
+                    </Text>
+                    <Text
+                      style={[
+                        styles.validDefaultText,
+                        formValid.password.isLengthValid
+                          ? styles.validText
+                          : '',
+                      ]}>
+                      8-20자 이내
                     </Text>
                   </View>
-                ) : (
+                </View>
+                <View style={styles.inputContainer}>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="다시 한 번 입력해주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={formData.passwordConfirm}
+                      onChangeText={handlePasswordConfirmChange}
+                      maxLength={10}
+                      secureTextEntry={!isPasswordCheckVisible}
+                    />
+                    <TouchableOpacity
+                      onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
+                      {isPasswordCheckVisible ? (
+                        <HidePassword width={24} hide={24} />
+                      ) : (
+                        <ShowPassword width={24} hide={24} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
                   <View style={styles.validBox}>
                     <Text
                       style={[
                         styles.validDefaultText,
-                        formValid.nickname?.hasNoSpecialChars
+                        formValid.passwordConfirm.isMatched
                           ? styles.validText
                           : '',
                       ]}>
-                      특수문자 제외
-                    </Text>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.nickname?.isLengthValid
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      2-10자 내외
+                      비밀번호 일치
                     </Text>
                   </View>
-                )}
-              </View>
-              <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>비밀번호</Text>
-                <View style={styles.inputBox}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="비밀번호를 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.password}
-                    onChangeText={handlePasswordChange}
-                    maxLength={20}
-                    secureTextEntry={!isPasswordVisible}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    onPress={() => setIsPasswordVisible(prev => !prev)}>
-                    {isPasswordVisible ? (
-                      <HidePassword width={24} hide={24} />
-                    ) : (
-                      <ShowPassword width={24} hide={24} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.validBox}>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasUpperLowercase
-                        ? styles.validText
-                        : '',
-                    ]}>
-                    영문 대소문자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasNumber ? styles.validText : '',
-                    ]}>
-                    숫자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasSpecialChar ? styles.validText : '',
-                    ]}>
-                    특수문자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.isLengthValid ? styles.validText : '',
-                    ]}>
-                    8-20자 이내
-                  </Text>
-                </View>
-              </View>
-              <View style={styles.inputContainer}>
-                <View style={styles.inputBox}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="다시 한 번 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.passwordConfirm}
-                    onChangeText={handlePasswordConfirmChange}
-                    maxLength={10}
-                    secureTextEntry={!isPasswordCheckVisible}
-                  />
-                  <TouchableOpacity
-                    onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
-                    {isPasswordCheckVisible ? (
-                      <HidePassword width={24} hide={24} />
-                    ) : (
-                      <ShowPassword width={24} hide={24} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.validBox}>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.passwordConfirm.isMatched
-                        ? styles.validText
-                        : '',
-                    ]}>
-                    비밀번호 일치
-                  </Text>
                 </View>
               </View>
             </View>
-          </View>
-          <View>
-            <ButtonScarlet
-              title="다음"
-              onPress={handleSubmit}
-              disabled={!isFormValid()}
-            />
-          </View>
-        </View>
+            <View>
+              <ButtonScarlet
+                title="다음"
+                onPress={handleSubmit}
+                disabled={!isFormValid()}
+              />
+            </View>
+          </ScrollView>
+        </KeyboardAvoidingView>
       </SafeAreaView>
       <ErrorModal
         visible={errorModal.visible}

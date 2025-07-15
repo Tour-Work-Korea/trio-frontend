@@ -46,12 +46,23 @@ const RegisterAgree = ({route}) => {
     }
   };
 
+  const getAgreementPayload = () => {
+    return agreements.map(item => ({
+      agreementType: item.id,
+      agreed: item.isAgree,
+    }));
+  };
+
   const handleAgreeDetail = (title, detail) => {
     navigation.navigate('AgreeDetail', {title, detail});
   };
 
   const handleMoveNext = () => {
-    navigation.navigate('PhoneCertificate', {user});
+    const agreementPayload = getAgreementPayload();
+    navigation.navigate('PhoneCertificate', {
+      user,
+      agreements: agreementPayload,
+    });
   };
 
   const renderCheckbox = (isChecked, onPress) => (
