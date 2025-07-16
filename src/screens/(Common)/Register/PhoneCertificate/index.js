@@ -12,7 +12,7 @@ import styles from '../Register.styles';
 import {COLORS} from '@constants/colors';
 
 const PhoneCertificate = ({route}) => {
-  const {user} = route.params;
+  const {user, agreements} = route.params;
   const navigation = useNavigation();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
@@ -69,6 +69,7 @@ const PhoneCertificate = ({route}) => {
       setTimeout(() => {
         navigation.navigate('EmailCertificate', {
           user,
+          agreements,
           phoneNumber,
         });
       }, 850);
@@ -148,7 +149,7 @@ const PhoneCertificate = ({route}) => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={[styles.viewFlexBox]}>
+        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
@@ -257,6 +258,7 @@ const PhoneCertificate = ({route}) => {
                   navigation.navigate('EmailCertificate', {
                     user,
                     phoneNumber: '01012341234',
+                    agreements,
                   })
                 }
               />

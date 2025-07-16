@@ -13,6 +13,8 @@ import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
 import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
 import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
 
+import EmployDetail from '@screens/(Common)/Employ/EmployDetail';
+
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
@@ -34,6 +36,7 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   </NavigationContainer>
 );

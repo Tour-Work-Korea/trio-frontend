@@ -2,63 +2,49 @@ import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-export default StyleSheet.create({
+const styles = StyleSheet.create({
   container: {
     flex: 1,
-    flexDirection: 'column',
     backgroundColor: COLORS.grayscale_100,
-    color: COLORS.grayscale_800,
+    paddingTop: 30,
   },
-  boxContainer: {
-    marginBottom: 20,
+  scroll: {
+    flex: 1, // ← scrollView가 하단까지 확장되도록
   },
-
-  //배너
-  bannerContainer: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    paddingVertical: 16,
-    borderRadius: 12,
-    backgroundColor: COLORS.grayscale_0,
-    overflow: 'hidden',
+  scrollContent: {
+    flexGrow: 1, // ← 내용이 적어도 꽉 채우기
+    paddingHorizontal: 20,
+    paddingBottom: 32, // 필요한 만큼 여백 (SafeAreaView와 맞춤)
+    justifyContent: 'flex-start',
   },
-  banner: {
-    alignSelf: 'center',
-    width: '85%',
-    height: 120,
-    borderRadius: 10,
-    marginHorizontal: 4,
-  },
-  indicatorRow: {
-    marginTop: 12,
-    flexDirection: 'row',
-    justifyContent: 'center',
-  },
-  indicatorDot: isActive => ({
-    width: 6,
-    height: 6,
-    borderRadius: 4,
-    marginHorizontal: 4,
-    backgroundColor: isActive ? COLORS.grayscale_400 : COLORS.grayscale_200,
-  }),
-
-  //버튼탭
-  buttonContainer: {
+  //헤더
+  headerBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    paddingHorizontal: 20,
+    width: '100%',
   },
-  button: {
-    justifyContent: 'center',
-    alignContent: 'center',
+  headerText: {
+    ...FONTS.fs_20_semibold,
+    color: COLORS.grayscale_800,
   },
-  buttonText: {
-    ...FONTS.fs_14_semibold,
-    color: COLORS.grayscale_0,
-    position: 'absolute',
-    alignSelf: 'center',
+  //검색창
+  searchInputContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    height: 40,
   },
-
+  searchIcon: {
+    marginRight: 8,
+  },
+  searchInput: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_600,
+    padding: 0,
+    flex: 1,
+  },
   //숙박
   guesthouseContainer: {
     flexDirection: 'column',
@@ -87,10 +73,7 @@ export default StyleSheet.create({
     marginLeft: 4,
     tintColor: COLORS.grayscale_400,
   },
-  sectionTitle: {
-    color: COLORS.grayscale_800,
-    ...FONTS.fs_16_semibold,
-  },
+  sectionTitle: {...FONTS.fs_16_semibold, color: COLORS.grayscale_800},
   // 게하 카드
   guesthouseCardContainer: {
     gap: 20,
@@ -125,6 +108,7 @@ export default StyleSheet.create({
   guesthouseTitle: {
     marginTop: 4,
     marginRight: 8,
+    ...FONTS.fs_16_semibold,
   },
   guesthousePrice: {
     flexDirection: 'row',
@@ -151,33 +135,14 @@ export default StyleSheet.create({
     color: COLORS.primary_blue,
   },
 
-  //구인구직
-  jobContainer: {
+  //일자리 리스트
+  employContainer: {
     flexDirection: 'column',
-    borderRadius: 12,
-    backgroundColor: COLORS.grayscale_0,
-    paddingHorizontal: 16,
+    gap: 16,
     paddingVertical: 12,
-    height: 432,
-  },
-  jobCard: {
-    minWidth: '100%',
-    flexDirection: 'row',
-    marginBottom: 16,
-  },
-  jobImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 4,
-    marginRight: 10,
-  },
-  jobInfo: {
-    flex: 1,
-    width: '100%',
-    flexDirection: 'column',
-  },
-  count: {
-    ...FONTS.fs_12_medium,
-    color: COLORS.grayscale_400,
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 12,
   },
 });
+export default styles;

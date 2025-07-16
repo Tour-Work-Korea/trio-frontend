@@ -89,9 +89,9 @@ const BottomTabs = () => {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: COLORS.grayscale_0,
-    height: 60,
-    paddingTop: 16,
-    paddingHorizontal: 28,
+    paddingTop: 12,
+    paddingBottom: 20,
+    paddingHorizontal: 40,
   },
   iconWrapper: {
     alignItems: 'center',

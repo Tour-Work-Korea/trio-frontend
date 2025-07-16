@@ -3,54 +3,62 @@ import {View, Text, TouchableOpacity, Image} from 'react-native';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import styles from './RecruitList.styles';
+import {parseSlashDateToYearMonth} from '@utils/formatDate';
 
-const RecruitCard = ({item, onPress, onApply, onToggleFavorite}) => {
+const RecruitCard = ({item, onPress, onToggleFavorite}) => {
   return (
     <View style={styles.RecruitCard}>
-      <TouchableOpacity style={styles.jobItemContent} onPress={onPress}>
-        <Image
-          source={require('@assets/images/exphoto.jpeg')} // 실제로는 item.thumbnailImage
-          style={styles.jobImage}
-          resizeMode="cover"
-        />
-        <View style={styles.jobDetails}>
-          <View style={styles.jobHeader}>
-            <Text style={styles.jobType}>{item.guesthouseName}</Text>
-            {item.deadline && (
-              <Text style={styles.deadline}>{item.deadline}</Text>
-            )}
-          </View>
-          <View style={styles.jobHeader}>
-            <Text style={styles.jobTitle} numberOfLines={1}>
-              {item.recruitTitle}
-            </Text>
-            <TouchableOpacity onPress={onToggleFavorite}>
-              {item.isLiked ? (
-                <FilledHeartIcon width={20} height={20} />
-              ) : (
-                <HeartIcon width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          </View>
-          <View style={styles.jobHeader}>
+      <TouchableOpacity onPress={onPress}>
+        <View style={styles.jobItemContent}>
+          <Image
+            source={require('@assets/images/exphoto.jpeg')} // 실제로는 item.thumbnailImage
+            style={styles.jobImage}
+            resizeMode="cover"
+          />
+          <View style={styles.jobDetails}>
             <View>
-              {item.hashtags && (
-                <View style={styles.tagsContainer}>
-                  {item.hashtags.map((tag, index) => (
-                    <Text key={index} style={styles.tag}>
-                      {tag.hashtag}
-                    </Text>
-                  ))}
-                </View>
-              )}
-              <Text style={styles.jobLocation}>{item.address}</Text>
-              <Text style={styles.jobPeriod}>{item.workDate}</Text>
+              {/* 게하 이름+하트 */}
+              <View style={[styles.jobHeader, {marginBottom: 4}]}>
+                <Text style={styles.jobType}>{item.guesthouseName}</Text>
+                <TouchableOpacity onPress={onToggleFavorite}>
+                  {item.isLiked ? (
+                    <FilledHeartIcon width={20} height={20} />
+                  ) : (
+                    <HeartIcon width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              </View>
+              {/* 공고 제목 + 날짜 */}
+              <View style={[styles.jobHeader]}>
+                <Text
+                  style={styles.jobTitle}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {item.recruitTitle}
+                </Text>
+                {item.deadline && (
+                  <Text style={styles.deadline}>
+                    {parseSlashDateToYearMonth(item.deadline)}
+                  </Text>
+                )}
+              </View>
             </View>
-            <TouchableOpacity style={styles.applyButton} onPress={onApply}>
-              <Text style={styles.applyButtonText}>지원하기</Text>
-            </TouchableOpacity>
+
+            <View style={styles.jobHeader}>
+              <Text style={styles.jobSmall}>{item.address}</Text>
+              <Text style={styles.jobSmall}>{item.workDate}</Text>
+            </View>
           </View>
         </View>
+        {item.hashtags && (
+          <View style={styles.hashTagContainer}>
+            {item.hashtags.map((tag, index) => (
+              <View key={index} style={styles.hashtagButton}>
+                <Text style={styles.hashtagText}>{tag.hashtag}</Text>
+              </View>
+            ))}
+          </View>
+        )}
       </TouchableOpacity>
     </View>
   );
