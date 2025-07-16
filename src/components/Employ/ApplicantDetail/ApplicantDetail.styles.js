@@ -17,57 +17,52 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 16,
   },
-  profileHeaderContainer: {
-    paddingTop: 16,
+  sectionBox: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
-  profileCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+
+  //프로필
+  basicInfoContainer: {
+    flexDirection: 'row',
+    gap: 16,
+    marginBottom: 16,
+  },
+  profileName: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
+  },
+  basicInfoText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_500,
+  },
+  profileMainContainer: {
+    flexDirection: 'row',
+    gap: 20,
   },
   profileImageContainer: {
     alignItems: 'center',
     justifyContent: 'center',
-    width: 120,
-    height: 120,
-    borderRadius: 60,
+    width: 116,
+    height: 116,
+    borderRadius: 8,
     backgroundColor: '#E6E9F0',
     alignSelf: 'center',
-    marginBottom: 16,
-  },
-  profileName: {
-    ...FONTS.fs_h2_bold,
-    color: COLORS.black,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  infoContainer: {
-    flexDirection: 'row',
-  },
-  infoColumn: {
-    flex: 1,
   },
   infoRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    gap: 20,
   },
   infoLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-    flex: 1,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_400,
+    width: 37,
   },
   infoValue: {
     ...FONTS.fs_body,
     color: COLORS.black,
-    flex: 1,
     textAlign: 'right',
   },
   infoValueHashtag: {

@@ -5,11 +5,19 @@ import {StyleSheet} from 'react-native';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    backgroundColor: COLORS.grayscale_100,
+    paddingTop: 30,
   },
-  scrollView: {
-    flex: 1,
-    paddingBottom: 80, // 하단 버튼 영역 확보
+  //헤더
+  headerBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+    paddingBottom: 40,
+  },
+  headerText: {
+    ...FONTS.fs_20_semibold,
+    color: COLORS.grayscale_800,
   },
   pageTitle: {
     ...FONTS.fs_body_bold,
@@ -17,21 +25,9 @@ const styles = StyleSheet.create({
     marginBottom: 16,
     paddingHorizontal: 16,
   },
-  profileHeaderContainer: {
-    paddingTop: 16,
-  },
-  profileCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 24,
-    shadowColor: '#000',
-    shadowOffset: {width: 0, height: 2},
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
+
+  //프로필
+
   profileImageContainer: {
     alignItems: 'center',
     justifyContent: 'center',

@@ -2,7 +2,11 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import styles from './ApplicantDetail.styles';
 
-const ApplicantExperienceSection = ({experiences, totalExperience}) => {
+const ApplicantExperienceSection = ({
+  experiences,
+  totalExperience,
+  isEditable = false,
+}) => {
   return (
     <View style={styles.sectionContainer}>
       <View style={styles.sectionTitleContainer}>

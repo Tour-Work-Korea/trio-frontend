@@ -1,21 +1,15 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import styles from './MyResumeDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import Header from '@components/Header';
 import {
   ApplicantExperienceSection,
   ApplicantProfileHeader,
   ApplicantSelfIntroduction,
 } from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
+
+import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 
 const MyResumeDetail = () => {
   const navigation = useNavigation();
@@ -92,11 +86,22 @@ const MyResumeDetail = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title={'나의 이력서 상세'} />
-      {applicantData ? (
-        <>
-          <ScrollView style={styles.scrollView}>
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{
+          gap: 16,
+          paddingHorizontal: 20,
+          flexGrow: 1,
+        }}>
+        <View style={styles.headerBox}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Chevron_left_black width={28.8} height={28.8} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>이력서 수정</Text>
+          <View width={28.8} height={28.8} />
+        </View>
+        {applicantData ? (
+          <>
             <ApplicantProfileHeader
               data={applicantData}
               hashtags={applicantData.hashtags}
@@ -106,13 +111,14 @@ const MyResumeDetail = () => {
               totalExperience={applicantData?.totalExperience}
             />
             <ApplicantSelfIntroduction text={applicantData?.selfIntro} />
-          </ScrollView>
-          {renderActionButtons()}
-        </>
-      ) : (
-        <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
-      )}
-    </SafeAreaView>
+
+            {renderActionButtons()}
+          </>
+        ) : (
+          <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
+        )}
+      </ScrollView>
+    </View>
   );
 };
 
