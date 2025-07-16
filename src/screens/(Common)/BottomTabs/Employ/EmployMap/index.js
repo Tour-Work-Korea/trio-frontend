@@ -8,12 +8,11 @@ import {FONTS} from '@constants/fonts';
 
 import LeftChevron from '@assets/images/chevron_left_black.svg';
 
-const GuesthouseMap = () => {
+const EmployMap = () => {
   const navigation = useNavigation();
 
   // 제주도 내 임의 좌표 두 개
   const marker1 = {latitude: 33.499621, longitude: 126.531188};
-  const marker2 = {latitude: 33.500885, longitude: 126.528199};
 
   // 랜더링 될 때 기준 좌표
   const region = {
@@ -28,18 +27,11 @@ const GuesthouseMap = () => {
   return (
     <View style={{flex: 1}}>
       <MapView style={styles.map} region={region}>
-        {/* 가격 마커 */}
+        {/* 공고 마커 */}
         <Marker coordinate={marker1}>
           <View style={styles.priceMarker}>
-            <Text style={[FONTS.fs_14_medium, styles.priceText]}>10,000원</Text>
-          </View>
-        </Marker>
-
-        {/* 마감 마커 */}
-        <Marker coordinate={marker2}>
-          <View style={styles.closedMarker}>
-            <Text style={[FONTS.fs_12_medium, styles.closedText]}>
-              숙박예약 마감
+            <Text style={[FONTS.fs_14_medium, styles.priceText]}>
+              게스트하우스 이름
             </Text>
           </View>
         </Marker>
@@ -53,7 +45,7 @@ const GuesthouseMap = () => {
           }}>
           <LeftChevron width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>
-            카테고리로 돌아가기
+            돌아가기
           </Text>
         </TouchableOpacity>
       </View>
@@ -61,7 +53,7 @@ const GuesthouseMap = () => {
   );
 };
 
-export default GuesthouseMap;
+export default EmployMap;
 
 const styles = StyleSheet.create({
   map: {

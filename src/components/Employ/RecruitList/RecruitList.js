@@ -5,21 +5,21 @@ import RecruitCard from './RecruitCard';
 const RecruitList = ({
   data,
   onEndReached,
-  loading,
+  loading = false,
   onJobPress,
-  onApplyPress,
   onToggleFavorite,
   setRecruitList,
+  scrollEnabled = true,
 }) => {
   return (
     <FlatList
       data={data}
+      scrollEnabled={scrollEnabled}
       keyExtractor={item => item.recruitId.toString()}
       renderItem={({item}) => (
         <RecruitCard
           item={item}
           onPress={() => onJobPress(item.recruitId)}
-          onApply={() => onApplyPress(item)}
           onToggleFavorite={() =>
             onToggleFavorite(item.recruitId, item.isLiked, setRecruitList)
           }
@@ -34,7 +34,7 @@ const RecruitList = ({
           </View>
         )
       }
-      ItemSeparatorComponent={() => <View style={{height: 12}} />}
+      ItemSeparatorComponent={() => <View style={{height: 16}} />}
     />
   );
 };

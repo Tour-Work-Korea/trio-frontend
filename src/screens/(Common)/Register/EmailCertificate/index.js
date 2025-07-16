@@ -12,7 +12,7 @@ import Logo from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
 
 const EmailCertificate = ({route}) => {
-  const {user, phoneNumber} = route.params;
+  const {user, agreements, phoneNumber} = route.params;
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
@@ -94,11 +94,13 @@ const EmailCertificate = ({route}) => {
       setTimeout(() => {
         if (user === 'USER') {
           navigation.navigate('UserRegisterInfo', {
+            agreements,
             email,
             phoneNumber,
           });
         } else {
           navigation.navigate('HostRegisterInfo', {
+            agreements,
             email,
             phoneNumber,
           });
@@ -164,7 +166,7 @@ const EmailCertificate = ({route}) => {
   return (
     <>
       <SafeAreaView style={styles.container}>
-        <View style={[styles.viewFlexBox]}>
+        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
@@ -282,11 +284,13 @@ const EmailCertificate = ({route}) => {
               onPress={() => {
                 if (user === 'USER') {
                   navigation.navigate('UserRegisterInfo', {
+                    agreements,
                     email: 'sal091625@gmail.com',
                     phoneNumber,
                   });
                 } else {
                   navigation.navigate('HostRegisterInfo', {
+                    agreements,
                     email: 'sal091625@gmail.com',
                     phoneNumber,
                   });

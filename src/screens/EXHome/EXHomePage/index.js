@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, SafeAreaView} from 'react-native';
+import {View, Text} from 'react-native';
+import {SafeAreaView} from 'react-native-safe-area-context';
 import Logo from '@assets/images/logo_orange.svg'; // svg이미지 불러오기
 import styles from './Home.styles';
 import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 불러오기

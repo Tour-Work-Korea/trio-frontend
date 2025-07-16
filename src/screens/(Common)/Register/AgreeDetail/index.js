@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {View, Text} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet} from 'react-native';
@@ -10,6 +10,7 @@ import {useNavigation} from '@react-navigation/native';
 export default function AgreeDetail({route}) {
   const {title, detail} = route.params;
   const navigation = useNavigation();
+
   return (
     <SafeAreaView style={styles.safeareaview}>
       <View style={{height: 40}}></View>

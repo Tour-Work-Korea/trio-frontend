@@ -15,10 +15,11 @@ import {validateRegisterInfo} from '@utils/validation/registerValidation';
 
 const UserRegisterInfo = () => {
   const route = useRoute();
-  const {email, phoneNumber} = route.params;
+  const {agreements, email, phoneNumber} = route.params;
   const navigation = useNavigation();
   const [formData, setFormData] = useState({
     userRole: 'USER',
+    agreements: agreements || [],
     email: email || '',
     phoneNum: phoneNumber || '',
     name: '',
@@ -34,6 +35,7 @@ const UserRegisterInfo = () => {
     useCallback(() => {
       setFormData({
         userRole: 'USER',
+        agreements: agreements || [],
         email: email || '',
         phoneNum: phoneNumber || '',
         name: '',
@@ -44,7 +46,7 @@ const UserRegisterInfo = () => {
         passwordConfirm: '',
       });
       setIsValid(false);
-    }, [email, phoneNumber]),
+    }, [email, phoneNumber, agreements]),
   );
 
   useEffect(() => {
@@ -68,7 +70,7 @@ const UserRegisterInfo = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[styles.viewFlexBox]}>
+      <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
         {/* 상단+입력창 */}
         <View>
           {/* 로고 및 문구 */}

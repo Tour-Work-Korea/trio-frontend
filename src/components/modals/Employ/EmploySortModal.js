@@ -1,12 +1,5 @@
 import React from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-  Dimensions,
-} from 'react-native';
+import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 
 import XIcon from '@assets/images/x_gray.svg';
 import CheckIcon from '@assets/images/check20_orange.svg';
@@ -16,18 +9,13 @@ import WorkawayIconOrange from '@assets/images/workaway_text_orange.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
-const {height} = Dimensions.get('window');
-
 const sortOptions = [
   {label: '추천 순', value: 'RECOMMEND'},
-  {label: '낮은 가격 순', value: 'LOW_PRICE'},
-  {label: '높은 가격 순', value: 'HIGH_PRICE'},
-  {label: '후기 좋은 순', value: 'RATING'},
-  {label: '후기 많은 순', value: 'REVIEW_COUNT'},
-  {label: '찜 많은 순', value: 'LIKE_COUNT'},
+  {label: '최신 순', value: 'LATEST'},
+  {label: '좋아요 순', value: 'LIKE_COUNT'},
 ];
 
-const GuesthouseSortModal = ({visible, onClose, selected, onSelect}) => {
+const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
   return (
     <Modal visible={visible} transparent animationType="slide">
       <View style={styles.overlay}>
@@ -49,7 +37,7 @@ const GuesthouseSortModal = ({visible, onClose, selected, onSelect}) => {
                   styles.optionItem,
                   selected === option.value && styles.optionItemSelected,
                 ]}
-                onPress={() => onSelect(option.value)}>
+                onPress={() => onSelect(option)}>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                   {/* 추천 순만 아이콘 보여주기 */}
                   {option.value === 'RECOMMEND' &&
@@ -80,7 +68,7 @@ const GuesthouseSortModal = ({visible, onClose, selected, onSelect}) => {
   );
 };
 
-export default GuesthouseSortModal;
+export default EmploySortModal;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -94,7 +82,6 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingBottom: 40,
-    minHeight: height * 0.4,
   },
 
   header: {
