@@ -73,9 +73,6 @@ const EmployDetail = () => {
             onPress={() => {
               navigation.navigate('ApplicantForm', {
                 recruitId: recruit?.recruitId,
-                recruitTitle: recruit?.recruitTitle,
-                guesthouseName: recruit?.guesthouseName,
-                recruitEnd: recruit?.recruitEnd,
               });
             }}
             title="지원하기"

@@ -76,7 +76,7 @@ export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegister
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 
 // (User)
-export {default as ApplicantForm} from './(User)/ApplicantForm';
+export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
