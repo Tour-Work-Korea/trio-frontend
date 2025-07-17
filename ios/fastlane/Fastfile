@@ -5,6 +5,9 @@ platform :ios do
 
   before_all do
 
+      #현재 디렉토리 출력
+      puts "현재 디렉토리 : #{Dir.pwd}"
+
       # ✅ .env.production 수동 로딩
       File.foreach("ios/.env.production") do |line|
         key, value = line.strip.split('=', 2)
