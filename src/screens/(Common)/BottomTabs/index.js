@@ -90,7 +90,7 @@ const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: COLORS.grayscale_0,
     paddingTop: 12,
-    paddingBottom: 20,
+    paddingBottom: 40,
     paddingHorizontal: 40,
   },
   iconWrapper: {
