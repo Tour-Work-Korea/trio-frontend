@@ -59,10 +59,10 @@ const App = () => {
         <RootNavigation />
         <DeeplinkHandler />
 
-        <Button
-            title="🔥 Crash App"
-            onPress={() => crashlytics().crash()}
-          />
+//        <Button
+//            title="🔥 Crash App"
+//            onPress={() => crashlytics().crash()}
+//          />
       </SafeAreaView>
       <Toast config={toastConfig} />
     </>

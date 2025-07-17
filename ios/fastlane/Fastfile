@@ -4,6 +4,9 @@ platform :ios do
   desc "빌드 전에 인증서/프로파일 받아오고 IPA 생성"
 
   before_all do
+
+      dotenv('.env.production')
+
       # ① CI 전용 키체인 만들기 (unlock, default 설정)
       create_keychain(
         name:              "ci-build.keychain",
