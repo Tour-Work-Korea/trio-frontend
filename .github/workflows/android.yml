@@ -9,13 +9,20 @@ jobs:
   build:
     runs-on: ubuntu-latest
 
-    defaults:
-      run:
-        working-directory: android
-
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: yarn install
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -31,20 +38,22 @@ jobs:
 
       - name: Install fastlane
         run: bundle install
+        working-directory: android
 
       - name: Decode keystore
         run: |
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > app/test-release-key.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/test-release-key.jks
 
       - name: Set keystore env
         run: |
-          echo "KEYSTORE_PATH=app/test-release-key.jks" >> $GITHUB_ENV
+          echo "KEYSTORE_PATH=android/app/test-release-key.jks" >> $GITHUB_ENV
           echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Build Release APK
-        run: fastlane build_release
+        run: bundle exec fastlane build_release
+        working-directory: android
 
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
