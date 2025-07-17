@@ -1,10 +1,10 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native'; 
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import MapView, {Marker} from 'react-native-maps';
+import {useNavigation} from '@react-navigation/native';
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 import LeftChevron from '@assets/images/chevron_left_black.svg';
 
@@ -12,25 +12,22 @@ const GuesthouseMap = () => {
   const navigation = useNavigation();
 
   // 제주도 내 임의 좌표 두 개
-  const marker1 = { latitude: 33.499621, longitude: 126.531188 };
-  const marker2 = { latitude: 33.500885, longitude: 126.528199 };
+  const marker1 = {latitude: 33.499621, longitude: 126.531188};
+  const marker2 = {latitude: 33.500885, longitude: 126.528199};
 
   // 랜더링 될 때 기준 좌표
   const region = {
     // 좌표
     latitude: 33.4999,
-    longitude: 126.5300,
+    longitude: 126.53,
     // 줌 레벨
     latitudeDelta: 0.01,
-    longitudeDelta: 0.01
+    longitudeDelta: 0.01,
   };
 
   return (
-    <View style={{ flex: 1 }}>
-      <MapView
-        style={styles.map}
-        region={region}
-      >
+    <View style={{flex: 1}}>
+      <MapView style={styles.map} region={region}>
         {/* 가격 마커 */}
         <Marker coordinate={marker1}>
           <View style={styles.priceMarker}>
@@ -41,7 +38,9 @@ const GuesthouseMap = () => {
         {/* 마감 마커 */}
         <Marker coordinate={marker2}>
           <View style={styles.closedMarker}>
-            <Text style={[FONTS.fs_12_medium, styles.closedText]}>숙박예약 마감</Text>
+            <Text style={[FONTS.fs_12_medium, styles.closedText]}>
+              숙박예약 마감
+            </Text>
           </View>
         </Marker>
       </MapView>
@@ -51,10 +50,11 @@ const GuesthouseMap = () => {
           style={styles.mapButton}
           onPress={() => {
             navigation.goBack();
-          }}
-        >
+          }}>
           <LeftChevron width={20} height={20} />
-          <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>카테고리로 돌아가기</Text>
+          <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>
+            카테고리로 돌아가기
+          </Text>
         </TouchableOpacity>
       </View>
     </View>
@@ -108,7 +108,7 @@ const styles = StyleSheet.create({
     padding: 10,
     borderRadius: 12,
     shadowColor: COLORS.grayscale_900,
-    shadowOffset: { width: 0, height: 2 },
+    shadowOffset: {width: 0, height: 2},
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,

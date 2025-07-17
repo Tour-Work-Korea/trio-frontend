@@ -30,6 +30,7 @@ import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import { COLORS } from '@constants/colors';
+import Loading from '@components/Loading';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -120,16 +121,25 @@ const GuesthouseList = () => {
         size: 10,
         keyword,
         sortBy,
-
-        // 필터조건 반영
-        ...(filterApplied && {
-          minPrice: filterOptions.minPrice,
-          maxPrice: filterOptions.maxPrice,
-          hashtagIds: getHashtagIds(filterOptions.tags),
-          amenityIds: getAmenityIds(filterOptions.facility),
-          availableOnly: filterOptions.onlyAvailable,
-        }),
       };
+
+      // 필터 적용 시 조건 분기
+      if (filterApplied) {
+        const allTagsSelected = filterOptions.tags.length === guesthouseTags.length;
+        const allFacilitiesSelected = filterOptions.facility.length === 0;
+
+        if (!allTagsSelected) {
+          params.hashtagIds = getHashtagIds(filterOptions.tags);
+        }
+        if (!allFacilitiesSelected) {
+          params.amenityIds = getAmenityIds(filterOptions.facility);
+        }
+
+        params.minPrice = filterOptions.minPrice;
+        params.maxPrice = filterOptions.maxPrice;
+        params.availableOnly = filterOptions.onlyAvailable;
+      }
+      
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const { content, last } = response.data;
 
@@ -363,15 +373,19 @@ const GuesthouseList = () => {
 
         </View>
 
-        <FlatList
-          data={guesthouses}
-          keyExtractor={item => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.7}
-          ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
-        />
+        {!searched && loading ? (
+          <Loading title="숙소를 불러오는 중이에요" />
+        ) : (
+          <FlatList
+            data={guesthouses}
+            keyExtractor={item => String(item.id)}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.7}
+            ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
+          />
+        )}
       </View>
 
       {/* 지도 버튼 */}

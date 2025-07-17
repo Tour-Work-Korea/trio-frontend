@@ -2,7 +2,12 @@ import useUserStore from '@stores/userStore';
 import userEmployApi from './api/userEmployApi';
 import {Alert} from 'react-native';
 
-const toggleLikeRecruit = async (id, isLiked, setRecruitList = null) => {
+const toggleLikeRecruit = async (
+  id,
+  isLiked,
+  setRecruitList = null,
+  setRecruit = null,
+) => {
   try {
     const role = useUserStore.getState().userRole;
 
@@ -20,6 +25,11 @@ const toggleLikeRecruit = async (id, isLiked, setRecruitList = null) => {
           item.recruitId === id ? {...item, isLiked: !isLiked} : item,
         ),
       );
+    }
+    if (setRecruit != null) {
+      setRecruit(prev => {
+        return {...prev, liked: !isLiked};
+      });
     }
   } catch (error) {
     Alert.alert('좋아요 처리 중 오류가 발생했습니다.');

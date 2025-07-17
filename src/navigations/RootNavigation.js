@@ -1,7 +1,9 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
-import UndefinedStack from './undefinedStack';
+import { navigationRef } from '@utils/navigationService';
+
+import undefinedStack from './undefinedStack';
 import EXHome from '@screens/EXHome';
 
 import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
@@ -11,13 +13,15 @@ import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
 import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
 import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
 
+import EmployDetail from '@screens/(Common)/Employ/EmployDetail';
+
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => (
-  <NavigationContainer>
-    <Stack.Navigator screenOptions={{headerShown: false}}>
+  <NavigationContainer ref={navigationRef}>
+    <Stack.Navigator screenOptions={{ headerShown: false }}>
       <Stack.Screen name="EXHome" component={EXHome} />
-      <Stack.Screen name="undefined" component={UndefinedStack} />
+      <Stack.Screen name="undefined" component={undefinedStack} />
 
       {/* 하단탭 보여하 하는 곳으로 이동할 때 사용 */}
       <Stack.Screen name="MainTabs" component={BottomTabs} />
@@ -32,6 +36,7 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   </NavigationContainer>
 );
