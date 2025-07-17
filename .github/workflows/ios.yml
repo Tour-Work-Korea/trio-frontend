@@ -103,7 +103,7 @@ jobs:
           curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
 
       - name: Write .env.production from Secret
-        run: echo "$ENV_PRODUCTION_CONTENT" > .env.production
+        run: echo "$ENV_PRODUCTION_CONTENT" > ios/.env.production
         env:
           ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 

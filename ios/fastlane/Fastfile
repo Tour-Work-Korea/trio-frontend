@@ -6,7 +6,7 @@ platform :ios do
   before_all do
 
       # ✅ .env.production 수동 로딩
-      File.foreach("../.env.production") do |line|
+      File.foreach(".env.production") do |line|
         key, value = line.strip.split('=', 2)
         ENV[key] = value if key && value
       end
