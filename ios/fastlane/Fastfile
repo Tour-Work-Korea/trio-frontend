@@ -9,7 +9,7 @@ platform :ios do
       puts "현재 디렉토리 : #{Dir.pwd}"
 
       # ✅ .env.production 수동 로딩
-      File.foreach("ios/.env.production") do |line|
+      File.foreach("../.env.production") do |line|
         key, value = line.strip.split('=', 2)
         ENV[key] = value if key && value
       end
