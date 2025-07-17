@@ -7,6 +7,7 @@ platform :ios do
 
       #현재 디렉토리 출력
       puts "현재 디렉토리 : #{Dir.pwd}"
+      puts "ENV path: #{File.expand_path('../.env.production')}"
 
       # ✅ .env.production 수동 로딩
       File.foreach("../.env.production") do |line|
