@@ -38,6 +38,10 @@ jobs:
       - name: Copy .env.production to .env
         run: cp .env.production .env
 
+      - name: Generate local.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties
+
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
