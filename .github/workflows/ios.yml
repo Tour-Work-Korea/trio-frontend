@@ -107,6 +107,10 @@ jobs:
         env:
           ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
+      # 복사하는 거 추가
+      - name: Copy .env.production to root
+        run: cp ios/.env.production .env
+
       - name: Build & Deploy to TestFlight
         working-directory: ios
         env:
