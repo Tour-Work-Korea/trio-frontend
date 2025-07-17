@@ -1,12 +1,15 @@
-import React, { createRef, useEffect } from 'react';
+import React, { createRef, useEffect, useState } from 'react';
 import { Alert, BackHandler, SafeAreaView } from 'react-native';
 import { Payment } from '@portone/react-native-sdk';
 import { useRoute, useNavigation } from '@react-navigation/native';
 import Config from 'react-native-config';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import Loading from '@components/Loading';
 
 const GuesthousePayment = () => {
+  const [isReady, setIsReady] = useState(false);
+
   // PortOne 결제 컨트롤러 ref 생성
   const controller = createRef();
 
@@ -29,11 +32,22 @@ const GuesthousePayment = () => {
         return false;
       },
     );
-    return () => backHandler.remove(); // 언마운트 시 이벤트 제거
+
+    const initTimeout = setTimeout(() => {
+      setIsReady(true);
+    }, 500);
+
+    return () => {
+      backHandler.remove(); // 언마운트 시 이벤트 제거
+      clearTimeout(initTimeout);
+    };
   }, []);
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
+      {!isReady ? (
+      <Loading title="결제 화면으로 가고있어요" />
+    ) : (
       <Payment
         ref={controller} // 결제 컨트롤러 연결
         request={{
@@ -68,6 +82,7 @@ const GuesthousePayment = () => {
           }
         }}
       />
+    )}
     </SafeAreaView>
   );
 };

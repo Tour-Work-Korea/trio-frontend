@@ -9,6 +9,7 @@ import styles from './RoomDetail.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ImageModal from '@components/modals/ImageModal';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 

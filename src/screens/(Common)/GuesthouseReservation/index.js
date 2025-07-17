@@ -180,7 +180,6 @@ const GuesthouseReservation = ({ route }) => {
               </View>
           </View>
 
-
           <View style={styles.devide}/>
 
           {/* 요청사항 */}
