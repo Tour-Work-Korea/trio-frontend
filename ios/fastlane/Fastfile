@@ -5,7 +5,11 @@ platform :ios do
 
   before_all do
 
-      dotenv('.env.production')
+      # ✅ .env.production 수동 로딩
+      File.foreach("../.env.production") do |line|
+        key, value = line.strip.split('=', 2)
+        ENV[key] = value if key && value
+      end
 
       # ① CI 전용 키체인 만들기 (unlock, default 설정)
       create_keychain(
