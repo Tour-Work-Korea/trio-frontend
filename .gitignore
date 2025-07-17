@@ -53,6 +53,8 @@ yarn-error.log
 **/fastlane/screenshots
 **/fastlane/test_output
 
+android/app/test-release-key.jks
+
 # Bundle artifact
 *.jsbundle
 
