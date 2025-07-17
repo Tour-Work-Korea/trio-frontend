@@ -27,7 +27,7 @@ const GuesthouseMap = () => {
 
   return (
     <View style={{flex: 1}}>
-      <MapView style={styles.map} region={region}>
+      <MapView provider="google" style={styles.map} region={region}>
         {/* 가격 마커 */}
         <Marker coordinate={marker1}>
           <View style={styles.priceMarker}>
@@ -43,6 +43,7 @@ const GuesthouseMap = () => {
             </Text>
           </View>
         </Marker>
+
       </MapView>
 
       <View style={styles.mapButtonContainer}>

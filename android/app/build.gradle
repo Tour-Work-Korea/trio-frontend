@@ -94,11 +94,23 @@ android {
             keyAlias 'androiddebugkey'
             keyPassword 'android'
         }
+
         release {
-            storeFile file(System.getenv("KEYSTORE_PATH"))
-            storePassword System.getenv("KEYSTORE_PASSWORD")
-            keyAlias System.getenv("KEY_ALIAS")
-            keyPassword System.getenv("KEY_PASSWORD")
+            def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+
+            if (isReleaseBuild) {
+                def keystorePath = System.getenv("KEYSTORE_PATH")
+                if (keystorePath != null && !keystorePath.isEmpty()) {
+                    storeFile file(keystorePath)
+                    storePassword System.getenv("KEYSTORE_PASSWORD")
+                    keyAlias System.getenv("KEY_ALIAS")
+                    keyPassword System.getenv("KEY_PASSWORD")
+                } else {
+                    println "[WARN] KEYSTORE_PATH not set — skipping keystore injection"
+                }
+            } else {
+                println "[INFO] Not a release build — keystore will not be injected"
+            }
         }
     }
     buildTypes {
@@ -125,4 +137,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
+
+    implementation 'com.google.android.gms:play-services-maps:18.2.0'
 }
