@@ -108,6 +108,16 @@ export const parseSlashDateToYearMonth = slashDate => {
   const [year, month, day] = slashDate.split('-');
   return month + '/' + day;
 };
+/**
+ * 프론트 "year-month-day" → LocalDate "year.month"
+ */
+export const parseSlashDateToYearMonthDot = slashDate => {
+  if (!slashDate) return null;
+  const regex = /^\d{4}\.(0[1-9]|1[0-2])$/;
+  if (regex.test(slashDate)) return slashDate;
+  const [year, month, day] = slashDate.split('-');
+  return year + '.' + month;
+};
 
 // 시간
 

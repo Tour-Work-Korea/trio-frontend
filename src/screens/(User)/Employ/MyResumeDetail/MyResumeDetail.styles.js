@@ -6,14 +6,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 30,
   },
   //헤더
   headerBox: {
+    paddingTop: 30,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
-    paddingBottom: 40,
   },
   headerText: {
     ...FONTS.fs_20_semibold,

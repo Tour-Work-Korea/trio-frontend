@@ -3,6 +3,7 @@ import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import styles from './MyResumeDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {
+  ApplicantTitle,
   ApplicantExperienceSection,
   ApplicantProfileHeader,
   ApplicantSelfIntroduction,
@@ -15,7 +16,13 @@ const MyResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {id} = route.params || {};
-  const [applicantData, setApplicantData] = useState();
+  const [originalInfo, setOriginalInfo] = useState();
+  const [formData, setFormData] = useState({
+    resumeTitle: '',
+    selfIntro: '',
+    workExperience: [],
+    hashtags: [],
+  });
 
   useEffect(() => {
     tryFetchResumeById();
@@ -24,8 +31,14 @@ const MyResumeDetail = () => {
   const tryFetchResumeById = async () => {
     try {
       const response = await userEmployApi.getResumeById(id);
-
-      setApplicantData(response.data);
+      const parsedFormData = {
+        resumeTitle: response.data.resumeTitle || '',
+        selfIntro: response.data.selfIntro || '',
+        workExperience: response.data.workExperience || [],
+        hashtags: response.data.hashtags?.map(item => item.id) || [],
+      };
+      setFormData(parsedFormData);
+      setOriginalInfo(response.data);
     } catch (error) {
       Alert.alert('이력서를 불러오는데 실패했습니다.');
     }
@@ -89,9 +102,9 @@ const MyResumeDetail = () => {
     <View style={styles.container}>
       <ScrollView
         contentContainerStyle={{
-          gap: 16,
           paddingHorizontal: 20,
           flexGrow: 1,
+          gap: 20,
         }}>
         <View style={styles.headerBox}>
           <TouchableOpacity onPress={() => navigation.goBack()}>
@@ -100,17 +113,24 @@ const MyResumeDetail = () => {
           <Text style={styles.headerText}>이력서 수정</Text>
           <View width={28.8} height={28.8} />
         </View>
-        {applicantData ? (
+        {formData ? (
           <>
-            <ApplicantProfileHeader
-              data={applicantData}
-              hashtags={applicantData.hashtags}
+            <ApplicantProfileHeader data={originalInfo} />
+            <ApplicantTitle
+              title={formData?.resumeTitle}
+              setTitle={data =>
+                setFormData(prev => ({...prev, resumeTitle: data}))
+              }
+              isEditable={true}
             />
             <ApplicantExperienceSection
-              experiences={applicantData?.workExperience}
-              totalExperience={applicantData?.totalExperience}
+              experiences={formData?.workExperience}
+              isEditable={true}
+              setExperience={newList =>
+                setFormData(prev => ({...prev, workExperience: newList}))
+              }
             />
-            <ApplicantSelfIntroduction text={applicantData?.selfIntro} />
+            <ApplicantSelfIntroduction text={formData?.selfIntro} />
 
             {renderActionButtons()}
           </>
