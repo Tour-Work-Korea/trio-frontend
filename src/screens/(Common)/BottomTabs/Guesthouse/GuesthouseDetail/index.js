@@ -14,6 +14,7 @@ import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
+import ImageModal from '@components/modals/ImageModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';
