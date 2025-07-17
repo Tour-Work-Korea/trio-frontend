@@ -58,9 +58,6 @@
       android:supportsRtl="true"
       android:requestLegacyExternalStorage="true">
       <!-- 구글 맵 api -->
-      <!-- <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="AIzaSyDCKFW33YLZv_PdQQdTf9dzhxkkIZEXZPw" /> -->
       <meta-data
         android:name="com.google.android.geo.API_KEY"
         android:value="@string/google_maps_api_key" />
