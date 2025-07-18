@@ -30,6 +30,7 @@ import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import { COLORS } from '@constants/colors';
+import Loading from '@components/Loading';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -372,15 +373,19 @@ const GuesthouseList = () => {
 
         </View>
 
-        <FlatList
-          data={guesthouses}
-          keyExtractor={item => String(item.id)}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.7}
-          ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
-        />
+        {!searched && loading ? (
+          <Loading title="숙소를 불러오는 중이에요" />
+        ) : (
+          <FlatList
+            data={guesthouses}
+            keyExtractor={item => String(item.id)}
+            renderItem={renderItem}
+            contentContainerStyle={styles.listContent}
+            onEndReached={handleEndReached}
+            onEndReachedThreshold={0.7}
+            ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
+          />
+        )}
       </View>
 
       {/* 지도 버튼 */}

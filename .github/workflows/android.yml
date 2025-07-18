@@ -1,0 +1,80 @@
+name: Build Android Release APK
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      - name: Install Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install yarn
+        run: npm install -g yarn
+
+      - name: Install JS dependencies
+        run: yarn install
+
+      - name: Generate .env.production
+        run: |
+          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env.production
+          echo "PORTONE_STORE_ID=${{ secrets.PORTONE_STORE_ID }}" >> .env.production
+          echo "PORTONE_CHANNEL_KEY=${{ secrets.PORTONE_CHANNEL_KEY }}" >> .env.production
+          echo "PORTONE_REDIRECT_URL=${{ secrets.PORTONE_REDIRECT_URL }}" >> .env.production
+          echo "PORTONE_NOTICE_URL=${{ secrets.PORTONE_NOTICE_URL }}" >> .env.production
+          echo "KAKAO_JS_KEY=${{ secrets.KAKAO_JS_KEY }}" >> .env.production
+          echo "KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}" >> .env.production
+          echo "KAKAO_NATIVEAPP_KEY=${{ secrets.KAKAO_NATIVEAPP_KEY }}" >> .env.production
+
+      - name: Copy .env.production to .env
+        run: cp .env.production .env
+
+      - name: Generate local.properties
+        run: |
+          echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties
+
+      - name: Set up JDK
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'temurin'
+          java-version: 17
+
+      - name: Set up Ruby and Bundler
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: 3.1
+          bundler-cache: true
+
+      - name: Install fastlane
+        run: bundle install
+        working-directory: android
+
+      - name: Decode keystore
+        run: |
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/test-release-key.jks
+
+      - name: Set keystore env
+        run: |
+          echo "KEYSTORE_PATH=test-release-key.jks" >> $GITHUB_ENV
+          echo "KEYSTORE_PASSWORD=${{ secrets.KEYSTORE_PASSWORD }}" >> $GITHUB_ENV
+          echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
+          echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Build Release APK
+        run: bundle exec fastlane build_release
+        working-directory: android
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release
+          path: android/app/build/outputs/apk/release/app-release.apk
