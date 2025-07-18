@@ -13,7 +13,7 @@ import EmployExperienceModal from '@components/modals/Employ/EmployExperienceMod
 const ApplicantExperienceSection = ({
   experiences,
   isEditable = false,
-  setExperience,
+  setExperience = null,
 }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [editingIndex, setEditingIndex] = useState(null);

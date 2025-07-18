@@ -104,7 +104,7 @@ export default function EmployExperienceModal({
                   onChangeText={data =>
                     setExperience(prev => ({...prev, companyName: data}))
                   }
-                  maxLength={20}
+                  maxLength={50}
                 />
               </View>
             </View>
@@ -158,7 +158,7 @@ export default function EmployExperienceModal({
                   onChangeText={data =>
                     setExperience(prev => ({...prev, description: data}))
                   }
-                  maxLength={20}
+                  maxLength={50}
                 />
               </View>
             </View>

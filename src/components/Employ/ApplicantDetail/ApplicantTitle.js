@@ -3,7 +3,7 @@ import {View, Text, StyleSheet, TextInput} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-const ApplicantTitle = ({title, setTitle, isEditable = false}) => {
+const ApplicantTitle = ({title, setTitle = null, isEditable = false}) => {
   return (
     <View>
       <View style={styles.sectionBox}>

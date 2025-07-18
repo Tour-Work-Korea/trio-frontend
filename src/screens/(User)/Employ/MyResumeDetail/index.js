@@ -11,6 +11,7 @@ import {
 import userEmployApi from '@utils/api/userEmployApi';
 
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
+import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
 
 const MyResumeDetail = () => {
   const navigation = useNavigation();
@@ -35,10 +36,11 @@ const MyResumeDetail = () => {
         resumeTitle: response.data.resumeTitle || '',
         selfIntro: response.data.selfIntro || '',
         workExperience: response.data.workExperience || [],
-        hashtags: response.data.hashtags?.map(item => item.id) || [],
+        hashtags: response.data.hashtags || [],
       };
       setFormData(parsedFormData);
       setOriginalInfo(response.data);
+      console.log('hashtaags:', response.data.hashtags);
     } catch (error) {
       Alert.alert('이력서를 불러오는데 실패했습니다.');
     }
@@ -115,7 +117,9 @@ const MyResumeDetail = () => {
         </View>
         {formData ? (
           <>
+            {/* 프로필 */}
             <ApplicantProfileHeader data={originalInfo} />
+            {/* 제목 */}
             <ApplicantTitle
               title={formData?.resumeTitle}
               setTitle={data =>
@@ -123,6 +127,7 @@ const MyResumeDetail = () => {
               }
               isEditable={true}
             />
+            {/* 경력 */}
             <ApplicantExperienceSection
               experiences={formData?.workExperience}
               isEditable={true}
@@ -130,7 +135,21 @@ const MyResumeDetail = () => {
                 setFormData(prev => ({...prev, workExperience: newList}))
               }
             />
-            <ApplicantSelfIntroduction text={formData?.selfIntro} />
+            {/* 해시태그 */}
+            <ApplicantTag
+              tags={formData?.hashtags}
+              isEditable={true}
+              setTags={newList =>
+                setFormData(prev => ({...prev, hashtags: newList}))
+              }
+            />
+            <ApplicantSelfIntroduction
+              text={formData?.selfIntro}
+              isEditable={true}
+              setSelfIntro={data =>
+                setFormData(prev => ({...prev, selfIntro: data}))
+              }
+            />
 
             {renderActionButtons()}
           </>
