@@ -44,7 +44,7 @@ jobs:
         run: xcodebuild -version
 
       - name: Write .env.production from Secret
-        run: echo "$ENV_PRODUCTION_CONTENT" > ios/.env.production
+        run: echo "$ENV_PRODUCTION_CONTENT" | sed 's/\r//' > ios/.env.production
         env:
           ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
