@@ -43,6 +43,17 @@ jobs:
       - name: Check Xcode version
         run: xcodebuild -version
 
+      - name: Write .env.production from Secret
+        run: echo "$ENV_PRODUCTION_CONTENT" > ios/.env.production
+        env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
+
+      - name: Copy .env.production to root
+        run: cp ios/.env.production .env
+
+      - name: Confirm .env contents
+        run: cat .env | sed 's/=.*/=*** (hidden) *** /g'
+
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -101,17 +112,6 @@ jobs:
         run: |
           echo "Curl to check API"
           curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
-
-      - name: Write .env.production from Secret
-        run: echo "$ENV_PRODUCTION_CONTENT" > ios/.env.production
-        env:
-          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
-
-      - name: Copy .env.production to root
-        run: cp ios/.env.production .env
-
-      - name: Confirm .env contents
-        run: cat .env | sed 's/=.*/=*** (hidden) *** /g'
 
       - name: Build & Deploy to TestFlight
         working-directory: ios
