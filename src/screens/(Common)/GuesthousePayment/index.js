@@ -17,11 +17,6 @@ const GuesthousePayment = () => {
   // 고유한 paymentId 생성
   const uid = `guesthouse_${Date.now()}`;
 
-   // ✅ 화면에 Alert로 환경변수 값 표시 (TestFlight 확인용)
-  useEffect(() => {
-    Alert.alert('CHANNEL KEY 확인', Config.PORTONE_CHANNEL_KEY || '값 없음');
-  }, []);
-
   // Android 하드웨어 백버튼 처리: 결제창 내에서 뒤로가기 지원
   useEffect(() => {
     const backHandler = BackHandler.addEventListener(
@@ -39,12 +34,6 @@ const GuesthousePayment = () => {
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
-      {/* ✅ 환경변수 값 직접 화면에도 출력 */}
-       <View style={{ padding: 10 }}>
-         <Text style={{ fontSize: 12, color: 'grey' }}>
-           🔐 PORTONE_CHANNEL_KEY: {Config.PORTONE_CHANNEL_KEY || '값 없음'}
-         </Text>
-       </View>
       <Payment
         ref={controller} // 결제 컨트롤러 연결
         request={{
