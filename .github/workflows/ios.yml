@@ -51,9 +51,6 @@ jobs:
       - name: Copy clean .env.production to .env
         run: cat ios/.env.production | sed 's/ *= */=/' > .env
 
-      - name: Confirm .env contents
-        run: cat .env
-
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
