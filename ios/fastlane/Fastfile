@@ -59,6 +59,7 @@ platform :ios do
 
     # ② JS 번들링
     sh <<-SHELL
+      export ENVFILE=.env
       cd ..
       yarn react-native bundle \
         --platform ios \

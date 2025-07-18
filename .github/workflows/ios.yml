@@ -48,8 +48,8 @@ jobs:
         env:
           ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
-      - name: Copy .env.production to root
-        run: cp ios/.env.production .env
+      - name: Copy clean .env.production to .env
+        run: cat ios/.env.production | sed 's/ *= */=/' > .env
 
       - name: Confirm .env contents
         run: cat .env
