@@ -106,10 +106,12 @@ jobs:
         run: echo "$ENV_PRODUCTION_CONTENT" > ios/.env.production
         env:
           ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
-#
-#      # 복사하는 거 추가
-#      - name: Copy .env.production to root
-#        run: cp ios/.env.production .env
+
+      - name: Copy .env.production to root
+        run: cp ios/.env.production .env
+
+      - name: Confirm .env contents
+        run: cat .env | sed 's/=.*/=*** (hidden) *** /g'
 
       - name: Build & Deploy to TestFlight
         working-directory: ios
