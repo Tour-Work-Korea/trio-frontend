@@ -1,6 +1,6 @@
 import 'react-native-reanimated';
 import React, {useState, useEffect} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View, Text} from 'react-native';
+import {SafeAreaView, StatusBar, StyleSheet, View, Button} from 'react-native';
 import 'react-native-gesture-handler';
 
 import RootNavigation from '@navigations/RootNavigation';
@@ -12,11 +12,15 @@ import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
 
+import firebase from '@react-native-firebase/app';
+import crashlytics from '@react-native-firebase/crashlytics';
+
 const App = () => {
   const [appLoaded, setAppLoaded] = useState(false);
 
   useEffect(() => {
     tryAutoLogin();
+    crashlytics().log('App mounted - Crashlytics initialized');
   }, []);
 
   const toastConfig = {

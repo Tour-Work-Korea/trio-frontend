@@ -19,16 +19,6 @@ env:
   APP_STORE_CONNECT_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
   APP_STORE_CONNECT_PRIVATE_KEY:  ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
 
-  # env 업데이트 될때마다 여기에 추가
-  PORTONE_STORE_ID:       ${{ secrets.PORTONE_STORE_ID }}
-  PORTONE_CHANNEL_KEY:    ${{ secrets.PORTONE_CHANNEL_KEY }}
-  PORTONE_REDIRECT_URL:   ${{ secrets.PORTONE_REDIRECT_URL }}
-  PORTONE_NOTICE_URL:     ${{ secrets.PORTONE_NOTICE_URL }}
-
-  KAKAO_JS_KEY:           ${{ secrets.KAKAO_JS_KEY }}
-  KAKAO_RESTAPI_KEY:      ${{ secrets.KAKAO_RESTAPI_KEY }}
-  KAKAO_NATIVEAPP_KEY:    ${{ secrets.KAKAO_NATIVEAPP_KEY }}
-
 jobs:
   build:
     runs-on: macos-14
@@ -52,6 +42,14 @@ jobs:
 
       - name: Check Xcode version
         run: xcodebuild -version
+
+      - name: Write .env.production from Secret
+        run: echo "$ENV_PRODUCTION_CONTENT" | sed 's/\r//' > ios/.env.production
+        env:
+          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
+
+      - name: Copy clean .env.production to .env
+        run: cat ios/.env.production | sed 's/ *= */=/' > .env
 
       - name: Set up Node.js
         uses: actions/setup-node@v3
@@ -111,11 +109,6 @@ jobs:
         run: |
           echo "Curl to check API"
           curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
-
-      - name: Write .env.production from Secret
-        run: echo "$ENV_PRODUCTION_CONTENT" > .env.production
-        env:
-          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
 
       - name: Build & Deploy to TestFlight
         working-directory: ios

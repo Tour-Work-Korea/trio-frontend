@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>API_KEY</key>
+	<string>AIzaSyD0Mzc41SoOQ9gmrBVk2Zm1kk0UgXYd2P4</string>
+	<key>GCM_SENDER_ID</key>
+	<string>311417485271</string>
+	<key>PLIST_VERSION</key>
+	<string>1</string>
+	<key>BUNDLE_ID</key>
+	<string>com.haneul.workaway</string>
+	<key>PROJECT_ID</key>
+	<string>groovy-smithy-466013-v4</string>
+	<key>STORAGE_BUCKET</key>
+	<string>groovy-smithy-466013-v4.firebasestorage.app</string>
+	<key>IS_ADS_ENABLED</key>
+	<false></false>
+	<key>IS_ANALYTICS_ENABLED</key>
+	<false></false>
+	<key>IS_APPINVITE_ENABLED</key>
+	<true></true>
+	<key>IS_GCM_ENABLED</key>
+	<true></true>
+	<key>IS_SIGNIN_ENABLED</key>
+	<true></true>
+	<key>GOOGLE_APP_ID</key>
+	<string>1:311417485271:ios:c4c34adb6e851c8166fd92</string>
+</dict>
+</plist>
