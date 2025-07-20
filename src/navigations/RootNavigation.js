@@ -18,6 +18,7 @@ import {
   ApplicantForm,
   MyResumeDetail,
   AgreeDetail,
+  ApplySuccess,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -44,6 +45,7 @@ const RootNavigation = () => (
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
       <Stack.Screen name="MyResumeDetail" component={MyResumeDetail} />
+      <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
     </Stack.Navigator>
   </NavigationContainer>

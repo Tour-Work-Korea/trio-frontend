@@ -27,6 +27,7 @@ import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import {userApplyAgrees} from '@data/agree';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
@@ -42,17 +43,20 @@ const ApplicantForm = () => {
     resumeId: null,
   });
   const [agreements, setAgreements] = useState(userApplyAgrees);
-  const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
-
   const [showStartDate, setShowStartDate] = useState(false);
   const [showEndDate, setShowEndDate] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   //약관동의 여부 확인
   useEffect(() => {
     const allRequired = agreements
       .filter(item => item.isRequired)
       .every(item => item.isAgree);
-    setIsRequiredAgreed(allRequired);
+    setApplicant(prev => ({...prev, personalInfoConsent: allRequired}));
   }, [agreements]);
 
   useFocusEffect(
@@ -63,7 +67,6 @@ const ApplicantForm = () => {
           fetchResumeList();
         }
       };
-
       init();
     }, []),
   );
@@ -108,39 +111,25 @@ const ApplicantForm = () => {
   };
 
   const handleSubmit = async () => {
-    if (!applicant.resumeId) {
-      Alert.alert('이력서를 선택해주세요.');
-      return;
-    }
-    if (!applicant.personalInfoConsent) {
-      Alert.alert('개인정보 제3자 제공에 동의해주세요.');
-      return;
-    }
-    if (!applicant.startDate || !applicant.endDate) {
-      Alert.alert('근무가능기간을 입력해주세요.');
-      return;
-    }
     try {
       const parsedData = {
-        message: applicant.message,
-        startDate: formatDate(applicant.startDate),
-        endDate: formatDate(applicant.endDate),
+        //message, startDate, endDate는 임시
+        message: '열심히 하겠습니다.',
+        startDate: '2026-01-01',
+        endDate: '2026-12-25',
         personalInfoConsent: applicant.personalInfoConsent,
         resumeId: applicant.resumeId,
       };
       await userEmployApi.apply(recruitId, parsedData);
-      Alert.alert('지원이 완료되었습니다.');
-      navigation.navigate('MyApplicantList');
+      navigation.navigate('ApplySuccess');
     } catch (error) {
-      Alert.alert('지원서 등록에 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        message: error?.response?.data?.message || '지원에 실패했습니다.',
+        buttonText: '확인',
+      });
+      console.warn('지원서 등록 실패: ', error);
     }
-  };
-
-  const formatDate = date => {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    return `${year}-${month}-${day}`;
   };
 
   const renderResumeSelection = () => (
@@ -327,9 +316,15 @@ const ApplicantForm = () => {
         <ButtonScarlet
           title="지원하기"
           onPress={handleSubmit}
-          disabled={!isRequiredAgreed}
+          disabled={!applicant.personalInfoConsent || !applicant.resumeId}
         />
       </View>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </View>
   );
 };

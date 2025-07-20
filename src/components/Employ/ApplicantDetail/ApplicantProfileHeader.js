@@ -30,7 +30,6 @@ const ApplicantProfileHeader = ({data}) => {
           <View style={styles.infoContainer}>
             <InfoRow label="연락처" value={data?.phone} />
             <InfoRow label="이메일" value={data?.email} />
-            <InfoRow label="주소" value={data?.address} />
             <InfoRow label="MBTI" value={data?.mbti} />
             <InfoRow label="insta" value={data?.instagramId} />
           </View>
@@ -84,7 +83,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E6E9F0',
     alignSelf: 'center',
   },
-  infoContainer: {flex: 1, gap: 4},
+  infoContainer: {flex: 1, gap: 4, justifyContent: 'center'},
   infoRow: {
     flexDirection: 'row',
     gap: 20,

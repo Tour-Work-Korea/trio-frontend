@@ -73,11 +73,11 @@ const MyResumeDetail = () => {
       };
 
       await userEmployApi.updateResume(originalInfo.id, updateData);
-      Alert.alert('성공');
+      navigation.goBack();
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message,
+        message: error?.response?.data?.message || '이력서 등록에 실패했습니다',
         buttonText: '확인',
       });
       console.warn('이력서 등록 실패:', error);
@@ -144,6 +144,12 @@ const MyResumeDetail = () => {
           <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
         )}
       </ScrollView>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </View>
   );
 };

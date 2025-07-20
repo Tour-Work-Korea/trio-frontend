@@ -29,14 +29,18 @@ export default function EmployTagModal({
 
   useEffect(() => {
     setSelectedTags(initialData);
+  }, [initialData]);
+
+  useEffect(() => {
     fetchTags();
   }, []);
+
   const fetchTags = async () => {
     try {
       const response = await userEmployApi.getUserHashtags();
       setTags(response.data);
     } catch (error) {
-      console.warn('태그 조회 실패:', error?.response?.message);
+      console.warn('태그 조회 실패:', error?.response?.data?.message);
     }
   };
   return (
