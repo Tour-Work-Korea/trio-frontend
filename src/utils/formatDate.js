@@ -89,7 +89,24 @@ export const formatLocalDateTimeToDotAndTimeWithDay = localDateTime => {
  */
 export const parseDotDateToLocalDate = dotDate => {
   if (!dotDate) return null;
-  return dotDate.replace(/\./g, '-');
+
+  const normalized = dotDate.replace(/\./g, '-');
+  const parts = normalized.split('-');
+
+  if (parts.length === 2) {
+    // 'YYYY-MM' → 'YYYY-MM-01'
+    return `${parts[0]}-${parts[1].padStart(2, '0')}-01`;
+  }
+
+  if (parts.length === 3) {
+    // 'YYYY-MM-DD' → 그대로 반환
+    return `${parts[0]}-${parts[1].padStart(2, '0')}-${parts[2].padStart(
+      2,
+      '0',
+    )}`;
+  }
+
+  return null;
 };
 
 /**

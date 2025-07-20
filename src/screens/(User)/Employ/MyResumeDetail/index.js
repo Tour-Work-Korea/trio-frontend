@@ -12,6 +12,9 @@ import userEmployApi from '@utils/api/userEmployApi';
 
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
+import ButtonScarlet from '@components/ButtonScarlet';
+import {parseDotDateToLocalDate} from '@utils/formatDate';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const MyResumeDetail = () => {
   const navigation = useNavigation();
@@ -23,6 +26,11 @@ const MyResumeDetail = () => {
     selfIntro: '',
     workExperience: [],
     hashtags: [],
+  });
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
   });
 
   useEffect(() => {
@@ -42,64 +50,39 @@ const MyResumeDetail = () => {
       setOriginalInfo(response.data);
       console.log('hashtaags:', response.data.hashtags);
     } catch (error) {
-      Alert.alert('이력서를 불러오는데 실패했습니다.');
+      console.warn('이력서 조회 실패:', error);
+      setErrorModal({
+        visible: true,
+        message: '이력서 조회에 실패했습니다',
+        buttonText: '확인',
+      });
     }
   };
 
-  const tryDeleteResumeById = async () => {
+  const tryUpdateResumeById = async () => {
     try {
-      await userEmployApi.deleteResume(id);
-      Alert.alert('삭제되었습니다.');
+      const updateData = {
+        resumeTitle: formData.resumeTitle,
+        selfIntro: formData.selfIntro,
+        workExperience: formData.workExperience.map(exp => ({
+          ...exp,
+          startDate: parseDotDateToLocalDate(exp.startDate),
+          endDate: parseDotDateToLocalDate(exp.endDate),
+        })),
+        hashtags: formData.hashtags?.map(tag => tag.id),
+      };
+
+      await userEmployApi.updateResume(originalInfo.id, updateData);
+      Alert.alert('성공');
     } catch (error) {
-      Alert.alert('이력서 삭제에 실패했습니다.');
-    } finally {
-      navigation.goBack();
+      setErrorModal({
+        visible: true,
+        message: error?.response?.data?.message,
+        buttonText: '확인',
+      });
+      console.warn('이력서 등록 실패:', error);
     }
   };
-
-  const handleDelete = () => {
-    Alert.alert(
-      '이력서 삭제',
-      '정말로 이 이력서를 삭제하시겠습니까?',
-      [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => {
-            tryDeleteResumeById();
-          },
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const renderActionButtons = () => (
-    <View style={styles.bottomButtonContainer}>
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => {
-          handleDelete();
-        }}>
-        <Text style={styles.secondaryButtonText}>삭제하기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.applyButton}
-        onPress={() => {
-          navigation.navigate('ResumeForm', {
-            id: id,
-            isEditMode: true,
-          });
-        }}>
-        <Text style={styles.applyButtonText}>수정하기</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
     <View style={styles.container}>
       <ScrollView
@@ -150,8 +133,12 @@ const MyResumeDetail = () => {
                 setFormData(prev => ({...prev, selfIntro: data}))
               }
             />
-
-            {renderActionButtons()}
+            <View style={{marginBottom: 40}}>
+              <ButtonScarlet
+                title={'저장하기'}
+                onPress={() => tryUpdateResumeById()}
+              />
+            </View>
           </>
         ) : (
           <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
