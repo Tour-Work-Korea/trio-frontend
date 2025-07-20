@@ -15,11 +15,12 @@ import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
 import ErrorModal from '@components/modals/ErrorModal';
+import Loading from '@components/Loading';
 
 const MyResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {id} = route.params || {};
+  const {id, isEditable = false} = route.params || {};
   const [originalInfo, setOriginalInfo] = useState();
   const [formData, setFormData] = useState({
     resumeTitle: '',
@@ -108,12 +109,12 @@ const MyResumeDetail = () => {
               setTitle={data =>
                 setFormData(prev => ({...prev, resumeTitle: data}))
               }
-              isEditable={true}
+              isEditable={isEditable}
             />
             {/* 경력 */}
             <ApplicantExperienceSection
               experiences={formData?.workExperience}
-              isEditable={true}
+              isEditable={isEditable}
               setExperience={newList =>
                 setFormData(prev => ({...prev, workExperience: newList}))
               }
@@ -121,27 +122,31 @@ const MyResumeDetail = () => {
             {/* 해시태그 */}
             <ApplicantTag
               tags={formData?.hashtags}
-              isEditable={true}
+              isEditable={isEditable}
               setTags={newList =>
                 setFormData(prev => ({...prev, hashtags: newList}))
               }
             />
             <ApplicantSelfIntroduction
               text={formData?.selfIntro}
-              isEditable={true}
+              isEditable={isEditable}
               setSelfIntro={data =>
                 setFormData(prev => ({...prev, selfIntro: data}))
               }
             />
-            <View style={{marginBottom: 40}}>
-              <ButtonScarlet
-                title={'저장하기'}
-                onPress={() => tryUpdateResumeById()}
-              />
-            </View>
+            {isEditable ? (
+              <View style={{marginBottom: 40}}>
+                <ButtonScarlet
+                  title={'저장하기'}
+                  onPress={() => tryUpdateResumeById()}
+                />
+              </View>
+            ) : (
+              <View style={{marginBottom: 40}} />
+            )}
           </>
         ) : (
-          <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
+          <Loading title={'이력서를 불러오는 중입니다...'} />
         )}
       </ScrollView>
       <ErrorModal
