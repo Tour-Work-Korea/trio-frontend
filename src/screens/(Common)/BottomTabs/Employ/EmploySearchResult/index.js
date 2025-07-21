@@ -40,7 +40,7 @@ const EmploySearchResult = ({route}) => {
   const [sortModalVisible, setSortModalVisible] = useState(false);
   //필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    regions: [regions[0].subRegions[0]],
+    regions: [],
     tags: [],
   });
   const [keywords, setKeywords] = useState([]);
@@ -83,9 +83,11 @@ const EmploySearchResult = ({route}) => {
   );
 
   useEffect(() => {
-    const regionKeywords = filterOptions?.regions || [];
+    const regionKeywords =
+      filterOptions?.regions?.map(region => region.displayName) || [];
     const tagKeywords = filterOptions?.tags?.map(tag => tag.hashtag) || [];
-
+    console.log('regionKeyword', regionKeywords);
+    console.log('tagKeywords', tagKeywords);
     setKeywords([...regionKeywords, ...tagKeywords]);
   }, [filterOptions]);
 
@@ -98,17 +100,17 @@ const EmploySearchResult = ({route}) => {
     setIsEmLoading(true);
 
     try {
-      console.log('공고 조회!!!!!!!!!!!!', searchText);
       const params = {
         page: pageToFetch,
         size: 10,
         sortBy: selectedSort.value,
         searchKeyword: searchText,
-        // ...{ 필터 API 적용 후 수정
-        //   regions: filterOptions.regions,
-        //   tags: filterOptions.tags,
-        // },
+        ...{
+          locationIds: filterOptions.regions?.map(region => region.id),
+          hashtagIds: filterOptions?.tags?.map(tag => tag.id),
+        },
       };
+      console.log(params);
       const res = await userEmployApi.getRecruits(params);
       const {content, last} = res.data;
       setRecruitList(prev =>

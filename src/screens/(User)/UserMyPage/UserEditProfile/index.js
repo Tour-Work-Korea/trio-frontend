@@ -25,6 +25,7 @@ const UserEditProfile = () => {
   // 유저 데이터 (사진은 추후에 추가)
   const [user, setUser] = useState({
     name: userInfo?.name || '',
+    nickname: userInfo?.nickname || '',
     phone: userInfo?.phone || '',
     email: userInfo?.email || '',
     mbti: userInfo?.mbti || '',
@@ -81,8 +82,10 @@ const UserEditProfile = () => {
 
           <TouchableOpacity
             style={styles.nameButton}
-            onPress={() => goToEditProfile('name', '이름', user.name)}>
-            <Text style={[FONTS.fs_h2_bold, styles.nameText]}>{user.name}</Text>
+            onPress={() => goToEditProfile('name', '이름', user.nickname)}>
+            <Text style={[FONTS.fs_h2_bold, styles.nameText]}>
+              {user.nickname}
+            </Text>
             <RightArrow width={20} height={20} />
           </TouchableOpacity>
         </View>
