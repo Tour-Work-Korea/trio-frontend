@@ -55,6 +55,9 @@ yarn-error.log
 
 android/app/release-test-key.jks
 
+# firebase
+android/app/google-services.json
+
 # Bundle artifact
 *.jsbundle
 

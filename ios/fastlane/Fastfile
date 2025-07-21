@@ -4,6 +4,17 @@ platform :ios do
   desc "빌드 전에 인증서/프로파일 받아오고 IPA 생성"
 
   before_all do
+
+      #현재 디렉토리 출력
+      puts "현재 디렉토리 : #{Dir.pwd}"
+      puts "ENV path: #{File.expand_path('../.env.production')}"
+
+      # ✅ .env.production 수동 로딩
+      File.foreach("../.env.production") do |line|
+        key, value = line.strip.split('=', 2)
+        ENV[key] = value if key && value
+      end
+
       # ① CI 전용 키체인 만들기 (unlock, default 설정)
       create_keychain(
         name:              "ci-build.keychain",
@@ -48,6 +59,7 @@ platform :ios do
 
     # ② JS 번들링
     sh <<-SHELL
+      export ENVFILE=.env
       cd ..
       yarn react-native bundle \
         --platform ios \

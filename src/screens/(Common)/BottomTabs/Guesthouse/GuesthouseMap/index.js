@@ -43,6 +43,7 @@ const GuesthouseMap = () => {
             </Text>
           </View>
         </Marker>
+
       </MapView>
 
       <View style={styles.mapButtonContainer}>

@@ -38,6 +38,9 @@ jobs:
       - name: Copy .env.production to .env
         run: cp .env.production .env
 
+      - name: Debug .env contents
+        run: cat .env
+
       - name: Generate local.properties
         run: |
           echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties
