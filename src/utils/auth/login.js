@@ -68,7 +68,7 @@ export const tryLogin = async (email, password, userRole) => {
   } catch (err) {
     await EncryptedStorage.removeItem('user-credentials');
     useUserStore.getState().clearUser();
-    return false; // 실패
+    throw err;
   }
 };
 
@@ -143,10 +143,12 @@ const updateProfile = async role => {
       });
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+      const {name, nickname, photoUrl, phone, email, mbti, instagramId} =
+        res.data;
 
       setUserProfile({
         name: name ?? '',
+        nickname: nickname ?? '',
         photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',

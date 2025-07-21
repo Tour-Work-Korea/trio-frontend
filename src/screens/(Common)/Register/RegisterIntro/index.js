@@ -11,14 +11,19 @@ import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import ButtonWhite from '@components/ButtonWhite';
 import Loading from '@components/Loading';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const RegisterIntro = () => {
   const [loading, setLoading] = useState(true);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+  });
 
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 10000);
+    }, 3000);
   }, []);
   const navigation = useNavigation();
 
@@ -35,13 +40,25 @@ const RegisterIntro = () => {
           <View style={styles.buttonParent}>
             <ButtonWhite
               title="카카오로 시작하기"
-              to="SocialLogin"
+              // to="SocialLogin"
+              onPress={() =>
+                setErrorModal({
+                  visible: true,
+                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                })
+              }
               Icon={KakaoLogo}
               backgroundColor="#fee500"
             />
             <ButtonWhite
               title="네이버로 시작하기"
               // to="UserRegisterAgree"
+              onPress={() =>
+                setErrorModal({
+                  visible: true,
+                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                })
+              }
               Icon={NaverLogo}
               backgroundColor="#00de5a"
             />
@@ -60,6 +77,12 @@ const RegisterIntro = () => {
             <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
           </TouchableOpacity>
         </View>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={'확인'}
+          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        />
       </View>
     </SafeAreaView>
   );

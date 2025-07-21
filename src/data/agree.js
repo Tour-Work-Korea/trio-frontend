@@ -73,3 +73,21 @@ export const hostRegisterAgrees = [
     isAgree: false,
   },
 ];
+
+//지원하기 시 유저 약관 동의
+export const userApplyAgrees = [
+  {
+    id: 'TERMS_OF_SERVICE',
+    title: '서비스 이용약관 동의',
+    description: '상세내용',
+    isRequired: true,
+    isAgree: false,
+  },
+  {
+    id: 'AGE_OVER_14_CONFIRMATION',
+    title: '만 14세 이상 확인',
+    description: '상세내용',
+    isRequired: true,
+    isAgree: false,
+  },
+];

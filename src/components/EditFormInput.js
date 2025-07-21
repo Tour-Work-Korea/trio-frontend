@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.scarlet,
   },
   input: {
-    height: 32,
+    // height: 32,
     paddingHorizontal: 15,
     color: COLORS.black,
   },

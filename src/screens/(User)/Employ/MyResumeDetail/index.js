@@ -1,27 +1,38 @@
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import styles from './MyResumeDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import Header from '@components/Header';
 import {
+  ApplicantTitle,
   ApplicantExperienceSection,
   ApplicantProfileHeader,
   ApplicantSelfIntroduction,
 } from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
 
+import Chevron_left_black from '@assets/images/chevron_left_black.svg';
+import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
+import ButtonScarlet from '@components/ButtonScarlet';
+import {parseDotDateToLocalDate} from '@utils/formatDate';
+import ErrorModal from '@components/modals/ErrorModal';
+import Loading from '@components/Loading';
+
 const MyResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {id} = route.params || {};
-  const [applicantData, setApplicantData] = useState();
+  const {id, isEditable = false} = route.params || {};
+  const [originalInfo, setOriginalInfo] = useState();
+  const [formData, setFormData] = useState({
+    resumeTitle: '',
+    selfIntro: '',
+    workExperience: [],
+    hashtags: [],
+  });
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   useEffect(() => {
     tryFetchResumeById();
@@ -30,89 +41,121 @@ const MyResumeDetail = () => {
   const tryFetchResumeById = async () => {
     try {
       const response = await userEmployApi.getResumeById(id);
-
-      setApplicantData(response.data);
+      const parsedFormData = {
+        resumeTitle: response.data.resumeTitle || '',
+        selfIntro: response.data.selfIntro || '',
+        workExperience: response.data.workExperience || [],
+        hashtags: response.data.hashtags || [],
+      };
+      setFormData(parsedFormData);
+      setOriginalInfo(response.data);
+      console.log('hashtaags:', response.data.hashtags);
     } catch (error) {
-      Alert.alert('이력서를 불러오는데 실패했습니다.');
+      console.warn('이력서 조회 실패:', error);
+      setErrorModal({
+        visible: true,
+        message: '이력서 조회에 실패했습니다',
+        buttonText: '확인',
+      });
     }
   };
 
-  const tryDeleteResumeById = async () => {
+  const tryUpdateResumeById = async () => {
     try {
-      await userEmployApi.deleteResume(id);
-      Alert.alert('삭제되었습니다.');
-    } catch (error) {
-      Alert.alert('이력서 삭제에 실패했습니다.');
-    } finally {
+      const updateData = {
+        resumeTitle: formData.resumeTitle,
+        selfIntro: formData.selfIntro,
+        workExperience: formData.workExperience.map(exp => ({
+          ...exp,
+          startDate: parseDotDateToLocalDate(exp.startDate),
+          endDate: parseDotDateToLocalDate(exp.endDate),
+        })),
+        hashtags: formData.hashtags?.map(tag => tag.id),
+      };
+
+      await userEmployApi.updateResume(originalInfo.id, updateData);
       navigation.goBack();
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        message: error?.response?.data?.message || '이력서 등록에 실패했습니다',
+        buttonText: '확인',
+      });
+      console.warn('이력서 등록 실패:', error);
     }
   };
-
-  const handleDelete = () => {
-    Alert.alert(
-      '이력서 삭제',
-      '정말로 이 이력서를 삭제하시겠습니까?',
-      [
-        {
-          text: '취소',
-          style: 'cancel',
-        },
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: () => {
-            tryDeleteResumeById();
-          },
-        },
-      ],
-      {cancelable: true},
-    );
-  };
-
-  const renderActionButtons = () => (
-    <View style={styles.bottomButtonContainer}>
-      <TouchableOpacity
-        style={styles.secondaryButton}
-        onPress={() => {
-          handleDelete();
-        }}>
-        <Text style={styles.secondaryButtonText}>삭제하기</Text>
-      </TouchableOpacity>
-      <TouchableOpacity
-        style={styles.applyButton}
-        onPress={() => {
-          navigation.navigate('ResumeForm', {
-            id: id,
-            isEditMode: true,
-          });
-        }}>
-        <Text style={styles.applyButtonText}>수정하기</Text>
-      </TouchableOpacity>
-    </View>
-  );
-
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title={'나의 이력서 상세'} />
-      {applicantData ? (
-        <>
-          <ScrollView style={styles.scrollView}>
-            <ApplicantProfileHeader
-              data={applicantData}
-              hashtags={applicantData.hashtags}
+    <View style={styles.container}>
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          flexGrow: 1,
+          gap: 20,
+        }}>
+        <View style={styles.headerBox}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Chevron_left_black width={28.8} height={28.8} />
+          </TouchableOpacity>
+          <Text style={styles.headerText}>이력서 수정</Text>
+          <View width={28.8} height={28.8} />
+        </View>
+        {formData ? (
+          <>
+            {/* 프로필 */}
+            <ApplicantProfileHeader data={originalInfo} />
+            {/* 제목 */}
+            <ApplicantTitle
+              title={formData?.resumeTitle}
+              setTitle={data =>
+                setFormData(prev => ({...prev, resumeTitle: data}))
+              }
+              isEditable={isEditable}
             />
+            {/* 경력 */}
             <ApplicantExperienceSection
-              experiences={applicantData?.workExperience}
-              totalExperience={applicantData?.totalExperience}
+              experiences={formData?.workExperience}
+              isEditable={isEditable}
+              setExperience={newList =>
+                setFormData(prev => ({...prev, workExperience: newList}))
+              }
             />
-            <ApplicantSelfIntroduction text={applicantData?.selfIntro} />
-          </ScrollView>
-          {renderActionButtons()}
-        </>
-      ) : (
-        <Text style={styles.loadingText}>이력서를 불러오는 중입니다...</Text>
-      )}
-    </SafeAreaView>
+            {/* 해시태그 */}
+            <ApplicantTag
+              tags={formData?.hashtags}
+              isEditable={isEditable}
+              setTags={newList =>
+                setFormData(prev => ({...prev, hashtags: newList}))
+              }
+            />
+            <ApplicantSelfIntroduction
+              text={formData?.selfIntro}
+              isEditable={isEditable}
+              setSelfIntro={data =>
+                setFormData(prev => ({...prev, selfIntro: data}))
+              }
+            />
+            {isEditable ? (
+              <View style={{marginBottom: 40}}>
+                <ButtonScarlet
+                  title={'저장하기'}
+                  onPress={() => tryUpdateResumeById()}
+                />
+              </View>
+            ) : (
+              <View style={{marginBottom: 40}} />
+            )}
+          </>
+        ) : (
+          <Loading title={'이력서를 불러오는 중입니다...'} />
+        )}
+      </ScrollView>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
+    </View>
   );
 };
 

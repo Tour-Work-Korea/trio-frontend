@@ -9,6 +9,11 @@ const commonApi = {
     api.post('/common/S3/upload', image, {
       headers: {'Content-Type': 'multipart/form-data'},
     }),
+  //지역 조회
+  getLocations: () =>
+    api.get('/common/region-type', {
+      withAuth: false,
+    }),
 };
 
 export default commonApi;

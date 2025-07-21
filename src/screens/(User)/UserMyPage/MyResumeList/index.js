@@ -45,7 +45,7 @@ const MyResumeList = () => {
       await userEmployApi.deleteResume(id);
       Alert.alert('알림', '삭제되었습니다.');
       setTimeout(() => {
-        navigation.replace('MyResumeList'); // 또는 현재 라우트명
+        navigation.replace('MyResumeList');
       }, 500);
     } catch (error) {
       Alert.alert('알림', '삭제에 실패했습니다.');
@@ -54,7 +54,7 @@ const MyResumeList = () => {
 
   // 페이지 이동 함수
   const handleViewDetail = id => {
-    navigation.navigate('MyResumeDetail', {id});
+    navigation.navigate('MyResumeDetail', {id, isEditable: true});
   };
 
   const handleDeletePosting = id => {
