@@ -68,7 +68,7 @@ export const tryLogin = async (email, password, userRole) => {
   } catch (err) {
     await EncryptedStorage.removeItem('user-credentials');
     useUserStore.getState().clearUser();
-    return false; // 실패
+    throw err;
   }
 };
 

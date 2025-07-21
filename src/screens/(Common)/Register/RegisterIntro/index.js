@@ -18,7 +18,7 @@ const RegisterIntro = () => {
   useEffect(() => {
     setTimeout(() => {
       setLoading(false);
-    }, 10000);
+    }, 3000);
   }, []);
   const navigation = useNavigation();
 
