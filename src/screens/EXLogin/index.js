@@ -29,8 +29,7 @@ const EXLogin = () => {
   const handleLogin = async (email, password, role) => {
     try {
       await tryLogin(email, password, role);
-      // navigation.goBack();
-      console.log('성공?', email, password);
+      navigation.navigate('MainTabs');
     } catch (error) {
       console.warn(`${role} 로그인 실패:`, error);
       setErrorModal({
