@@ -38,9 +38,6 @@ jobs:
       - name: Copy .env.production to .env
         run: cp .env.production .env
 
-      - name: Debug .env contents
-        run: cat .env
-
       - name: Generate local.properties
         run: |
           echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties
@@ -77,7 +74,8 @@ jobs:
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Build Release APK
-        run: bundle exec fastlane build_release
+        run: |
+          ENVFILE=.env.production bundle exec fastlane build_release
         working-directory: android
 
       - name: Upload APK Artifact
