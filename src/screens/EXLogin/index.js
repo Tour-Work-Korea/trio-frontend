@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,13 +8,15 @@ import {
 } from 'react-native';
 
 import {COLORS} from '@constants/colors';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {tryLogin} from '@utils/auth/login';
 import KakaoLoginButton from '@assets/images/kakao_login_medium_wide.png';
 import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ErrorModal from '@components/modals/ErrorModal';
+import useUserStore from '@stores/userStore';
+import Loading from '@components/Loading';
 
 const EXLogin = () => {
   // 토큰과 역할 읽어오기 예시
@@ -24,7 +26,23 @@ const EXLogin = () => {
     visible: false,
     message: '',
   });
+  const userRole = useUserStore.getState()?.userRole;
   const navigation = useNavigation();
+
+  useEffect(() => {
+    if (userRole === undefined) return;
+
+    if (userRole === 'USER' || userRole === 'HOST') {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs'}],
+      });
+    }
+  }, [userRole]);
+
+  if (userRole === undefined || userRole === 'USER' || userRole === 'HOST') {
+    return <Loading title="로그인 상태 확인 중..." />;
+  }
 
   const handleLogin = async (email, password, role) => {
     try {
