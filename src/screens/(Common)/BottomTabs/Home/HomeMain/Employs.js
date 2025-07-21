@@ -1,16 +1,19 @@
-import React from 'react';
-import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, TouchableOpacity} from 'react-native';
 import styles from './Home.styles';
-import {FONTS} from '@constants/fonts';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
-import HeartEmpty from '@assets/images/heart_empty.svg';
-import HeartFilled from '@assets/images/heart_filled.svg';
 import {useNavigation} from '@react-navigation/native';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import {RecruitList} from '@components/Employ/RecruitList';
+import ErrorModal from '@components/modals/ErrorModal';
 
 export default function Employs({jobs, setEmployList}) {
   const navigation = useNavigation();
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   const moveToDetail = id => {
     navigation.navigate('EmployDetail', {id});
@@ -36,6 +39,13 @@ export default function Employs({jobs, setEmployList}) {
         onToggleFavorite={toggleLikeRecruit}
         setRecruitList={setEmployList}
         scrollEnabled={false}
+        showErrorModal={setErrorModal}
+      />
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </View>
   );

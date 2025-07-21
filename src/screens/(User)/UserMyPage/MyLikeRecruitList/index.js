@@ -8,11 +8,17 @@ import {toggleLikeRecruit} from '@utils/handleFavorite';
 // 아이콘 불러오기
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
+import ErrorModal from '@components/modals/ErrorModal';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
   const [recruits, setRecruits] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -41,7 +47,12 @@ export default function MyLikeRecruitList() {
       recruitEnd: recruit.recruitEnd,
     });
   const handleLikePress = (recruitId, isLiked, setRecruitList) => {
-    toggleLikeRecruit(recruitId, isLiked, setRecruitList);
+    toggleLikeRecruit({
+      id: recruitId,
+      isLiked,
+      setRecruitList,
+      showErrorModal: setErrorModal,
+    });
     setTimeout(() => {
       navigation.replace('MyLikeRecruitList'); // 또는 현재 라우트명
     }, 500);
@@ -57,6 +68,12 @@ export default function MyLikeRecruitList() {
         onApplyPress={handleApplyPress}
         onToggleFavorite={handleLikePress}
         setRecruitList={setRecruits}
+      />
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </SafeAreaView>
   );

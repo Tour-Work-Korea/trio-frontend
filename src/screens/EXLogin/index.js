@@ -69,6 +69,12 @@ const EXLogin = () => {
         <Text style={styles.buttonText}>사장님 로그인</Text>
       </TouchableOpacity>
 
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.navigate('RegisterIntro')}>
+        <Text style={styles.buttonText}>회원가입하러 가기</Text>
+      </TouchableOpacity>
+
       <Text>
         임시로 계정 안 만들고 테스트할 때 쓰세요! 미리 계정 넣어뒀어요
       </Text>

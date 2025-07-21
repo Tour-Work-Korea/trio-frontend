@@ -2,18 +2,25 @@ import useUserStore from '@stores/userStore';
 import userEmployApi from './api/userEmployApi';
 import {Alert} from 'react-native';
 
-const toggleLikeRecruit = async (
+const toggleLikeRecruit = async ({
   id,
   isLiked,
   setRecruitList = null,
   setRecruit = null,
-) => {
+  showErrorModal = null,
+}) => {
   try {
     const role = useUserStore.getState().userRole;
 
     if (role !== 'USER') {
-      return Alert.alert('로그인 후 이용할 수 있습니다.');
+      showErrorModal?.({
+        title: '로그인이 필요해요',
+        message: '좋아요 기능은\n로그인 후 사용해주세요',
+        buttonText: '확인',
+      });
+      return;
     }
+
     if (isLiked) {
       await userEmployApi.deleteLikeRecruitById(id);
     } else {
@@ -21,7 +28,7 @@ const toggleLikeRecruit = async (
     }
     if (setRecruitList != null) {
       setRecruitList(prev =>
-        prev.map(item =>
+        prev?.map(item =>
           item.recruitId === id ? {...item, isLiked: !isLiked} : item,
         ),
       );

@@ -1,13 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  SafeAreaView,
-  Alert,
-} from 'react-native';
+import {View, ScrollView, Alert} from 'react-native';
 import styles from './EmployDetail.styles';
 import userEmployApi from '@utils/api/userEmployApi';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -19,12 +12,19 @@ import {
 } from '@components/Employ/EmployDetail';
 import Loading from '@components/Loading';
 import ButtonScarlet from '@components/ButtonScarlet';
+import useUserStore from '@stores/userStore';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const EmployDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {id} = route.params;
-  const [recruit, setRecruit] = useState();
+  const [recruit, setRecruit] = useState({});
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   useEffect(() => {
     fetchRecruitById();
@@ -32,7 +32,11 @@ const EmployDetail = () => {
 
   const fetchRecruitById = async () => {
     try {
-      const response = await userEmployApi.getRecruitById(id);
+      const userRole = useUserStore.getState()?.userRole;
+      const response = await userEmployApi.getRecruitById(
+        id,
+        userRole === 'USER',
+      );
       setRecruit(response.data);
     } catch (error) {
       Alert.alert('공고 상세 조회에 실패했습니다.');
@@ -40,7 +44,7 @@ const EmployDetail = () => {
   };
 
   const toggleFavorite = async isLiked => {
-    toggleLikeRecruit(id, isLiked, setRecruit);
+    toggleLikeRecruit({id, isLiked, setRecruit, showErrorModal: setErrorModal});
   };
 
   if (!recruit) {
@@ -79,6 +83,12 @@ const EmployDetail = () => {
           />
         </View>
       </ScrollView>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </View>
   );
 };

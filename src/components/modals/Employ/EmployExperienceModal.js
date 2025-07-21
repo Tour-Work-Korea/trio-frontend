@@ -255,6 +255,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   textInput: {
+    flex: 1,
     paddingVertical: 0,
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_900,

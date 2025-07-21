@@ -13,7 +13,6 @@ import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
-import {regions} from '@data/filter';
 import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 // 아이콘 불러오기
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -24,6 +23,8 @@ import MapIcon from '@assets/images/map_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import useUserStore from '@stores/userStore';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const EmploySearchResult = ({route}) => {
   const {search} = route.params;
@@ -34,6 +35,11 @@ const EmploySearchResult = ({route}) => {
   const [isEmLoading, setIsEmLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   //모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -100,6 +106,7 @@ const EmploySearchResult = ({route}) => {
     setIsEmLoading(true);
 
     try {
+      const userRole = useUserStore.getState()?.userRole;
       const params = {
         page: pageToFetch,
         size: 10,
@@ -110,8 +117,7 @@ const EmploySearchResult = ({route}) => {
           hashtagIds: filterOptions?.tags?.map(tag => tag.id),
         },
       };
-      console.log(params);
-      const res = await userEmployApi.getRecruits(params);
+      const res = await userEmployApi.getRecruits(params, userRole === 'USER');
       const {content, last} = res.data;
       setRecruitList(prev =>
         pageToFetch === 0 ? content : [...prev, ...content],
@@ -219,6 +225,7 @@ const EmploySearchResult = ({route}) => {
           onToggleFavorite={toggleLikeRecruit}
           onEndReached={handleEndReached}
           setRecruitList={setRecruitList}
+          showErrorModal={setErrorModal}
           ListFooterComponent={
             isEmLoading && <ActivityIndicator size="small" color="gray" />
           }
@@ -258,6 +265,12 @@ const EmploySearchResult = ({route}) => {
           setIsLast(false);
           setRecruitList([]);
         }}
+      />
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </View>
   );
