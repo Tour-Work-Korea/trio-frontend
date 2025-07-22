@@ -36,11 +36,11 @@ const MyApplicantList = () => {
   };
   // 페이지 이동 함수
   const handleViewDetail = id => {
-    navigation.navigate('MyApplicantDetail', {id});
+    navigation.navigate('MyResumeDetail', {id});
   };
   // 공고 아이템 렌더링
   const renderApplyItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleViewDetail(item.id)}>
+    <TouchableOpacity onPress={() => handleViewDetail(item.resumeId)}>
       <View style={styles.postingCard}>
         <View style={styles.titleRow}>
           <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>

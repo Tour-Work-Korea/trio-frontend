@@ -4,12 +4,13 @@ import RecruitCard from './RecruitCard';
 
 const RecruitList = ({
   data,
-  onEndReached,
+  onEndReached = null,
   loading = false,
   onJobPress,
   onToggleFavorite,
   setRecruitList,
   scrollEnabled = true,
+  showErrorModal,
 }) => {
   return (
     <FlatList
@@ -21,7 +22,12 @@ const RecruitList = ({
           item={item}
           onPress={() => onJobPress(item.recruitId)}
           onToggleFavorite={() =>
-            onToggleFavorite(item.recruitId, item.isLiked, setRecruitList)
+            onToggleFavorite({
+              id: item.recruitId,
+              isLiked: item.isLiked,
+              setRecruitList,
+              showErrorModal,
+            })
           }
         />
       )}

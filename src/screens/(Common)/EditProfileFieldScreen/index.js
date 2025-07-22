@@ -106,10 +106,12 @@ const EditProfileFieldScreen = () => {
   const tryFetchUserProfile = async () => {
     try {
       const res = await userMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, mbti, instagramId} = res.data;
+      const {name, nickname, photoUrl, phone, email, mbti, instagramId} =
+        res.data;
 
       setUserProfile({
         name: name ?? '',
+        nickname: nickname ?? '',
         photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',

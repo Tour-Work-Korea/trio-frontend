@@ -109,10 +109,7 @@ export const uploadSensitiveImage = async () => {
     const response = await commonApi.postImage(formData);
     return response.data; // S3 public URL
   } catch (error) {
-    console.error(
-      '민감 이미지 업로드 실패:',
-      error?.response?.data || error.message,
-    );
+    console.error('민감 이미지 업로드 실패:', error?.response?.data?.message);
     return null;
   }
 };

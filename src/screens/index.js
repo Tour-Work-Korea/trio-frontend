@@ -8,6 +8,7 @@ export {default as EmploySearchList} from './(Common)/BottomTabs/Employ/EmploySe
 export {default as EmploySearchResult} from './(Common)/BottomTabs/Employ/EmploySearchResult';
 export {default as EmployMap} from './(Common)/BottomTabs/Employ/EmployMap';
 export {default as EmployDetail} from './(Common)/Employ/EmployDetail';
+export {default as ApplySuccess} from './(User)/Employ/ApplySuccess';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';
 export {default as GuesthouseDetail} from './(Common)/BottomTabs/Guesthouse/GuesthouseDetail';
@@ -76,7 +77,7 @@ export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegister
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 
 // (User)
-export {default as ApplicantForm} from './(User)/ApplicantForm';
+export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //

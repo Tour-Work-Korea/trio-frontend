@@ -93,7 +93,16 @@ const HostMyPage = () => {
           />
           <MenuItem IconComponent={PostReviewIcon} label="공고 리뷰" />
         </View>
-        <ButtonScarlet title="로그아웃" onPress={tryLogout} />
+        <ButtonScarlet
+          title="로그아웃"
+          onPress={async () => {
+            await tryLogout();
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'EXLogin'}],
+            });
+          }}
+        />
       </View>
     </ScrollView>
   );
