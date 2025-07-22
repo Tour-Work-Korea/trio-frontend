@@ -307,19 +307,30 @@ const GuesthouseList = () => {
             navigation.navigate("GuesthouseSearch", {
               displayDate: displayDateState,
               adultCount,
-              childCount
+              childCount,
+              searchText,
             });
           }}
         >
           <LeftChevron width={24} height={24}/>
         </TouchableOpacity>
       </View>
-      <View style={styles.searchContainer}>
-        <TouchableOpacity style={styles.searchIconContainer}>
+      <TouchableOpacity 
+        style={styles.searchContainer}
+        onPress={() => {
+          navigation.navigate("GuesthouseSearch", {
+            displayDate: displayDateState,
+            adultCount,
+            childCount,
+            searchText,
+          });
+        }}
+      >
+        <View style={styles.searchIconContainer}>
           <SearchIcon width={24} height={24}/>
           <Text style={[FONTS.fs_14_regular, styles.searchText]}>{searchText || '찾는 숙소가 있으신가요?'}</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.selectRow}>
         <TouchableOpacity

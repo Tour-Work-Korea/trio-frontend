@@ -45,7 +45,7 @@ const GuesthouseSearch = () => {
   // 지역 선택
   const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
   // 검색어 입력
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(route.params?.searchText || '');
 
   // 선택 날짜, 인원 출력
   const [displayDate, setDisplayDate] = useState('');
