@@ -217,7 +217,9 @@ const GuesthouseList = () => {
       }
       setGuesthouses(prev =>
         prev.map(item =>
-          item.id === id ? { ...item, favorite: !item.favorite } : item
+          item.id === id
+            ? { ...item, isFavorite: !item.isFavorite }
+            : item
         )
       );
     } catch (e) {
@@ -232,6 +234,13 @@ const GuesthouseList = () => {
         checkIn,
         checkOut,
         guestCount: adultCount + childCount,
+        onLikeChange: (id, isLiked) => {
+          setGuesthouses(prev =>
+            prev.map(item =>
+              item.id === id ? { ...item, isFavorite: isLiked } : item
+            )
+          );
+        },
       })}
     >
       <View style={styles.card}>
@@ -263,9 +272,9 @@ const GuesthouseList = () => {
             ))}
             <TouchableOpacity
               style={styles.heartIcon}
-              onPress={() => toggleLike(item.id, item.favorite)}
+              onPress={() => toggleLike(item.id, item.isFavorite)}
             >
-              {item.favorite ? <FillHeart width={20} height={20}/> : <EmptyHeart width={20} height={20}/>}
+              {item.isFavorite ? <FillHeart width={20} height={20}/> : <EmptyHeart width={20} height={20}/>}
             </TouchableOpacity>
           </View>
           <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -15,7 +15,8 @@ import LeftArrow from '@assets/images/chevron_left_white.svg';
 
 const RoomDetail = ({ route }) => {
   const navigation = useNavigation();
-  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImage } = route.params;
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImages } = route.params;
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
@@ -28,18 +29,28 @@ const RoomDetail = ({ route }) => {
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
 
+  // 이미지 처리
+  const hasImages = roomImages?.length > 0;
+  const thumbnailImage =
+    roomImages?.find((img) => img.isThumbnail)?.roomImageUrl ||
+    roomImages?.[0]?.roomImageUrl;
+
+  const modalImages = roomImages?.map((img) => ({
+    id: img.id,
+    imageUrl: img.roomImageUrl,
+  })) || [];
+
   return (
     <View style={styles.container}>
         <ScrollView>
             <View style={styles.imageContainer}>
-                {roomImage ? (
-                    <Image source={{ uri: roomImage }} style={styles.image} />
+                {hasImages ? (
+                    <TouchableOpacity onPress={() => setImageModalVisible(true)}>
+                    <Image source={{ uri: thumbnailImage }} style={styles.image} />
+                    </TouchableOpacity>
                 ) : (
                     <View
-                    style={[
-                        styles.image,
-                        { backgroundColor: COLORS.grayscale_200 },
-                    ]}
+                    style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]}
                     />
                 )}
                 <TouchableOpacity 
@@ -93,6 +104,17 @@ const RoomDetail = ({ route }) => {
                 }
             />
         </View>
+
+        {/* 이미지 모달 */}
+        {hasImages && (
+            <ImageModal
+                visible={imageModalVisible}
+                title={roomName}
+                images={modalImages}
+                selectedImageIndex={0}
+                onClose={() => setImageModalVisible(false)}
+            />
+        )}
     </View>
   );
 };
