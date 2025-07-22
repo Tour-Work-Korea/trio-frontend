@@ -94,15 +94,15 @@ const GuesthouseList = () => {
   const currentKeyword = keywordList[currentKeywordIndex] || '';
 
   // api 보낼 날짜 데이터
-    const [start, end] = displayDateState.split(" - ");
-    const startDateOnly = start.split(' ')[0];
-    const endDateOnly = end.split(' ')[0];
-    const [startMonth, startDay] = startDateOnly.split('.').map(Number);
-    const [endMonth, endDay] = endDateOnly.split('.').map(Number);
-    const year = dayjs().year();
-    const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
-    const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
-    const [sortBy, setSortBy] = useState("RECOMMEND");
+  const [start, end] = displayDateState.split(" - ");
+  const startDateOnly = start.split(' ')[0];
+  const endDateOnly = end.split(' ')[0];
+  const [startMonth, startDay] = startDateOnly.split('.').map(Number);
+  const [endMonth, endDay] = endDateOnly.split('.').map(Number);
+  const year = dayjs().year();
+  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+  const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+  const [sortBy, setSortBy] = useState("RECOMMEND");
 
   // 게하 불러오기
   // const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
