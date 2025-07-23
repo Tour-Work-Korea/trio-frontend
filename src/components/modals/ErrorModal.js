@@ -12,8 +12,11 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
-// 제목, 버튼 텍스트만 필수
-// 이미지, 세부 텍스트는 선택
+/**
+ * visible, title, buttonText, onPress 필수
+ * buttonText2, onPress2는 버튼이 두 개 필요한 경우 사용
+ * buttonText2가 있는 경우 buttonText, onPress는 회색 버튼에 적용됨 (취소, 확인)을 위함
+ */
 
 const ErrorModal = ({
   visible,
@@ -51,17 +54,14 @@ const ErrorModal = ({
               />
             </View>
           ) : (
-            <ButtonScarlet title={buttonText} onPress={onPress} />
+            <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>
+              <ButtonScarlet
+                title={buttonText}
+                onPress={onPress}
+                style={{flex: 1}}
+              />
+            </View>
           )}
-
-          {/* <TouchableOpacity
-            style={styles.button}
-            onPress={onPress}
-            activeOpacity={0.8}>
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>
-              {buttonText}
-            </Text>
-          </TouchableOpacity> */}
         </View>
       </View>
     </Modal>

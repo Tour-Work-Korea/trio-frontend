@@ -45,11 +45,12 @@ const MyResumeList = () => {
       const response = await userEmployApi.getResumes();
       setResumes(response.data);
     } catch (error) {
-      setErrorModal({
+      setErrorModal(prev => ({
+        ...prev,
         visible: true,
         title: '이력서를 불러오는 중 오류가 발생했어요',
         buttonText: '확인',
-      });
+      }));
     }
   };
 
@@ -60,11 +61,12 @@ const MyResumeList = () => {
         navigation.replace('MyResumeList');
       }, 500);
     } catch (error) {
-      setErrorModal({
+      setErrorModal(prev => ({
+        ...prev,
         visible: true,
         title: '삭제 중 오류가 발생했어요',
         buttonText: '확인',
-      });
+      }));
     }
   };
 
