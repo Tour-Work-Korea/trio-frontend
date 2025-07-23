@@ -1,7 +1,13 @@
-import React, {useEffect, useState, useCallback} from 'react';
-import {SafeAreaView, Alert} from 'react-native';
+import React, {useState, useCallback} from 'react';
+import {
+  SafeAreaView,
+  Alert,
+  StyleSheet,
+  TouchableOpacity,
+  View,
+  Text,
+} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import styles from './MyLikeRecruitList.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 
@@ -9,6 +15,9 @@ import {toggleLikeRecruit} from '@utils/handleFavorite';
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
+import {COLORS} from '@constants/colors';
+import Chevron_left_black from '@assets/images/chevron_left_black.svg';
+import {FONTS} from '@constants/fonts';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
@@ -60,15 +69,25 @@ export default function MyLikeRecruitList() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title={'즐겨찾기한 공고'} />
-      <RecruitList
-        data={recruits}
-        loading={loading}
-        onJobPress={handleJobPress}
-        onApplyPress={handleApplyPress}
-        onToggleFavorite={handleLikePress}
-        setRecruitList={setRecruits}
-      />
+      <View style={[styles.headerBox]}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Chevron_left_black width={28.8} height={28.8} />
+        </TouchableOpacity>
+
+        <Text style={styles.headerText}>즐겨찾는 공고</Text>
+        <View style={{width: 28.8}}></View>
+      </View>
+      <View style={styles.contentContainer}>
+        <RecruitList
+          data={recruits}
+          loading={loading}
+          onJobPress={handleJobPress}
+          onApplyPress={handleApplyPress}
+          onToggleFavorite={handleLikePress}
+          setRecruitList={setRecruits}
+        />
+      </View>
+
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}
@@ -78,3 +97,27 @@ export default function MyLikeRecruitList() {
     </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    flexDirection: 'column',
+    backgroundColor: COLORS.grayscale_100,
+  },
+  headerBox: {
+    padding: 20,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
+  },
+  headerText: {
+    ...FONTS.fs_20_semibold,
+    color: COLORS.grayscale_800,
+  },
+  contentContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    paddingHorizontal: 20,
+    paddingVertical: 30,
+    flex: 1,
+  },
+});
