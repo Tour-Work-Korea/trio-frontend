@@ -31,10 +31,10 @@ export {default as FindId} from './(Common)/FindAuth/FindId';
 export {default as FindPassword} from './(Common)/FindAuth/FindPassword';
 
 // 게하 결제 & 예약
-export {default as RoomDetail} from './(Common)/RoomDetail';
-export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
-export {default as PaymentSuccess} from './(Common)/GuesthousePayment/PaymentSuccess';
-export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
+export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
+export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
+export {default as PaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/PaymentSuccess';
+export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
 
 //
 export {default as Register} from './(Common)/Register';

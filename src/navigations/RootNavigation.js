@@ -8,10 +8,10 @@ import EXHome from '@screens/EXHome';
 
 import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
 
-import RoomDetail from '@screens/(Common)/RoomDetail';
-import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
-import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
-import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
+import RoomDetail from '@screens/(Common)/Guesthouse/RoomDetail';
+import GuesthouseReservation from '@screens/(Common)/Guesthouse/GuesthouseReservation';
+import GuesthousePayment from '@screens/(Common)/Guesthouse/GuesthousePayment';
+import PaymentSuccess from '@screens/(Common)/Guesthouse/GuesthousePayment/PaymentSuccess';
 
 import {
   EmployDetail,
