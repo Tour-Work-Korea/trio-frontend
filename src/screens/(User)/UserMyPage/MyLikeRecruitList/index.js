@@ -1,7 +1,6 @@
 import React, {useState, useCallback} from 'react';
 import {
   SafeAreaView,
-  Alert,
   StyleSheet,
   TouchableOpacity,
   View,
@@ -10,11 +9,9 @@ import {
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
-
-// 아이콘 불러오기
-import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
+// 아이콘 불러오기
 import {COLORS} from '@constants/colors';
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import {FONTS} from '@constants/fonts';
@@ -25,7 +22,7 @@ export default function MyLikeRecruitList() {
   const [loading, setLoading] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
-    message: '',
+    title: '',
     buttonText: '',
   });
 
@@ -41,7 +38,11 @@ export default function MyLikeRecruitList() {
       const res = await userEmployApi.getLikeRecruits();
       setRecruits(res.data);
     } catch (error) {
-      Alert.alert('채용 공고 불러오기에 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        title: '즐겨찾기한 공고를 불러오는 중 오류가 발생했습니다',
+        buttonText: '확인',
+      });
     } finally {
       setLoading(false);
     }
@@ -117,7 +118,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
-    paddingVertical: 30,
+    paddingVertical: 12,
     flex: 1,
   },
 });

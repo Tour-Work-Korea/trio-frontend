@@ -1,57 +1,87 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    flexDirection: 'column',
+    backgroundColor: COLORS.grayscale_100,
   },
-  body: {
-    flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
+  headerBox: {
+    paddingHorizontal: 20,
+    paddingTop: 30,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    width: '100%',
   },
   headerText: {
-    color: COLORS.scarlet, // Red-orange color
-    textAlign: 'right',
-    marginVertical: 12,
+    ...FONTS.fs_20_semibold,
+    color: COLORS.grayscale_800,
   },
-
-  postingCard: {
-    backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 15,
+  body: {
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    flex: 1,
+    gap: 12,
   },
-  guestHouseTag: {
-    backgroundColor: COLORS.light_gray,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
-    marginBottom: 10,
+  //이력서 리스트
+  section: {
+    gap: 8,
   },
-  titleRow: {
+  sectionTitle: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_400,
+  },
+  resumeItem: {
+    flexDirection: 'row',
+    width: '100%',
+    gap: 12,
+  },
+  resumeLeftSection: {
+    justifyContent: 'center',
+  },
+  resumeMiddleSection: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    flexDirection: 'column',
+    gap: 12,
+    flex: 1,
+  },
+  resumeTitle: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_900,
+  },
+  //태그
+  tagsContainer: {
+    flexDirection: 'row',
+    gap: 4,
+  },
+  tagText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.primary_blue,
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+    borderRadius: 100,
+  },
+  //수정
+  modifiedContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
   },
-  iconsContainer: {
+  modifiedTextBox: {
     flexDirection: 'row',
-    alignItems: 'center',
+    gap: 8,
   },
-  icon: {
-    marginLeft: 8,
+  lastModifiedText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
   },
-  dateRow: {
-    display: 'flex',
-    flexDirection: 'row',
-  },
-  dateLabel: {
-    color: COLORS.gray,
-    marginRight: 5,
-  },
-  date: {
-    color: COLORS.gray,
+  editButton: {
+    justifyContent: 'center',
+    padding: 4,
   },
 });

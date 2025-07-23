@@ -9,6 +9,8 @@ import {
 } from 'react-native';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import ButtonScarlet from '@components/ButtonScarlet';
+import ButtonWhite from '@components/ButtonWhite';
 
 // 제목, 버튼 텍스트만 필수
 // 이미지, 세부 텍스트는 선택
@@ -18,7 +20,9 @@ const ErrorModal = ({
   title,
   message,
   buttonText,
+  buttonText2 = null,
   onPress,
+  onPress2 = null,
   imageUri,
 }) => {
   return (
@@ -32,14 +36,32 @@ const ErrorModal = ({
           {message ? (
             <Text style={[FONTS.fs_14_medium, styles.message]}>{message}</Text>
           ) : null}
-          <TouchableOpacity
+
+          {buttonText2 ? (
+            <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>
+              <ButtonWhite
+                title={buttonText}
+                onPress={onPress}
+                style={{flex: 1}}
+              />
+              <ButtonScarlet
+                title={buttonText2}
+                onPress={onPress2}
+                style={{flex: 1}}
+              />
+            </View>
+          ) : (
+            <ButtonScarlet title={buttonText} onPress={onPress} />
+          )}
+
+          {/* <TouchableOpacity
             style={styles.button}
             onPress={onPress}
             activeOpacity={0.8}>
             <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>
               {buttonText}
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </Modal>
