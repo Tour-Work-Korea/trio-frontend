@@ -1,19 +1,12 @@
 import {FONTS} from '@constants/fonts';
 import React from 'react';
-import {
-  Modal,
-  View,
-  StyleSheet,
-  Dimensions,
-  Text,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import {Modal, View, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 
-const {height} = Dimensions.get('window');
-
+/*
+화면 높이 절반까지 오는 결과 모달
+*/
 export default function ResultModal({visible, onClose, title, Icon}) {
   return (
     <Modal visible={visible} animationType="slide" transparent>
