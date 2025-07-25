@@ -22,6 +22,7 @@ import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Loading from '@components/Loading';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
@@ -88,6 +89,7 @@ const EmployIntro = () => {
   }
   return (
     <View style={styles.container}>
+      <Header title="채용공고" />
       <ScrollView
         contentContainerStyle={{
           gap: 16,
@@ -95,12 +97,6 @@ const EmployIntro = () => {
           paddingBottom: 0,
           flexGrow: 1,
         }}>
-        {/* 헤더 */}
-        <View style={styles.headerBox}>
-          <View></View>
-          <Text style={styles.headerText}>채용공고</Text>
-          <View></View>
-        </View>
         {/* 검색창 */}
         <TouchableOpacity
           onPress={() => navigation.navigate('EmploySearchList')}>

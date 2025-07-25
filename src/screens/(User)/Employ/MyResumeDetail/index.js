@@ -16,6 +16,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
 import ErrorModal from '@components/modals/ErrorModal';
 import Loading from '@components/Loading';
+import Header from '@components/Header';
 
 const MyResumeDetail = () => {
   const navigation = useNavigation();
@@ -86,19 +87,13 @@ const MyResumeDetail = () => {
   };
   return (
     <View style={styles.container}>
+      <Header title={'이력서 수정'} />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
           flexGrow: 1,
           gap: 20,
         }}>
-        <View style={styles.headerBox}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>이력서 수정</Text>
-          <View width={28.8} height={28.8} />
-        </View>
         {formData ? (
           <>
             {/* 프로필 */}

@@ -1,8 +1,8 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 import ChevronLeft from '@assets/images/chevron_left_black.svg';
 import Logo from '@assets/images/logo_orange.svg';
 
@@ -11,17 +11,19 @@ import Logo from '@assets/images/logo_orange.svg';
 //왼쪽 화살표 누르면 뒤로가기가 되도록 해놓았음
 //예시는 EXHome에 있습니다
 
-const Header = ({ title }) => {
+const Header = ({title}) => {
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
       {title ? (
         <View style={styles.subTitleWrapper}>
-          <TouchableOpacity style={styles.backContainer} onPress={navigation.goBack}>
+          <TouchableOpacity
+            style={styles.backContainer}
+            onPress={navigation.goBack}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
-          <Text style={[FONTS.fs_16_semibold, styles.subTitle]}>{title}</Text>
+          <Text style={[styles.subTitle]}>{title}</Text>
         </View>
       ) : (
         <View style={styles.logoWrapper}>
@@ -34,20 +36,20 @@ const Header = ({ title }) => {
 
 const styles = StyleSheet.create({
   container: {
-    height: 36,
-    paddingVertical: 4,
-    backgroundColor: COLORS.grayscale_0,
+    //height: 36,
+    paddingVertical: 12,
   },
   subTitleWrapper: {
     alignItems: 'center',
-    justifyContent: 'center'
+    justifyContent: 'center',
   },
   backContainer: {
     position: 'absolute',
     left: 20,
   },
   subTitle: {
-    color: COLORS.black,
+    ...FONTS.fs_20_semibold,
+    color: COLORS.grayscale_800,
   },
   logoWrapper: {
     alignSelf: 'center', // 로고를 수평 가운데로

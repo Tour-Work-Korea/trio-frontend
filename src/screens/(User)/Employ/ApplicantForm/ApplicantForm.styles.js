@@ -5,7 +5,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 30,
   },
   section: {
     gap: 8,

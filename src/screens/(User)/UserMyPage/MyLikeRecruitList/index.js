@@ -15,6 +15,7 @@ import ErrorModal from '@components/modals/ErrorModal';
 import {COLORS} from '@constants/colors';
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import {FONTS} from '@constants/fonts';
+import Header from '@components/Header';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
@@ -70,14 +71,7 @@ export default function MyLikeRecruitList() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[styles.headerBox]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Chevron_left_black width={28.8} height={28.8} />
-        </TouchableOpacity>
-
-        <Text style={styles.headerText}>즐겨찾는 공고</Text>
-        <View style={{width: 28.8}}></View>
-      </View>
+      <Header title={'즐겨찾는 공고'} />
       <View style={styles.contentContainer}>
         <RecruitList
           data={recruits}
