@@ -21,6 +21,7 @@ import {
   ApplySuccess,
   Register,
   EXLogin,
+  MeetMain,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -28,7 +29,7 @@ const Stack = createNativeStackNavigator();
 const RootNavigation = () => (
   <NavigationContainer ref={navigationRef}>
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="EXLogin" component={EXLogin} />
+      {/* <Stack.Screen name="EXLogin" component={EXLogin} /> */}
       <Stack.Screen name="EXHome" component={EXHome} />
       <Stack.Screen name="undefined" component={undefinedStack} />
 
@@ -39,18 +40,20 @@ const RootNavigation = () => (
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
-      <Stack.Screen
-        name="GuesthouseReservation"
-        component={GuesthouseReservation}
-      />
+      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
       <Stack.Screen name="MyResumeDetail" component={MyResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
       <Stack.Screen name="Register" component={Register} />
+
+      {/* 모임화면 확인을 위해 */}
+      <Stack.Screen name="MeetMain" component={MeetMain} />
+
     </Stack.Navigator>
   </NavigationContainer>
 );

@@ -22,6 +22,7 @@ export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
 export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/PopularGuesthouseList';
 // 동행
 export {default as Meet} from './(Common)/BottomTabs/Meet';
+export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 
