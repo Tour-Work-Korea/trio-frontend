@@ -17,3 +17,8 @@ export const meetTags = [
   { id: 'no_smoke', name: '금연' },
   { id: 'karaoke', name: '노래방' },
 ];
+
+export const meetSortOptions = [
+  { id: 'recent', name: '실시간 인기 순' },
+  { id: 'likes', name: '좋아요 순' },
+];

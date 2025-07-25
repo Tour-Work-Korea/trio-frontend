@@ -7,6 +7,7 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './MeetMain.styles';
 import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
+import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -30,7 +31,11 @@ const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  // 필터 모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  // 정렬 모달
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [sortOption, setSortOption] = useState('recent'); // 기본 정렬: 실시간 인기 순
 
   const [selectedDateKey, setSelectedDateKey] = useState(dayjs().format('YYYY-MM-DD')); // 오늘
   const [favorites, setFavorites] = useState({}); // { [id]: true }
@@ -244,7 +249,10 @@ const MeetMain = () => {
             ))}
           </ScrollView>
 
-          <TouchableOpacity style={styles.sortRight}>
+          <TouchableOpacity 
+            style={styles.sortRight}
+            onPress={() => setSortModalVisible(true)}
+          >
             <SortIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
           </TouchableOpacity>
@@ -273,6 +281,17 @@ const MeetMain = () => {
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         onApply={() => {}} // 아직 적용 로직 없음
+      />
+
+      {/* 정렬 모달 */}
+      <MeetSortModal
+        visible={sortModalVisible}
+        onClose={() => setSortModalVisible(false)}
+        selected={sortOption}
+        onSelect={(value) => {
+          setSortOption(value);
+          setSortModalVisible(false);
+        }}
       />
     </View>
   );

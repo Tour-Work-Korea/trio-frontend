@@ -150,6 +150,7 @@ const styles = StyleSheet.create({
 
   // 리스트
   listContent: {
+    paddingBottom: 40,
     gap: 16,
   },
   meetItemContainer: {
