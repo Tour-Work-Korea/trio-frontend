@@ -64,7 +64,7 @@ const UserMyPage = () => {
 
         {/* 숙박 섹션 */}
         <View style={styles.section}>
-          <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>숙박</Text>
+          <Text style={[styles.sectionTitle]}>숙박</Text>
           <MenuItem
             IconComponent={FavoriteGuesthouseIcon}
             label="즐겨찾는 게하"
@@ -83,7 +83,7 @@ const UserMyPage = () => {
 
         {/* 공고 섹션 */}
         <View style={styles.section}>
-          <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>공고</Text>
+          <Text style={[styles.sectionTitle]}>공고</Text>
           <MenuItem
             IconComponent={FavoritePostIcon}
             label="즐겨찾는 공고"
@@ -99,7 +99,6 @@ const UserMyPage = () => {
             label="지원 현황"
             onPress={() => navigation.navigate('MyApplicantList')}
           />
-          {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>
         <ButtonScarlet
           title="로그아웃"
@@ -122,9 +121,9 @@ const MenuItem = ({IconComponent, label, onPress}) => (
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={28} height={28} />
       </View>
-      <Text style={[FONTS.fs_h1_bold, styles.menuLabel]}>{label}</Text>
+      <Text style={[styles.menuLabel]}>{label}</Text>
     </View>
-    <RightArrow width={24} height={24} />
+    <RightArrow width={24} height={24} style={styles.icon} />
   </TouchableOpacity>
 );
 
