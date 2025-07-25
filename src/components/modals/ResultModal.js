@@ -1,13 +1,31 @@
 import {FONTS} from '@constants/fonts';
-import React from 'react';
+import React, {useEffect} from 'react';
 import {Modal, View, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
+import ButtonScarlet from '@components/ButtonScarlet';
 
 /*
 화면 높이 절반까지 오는 결과 모달
 */
-export default function ResultModal({visible, onClose, title, Icon}) {
+export default function ResultModal({
+  visible,
+  onClose,
+  title,
+  Icon,
+  message = null,
+  buttonText = null,
+  onPress = null,
+}) {
+  useEffect(() => {
+    if (visible && buttonText == null) {
+      const timer = setTimeout(() => {
+        onClose();
+      }, 3000);
+
+      return () => clearTimeout(timer);
+    }
+  }, [visible]);
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
@@ -20,6 +38,12 @@ export default function ResultModal({visible, onClose, title, Icon}) {
             </TouchableOpacity>
           </View>
           <Icon style={styles.image} />
+          {message ? <Text>{message}</Text> : <></>}
+          {buttonText ? (
+            <ButtonScarlet title={buttonText} onPress={onPress} />
+          ) : (
+            <></>
+          )}
         </View>
       </View>
     </Modal>

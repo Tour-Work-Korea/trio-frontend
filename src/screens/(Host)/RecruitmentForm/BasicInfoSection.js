@@ -1,8 +1,9 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, Alert} from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import DropDownPicker from 'react-native-dropdown-picker';
+import {COLORS} from '@constants/colors';
 
 const BasicInfoSection = ({isUpdate, handleInputChange, formData}) => {
   const [guesthouses, setGuesthouses] = useState([]);
@@ -32,38 +33,41 @@ const BasicInfoSection = ({isUpdate, handleInputChange, formData}) => {
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>기본정보</Text>
       <View style={styles.divider} />
-
       <View style={styles.formGroup}>
         <TextInput
           style={styles.input}
           placeholder="공고제목을 입력해주세요."
+          placeholderTextColor={COLORS.grayscale_400}
           value={formData.recruitTitle}
           onChangeText={text => handleInputChange('recruitTitle', text)}
         />
-      </View>
-      {!isUpdate && (
-        <View style={{zIndex: 1000}}>
-          <DropDownPicker
-            open={guesthouseOpen}
-            value={formData.guesthouseId}
-            items={guesthouses}
-            setOpen={setGuesthouseOpen}
-            setValue={val => handleInputChange('guesthouseId', val())}
-            setItems={setGuesthouses}
-            placeholder="공고를 등록할 게스트하우스를 선택해주세요."
-            zIndex={1000}
-            zIndexInverse={3000}
-            listMode="SCROLLVIEW"
-          />
-        </View>
-      )}
 
-      <View style={styles.formGroup}>
+        {!isUpdate && (
+          <View style={{zIndex: 1000}}>
+            <DropDownPicker
+              open={guesthouseOpen}
+              value={formData.guesthouseId}
+              items={guesthouses}
+              setOpen={setGuesthouseOpen}
+              setValue={val => handleInputChange('guesthouseId', val())}
+              setItems={setGuesthouses}
+              placeholder="공고를 등록할 게스트하우스를 선택해주세요."
+              placeholderStyle={styles.placeHolder}
+              zIndex={1000}
+              dropDownContainerStyle={styles.dropdown}
+              zIndexInverse={3000}
+              listMode="SCROLLVIEW"
+              style={styles.input}
+            />
+          </View>
+        )}
+
         <TextInput
           style={styles.textArea}
           placeholder="간략하게 들어갈 공고 소개를 200자 이내로 작성해주세요."
           multiline={true}
           numberOfLines={4}
+          placeholderTextColor={COLORS.grayscale_400}
           value={formData.recruitShortDescription}
           onChangeText={text =>
             handleInputChange('recruitShortDescription', text)

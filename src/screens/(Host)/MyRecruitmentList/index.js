@@ -71,6 +71,7 @@ const MyRecruitmentList = () => {
       await hostEmployApi.requestDeleteRecruit(selectedRecruitId, '마감요청');
       setResultModalVisible(true);
     } catch (error) {
+      setResultModalVisible(true);
       setErrorModal({
         visible: true,
         title: '마감요청 중 오류가 발생했습니다',

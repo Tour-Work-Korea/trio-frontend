@@ -5,7 +5,7 @@ import {FONTS} from '@constants/fonts';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
   scrollContainer: {
     padding: 16,
@@ -14,30 +14,35 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   sectionTitle: {
-    ...FONTS.fs_h2_bold,
-    color: COLORS.black,
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_800,
     marginBottom: 8,
   },
   divider: {
     height: 1,
-    backgroundColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.grayscale_200,
     marginBottom: 16,
   },
   formGroup: {
-    marginBottom: 16,
+    flexDirection: 'column',
+    gap: 8,
   },
   input: {
     borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
     padding: 12,
-    ...FONTS.fs_body,
-    color: COLORS.black,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_800,
+  },
+  placeHolder: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_400,
   },
   textArea: {
     borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
     padding: 12,
     ...FONTS.fs_body,
     color: COLORS.black,
@@ -46,83 +51,47 @@ const styles = StyleSheet.create({
   },
   dropdown: {
     borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
     padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-  },
-  dropdownText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_400,
   },
 
-  // Tag section styles
-  tagDescription: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
+  // 해시태그
+  description: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.primary_blue,
     marginBottom: 16,
   },
-  tagGrid: {
-    marginBottom: 16,
-  },
-  tagRow: {
+  tagSelectRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    flexWrap: 'wrap',
+    gap: 4,
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 8,
+    alignContent: 'center',
   },
-  tagOption: {
-    flexDirection: 'row',
+  tagOptionContainer: {
     alignItems: 'center',
-    flex: 1,
-  },
-  tagButtonSelected: {
-    borderColor: COLORS.scarlet,
-    backgroundColor: '#FFF0F0',
-  },
-  tagButtonTextSelected: {
-    color: COLORS.scarlet,
-    fontWeight: 'bold',
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
     justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
+    height: 40,
+    padding: 10,
+    width: '48%',
   },
-  radioButtonSelected: {
-    borderColor: COLORS.scarlet,
+  tagOptionText: {
+    color: COLORS.grayscale_400,
   },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.scarlet,
-  },
-  tagText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  addTagButton: {
-    backgroundColor: COLORS.light_gray,
-    borderRadius: 4,
-    padding: 12,
-    alignItems: 'center',
-    marginBottom: 24,
-  },
-  addTagButtonText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.gray,
+  tagOptionSelectedText: {
+    color: COLORS.primary_orange,
   },
 
   // Date section styles
   subsectionTitle: {
-    ...FONTS.fs_body_bold,
+    ...FONTS.fs_14_semibold,
     color: COLORS.black,
     marginBottom: 8,
   },
@@ -134,8 +103,8 @@ const styles = StyleSheet.create({
   dateInput: {
     flex: 1,
     borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
     padding: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -143,8 +112,8 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   dateLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_600,
   },
 
   // Count section styles
@@ -157,18 +126,6 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  countLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-    marginBottom: 4,
-  },
-  countInput: {
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
-    padding: 12,
-    ...FONTS.fs_body,
-  },
 
   // Age section styles
   ageRow: {
@@ -180,30 +137,7 @@ const styles = StyleSheet.create({
     flex: 1,
     marginRight: 8,
   },
-  ageLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-    marginBottom: 4,
-  },
-  ageInput: {
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
-    padding: 12,
-    ...FONTS.fs_body,
-  },
-
   // Photo section styles
-  photoSectionTitle: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
-    marginBottom: 4,
-  },
-  photoDescription: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-    marginBottom: 12,
-  },
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -215,10 +149,8 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     position: 'relative',
   },
-  photo: {
-    width: '100%',
-    height: '100%',
-    borderRadius: 4,
+  thumbnail: {
+    borderColor: COLORS.primary_blue,
   },
   removePhotoButton: {
     position: 'absolute',
@@ -232,10 +164,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     borderWidth: 1,
     borderColor: COLORS.stroke_gray,
-  },
-  removePhotoText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.gray,
   },
   addPhotoButton: {
     width: 100,
