@@ -1,6 +1,6 @@
 export const meetScales = [
-  { id: 'small', name: '소규모 (10명 미만)' },
-  { id: 'large', name: '대규모 (10명 이상)' },
+  { id: 'small', name: '소규모\n(10명 미만)' },
+  { id: 'large', name: '대규모\n(10명 이상)' },
 ];
 
 export const stayTypes = [
@@ -13,6 +13,7 @@ export const meetTags = [
   { id: 'meal', name: '음식 제공' },
   { id: 'alcohol', name: '술 제공' },
   { id: 'no_meal', name: '개별 음식 지참' },
-  { id: 'smoke', name: '흡연' },
+  { id: 'talk', name: '담소' },
+  { id: 'no_smoke', name: '금연' },
   { id: 'karaoke', name: '노래방' },
 ];

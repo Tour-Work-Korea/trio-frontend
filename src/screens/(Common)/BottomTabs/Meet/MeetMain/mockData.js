@@ -110,7 +110,7 @@ export const MOCK_MEETS = [
     startAt: getIsoPlusDays(5, 22, 0),
     capacity: 5,
     joined: 2,
-    tags: getTags(['smoke']),
+    tags: getTags(['no_smoke']),
   },
 ];
 

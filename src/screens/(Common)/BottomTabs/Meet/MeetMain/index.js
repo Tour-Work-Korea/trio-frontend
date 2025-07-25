@@ -6,6 +6,7 @@ import dayjs from 'dayjs';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './MeetMain.styles';
+import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -29,6 +30,7 @@ const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
   const [activeIndex, setActiveIndex] = useState(0);
+  const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   const [selectedDateKey, setSelectedDateKey] = useState(dayjs().format('YYYY-MM-DD')); // 오늘
   const [favorites, setFavorites] = useState({}); // { [id]: true }
@@ -216,7 +218,10 @@ const MeetMain = () => {
 
         {/* 필터/정렬 바 */}
         <View style={styles.filterBar}>
-          <TouchableOpacity style={styles.filterLeft}>
+          <TouchableOpacity 
+            style={styles.filterLeft}
+            onPress={() => setFilterModalVisible(true)}
+          >
             <FilterIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
           </TouchableOpacity>
@@ -262,6 +267,13 @@ const MeetMain = () => {
           }
         />
       </View>
+
+      {/* 필터 모달 */}
+      <MeetFilterModal
+        visible={filterModalVisible}
+        onClose={() => setFilterModalVisible(false)}
+        onApply={() => {}} // 아직 적용 로직 없음
+      />
     </View>
   );
 };
