@@ -82,7 +82,7 @@ export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
-export {default as MyResumeDetail} from './(User)/Employ/MyResumeDetail';
+export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 

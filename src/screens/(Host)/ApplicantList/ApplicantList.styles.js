@@ -5,22 +5,26 @@ import {FONTS} from '@constants/fonts';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.light_gray,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  body: {
+    paddingHorizontal: 20,
+    flex: 1,
   },
   scrollView: {
+    marginTop: 12,
     flex: 1,
   },
   filterButtonsContainer: {
     flexDirection: 'row',
-    padding: 16,
-    backgroundColor: COLORS.white,
+    overflow: 'hidden',
+    paddingVertical: 12,
   },
-  filterButton: {
+  tagButton: {
     paddingVertical: 4,
     paddingHorizontal: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 20,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_100,
     marginRight: 8,
     alignItems: 'center',
     justifyContent: 'center',
@@ -28,59 +32,24 @@ const styles = StyleSheet.create({
   selectedFilterButton: {
     backgroundColor: COLORS.stroke_gray,
   },
-  filterButtonText: {
+  tagText: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.primary_blue,
   },
-  section: {
-    marginBottom: 16,
+  //드롭다운
+  dropdown: {
+    borderRadius: 20,
+    borderColor: COLORS.grayscale_200,
+    paddingHorizontal: 20,
   },
-  sectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-  },
-  latestHeaderLeft: {
-    flex: 1,
-  },
-  sectionTitle: {
-    ...FONTS.fs_h2_bold,
-    color: COLORS.black,
-  },
-  highlightedText: {
-    color: COLORS.scarlet,
-  },
-  subTitle: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-  },
-  pageIndicator: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.scarlet,
-  },
-  dropdownButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 4,
-    backgroundColor: COLORS.white,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-  },
-  dropdownButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-    marginRight: 4,
-  },
+
+  //지원 아이템
   applicantCard: {
     backgroundColor: COLORS.white,
-    borderRadius: 12,
-    padding: 16,
-    marginHorizontal: 16,
-    marginBottom: 8,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    gap: 12,
   },
   cardHeader: {
     flexDirection: 'row',
@@ -97,13 +66,6 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     marginRight: 8,
   },
-  tagText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  favoriteButton: {
-    padding: 4,
-  },
   applicantInfo: {
     flexDirection: 'row',
   },
@@ -112,10 +74,9 @@ const styles = StyleSheet.create({
     marginRight: 16,
   },
   profileImage: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    marginBottom: 8,
+    width: 60,
+    height: 60,
+    borderRadius: 8,
   },
   nameText: {
     ...FONTS.fs_body_bold,
@@ -131,8 +92,8 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   introductionText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
+    ...FONTS.fs_14_medium,
+    color: COLORS.primary_orange,
     marginBottom: 8,
   },
   tagsRow: {
@@ -140,22 +101,22 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   hashTag: {
-    ...FONTS.fs_body,
-    color: COLORS.scarlet,
+    ...FONTS.fs_12_medium,
+    color: COLORS.primary_blue,
+    backgroundColor: COLORS.light_gray,
+    paddingHorizontal: 12,
+    paddingVertical: 6,
+    borderRadius: 20,
     marginRight: 8,
   },
   infoRow: {
     flexDirection: 'row',
     marginBottom: 4,
   },
-  infoLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-    width: 50,
-  },
+  infoLabel: {...FONTS.fs_14_medium, color: COLORS.grayscale_400, width: 50},
   infoValue: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_800,
     flex: 1,
   },
   careerYears: {

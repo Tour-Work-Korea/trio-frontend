@@ -16,7 +16,7 @@ import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
 import {
   EmployDetail,
   ApplicantForm,
-  MyResumeDetail,
+  ResumeDetail,
   AgreeDetail,
   ApplySuccess,
   Register,
@@ -47,7 +47,7 @@ const RootNavigation = () => (
       <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
-      <Stack.Screen name="MyResumeDetail" component={MyResumeDetail} />
+      <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
       <Stack.Screen name="Register" component={Register} />

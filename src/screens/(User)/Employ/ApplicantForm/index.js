@@ -89,7 +89,7 @@ const ApplicantForm = () => {
   };
 
   const handleEditResume = id => {
-    navigation.navigate('MyResumeDetail', {id, isEditable: true});
+    navigation.navigate('ResumeDetail', {id, isEditable: true});
   };
 
   const handleDateChange = (event, selectedDate, dateField) => {

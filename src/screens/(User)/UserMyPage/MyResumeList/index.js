@@ -1,12 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, SafeAreaView, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
@@ -14,7 +7,6 @@ import ButtonScarlet from '@components/ButtonScarlet';
 
 import styles from './MyResumeList.styles';
 import {COLORS} from '@constants/colors';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import EditIcon from '@assets/images/edit_gray';
 import TrashIcon from '@assets/images/delete_gray.svg';
 import ErrorModal from '@components/modals/ErrorModal';
@@ -91,7 +83,7 @@ const MyResumeList = () => {
           key={item.resumeId}
           style={styles.resumeItem}
           onPress={() => {
-            navigation.navigate('MyResumeDetail', {
+            navigation.navigate('ResumeDetail', {
               id: item.resumeId,
             });
           }}>
@@ -115,7 +107,7 @@ const MyResumeList = () => {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() =>
-                    navigation.navigate('MyResumeDetail', {
+                    navigation.navigate('ResumeDetail', {
                       id: item.resumeId,
                       isEditable: true,
                     })

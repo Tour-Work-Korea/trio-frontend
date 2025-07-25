@@ -103,7 +103,7 @@ const MyApplicantList = () => {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate('MyResumeDetail', {id: item.resumeId})
+          navigation.navigate('ResumeDetail', {id: item.resumeId})
         }>
         <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_900}}>
           {item.resumeTitle}
