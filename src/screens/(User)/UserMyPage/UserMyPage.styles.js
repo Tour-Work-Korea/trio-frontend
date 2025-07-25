@@ -1,6 +1,5 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   outContainer: {
@@ -31,13 +30,13 @@ export default StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.grayscale_200,
+    backgroundColor: COLORS.grayscale_400,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   name: {
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -51,8 +50,7 @@ export default StyleSheet.create({
   },
   sectionTitle: {
     marginBottom: 10,
-    color: COLORS.grayscale_800,
-    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
   },
   menuItem: {
     flexDirection: 'row',
@@ -75,6 +73,5 @@ export default StyleSheet.create({
   menuLabel: {
     marginLeft: 12,
     color: COLORS.grayscale_800,
-    ...FONTS.fs_14_semibold,
   },
 });

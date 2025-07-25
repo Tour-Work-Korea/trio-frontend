@@ -64,7 +64,7 @@ const UserMyPage = () => {
 
         {/* 숙박 섹션 */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle]}>숙박</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>숙박</Text>
           <MenuItem
             IconComponent={FavoriteGuesthouseIcon}
             label="즐겨찾는 게하"
@@ -83,7 +83,7 @@ const UserMyPage = () => {
 
         {/* 공고 섹션 */}
         <View style={styles.section}>
-          <Text style={[styles.sectionTitle]}>공고</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>공고</Text>
           <MenuItem
             IconComponent={FavoritePostIcon}
             label="즐겨찾는 공고"
@@ -121,7 +121,7 @@ const MenuItem = ({IconComponent, label, onPress}) => (
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={28} height={28} />
       </View>
-      <Text style={[styles.menuLabel]}>{label}</Text>
+      <Text style={[FONTS.fs_14_semibold, styles.menuLabel]}>{label}</Text>
     </View>
     <RightArrow width={24} height={24} style={styles.icon} />
   </TouchableOpacity>

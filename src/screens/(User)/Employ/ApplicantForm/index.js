@@ -20,7 +20,7 @@ import {checkUserPermission} from '@utils/auth/verifyPermission';
 
 import CalendarIcon from '@assets/images/Calendar.svg';
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
-import EditIcon from '@assets/images/Edit.svg';
+import EditIcon from '@assets/images/edit_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
 import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
