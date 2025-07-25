@@ -12,6 +12,10 @@ const hostMyApi = {
     const body = {[config.key]: value};
     return api.put(`/host/my/${config.path}`, body);
   },
+
+  //사장님 사업자 번호 등록
+  updateBusinessNum: businessNum =>
+    api.post('/host/my/businessNum', businessNum),
 };
 
 export default hostMyApi;
@@ -20,5 +24,5 @@ const hostFieldMap = {
   name: {path: 'nickname', key: 'name'},
   email: {path: 'email', key: 'email'},
   phone: {path: 'phone', key: 'phoneNumber'},
-  business: {path: 'business', key: 'business'},
+  photoUrl: {path: 'photo', key: 'photoUrl'},
 };
