@@ -5,7 +5,7 @@ import {FONTS} from '@constants/fonts';
 import {LinearGradient} from 'react-native-linear-gradient';
 
 import EditIcon from '@assets/images/edit_gray.svg';
-import TrashcanIcon from '@assets/images/delete_gary.svg';
+import TrashcanIcon from '@assets/images/delete_gray.svg';
 import {parseSlashDateToYearMonthDot} from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 import EmployExperienceModal from '@components/modals/Employ/EmployExperienceModal';

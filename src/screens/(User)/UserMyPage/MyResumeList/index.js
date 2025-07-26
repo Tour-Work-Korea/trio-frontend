@@ -8,20 +8,29 @@ import {
   Alert,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import Header from '@components/Header';
-import ButtonScarlet from '@components/ButtonScarlet';
-import Trash from '@assets/images/Trash.svg';
-import styles from './MyResumeList.styles';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
-import userEmployApi from '@utils/api/userEmployApi';
 
+import userEmployApi from '@utils/api/userEmployApi';
+import ButtonScarlet from '@components/ButtonScarlet';
+
+import styles from './MyResumeList.styles';
+import {COLORS} from '@constants/colors';
+import Chevron_left_black from '@assets/images/chevron_left_black.svg';
+import EditIcon from '@assets/images/edit_gray';
+import TrashIcon from '@assets/images/delete_gray.svg';
+import ErrorModal from '@components/modals/ErrorModal';
 /*
  * 나의 이력서 목록 페이지
  */
 const MyResumeList = () => {
   const navigation = useNavigation();
-  const [postings, setPostings] = useState();
+  const [resumes, setResumes] = useState();
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    title: '',
+    buttonText: '',
+    buttonText2: null,
+    onPress2: null,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -34,83 +43,127 @@ const MyResumeList = () => {
   const tryFetchMyResumes = async () => {
     try {
       const response = await userEmployApi.getResumes();
-      setPostings(response.data);
+      setResumes(response.data);
     } catch (error) {
-      Alert.alert('나의 이력서를 가져오는데 실패했습니다.');
+      setErrorModal(prev => ({
+        ...prev,
+        visible: true,
+        title: '이력서를 불러오는 중 오류가 발생했어요',
+        buttonText: '확인',
+      }));
     }
   };
 
   const tryDeleteResumeById = async id => {
     try {
       await userEmployApi.deleteResume(id);
-      Alert.alert('알림', '삭제되었습니다.');
       setTimeout(() => {
         navigation.replace('MyResumeList');
       }, 500);
     } catch (error) {
-      Alert.alert('알림', '삭제에 실패했습니다.');
+      setErrorModal(prev => ({
+        ...prev,
+        visible: true,
+        title: '삭제 중 오류가 발생했어요',
+        buttonText: '확인',
+      }));
     }
   };
 
-  // 페이지 이동 함수
-  const handleViewDetail = id => {
-    navigation.navigate('MyResumeDetail', {id, isEditable: true});
-  };
-
   const handleDeletePosting = id => {
-    Alert.alert('정말 삭제하시겠어요?', '삭제한 이력서는 복구할 수 없습니다.', [
-      {text: '취소', style: 'cancel'},
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: () => {
-          tryDeleteResumeById(id);
-        },
+    setErrorModal({
+      visible: true,
+      title: '정말 삭제하시겠어요?',
+      buttonText: '취소',
+      buttonText2: '삭제',
+      onPress2: () => {
+        tryDeleteResumeById(id);
       },
-    ]);
+    });
   };
 
-  // 공고 아이템 렌더링
-  const renderPostingItem = ({item}) => (
-    <TouchableOpacity onPress={() => handleViewDetail(item.resumeId)}>
-      <View style={styles.postingCard}>
-        <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_h2_bold]}>{item.resumeTitle}</Text>
-          <TouchableOpacity onPress={() => handleDeletePosting(item.resumeId)}>
-            <Trash />
-          </TouchableOpacity>
-        </View>
-        <View style={styles.dateRow}>
-          {item.hashtags.map((tag, idx) => (
-            <Text key={idx} style={[FONTS.fs_body, {color: COLORS.scarlet}]}>
-              #{tag.hashtag}
-            </Text>
-          ))}
-        </View>
-        <View style={styles.dateRow}>
-          <Text style={[styles.dateLabel, FONTS.fs_body]}>
-            최종수정일 {'  '}
-            {new Date(item.updatedAt).toISOString().split('T')[0]}
-          </Text>
-        </View>
-      </View>
-    </TouchableOpacity>
+  // 이력서 리스트 렌더링
+  const renderResumeSelection = () => (
+    <View style={styles.section}>
+      {resumes?.map(item => (
+        <TouchableOpacity
+          key={item.resumeId}
+          style={styles.resumeItem}
+          onPress={() => {
+            navigation.navigate('MyResumeDetail', {
+              id: item.resumeId,
+            });
+          }}>
+          <View style={styles.resumeMiddleSection}>
+            <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
+            <View style={styles.tagsContainer}>
+              {item.hashtags.map((tag, index) => (
+                <Text key={index} style={styles.tagText}>
+                  {tag.hashtag}
+                </Text>
+              ))}
+            </View>
+            <View style={styles.modifiedContainer}>
+              <View style={styles.modifiedTextBox}>
+                <Text style={styles.lastModifiedText}>최종수정일</Text>
+                <Text style={styles.lastModifiedText}>
+                  {item.updatedAt.split('T')[0]}
+                </Text>
+              </View>
+              <View style={{flexDirection: 'row', gap: 8}}>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() =>
+                    navigation.navigate('MyResumeDetail', {
+                      id: item.resumeId,
+                      isEditable: true,
+                    })
+                  }>
+                  <EditIcon
+                    width={24}
+                    height={24}
+                    color={COLORS.grayscale_400}
+                  />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleDeletePosting(item.resumeId)}>
+                  <TrashIcon
+                    width={24}
+                    height={24}
+                    color={COLORS.grayscale_400}
+                  />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        </TouchableOpacity>
+      ))}
+    </View>
   );
 
   return (
     <SafeAreaView style={styles.container}>
-      <Header title="나의 이력서" />
-      <View style={styles.body}>
-        <ButtonScarlet title="새 이력서" to="ResumeForm" />
+      <View style={[styles.headerBox]}>
+        <TouchableOpacity onPress={() => navigation.goBack()}>
+          <Chevron_left_black width={28.8} height={28.8} />
+        </TouchableOpacity>
 
-        <FlatList
-          data={postings}
-          renderItem={renderPostingItem}
-          keyExtractor={item => item.resumeId}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-        />
+        <Text style={styles.headerText}>나의 이력서</Text>
+        <View style={{width: 28.8}}></View>
       </View>
+      <View style={styles.body}>
+        {renderResumeSelection()}
+        <ButtonScarlet title="이력서 작성하기" to="ResumeForm" />
+      </View>
+      <ErrorModal
+        visible={errorModal.visible}
+        buttonText={errorModal.buttonText}
+        buttonText2={errorModal.buttonText2}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        onPress2={errorModal.onPress2}
+        title={errorModal.title}
+      />
     </SafeAreaView>
   );
 };
