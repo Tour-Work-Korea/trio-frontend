@@ -7,10 +7,9 @@ import {
   ApplicantExperienceSection,
   ApplicantProfileHeader,
   ApplicantSelfIntroduction,
+  ApplicantTag,
 } from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
-
-import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
 import ErrorModal from '@components/modals/ErrorModal';

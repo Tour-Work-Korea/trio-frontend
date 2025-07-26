@@ -21,6 +21,16 @@ import {
   ApplySuccess,
   Register,
   EXLogin,
+  Login,
+  RegisterIntro,
+  RegisterAgree,
+  SocialLogin,
+  PhoneCertificate,
+  EmailCertificate,
+  UserRegisterInfo,
+  UserRegisterProfile,
+  HostRegisterInfo,
+  Result,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -28,7 +38,7 @@ const Stack = createNativeStackNavigator();
 const RootNavigation = () => (
   <NavigationContainer ref={navigationRef}>
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="EXLogin" component={EXLogin} />
+      <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="EXHome" component={EXHome} />
       <Stack.Screen name="undefined" component={undefinedStack} />
 
@@ -50,7 +60,19 @@ const RootNavigation = () => (
       <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
-      <Stack.Screen name="Register" component={Register} />
+
+      <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
+      <Stack.Screen name="SocialLogin" component={SocialLogin} />
+      <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
+      <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
+      <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
+      <Stack.Screen name="UserRegisterInfo" component={UserRegisterInfo} />
+      <Stack.Screen
+        name="UserRegisterProfile"
+        component={UserRegisterProfile}
+      />
+      <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
+      <Stack.Screen name="Result" component={Result} />
     </Stack.Navigator>
   </NavigationContainer>
 );

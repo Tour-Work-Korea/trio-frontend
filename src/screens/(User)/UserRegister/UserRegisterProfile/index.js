@@ -345,7 +345,7 @@ const UserRegisterProfile = () => {
                       placeholderTextColor={COLORS.grayscale_400}
                       value={formData.passwordConfirm}
                       onChangeText={handlePasswordConfirmChange}
-                      maxLength={10}
+                      maxLength={20}
                       secureTextEntry={!isPasswordCheckVisible}
                     />
                     <TouchableOpacity

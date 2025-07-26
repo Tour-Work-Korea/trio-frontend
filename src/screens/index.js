@@ -27,8 +27,6 @@ export {default as My} from './(Common)/BottomTabs/My';
 
 //
 export {default as EditProfileFieldScreen} from './(Common)/EditProfileFieldScreen';
-export {default as FindId} from './(Common)/FindAuth/FindId';
-export {default as FindPassword} from './(Common)/FindAuth/FindPassword';
 
 // 게하 결제 & 예약
 export {default as RoomDetail} from './(Common)/RoomDetail';
@@ -36,7 +34,7 @@ export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
 export {default as PaymentSuccess} from './(Common)/GuesthousePayment/PaymentSuccess';
 export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
 
-//
+//로그인, 회원가입
 export {default as Register} from './(Common)/Register';
 export {default as AgreeDetail} from './(Common)/Register/AgreeDetail';
 export {default as EmailCertificate} from './(Common)/Register/EmailCertificate';
@@ -44,9 +42,15 @@ export {default as PhoneCertificate} from './(Common)/Register/PhoneCertificate'
 export {default as RegisterAgree} from './(Common)/Register/RegisterAgree';
 export {default as RegisterIntro} from './(Common)/Register/RegisterIntro';
 export {default as Result} from './(Common)/Register/Result';
+export {default as Login} from './(Common)/Login';
+export {default as LoginIntro} from './(Common)/Login/LoginIntro';
+export {default as LoginByEmail} from './(Common)/Login/LoginByEmail';
+export {default as VerifyPhone} from './(Common)/Login/VerifyPhone';
+export {default as FindIntro} from './(Common)/Login/FindIntro';
+export {default as FindId} from './(Common)/Login/FindId';
+export {default as FindPassword} from './(Common)/Login/FindPassword';
 
 // (Host)
-export {default as ApplicantDetail} from './(Host)/ApplicantDetail';
 export {default as ApplicantList} from './(Host)/ApplicantList';
 
 // 마이 페이지
@@ -78,7 +82,6 @@ export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegister
 
 // (User)
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
-export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';

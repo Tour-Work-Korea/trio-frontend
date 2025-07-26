@@ -38,8 +38,8 @@ const authApi = {
     api.post('/auth/user/signup', userData, {withAuth: false}),
 
   //로그인
-  login: (email, password) =>
-    api.post('/auth/login', {email, password}, {withAuth: false}),
+  login: (email, password, userRole) =>
+    api.post('/auth/login', {email, password, userRole}, {withAuth: false}),
 
   //토큰 재발급
   refreshToken: () =>
@@ -60,6 +60,24 @@ const authApi = {
       params: {nickname},
       withAuth: false,
     }),
+
+  //계정 찾기용 전화번호 인증번호 발송
+  verifySelfByPhone: (phoneNum, userRole) =>
+    api.post('/auth/find/send-code', {phoneNum, userRole}, {withAuth: false}),
+
+  //아이디 찾기
+  findId: (phoneNum, role) =>
+    api.get('/auth/find/email', {
+      params: {
+        phoneNum,
+        role,
+      },
+      withAuth: false,
+    }),
+
+  //비밀번호 찾기
+  findPassword: body =>
+    api.post('/auth/find/password', body, {withAuth: false}),
 };
 
 export default authApi;

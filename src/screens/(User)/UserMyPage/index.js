@@ -106,7 +106,7 @@ const UserMyPage = () => {
             await tryLogout();
             navigation.reset({
               index: 0,
-              routes: [{name: 'EXLogin'}],
+              routes: [{name: 'Login'}],
             });
           }}
         />
