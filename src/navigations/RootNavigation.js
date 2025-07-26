@@ -22,6 +22,7 @@ import {
   Register,
   EXLogin,
   MeetMain,
+  MeetSearch,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -53,6 +54,7 @@ const RootNavigation = () => (
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />
+      <Stack.Screen name="MeetSearch" component={MeetSearch} />
 
     </Stack.Navigator>
   </NavigationContainer>

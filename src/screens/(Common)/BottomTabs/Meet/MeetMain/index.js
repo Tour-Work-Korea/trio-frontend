@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
+import { useNavigation } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -30,6 +31,7 @@ const bannerImages = [
 const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
+  const navigation = useNavigation();
   const [activeIndex, setActiveIndex] = useState(0);
   // 필터 모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -139,7 +141,10 @@ const MeetMain = () => {
       {/* 헤더 */}
       <View style={styles.header}>
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>모임</Text>
-        <TouchableOpacity style={styles.searchIcon}>
+        <TouchableOpacity 
+          style={styles.searchIcon}
+          onPress={() => navigation.navigate('MeetSearch')}
+        >
           <SearchIcon width={24} height={24}/>
         </TouchableOpacity>
       </View>
