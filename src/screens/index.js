@@ -16,10 +16,10 @@ export {default as GuesthouseList} from './(Common)/BottomTabs/Guesthouse/Guesth
 export {default as GuesthouseMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseMap';
 export {default as GuesthouseReview} from './(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/GuesthouseSearch';
-export {default as RoomDetail} from './(Common)/RoomDetail';
-export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
-export {default as GuesthousePaymentSuccess} from './(Common)/GuesthousePayment/GuesthousePaymentSuccess';
-export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
+export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
+export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
+export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
+export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
