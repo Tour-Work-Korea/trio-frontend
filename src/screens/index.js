@@ -24,6 +24,7 @@ export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/Popul
 export {default as Meet} from './(Common)/BottomTabs/Meet';
 export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
 export {default as MeetSearch} from './(Common)/BottomTabs/Meet/MeetSearch';
+export {default as MeetDetail} from './(Common)/Meet/MeetDetail';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 

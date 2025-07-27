@@ -21,4 +21,6 @@ export const meetTags = [
 export const meetSortOptions = [
   { id: 'recent', name: '실시간 인기 순' },
   { id: 'likes', name: '좋아요 순' },
+  { id: 'low_price', name: '낮은 가격 순' },
+  { id: 'high_price', name: '높은 가격 순' },
 ];
