@@ -14,8 +14,7 @@ import {
   ResumeDetail,
   AgreeDetail,
   ApplySuccess,
-  Register,
-  EXLogin,
+  StoreRegister,
   MeetMain,
   MeetSearch,
   MeetDetail,
@@ -68,6 +67,7 @@ const RootNavigation = () => (
       <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
+      <Stack.Screen name="StoreRegister" component={StoreRegister} />
 
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
       <Stack.Screen name="SocialLogin" component={SocialLogin} />

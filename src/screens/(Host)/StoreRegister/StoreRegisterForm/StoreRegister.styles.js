@@ -7,9 +7,12 @@ export default StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   body: {
+    gap: 0,
     flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
+    overflow: 'hidden',
+    width: '100%',
+    minHeightL: '100%',
+    paddingHorizontal: 20,
   },
   headerContainer: {
     marginBottom: 12,
@@ -38,9 +41,11 @@ export default StyleSheet.create({
   inputRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
   },
   inputFlex: {
-    flex: 1,
+    flex: 2,
   },
   imageUploadContainer: {
     alignItems: 'center',

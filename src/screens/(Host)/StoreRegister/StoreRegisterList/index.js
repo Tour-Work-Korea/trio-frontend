@@ -48,17 +48,16 @@ const StoreRegisterList = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="나의 입점신청서" />
+      <View style={{paddingHorizontal: 20, paddingTop: 12}}>
+        <ButtonScarlet title={'입점신청하기'} to={'StoreRegisterForm'} />
 
-      <ButtonScarlet title={'입점신청하기'} to={'StoreRegisterForm'} />
-
-      <ScrollView>
         <FlatList
           data={storeRegisters}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
         />
-      </ScrollView>
+      </View>
     </SafeAreaView>
   );
 };

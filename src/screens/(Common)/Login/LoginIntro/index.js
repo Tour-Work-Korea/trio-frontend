@@ -11,14 +11,27 @@ import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import ButtonWhite from '@components/ButtonWhite';
 import ErrorModal from '@components/modals/ErrorModal';
+import useUserStore from '@stores/userStore';
 
 const LoginIntro = () => {
+  const userRole = useUserStore.getState()?.userRole;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (userRole === undefined) return;
+
+    if (userRole === 'USER' || userRole === 'HOST') {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs'}],
+      });
+    }
+  }, [userRole]);
+
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
   });
-
-  const navigation = useNavigation();
 
   return (
     <SafeAreaView style={styles.signin}>

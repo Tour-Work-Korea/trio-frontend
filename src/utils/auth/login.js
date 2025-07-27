@@ -20,6 +20,7 @@ export const tryAutoLogin = async () => {
     }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
+    throw new Error('자동 로그인 실패');
   }
 };
 

@@ -33,15 +33,7 @@ export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
 export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
-
-//
 export {default as EditProfileFieldScreen} from './(Common)/EditProfileFieldScreen';
-
-// 게하 결제 & 예약
-export {default as RoomDetail} from './(Common)/RoomDetail';
-export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
-export {default as PaymentSuccess} from './(Common)/GuesthousePayment/PaymentSuccess';
-export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
@@ -116,4 +108,3 @@ export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegister
 export {default as EXDeeplink} from './EXDeeplink';
 export {default as EXHome} from './EXHome';
 export {default as EXHomePage} from './EXHome/EXHomePage';
-export {default as EXLogin} from './EXLogin';
