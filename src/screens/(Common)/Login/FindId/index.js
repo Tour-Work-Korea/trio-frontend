@@ -21,13 +21,13 @@ export default function FindId({route}) {
   });
 
   useEffect(() => {
-    // tryFindId();
+    tryFindId();
   }, [userRole, phoneNumber]);
 
   const tryFindId = async () => {
     try {
-      const response = await authApi.findId('01051088045', userRole);
-      setEmail(response.data.email);
+      const response = await authApi.findId(phoneNumber, userRole);
+      setEmail(response.data);
     } catch (error) {
       console.warn('아이디 찾기 실패:', error);
       setErrorModal({

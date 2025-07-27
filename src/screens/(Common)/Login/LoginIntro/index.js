@@ -34,7 +34,7 @@ const LoginIntro = () => {
               onPress={() =>
                 setErrorModal({
                   visible: true,
-                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                  message: '카카오 로그인 기능은\n구현 중입니다',
                 })
               }
               Icon={KakaoLogo}
@@ -46,7 +46,7 @@ const LoginIntro = () => {
               onPress={() =>
                 setErrorModal({
                   visible: true,
-                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                  message: '네이버 로그인 기능은\n구현 중입니다',
                 })
               }
               Icon={NaverLogo}

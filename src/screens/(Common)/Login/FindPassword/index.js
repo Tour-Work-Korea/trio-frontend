@@ -114,7 +114,6 @@ const FindPassword = ({route}) => {
         buttonText: '확인',
         onPress: '',
       });
-      setSuccess(true);
     }
   };
 

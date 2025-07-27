@@ -18,7 +18,7 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    justifyContent: 'space-between',
+    // justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,

@@ -63,7 +63,10 @@ const authApi = {
 
   //계정 찾기용 전화번호 인증번호 발송
   verifySelfByPhone: (phoneNum, userRole) =>
-    api.post('/auth/find/send-code', {phoneNum, userRole}, {withAuth: false}),
+    api.post('/auth/find/send-code', null, {
+      params: {phoneNum, role: userRole},
+      withAuth: false,
+    }),
 
   //아이디 찾기
   findId: (phoneNum, role) =>

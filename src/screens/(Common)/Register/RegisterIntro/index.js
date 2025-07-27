@@ -56,7 +56,7 @@ const RegisterIntro = () => {
               onPress={() =>
                 setErrorModal({
                   visible: true,
-                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                  message: '네이버 회원가입 기능은\n구현 중입니다',
                 })
               }
               Icon={NaverLogo}

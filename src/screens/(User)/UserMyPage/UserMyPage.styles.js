@@ -30,7 +30,7 @@ export default StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.grayscale_400,
+    backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
