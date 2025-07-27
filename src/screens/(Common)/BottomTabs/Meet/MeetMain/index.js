@@ -94,7 +94,11 @@ const MeetMain = () => {
   const renderMeetItem = ({ item }) => {
     const isFav = !!favorites[item.id];
     return (
-      <TouchableOpacity activeOpacity={0.8} style={styles.meetItemContainer}>
+      <TouchableOpacity 
+        activeOpacity={0.8} 
+        style={styles.meetItemContainer}
+        onPress={() => navigation.navigate('MeetDetail')}
+      >
         <View style={styles.meetTopContainer}>
           <Image source={item.thumbnail} style={styles.meetThumb} />
           <View style={styles.meetInfo}>

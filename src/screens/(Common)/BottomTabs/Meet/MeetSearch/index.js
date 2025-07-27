@@ -45,7 +45,10 @@ const MeetSearch = () => {
     const isFav = !!favorites[item.id];
 
     return (
-      <TouchableOpacity style={styles.itemWrap}>
+      <TouchableOpacity 
+        style={styles.itemWrap}
+        onPress={() => navigation.navigate('MeetDetail')}
+      >
         <View style={styles.itemTopWrap}>
           <Image source={item.thumbnail} style={styles.thumbnail} />
           <View style={styles.infoWrap}>

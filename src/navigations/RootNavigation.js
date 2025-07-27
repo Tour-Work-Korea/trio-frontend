@@ -11,7 +11,7 @@ import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
 import RoomDetail from '@screens/(Common)/RoomDetail';
 import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
 import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
-import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
+import GuesthousePaymentSuccess from '@screens/(Common)/GuesthousePayment/GuesthousePaymentSuccess';
 
 import {
   EmployDetail,
@@ -24,6 +24,8 @@ import {
   MeetMain,
   MeetSearch,
   MeetDetail,
+  MeetReservation,
+  MeetPaymentSuccess,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -44,7 +46,7 @@ const RootNavigation = () => (
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
       <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
-      <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="GuesthousePaymentSuccess" component={GuesthousePaymentSuccess} />
 
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
@@ -57,6 +59,8 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetMain" component={MeetMain} />
       <Stack.Screen name="MeetSearch" component={MeetSearch} />
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
+      <Stack.Screen name="MeetReservation" component={MeetReservation} />
+      <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
 
     </Stack.Navigator>
   </NavigationContainer>
