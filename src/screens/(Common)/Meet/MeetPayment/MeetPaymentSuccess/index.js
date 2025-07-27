@@ -6,9 +6,9 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
-import Logo from '@assets/images/guesthouse_reservation_success.svg';
+import Logo from '@assets/images/meet_reservation_success.svg';
 
-const GuesthousePaymentSuccess = () => {
+const MeetPaymentSuccess = () => {
   const navigation = useNavigation();
 
   const handleGoHome = () => {
@@ -20,7 +20,7 @@ const GuesthousePaymentSuccess = () => {
       <Logo />
       <Text style={[FONTS.fs_20_semibold, styles.text]}>
         예약 완료되었어요! {'\n'}
-        이제 떠날 일만 남았어요
+        이제 모임을 즐기러 가볼까요?
       </Text>
 
       <View style={styles.button}>
@@ -30,7 +30,7 @@ const GuesthousePaymentSuccess = () => {
   );
 };
 
-export default GuesthousePaymentSuccess;
+export default MeetPaymentSuccess;
 
 const styles = StyleSheet.create({
   container: {
