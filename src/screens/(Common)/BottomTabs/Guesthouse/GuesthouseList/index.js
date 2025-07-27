@@ -94,15 +94,15 @@ const GuesthouseList = () => {
   const currentKeyword = keywordList[currentKeywordIndex] || '';
 
   // api 보낼 날짜 데이터
-    const [start, end] = displayDateState.split(" - ");
-    const startDateOnly = start.split(' ')[0];
-    const endDateOnly = end.split(' ')[0];
-    const [startMonth, startDay] = startDateOnly.split('.').map(Number);
-    const [endMonth, endDay] = endDateOnly.split('.').map(Number);
-    const year = dayjs().year();
-    const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
-    const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
-    const [sortBy, setSortBy] = useState("RECOMMEND");
+  const [start, end] = displayDateState.split(" - ");
+  const startDateOnly = start.split(' ')[0];
+  const endDateOnly = end.split(' ')[0];
+  const [startMonth, startDay] = startDateOnly.split('.').map(Number);
+  const [endMonth, endDay] = endDateOnly.split('.').map(Number);
+  const year = dayjs().year();
+  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+  const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+  const [sortBy, setSortBy] = useState("RECOMMEND");
 
   // 게하 불러오기
   // const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
@@ -217,7 +217,9 @@ const GuesthouseList = () => {
       }
       setGuesthouses(prev =>
         prev.map(item =>
-          item.id === id ? { ...item, favorite: !item.favorite } : item
+          item.id === id
+            ? { ...item, isFavorite: !item.isFavorite }
+            : item
         )
       );
     } catch (e) {
@@ -232,6 +234,13 @@ const GuesthouseList = () => {
         checkIn,
         checkOut,
         guestCount: adultCount + childCount,
+        onLikeChange: (id, isLiked) => {
+          setGuesthouses(prev =>
+            prev.map(item =>
+              item.id === id ? { ...item, isFavorite: isLiked } : item
+            )
+          );
+        },
       })}
     >
       <View style={styles.card}>
@@ -263,9 +272,9 @@ const GuesthouseList = () => {
             ))}
             <TouchableOpacity
               style={styles.heartIcon}
-              onPress={() => toggleLike(item.id, item.favorite)}
+              onPress={() => toggleLike(item.id, item.isFavorite)}
             >
-              {item.favorite ? <FillHeart width={20} height={20}/> : <EmptyHeart width={20} height={20}/>}
+              {item.isFavorite ? <FillHeart width={20} height={20}/> : <EmptyHeart width={20} height={20}/>}
             </TouchableOpacity>
           </View>
           <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>
@@ -298,19 +307,30 @@ const GuesthouseList = () => {
             navigation.navigate("GuesthouseSearch", {
               displayDate: displayDateState,
               adultCount,
-              childCount
+              childCount,
+              searchText,
             });
           }}
         >
           <LeftChevron width={24} height={24}/>
         </TouchableOpacity>
       </View>
-      <View style={styles.searchContainer}>
-        <TouchableOpacity style={styles.searchIconContainer}>
+      <TouchableOpacity 
+        style={styles.searchContainer}
+        onPress={() => {
+          navigation.navigate("GuesthouseSearch", {
+            displayDate: displayDateState,
+            adultCount,
+            childCount,
+            searchText,
+          });
+        }}
+      >
+        <View style={styles.searchIconContainer}>
           <SearchIcon width={24} height={24}/>
           <Text style={[FONTS.fs_14_regular, styles.searchText]}>{searchText || '찾는 숙소가 있으신가요?'}</Text>
-        </TouchableOpacity>
-      </View>
+        </View>
+      </TouchableOpacity>
 
       <View style={styles.selectRow}>
         <TouchableOpacity

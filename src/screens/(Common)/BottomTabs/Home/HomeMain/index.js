@@ -10,6 +10,8 @@ import Buttons from './Buttons';
 import Guesthouses from './Guesthouses';
 import Employ from './Employs';
 
+import Logo from '@assets/images/logo_orange.svg';
+
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
@@ -70,7 +72,10 @@ const HomeMain = () => {
     <ScrollView
       style={styles.container}
       contentContainerStyle={{paddingHorizontal: 20}}>
-      <Header />
+      {/* 헤더 */}
+      <View style={styles.Header}>
+        <Logo />
+      </View>
 
       {/* 배너 */}
       <View style={styles.boxContainer}>

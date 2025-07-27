@@ -49,12 +49,14 @@ const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const { id, checkIn, checkOut, guestCount, isFromDeeplink } = route.params;
+  const { id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange } = route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
   const [isFavorite, setIsFavorite] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
+  // 이미지 모달
+  const [imageModalVisible, setImageModalVisible] = useState(false);
 
   const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
 
@@ -86,6 +88,7 @@ const GuesthouseDetail = ({route}) => {
         await userGuesthouseApi.favoriteGuesthouse(id);
       }
       setIsFavorite(prev => !prev); // 상태 토글
+      onLikeChange?.(id, !isFavorite);
     } catch (error) {
       console.warn('좋아요 토글 실패', error);
     }
@@ -95,8 +98,6 @@ const GuesthouseDetail = ({route}) => {
   if (!detail) {
     return <Loading title="게스트하우스를 불러오고 있어요" />;
   }
-
-  const thumbnailImage = detail.guesthouseImages?.find(img => img.isThumbnail)?.guesthouseImageUrl;
 
   //  공유 링크
   const handleCopyLink = () => {
@@ -113,19 +114,32 @@ const GuesthouseDetail = ({route}) => {
 
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
-  
+
+  // 썸네일을 맨 앞으로 정렬한 이미지 리스트
+  const sortedImages = [...(detail.guesthouseImages || [])].sort((a, b) =>
+    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
+  );
+  const hasImages = sortedImages.length > 0;
+  const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
+  const modalImages = sortedImages.map(img => ({
+    id: img.id,
+    imageUrl: img.guesthouseImageUrl,
+  }));
+
   return (
     <ScrollView style={styles.container}>
       <View>
-        {/* 이미지 처리 */}
-        {thumbnailImage ? (
-          <Image
-            source={{ uri: thumbnailImage }}
-            style={styles.mainImage}
-          />
+        {/* 대표 이미지 */}
+        {hasImages ? (
+          <TouchableOpacity
+            onPress={() => setImageModalVisible(true)}
+          >
+            <Image source={{ uri: thumbnailImage }} style={styles.mainImage} />
+          </TouchableOpacity>
         ) : (
           <View style={[styles.mainImage, { backgroundColor: COLORS.grayscale_200 }]} />
         )}
+
         <TouchableOpacity
           style={styles.backButton}
           onPress={() => {
@@ -301,10 +315,7 @@ const GuesthouseDetail = ({route}) => {
                       checkIn: `${checkIn}T${detail.checkIn}`,
                       checkOut: `${checkOut}T${detail.checkOut}`,
                       guestCount: guestCount,
-                      roomImage:
-                        room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
-                        room.roomImages?.[0]?.roomImageUrl ||
-                        null,
+                      roomImages: room.roomImages || [],
                     });
                   }
                 }}
@@ -416,8 +427,8 @@ const GuesthouseDetail = ({route}) => {
               </View>
             </View>
           </View>
-          <
-            GuesthouseReview guesthouseId={id}
+          <GuesthouseReview 
+            guesthouseId={id}
             averageRating={detail.averageRating}
             totalCount={detail.reviewCount}
           />
@@ -431,6 +442,17 @@ const GuesthouseDetail = ({route}) => {
       onClose={() => setModalVisible(false)}
       selectedAmenities={detail.amenities}
     />
+
+    {/* 이미지 모달 */}
+    {hasImages && (
+      <ImageModal
+        visible={imageModalVisible}
+        title={detail.guesthouseName}
+        images={modalImages}
+        selectedImageIndex={0}
+        onClose={() => setImageModalVisible(false)}
+      />
+    )}
     </ScrollView>
   );
 };

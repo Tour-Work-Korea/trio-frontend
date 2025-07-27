@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl } from 'react-native';
+import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
@@ -9,6 +9,7 @@ import Star from '@assets/images/star_white.svg';
 import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import ImageModal from '@components/modals/ImageModal';
 
 const PAGE_SIZE = 10;
 const SORT = 'id';
@@ -19,6 +20,11 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 이미지 모달
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [modalImages, setModalImages] = useState([]);
+  const [modalIndex, setModalIndex] = useState(0);
 
   // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
@@ -47,7 +53,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         sort: SORT,
       });
 
-      const newReviews = res.data.content || [];
+      const newReviews = (res.data.content || []).filter(r => r.isJobReview === false);
       setLastPage(res.data.last);
 
       if (isRefresh || pageToLoad === 0) {
@@ -77,53 +83,65 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
     fetchReviews(0, true);
   };
 
+  // 이미지 모달
+  const openImageModal = (images, index) => {
+    setModalImages(images.map((url, i) => ({ id: i.toString(), imageUrl: url })));
+    setModalIndex(index);
+    setImageModalVisible(true);
+  };
+
   const renderItem = useCallback(
-    ({ item, index }) => (
-      <View style={styles.reviewContainer}>
-        <View style={styles.reviewHeaderContainer}>
-          <View style={styles.userProfileContainer}>
-            <View style={styles.userImage}>
-              {/* 사용자 프로필 이미지 받아오는값 없음 */}
-              {item.profileUrl ? (
-                <Image
-                  source={{ uri: item.profileUrl }}
-                  style={[styles.userImage, { position: 'absolute' }]}
-                />
-              ) : null}
+    ({ item, index }) => {
+      const hasImages = item.imgUrls && item.imgUrls.length > 0;
+
+      return (
+        <View style={styles.reviewContainer}>
+          <View style={styles.reviewHeaderContainer}>
+            <View style={styles.userProfileContainer}>
+              <View style={styles.userImage}>
+                {item.userImgUrl ? (
+                  <Image
+                    source={{ uri: item.userImgUrl }}
+                    style={[styles.userImage, { position: 'absolute' }]}
+                  />
+                ) : null}
+              </View>
+              <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
             </View>
-            <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
+            <View style={styles.userRatingContainer}>
+              <Star width={14} height={14} />
+              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{item.reviewRating}</Text>
+            </View>
           </View>
-          <View style={styles.userRatingContainer}>
-            <Star width={14} height={14} />
-            <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{item.reviewRating}</Text>
-          </View>
-        </View>
-        <View style={styles.reviewImageContainer}>
-          {item.imgUrls && item.imgUrls.length > 0 && (
-            <View style={{ flexDirection: 'row', marginBottom: 6 }}>
-              {item.imgUrls.map((imgUrl, i) => (
-                <Image
-                  source={require('@assets/images/exphoto.jpeg')}
-                  style={styles.reviewImage}
-                />
+
+          {/* 리뷰 이미지 */}
+          {hasImages && (
+            <View style={styles.reviewImageContainer}>
+              <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+                {item.imgUrls.map((imgUrl, i) => (
+                  <TouchableOpacity key={i} onPress={() => openImageModal(item.imgUrls, i)}>
+                    <Image source={{ uri: imgUrl }} style={styles.reviewImage} />
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          )}
+
+          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>{item.reviewDetail}</Text>
+          {item.replies && item.replies.length > 0 && (
+            <View style={styles.replyContainer}>
+              <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>사장님의 한마디</Text>
+              {item.replies.map((reply, ri) => (
+                <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
+                  {reply}
+                </Text>
               ))}
             </View>
           )}
         </View>
-        <Text style={[FONTS.fs_14_regular, styles.reviewText]}>{item.reviewDetail}</Text>
-        {/* 답글이 있으면 표시 */}
-        {item.replies && item.replies.length > 0 && (
-          <View style={styles.replyContainer}>
-            <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>사장님의 한마디</Text>
-            {item.replies.map((reply, ri) => (
-              <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
-                {reply}
-              </Text>
-            ))}
-          </View>
-        )}
-      </View>
-    ),
+      );
+    },
+    []
   );
 
   return (
@@ -149,6 +167,17 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           </View>
         }
       />
+
+      {/* 이미지 모달 */}
+      {imageModalVisible && (
+        <ImageModal
+          visible={imageModalVisible}
+          title="리뷰 사진"
+          images={modalImages}
+          selectedImageIndex={modalIndex}
+          onClose={() => setImageModalVisible(false)}
+        />
+      )}
     </View>
   );
 };

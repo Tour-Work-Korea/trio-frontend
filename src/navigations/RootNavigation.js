@@ -8,11 +8,6 @@ import EXHome from '@screens/EXHome';
 
 import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
 
-import RoomDetail from '@screens/(Common)/RoomDetail';
-import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
-import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
-import GuesthousePaymentSuccess from '@screens/(Common)/GuesthousePayment/GuesthousePaymentSuccess';
-
 import {
   EmployDetail,
   ApplicantForm,
@@ -26,6 +21,10 @@ import {
   MeetDetail,
   MeetReservation,
   MeetPaymentSuccess,
+  RoomDetail,
+  GuesthouseReservation,
+  GuesthousePayment,
+  GuesthousePaymentSuccess,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
