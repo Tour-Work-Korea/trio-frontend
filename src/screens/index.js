@@ -16,12 +16,21 @@ export {default as GuesthouseList} from './(Common)/BottomTabs/Guesthouse/Guesth
 export {default as GuesthouseMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseMap';
 export {default as GuesthouseReview} from './(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/GuesthouseSearch';
+export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
+export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
+export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
+export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
 export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/PopularGuesthouseList';
 // 동행
 export {default as Meet} from './(Common)/BottomTabs/Meet';
+export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
+export {default as MeetSearch} from './(Common)/BottomTabs/Meet/MeetSearch';
+export {default as MeetDetail} from './(Common)/Meet/MeetDetail';
+export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
+export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 

@@ -11,17 +11,16 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import Header from '@components/Header';
-import styles from './GuesthouseReservation.styles';
+import styles from './MeetReservation.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 
@@ -34,8 +33,17 @@ const formatPhoneNumber = (phone) => {
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
 };
 
-const GuesthouseReservation = ({ route }) => {
-  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut, guestCount } = route.params || {};
+const MeetReservation = () => {
+  const route = useRoute();
+  const {
+    title,
+    checkIn,
+    checkOut,
+    isGuest,
+    gender,
+    meetPrice,
+  } = route.params;
+
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
   const [agreements, setAgreements] = useState({
@@ -105,31 +113,6 @@ const GuesthouseReservation = ({ route }) => {
     setModalVisible(false);
   };
 
-  // 예약 호출
-  const handleReservation = async () => {
-    try {
-      const res = await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: checkIn,
-        checkOut: checkOut,
-        guestCount: guestCount,
-        amount: roomPrice,
-        request: requestMessage,
-      });
-      const reservationId = res.data;
-
-      console.log('예약이 완료되었습니다.');
-
-      // 예약 성공 후 결제 페이지로 이동
-      navigation.navigate( 'GuesthousePayment' , {
-        reservationId,
-        amount: roomPrice,
-      });
-
-    } catch (err) {
-      Alert.alert('예약 실패', '오류가 발생했습니다.');
-    }
-  };
-
   return (
     <KeyboardAvoidingView
       style={styles.container}
@@ -140,16 +123,16 @@ const GuesthouseReservation = ({ route }) => {
     <View style={{ flex: 1 }}>
         <Header title="예약" />
         <ScrollView contentContainerStyle={styles.scrollContent}>
-          <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
+          <Text style={[FONTS.fs_20_semibold, styles.title]}>{title}</Text>
           {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
               <View style={styles.dateBoxCheckIn}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 시작</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
               </View>
               <View style={styles.dateBoxCheckOut}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 종료</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOut)}</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
               </View>
@@ -172,12 +155,14 @@ const GuesthouseReservation = ({ route }) => {
 
           <View style={styles.devide}/>
 
-          {/* 룸이름, 가격 */}
+          {/* 예약 정보, 가격 */}
           <View style={styles.section}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 정보</Text>
               <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_semibold, styles.roomNameText]}>{roomName}</Text>
-                  <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>{roomPrice?.toLocaleString()}원</Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.meetNameText]}>
+                    {isGuest ? '숙박객' : '비숙박객'}, {gender}
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>{meetPrice?.toLocaleString()}원</Text>
               </View>
           </View>
 
@@ -216,7 +201,7 @@ const GuesthouseReservation = ({ route }) => {
                     <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
                   </TouchableOpacity>
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
+                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 모임 취소/환불 규정에 동의합니다.
                   </Text>
                   <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('terms')}>
                     <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
@@ -258,8 +243,8 @@ const GuesthouseReservation = ({ route }) => {
         <View style={styles.button}>
             <ButtonScarlet
               title="요청하기"
-              onPress={handleReservation}
               disabled={!isAllRequiredAgreed}
+              onPress={() => {navigation.navigate('MeetPaymentSuccess')}}
             />
         </View>
 
@@ -269,7 +254,7 @@ const GuesthouseReservation = ({ route }) => {
           onClose={() => setModalVisible(false)}
           title={
             selectedTerm === 'terms'
-              ? '숙소 취소/환불 규정'
+              ? '모임 취소/환불 규정'
               : selectedTerm === 'personalInfo'
               ? '개인정보 수집 및 이용'
               : selectedTerm === 'thirdParty'
@@ -294,4 +279,4 @@ const GuesthouseReservation = ({ route }) => {
   );
 };
 
-export default GuesthouseReservation;
+export default MeetReservation;

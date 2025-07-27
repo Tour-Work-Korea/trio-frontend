@@ -12,7 +12,7 @@ export default function Buttons() {
     <View style={styles.buttonContainer}>
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('GuesthouseList');
+          navigation.navigate('MainTabs', { screen: '게하' });
         }}
         style={styles.button}>
         <Guesthouse_btn />
@@ -21,7 +21,7 @@ export default function Buttons() {
 
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('EmployIntro');
+          navigation.navigate('MainTabs', { screen: '채용' });
         }}
         style={styles.button}>
         <Employ_btn />
@@ -30,7 +30,7 @@ export default function Buttons() {
 
       <TouchableOpacity
         onPress={() => {
-          navigation.navigate('Meet');
+          navigation.navigate('MainTabs', { screen: '모임' });
         }}
         style={styles.button}>
         <Party_btn />

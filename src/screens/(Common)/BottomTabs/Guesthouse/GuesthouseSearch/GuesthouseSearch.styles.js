@@ -128,6 +128,35 @@ const styles = StyleSheet.create({
     borderRadius: 12,
   },
 
+  // 검색어 입력 후
+  searchResultContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    paddingVertical: 16,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+  searchResultSection: {
+    marginBottom: 10,
+    gap: 10,
+  },
+  searchResultRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  resultIconBox: {
+    padding: 4,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_100,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  searchResultDivider: {
+    height: 1,
+    backgroundColor: COLORS.grayscale_300,
+    marginBottom: 10,
+  },
+
 });
 
 export default styles;

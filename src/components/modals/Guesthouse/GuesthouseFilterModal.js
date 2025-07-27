@@ -193,7 +193,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
                 <MultiSlider
                     values={priceRange}
                     min={10000}
-                    max={1000000}
+                    max={10000000}
                     step={10000}
                     sliderLength={300}
                     onValuesChange={(values) => {

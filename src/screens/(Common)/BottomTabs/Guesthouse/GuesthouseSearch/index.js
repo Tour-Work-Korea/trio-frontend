@@ -19,6 +19,7 @@ dayjs.locale('ko');
 import SearchIcon from '@assets/images/search_gray.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import Person from '@assets/images/person20_gray.svg';
+import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 import AllIcon from '@assets/images/wlogo_blue_left.svg';
 
 import styles from './GuesthouseSearch.styles';
@@ -28,6 +29,15 @@ import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {COLORS} from '@constants/colors';
 import {regions} from '@data/filter';
 
+// 임시 게하
+const mockGuesthouseResults = [
+  '제주 WA 게스트하우스',
+  '제주 WB 게스트하우스',
+  '제주 WC 게스트하우스',
+];
+
+const mockLocationResults = ['제주시', '제주 애월'];
+
 const GuesthouseSearch = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -35,7 +45,7 @@ const GuesthouseSearch = () => {
   // 지역 선택
   const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
   // 검색어 입력
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTerm, setSearchTerm] = useState(route.params?.searchText || '');
 
   // 선택 날짜, 인원 출력
   const [displayDate, setDisplayDate] = useState('');
@@ -141,6 +151,35 @@ const GuesthouseSearch = () => {
   const currentSubRegions =
     regions.find(r => r.name === selectedRegion)?.subRegions || [];
 
+  // 검색어 입력시
+  const renderSearchResults = () => (
+    <View style={styles.searchResultContainer}>
+      <View style={styles.searchResultSection}>
+        {mockGuesthouseResults.map((name, idx) => (
+          <TouchableOpacity key={idx} style={styles.searchResultRow}>
+            <View style={styles.resultIconBox}>
+              <GuesthouseIcon width={24} height={24} />
+            </View>
+            <Text style={[FONTS.fs_14_medium]}>{name}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      <View style={styles.searchResultDivider} />
+
+      <View style={styles.searchResultSection}>
+        {mockLocationResults.map((location, idx) => (
+          <TouchableOpacity key={idx} style={styles.searchResultRow}>
+            <View style={styles.resultIconBox}>
+              <SearchIcon width={24} height={24} />
+            </View>
+            <Text style={[FONTS.fs_14_medium]}>{location}</Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -148,6 +187,7 @@ const GuesthouseSearch = () => {
           게스트 하우스
         </Text>
 
+        {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
         <View style={styles.searchBar}>
           <SearchIcon width={24} height={24} />
           <TextInput
@@ -183,15 +223,21 @@ const GuesthouseSearch = () => {
           </TouchableOpacity>
         </View>
 
-        {/* 지역 선택 */}
-        <View style={styles.regionContainer}>
-          <View style={styles.leftRegionList}>
-            {regions.map(renderRegionItem)}
+        {searchTerm.trim() === '' ? (
+          // 지역 선택
+          // 지역 누르면 지역 번호로 바로 이동
+          <View style={styles.regionContainer}>
+            <View style={styles.leftRegionList}>
+              {regions.map(renderRegionItem)}
+            </View>
+            <View style={styles.rightSubRegionGrid}>
+              {currentSubRegions.map(renderSubRegionItem)}
+            </View>
           </View>
-          <View style={styles.rightSubRegionGrid}>
-            {currentSubRegions.map(renderSubRegionItem)}
-          </View>
-        </View>
+        ) : (
+          // 검색어 입력 후
+          renderSearchResults()
+        )}
 
         {/* 인원, 날짜 선택 모달 */}
         <DateGuestModal
