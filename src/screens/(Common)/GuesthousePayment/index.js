@@ -74,7 +74,7 @@ const GuesthousePayment = () => {
               reservationType: 'GUESTHOUSE',
             });
 
-            navigation.replace('PaymentSuccess');
+            navigation.replace('GuesthousePaymentSuccess');
           } catch (err) {
             console.error('결제 검증 실패:', err);
             Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');

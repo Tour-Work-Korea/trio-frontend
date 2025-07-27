@@ -11,7 +11,7 @@ import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
 import RoomDetail from '@screens/(Common)/RoomDetail';
 import GuesthouseReservation from '@screens/(Common)/GuesthouseReservation';
 import GuesthousePayment from '@screens/(Common)/GuesthousePayment';
-import PaymentSuccess from '@screens/(Common)/GuesthousePayment/PaymentSuccess';
+import GuesthousePaymentSuccess from '@screens/(Common)/GuesthousePayment/GuesthousePaymentSuccess';
 
 import {
   EmployDetail,
@@ -21,6 +21,11 @@ import {
   ApplySuccess,
   Register,
   EXLogin,
+  MeetMain,
+  MeetSearch,
+  MeetDetail,
+  MeetReservation,
+  MeetPaymentSuccess,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -39,18 +44,24 @@ const RootNavigation = () => (
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
-      <Stack.Screen
-        name="GuesthouseReservation"
-        component={GuesthouseReservation}
-      />
+      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
-      <Stack.Screen name="PaymentSuccess" component={PaymentSuccess} />
+      <Stack.Screen name="GuesthousePaymentSuccess" component={GuesthousePaymentSuccess} />
+
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
       <Stack.Screen name="MyResumeDetail" component={MyResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
       <Stack.Screen name="Register" component={Register} />
+
+      {/* 모임화면 확인을 위해 */}
+      <Stack.Screen name="MeetMain" component={MeetMain} />
+      <Stack.Screen name="MeetSearch" component={MeetSearch} />
+      <Stack.Screen name="MeetDetail" component={MeetDetail} />
+      <Stack.Screen name="MeetReservation" component={MeetReservation} />
+      <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
+
     </Stack.Navigator>
   </NavigationContainer>
 );

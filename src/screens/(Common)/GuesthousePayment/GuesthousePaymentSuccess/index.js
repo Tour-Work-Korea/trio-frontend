@@ -8,7 +8,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 
 import Logo from '@assets/images/guesthouse_reservation_success.svg';
 
-const PaymentSuccess = () => {
+const GuesthousePaymentSuccess = () => {
   const navigation = useNavigation();
 
   const handleGoHome = () => {
@@ -30,7 +30,7 @@ const PaymentSuccess = () => {
   );
 };
 
-export default PaymentSuccess;
+export default GuesthousePaymentSuccess;
 
 const styles = StyleSheet.create({
   container: {
