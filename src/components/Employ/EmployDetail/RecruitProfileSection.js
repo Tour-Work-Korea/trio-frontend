@@ -20,13 +20,18 @@ export default function RecruitProfileSection({recruit, toggleFavorite}) {
             <Text style={styles.title}>{recruit?.recruitTitle}</Text>
           </View>
           <View style={styles.headerIcons}>
-            <TouchableOpacity onPress={() => toggleFavorite(recruit.liked)}>
-              {recruit.liked ? (
-                <FilledHeartIcon width={20} height={20} />
-              ) : (
-                <HeartIcon width={20} height={20} />
-              )}
-            </TouchableOpacity>
+            {recruit?.liked ? (
+              <TouchableOpacity onPress={() => toggleFavorite(recruit.liked)}>
+                {recruit.liked ? (
+                  <FilledHeartIcon width={20} height={20} />
+                ) : (
+                  <HeartIcon width={20} height={20} />
+                )}
+              </TouchableOpacity>
+            ) : (
+              <></>
+            )}
+
             <TouchableOpacity
               onPress={() => {
                 const deepLinkUrl = employDetailDeeplink(recruit.recruitId);

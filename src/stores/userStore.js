@@ -14,6 +14,7 @@ const useUserStore = create(
       // 유저 프로필
       userProfile: {
         name: '',
+        nickname: '',
         photoUrl: null,
         phone: '',
         email: '',
@@ -50,6 +51,7 @@ const useUserStore = create(
           userRole: null,
           userProfile: {
             name: '',
+            nickname: '',
             photoUrl: null,
             phone: '',
             email: '',

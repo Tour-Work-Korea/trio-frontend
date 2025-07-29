@@ -10,7 +10,6 @@ import GuesthouseReviewIcon from '@assets/images/host-guesthouse-review-icon.svg
 import StoreApplyIcon from '@assets/images/host-store-apply-icon.svg';
 import MyPostIcon from '@assets/images/host-my-post-icon.svg';
 import ApplicationCheckIcon from '@assets/images/host-application-check-icon.svg';
-import PostReviewIcon from '@assets/images/host-post-review-icon.svg';
 import RightArrow from '@assets/images/gray_chevron_right.svg';
 
 import Header from '@components/Header';
@@ -60,7 +59,7 @@ const HostMyPage = () => {
         </View>
         {/* 숙박 섹션 */}
         <View style={styles.section}>
-          <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>숙박</Text>
+          <Text style={[styles.sectionTitle]}>숙박</Text>
           <MenuItem
             IconComponent={MyGuesthouseIcon}
             label="나의 게스트하우스"
@@ -80,7 +79,7 @@ const HostMyPage = () => {
         </View>
         {/* 공고 섹션 */}
         <View style={styles.section}>
-          <Text style={[FONTS.fs_h1_bold, styles.sectionTitle]}>공고</Text>
+          <Text style={[styles.sectionTitle]}>공고</Text>
           <MenuItem
             IconComponent={MyPostIcon}
             label="나의 공고"
@@ -91,9 +90,17 @@ const HostMyPage = () => {
             label="지원서 조회"
             onPress={() => navigation.navigate('ApplicantList')}
           />
-          <MenuItem IconComponent={PostReviewIcon} label="공고 리뷰" />
         </View>
-        <ButtonScarlet title="로그아웃" onPress={tryLogout} />
+        <ButtonScarlet
+          title="로그아웃"
+          onPress={async () => {
+            await tryLogout();
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'Login'}],
+            });
+          }}
+        />
       </View>
     </ScrollView>
   );
@@ -105,7 +112,7 @@ const MenuItem = ({IconComponent, label, onPress}) => (
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={28} height={28} />
       </View>
-      <Text style={[FONTS.fs_h1_bold, styles.menuLabel]}>{label}</Text>
+      <Text style={[styles.menuLabel]}>{label}</Text>
     </View>
     <RightArrow width={24} height={24} />
   </TouchableOpacity>

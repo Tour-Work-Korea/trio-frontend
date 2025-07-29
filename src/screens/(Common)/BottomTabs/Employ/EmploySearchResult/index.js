@@ -13,7 +13,6 @@ import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
-import {regions} from '@data/filter';
 import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 // 아이콘 불러오기
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -24,6 +23,9 @@ import MapIcon from '@assets/images/map_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import useUserStore from '@stores/userStore';
+import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmploySearchResult = ({route}) => {
   const {search} = route.params;
@@ -34,13 +36,18 @@ const EmploySearchResult = ({route}) => {
   const [isEmLoading, setIsEmLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
 
   //모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   //필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    regions: [regions[0].subRegions[0]],
+    regions: [],
     tags: [],
   });
   const [keywords, setKeywords] = useState([]);
@@ -83,9 +90,11 @@ const EmploySearchResult = ({route}) => {
   );
 
   useEffect(() => {
-    const regionKeywords = filterOptions?.regions || [];
+    const regionKeywords =
+      filterOptions?.regions?.map(region => region.displayName) || [];
     const tagKeywords = filterOptions?.tags?.map(tag => tag.hashtag) || [];
-
+    console.log('regionKeyword', regionKeywords);
+    console.log('tagKeywords', tagKeywords);
     setKeywords([...regionKeywords, ...tagKeywords]);
   }, [filterOptions]);
 
@@ -98,18 +107,18 @@ const EmploySearchResult = ({route}) => {
     setIsEmLoading(true);
 
     try {
-      console.log('공고 조회!!!!!!!!!!!!', searchText);
+      const userRole = useUserStore.getState()?.userRole;
       const params = {
         page: pageToFetch,
         size: 10,
         sortBy: selectedSort.value,
         searchKeyword: searchText,
-        // ...{ 필터 API 적용 후 수정
-        //   regions: filterOptions.regions,
-        //   tags: filterOptions.tags,
-        // },
+        ...{
+          locationIds: filterOptions.regions?.map(region => region.id),
+          hashtagIds: filterOptions?.tags?.map(tag => tag.id),
+        },
       };
-      const res = await userEmployApi.getRecruits(params);
+      const res = await userEmployApi.getRecruits(params, userRole === 'USER');
       const {content, last} = res.data;
       setRecruitList(prev =>
         pageToFetch === 0 ? content : [...prev, ...content],
@@ -143,35 +152,19 @@ const EmploySearchResult = ({route}) => {
   return (
     <View style={[styles.container]} contentContainerStyle={{gap: 12}}>
       {/* 헤더 */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          flexDirection: 'column',
-          gap: 16,
-          paddingBottom: 12,
-        }}>
-        <View style={[styles.headerBox]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-
-          <Text style={styles.headerText}>채용공고</Text>
-          <View style={{width: 28.8}}></View>
-        </View>
-        {/* 검색창 */}
-        <View style={[styles.searchInputContainer]}>
-          <SearchIcon width={24} height={24} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholderTextColor={COLORS.grayscale_600}
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-            onSubmitEditing={() => setIsSearch(true)}
-          />
-        </View>
+      <Header title={'채용공고'} />
+      {/* 검색창 */}
+      <View style={[styles.searchInputContainer]}>
+        <SearchIcon width={24} height={24} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor={COLORS.grayscale_600}
+          value={searchText}
+          onChangeText={setSearchText}
+          returnKeyType="search"
+          onSubmitEditing={() => setIsSearch(true)}
+        />
       </View>
-
       {/* 뽑고 있는 게스트하우스 */}
       <View style={styles.guesthouseListContainer}>
         <View style={styles.guesthouseListHeader}>
@@ -217,6 +210,7 @@ const EmploySearchResult = ({route}) => {
           onToggleFavorite={toggleLikeRecruit}
           onEndReached={handleEndReached}
           setRecruitList={setRecruitList}
+          showErrorModal={setErrorModal}
           ListFooterComponent={
             isEmLoading && <ActivityIndicator size="small" color="gray" />
           }
@@ -231,7 +225,6 @@ const EmploySearchResult = ({route}) => {
           </TouchableOpacity>
         </View>
       </View>
-
       <EmployFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
@@ -256,6 +249,12 @@ const EmploySearchResult = ({route}) => {
           setIsLast(false);
           setRecruitList([]);
         }}
+      />
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </View>
   );

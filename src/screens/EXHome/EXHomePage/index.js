@@ -37,6 +37,7 @@ const EXHomePage = () => {
         <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
       </View>
       <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
+      <ButtonWhite title="모임 화면 테스트" to="MeetMain" />
       <ButtonScarlet title="회원가입 페이지로 이동" to="Register" />
       <ButtonScarlet
         title="로그아웃"

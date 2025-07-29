@@ -1,13 +1,12 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import styles from '../Employ.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -19,7 +18,9 @@ import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import useUserStore from '@stores/userStore';
+import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmploySearchList = () => {
   const [searchText, setSearchText] = useState('');
@@ -27,31 +28,47 @@ const EmploySearchList = () => {
   const [isEmLoading, setIsEmLoading] = useState(false);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
   const navigation = useNavigation();
 
-  useEffect(() => {
-    fetchRecruitList(page);
-  }, [page]);
+  useFocusEffect(
+    useCallback(() => {
+      setRecruitList([]);
+      setHasNext(true);
+      fetchRecruitList(0);
+    }, [fetchRecruitList]),
+  );
 
   //채용 공고 조회
-  const fetchRecruitList = async (pageToFetch = 0) => {
-    if (isEmLoading || !hasNext) return;
-    setIsEmLoading(true);
-    try {
-      const res = await userEmployApi.getRecruits({
-        page: pageToFetch,
-        size: 8,
-      });
-      const newContent = res.data.content;
-      setRecruitList(prev => [...prev, ...newContent]);
-      setHasNext(!res.data.last);
-    } catch (error) {
-      setHasNext(false);
-      console.warn('fetchRecruitList 실패:', error);
-    } finally {
-      setIsEmLoading(false);
-    }
-  };
+  const fetchRecruitList = useCallback(
+    async (pageToFetch = 0) => {
+      if (isEmLoading || !hasNext) return;
+      setIsEmLoading(true);
+      try {
+        const userRole = useUserStore.getState()?.userRole;
+        const res = await userEmployApi.getRecruits(
+          {
+            page: pageToFetch,
+            size: 8,
+          },
+          userRole === 'USER',
+        );
+        const newContent = res.data.content;
+        setRecruitList(prev => [...prev, ...newContent]);
+        setHasNext(!res.data.last);
+      } catch (error) {
+        setHasNext(false);
+        console.warn('fetchRecruitList 실패:', error);
+      } finally {
+        setIsEmLoading(false);
+      }
+    },
+    [isEmLoading, hasNext, page],
+  );
 
   const handleEndReached = () => {
     if (!isEmLoading && hasNext) {
@@ -68,6 +85,7 @@ const EmploySearchList = () => {
     // <SafeAreaView >
     <View style={[styles.container]}>
       {/* 헤더 */}
+      <Header title="채용공고" />
       <View
         style={{
           paddingHorizontal: 20,
@@ -75,14 +93,6 @@ const EmploySearchList = () => {
           gap: 16,
           paddingBottom: 12,
         }}>
-        <View style={[styles.headerBox]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-
-          <Text style={styles.headerText}>채용공고</Text>
-          <View style={{width: 28.8}}></View>
-        </View>
         {/* 검색창 */}
         <View style={[styles.searchInputContainer]}>
           <SearchIcon width={24} height={24} style={styles.searchIcon} />
@@ -119,11 +129,18 @@ const EmploySearchList = () => {
           onJobPress={handleJobPress}
           onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruitList}
+          showErrorModal={setErrorModal}
           ListFooterComponent={
             isEmLoading && <ActivityIndicator size="small" color="gray" />
           }
         />
       </View>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </View>
     // </SafeAreaView>
   );

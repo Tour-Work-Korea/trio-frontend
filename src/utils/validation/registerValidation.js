@@ -32,6 +32,22 @@ export const validateRegisterInfo = form => {
   return errors;
 };
 
+export const validateNewPassword = form => {
+  return {
+    newPassword: {
+      hasUpperLowercase:
+        /[A-Z]/.test(form.newPassword) && /[a-z]/.test(form.newPassword),
+      hasNumber: /\d/.test(form.newPassword),
+      hasSpecialChar: /[^A-Za-z0-9]/.test(form.newPassword),
+      isLengthValid:
+        form.newPassword?.length >= 8 && form.newPassword?.length <= 20,
+    },
+    confirmPassword: {
+      isMatched: form.newPassword === form.confirmPassword,
+    },
+  };
+};
+
 export const validateRegisterProfile = form => {
   return {
     nickname: {

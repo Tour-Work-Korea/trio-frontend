@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import styles from '../Employ.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -20,6 +20,9 @@ import WorkAndStay from './WorkAndStay';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Loading from '@components/Loading';
+import useUserStore from '@stores/userStore';
+import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
@@ -27,13 +30,21 @@ const EmployIntro = () => {
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+  });
   const navigation = useNavigation();
-  useEffect(() => {
-    tryFetchGuesthouses();
-    fetchRecruitList();
-  }, []);
 
-  const tryFetchGuesthouses = async () => {
+  useFocusEffect(
+    useCallback(() => {
+      tryFetchGuesthouses();
+      fetchRecruitList();
+    }, [tryFetchGuesthouses, fetchRecruitList]),
+  );
+
+  const tryFetchGuesthouses = useCallback(async () => {
     const today = dayjs();
     const tomorrow = today.add(1, 'day');
 
@@ -54,18 +65,22 @@ const EmployIntro = () => {
     } finally {
       setIsGHLoading(false);
     }
-  };
+  }, []);
 
-  const fetchRecruitList = async () => {
+  const fetchRecruitList = useCallback(async () => {
     try {
-      const response = await userEmployApi.getRecruits({page: 0, size: 10});
+      const userRole = useUserStore.getState()?.userRole;
+      const response = await userEmployApi.getRecruits(
+        {page: 0, size: 10},
+        userRole === 'USER',
+      );
       setRecruitList(response.data.content);
     } catch (error) {
       console.warn('공고 조회 실패', error);
     } finally {
       setIsEmLoading(false);
     }
-  };
+  }, []);
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
@@ -74,6 +89,7 @@ const EmployIntro = () => {
   }
   return (
     <View style={styles.container}>
+      <Header title="채용공고" />
       <ScrollView
         contentContainerStyle={{
           gap: 16,
@@ -81,12 +97,6 @@ const EmployIntro = () => {
           paddingBottom: 0,
           flexGrow: 1,
         }}>
-        {/* 헤더 */}
-        <View style={styles.headerBox}>
-          <View></View>
-          <Text style={styles.headerText}>채용공고</Text>
-          <View></View>
-        </View>
         {/* 검색창 */}
         <TouchableOpacity
           onPress={() => navigation.navigate('EmploySearchList')}>
@@ -129,9 +139,16 @@ const EmployIntro = () => {
               isEmLoading && <ActivityIndicator size="small" color="gray" />
             }
             scrollEnabled={false}
+            showErrorModal={setErrorModal}
           />
         </View>
       </ScrollView>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
     </View>
   );
 };

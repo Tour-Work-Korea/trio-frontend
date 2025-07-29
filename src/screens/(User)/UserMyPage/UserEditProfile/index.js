@@ -1,6 +1,10 @@
-import React, {useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, Text, TouchableOpacity, Image, Alert} from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 
 import PersonIcon from '@assets/images/Gray_Person.svg';
 import PlusIcon from '@assets/images/plus.svg';
@@ -11,29 +15,22 @@ import styles from './UserEditProfile.styles';
 import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
-import {
-  uploadSensitiveImage,
-  uploadSingleImage,
-} from '@utils/imageUploadHandler';
+import {uploadSingleImage} from '@utils/imageUploadHandler';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const {userInfo} = route.params;
+  const userProfile = useUserStore(state => state.userProfile);
   const setUserProfile = useUserStore(state => state.setUserProfile);
 
-  // 유저 데이터 (사진은 추후에 추가)
-  const [user, setUser] = useState({
-    name: userInfo?.name || '',
-    phone: userInfo?.phone || '',
-    email: userInfo?.email || '',
-    mbti: userInfo?.mbti || '',
-    instagramId: userInfo?.instagramId || '',
-    photoUrl: userInfo?.photoUrl || '',
-  });
+  const [user, setUser] = useState(userProfile);
+
+  useFocusEffect(
+    useCallback(() => {
+      setUser(userProfile);
+    }, [userProfile]),
+  );
 
   const goToEditProfile = (field, label, value) => {
-    console.log(user.photoUrl);
     navigation.navigate('EditProfileFieldScreen', {
       field,
       label,
@@ -81,8 +78,10 @@ const UserEditProfile = () => {
 
           <TouchableOpacity
             style={styles.nameButton}
-            onPress={() => goToEditProfile('name', '이름', user.name)}>
-            <Text style={[FONTS.fs_h2_bold, styles.nameText]}>{user.name}</Text>
+            onPress={() => goToEditProfile('name', '이름', user.nickname)}>
+            <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
+              {user.nickname}
+            </Text>
             <RightArrow width={20} height={20} />
           </TouchableOpacity>
         </View>

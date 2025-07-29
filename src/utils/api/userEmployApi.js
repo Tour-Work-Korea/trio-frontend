@@ -2,14 +2,14 @@ import api from './axiosInstance';
 
 const userEmployApi = {
   //채용 공고 목록 조회
-  getRecruits: (params = {}) =>
+  getRecruits: (params = {}, isAuth = false) =>
     api.get('/user/recruits', {
       params,
-      withAuth: false,
+      withAuth: isAuth,
     }),
   //특정 채용공고 상세 조회
-  getRecruitById: recruitId =>
-    api.get(`/user/recruits/${recruitId}`, {withAuth: false}),
+  getRecruitById: (recruitId, isAuth = false) =>
+    api.get(`/user/recruits/${recruitId}`, {withAuth: isAuth}),
 
   //공고 즐겨찾기 추가
   addLikeRecruitById: recruitId =>

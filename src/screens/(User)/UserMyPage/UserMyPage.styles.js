@@ -1,10 +1,10 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
   outContainer: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
   container: {
     paddingHorizontal: 15,
@@ -30,26 +30,27 @@ export default StyleSheet.create({
     width: 60,
     height: 60,
     borderRadius: 30,
-    backgroundColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
   name: {
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   headerIcons: {
     flexDirection: 'row',
   },
   icon: {
     marginLeft: 16,
+    color: COLORS.grayscale_400,
   },
   section: {
     marginBottom: 40,
   },
   sectionTitle: {
     marginBottom: 10,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   menuItem: {
     flexDirection: 'row',
@@ -60,7 +61,7 @@ export default StyleSheet.create({
   menuItemIconContainer: {
     width: 36,
     height: 36,
-    backgroundColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
     borderRadius: 10,
@@ -71,6 +72,6 @@ export default StyleSheet.create({
   },
   menuLabel: {
     marginLeft: 12,
-    color: COLORS.gray,
+    color: COLORS.grayscale_800,
   },
 });

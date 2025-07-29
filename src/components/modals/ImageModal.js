@@ -40,9 +40,12 @@ const screenWidth = Dimensions.get('window').width;
 const imageSize = screenWidth * 0.8 - 40; // 80% 너비에서 패딩 20*2 제외
 
 const ImageModal = ({visible, title, images, onClose, selectedImageIndex}) => {
-  const [currentImage, setCurrentImage] = useState({
-    id: selectedImageIndex,
-    imageUrl: images[selectedImageIndex].imageUrl,
+  const [currentImage, setCurrentImage] = useState(() => {
+    const imageItem = images?.[selectedImageIndex];
+    return {
+      id: imageItem?.id ?? selectedImageIndex,
+      imageUrl: imageItem?.imageUrl ?? '',
+    };
   });
 
   useEffect(() => {

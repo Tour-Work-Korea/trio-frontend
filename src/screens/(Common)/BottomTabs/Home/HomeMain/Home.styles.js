@@ -13,6 +13,13 @@ export default StyleSheet.create({
     marginBottom: 20,
   },
 
+  Header: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 20,
+    marginTop: 8,
+  },
+
   //배너
   bannerContainer: {
     alignItems: 'center',

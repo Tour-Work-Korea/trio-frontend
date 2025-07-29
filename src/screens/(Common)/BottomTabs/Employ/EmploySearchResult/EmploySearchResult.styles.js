@@ -6,13 +6,13 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 20,
   },
   //헤더
   headerBox: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',
+    paddingTop: 30,
   },
   headerText: {
     ...FONTS.fs_20_semibold,
@@ -26,6 +26,9 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 8,
     height: 40,
+    marginHorizontal: 20,
+    marginTop: 16,
+    marginBottom: 12,
   },
   searchIcon: {
     marginRight: 8,

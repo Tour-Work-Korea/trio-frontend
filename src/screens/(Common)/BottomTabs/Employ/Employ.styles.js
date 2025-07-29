@@ -6,7 +6,6 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingTop: 30,
   },
   scroll: {
     flex: 1, // ← scrollView가 하단까지 확장되도록
@@ -19,6 +18,7 @@ const styles = StyleSheet.create({
   },
   //헤더
   headerBox: {
+    paddingTop: 30,
     flexDirection: 'row',
     justifyContent: 'space-between',
     width: '100%',

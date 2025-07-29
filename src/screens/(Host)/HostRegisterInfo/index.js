@@ -141,29 +141,24 @@ const HostRegisterInfo = ({route}) => {
     } catch (error) {
       setIsBussinessNumChecked(false);
       setIsBussinessNumVerified(false);
+      setErrorModal({
+        visible: true,
+        message: '유효하지 않은 사업자번호입니다',
+        buttonText: '확인',
+      });
     }
-  };
-
-  const isFormValid = () => {
-    const nameValid = formValid.name;
-    const bussinessNumValid = formValid.bussinessNum && isBussinessNumbVerified;
-
-    const passwordValid =
-      formValid.password?.hasUpperLowercase &&
-      formValid.password?.hasNumber &&
-      formValid.password?.isLengthValid &&
-      formValid.password?.hasSpecialChar;
-
-    const confirmValid = formValid.passwordConfirm?.isMatched;
-
-    return nameValid && passwordValid && confirmValid && bussinessNumValid;
   };
 
   // 회원가입 완료 처리
   const handleSubmit = async () => {
     try {
       await authApi.hostSignUp(formData);
-      afterSuccessRegister();
+      navigation.navigate('Result', {
+        onPress: afterSuccessRegister,
+        buttonTitle: '시작하기',
+        nickname: formData.name,
+        role: 'HOST',
+      });
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -177,24 +172,21 @@ const HostRegisterInfo = ({route}) => {
 
   //회원가입 후 자동 로그인 처리
   const afterSuccessRegister = async () => {
-    const isSuccessLogin = await tryLogin(
-      formData.email,
-      formData.password,
-      'HOST',
-    );
-    if (isSuccessLogin) {
+    try {
+      await tryLogin(formData.email, formData.password, 'HOST');
       navigation.navigate('Result', {
-        to: 'BottomTabs',
+        onPress: () => navigation.navigate('MainTabs', {screen: '홈'}),
         nickname: formData.name,
         role: formData.userRole,
       });
-    } else {
+    } catch (error) {
       setErrorModal({
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: 'moveToLogin',
+        onPress: () => navigation.navigate('Login'),
       });
+      console.warn('지동 로그인 실패:', error);
     }
   };
 
@@ -204,195 +196,201 @@ const HostRegisterInfo = ({route}) => {
         <KeyboardAvoidingView
           style={{flex: 1}}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // 필요 시 조정
+          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // 필요 시 조정
         >
           <ScrollView
-            style={[styles.viewFlexBox]}
-            contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: 'space-between',
-            }}
+            style={{flex: 1}}
+            contentContainerStyle={{flexGrow: 1}}
+            showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            {/* 상단+입력창 */}
-            <View>
-              {/* 로고 및 문구 */}
-              <View style={styles.groupParent}>
-                <Logo width={60} height={29} />
-                <View>
-                  <Text style={[styles.titleText]}>
-                    workaway에 등록하기 위한,
-                  </Text>
-                  <Text style={[styles.titleText]}>필수정보를 알려주세요</Text>
-                </View>
-              </View>
-              <View style={styles.inputGroup}>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>이름</Text>
-                  <View style={styles.inputBox}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="이름을 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={formData.name}
-                      onChangeText={handleNameChange}
-                      maxLength={30}
-                    />
+            <View
+              style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+              {/* 상단+입력창 */}
+              <View>
+                {/* 로고 및 문구 */}
+                <View style={styles.groupParent}>
+                  <Logo width={60} height={29} />
+                  <View>
+                    <Text style={[styles.titleText]}>
+                      workaway에 등록하기 위한,
+                    </Text>
+                    <Text style={[styles.titleText]}>
+                      필수정보를 알려주세요
+                    </Text>
                   </View>
                 </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>사업자번호</Text>
-                  <View style={[styles.inputBox, {position: 'relative'}]}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="사업자번호를 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={formData.bussinessNum}
-                      onChangeText={text => {
-                        const filtered = text.replace(/[^0-9]/g, '');
-                        handleBussinessNumChange(filtered);
-                      }}
-                      maxLength={10}
-                      keyboardType="number-pad"
-                    />
-                    <TouchableOpacity
-                      disabled={!formValid.bussinessNum}
-                      style={[
-                        styles.inputButtonAbsolute,
-                        {
-                          backgroundColor: formValid.bussinessNum
-                            ? COLORS.primary_orange
-                            : COLORS.grayscale_200,
-                        },
-                      ]}
-                      onPress={verifybussinessNum}>
-                      <Text
-                        style={{
-                          ...FONTS.fs_14_medium,
-                          color: formValid.bussinessNum
-                            ? COLORS.white
-                            : COLORS.grayscale_400,
-                        }}>
-                        확인
-                      </Text>
-                    </TouchableOpacity>
+                <View style={styles.inputGroup}>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>이름</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="이름을 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.name}
+                        onChangeText={handleNameChange}
+                        maxLength={30}
+                      />
+                    </View>
                   </View>
-                  {isBussinessNumChecked ? (
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>사업자번호</Text>
+                    <View style={[styles.inputBox, {position: 'relative'}]}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="사업자번호를 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.bussinessNum}
+                        onChangeText={text => {
+                          const filtered = text.replace(/[^0-9]/g, '');
+                          handleBussinessNumChange(filtered);
+                        }}
+                        maxLength={10}
+                        keyboardType="number-pad"
+                      />
+                      <TouchableOpacity
+                        disabled={!formValid.bussinessNum}
+                        style={[
+                          styles.inputButtonAbsolute,
+                          {
+                            backgroundColor: formValid.bussinessNum
+                              ? COLORS.primary_orange
+                              : COLORS.grayscale_200,
+                          },
+                        ]}
+                        onPress={verifybussinessNum}>
+                        <Text
+                          style={{
+                            ...FONTS.fs_14_medium,
+                            color: formValid.bussinessNum
+                              ? COLORS.white
+                              : COLORS.grayscale_400,
+                          }}>
+                          확인
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                    {isBussinessNumChecked ? (
+                      <View style={styles.validBox}>
+                        <Text
+                          style={[
+                            styles.validDefaultText,
+                            isBussinessNumbVerified
+                              ? styles.validText
+                              : styles.invalidText,
+                          ]}>
+                          {isBussinessNumbVerified
+                            ? '유효한 사업자번호입니다'
+                            : '유효하지 않은 사업자번호입니다.'}
+                        </Text>
+                      </View>
+                    ) : (
+                      ''
+                    )}
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>비밀번호</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="비밀번호를 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.password}
+                        onChangeText={handlePasswordChange}
+                        maxLength={20}
+                        secureTextEntry={!isPasswordVisible}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        onPress={() => setIsPasswordVisible(prev => !prev)}>
+                        {isPasswordVisible ? (
+                          <HidePassword width={24} hide={24} />
+                        ) : (
+                          <ShowPassword width={24} hide={24} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
                     <View style={styles.validBox}>
                       <Text
                         style={[
                           styles.validDefaultText,
-                          isBussinessNumbVerified
+                          formValid.password.hasUpperLowercase
                             ? styles.validText
-                            : styles.invalidText,
+                            : '',
                         ]}>
-                        {isBussinessNumbVerified
-                          ? '유효한 사업자번호입니다'
-                          : '유효하지 않은 사업자번호입니다.'}
+                        영문 대소문자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.hasNumber ? styles.validText : '',
+                        ]}>
+                        숫자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.hasSpecialChar
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        특수문자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.isLengthValid
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        8-20자 이내
                       </Text>
                     </View>
-                  ) : (
-                    ''
-                  )}
-                </View>
-                <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>비밀번호</Text>
-                  <View style={styles.inputBox}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="비밀번호를 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={formData.password}
-                      onChangeText={handlePasswordChange}
-                      maxLength={20}
-                      secureTextEntry={!isPasswordVisible}
-                      autoCapitalize="none"
-                    />
-                    <TouchableOpacity
-                      onPress={() => setIsPasswordVisible(prev => !prev)}>
-                      {isPasswordVisible ? (
-                        <HidePassword width={24} hide={24} />
-                      ) : (
-                        <ShowPassword width={24} hide={24} />
-                      )}
-                    </TouchableOpacity>
                   </View>
-                  <View style={styles.validBox}>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.password.hasUpperLowercase
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      영문 대소문자 포함
-                    </Text>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.password.hasNumber ? styles.validText : '',
-                      ]}>
-                      숫자 포함
-                    </Text>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.password.hasSpecialChar
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      특수문자 포함
-                    </Text>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.password.isLengthValid
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      8-20자 이내
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.inputContainer}>
-                  <View style={styles.inputBox}>
-                    <TextInput
-                      style={styles.textInput}
-                      placeholder="다시 한 번 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={formData.passwordConfirm}
-                      onChangeText={handlePasswordConfirmChange}
-                      maxLength={10}
-                      secureTextEntry={!isPasswordCheckVisible}
-                    />
-                    <TouchableOpacity
-                      onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
-                      {isPasswordCheckVisible ? (
-                        <HidePassword width={24} hide={24} />
-                      ) : (
-                        <ShowPassword width={24} hide={24} />
-                      )}
-                    </TouchableOpacity>
-                  </View>
-                  <View style={styles.validBox}>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.passwordConfirm.isMatched
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      비밀번호 일치
-                    </Text>
+                  <View style={styles.inputContainer}>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="다시 한 번 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.passwordConfirm}
+                        onChangeText={handlePasswordConfirmChange}
+                        maxLength={20}
+                        secureTextEntry={!isPasswordCheckVisible}
+                      />
+                      <TouchableOpacity
+                        onPress={() =>
+                          setIsPasswordCheckVisible(prev => !prev)
+                        }>
+                        {isPasswordCheckVisible ? (
+                          <HidePassword width={24} hide={24} />
+                        ) : (
+                          <ShowPassword width={24} hide={24} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.passwordConfirm.isMatched
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        비밀번호 일치
+                      </Text>
+                    </View>
                   </View>
                 </View>
               </View>
-            </View>
-            <View>
-              <ButtonScarlet
-                title="다음"
-                onPress={handleSubmit}
-                disabled={!isFormValid()}
-              />
+
+              <View>
+                <ButtonScarlet
+                  title="다음"
+                  onPress={handleSubmit}
+                  // disabled={!isFormValid()}
+                />
+              </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>

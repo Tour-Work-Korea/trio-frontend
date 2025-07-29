@@ -6,7 +6,8 @@ import LogoBlue from '@assets/images/logo_blue_smile.svg';
 
 const Result = ({route}) => {
   const {
-    to = '',
+    to = null,
+    onPress = null,
     buttonTitle = '시작하기',
     nickname,
     role,
@@ -27,7 +28,7 @@ const Result = ({route}) => {
             </Text>
           </View>
         </View>
-        <ButtonScarlet title={buttonTitle} to={to} />
+        <ButtonScarlet title={buttonTitle} to={to} onPress={onPress} />
       </View>
     </SafeAreaView>
   );

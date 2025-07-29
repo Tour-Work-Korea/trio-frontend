@@ -6,9 +6,11 @@ import {View, ScrollView, SafeAreaView, FlatList, Alert} from 'react-native';
 import styles from './ApplicantList.styles';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import Header from '@components/Header';
-import {Filter, ApplicantItem} from '@components/Employ/ApplicantList';
 import DropDownPicker from 'react-native-dropdown-picker';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import Filter from './Filter';
+import ApplicantItem from './ApplicantItem';
+import {COLORS} from '@constants/colors';
 
 const ApplicantList = () => {
   const route = useRoute();
@@ -63,7 +65,7 @@ const ApplicantList = () => {
   };
 
   const handleApplicantPress = id => {
-    navigation.navigate('ApplicantDetail', id);
+    navigation.navigate('ResumeDetail', {id, role: 'HOST'});
   };
 
   const parseYears = str => {
@@ -91,40 +93,45 @@ const ApplicantList = () => {
   return (
     <SafeAreaView style={styles.container}>
       <Header title="지원자 조회" />
-      <Filter
-        selectedFilter={selectedFilter}
-        setSelectedFilter={setSelectedFilter}
-      />
-      <View style={{zIndex: 1000}}>
-        <DropDownPicker
-          open={guesthouseOpen}
-          value={selectedGuesthouse}
-          items={guesthouseList}
-          setOpen={setGuesthouseOpen}
-          setValue={callback => {
-            const value = callback();
-            handleSelectedGuesthouse(value);
-          }}
-          setItems={setGuesthouseList}
-          zIndex={1000}
-          zIndexInverse={3000}
-          listMode="SCROLLVIEW"
+      <View style={styles.body}>
+        <Filter
+          selectedFilter={selectedFilter}
+          setSelectedFilter={setSelectedFilter}
         />
+        <View style={{zIndex: 1000}}>
+          <DropDownPicker
+            open={guesthouseOpen}
+            value={selectedGuesthouse}
+            items={guesthouseList}
+            setOpen={setGuesthouseOpen}
+            setValue={callback => {
+              const value = callback();
+              handleSelectedGuesthouse(value);
+            }}
+            setItems={setGuesthouseList}
+            zIndex={1000}
+            zIndexInverse={3000}
+            listMode="SCROLLVIEW"
+            style={styles.dropdown}
+            dropDownContainerStyle={styles.dropdown}
+          />
+        </View>
+        <ScrollView style={styles.scrollView}>
+          <FlatList
+            data={filteredApplicants}
+            renderItem={({item}) => (
+              <ApplicantItem
+                item={item}
+                handleApplicantPress={handleApplicantPress}
+              />
+            )}
+            keyExtractor={item => item.id.toString()}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={styles.separator} />}
+            contentContainerStyle={{gap: 8}}
+          />
+        </ScrollView>
       </View>
-      <ScrollView style={styles.scrollView}>
-        <FlatList
-          data={filteredApplicants}
-          renderItem={({item}) => (
-            <ApplicantItem
-              item={item}
-              handleApplicantPress={handleApplicantPress}
-            />
-          )}
-          keyExtractor={item => item.id.toString()}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={styles.separator} />}
-        />
-      </ScrollView>
     </SafeAreaView>
   );
 };

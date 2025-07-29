@@ -11,15 +11,14 @@ import styles from './RecruitmentForm';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {
-  BasicInfoSection,
-  HashTagSection,
-  RecruitConditionSection,
-  WorkConditionSection,
-  WorkInfoSection,
-  DetailInfoSection,
-} from '@components/Employ/RecruitmentForm';
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
+import BasicInfoSection from './BasicInfoSection';
+import HashTagSection from './HashTagSection';
+import RecruitConditionSection from './RecruitConditionSection';
+import WorkConditionSection from './WorkConditionSection';
+import WorkInfoSection from './WorkInfoSection';
+import DetailInfoSection from './DetailInfoSection';
+import ButtonScarlet from '@components/ButtonScarlet';
 
 const RecruitmentForm = () => {
   const [formData, setFormData] = useState({
@@ -27,12 +26,12 @@ const RecruitmentForm = () => {
     recruitShortDescription: '',
     recruitStart: null,
     recruitEnd: null,
-    recruitNumberMale: 0,
-    recruitNumberFemale: 0,
+    recruitNumberMale: null,
+    recruitNumberFemale: null,
     location: '',
     recruitCondition: '',
-    recruitMinAge: 0,
-    recruitMaxAge: 0,
+    recruitMinAge: null,
+    recruitMaxAge: null,
     workType: '',
     workStartDate: null,
     workEndDate: null,
@@ -46,6 +45,11 @@ const RecruitmentForm = () => {
   const route = useRoute();
   const recruit = route.params ?? null;
   const navigation = useNavigation();
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    title: '',
+    buttonText: '',
+  });
 
   useEffect(() => {
     if (recruit) {
@@ -83,7 +87,7 @@ const RecruitmentForm = () => {
   const handleSubmit = () => {
     const errors = validateRecruitForm(formData);
     if (errors.length > 0) {
-      Alert.alert('입력 오류', errors[0]);
+      setErrorModal({visible: true, title: errors[0], buttonText: '확인'});
       return;
     }
 
@@ -108,14 +112,18 @@ const RecruitmentForm = () => {
   const fetchNewRecruit = async payload => {
     try {
       await hostEmployApi.createRecruit(payload);
-      Alert.alert('새로운 공고를 등록했습니다.');
+      setErrorModal({
+        visible: true,
+        title: '새로운 공고를 등록했습니다',
+        buttonText: '확인',
+      });
       navigation.navigate('MyRecruitmentList');
     } catch (error) {
       const serverMessage =
         error.response?.data?.message ||
         error.message ||
         '알 수 없는 오류가 발생했습니다.';
-      Alert.alert('공고 수정에 실패했습니다.', serverMessage);
+      setErrorModal({visible: true, title: serverMessage, buttonText: '확인'});
     }
   };
 
@@ -129,18 +137,8 @@ const RecruitmentForm = () => {
         error.response?.data?.message ||
         error.message ||
         '알 수 없는 오류가 발생했습니다.';
-      Alert.alert('공고 수정에 실패했습니다.', serverMessage);
+      setErrorModal({visible: true, title: serverMessage, buttonText: '확인'});
     }
-  };
-
-  const handleTemporarySave = () => {
-    console.log('Temporary saved:', formData);
-    Alert.alert('임시 저장', '공고가 임시 저장되었습니다.');
-  };
-
-  const handlePreview = () => {
-    console.log('Preview:', formData);
-    Alert.alert('미리 보기', '미리 보기 기능은 아직 구현 중입니다.');
   };
 
   return (
@@ -187,25 +185,7 @@ const RecruitmentForm = () => {
 
         {/* 버튼 섹션 */}
         <View style={styles.buttonContainer}>
-          <TouchableOpacity style={styles.submitButton} onPress={handleSubmit}>
-            <Text style={styles.submitButtonText}>
-              {recruit ? '공고 수정하기' : '공고 등록하기'}
-            </Text>
-          </TouchableOpacity>
-
-          <View style={styles.secondaryButtonsRow}>
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handleTemporarySave}>
-              <Text style={styles.secondaryButtonText}>임시 저장</Text>
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              style={styles.secondaryButton}
-              onPress={handlePreview}>
-              <Text style={styles.secondaryButtonText}>미리 보기</Text>
-            </TouchableOpacity>
-          </View>
+          <ButtonScarlet title={'등록하기'} onPress={handleSubmit} />
         </View>
       </ScrollView>
     </SafeAreaView>

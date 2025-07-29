@@ -1,5 +1,4 @@
 import React, {useEffect, useState} from 'react';
-import {regions} from '@data/filter';
 import {
   Dimensions,
   Modal,
@@ -16,54 +15,7 @@ import {COLORS} from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import ButtonScarlet from '@components/ButtonScarlet';
-
-const tagDummy = [
-  {
-    id: 10,
-    hashtag: '파티',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 11,
-    hashtag: '파티X',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 12,
-    hashtag: '바다전망',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 13,
-    hashtag: '아침근무X',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 14,
-    hashtag: '동반지원O',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 15,
-    hashtag: '투어가능',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 16,
-    hashtag: '숙식제공',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 17,
-    hashtag: '즉시입도O',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-  {
-    id: 18,
-    hashtag: '객실청소X',
-    hashtagType: 'RECRUIT_HASHTAG',
-  },
-];
+import commonApi from '@utils/api/commonApi';
 
 const {height} = Dimensions.get('window');
 
@@ -73,14 +25,16 @@ export default function EmployFilterModal({
   initialFilters,
   onApply,
 }) {
-  const [tags, setTags] = useState(tagDummy);
-  const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
+  const [tags, setTags] = useState();
+  const [regionsData, setRegionsData] = useState([]);
+  const [selectedRegion, setSelectedRegion] = useState('');
   const [selectedSubRegions, setSelectedSubRegions] = useState([]);
   const [selectedTags, setSelectedTags] = useState([]);
   const [isDirty, setIsDirty] = useState(false);
 
   useEffect(() => {
-    // fetchHashtags(); => 추후 사장님 auth 없이 해시태그 조회하도록 api 변경 후 적용
+    fetchLocations();
+    fetchHashtags();
     if (visible) {
       setSelectedSubRegions(initialFilters.regions);
       setSelectedTags(initialFilters.tags);
@@ -103,7 +57,7 @@ export default function EmployFilterModal({
   };
 
   const currentSubRegions =
-    regions.find(r => r.name === selectedRegion)?.subRegions || [];
+    regionsData.find(r => r.name === selectedRegion)?.subRegions || [];
 
   // 큰 지역 전환
   const handleRegionPress = regionName => {
@@ -111,10 +65,9 @@ export default function EmployFilterModal({
   };
   // 작은 지역 선택
   const handleSubRegionPress = subRegion => {
-    if (selectedSubRegions.includes(subRegion)) {
-      setSelectedSubRegions(prev =>
-        prev.filter(region => region !== subRegion),
-      );
+    const isSelected = selectedSubRegions.some(r => r.id === subRegion.id);
+    if (isSelected) {
+      setSelectedSubRegions(prev => prev.filter(r => r.id !== subRegion.id));
     } else {
       setSelectedSubRegions(prev => [...prev, subRegion]);
     }
@@ -141,39 +94,72 @@ export default function EmployFilterModal({
   );
 
   // 세부 지역
-  const renderSubRegionItem = subRegion => (
-    <TouchableOpacity
-      key={subRegion}
-      style={styles.subRegionItem}
-      onPress={() => handleSubRegionPress(subRegion)}>
-      <View
-        style={[
-          styles.imagePlaceholder,
-          selectedSubRegions.includes(subRegion)
-            ? styles.subRegionItemSelected
-            : '',
-        ]}>
-        <AllIcon width={36} height={36} />
-      </View>
-      <Text
-        style={[
-          FONTS.fs_14_medium,
-          styles.subRegionText,
-          selectedSubRegions.includes(subRegion)
-            ? styles.subRegionTextSelected
-            : '',
-        ]}>
-        {subRegion}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderSubRegionItem = subRegion => {
+    const isSelected = selectedSubRegions.some(r => r.id === subRegion.id);
+    return (
+      <TouchableOpacity
+        key={subRegion.id}
+        style={styles.subRegionItem}
+        onPress={() => handleSubRegionPress(subRegion)}>
+        <View
+          style={[
+            styles.imagePlaceholder,
+            isSelected ? styles.subRegionItemSelected : '',
+          ]}>
+          <AllIcon width={36} height={36} />
+        </View>
+        <Text
+          style={[
+            FONTS.fs_14_medium,
+            styles.subRegionText,
+            isSelected ? styles.subRegionTextSelected : '',
+          ]}>
+          {subRegion.displayName}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   //해시태그 조회
   const fetchHashtags = async () => {
     try {
       const response = await hostEmployApi.getHostHashtags();
       setTags(response.data);
-    } catch (error) {}
+    } catch (error) {
+      console.warn('해시태그 조회 실패:', error);
+    }
+  };
+
+  //지역 조회
+  const fetchLocations = async () => {
+    try {
+      const response = await commonApi.getLocations(); // 실제 호출하는 API 명
+      const locations = response.data;
+
+      // "JEJU_"로 시작하는 것과 나머지를 나눔
+      const jejuSubRegions = locations.filter(loc =>
+        loc.name.startsWith('JEJU_'),
+      );
+      const otherRegions = locations.filter(
+        loc => !loc.name.startsWith('JEJU_'),
+      );
+
+      const formattedRegions = [
+        {
+          name: '제주',
+          subRegions: jejuSubRegions,
+        },
+        {
+          name: '기타',
+          subRegions: otherRegions,
+        },
+      ];
+
+      setRegionsData(formattedRegions);
+      setSelectedRegion('제주'); // 초기 선택값
+    } catch (error) {
+      console.warn('지역 조회 실패:', error);
+    }
   };
 
   // 초기화
@@ -198,7 +184,7 @@ export default function EmployFilterModal({
             {/* 지역 선택 */}
             <View style={styles.regionContainer}>
               <View style={styles.leftRegionList}>
-                {regions.map(renderRegionItem)}
+                {regionsData.map(renderRegionItem)}
               </View>
               <View style={styles.rightSubRegionGrid}>
                 {currentSubRegions.map(renderSubRegionItem)}
@@ -333,7 +319,6 @@ const styles = StyleSheet.create({
     marginLeft: 20,
   },
   subRegionItem: {
-    width: 50,
     alignItems: 'center',
     justifyContent: 'center',
   },

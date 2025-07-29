@@ -125,7 +125,8 @@ const EmailCertificate = ({route}) => {
       console.error('인증번호 전송 실패: ', error?.response?.data?.message);
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message,
+        message:
+          error?.response?.data?.message || '인증번호 전송에 실패했습니다',
         buttonText: '확인',
       });
     }

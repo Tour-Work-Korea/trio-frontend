@@ -5,24 +5,30 @@ import {
   SafeAreaView,
   FlatList,
   TouchableOpacity,
-  Modal,
   Alert,
-  TextInput,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
-import ButtonScarlet from '@components/ButtonScarlet';
-import Person from '@assets/images/Person.svg';
-import Trash from '@assets/images/Trash.svg';
-import styles from './MyRecruitmentList.styles';
-import {FONTS} from '@constants/fonts';
 import hostEmployApi from '@utils/api/hostEmployApi';
+import ButtonScarlet from '@components/ButtonScarlet';
+import ApplyLogo from '@assets/images/wa_blue_apply.svg';
+import styles from './MyRecruitmentList.styles';
+import ErrorModal from '@components/modals/ErrorModal';
+import ResultModal from '@components/modals/ResultModal';
+import LogoBlueSmile from '@assets/images/logo_blue_smile.svg';
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
   const [myRecruits, setMyRecruits] = useState([]);
-  const [modalVisible, setModalVisible] = useState(false);
-  const [cancelReason, setCancelReason] = useState('');
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    title: '',
+    onPress: null,
+    onPress2: null,
+    buttonText: '',
+    buttonText2: '',
+  });
+  const [resultModalVisible, setResultModalVisible] = useState(false);
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
 
   useFocusEffect(
@@ -44,58 +50,52 @@ const MyRecruitmentList = () => {
     navigation.navigate('MyRecruitmentDetail', recruitId);
   };
 
-  const handleViewApplicants = guesthouseId => {
-    navigation.navigate('ApplicantList', guesthouseId);
-  };
-
   const handleDeletePosting = id => {
     setSelectedRecruitId(id);
-    setModalVisible(true);
+    setErrorModal({
+      visible: true,
+      title: '마감 요청은 되돌릴 수 없는 작업이에요\n계속 진행하시겠어요?',
+      onPress2: confirmDelete,
+      onPress: () => setErrorModal(prev => ({...prev, visible: false})),
+      buttonText2: '요청할래요',
+      buttonText: '보류할게요',
+    });
   };
 
   const confirmDelete = () => {
-    if (!cancelReason.trim()) {
-      Alert.alert('취소 사유를 입력해주세요.');
-      return;
-    }
-    Alert.alert(
-      `Deleting posting ${selectedRecruitId} with reason: ${cancelReason}`,
-    );
-    const fetchDeleteRecruit = async () => {
-      try {
-        await hostEmployApi.requestDeleteRecruit(
-          selectedRecruitId,
-          cancelReason,
-        );
-        Alert.alert('성공적으로 삭제 요청했습니다.');
-      } catch (error) {
-        Alert.alert('삭제 요청에 실패했습니다.');
-      }
-    };
+    setErrorModal(prev => ({...prev, visible: false}));
     fetchDeleteRecruit();
-    setModalVisible(false);
-    setCancelReason('');
   };
-
+  const fetchDeleteRecruit = async () => {
+    try {
+      await hostEmployApi.requestDeleteRecruit(selectedRecruitId, '마감요청');
+      setResultModalVisible(true);
+    } catch (error) {
+      setResultModalVisible(true);
+      setErrorModal({
+        visible: true,
+        title: '마감요청 중 오류가 발생했습니다',
+        onPress: () => setErrorModal(prev => ({...prev, visible: false})),
+        onPress2: null,
+        buttonText: '확인',
+        buttonText2: null,
+      });
+    }
+  };
   const renderPostingItem = ({item}) => (
     <TouchableOpacity onPress={() => handleViewDetail(item.recruitId)}>
       <View style={styles.postingCard}>
-        <View style={styles.guestHouseTag}>
-          <Text style={[styles.guestHouseText, FONTS.fs_body]}>
-            {item.guesthouseName}
-          </Text>
-        </View>
+        <Text style={[styles.guestHouseText]}>{item.guesthouseName}</Text>
 
         <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_h2_bold]}>{item.recruitTitle}</Text>
+          <Text style={styles.title} numberOfLines={1} ellipsizeMode="tail">
+            {item.recruitTitle}
+          </Text>
           <View style={styles.iconsContainer}>
             <TouchableOpacity
-              onPress={() => handleViewApplicants(item.guesthouseId)}>
-              <Person />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => handleDeletePosting(item.recruitId)}>
-              <Trash />
+              onPress={() => handleDeletePosting(item.recruitId)}
+              hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
+              <Text style={styles.deleteButton}>마감요청</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -107,48 +107,42 @@ const MyRecruitmentList = () => {
     <SafeAreaView style={styles.container}>
       <Header title="나의 공고" />
       <View style={styles.body}>
-        <ButtonScarlet title="새 공고" to="RecruitmentForm" />
-        <Text style={[styles.headerText, FONTS.fs_body]}>
-          사람 아이콘을 누르면 해당 공고의 지원자를 확인할 수 있어요
-        </Text>
-
-        <FlatList
-          data={myRecruits}
-          renderItem={renderPostingItem}
-          keyExtractor={item => item.recruitId.toString()}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContainer}
-        />
-
-        <Modal
-          visible={modalVisible}
-          animationType="slide"
-          onRequestClose={() => setModalVisible(false)}>
-          <View style={styles.modalOverlay}>
-            <View style={styles.modalContainer}>
-              <Text style={styles.modalTitle}>공고를 취소하시겠습니까?</Text>
-              <TextInput
-                placeholder="취소 사유를 입력하세요"
-                value={cancelReason}
-                onChangeText={setCancelReason}
-                multiline
-              />
-              <View style={styles.modalButtonRow}>
-                <TouchableOpacity
-                  style={styles.modalButtonCancel}
-                  onPress={() => setModalVisible(false)}>
-                  <Text style={styles.modalButtonText}>닫기</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={styles.modalButtonConfirm}
-                  onPress={confirmDelete}>
-                  <Text style={styles.modalButtonText}>제출</Text>
-                </TouchableOpacity>
-              </View>
+        {myRecruits.length === 0 ? (
+          <View style={styles.emptyContainer}>
+            <ApplyLogo width={187} />
+            <View style={styles.textContainer}>
+              <Text style={styles.emptyTitle}>등록한 알바 공고가 없어요</Text>
+              <Text style={styles.emptySubTitle}>
+                지금 바로 공고를 등록 해보세요!
+              </Text>
             </View>
           </View>
-        </Modal>
+        ) : (
+          <FlatList
+            data={myRecruits}
+            renderItem={renderPostingItem}
+            keyExtractor={item => item.recruitId.toString()}
+            showsVerticalScrollIndicator={false}
+          />
+        )}
+        <ButtonScarlet title="새 공고" to="RecruitmentForm" />
+        <ErrorModal
+          title={errorModal.title}
+          buttonText={errorModal.buttonText}
+          buttonText2={errorModal.buttonText2}
+          onPress={errorModal.onPress}
+          onPress2={errorModal.onPress2}
+          visible={errorModal.visible}
+        />
       </View>
+      <ResultModal
+        visible={resultModalVisible}
+        onClose={() => {
+          setResultModalVisible(false);
+        }}
+        title={'마감요청이 되었어요!'}
+        Icon={LogoBlueSmile}
+      />
     </SafeAreaView>
   );
 };

@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text, ScrollView} from 'react-native';
 import dayjs from 'dayjs';
 
@@ -10,21 +10,28 @@ import Buttons from './Buttons';
 import Guesthouses from './Guesthouses';
 import Employ from './Employs';
 
+import Logo from '@assets/images/logo_orange.svg';
+
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
+import useUserStore from '@stores/userStore';
+import {useFocusEffect} from '@react-navigation/native';
 
 const HomeMain = () => {
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [employList, setEmployList] = useState([]);
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
+  const userRole = useUserStore.getState()?.userRole;
 
-  useEffect(() => {
-    tryFetchEmploys();
-    tryFetchGuesthouses();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      tryFetchEmploys();
+      tryFetchGuesthouses();
+    }, [tryFetchEmploys, tryFetchGuesthouses]),
+  );
 
-  const tryFetchGuesthouses = async () => {
+  const tryFetchGuesthouses = useCallback(async () => {
     const today = dayjs();
     const tomorrow = today.add(1, 'day');
 
@@ -45,24 +52,30 @@ const HomeMain = () => {
     } finally {
       setIsGHLoading(false);
     }
-  };
+  }, []);
 
-  const tryFetchEmploys = async () => {
+  const tryFetchEmploys = useCallback(async () => {
     try {
-      const response = await userEmployApi.getRecruits({page: 0, size: 10});
+      const response = await userEmployApi.getRecruits(
+        {page: 0, size: 10},
+        userRole === 'USER',
+      );
       setEmployList(response.data.content);
     } catch (error) {
       console.warn('공고 조회 실패', error);
     } finally {
       setIsEmLoading(false);
     }
-  };
+  }, []);
 
   return (
     <ScrollView
       style={styles.container}
       contentContainerStyle={{paddingHorizontal: 20}}>
-      <Header />
+      {/* 헤더 */}
+      <View style={styles.Header}>
+        <Logo />
+      </View>
 
       {/* 배너 */}
       <View style={styles.boxContainer}>

@@ -13,17 +13,18 @@ export default StyleSheet.create({
   },
   viewFlexBox: {
     gap: 0,
-
-    paddingVertical: 40,
-    paddingHorizontal: 20,
     flex: 1,
     overflow: 'hidden',
     width: '100%',
+    minHeightL: '100%',
+    paddingHorizontal: 20,
+    // justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
     gap: 12,
     alignSelf: 'stretch',
+    marginBottom: 28,
   },
   titleText: {
     ...FONTS.fs_20_bold,

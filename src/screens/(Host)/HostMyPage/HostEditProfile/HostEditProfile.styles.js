@@ -1,5 +1,6 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   outContainer: {
@@ -7,7 +8,7 @@ export default StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   container: {
-    marginHorizontal: 15,
+    marginHorizontal: 20,
     paddingTop: 30,
   },
   profileContainer: {
@@ -21,7 +22,7 @@ export default StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 50,
-    backgroundColor: COLORS.stroke_gray,
+    backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -31,7 +32,7 @@ export default StyleSheet.create({
     bottom: 4,
     width: 24,
     height: 24,
-    backgroundColor: COLORS.gray,
+    backgroundColor: COLORS.grayscale_400,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -55,13 +56,16 @@ export default StyleSheet.create({
     paddingVertical: 8,
   },
   infoLabel: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_500,
   },
   infoRight: {
     flexDirection: 'row',
     alignItems: 'center',
   },
   infoValue: {
-    color: COLORS.black,
+    color: COLORS.grayscale_800,
     marginRight: 8,
+    ...FONTS.fs_14_medium,
   },
 });

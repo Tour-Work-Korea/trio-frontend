@@ -8,6 +8,7 @@ export {default as EmploySearchList} from './(Common)/BottomTabs/Employ/EmploySe
 export {default as EmploySearchResult} from './(Common)/BottomTabs/Employ/EmploySearchResult';
 export {default as EmployMap} from './(Common)/BottomTabs/Employ/EmployMap';
 export {default as EmployDetail} from './(Common)/Employ/EmployDetail';
+export {default as ApplySuccess} from './(User)/Employ/ApplySuccess';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';
 export {default as GuesthouseDetail} from './(Common)/BottomTabs/Guesthouse/GuesthouseDetail';
@@ -15,27 +16,26 @@ export {default as GuesthouseList} from './(Common)/BottomTabs/Guesthouse/Guesth
 export {default as GuesthouseMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseMap';
 export {default as GuesthouseReview} from './(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/GuesthouseSearch';
+export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
+export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
+export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
+export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
 export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/PopularGuesthouseList';
 // 동행
 export {default as Meet} from './(Common)/BottomTabs/Meet';
+export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
+export {default as MeetSearch} from './(Common)/BottomTabs/Meet/MeetSearch';
+export {default as MeetDetail} from './(Common)/Meet/MeetDetail';
+export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
+export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
-
-//
 export {default as EditProfileFieldScreen} from './(Common)/EditProfileFieldScreen';
-export {default as FindId} from './(Common)/FindAuth/FindId';
-export {default as FindPassword} from './(Common)/FindAuth/FindPassword';
 
-// 게하 결제 & 예약
-export {default as RoomDetail} from './(Common)/RoomDetail';
-export {default as GuesthousePayment} from './(Common)/GuesthousePayment';
-export {default as PaymentSuccess} from './(Common)/GuesthousePayment/PaymentSuccess';
-export {default as GuesthouseReservation} from './(Common)/GuesthouseReservation';
-
-//
+//로그인, 회원가입
 export {default as Register} from './(Common)/Register';
 export {default as AgreeDetail} from './(Common)/Register/AgreeDetail';
 export {default as EmailCertificate} from './(Common)/Register/EmailCertificate';
@@ -43,9 +43,15 @@ export {default as PhoneCertificate} from './(Common)/Register/PhoneCertificate'
 export {default as RegisterAgree} from './(Common)/Register/RegisterAgree';
 export {default as RegisterIntro} from './(Common)/Register/RegisterIntro';
 export {default as Result} from './(Common)/Register/Result';
+export {default as Login} from './(Common)/Login';
+export {default as LoginIntro} from './(Common)/Login/LoginIntro';
+export {default as LoginByEmail} from './(Common)/Login/LoginByEmail';
+export {default as VerifyPhone} from './(Common)/Login/VerifyPhone';
+export {default as FindIntro} from './(Common)/Login/FindIntro';
+export {default as FindId} from './(Common)/Login/FindId';
+export {default as FindPassword} from './(Common)/Login/FindPassword';
 
 // (Host)
-export {default as ApplicantDetail} from './(Host)/ApplicantDetail';
 export {default as ApplicantList} from './(Host)/ApplicantList';
 
 // 마이 페이지
@@ -76,12 +82,11 @@ export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegister
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 
 // (User)
-export {default as ApplicantForm} from './(User)/ApplicantForm';
-export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
+export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
-export {default as MyResumeDetail} from './(User)/Employ/MyResumeDetail';
+export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 
@@ -103,4 +108,3 @@ export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegister
 export {default as EXDeeplink} from './EXDeeplink';
 export {default as EXHome} from './EXHome';
 export {default as EXHomePage} from './EXHome/EXHomePage';
-export {default as EXLogin} from './EXLogin';
