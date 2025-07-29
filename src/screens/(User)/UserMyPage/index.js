@@ -99,7 +99,6 @@ const UserMyPage = () => {
             label="지원 현황"
             onPress={() => navigation.navigate('MyApplicantList')}
           />
-          {/* <MenuItem IconComponent={PostReviewIcon} label="나의 공고 리뷰" /> */}
         </View>
         <ButtonScarlet
           title="로그아웃"
@@ -107,7 +106,7 @@ const UserMyPage = () => {
             await tryLogout();
             navigation.reset({
               index: 0,
-              routes: [{name: 'EXLogin'}],
+              routes: [{name: 'Login'}],
             });
           }}
         />
@@ -124,7 +123,7 @@ const MenuItem = ({IconComponent, label, onPress}) => (
       </View>
       <Text style={[FONTS.fs_14_semibold, styles.menuLabel]}>{label}</Text>
     </View>
-    <RightArrow width={24} height={24} />
+    <RightArrow width={24} height={24} style={styles.icon} />
   </TouchableOpacity>
 );
 

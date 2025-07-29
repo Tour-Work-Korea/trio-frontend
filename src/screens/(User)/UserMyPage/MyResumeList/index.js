@@ -1,12 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, SafeAreaView, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
@@ -14,10 +7,10 @@ import ButtonScarlet from '@components/ButtonScarlet';
 
 import styles from './MyResumeList.styles';
 import {COLORS} from '@constants/colors';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import EditIcon from '@assets/images/edit_gray';
 import TrashIcon from '@assets/images/delete_gray.svg';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 /*
  * 나의 이력서 목록 페이지
  */
@@ -90,7 +83,7 @@ const MyResumeList = () => {
           key={item.resumeId}
           style={styles.resumeItem}
           onPress={() => {
-            navigation.navigate('MyResumeDetail', {
+            navigation.navigate('ResumeDetail', {
               id: item.resumeId,
             });
           }}>
@@ -114,7 +107,7 @@ const MyResumeList = () => {
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() =>
-                    navigation.navigate('MyResumeDetail', {
+                    navigation.navigate('ResumeDetail', {
                       id: item.resumeId,
                       isEditable: true,
                     })
@@ -144,14 +137,7 @@ const MyResumeList = () => {
 
   return (
     <SafeAreaView style={styles.container}>
-      <View style={[styles.headerBox]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Chevron_left_black width={28.8} height={28.8} />
-        </TouchableOpacity>
-
-        <Text style={styles.headerText}>나의 이력서</Text>
-        <View style={{width: 28.8}}></View>
-      </View>
+      <Header title={'나의 이력서'} />
       <View style={styles.body}>
         {renderResumeSelection()}
         <ButtonScarlet title="이력서 작성하기" to="ResumeForm" />

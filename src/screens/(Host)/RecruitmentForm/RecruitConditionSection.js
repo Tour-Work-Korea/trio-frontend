@@ -1,31 +1,25 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
 import Calendar from '@assets/images/Calendar.svg';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import {COLORS} from '@constants/colors';
 
 export default function RecruitConditionSection({handleInputChange, formData}) {
   const [showRecruitStart, setShowRecruitStart] = useState(false);
   const [showRecruitEnd, setShowRecruitEnd] = useState(false);
   const [showWorkStartDate, setShowWorkStartDate] = useState(false);
   const [showWorkEndDate, setShowWorkEndDate] = useState(false);
+  const [datePicker, setDatePicker] = useState({
+    visible: false,
+    field: null,
+    value: null,
+  });
 
   const handleDateChange = (event, selectedDate, dateField) => {
     const currentDate = selectedDate || formData[dateField];
-
-    if (dateField === 'recruitStart') {
-      setShowRecruitStart(false);
-    }
-    if (dateField === 'recruitEnd') {
-      setShowRecruitEnd(false);
-    }
-    if (dateField === 'workStartDate') {
-      setShowWorkStartDate(false);
-    }
-    if (dateField === 'workEndDate') {
-      setShowWorkEndDate(false);
-    }
+    setDatePicker(prev => ({...prev, visible: false}));
 
     handleInputChange(dateField, currentDate);
   };
@@ -47,8 +41,18 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.dateInput}
-            onPress={() => setShowRecruitStart(true)}>
-            <Text style={styles.dateLabel}>
+            onPress={() =>
+              setDatePicker({
+                visible: true,
+                field: 'recruitStart',
+                value: formData.recruitStart,
+              })
+            }>
+            <Text
+              style={[
+                styles.dateLabel,
+                formData.recruitStart ? '' : {color: COLORS.grayscale_400},
+              ]}>
               {formData.recruitStart
                 ? new Date(formData.recruitStart).toLocaleDateString('ko-KR')
                 : '시작일자'}
@@ -57,8 +61,18 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.dateInput}
-            onPress={() => setShowRecruitEnd(true)}>
-            <Text style={styles.dateLabel}>
+            onPress={() =>
+              setDatePicker({
+                visible: true,
+                field: 'recruitEnd',
+                value: formData.recruitEnd,
+              })
+            }>
+            <Text
+              style={[
+                styles.dateLabel,
+                formData.recruitEnd ? '' : {color: COLORS.grayscale_400},
+              ]}>
               {formData.recruitEnd
                 ? new Date(formData.recruitEnd).toLocaleDateString('ko-KR')
                 : '마감일자'}
@@ -66,26 +80,6 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
             <Calendar />
           </TouchableOpacity>
         </View>
-        {showRecruitStart && (
-          <DateTimePicker
-            value={formData.recruitStart ?? new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) =>
-              handleDateChange(event, date, 'recruitStart')
-            }
-          />
-        )}
-        {showRecruitEnd && (
-          <DateTimePicker
-            value={formData.recruitEnd ?? new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) =>
-              handleDateChange(event, date, 'recruitEnd')
-            }
-          />
-        )}
       </View>
 
       {/* 근무기간 */}
@@ -94,8 +88,18 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
         <View style={styles.dateRow}>
           <TouchableOpacity
             style={styles.dateInput}
-            onPress={() => setShowWorkStartDate(true)}>
-            <Text style={styles.dateLabel}>
+            onPress={() =>
+              setDatePicker({
+                visible: true,
+                field: 'workStartDate',
+                value: formData.workStartDate,
+              })
+            }>
+            <Text
+              style={[
+                styles.dateLabel,
+                formData.workStartDate ? '' : {color: COLORS.grayscale_400},
+              ]}>
               {formData.workStartDate
                 ? new Date(formData.workStartDate).toLocaleDateString('ko-KR')
                 : '근무 시작일'}
@@ -104,9 +108,19 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
           </TouchableOpacity>
 
           <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowWorkEndDate(true)}>
-            <Text style={styles.dateLabel}>
+            style={[styles.dateInput]}
+            onPress={() =>
+              setDatePicker({
+                visible: true,
+                field: 'workEndDate',
+                value: formData.workEndDate,
+              })
+            }>
+            <Text
+              style={[
+                styles.dateLabel,
+                formData.workEndDate ? '' : {color: COLORS.grayscale_400},
+              ]}>
               {formData.workEndDate
                 ? new Date(formData.workEndDate).toLocaleDateString('ko-KR')
                 : '근무 종료일'}
@@ -114,28 +128,6 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
             <Calendar />
           </TouchableOpacity>
         </View>
-
-        {showWorkStartDate && (
-          <DateTimePicker
-            value={formData.workStartDate ?? new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) =>
-              handleDateChange(event, date, 'workStartDate')
-            }
-          />
-        )}
-
-        {showWorkEndDate && (
-          <DateTimePicker
-            value={formData.workEndDate ?? new Date()}
-            mode="date"
-            display="default"
-            onChange={(event, date) =>
-              handleDateChange(event, date, 'workEndDate')
-            }
-          />
-        )}
       </View>
 
       {/* 모집인원 */}
@@ -143,12 +135,12 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
         <Text style={styles.subsectionTitle}>모집 인원</Text>
         <View style={styles.countRow}>
           <View style={styles.countItem}>
-            <Text style={styles.countLabel}>여자</Text>
             <TextInput
-              style={styles.countInput}
-              placeholder="명"
+              style={styles.input}
+              placeholder="여자"
+              placeholderTextColor={COLORS.grayscale_400}
               keyboardType="numeric"
-              value={formData.recruitNumberFemale.toString()}
+              value={formData?.recruitNumberFemale?.toString()}
               onChangeText={text =>
                 handleNumericInput('recruitNumberFemale', text)
               }
@@ -156,12 +148,12 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
           </View>
 
           <View style={styles.countItem}>
-            <Text style={styles.countLabel}>남자</Text>
             <TextInput
-              style={styles.countInput}
-              placeholder="명"
+              style={styles.input}
+              placeholder="남자"
+              placeholderTextColor={COLORS.grayscale_400}
               keyboardType="numeric"
-              value={formData.recruitNumberMale.toString()}
+              value={formData?.recruitNumberMale?.toString()}
               onChangeText={text =>
                 handleNumericInput('recruitNumberMale', text)
               }
@@ -175,39 +167,51 @@ export default function RecruitConditionSection({handleInputChange, formData}) {
         <Text style={styles.subsectionTitle}>나이</Text>
         <View style={styles.ageRow}>
           <View style={styles.ageItem}>
-            <Text style={styles.ageLabel}>최소 연령</Text>
             <TextInput
-              style={styles.ageInput}
+              style={styles.input}
               placeholder="최소 연령"
+              placeholderTextColor={COLORS.grayscale_400}
               keyboardType="numeric"
-              value={formData.recruitMinAge.toString()}
+              value={formData?.recruitMinAge?.toString()}
               onChangeText={text => handleNumericInput('recruitMinAge', text)}
             />
           </View>
 
           <View style={styles.ageItem}>
-            <Text style={styles.ageLabel}>최대 연령</Text>
             <TextInput
-              style={styles.ageInput}
+              style={styles.input}
               placeholder="최대 연령"
+              placeholderTextColor={COLORS.grayscale_400}
               keyboardType="numeric"
-              value={formData.recruitMaxAge.toString()}
+              value={formData?.recruitMaxAge?.toString()}
               onChangeText={text => handleNumericInput('recruitMaxAge', text)}
             />
           </View>
         </View>
       </View>
-
-      <View style={styles.formGroup}>
+      <View>
+        <Text style={styles.subsectionTitle}>우대조건</Text>
         <TextInput
           style={styles.textArea}
           placeholder="우대조건"
+          placeholderTextColor={COLORS.grayscale_400}
           multiline={true}
           numberOfLines={4}
           value={formData.recruitCondition}
           onChangeText={text => handleInputChange('recruitCondition', text)}
         />
       </View>
+      {datePicker.visible && (
+        <DateTimePicker
+          value={datePicker.value ?? new Date()}
+          mode="date"
+          display="default"
+          onChange={(event, date) =>
+            handleDateChange(event, date, datePicker.field)
+          }
+          on
+        />
+      )}
     </View>
   );
 }

@@ -10,26 +10,29 @@ import NaverLogo from '@assets/images/naver_logo.svg';
 import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import ButtonWhite from '@components/ButtonWhite';
-import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
+import useUserStore from '@stores/userStore';
 
-const RegisterIntro = () => {
-  const [loading, setLoading] = useState(true);
+const LoginIntro = () => {
+  const userRole = useUserStore.getState()?.userRole;
+  const navigation = useNavigation();
+
+  useEffect(() => {
+    if (userRole === undefined) return;
+
+    if (userRole === 'USER' || userRole === 'HOST') {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs'}],
+      });
+    }
+  }, [userRole]);
+
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
   });
 
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 3000);
-  }, []);
-  const navigation = useNavigation();
-
-  if (loading) {
-    return <Loading title="로딩 중..." />;
-  }
   return (
     <SafeAreaView style={styles.signin}>
       <View style={styles.view}>
@@ -44,7 +47,7 @@ const RegisterIntro = () => {
               onPress={() =>
                 setErrorModal({
                   visible: true,
-                  message: '카카오 회원가입 기능은\n구현 중입니다',
+                  message: '카카오 로그인 기능은\n구현 중입니다',
                 })
               }
               Icon={KakaoLogo}
@@ -56,7 +59,7 @@ const RegisterIntro = () => {
               onPress={() =>
                 setErrorModal({
                   visible: true,
-                  message: '네이버 회원가입 기능은\n구현 중입니다',
+                  message: '네이버 로그인 기능은\n구현 중입니다',
                 })
               }
               Icon={NaverLogo}
@@ -65,14 +68,14 @@ const RegisterIntro = () => {
             <ButtonWhite
               title="이메일로 시작하기"
               onPress={() =>
-                navigation.navigate('RegisterAgree', {user: 'USER'})
+                navigation.navigate('LoginByEmail', {userRole: 'USER'})
               }
               Icon={Mail}
             />
           </View>
           <TouchableOpacity
             onPress={() =>
-              navigation.navigate('RegisterAgree', {user: 'HOST'})
+              navigation.navigate('LoginByEmail', {userRole: 'HOST'})
             }>
             <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
           </TouchableOpacity>
@@ -88,4 +91,4 @@ const RegisterIntro = () => {
   );
 };
 
-export default RegisterIntro;
+export default LoginIntro;

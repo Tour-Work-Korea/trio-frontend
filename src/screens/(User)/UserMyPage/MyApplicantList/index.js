@@ -15,6 +15,7 @@ import userEmployApi from '@utils/api/userEmployApi';
 import ButtonWhite from '@components/ButtonWhite';
 import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const MyApplicantList = () => {
   const navigation = useNavigation();
@@ -58,7 +59,7 @@ const MyApplicantList = () => {
     }));
   };
 
-  const renderApplyItem2 = ({item}) => (
+  const renderApplyItem = ({item}) => (
     <View style={styles.RecruitCard}>
       <TouchableOpacity
         onPress={() =>
@@ -102,7 +103,7 @@ const MyApplicantList = () => {
       </TouchableOpacity>
       <TouchableOpacity
         onPress={() =>
-          navigation.navigate('MyResumeDetail', {id: item.resumeId})
+          navigation.navigate('ResumeDetail', {id: item.resumeId})
         }>
         <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_900}}>
           {item.resumeTitle}
@@ -118,18 +119,12 @@ const MyApplicantList = () => {
 
   return (
     <View style={styles.container}>
-      <View style={[styles.headerBox]}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Chevron_left_black width={28.8} height={28.8} />
-        </TouchableOpacity>
+      <Header title={'지원 현황'} />
 
-        <Text style={styles.headerText}>즐겨찾는 공고</Text>
-        <View style={{width: 28.8}}></View>
-      </View>
       <View style={styles.body}>
         <FlatList
           data={applicants}
-          renderItem={renderApplyItem2}
+          renderItem={renderApplyItem}
           keyExtractor={item => item.id}
           showsVerticalScrollIndicator={false}
         />

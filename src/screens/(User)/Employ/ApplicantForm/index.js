@@ -28,6 +28,7 @@ import CheckOrange from '@assets/images/check20_orange.svg';
 import {userApplyAgrees} from '@data/agree';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
@@ -88,7 +89,7 @@ const ApplicantForm = () => {
   };
 
   const handleEditResume = id => {
-    navigation.navigate('MyResumeDetail', {id, isEditable: true});
+    navigation.navigate('ResumeDetail', {id, isEditable: true});
   };
 
   const handleDateChange = (event, selectedDate, dateField) => {
@@ -296,15 +297,8 @@ const ApplicantForm = () => {
   return (
     <View style={styles.container}>
       {/* 헤더 */}
+      <Header title={'채용공고'} />
       <View style={{paddingHorizontal: 20}}>
-        <View style={styles.headerBox}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>채용공고</Text>
-          <View width={28.8} height={28.8} />
-        </View>
-
         <ScrollView style={styles.scrollView}>
           {renderResumeSelection()}
           {/* {renderWorkPeriod()}

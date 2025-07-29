@@ -20,6 +20,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmploySearchList = () => {
   const [searchText, setSearchText] = useState('');
@@ -84,6 +85,7 @@ const EmploySearchList = () => {
     // <SafeAreaView >
     <View style={[styles.container]}>
       {/* 헤더 */}
+      <Header title="채용공고" />
       <View
         style={{
           paddingHorizontal: 20,
@@ -91,14 +93,6 @@ const EmploySearchList = () => {
           gap: 16,
           paddingBottom: 12,
         }}>
-        <View style={[styles.headerBox]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-
-          <Text style={styles.headerText}>채용공고</Text>
-          <View style={{width: 28.8}}></View>
-        </View>
         {/* 검색창 */}
         <View style={[styles.searchInputContainer]}>
           <SearchIcon width={24} height={24} style={styles.searchIcon} />

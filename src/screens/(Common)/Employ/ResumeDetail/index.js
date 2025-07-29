@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
+import {View, ScrollView} from 'react-native';
 import styles from './MyResumeDetail.styles';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {
@@ -7,20 +7,20 @@ import {
   ApplicantExperienceSection,
   ApplicantProfileHeader,
   ApplicantSelfIntroduction,
+  ApplicantTag,
 } from '@components/Employ/ApplicantDetail';
 import userEmployApi from '@utils/api/userEmployApi';
-
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
-import ApplicantTag from '@components/Employ/ApplicantDetail/ApplicationTag';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
 import ErrorModal from '@components/modals/ErrorModal';
 import Loading from '@components/Loading';
+import Header from '@components/Header';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
-const MyResumeDetail = () => {
+const ResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {id, isEditable = false} = route.params || {};
+  const {id, isEditable = false, role = 'USER'} = route.params || {};
   const [originalInfo, setOriginalInfo] = useState();
   const [formData, setFormData] = useState({
     resumeTitle: '',
@@ -40,7 +40,12 @@ const MyResumeDetail = () => {
 
   const tryFetchResumeById = async () => {
     try {
-      const response = await userEmployApi.getResumeById(id);
+      let response;
+      if (role === 'HOST') {
+        response = await hostEmployApi.getApplicantDetail(id);
+      } else {
+        response = await userEmployApi.getResumeById(id);
+      }
       const parsedFormData = {
         resumeTitle: response.data.resumeTitle || '',
         selfIntro: response.data.selfIntro || '',
@@ -86,19 +91,13 @@ const MyResumeDetail = () => {
   };
   return (
     <View style={styles.container}>
+      <Header title={'이력서 수정'} />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
           flexGrow: 1,
           gap: 20,
         }}>
-        <View style={styles.headerBox}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-          <Text style={styles.headerText}>이력서 수정</Text>
-          <View width={28.8} height={28.8} />
-        </View>
         {formData ? (
           <>
             {/* 프로필 */}
@@ -159,4 +158,4 @@ const MyResumeDetail = () => {
   );
 };
 
-export default MyResumeDetail;
+export default ResumeDetail;

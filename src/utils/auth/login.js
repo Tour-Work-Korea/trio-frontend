@@ -20,6 +20,7 @@ export const tryAutoLogin = async () => {
     }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
+    throw new Error('자동 로그인 실패');
   }
 };
 
@@ -57,7 +58,7 @@ const storeLoginInfo = (res, userRole) => {
 
 export const tryLogin = async (email, password, userRole) => {
   try {
-    const res = await authApi.login(email, password);
+    const res = await authApi.login(email, password, userRole);
     storeLoginInfo(res, userRole);
 
     await EncryptedStorage.setItem(

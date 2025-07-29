@@ -6,9 +6,10 @@ import {
   Image,
   Alert,
 } from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import {launchImageLibrary} from 'react-native-image-picker';
+import XBtn from '@assets/images/x_gray.svg';
 
 export default function WorkInfoSection({
   formData,
@@ -70,45 +71,49 @@ export default function WorkInfoSection({
       <View style={styles.divider} />
 
       <View style={styles.formGroup}>
-        <TextInput
-          style={styles.input}
-          placeholder="지역을 입력해주세요"
-          value={formData.location}
-          onChangeText={text => handleInputChange('location', text)}
-        />
-      </View>
+        <View>
+          <Text style={styles.subsectionTitle}>근무지 주소</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="근무지역을 입력해주세요"
+            value={formData.location}
+            onChangeText={text => handleInputChange('location', text)}
+          />
+        </View>
 
-      <View style={styles.formGroup}>
-        <Text style={styles.photoSectionTitle}>근무지 사진</Text>
-        <Text style={styles.photoDescription}>
-          게스트하우스 및 객실 사진을 추가해주세요.
-        </Text>
+        <View>
+          <Text style={styles.subsectionTitle}>근무지 사진</Text>
+          <Text style={styles.description}>
+            게스트하우스 및 객실 사진을 추가해주세요.
+          </Text>
 
-        <View style={styles.photoGrid}>
-          {formData.recruitImage.map((imageObj, index) => (
-            <View key={index} style={styles.photoItem}>
-              <Image
-                source={{uri: imageObj.recruitImageUrl}}
-                style={styles.photo}
-              />
+          <View style={styles.photoGrid}>
+            {formData.recruitImage.map((imageObj, index) => (
+              <View key={index} style={[styles.photoItem]}>
+                <Image
+                  source={{uri: imageObj.recruitImageUrl}}
+                  style={[
+                    styles.addPhotoButton,
+                    imageObj.isThumbnail ? styles.thumbnail : '',
+                  ]}
+                  resizeMode="cover"
+                />
+                <TouchableOpacity
+                  style={styles.removePhotoButton}
+                  onPress={() => removePhoto(index)}>
+                  <XBtn width={12} />
+                </TouchableOpacity>
+              </View>
+            ))}
+
+            {formData.recruitImage.length < 6 && (
               <TouchableOpacity
-                style={styles.removePhotoButton}
-                onPress={() => removePhoto(index)}>
-                <Text style={styles.removePhotoText}>X</Text>
+                style={styles.addPhotoButton}
+                onPress={pickImage}>
+                <Gray_ImageAdd />
               </TouchableOpacity>
-              {imageObj.isThumbnail && (
-                <View style={styles.thumbnailBadge}>
-                  <Text style={styles.thumbnailText}>대표</Text>
-                </View>
-              )}
-            </View>
-          ))}
-
-          {formData.recruitImage.length < 6 && (
-            <TouchableOpacity style={styles.addPhotoButton} onPress={pickImage}>
-              <Gray_ImageAdd />
-            </TouchableOpacity>
-          )}
+            )}
+          </View>
         </View>
       </View>
     </View>

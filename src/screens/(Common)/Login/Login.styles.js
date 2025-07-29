@@ -18,7 +18,7 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    // justifyContent: 'space-between',
+    justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
@@ -96,5 +96,27 @@ export default StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'flex-end',
+  },
+  //결과창
+  signin: {
+    backgroundColor: COLORS.white,
+    flex: 1,
+    color: COLORS.grayscale_900,
+  },
+  logoParent: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    flex: 1,
+    flexDirection: 'column',
+    gap: 20,
+  },
+  view: {
+    paddingVertical: 40,
+    paddingHorizontal: 20,
+    gap: 0,
+    width: '100%',
+    alignItems: 'center',
+    overflow: 'hidden',
+    flex: 1,
   },
 });

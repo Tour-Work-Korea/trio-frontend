@@ -1,26 +1,26 @@
 import React, {useState, useEffect, useCallback} from 'react';
 import {View, Text, TextInput, TouchableOpacity} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import styles from '../Register.styles';
+import {SafeAreaView} from 'react-native-safe-area-context';
+import Logo from '@assets/images/logo_orange.svg';
+import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
 import ErrorModal from '@components/modals/ErrorModal';
-import authApi from '@utils/api/authApi';
-import Logo from '@assets/images/logo_orange.svg';
+import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
 
-const EmailCertificate = ({route}) => {
-  const {user, agreements, phoneNumber} = route.params;
+const VerifyPhone = ({route}) => {
+  const {userRole, find} = route.params;
   const navigation = useNavigation();
-  const [email, setEmail] = useState('');
-  const [isEmailValid, setIsEmailValid] = useState(false);
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const [code, setCode] = useState('');
-  const [isCodeSent, setIsCodeSent] = useState(false);
   const [isCodeValid, setIsCodeValid] = useState(false);
+  const [isCodeSent, setIsCodeSent] = useState(false);
   const [isCodeVerified, setIsCodeVerified] = useState(false);
-  const [timeLeft, setTimeLeft] = useState(300);
+  const [timeLeft, setTimeLeft] = useState(300); // 5분 타이머
   const [isTimerActive, setIsTimerActive] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -33,23 +33,54 @@ const EmailCertificate = ({route}) => {
 
   useFocusEffect(
     useCallback(() => {
-      // 화면에 진입할 때 실행됨 (뒤로 갔다가 다시 돌아올 때도 포함)
-      setEmail('');
-      setIsEmailValid(false);
+      setPhoneNumber('');
+      setIsPhoneNumberValid(false);
       setCode('');
-      setIsCodeSent(false);
       setIsCodeValid(false);
+      setIsCodeSent(false);
       setIsCodeVerified(false);
       setTimeLeft(300);
       setIsTimerActive(false);
-      setErrorModal({
-        visible: false,
-        message: '',
-        buttonText: '',
-      });
+      setErrorModal({visible: false, message: '', buttonText: ''});
       setLoading(false);
     }, []),
   );
+
+  //휴대폰 번호 유효성 확인
+  useEffect(() => {
+    if (phoneNumber.length === 11) {
+      setIsPhoneNumberValid(true);
+    } else {
+      setIsPhoneNumberValid(false);
+    }
+  }, [phoneNumber]);
+
+  //인증 번호 유효성 확인
+  useEffect(() => {
+    if (code.length === 6) {
+      setIsCodeValid(true);
+    } else {
+      setIsCodeValid(false);
+    }
+  }, [code]);
+
+  useEffect(() => {
+    if (isCodeVerified) {
+      setTimeout(() => {
+        if (find === 'email') {
+          navigation.navigate('FindId', {
+            userRole,
+            phoneNumber,
+          });
+        } else {
+          navigation.navigate('FindPassword', {
+            userRole,
+            phoneNumber,
+          });
+        }
+      }, 850);
+    }
+  }, [isCodeVerified]);
 
   // 타이머 기능
   useEffect(() => {
@@ -70,55 +101,14 @@ const EmailCertificate = ({route}) => {
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft]);
 
-  // 이메일 유효성 검사
-  useEffect(() => {
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (emailRegex.test(email)) {
-      setIsEmailValid(true);
-    } else {
-      setIsEmailValid(false);
-    }
-  }, [email]);
-
-  //인증 번호 유효성 확인
-  useEffect(() => {
-    if (code.length === 6) {
-      setIsCodeValid(true);
-    } else {
-      setIsCodeValid(false);
-    }
-  }, [code]);
-
-  useEffect(() => {
-    if (isCodeVerified) {
-      setTimeout(() => {
-        if (user === 'USER') {
-          navigation.navigate('UserRegisterInfo', {
-            agreements,
-            email,
-            phoneNumber,
-          });
-        } else {
-          navigation.navigate('HostRegisterInfo', {
-            agreements,
-            email,
-            phoneNumber,
-          });
-        }
-      }, 850);
-    }
-  }, [isCodeVerified]);
-
-  // 인증번호 전송
+  //인증번호 발송
   const sendVerificationCode = async () => {
     try {
-      await authApi.sendEmail(email, user);
+      await authApi.verifySelfByPhone(phoneNumber, userRole);
       setHasRequestedCode(true);
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
-
-      // 재전송은 30초 이후에만 활성화
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
@@ -138,15 +128,15 @@ const EmailCertificate = ({route}) => {
     sendVerificationCode();
   };
 
-  // 인증번호 확인
+  //인증번호 확인
   const verifyCode = async () => {
     setLoading(true);
     try {
-      await authApi.verifyEmail(email, code);
+      await authApi.verifySms(phoneNumber, code);
       setIsTimerActive(false);
       setIsCodeVerified(true);
     } catch (error) {
-      console.log('모달 띄움');
+      console.error(error);
       setErrorModal({
         visible: true,
         message: error?.response?.data?.message,
@@ -156,8 +146,7 @@ const EmailCertificate = ({route}) => {
       setLoading(false);
     }
   };
-
-  // 타이머 포맷
+  // 타이머 포맷 함수
   const formatTime = seconds => {
     const mins = Math.floor(seconds / 60);
     const secs = seconds % 60;
@@ -172,35 +161,35 @@ const EmailCertificate = ({route}) => {
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
               <Logo width={60} height={29} />
-              <Text style={[styles.titleText]}>이메일 인증</Text>
+              <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>이메일</Text>
+                <Text style={styles.inputLabel}>전화번호</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="이메일을 입력해주세요"
+                    placeholder="전화번호를 입력해주세요"
                     placeholderTextColor={COLORS.grayscale_400}
-                    value={email}
+                    value={phoneNumber}
                     onChangeText={text => {
-                      setEmail(text);
-                      setHasRequestedCode(false);
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setPhoneNumber(filtered);
+                      setHasRequestedCode(false); // 전화번호 변경 → 인증 요청 초기화
                       setIsCodeSent(false);
                       setIsResendEnabled(false);
                     }}
-                    keyboardType="email-address"
-                    autoCapitalize="none"
-                    maxLength={30}
+                    keyboardType="number-pad"
+                    maxLength={11}
                   />
                   <TouchableOpacity
                     onPress={sendVerificationCode}
-                    disabled={!isEmailValid || hasRequestedCode}>
+                    disabled={!isPhoneNumberValid || hasRequestedCode}>
                     <Text
                       style={[
                         styles.inputButton,
-                        isEmailValid && !hasRequestedCode
+                        isPhoneNumberValid && !hasRequestedCode
                           ? {color: COLORS.scarlet}
                           : '',
                       ]}>
@@ -241,8 +230,8 @@ const EmailCertificate = ({route}) => {
                       style={[
                         styles.resendText,
                         hasRequestedCode && isResendEnabled
-                          ? {color: COLORS.scarlet}
-                          : {color: COLORS.grayscale_300},
+                          ? {color: COLORS.primary_orange}
+                          : '',
                       ]}>
                       인증번호 재전송
                     </Text>
@@ -251,53 +240,37 @@ const EmailCertificate = ({route}) => {
               </View>
             </View>
           </View>
-
-          <View>
+          <View style={styles.frameParent}>
             <View style={styles.frameGroup}>
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet
-                  title="인증 성공!"
-                  onPress={() => {
-                    if (user === 'USER') {
-                      navigation.navigate('UserRegisterInfo', {
-                        email,
-                        phoneNumber,
-                      });
-                    } else {
-                      navigation.navigate('HostRegisterInfo', {
-                        email,
-                        phoneNumber,
-                      });
-                    }
-                  }}
-                />
+                <ButtonScarlet title="인증 성공!" />
               ) : isCodeValid ? (
                 <ButtonScarlet title="인증하기" onPress={verifyCode} />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
             </View>
-            {/* 임시 */}
-            {/* <ButtonScarlet
-              title="인증 성공!"
-              onPress={() => {
-                if (user === 'USER') {
-                  navigation.navigate('UserRegisterInfo', {
-                    agreements,
-                    email: 'sal091625@gmail.com',
-                    phoneNumber,
-                  });
-                } else {
-                  navigation.navigate('HostRegisterInfo', {
-                    agreements,
-                    email: 'sal091625@gmail.com',
-                    phoneNumber,
-                  });
-                }
-              }}
-            /> */}
+            {/* 테스트용 */}
+            {/* <View style={styles.frameGroup}>
+              <ButtonScarlet
+                title="인증 성공!"
+                onPress={() => {
+                  if (find === 'email') {
+                    navigation.navigate('FindId', {
+                      userRole,
+                      phoneNumber,
+                    });
+                  } else {
+                    navigation.navigate('FindPassword', {
+                      userRole,
+                      phoneNumber,
+                    });
+                  }
+                }}
+              />
+            </View> */}
           </View>
         </View>
       </SafeAreaView>
@@ -311,4 +284,4 @@ const EmailCertificate = ({route}) => {
   );
 };
 
-export default EmailCertificate;
+export default VerifyPhone;

@@ -1,5 +1,5 @@
 import {View, Text, TextInput} from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
 
 export default function WorkConditionSection({handleInputChange, formData}) {
   return (
@@ -16,18 +16,14 @@ export default function WorkConditionSection({handleInputChange, formData}) {
           value={formData.workType}
           onChangeText={text => handleInputChange('workType', text)}
         />
-      </View>
 
-      <View style={styles.formGroup}>
         <TextInput
           style={styles.input}
           placeholder="주요 업무를 작성해주세요."
           value={formData.workPart}
           onChangeText={text => handleInputChange('workPart', text)}
         />
-      </View>
 
-      <View style={styles.formGroup}>
         <TextInput
           style={styles.input}
           placeholder="복지를 입력해주세요"

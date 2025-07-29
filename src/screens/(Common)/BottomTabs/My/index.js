@@ -13,13 +13,11 @@ import {
   MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
-  ApplicantDetail,
   ApplicantList,
   MyRecruitmentDetail,
   MyRecruitmentList,
   RecruitmentForm,
   ApplicantForm,
-  MyApplicantDetail,
   MyApplicantList,
   MyLikeRecruitList,
   MyResumeList,
@@ -93,7 +91,6 @@ const My = () => {
         component={UserFavoriteGuesthouse}
       />
       <Stack.Screen name="ApplicantList" component={ApplicantList} />
-      <Stack.Screen name="ApplicantDetail" component={ApplicantDetail} />
       <Stack.Screen
         name="MyRecruitmentDetail"
         component={MyRecruitmentDetail}
@@ -101,7 +98,6 @@ const My = () => {
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
-      <Stack.Screen name="MyApplicantDetail" component={MyApplicantDetail} />
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />

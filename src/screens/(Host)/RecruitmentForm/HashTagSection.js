@@ -1,10 +1,11 @@
 import React, {useState, useEffect} from 'react';
 import {View, Text, TouchableOpacity, Alert} from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
 import hostEmployApi from '@utils/api/hostEmployApi';
+import {FONTS} from '@constants/fonts';
 
 const HashTagSection = ({handleInputChange, formData}) => {
-  const [hashtags, setHashtags] = useState();
+  const [tags, setTags] = useState();
 
   useEffect(() => {
     fetchHostHashtags();
@@ -14,7 +15,7 @@ const HashTagSection = ({handleInputChange, formData}) => {
   const fetchHostHashtags = async () => {
     try {
       const response = await hostEmployApi.getHostHashtags();
-      setHashtags(response.data);
+      setTags(response.data);
     } catch (error) {
       Alert.alert('해시태그 조회에 실패했습니다.');
     }
@@ -38,22 +39,24 @@ const HashTagSection = ({handleInputChange, formData}) => {
       <Text style={styles.sectionTitle}>태그</Text>
       <View style={styles.divider} />
 
-      <Text style={styles.tagDescription}>
+      <Text style={styles.description}>
         태그로 공고를 눈에 띄게 나타내보세요! (최대 3개 선택가능)
       </Text>
 
-      <View style={styles.tagGrid}>
-        {hashtags?.map(tag => {
+      <View style={styles.tagSelectRow}>
+        {tags?.map(tag => {
           const isSelected = formData.hashtags?.includes(tag.id);
           return (
             <TouchableOpacity
               key={tag.id}
-              style={[styles.tagButton, isSelected && styles.tagButtonSelected]}
+              style={styles.tagOptionContainer}
               onPress={() => handleTagToggle(tag.id, isSelected)}>
               <Text
                 style={[
-                  styles.tagButtonText,
-                  isSelected && styles.tagButtonTextSelected,
+                  styles.tagOptionText,
+                  FONTS.fs_14_medium,
+                  isSelected && styles.tagOptionSelectedText,
+                  isSelected && FONTS.fs_14_semibold,
                 ]}>
                 {tag.hashtag}
               </Text>

@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView,
+  Platform,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -159,7 +160,7 @@ const UserRegisterProfile = () => {
     );
     if (isSuccessLogin) {
       navigation.navigate('Result', {
-        to: 'BottomTabs',
+        onPress: () => navigation.navigate('MainTabs', {screen: '홈'}),
         nickname: formData.name,
         role: formData.userRole,
       });
@@ -168,7 +169,7 @@ const UserRegisterProfile = () => {
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: 'moveToLogin',
+        onPress: () => navigation.navigate('Login'),
       });
     }
   };
@@ -345,7 +346,7 @@ const UserRegisterProfile = () => {
                       placeholderTextColor={COLORS.grayscale_400}
                       value={formData.passwordConfirm}
                       onChangeText={handlePasswordConfirmChange}
-                      maxLength={10}
+                      maxLength={20}
                       secureTextEntry={!isPasswordCheckVisible}
                     />
                     <TouchableOpacity

@@ -11,11 +11,10 @@ import BottomTabs from '@screens/(Common)/BottomTabs'; // 탭 전체 포함
 import {
   EmployDetail,
   ApplicantForm,
-  MyResumeDetail,
+  ResumeDetail,
   AgreeDetail,
   ApplySuccess,
-  Register,
-  EXLogin,
+  StoreRegister,
   MeetMain,
   MeetSearch,
   MeetDetail,
@@ -25,6 +24,16 @@ import {
   GuesthouseReservation,
   GuesthousePayment,
   GuesthousePaymentSuccess,
+  Login,
+  RegisterIntro,
+  RegisterAgree,
+  SocialLogin,
+  PhoneCertificate,
+  EmailCertificate,
+  UserRegisterInfo,
+  UserRegisterProfile,
+  HostRegisterInfo,
+  Result,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -32,7 +41,7 @@ const Stack = createNativeStackNavigator();
 const RootNavigation = () => (
   <NavigationContainer ref={navigationRef}>
     <Stack.Navigator screenOptions={{headerShown: false}}>
-      <Stack.Screen name="EXLogin" component={EXLogin} />
+      <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="EXHome" component={EXHome} />
       <Stack.Screen name="undefined" component={undefinedStack} />
 
@@ -43,16 +52,35 @@ const RootNavigation = () => (
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
-      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
+      <Stack.Screen
+        name="GuesthouseReservation"
+        component={GuesthouseReservation}
+      />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
-      <Stack.Screen name="GuesthousePaymentSuccess" component={GuesthousePaymentSuccess} />
+      <Stack.Screen
+        name="GuesthousePaymentSuccess"
+        component={GuesthousePaymentSuccess}
+      />
 
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
-      <Stack.Screen name="MyResumeDetail" component={MyResumeDetail} />
+      <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
-      <Stack.Screen name="Register" component={Register} />
+      <Stack.Screen name="StoreRegister" component={StoreRegister} />
+
+      <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
+      <Stack.Screen name="SocialLogin" component={SocialLogin} />
+      <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
+      <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
+      <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
+      <Stack.Screen name="UserRegisterInfo" component={UserRegisterInfo} />
+      <Stack.Screen
+        name="UserRegisterProfile"
+        component={UserRegisterProfile}
+      />
+      <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
+      <Stack.Screen name="Result" component={Result} />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />
@@ -60,7 +88,6 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
-
     </Stack.Navigator>
   </NavigationContainer>
 );

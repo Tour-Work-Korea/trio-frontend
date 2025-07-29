@@ -25,6 +25,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 const EmploySearchResult = ({route}) => {
   const {search} = route.params;
@@ -151,35 +152,19 @@ const EmploySearchResult = ({route}) => {
   return (
     <View style={[styles.container]} contentContainerStyle={{gap: 12}}>
       {/* 헤더 */}
-      <View
-        style={{
-          paddingHorizontal: 20,
-          flexDirection: 'column',
-          gap: 16,
-          paddingBottom: 12,
-        }}>
-        <View style={[styles.headerBox]}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Chevron_left_black width={28.8} height={28.8} />
-          </TouchableOpacity>
-
-          <Text style={styles.headerText}>채용공고</Text>
-          <View style={{width: 28.8}}></View>
-        </View>
-        {/* 검색창 */}
-        <View style={[styles.searchInputContainer]}>
-          <SearchIcon width={24} height={24} style={styles.searchIcon} />
-          <TextInput
-            style={styles.searchInput}
-            placeholderTextColor={COLORS.grayscale_600}
-            value={searchText}
-            onChangeText={setSearchText}
-            returnKeyType="search"
-            onSubmitEditing={() => setIsSearch(true)}
-          />
-        </View>
+      <Header title={'채용공고'} />
+      {/* 검색창 */}
+      <View style={[styles.searchInputContainer]}>
+        <SearchIcon width={24} height={24} style={styles.searchIcon} />
+        <TextInput
+          style={styles.searchInput}
+          placeholderTextColor={COLORS.grayscale_600}
+          value={searchText}
+          onChangeText={setSearchText}
+          returnKeyType="search"
+          onSubmitEditing={() => setIsSearch(true)}
+        />
       </View>
-
       {/* 뽑고 있는 게스트하우스 */}
       <View style={styles.guesthouseListContainer}>
         <View style={styles.guesthouseListHeader}>
@@ -240,7 +225,6 @@ const EmploySearchResult = ({route}) => {
           </TouchableOpacity>
         </View>
       </View>
-
       <EmployFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}

@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, TextInput} from 'react-native';
-import styles from '../../../screens/(Host)/RecruitmentForm/RecruitmentForm';
+import styles from './RecruitmentForm';
+import {COLORS} from '@constants/colors';
 
 export default function DetailInfoSection({formData, handleInputChange}) {
   return (
@@ -12,6 +13,7 @@ export default function DetailInfoSection({formData, handleInputChange}) {
         <TextInput
           style={styles.textArea}
           placeholder="공고에 대한 상세 정보를 입력해주세요."
+          placeholderTextColor={COLORS.grayscale_400}
           multiline={true}
           numberOfLines={4}
           value={formData.recruitDetail}

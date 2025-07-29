@@ -33,13 +33,9 @@ export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
 export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
-
-//
 export {default as EditProfileFieldScreen} from './(Common)/EditProfileFieldScreen';
-export {default as FindId} from './(Common)/FindAuth/FindId';
-export {default as FindPassword} from './(Common)/FindAuth/FindPassword';
 
-//
+//로그인, 회원가입
 export {default as Register} from './(Common)/Register';
 export {default as AgreeDetail} from './(Common)/Register/AgreeDetail';
 export {default as EmailCertificate} from './(Common)/Register/EmailCertificate';
@@ -47,9 +43,15 @@ export {default as PhoneCertificate} from './(Common)/Register/PhoneCertificate'
 export {default as RegisterAgree} from './(Common)/Register/RegisterAgree';
 export {default as RegisterIntro} from './(Common)/Register/RegisterIntro';
 export {default as Result} from './(Common)/Register/Result';
+export {default as Login} from './(Common)/Login';
+export {default as LoginIntro} from './(Common)/Login/LoginIntro';
+export {default as LoginByEmail} from './(Common)/Login/LoginByEmail';
+export {default as VerifyPhone} from './(Common)/Login/VerifyPhone';
+export {default as FindIntro} from './(Common)/Login/FindIntro';
+export {default as FindId} from './(Common)/Login/FindId';
+export {default as FindPassword} from './(Common)/Login/FindPassword';
 
 // (Host)
-export {default as ApplicantDetail} from './(Host)/ApplicantDetail';
 export {default as ApplicantList} from './(Host)/ApplicantList';
 
 // 마이 페이지
@@ -81,11 +83,10 @@ export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegister
 
 // (User)
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
-export {default as MyApplicantDetail} from './(User)/Employ/MyApplicantDetail';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 //
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
-export {default as MyResumeDetail} from './(User)/Employ/MyResumeDetail';
+export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 
@@ -107,4 +108,3 @@ export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegister
 export {default as EXDeeplink} from './EXDeeplink';
 export {default as EXHome} from './EXHome';
 export {default as EXHomePage} from './EXHome/EXHomePage';
-export {default as EXLogin} from './EXLogin';

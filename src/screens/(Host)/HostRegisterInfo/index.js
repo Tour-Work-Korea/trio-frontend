@@ -159,7 +159,6 @@ const HostRegisterInfo = ({route}) => {
         nickname: formData.name,
         role: 'HOST',
       });
-      // afterSuccessRegister();
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -176,7 +175,7 @@ const HostRegisterInfo = ({route}) => {
     try {
       await tryLogin(formData.email, formData.password, 'HOST');
       navigation.navigate('Result', {
-        to: 'BottomTabs',
+        onPress: () => navigation.navigate('MainTabs', {screen: '홈'}),
         nickname: formData.name,
         role: formData.userRole,
       });
@@ -185,29 +184,10 @@ const HostRegisterInfo = ({route}) => {
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: () => navigation.navigate('EXLogin'),
+        onPress: () => navigation.navigate('Login'),
       });
       console.warn('지동 로그인 실패:', error);
     }
-    // const isSuccessLogin = await tryLogin(
-    //   formData.email,
-    //   formData.password,
-    //   'HOST',
-    // );
-    // if (isSuccessLogin) {
-    //   navigation.navigate('Result', {
-    //     to: 'BottomTabs',
-    //     nickname: formData.name,
-    //     role: formData.userRole,
-    //   });
-    // } else {
-    //   setErrorModal({
-    //     visible: true,
-    //     message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
-    //     buttonText: '확인',
-    //     onPress: 'moveToLogin',
-    //   });
-    // }
   };
 
   return (
@@ -223,7 +203,8 @@ const HostRegisterInfo = ({route}) => {
             contentContainerStyle={{flexGrow: 1}}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            <View style={styles.viewFlexBox}>
+            <View
+              style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
               {/* 상단+입력창 */}
               <View>
                 {/* 로고 및 문구 */}
