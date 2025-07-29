@@ -66,10 +66,6 @@ const GuesthouseList = () => {
   // 태그 선택 데이터 (필터에서 온)
   const [selectedTags, setSelectedTags] = useState(guesthouseTags);  // 처음엔 전체 선택
   const [tempSelectedTags, setTempSelectedTags] = useState([]);
-  // console.log로 보여주기(임시)
-  useEffect(() => {
-    console.log("선택된 태그:", selectedTags);
-  }, [selectedTags]);
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
