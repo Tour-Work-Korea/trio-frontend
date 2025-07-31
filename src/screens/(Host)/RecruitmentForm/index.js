@@ -6,6 +6,10 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import styles from './RecruitmentForm';
 import Header from '@components/Header';
@@ -142,53 +146,61 @@ const RecruitmentForm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
-      <Header title="구인공고" />
-      <ScrollView contentContainerStyle={styles.scrollContainer}>
-        {/* 기본정보 섹션 */}
-        <BasicInfoSection
-          isUpdate={recruit != null}
-          handleInputChange={handleInputChange}
-          formData={formData}
-        />
+    <KeyboardAvoidingView
+      style={{flex: 1}}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={80} // 헤더 등 높이에 따라 조정
+    >
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+        <SafeAreaView style={styles.container}>
+          <Header title="구인공고" />
+          <ScrollView contentContainerStyle={styles.scrollContainer}>
+            {/* 기본정보 섹션 */}
+            <BasicInfoSection
+              isUpdate={recruit != null}
+              handleInputChange={handleInputChange}
+              formData={formData}
+            />
 
-        {/* 태그 섹션 */}
-        <HashTagSection
-          handleInputChange={handleInputChange}
-          formData={formData}
-        />
+            {/* 태그 섹션 */}
+            <HashTagSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+            />
 
-        {/* 모집조건 섹션 */}
-        <RecruitConditionSection
-          handleInputChange={handleInputChange}
-          formData={formData}
-        />
+            {/* 모집조건 섹션 */}
+            <RecruitConditionSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+            />
 
-        {/* 근무 조건 섹션 */}
-        <WorkConditionSection
-          handleInputChange={handleInputChange}
-          formData={formData}
-        />
+            {/* 근무 조건 섹션 */}
+            <WorkConditionSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+            />
 
-        {/* 근무지 정보 섹션 */}
-        <WorkInfoSection
-          formData={formData}
-          setFormData={setFormData}
-          handleInputChange={handleInputChange}
-        />
+            {/* 근무지 정보 섹션 */}
+            <WorkInfoSection
+              formData={formData}
+              setFormData={setFormData}
+              handleInputChange={handleInputChange}
+            />
 
-        {/* 상세 소개글 섹션 */}
-        <DetailInfoSection
-          formData={formData}
-          handleInputChange={handleInputChange}
-        />
+            {/* 상세 소개글 섹션 */}
+            <DetailInfoSection
+              formData={formData}
+              handleInputChange={handleInputChange}
+            />
 
-        {/* 버튼 섹션 */}
-        <View style={styles.buttonContainer}>
-          <ButtonScarlet title={'등록하기'} onPress={handleSubmit} />
-        </View>
-      </ScrollView>
-    </SafeAreaView>
+            {/* 버튼 섹션 */}
+            <View style={styles.buttonContainer}>
+              <ButtonScarlet title={'등록하기'} onPress={handleSubmit} />
+            </View>
+          </ScrollView>
+        </SafeAreaView>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
   );
 };
 
