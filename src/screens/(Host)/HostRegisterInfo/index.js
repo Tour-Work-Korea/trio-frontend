@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -17,7 +19,7 @@ import ErrorModal from '@components/modals/ErrorModal';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {tryLogin} from '@utils/auth/login';
 
-import styles from '../../(Common)/Register/Register.styles';
+import styles from './Register.styles';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import Logo from '@assets/images/logo_orange.svg';
@@ -191,7 +193,7 @@ const HostRegisterInfo = ({route}) => {
   };
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           style={{flex: 1}}
@@ -385,11 +387,7 @@ const HostRegisterInfo = ({route}) => {
               </View>
 
               <View>
-                <ButtonScarlet
-                  title="다음"
-                  onPress={handleSubmit}
-                  // disabled={!isFormValid()}
-                />
+                <ButtonScarlet title="다음" onPress={handleSubmit} />
               </View>
             </View>
           </ScrollView>
@@ -407,7 +405,7 @@ const HostRegisterInfo = ({route}) => {
           }
         }}
       />
-    </>
+    </TouchableWithoutFeedback>
   );
 };
 

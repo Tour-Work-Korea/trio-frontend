@@ -1,158 +1,100 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '../../../constants/fonts';
+import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: COLORS.white,
+    flex: 1,
+    color: COLORS.grayscale_900,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
-  scrollView: {
-    flexGrow: 1,
-    padding: 20,
-  },
-  agreementSection: {
-    marginBottom: 20,
-    backgroundColor: COLORS.background_gray,
-    padding: 15,
-    borderRadius: 8,
-  },
-  checkboxRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  checkbox: {
-    width: 20,
-    height: 20,
-    borderRadius: 20,
-    borderWidth: 1,
-    borderColor: COLORS.gray,
-    marginRight: 10,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  checkboxChecked: {
-    backgroundColor: COLORS.scarlet,
-    borderColor: COLORS.scarlet,
-  },
-  checkmark: {
-    color: COLORS.white,
-    fontSize: 12,
-    fontWeight: 'bold',
-  },
-  checkboxLabel: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  requiredAgreements: {
-    marginLeft: 10,
-  },
-  requiredTag: {
-    color: COLORS.scarlet,
-  },
-  verificationSection: {
-    marginBottom: 20,
-    backgroundColor: COLORS.background_gray,
-    padding: 15,
-    borderRadius: 8,
-  },
-  sectionHeader: {
-    flexDirection: 'column',
-  },
-  sectionTitle: {
-    ...FONTS.fs_body_bold,
-    marginBottom: 5,
-  },
-  sectionDescription: {
-    ...FONTS.fs_body,
-    color: COLORS.dark_gray,
-    marginBottom: 10,
-  },
-  verifyButton: {
-    backgroundColor: COLORS.scarlet,
-    paddingVertical: 10,
-    paddingHorizontal: 15,
-    borderRadius: 5,
-    alignSelf: 'flex-end',
-  },
-  verifyButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.white,
-  },
-  inputSection: {
-    marginBottom: 20,
-  },
-  inputLabel: {
-    ...FONTS.fs_body_bold,
-    marginBottom: 10,
-  },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 10,
-  },
-  input: {
+  viewFlexBox: {
+    gap: 0,
     flex: 1,
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.white,
-    ...FONTS.fs_body,
+    overflow: 'hidden',
+    width: '100%',
+    minHeightL: '100%',
+    paddingHorizontal: 20,
+    // justifyContent: 'space-between',
   },
-  fullInput: {
-    height: 45,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 5,
-    paddingHorizontal: 15,
-    backgroundColor: COLORS.white,
-    ...FONTS.fs_body,
+  groupParent: {
+    paddingVertical: 0,
+    gap: 12,
+    alignSelf: 'stretch',
+    marginBottom: 28,
   },
-  verifyCodeButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
+  titleText: {
+    ...FONTS.fs_20_bold,
+    color: COLORS.grayscale_900,
   },
-  verifyCodeButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
+  inputGroup: {
+    marginTop: 40,
+    gap: 20,
   },
-  confirmButton: {
-    backgroundColor: COLORS.white,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 5,
-    marginLeft: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
+  inputContainer: {
+    flexDirection: 'column',
+    gap: 8,
   },
-  confirmButtonText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  disabledButton: {
-    backgroundColor: COLORS.light_gray,
-    borderColor: COLORS.light_gray,
-  },
-  signupButton: {
-    backgroundColor: COLORS.scarlet,
-    paddingVertical: 15,
-    borderRadius: 5,
+  rowBox: {
+    flexDirection: 'row',
+    width: '100%',
     alignItems: 'center',
-    marginTop: 20,
+    justifyContent: 'space-between',
   },
-  signupButtonText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.white,
+  validBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 20,
+    width: '100%',
+  },
+  validDefaultText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+  },
+  validText: {
+    color: COLORS.semantic_green,
+  },
+  invalidText: {
+    color: COLORS.semantic_red,
+  },
+  inputLabel: {...FONTS.fs_16_semibold},
+  inputBox: {
+    backgroundColor: COLORS.white,
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderColor: COLORS.grayscale_200,
+    borderWidth: 1,
+  },
+  textInput: {
+    flex: 1,
+    height: 44,
+    paddingVertical: 0,
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_900,
+  },
+  inputButton: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_400,
+  },
+  inputButtonAbsolute: {
+    position: 'absolute',
+    right: 4,
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  resendText: {...FONTS.fs_12_medium, color: COLORS.grayscale_400},
+  resendContainer: {
+    textAlign: 'right',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'flex-end',
   },
 });

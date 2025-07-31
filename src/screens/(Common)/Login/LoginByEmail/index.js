@@ -1,5 +1,12 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import styles from '../Login.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -53,7 +60,7 @@ export default function LoginByEmail({route}) {
   };
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
@@ -132,6 +139,6 @@ export default function LoginByEmail({route}) {
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </>
+    </TouchableWithoutFeedback>
   );
 }

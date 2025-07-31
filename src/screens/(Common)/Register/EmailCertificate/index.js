@@ -1,5 +1,12 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import styles from '../Register.styles';
@@ -165,7 +172,7 @@ const EmailCertificate = ({route}) => {
   };
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
@@ -279,25 +286,6 @@ const EmailCertificate = ({route}) => {
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
             </View>
-            {/* 임시 */}
-            {/* <ButtonScarlet
-              title="인증 성공!"
-              onPress={() => {
-                if (user === 'USER') {
-                  navigation.navigate('UserRegisterInfo', {
-                    agreements,
-                    email: 'sal091625@gmail.com',
-                    phoneNumber,
-                  });
-                } else {
-                  navigation.navigate('HostRegisterInfo', {
-                    agreements,
-                    email: 'sal091625@gmail.com',
-                    phoneNumber,
-                  });
-                }
-              }}
-            /> */}
           </View>
         </View>
       </SafeAreaView>
@@ -307,7 +295,7 @@ const EmailCertificate = ({route}) => {
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </>
+    </TouchableWithoutFeedback>
   );
 };
 
