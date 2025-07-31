@@ -7,11 +7,9 @@ export default StyleSheet.create({
     backgroundColor: COLORS.white,
   },
   body: {
-    gap: 0,
     flex: 1,
-    overflow: 'hidden',
     width: '100%',
-    minHeightL: '100%',
+    minHeight: '100%',
     paddingHorizontal: 20,
   },
   headerContainer: {

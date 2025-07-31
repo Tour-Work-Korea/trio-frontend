@@ -44,7 +44,12 @@ const hostGuesthouseApi = {
   getHostApplications: () => api.get('/host/my/application'),
 
   // 사장님 입점 신청서 등록
-  postHostApplication: body => api.post('/host/my/application', body),
+  postHostApplication: formData =>
+    api.post('/host/my/application', formData, {
+      headers: {
+        'Content-Type': 'multipart/form-data',
+      },
+    }),
 };
 
 export default hostGuesthouseApi;
