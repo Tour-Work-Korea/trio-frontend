@@ -2,116 +2,99 @@ import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
-    flex: 1,
     backgroundColor: COLORS.white,
+    flex: 1,
+    color: COLORS.grayscale_900,
   },
   keyboardAvoidingView: {
     flex: 1,
   },
-  scrollView: {
-    flexGrow: 1,
-    paddingHorizontal: 20,
-    paddingTop: 40,
-    paddingBottom: 80,
-  },
-  title: {
-    ...FONTS.fs_h1_bold,
-    textAlign: 'center',
-    marginBottom: 40,
-  },
-  inputSection: {
-    marginBottom: 20,
-  },
-  label: {
-    ...FONTS.fs_body_bold,
-    marginBottom: 10,
-  },
-  input: {
-    height: 50,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    ...FONTS.fs_body,
-    justifyContent: 'center',
-  },
-  inputText: {
-    ...FONTS.fs_body,
-    color: COLORS.black,
-  },
-  placeholderText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-  },
-  genderContainer: {
-    flexDirection: 'row',
-    marginTop: 10,
-  },
-  genderOption: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginRight: 40,
-  },
-  radioButton: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginRight: 8,
-  },
-  radioButtonSelected: {
-    borderColor: COLORS.scarlet,
-  },
-  radioButtonInner: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    backgroundColor: COLORS.scarlet,
-  },
-  genderText: {
-    ...FONTS.fs_body,
-  },
-  nicknameContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  nicknameInput: {
+  viewFlexBox: {
+    gap: 0,
     flex: 1,
-    height: 50,
-    borderWidth: 1,
-    borderColor: COLORS.stroke_gray,
-    borderRadius: 8,
-    paddingHorizontal: 15,
-    ...FONTS.fs_body,
+    overflow: 'hidden',
+    width: '100%',
+    minHeightL: '100%',
+    paddingHorizontal: 20,
+    // justifyContent: 'space-between',
   },
-  checkButton: {
-    position: 'absolute',
-    right: 10,
-    paddingHorizontal: 10,
+  groupParent: {
+    paddingVertical: 0,
+    gap: 12,
+    alignSelf: 'stretch',
+    marginBottom: 28,
   },
-  checkButtonText: {
-    ...FONTS.fs_body_small,
-    color: COLORS.scarlet,
+  titleText: {
+    ...FONTS.fs_20_bold,
+    color: COLORS.grayscale_900,
   },
-  nextButton: {
-    backgroundColor: COLORS.scarlet,
-    paddingVertical: 16,
-    borderRadius: 8,
+  inputGroup: {
+    marginTop: 40,
+    gap: 20,
+  },
+  inputContainer: {
+    flexDirection: 'column',
+    gap: 8,
+  },
+  rowBox: {
+    flexDirection: 'row',
+    width: '100%',
     alignItems: 'center',
-    margin: 20,
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
+    justifyContent: 'space-between',
   },
-  nextButtonText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.white,
+  validBox: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 20,
+    width: '100%',
+  },
+  validDefaultText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+  },
+  validText: {
+    color: COLORS.semantic_green,
+  },
+  invalidText: {
+    color: COLORS.semantic_red,
+  },
+  inputLabel: {...FONTS.fs_16_semibold},
+  inputBox: {
+    backgroundColor: COLORS.white,
+    flexDirection: 'row',
+    width: '100%',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    borderRadius: 20,
+    borderColor: COLORS.grayscale_200,
+    borderWidth: 1,
+  },
+  textInput: {
+    flex: 1,
+    height: 44,
+    paddingVertical: 0,
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_900,
+  },
+  inputButton: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_400,
+  },
+  inputButtonAbsolute: {
+    position: 'absolute',
+    right: 4,
+    borderRadius: 100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  resendText: {...FONTS.fs_12_medium, color: COLORS.grayscale_400},
+  resendContainer: {
+    textAlign: 'right',
+    flexDirection: 'row',
+    width: '100%',
+    justifyContent: 'flex-end',
   },
 });
-export default styles;

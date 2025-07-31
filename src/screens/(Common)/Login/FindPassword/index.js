@@ -6,6 +6,8 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
@@ -132,7 +134,7 @@ const FindPassword = ({route}) => {
   }
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           style={{flex: 1}}
@@ -248,15 +250,15 @@ const FindPassword = ({route}) => {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
 
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-      />
-    </>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        />
+      </SafeAreaView>
+    </TouchableWithoutFeedback>
   );
 };
 

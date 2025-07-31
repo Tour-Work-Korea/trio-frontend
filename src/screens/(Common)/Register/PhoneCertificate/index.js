@@ -1,5 +1,12 @@
 import React, {useState, useEffect, useCallback} from 'react';
-import {View, Text, TextInput, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Keyboard,
+} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import Logo from '@assets/images/logo_orange.svg';
@@ -147,7 +154,7 @@ const PhoneCertificate = ({route}) => {
   };
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
@@ -250,29 +257,16 @@ const PhoneCertificate = ({route}) => {
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
             </View>
-            {/* 테스트용 */}
-            {/* <View style={styles.frameGroup}>
-              <ButtonScarlet
-                title="인증 성공!"
-                onPress={() =>
-                  navigation.navigate('EmailCertificate', {
-                    user,
-                    phoneNumber: '01012341234',
-                    agreements,
-                  })
-                }
-              />
-            </View> */}
           </View>
         </View>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        />
       </SafeAreaView>
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-      />
-    </>
+    </TouchableWithoutFeedback>
   );
 };
 

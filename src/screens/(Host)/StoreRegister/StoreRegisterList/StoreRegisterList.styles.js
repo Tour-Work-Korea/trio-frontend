@@ -1,5 +1,6 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 export default StyleSheet.create({
   container: {
     flex: 1,
@@ -35,6 +36,10 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
+  },
+  detailText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_600,
   },
   iconsContainer: {
     flexDirection: 'row',

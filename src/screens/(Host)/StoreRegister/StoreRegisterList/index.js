@@ -15,6 +15,7 @@ import Header from '@components/Header';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {FONTS} from '@constants/fonts';
+import {formatDate, formatLocalDateToDot} from '@utils/formatDate';
 
 const StoreRegisterList = () => {
   const [storeRegisters, setStoreRegisters] = useState([]);
@@ -40,6 +41,12 @@ const StoreRegisterList = () => {
           <Text style={FONTS.fs_16_semibold} numberOfLines={1}>
             {item.businessName}
           </Text>
+          <Text style={styles.detailText}>{formatDate(item.createdAt)}</Text>
+        </View>
+        <Text style={styles.detailText}>{item.address}</Text>
+        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
+          <Text style={styles.detailText}>{item.managerName}</Text>
+          <Text style={styles.detailText}>{item.managerEmail}</Text>
         </View>
       </TouchableOpacity>
     </View>
@@ -52,6 +59,7 @@ const StoreRegisterList = () => {
         <ButtonScarlet title={'입점신청하기'} to={'StoreRegisterForm'} />
 
         <FlatList
+          style={{marginTop: 20}}
           data={storeRegisters}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
