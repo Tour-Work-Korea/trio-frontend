@@ -184,20 +184,6 @@ const UserRegisterInfo = () => {
             ) : (
               <ButtonWhite title="다음" disabled={!isValid} />
             )}
-            {/* <ButtonScarlet
-            title="다음"
-            onPress={() => {
-              setFormData({
-                ...formData,
-                name: 'tester',
-                gender: 'F',
-                birthday: '2000-01-01',
-              });
-              navigation.navigate('UserRegisterProfile', {
-                prevData: formData,
-              });
-            }}
-          /> */}
           </View>
         </View>
       </SafeAreaView>

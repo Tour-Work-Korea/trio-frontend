@@ -7,6 +7,8 @@ import {
   KeyboardAvoidingView,
   ScrollView,
   Platform,
+  TouchableWithoutFeedback,
+  Keyboard,
 } from 'react-native';
 import {SafeAreaView} from 'react-native-safe-area-context';
 import {
@@ -175,7 +177,7 @@ const UserRegisterProfile = () => {
   };
 
   return (
-    <>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <SafeAreaView style={styles.container}>
         <KeyboardAvoidingView
           style={{flex: 1}}
@@ -381,20 +383,20 @@ const UserRegisterProfile = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => {
+            if (errorModal.onPress === 'moveToLogin') {
+              navigation.navigate('EXLogin');
+            } else {
+              setErrorModal(prev => ({...prev, visible: false}));
+            }
+          }}
+        />
       </SafeAreaView>
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => {
-          if (errorModal.onPress === 'moveToLogin') {
-            navigation.navigate('EXLogin');
-          } else {
-            setErrorModal(prev => ({...prev, visible: false}));
-          }
-        }}
-      />
-    </>
+    </TouchableWithoutFeedback>
   );
 };
 

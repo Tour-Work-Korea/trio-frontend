@@ -392,19 +392,19 @@ const HostRegisterInfo = ({route}) => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => {
+            if (errorModal.onPress === 'moveToLogin') {
+              navigation.navigate('EXLogin');
+            } else {
+              setErrorModal(prev => ({...prev, visible: false}));
+            }
+          }}
+        />
       </SafeAreaView>
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => {
-          if (errorModal.onPress === 'moveToLogin') {
-            navigation.navigate('EXLogin');
-          } else {
-            setErrorModal(prev => ({...prev, visible: false}));
-          }
-        }}
-      />
     </TouchableWithoutFeedback>
   );
 };

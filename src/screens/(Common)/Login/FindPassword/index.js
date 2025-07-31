@@ -250,14 +250,14 @@ const FindPassword = ({route}) => {
             </View>
           </View>
         </KeyboardAvoidingView>
-      </SafeAreaView>
 
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-      />
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        />
+      </SafeAreaView>
     </TouchableWithoutFeedback>
   );
 };

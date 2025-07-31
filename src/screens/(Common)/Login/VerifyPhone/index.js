@@ -261,13 +261,13 @@ const VerifyPhone = ({route}) => {
             </View>
           </View>
         </View>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        />
       </SafeAreaView>
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-      />
     </TouchableWithoutFeedback>
   );
 };
