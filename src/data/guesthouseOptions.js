@@ -50,14 +50,14 @@ export const partyOptions = ['필참', '불참가능'];
 export const genderOptions = ['혼숙', '여성전용', '남성전용'];
 
 export const filterServices = [
-  { name: '주차 가능', id: 23 },           // FREE_PARKING
-  { name: '라운지', id: 1 },               // LOUNGE
-  { name: '짐보관', id: 22 },              // BAGGAGE_STORAGE
-  { name: '공항 셔틀', id: 31 },           // AIRPORT_SHUTTLE
-  { name: '개별 샤워실', id: 10 },         // PRIVATE_SHOWER
-  { name: '매일 청소', id: 24 },           // DAILY_CLEANING
-  { name: '금연', id: 30 },                // NON_SMOKING
-  { name: '자전거 대여', id: 25 },         // BICYCLE_RENTAL
-  { name: '에어컨', id: 12 },              // AIR_CONDITIONER
+  { name: '주차 가능', id: [8, 24] },       // 주차장 + 무료주차
+  { name: '라운지', id: 7 },                // LOUNGE
+  { name: '짐보관', id: 23 },               // BAGGAGE_STORAGE
+  { name: '공항 셔틀', id: 30 },            // AIRPORT_SHUTTLE
+  { name: '개별 샤워실', id: 9 },           // PRIVATE_SHOWER
+  { name: '매일 청소', id: 27 },            // DAILY_CLEANING
+  { name: '금연', id: 29 },                 // NON_SMOKING
+  { name: '자전거 대여', id: 28 },          // BICYCLE_RENTAL
+  { name: '에어컨', id: 13 },               // AIR_CONDITIONER
 ];
   

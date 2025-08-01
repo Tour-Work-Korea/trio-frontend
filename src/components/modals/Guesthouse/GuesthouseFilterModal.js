@@ -38,7 +38,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
 
   const [priceRange, setPriceRange] = useState([10000, 10000000]);
   const [selectedRoomType, setSelectedRoomType] = useState([]);
-  const [selectedFacility, setSelectedFacility] = useState([]);
+  const [selectedFacilityNames, setSelectedFacilityNames] = useState([]);
   const [selectedType, setSelectedType] = useState(guesthouseTags); 
   const [onlyAvailable, setOnlyAvailable] = useState(false);
 
@@ -46,7 +46,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
     if (visible && initialFilters) {
       setPriceRange([initialFilters.minPrice, initialFilters.maxPrice]);
       setSelectedRoomType(initialFilters.roomType || []);
-      setSelectedFacility(initialFilters.facility || []);
+      setSelectedFacilityNames(initialFilters.facility || []);
       setSelectedType(initialFilters.tags || guesthouseTags);
       setOnlyAvailable(initialFilters.onlyAvailable || false);
       setIsDirty(false);
@@ -59,7 +59,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
         setIsDirty(isDirtyNow);
     };
     checkDirty();
-  }, [priceRange, selectedRoomType, selectedFacility, selectedType, onlyAvailable]);
+  }, [priceRange, selectedRoomType, selectedFacilityNames, selectedType, onlyAvailable]);
 
   // 초기화 버튼 활성화 여부
   const isEqualToInitialState = (next = {}) => {
@@ -70,10 +70,8 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
       .map(tag => tag.id)
       .sort((a, b) => a - b);
 
-    const selectedFacilityIds = (next.selectedFacility ?? selectedFacility)
-      .map(f => f.id)
-      .sort((a, b) => a - b);
-    const initialFacilityIds = []; // 초기값은 선택 없음
+    const selectedFacilityNamesSet = new Set(next.selectedFacilityNames ?? selectedFacilityNames);
+    const initialFacilityNamesSet = new Set();
 
     return (
       (next.priceRange ?? priceRange)[0] === 10000 &&
@@ -81,7 +79,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
       (next.selectedRoomType ?? selectedRoomType).length === 0 &&
       (next.onlyAvailable ?? onlyAvailable) === false &&
       JSON.stringify(selectedTypeIds) === JSON.stringify(initialTagIds) &&
-      JSON.stringify(selectedFacilityIds) === JSON.stringify(initialFacilityIds)
+      JSON.stringify([...selectedFacilityNamesSet]) === JSON.stringify([...initialFacilityNamesSet])
     );
   };
 
@@ -131,7 +129,7 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
   const handleReset = () => {
     setPriceRange([10000, 10000000]);
     setSelectedRoomType([]); 
-    setSelectedFacility([]);
+    setSelectedFacilityNames([]);
     setSelectedType(guesthouseTags);
     setOnlyAvailable(false);
     setIsDirty(false);
@@ -326,15 +324,15 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>시설/서비스</Text>
               <View style={styles.tagSelectRow}>
                 {filterServices.map((facility) => {
-                const isSelected = selectedFacility.some(f => f.id === facility.id);
+                const isSelected = selectedFacilityNames.includes(facility.name);
                 return (
                     <TouchableOpacity
-                      key={facility.id}
+                      key={facility.name}
                       onPress={() => {
                           if (isSelected) {
-                          setSelectedFacility(prev => prev.filter(f => f.id !== facility.id));
+                            setSelectedFacilityNames(prev => prev.filter(name => name !== facility.name));
                           } else {
-                          setSelectedFacility(prev => [...prev, facility]);
+                            setSelectedFacilityNames(prev => [...prev, facility.name]);
                           }
                           setIsDirty(true);
                       }}
@@ -389,12 +387,15 @@ const GuesthouseFilterModal = ({ visible, onClose, initialFilters, onApply }) =>
               <ButtonScarlet 
                 title="게스트하우스 보기"
                 onPress={() => {
+                    const amenityIds = filterServices
+                      .filter(f => selectedFacilityNames.includes(f.name))
+                      .flatMap(f => f.id);
                     onApply({
                     tags: selectedType,
                     minPrice: priceRange[0],
                     maxPrice: priceRange[1],
                     roomType: selectedRoomType, // 아직 api로 보내지는 않음
-                    facility: selectedFacility,
+                    facility: amenityIds,
                     onlyAvailable,
                     });
                 }}
