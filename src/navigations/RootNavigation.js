@@ -20,6 +20,7 @@ import {
   MeetDetail,
   MeetReservation,
   MeetPaymentSuccess,
+  GuesthouseDetail,
   RoomDetail,
   GuesthouseReservation,
   GuesthousePayment,
@@ -52,15 +53,10 @@ const RootNavigation = () => (
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
-      <Stack.Screen
-        name="GuesthouseReservation"
-        component={GuesthouseReservation}
-      />
+      <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
+      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
-      <Stack.Screen
-        name="GuesthousePaymentSuccess"
-        component={GuesthousePaymentSuccess}
-      />
+      <Stack.Screen name="GuesthousePaymentSuccess" component={GuesthousePaymentSuccess} />
 
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />

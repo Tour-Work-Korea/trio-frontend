@@ -46,6 +46,8 @@ const GuesthouseSearch = () => {
   const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
   // 검색어 입력
   const [searchTerm, setSearchTerm] = useState(route.params?.searchText || '');
+  // 키워드 검색 결과
+  const [keywordResults, setKeywordResults] = useState([]); 
 
   // 선택 날짜, 인원 출력
   const [displayDate, setDisplayDate] = useState('');
@@ -74,30 +76,24 @@ const GuesthouseSearch = () => {
     }, [route.params]),
   );
 
-  // 게하 리스트 페이지 지역 선택으로 이동
-  const goToGuesthouseList = keywordList => {
+  // 게하 리스트 페이지로 지역 선택해서 이동
+  const goToGuesthouseList = (regionIds, regionName) => {
     navigation.navigate('GuesthouseList', {
       displayDate,
-      adultCount: adultCount,
-      childCount: childCount,
-      keywordList,
-      searchText: keywordList,
+      adultCount,
+      childCount,
+      regionIds,
+      searchText: regionName,
     });
   };
 
-  // 검색어로 이동
+  // 검색어 검색 (지역 키워드 호출)
   const handleSearch = async () => {
     try {
       const response = await userGuesthouseApi.searchGuesthouseByKeyword(
         searchTerm.trim(),
       );
-      const keywordList = response.data.map(item => item.keyword);
-      navigation.navigate('GuesthouseList', {
-        displayDate,
-        guestCount: adultCount + childCount,
-        keywordList,
-        searchText: searchTerm,
-      });
+      setKeywordResults(response.data);
     } catch (e) {
       console.warn('키워드 검색 실패', e);
     }
@@ -131,11 +127,11 @@ const GuesthouseSearch = () => {
   // 세부 지역
   const renderSubRegionItem = subRegion => (
     <TouchableOpacity
-      key={subRegion}
+      key={subRegion.name}
       style={styles.subRegionItem}
-      onPress={() => goToGuesthouseList(subRegion)}>
+      onPress={() => goToGuesthouseList(subRegion.regionIds, subRegion.name)}>
       {/* 이미지 대신 회색 박스 */}
-      {subRegion === '제주전체' ? (
+      {subRegion.name === '제주전체' ? (
         <View style={styles.imagePlaceholder}>
           <AllIcon width={36} height={36} />
         </View>
@@ -143,7 +139,7 @@ const GuesthouseSearch = () => {
         <View style={styles.EXimagePlaceholder} />
       )}
       <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
-        {subRegion}
+        {subRegion.name}
       </Text>
     </TouchableOpacity>
   );
@@ -168,12 +164,23 @@ const GuesthouseSearch = () => {
       <View style={styles.searchResultDivider} />
 
       <View style={styles.searchResultSection}>
-        {mockLocationResults.map((location, idx) => (
-          <TouchableOpacity key={idx} style={styles.searchResultRow}>
+        {keywordResults.map(({ id, keyword }) => (
+          <TouchableOpacity
+            key={id}
+            style={styles.searchResultRow}
+            onPress={() =>
+              navigation.navigate('GuesthouseList', {
+                displayDate,
+                adultCount,
+                childCount,
+                keyword: { id, keyword },
+                searchText: keyword,
+              })
+            }>
             <View style={styles.resultIconBox}>
               <SearchIcon width={24} height={24} />
             </View>
-            <Text style={[FONTS.fs_14_medium]}>{location}</Text>
+            <Text style={[FONTS.fs_14_medium]}>{keyword}</Text>
           </TouchableOpacity>
         ))}
       </View>
