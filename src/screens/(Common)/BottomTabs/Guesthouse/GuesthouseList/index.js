@@ -21,6 +21,7 @@ import Star from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import MapIcon from '@assets/images/map_black.svg';
+import SearchEmpty from '@assets/images/search_empty.svg';
 
 import styles from './GuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
@@ -31,7 +32,7 @@ import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortMod
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import { COLORS } from '@constants/colors';
 import Loading from '@components/Loading';
-import EmptyResult from '@components/EmptyResult';
+import EmptyState from '@components/EmptyState';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -359,7 +360,11 @@ const GuesthouseList = () => {
         {!searched && loading ? (
           <Loading title="숙소를 불러오는 중이에요" />
         ) : guesthouses.length === 0 ? (
-          <EmptyResult />
+          <EmptyState
+            icon={SearchEmpty}
+            iconSize={{ width: 120, height: 120 }}
+            title='앗, 찾는 결과가 없어요'
+          />
         ) : (
           <FlatList
             data={guesthouses}
