@@ -11,7 +11,7 @@ import {
 } from 'react-native';
 
 import {useNavigation, useRoute} from '@react-navigation/native';
-import ProfileIcon from '@assets/images/Gray_Person.svg';
+import ProfileIcon from '@assets/images/person20_gray.svg';
 import DeleteIcon from '@assets/images/delete.svg';
 import CalendarIcon from '@assets/images/Calendar.svg';
 import DateTimePicker from '@react-native-community/datetimepicker';

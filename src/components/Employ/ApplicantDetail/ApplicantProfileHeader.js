@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
-import ProfileIcon from '@assets/images/Gray_Person.svg';
+import ProfileIcon from '@assets/images/person20_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 

@@ -31,6 +31,7 @@ import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortMod
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import { COLORS } from '@constants/colors';
 import Loading from '@components/Loading';
+import EmptyResult from '@components/EmptyResult';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -47,9 +48,15 @@ const GuesthouseList = () => {
     displayDate: routeDisplayDate,
     adultCount: routeAdultCount,
     childCount: routeChildCount,
-    keywordList: initialKeywordList = [],
+    keyword: initialKeyword = null,
     searchText,
+    regionIds = [],
   } = route.params || {};
+
+  // 지역을 눌러서 왔는지 검색어로 왔는지 구분
+  const [keyword] = useState(initialKeyword);
+  const isKeywordSearch = !!keyword;
+  const isRegionSearch = regionIds.length > 0;
 
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
@@ -59,10 +66,6 @@ const GuesthouseList = () => {
   // 태그 선택 데이터 (필터에서 온)
   const [selectedTags, setSelectedTags] = useState(guesthouseTags);  // 처음엔 전체 선택
   const [tempSelectedTags, setTempSelectedTags] = useState([]);
-  // console.log로 보여주기(임시)
-  useEffect(() => {
-    console.log("선택된 태그:", selectedTags);
-  }, [selectedTags]);
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
@@ -77,7 +80,7 @@ const GuesthouseList = () => {
 
   // id 값 추출
   const getHashtagIds = (selectedTags) => selectedTags.map(tag => tag.id);
-  const getAmenityIds = (selectedFacility) => selectedFacility.map(service => service.id);
+  const getAmenityIds = (facilities) => [...facilities];
 
   // 정렬 기본 추천순
   const [selectedSort, setSelectedSort] = useState("RECOMMEND");
@@ -86,12 +89,6 @@ const GuesthouseList = () => {
   const [adultCount, setAdultCount] = useState(routeAdultCount || 1);
   const [childCount, setChildCount] = useState(routeChildCount || 0);
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
-
-  // 키워드로 게하 조회
-  const [keywordList] = useState(initialKeywordList);
-  const [currentKeywordIndex, setCurrentKeywordIndex] = useState(0);
-
-  const currentKeyword = keywordList[currentKeywordIndex] || '';
 
   // api 보낼 날짜 데이터
   const [start, end] = displayDateState.split(" - ");
@@ -105,8 +102,7 @@ const GuesthouseList = () => {
   const [sortBy, setSortBy] = useState("RECOMMEND");
 
   // 게하 불러오기
-  // const fetchGuesthouses = async (pageToFetch = 0, keyword = currentKeyword) => {
-  const fetchGuesthouses = async (pageToFetch = 0, keyword = '외도') => {
+  const fetchGuesthouses = async (pageToFetch = 0) => {
     if (loading || isLast || error) return;
     setLoading(true);
 
@@ -119,9 +115,19 @@ const GuesthouseList = () => {
         guestCount,
         page: pageToFetch,
         size: 10,
-        keyword,
         sortBy,
       };
+
+      // 키워드 검색인 경우
+      if (isKeywordSearch) {
+        params.keyword = keyword.keyword;
+        params.keywordId = keyword.id;
+      }
+
+      // 지역 검색인 경우
+      if (isRegionSearch) {
+        params.regionIds = regionIds;
+      }
 
       // 필터 적용 시 조건 분기
       if (filterApplied) {
@@ -144,20 +150,7 @@ const GuesthouseList = () => {
       const { content, last } = response.data;
 
       setGuesthouses(prev => pageToFetch === 0 ? content : [...prev, ...content]);
-      if (last) {
-        if (currentKeywordIndex + 1 < keywordList.length) {
-          // 다음 키워드로 넘어갈 때 즉시 0페이지 호출
-          const nextKeywordIndex = currentKeywordIndex + 1;
-          setCurrentKeywordIndex(nextKeywordIndex);
-          setPage(0);
-          setIsLast(false);
-          return;
-        } else {
-          setIsLast(true);
-        }
-      } else {
-        setIsLast(false);
-      }
+      setIsLast(last);
     } catch (e) {
       setError(true); // 한번이라도 실패하면 더이상 호출X
       setIsLast(true); // (추가) 무한호출도 막음
@@ -167,42 +160,12 @@ const GuesthouseList = () => {
     }
   };
 
-  // 검색 후 리스트 불러오는 함수
-  const handleSearch = () => {
-    setSearched(true);
-    fetchGuesthouses(0);
-  };
-
-  // 무한스크롤
   useEffect(() => {
     fetchGuesthouses(page);
-  }, [page, currentKeyword, sortBy]);
-
-  useFocusEffect(
-    React.useCallback(() => {
-      // 검색을 이미 한 상태에서만 새로고침
-      if (searched) {
-        setPage(0);
-        setIsLast(false);
-        setError(false);
-        setGuesthouses([]);
-        fetchGuesthouses(0);
-      }
-    }, [searched])
-  );
+  }, [page, keyword, sortBy, filterOptions, filterApplied]);
 
   const handleEndReached = () => {
     if (loading) return;
-    if (isLast) {
-      // 다음 키워드가 있다면
-      if (currentKeywordIndex + 1 < keywordList.length) {
-        const nextKeywordIndex = currentKeywordIndex + 1;
-        setCurrentKeywordIndex(nextKeywordIndex);
-        setPage(0); // 다음 키워드 첫 페이지
-        setIsLast(false);
-      }
-      return; // 다음 keyword 넘어갔으면 page +1 하지 않도록
-    }
     // 마지막이 아니라면 현재 페이지 계속
     setPage(prev => prev + 1);
   };
@@ -395,6 +358,8 @@ const GuesthouseList = () => {
 
         {!searched && loading ? (
           <Loading title="숙소를 불러오는 중이에요" />
+        ) : guesthouses.length === 0 ? (
+          <EmptyResult />
         ) : (
           <FlatList
             data={guesthouses}
@@ -470,6 +435,7 @@ const GuesthouseList = () => {
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filterOptions}
         onApply={(filters) => {
+           console.log('[필터 적용됨] 받은 filters:', filters);
           setSelectedTags(filters.tags);
           setFilterOptions(filters);
           setFilterApplied(true);

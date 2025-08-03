@@ -6,9 +6,9 @@ import {
   useRoute,
 } from '@react-navigation/native';
 
-import PersonIcon from '@assets/images/Gray_Person.svg';
-import PlusIcon from '@assets/images/plus.svg';
-import RightArrow from '@assets/images/gray_chevron_right.svg';
+import PersonIcon from '@assets/images/person20_gray.svg';
+import PlusIcon from '@assets/images/plus_gray.svg';
+import RightArrow from '@assets/images/chevron_right_gray.svg';
 
 import Header from '@components/Header';
 import styles from './UserEditProfile.styles';

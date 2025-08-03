@@ -1,9 +1,8 @@
-<svg width="32" height="26" viewBox="0 0 32 26" fill="none" xmlns="http://www.w3.org/2000/svg">
-<g id="Home">
-<g id="Icon">
-<path d="M4.31641 9.53814L16.0727 2.22314L27.8289 9.53814V21.0331C27.8289 21.5874 27.5537 22.119 27.0637 22.511C26.5738 22.9029 25.9093 23.1231 25.2164 23.1231H6.92891C6.23603 23.1231 5.57153 22.9029 5.08159 22.511C4.59165 22.119 4.31641 21.5874 4.31641 21.0331V9.53814Z" fill="#7153DD"/>
-<path d="M12.1539 23.1231V12.6731H19.9914V23.1231" fill="#7153DD"/>
-<path d="M12.1539 23.1231V12.6731H19.9914V23.1231M4.31641 9.53814L16.0727 2.22314L27.8289 9.53814V21.0331C27.8289 21.5874 27.5537 22.119 27.0637 22.511C26.5738 22.9029 25.9093 23.1231 25.2164 23.1231H6.92891C6.23603 23.1231 5.57153 22.9029 5.08159 22.511C4.59165 22.119 4.31641 21.5874 4.31641 21.0331V9.53814Z" stroke="white" stroke-width="0.312349" stroke-linecap="round" stroke-linejoin="round"/>
-</g>
-</g>
+<svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+<rect x="4" y="2" width="17" height="20" rx="2" stroke="#FE4401" stroke-width="2"/>
+<rect x="9.50098" y="6.5" width="1" height="1" rx="0.5" stroke="#FE4401"/>
+<rect x="9.50098" y="10.5" width="1" height="1" rx="0.5" stroke="#FE4401"/>
+<rect x="14.499" y="6.5" width="1" height="1" rx="0.5" stroke="#FE4401"/>
+<rect x="14.499" y="10.5" width="1" height="1" rx="0.5" stroke="#FE4401"/>
+<rect x="7.99902" y="17" width="9" height="5" rx="1" stroke="#FE4401" stroke-width="2"/>
 </svg>
