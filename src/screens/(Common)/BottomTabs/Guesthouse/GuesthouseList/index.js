@@ -80,7 +80,7 @@ const GuesthouseList = () => {
 
   // id 값 추출
   const getHashtagIds = (selectedTags) => selectedTags.map(tag => tag.id);
-  const getAmenityIds = (selectedFacility) => selectedFacility.map(service => service.id);
+  const getAmenityIds = (facilities) => [...facilities];
 
   // 정렬 기본 추천순
   const [selectedSort, setSelectedSort] = useState("RECOMMEND");
@@ -160,10 +160,9 @@ const GuesthouseList = () => {
     }
   };
 
-  // 무한스크롤
   useEffect(() => {
     fetchGuesthouses(page);
-  }, [page, keyword, sortBy]);
+  }, [page, keyword, sortBy, filterOptions, filterApplied]);
 
   const handleEndReached = () => {
     if (loading) return;
@@ -436,6 +435,7 @@ const GuesthouseList = () => {
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filterOptions}
         onApply={(filters) => {
+           console.log('[필터 적용됨] 받은 filters:', filters);
           setSelectedTags(filters.tags);
           setFilterOptions(filters);
           setFilterApplied(true);

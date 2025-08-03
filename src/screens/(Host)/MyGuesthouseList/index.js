@@ -57,7 +57,7 @@ const MyGuesthouseList = () => {
   // 입점신청서 선택
   const handleAppSelect = (item) => {
     setShowAppList(false);
-    navigation.navigate('MyGuesthouseAddEdit', { applicationId: item.id, application: item });
+    navigation.navigate('MyGuesthouseAddEdit', { applicationId: item.id });
   };
 
   // 게스트 하우스 삭제
