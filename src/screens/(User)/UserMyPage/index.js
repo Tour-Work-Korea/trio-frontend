@@ -2,8 +2,6 @@ import React from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import PersonIcon from '@assets/images/person20_gray.svg';
-import SettingIcon from '@assets/images/settings_gray.svg';
 import FavoriteGuesthouseIcon from '@assets/images/user-favorite-guesthouse-icon.svg';
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
@@ -11,8 +9,8 @@ import FavoritePostIcon from '@assets/images/user-favorite-post-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 
-import Header from '@components/Header';
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
@@ -61,7 +59,7 @@ const UserMyPage = () => {
               />
             ) : (
               <View style={styles.profileImage}>
-                <PersonIcon width={32} height={32} />
+                <EmptyImage width={32} height={32} />
               </View>
             )}
             <View style={styles.profilePlaceholder}>

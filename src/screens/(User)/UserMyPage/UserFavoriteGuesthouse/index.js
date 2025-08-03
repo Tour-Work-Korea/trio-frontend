@@ -36,7 +36,11 @@ const UserFavoriteGuesthouse = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={fixedImage} style={styles.image} />
+      <Image
+        source={{ uri: item.thumbnailImgUrl }}
+        style={styles.image}
+        resizeMode="cover"
+      />
       <View style={styles.content}>
         <Text style={FONTS.fs_h2_bold}>{item.name}</Text>
         <Text style={FONTS.fs_body}>{item.address}</Text>
