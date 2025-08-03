@@ -4,7 +4,7 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_100,
   },
   card: {
     flexDirection: 'row',

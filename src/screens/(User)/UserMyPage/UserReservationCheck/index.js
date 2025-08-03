@@ -40,7 +40,7 @@ const UserReservationCheck = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="게하 예약 리스트" />
+      <Header title="예약내역" />
       <FlatList
         data={reservations}
         keyExtractor={item => item.id.toString()}

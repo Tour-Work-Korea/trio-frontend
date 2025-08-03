@@ -95,7 +95,7 @@ const UserMyPage = () => {
               />
               <MenuItem
                 IconComponent={ReservationCheckIcon}
-                label="예약 조회"
+                label="예약 내역"
                 onPress={() => navigation.navigate('UserReservationCheck')}
               />
               <MenuItem
@@ -113,7 +113,7 @@ const UserMyPage = () => {
             <View style={styles.menuContainer}>
               <MenuItem
                 IconComponent={FavoritePostIcon}
-                label="즐겨찾는 공고"
+                label="즐겨찾는 알바"
                 onPress={() => navigation.navigate('MyLikeRecruitList')}
               />
               <MenuItem
