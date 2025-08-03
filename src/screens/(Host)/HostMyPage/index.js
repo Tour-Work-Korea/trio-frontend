@@ -2,15 +2,15 @@ import React from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import PersonIcon from '@assets/images/Gray_Person.svg';
-import SettingIcon from '@assets/images/Gray_Setting.svg';
+import PersonIcon from '@assets/images/person20_gray.svg';
+import SettingIcon from '@assets/images/settings_gray.svg';
 import MyGuesthouseIcon from '@assets/images/host-my-guesthouse-icon.svg';
 import ReservationCheckIcon from '@assets/images/host-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/host-guesthouse-review-icon.svg';
 import StoreApplyIcon from '@assets/images/host-store-apply-icon.svg';
 import MyPostIcon from '@assets/images/host-my-post-icon.svg';
 import ApplicationCheckIcon from '@assets/images/host-application-check-icon.svg';
-import RightArrow from '@assets/images/gray_chevron_right.svg';
+import RightArrow from '@assets/images/chevron_right_gray.svg';
 
 import Header from '@components/Header';
 import styles from './HostMyPage.styles';
