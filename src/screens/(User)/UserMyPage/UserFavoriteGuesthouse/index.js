@@ -36,7 +36,11 @@ const UserFavoriteGuesthouse = () => {
 
   const renderItem = ({ item }) => (
     <View style={styles.card}>
-      <Image source={fixedImage} style={styles.image} />
+      <Image
+        source={{ uri: item.thumbnailImgUrl }}
+        style={styles.image}
+        resizeMode="cover"
+      />
       <View style={styles.content}>
         <Text style={FONTS.fs_h2_bold}>{item.name}</Text>
         <Text style={FONTS.fs_body}>{item.address}</Text>
@@ -55,7 +59,7 @@ const UserFavoriteGuesthouse = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="게하 좋아요 누른 리스트" />
+      <Header title="즐겨찾는 게하" />
       <FlatList
         data={guesthouses}
         keyExtractor={item => item.id.toString()}
