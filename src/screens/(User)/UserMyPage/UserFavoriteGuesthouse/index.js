@@ -55,7 +55,7 @@ const UserFavoriteGuesthouse = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="게하 좋아요 누른 리스트" />
+      <Header title="즐겨찾는 게하" />
       <FlatList
         data={guesthouses}
         keyExtractor={item => item.id.toString()}
