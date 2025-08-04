@@ -7,9 +7,24 @@ import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
 import EmptyState from '@components/EmptyState';
+import ReservationCancelDetailModal from '@components/modals/UserMy/Guesthouse/ReservationCancelDetailModal';
 
 export default function UserCancelledReservations({ data }) {
   const navigation = useNavigation();
+
+  // 모달
+  const [selectedCancelledId, setSelectedCancelledId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const openModal = (cancelledId) => {
+    setSelectedCancelledId(cancelledId);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedCancelledId(null);
+  };
 
   const renderItem = ({ item, index }) => {
       const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
@@ -17,7 +32,7 @@ export default function UserCancelledReservations({ data }) {
   
       return (
         <View style={styles.container}>
-          <TouchableOpacity style={styles.card}>
+          <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
             <View style={styles.guesthouseInfo}>
               <Image
                 source={{ uri: item.guesthouseImage }}
@@ -53,25 +68,35 @@ export default function UserCancelledReservations({ data }) {
     };
 
   return (
-    <FlatList
-      data={data}
-      keyExtractor={item => item.reservationId.toString()}
-      renderItem={renderItem}
-      contentContainerStyle={{
-        flexGrow: 1,
-        justifyContent: data.length === 0 ? 'center' : 'flex-start',
-      }}
-      ListEmptyComponent={
-        <EmptyState
-          icon={SearchEmpty}
-          iconSize={{ width: 120, height: 120 }}
-          title="취소내역이 없어요"
-          description="게스트하우스를 예약하러 가볼까요?"
-          buttonText="게스트하우스 찾아보기"
-          onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
-        />
-      }
-    />
+    <>
+      <FlatList
+        data={data}
+        keyExtractor={item => item.reservationId.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: data.length === 0 ? 'center' : 'flex-start',
+        }}
+        ListEmptyComponent={
+          <EmptyState
+            icon={SearchEmpty}
+            iconSize={{ width: 120, height: 120 }}
+            title="취소내역이 없어요"
+            description="게스트하우스를 예약하러 가볼까요?"
+            buttonText="게스트하우스 찾아보기"
+            onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+          />
+        }
+      />
+
+      {/* 상세 모달 */}
+      <ReservationCancelDetailModal
+        visible={modalVisible}
+        onClose={closeModal}
+        reservationId={selectedCancelledId}
+      />
+
+    </>
   );
 }
 

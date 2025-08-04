@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal } from 'react-native';
+import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal, ScrollView } from 'react-native';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
@@ -28,7 +28,7 @@ const mockPastReservation = [
   },
 ];
 
-export default function ReservationDetailModal({
+export default function ReservationCancelDetailModal({
   visible,
   onClose,
   reservation = mockPastReservation[0], // 기본값 mock 데이터,
@@ -47,23 +47,8 @@ export default function ReservationDetailModal({
         <View style={styles.modalContainer}>
           {/* 헤더 */}
           <View style={styles.header}>
-            <Text style={[FONTS.fs_18_semibold]}>상세내역</Text>
+            <Text style={[FONTS.fs_18_semibold]}>취소 상세내역</Text>
           </View>
-
-          {/* 예약자 정보 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>이름</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationUserName}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>전화번호</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>010-0000-0000</Text>
-            </View>
-          </View>
-
-          <View style={styles.devide}/>
 
           {/* 예약 정보 */}
           <View style={styles.section}>
@@ -83,20 +68,38 @@ export default function ReservationDetailModal({
           {/* 결제 정보 */}
           <View style={styles.section}>
             <View style={styles.row}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>결제 정보</Text>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>취소/환불 정보</Text>
               <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
                 2025.04.15 (화) 18:59
               </Text>
             </View>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>결제가격</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationAmount.toLocaleString()}원</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>
+                (취소){' '}
+                <Text style={{ textDecorationLine: 'line-through' }}>
+                  {reservation.reservationAmount.toLocaleString()}원
+                </Text>
+              </Text>
             </View>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>결제 수단</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.paymentMethod}</Text>
             </View>
           </View>
+
+          {/* 환불 정책 내용 */}
+          <ScrollView style={styles.policyContainer}>
+            <Text style={[FONTS.fs_14_medium, styles.policyText]}>
+              [환불 정책 안내]
+              {'\n'}- 체크인 7일 전 취소 시: 전액 환불
+              {'\n'}- 체크인 3일 전 취소 시: 결제 금액의 50% 환불
+              {'\n'}- 체크인 당일 취소 시: 환불 불가
+              {'\n\n'}※ 환불 금액은 결제 수단 및 환불 시점에 따라
+              영업일 기준 3~7일 내 처리됩니다.
+              {'\n'}※ 자세한 환불 규정은 [이용 약관]을 참조해주세요.
+            </Text>
+          </ScrollView>
 
           {/* 닫기 버튼 */}
           <View style={styles.closeButton}>
@@ -125,6 +128,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingBottom: 40,
+    minHeight: '80%',
   },
   // 헤더
   header: {
@@ -157,6 +161,20 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
   
+  // 환불 정책
+  policyContainer: {
+    maxHeight: '50%',
+    marginTop: 12,
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 8,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+  },
+  policyText: {
+    color: COLORS.grayscale_700,
+    lineHeight: 20,
+  },
+
   devide: {
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,
@@ -164,6 +182,10 @@ const styles = StyleSheet.create({
   },
 
   closeButton: {
+    alignSelf: 'center',
+    position: 'absolute',
     marginTop: 12,
+    bottom: 40,
+    width: '100%',
   },
 });
