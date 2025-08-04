@@ -24,6 +24,7 @@ import {
   ResumeForm,
   EditProfileFieldScreen,
   EmployDetail,
+  UserGuesthouseReview,
 } from '@screens';
 
 import {Alert} from 'react-native';
@@ -82,6 +83,7 @@ const My = () => {
         component={MyGuesthouseReviewList}
       />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
+      <Stack.Screen name="UserGuesthouseReview" component={UserGuesthouseReview} />
       <Stack.Screen
         name="UserReservationCheck"
         component={UserReservationCheck}

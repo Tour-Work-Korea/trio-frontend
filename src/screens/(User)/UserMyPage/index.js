@@ -101,6 +101,7 @@ const UserMyPage = () => {
               <MenuItem
                 IconComponent={GuesthouseReviewIcon}
                 label="나의 게하 리뷰"
+                onPress={() => navigation.navigate('UserGuesthouseReview')}
               />
             </View>
           </View>

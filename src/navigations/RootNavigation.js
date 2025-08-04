@@ -35,6 +35,7 @@ import {
   UserRegisterProfile,
   HostRegisterInfo,
   Result,
+  UserGuesthouseReviewForm,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -77,6 +78,9 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
       <Stack.Screen name="Result" component={Result} />
+
+      {/* 유저 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="UserGuesthouseReviewForm" component={UserGuesthouseReviewForm} />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />

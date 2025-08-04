@@ -98,6 +98,9 @@ export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
 // 게하 예약 목록
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
+// 게하 리뷰
+export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
+export {default as UserGuesthouseReviewForm} from './(User)/UserMyPage/UserGuesthouseReview/UserGuesthouseReviewForm';
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
