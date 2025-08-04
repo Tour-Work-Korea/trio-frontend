@@ -123,7 +123,7 @@ const GuesthouseReservation = ({ route }) => {
       //   amount: roomPrice,
       // });
       // 결제 화면 주석
-      navigation.navigate('PaymentSuccess');
+      navigation.navigate('GuesthousePaymentSuccess');
 
     } catch (err) {
       Alert.alert('예약 실패', '오류가 발생했습니다.');

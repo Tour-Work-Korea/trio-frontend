@@ -1,5 +1,5 @@
-import React from 'react';
-import { View, Text, FlatList, Image, StyleSheet } from 'react-native';
+import React, { useEffect, useState } from 'react';
+import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
@@ -7,9 +7,24 @@ import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
+import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/ReservationDetailModal';
 
 export default function UserUpcomingReservations({ data }) {
   const navigation = useNavigation();
+
+  // 모달
+  const [selectedReservationId, setSelectedReservationId] = useState(null);
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const openModal = (reservationId) => {
+    setSelectedReservationId(reservationId);
+    setModalVisible(true);
+  };
+
+  const closeModal = () => {
+    setModalVisible(false);
+    setSelectedReservationId(null);
+  };
 
   const renderItem = ({ item, index }) => {
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
@@ -17,7 +32,7 @@ export default function UserUpcomingReservations({ data }) {
 
     return (
       <View style={styles.container}>
-        <View style={styles.card}>
+        <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
           <View style={styles.guesthouseInfo}>
             <Image
               source={{ uri: item.guesthouseImage }}
@@ -41,33 +56,46 @@ export default function UserUpcomingReservations({ data }) {
               <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
             </View>
           </View>
-        </View>
-        <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
+        </TouchableOpacity>
+
+        <TouchableOpacity>
+          <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
+        </TouchableOpacity>
+  
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
     );
   };
 
   return (
-    <FlatList
-      data={data}
-      keyExtractor={item => item.reservationId.toString()}
-      renderItem={renderItem}
-      contentContainerStyle={{
-        flexGrow: 1,
-        justifyContent: data.length === 0 ? 'center' : 'flex-start',
-      }}
-      ListEmptyComponent={
-        <EmptyState
-          icon={SearchEmpty}
-          iconSize={{ width: 120, height: 120 }}
-          title="예약내역이 없어요"
-          description="게스트하우스를 예약하러 가볼까요?"
-          buttonText="게스트하우스 찾아보기"
-          onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
-        />
-      }
-    />
+    <>
+      <FlatList
+        data={data}
+        keyExtractor={item => item.reservationId.toString()}
+        renderItem={renderItem}
+        contentContainerStyle={{
+          flexGrow: 1,
+          justifyContent: data.length === 0 ? 'center' : 'flex-start',
+        }}
+        ListEmptyComponent={
+          <EmptyState
+            icon={SearchEmpty}
+            iconSize={{ width: 120, height: 120 }}
+            title="예약내역이 없어요"
+            description="게스트하우스를 예약하러 가볼까요?"
+            buttonText="게스트하우스 찾아보기"
+            onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+          />
+        }
+      />
+
+      {/* 상세 모달 */}
+      <ReservationDetailModal
+        visible={modalVisible}
+        onClose={closeModal}
+        reservationId={selectedReservationId}
+      />
+    </>
   );
 }
 
@@ -132,7 +160,6 @@ const styles = StyleSheet.create({
   },
   devideText: {
     marginHorizontal: 16,
-    flex: 1,
     alignSelf: 'center',
   },
 });
