@@ -58,6 +58,7 @@ const EmployDetail = () => {
         <RecruitHeaderSection
           tags={recruit?.hashtags}
           guesthouseName={recruit?.guesthouseName}
+          recruitImages={recruit?.recruitImages}
         />
         <View style={{paddingHorizontal: 20}}>
           {/* 상단 기본 정보(공고 제목, 위치, 요약) */}

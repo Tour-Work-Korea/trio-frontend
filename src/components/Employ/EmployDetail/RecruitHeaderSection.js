@@ -1,16 +1,29 @@
-import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import LeftArrow from '@assets/images/chevron_left_black.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-export default function RecruitHeaderSection({tags, guesthouseName}) {
+export default function RecruitHeaderSection({
+  tags,
+  guesthouseName,
+  recruitImages,
+}) {
   const navigation = useNavigation();
+  const [thumbnailUrl, setThumbnailUrl] = useState('');
+
+  useEffect(() => {
+    recruitImages?.map(item =>
+      item.isThumbnail ? setThumbnailUrl(item.recruitImageUrl) : '',
+    );
+  }, [recruitImages]);
+
   return (
     <View>
-      <View
+      <Image
+        source={{uri: thumbnailUrl}}
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
       />
       <View style={styles.headerContainer}>
