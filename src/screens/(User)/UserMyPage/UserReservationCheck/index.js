@@ -7,9 +7,18 @@ import { FONTS } from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import { formatDate } from '@utils/formatDate';
 
-import fixedImage from '@assets/images/exphoto.jpeg'; // 임시 이미지
+import UserUpcomingReservations from './UserUpcomingReservations';
+import UserPastReservations from './UserPastReservations';
+import UserCancelledReservations from './UserCancelledReservations';
+
+const TABS = [
+  { key: 'upcoming', label: '다가오는 예약' },
+  { key: 'past', label: '지난 예약' },
+  { key: 'cancelled', label: '예약취소' },
+];
 
 const UserReservationCheck = () => {
+  const [activeTab, setActiveTab] = useState('upcoming');
   const [reservations, setReservations] = useState([]);
 
   useEffect(() => {
@@ -25,29 +34,52 @@ const UserReservationCheck = () => {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <View style={styles.card}>
-      <Image source={fixedImage} style={styles.image} />
-      <View style={styles.content}>
-        <Text style={FONTS.fs_h2_bold}>{item.guesthouseName}</Text>
-        <Text style={FONTS.fs_body}>{item.reservationStatus}</Text>
-        <Text style={FONTS.fs_body}>체크인: {formatDate(item.checkIn)}</Text>
-        <Text style={FONTS.fs_body}>체크아웃: {formatDate(item.checkOut)}</Text>
-        <Text style={FONTS.fs_body}>결제금액: ₩ {item.amount.toLocaleString()}</Text>
-      </View>
-    </View>
-  );
+  const filteredReservations = {
+    upcoming: reservations.filter(r => r.reservationStatus === 'CONFIRMED'),
+    past: reservations.filter(r => r.reservationStatus === 'COMPLETED'),
+    cancelled: reservations.filter(r => r.reservationStatus === 'CANCELLED'),
+  };
+
+  const renderTabContent = () => {
+    switch (activeTab) {
+      case 'upcoming':
+        return <UserUpcomingReservations data={filteredReservations.upcoming} />;
+      case 'past':
+        return <UserPastReservations data={filteredReservations.past} />;
+      case 'cancelled':
+        return <UserCancelledReservations data={filteredReservations.cancelled} />;
+      default:
+        return null;
+    }
+  };
 
   return (
     <View style={styles.container}>
       <Header title="예약내역" />
-      <FlatList
-        data={reservations}
-        keyExtractor={item => item.id.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{ padding: 16 }}
-        ListEmptyComponent={<Text style={{ textAlign: 'center', marginTop: 40 }}>예약 내역이 없습니다.</Text>}
-      />
+
+      {/* 탭 버튼 */}
+      <View style={styles.tabContainer}>
+        {TABS.map(tab => (
+          <TouchableOpacity
+            key={tab.key}
+            style={styles.tabButton}
+            onPress={() => setActiveTab(tab.key)}
+          >
+            <Text
+              style={[
+                styles.tabText,
+                activeTab === tab.key && styles.activeTabText,
+              ]}
+            >
+              {tab.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
+
+      {/* 탭 내용 */}
+      {renderTabContent()}
+      
     </View>
   );
 };

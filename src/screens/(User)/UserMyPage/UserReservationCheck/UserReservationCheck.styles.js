@@ -6,27 +6,22 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
-  card: {
+  tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.gray100,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
-    alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
+    justifyContent: 'space-around',
+    paddingVertical: 12,
+    backgroundColor: '#f8f8f8',
   },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 12,
+  tabButton: {
+    paddingVertical: 8,
   },
-  content: {
-    flex: 1,
+  tabText: {
+    fontSize: 16,
+    color: '#888',
+  },
+  activeTabText: {
+    color: 'orange',
+    fontWeight: 'bold',
   },
 });
 
