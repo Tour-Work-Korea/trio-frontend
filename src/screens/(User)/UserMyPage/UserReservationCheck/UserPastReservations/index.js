@@ -1,10 +1,16 @@
 import React from 'react';
 import { View, Text, FlatList, Image, StyleSheet } from 'react-native';
+import { useNavigation } from '@react-navigation/native';
+
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatDate } from '@utils/formatDate';
+import SearchEmpty from '@assets/images/search_empty.svg';
+import EmptyState from '@components/EmptyState';
 
 export default function UserPastReservations({ data }) {
+  const navigation = useNavigation();
+
   const renderItem = ({ item }) => (
     <View style={styles.card}>
       <Image
@@ -26,11 +32,19 @@ export default function UserPastReservations({ data }) {
       data={data}
       keyExtractor={item => item.reservationId.toString()}
       renderItem={renderItem}
-      contentContainerStyle={{ padding: 16 }}
+      contentContainerStyle={{
+        flexGrow: 1,
+        justifyContent: data.length === 0 ? 'center' : 'flex-start',
+      }}
       ListEmptyComponent={
-        <Text style={{ textAlign: 'center', marginTop: 40 }}>
-          지난 예약이 없습니다.
-        </Text>
+        <EmptyState
+          icon={SearchEmpty}
+          iconSize={{ width: 120, height: 120 }}
+          title="예약내역이 없어요"
+          description="게스트하우스를 예약하러 가볼까요?"
+          buttonText="게스트하우스 찾아보기"
+          onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+        />
       }
     />
   );

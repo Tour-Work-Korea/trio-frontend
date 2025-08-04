@@ -6,22 +6,27 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
+  // 탭
   tabContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingVertical: 12,
-    backgroundColor: '#f8f8f8',
+    marginTop: 28,
+    marginBottom: 8,
+    paddingHorizontal: 20,
   },
   tabButton: {
-    paddingVertical: 8,
+    alignItems: 'center',
+    flex: 1,
   },
   tabText: {
-    fontSize: 16,
-    color: '#888',
+    color: COLORS.grayscale_600,
   },
   activeTabText: {
-    color: 'orange',
-    fontWeight: 'bold',
+    color: COLORS.primary_orange,
+  },
+
+  tabContentContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
   },
 });
 

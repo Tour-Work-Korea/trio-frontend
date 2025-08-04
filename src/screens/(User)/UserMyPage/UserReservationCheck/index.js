@@ -5,11 +5,11 @@ import Header from '@components/Header';
 import styles from './UserReservationCheck.styles';
 import { FONTS } from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
-import { formatDate } from '@utils/formatDate';
 
 import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
 import UserCancelledReservations from './UserCancelledReservations';
+import Loading from '@components/Loading';
 
 const TABS = [
   { key: 'upcoming', label: '다가오는 예약' },
@@ -20,6 +20,7 @@ const TABS = [
 const UserReservationCheck = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     fetchReservationList();
@@ -27,12 +28,70 @@ const UserReservationCheck = () => {
 
   const fetchReservationList = async () => {
     try {
-      const res = await userMyApi.getMyReservations();
-      setReservations(res.data);
+      setLoading(true);
+
+      // 임시 데이터
+      const tempData = [
+        {
+          reservationId: 1,
+          amount: 120000,
+          guesthouseId: 101,
+          guesthouseName: '푸른바다 게스트하우스',
+          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
+          roomName: '바다뷰 더블룸',
+          reservationStatus: 'CONFIRMED',
+          checkIn: '2025-08-15T14:00:00',
+          checkOut: '2025-08-17T11:00:00',
+        },
+        {
+          reservationId: 2,
+          amount: 85000,
+          guesthouseId: 102,
+          guesthouseName: '산속의 하늘 게스트하우스',
+          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
+          roomName: '산뷰 트윈룸',
+          reservationStatus: 'COMPLETED',
+          checkIn: '2025-07-20T14:00:00',
+          checkOut: '2025-07-22T11:00:00',
+        },
+        {
+          reservationId: 3,
+          amount: 95000,
+          guesthouseId: 103,
+          guesthouseName: '도심 속 휴식 게스트하우스',
+          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
+          roomName: '도심뷰 싱글룸',
+          reservationStatus: 'CANCELLED',
+          checkIn: '2025-08-10T14:00:00',
+          checkOut: '2025-08-12T11:00:00',
+        },
+      ];
+
+      setReservations(tempData);
+
+      // 실제 API 호출 코드 (주석 처리)
+      // const res = await userMyApi.getMyReservations();
+      // setReservations(res.data);
+
     } catch (error) {
-      Alert.alert('예약 목록 불러오기 실패');
+      console.log('예약 목록 불러오기 실패', error);
+    } finally {
+      setLoading(false);
     }
   };
+
+
+  // const fetchReservationList = async () => {
+  //   try {
+  //     setLoading(true);
+  //     const res = await userMyApi.getMyReservations();
+  //     setReservations(res.data);
+  //   } catch (error) {
+  //     console.log('예약 목록 불러오기 실패');
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   const filteredReservations = {
     upcoming: reservations.filter(r => r.reservationStatus === 'CONFIRMED'),
@@ -68,7 +127,9 @@ const UserReservationCheck = () => {
             <Text
               style={[
                 styles.tabText,
+                FONTS.fs_14_regular,
                 activeTab === tab.key && styles.activeTabText,
+                activeTab === tab.key && FONTS.fs_14_semibold,
               ]}
             >
               {tab.label}
@@ -78,8 +139,14 @@ const UserReservationCheck = () => {
       </View>
 
       {/* 탭 내용 */}
-      {renderTabContent()}
-      
+      <View style={styles.tabContentContainer}>
+        {loading ? (
+          <Loading title="예약 목록을 불러오고 있어요." />
+        ) : (
+          renderTabContent()
+        )}
+      </View>
+
     </View>
   );
 };
