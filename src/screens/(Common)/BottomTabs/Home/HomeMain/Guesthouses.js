@@ -78,8 +78,11 @@ export default function Guesthouses({guesthouses}) {
         <TouchableOpacity
           style={styles.seeMoreButton}
           onPress={() => {
-            navigation.navigate('PopularGuesthouseList');
-          }}>
+            navigation.navigate('PopularGuesthouseList', {
+              guesthouses,
+            });
+          }}
+        >
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
