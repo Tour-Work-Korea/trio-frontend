@@ -9,8 +9,7 @@ const styles = StyleSheet.create({
   // 탭
   tabContainer: {
     flexDirection: 'row',
-    marginTop: 28,
-    marginBottom: 8,
+    marginVertical: 16,
     paddingHorizontal: 20,
   },
   tabButton: {

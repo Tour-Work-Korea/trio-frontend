@@ -43,7 +43,7 @@ const HomeMain = () => {
         page: 0,
         size: 10,
         sort: 'RECOMMEND',
-        keyword: '외도',
+        regionIds: [1,2,3,4],
       };
       const response = await userGuesthouseApi.getGuesthouseList(params);
       setGuesthouseList(response.data.content);
