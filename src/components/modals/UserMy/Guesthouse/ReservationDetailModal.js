@@ -11,9 +11,11 @@ const mockPastReservation = [
   {
     reservationId: 1,
     reservationUserName: '홍길동',
+    reservationUserPhone: '010-3333-3333',
     reservationAmount: 150000,
     paymentMethod: '카드결제',
     paymentStatus: '결제완료',
+    paymentAt: "2025-08-05T06:48:19",
     guesthouseId: 101,
     guesthouseName: '서울 한옥 게스트하우스',
     guesthouseImage: 'https://picsum.photos/200/200?random=1',
@@ -25,6 +27,9 @@ const mockPastReservation = [
     reservationStatus: '이용완료',
     checkIn: '2025-07-10T15:00:00',
     checkOut: '2025-07-12T11:00:00',
+    reservationRequest: "string",
+    reservationAt: "2025-08-05T06:48:19",
+    amount: 30000,
   },
 ];
 
@@ -59,7 +64,7 @@ export default function ReservationDetailModal({
             </View>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>전화번호</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>010-0000-0000</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationUserPhone}</Text>
             </View>
           </View>
 
@@ -81,11 +86,11 @@ export default function ReservationDetailModal({
           <View style={styles.devide}/>
 
           {/* 결제 정보 */}
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <View style={styles.row}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>결제 정보</Text>
               <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
-                2025.04.15 (화) 18:59
+                {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).time}
               </Text>
             </View>
             <View style={styles.row}>
@@ -95,6 +100,23 @@ export default function ReservationDetailModal({
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>결제 수단</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.paymentMethod}</Text>
+            </View>
+          </View> */}
+          {/* 예약 정보 (임시) */}
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 내용</Text>
+              <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
+                {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>가격</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.amount.toLocaleString()}원</Text>
+            </View>
+            <View style={[styles.row, {flexDirection: 'column', gap: 4, marginBottom: 12,}]}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>요청 사항</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationRequest}</Text>
             </View>
           </View>
 

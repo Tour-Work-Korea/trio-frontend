@@ -42,7 +42,7 @@ export default function UserPastReservations({ data }) {
             <View style={styles.infoContent}>
               <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
               <Text style={[FONTS.fs_14_medium, styles.roomText]}>{item.roomName}</Text>
-              <Text style={[FONTS.fs_12_medium, styles.adressText]}>주소</Text>
+              <Text style={[FONTS.fs_12_medium, styles.adressText]}>{item.guesthouseAddress}</Text>
             </View>
           </View>
           <View style={styles.dateContent}>
@@ -69,8 +69,16 @@ export default function UserPastReservations({ data }) {
             disabled={item.reviewed}
             onPress={() => {
               if (!item.reviewed) {
+                const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
+                const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+
                 navigation.navigate('UserGuesthouseReviewForm', {
                   guesthouseId: item.guesthouseId,
+                  guesthouseName: item.guesthouseName,
+                  roomName: item.roomName,
+                  guesthouseAddress: item.guesthouseAddress,
+                  checkInFormatted,
+                  checkOutFormatted,
                 });
               }
             }}

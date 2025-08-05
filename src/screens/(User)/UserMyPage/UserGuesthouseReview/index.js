@@ -35,11 +35,13 @@ const UserGuesthouseReview = () => {
           amount: 85000,
           guesthouseId: 102,
           guesthouseName: '산속의 하늘 게스트하우스',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
+          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg',
+          guesthouseAddress: '제주도 애월 어쩌고 저저고',
           roomName: '산뷰 트윈룸',
           reservationStatus: 'COMPLETED',
           checkIn: '2025-07-20T14:00:00',
           checkOut: '2025-07-22T11:00:00',
+          reviewed: false,
         },
       ];
 
@@ -71,9 +73,9 @@ const UserGuesthouseReview = () => {
 
   const renderTabContent = () => {
     if (activeTab === 'write') {
-      // COMPLETED 상태만 필터링
+      // COMPLETED 상태, 리뷰 안 쓴것만
       const completedReservations = reservations.filter(
-        (item) => item.reservationStatus === 'COMPLETED'
+        (item) => item.reservationStatus === 'COMPLETED' && !item.reviewed
       );
       return <UserGuesthouseReviewWrite reservations={completedReservations} />;
     } else if (activeTab === 'written') {

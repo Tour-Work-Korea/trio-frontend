@@ -42,7 +42,7 @@ export default function UserUpcomingReservations({ data }) {
             <View style={styles.infoContent}>
               <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
               <Text style={[FONTS.fs_14_medium, styles.roomText]}>{item.roomName}</Text>
-              <Text style={[FONTS.fs_12_medium, styles.adressText]}>주소</Text>
+              <Text style={[FONTS.fs_12_medium, styles.adressText]}>{item.guesthouseAddress}</Text>
             </View>
           </View>
           <View style={styles.dateContent}>

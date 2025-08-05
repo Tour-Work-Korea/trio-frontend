@@ -27,7 +27,7 @@ const UserGuesthouseReviewWrite = ({ reservations }) => {
             <View style={styles.infoContent}>
               <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
               <Text style={[FONTS.fs_14_medium, styles.roomText]}>{item.roomName}</Text>
-              <Text style={[FONTS.fs_12_medium, styles.adressText]}>주소</Text>
+              <Text style={[FONTS.fs_12_medium, styles.adressText]}>{item.guesthouseAddress}</Text>
             </View>
           </View>
           <View style={styles.dateContent}>
@@ -45,9 +45,21 @@ const UserGuesthouseReviewWrite = ({ reservations }) => {
 
         <TouchableOpacity 
           style={styles.reviewButton} 
-          onPress={() => navigation.navigate('UserGuesthouseReviewForm', {
-            guesthouseId: reservations.guesthouseId,
-          })}
+          onPress={() => {
+            if (!item.reviewed) {
+              const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
+              const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+
+              navigation.navigate('UserGuesthouseReviewForm', {
+                guesthouseId: item.guesthouseId,
+                guesthouseName: item.guesthouseName,
+                roomName: item.roomName,
+                guesthouseAddress: item.guesthouseAddress,
+                checkInFormatted,
+                checkOutFormatted,
+              });
+            }
+          }}
         >
           <Text style={[FONTS.fs_16_semibold, styles.reviewText]}>리뷰 작성하기</Text>
         </TouchableOpacity>
@@ -66,6 +78,7 @@ const UserGuesthouseReviewWrite = ({ reservations }) => {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: reservations.length === 0 ? 'center' : 'flex-start',
+          paddingVertical: 24,
         }}
         ListEmptyComponent={
           <EmptyState
@@ -87,7 +100,6 @@ export default UserGuesthouseReviewWrite;
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
   },
   devide: {
     marginVertical: 16,

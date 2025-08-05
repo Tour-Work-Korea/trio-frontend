@@ -30,7 +30,14 @@ const UserGuesthouseReviewForm = () => {
   const route = useRoute();
   const navigation = useNavigation();
 
-  const { guesthouseId } = route.params;
+  const {
+    guesthouseId,
+    guesthouseName,
+    roomName,
+    guesthouseAddress,
+    checkInFormatted,
+    checkOutFormatted
+  } = route.params;
   const [images, setImages] = useState([]);
   const [reviewText, setReviewText] = useState('');
   const [modalVisible, setModalVisible] = useState(false); // 확인 모달
@@ -123,20 +130,20 @@ const UserGuesthouseReviewForm = () => {
       <ScrollView contentContainerStyle={styles.infoContainer}>
         {/* 숙소 정보 */}
         <View style={styles.infoBox}>
-          <Text style={[FONTS.fs_16_semibold, styles.nameText]}>김군빌리지 게스트하우스</Text>
-          <Text style={[FONTS.fs_14_medium, styles.roomText]}>4인실 여자</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{guesthouseName}</Text>
+          <Text style={[FONTS.fs_14_medium, styles.roomText]}>{roomName}</Text>
           <Text style={[FONTS.fs_12_medium, styles.adressText]}>
-            제주시 애월리 12312312
+            {guesthouseAddress}
           </Text>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> 2025.04.15 (화) </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> 16:00 </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>{checkInFormatted.date}</Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>{checkInFormatted.time}</Text>
             </View>
             <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> 2025.04.16 (수) </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> 11:00 </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>{checkOutFormatted.date}</Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>{checkOutFormatted.time}</Text>
             </View>
           </View>
         </View>
