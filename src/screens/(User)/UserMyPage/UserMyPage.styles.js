@@ -56,10 +56,14 @@ export default StyleSheet.create({
     borderRadius: 8,
     marginRight: 20,
     backgroundColor: COLORS.grayscale_200,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   profilePlaceholder: {
     gap: 4,
     justifyContent: 'center',
+    flexDirection: 'column',
+    flex: 1,
   },
   profileText: {
     flexDirection: 'row',
@@ -71,6 +75,7 @@ export default StyleSheet.create({
   },
   profileContentText: {
     marginLeft: 20,
+    flex: 1,
   },
 
   // 마이페이지

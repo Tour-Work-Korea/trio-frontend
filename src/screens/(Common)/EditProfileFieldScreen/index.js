@@ -198,6 +198,8 @@ const styles = StyleSheet.create({
   saveButtonContainer: {
     position: 'absolute',
     bottom: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     width: '100%',
   },
 });

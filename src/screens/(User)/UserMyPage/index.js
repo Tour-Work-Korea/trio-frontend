@@ -74,7 +74,10 @@ const UserMyPage = () => {
                 <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
                   이메일
                 </Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.profileContentText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
                   {user.email}
                 </Text>
               </View>
