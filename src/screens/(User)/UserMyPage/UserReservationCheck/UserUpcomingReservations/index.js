@@ -8,22 +8,37 @@ import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
 import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/ReservationDetailModal';
+import ReservationCancelModal from '@components/modals/UserMy/Guesthouse/ReservationCancelModal'; // 추가
 
-export default function UserUpcomingReservations({ data }) {
+export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
 
-  // 모달
+  // 상세 모달
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
 
-  const openModal = (reservationId) => {
+  // 예약 취소 모달
+  const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const [cancelReservationId, setCancelReservationId] = useState(null);
+
+  const openDetailModal = (reservationId) => {
     setSelectedReservationId(reservationId);
     setModalVisible(true);
   };
 
-  const closeModal = () => {
+  const closeDetailModal = () => {
     setModalVisible(false);
     setSelectedReservationId(null);
+  };
+
+  const openCancelModal = (reservationId) => {
+    setCancelReservationId(reservationId);
+    setCancelModalVisible(true);
+  };
+
+  const closeCancelModal = () => {
+    setCancelModalVisible(false);
+    setCancelReservationId(null);
   };
 
   const renderItem = ({ item, index }) => {
@@ -32,7 +47,7 @@ export default function UserUpcomingReservations({ data }) {
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
+        <TouchableOpacity style={styles.card} onPress={() => openDetailModal(item.reservationId)}>
           <View style={styles.guesthouseInfo}>
             <Image
               source={{ uri: item.guesthouseImage }}
@@ -58,7 +73,7 @@ export default function UserUpcomingReservations({ data }) {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity>
+        <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
           <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
         </TouchableOpacity>
   
@@ -93,8 +108,18 @@ export default function UserUpcomingReservations({ data }) {
       {/* 상세 모달 */}
       <ReservationDetailModal
         visible={modalVisible}
-        onClose={closeModal}
+        onClose={closeDetailModal}
         reservationId={selectedReservationId}
+      />
+
+      {/* 예약 취소 모달 */}
+      <ReservationCancelModal
+        visible={cancelModalVisible}
+        onClose={() => {
+          closeCancelModal();
+          onRefresh && onRefresh();
+        }}
+        reservationId={cancelReservationId}
       />
     </>
   );

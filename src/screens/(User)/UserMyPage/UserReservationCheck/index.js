@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native'; 
 
 import Header from '@components/Header';
 import styles from './UserReservationCheck.styles';
@@ -29,88 +30,21 @@ const UserReservationCheck = () => {
   const fetchReservationList = async () => {
     try {
       setLoading(true);
-
-      // 임시 데이터
-      const tempData = [
-        {
-          reservationId: 1,
-          amount: 120000,
-          guesthouseId: 101,
-          guesthouseName: '푸른바다 게스트하우스',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
-          guesthouseAddress: '제주도 애월 어쩌고 저저고',
-          roomName: '바다뷰 더블룸',
-          reservationStatus: 'CONFIRMED',
-          checkIn: '2025-08-15T14:00:00',
-          checkOut: '2025-08-17T11:00:00',
-          reviewed: false,
-        },
-        {
-          reservationId: 2,
-          amount: 85000,
-          guesthouseId: 102,
-          guesthouseName: '산속의 하늘 게스트하우스',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg',
-          guesthouseAddress: '제주도 애월 어쩌고 저저고', 
-          roomName: '산뷰 트윈룸',
-          reservationStatus: 'COMPLETED',
-          checkIn: '2025-07-20T14:00:00',
-          checkOut: '2025-07-22T11:00:00',
-          reviewed: true,
-        },
-        {
-          reservationId: 3,
-          amount: 95000,
-          guesthouseId: 103,
-          guesthouseName: '도심 속 휴식 게스트하우스',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
-          guesthouseAddress: '제주도 애월 어쩌고 저저고',
-          roomName: '도심뷰 싱글룸',
-          reservationStatus: 'CANCELLED',
-          checkIn: '2025-08-10T14:00:00',
-          checkOut: '2025-08-12T11:00:00',
-          reviewed: false,
-        },
-        {
-          reservationId: 4,
-          amount: 80000,
-          guesthouseId: 106,
-          guesthouseName: '산속의 하늘 게스트하우스22',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
-          guesthouseAddress: '제주도 애월 어쩌고 저저고',
-          roomName: '산뷰 트윈룸',
-          reservationStatus: 'COMPLETED',
-          checkIn: '2025-07-20T14:00:00',
-          checkOut: '2025-07-22T11:00:00',
-          reviewed: false,
-        },
-      ];
-
-      setReservations(tempData);
-
-      // 실제 API 호출 코드 (주석 처리)
-      // const res = await userMyApi.getMyReservations();
-      // setReservations(res.data);
-
+      const res = await userMyApi.getMyReservations();
+      setReservations(res.data);
     } catch (error) {
-      console.log('예약 목록 불러오기 실패', error);
+      console.log('예약 목록 불러오기 실패');
     } finally {
       setLoading(false);
     }
   };
 
-
-  // const fetchReservationList = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const res = await userMyApi.getMyReservations();
-  //     setReservations(res.data);
-  //   } catch (error) {
-  //     console.log('예약 목록 불러오기 실패');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
+  // 화면 포커스될 때마다 갱신
+  useFocusEffect(
+    useCallback(() => {
+      fetchReservationList();
+    }, [])
+  );
 
   const filteredReservations = {
     upcoming: reservations.filter(r => r.reservationStatus === 'CONFIRMED'),
@@ -121,7 +55,12 @@ const UserReservationCheck = () => {
   const renderTabContent = () => {
     switch (activeTab) {
       case 'upcoming':
-        return <UserUpcomingReservations data={filteredReservations.upcoming} />;
+        return (
+          <UserUpcomingReservations
+            data={filteredReservations.upcoming}
+            onRefresh={fetchReservationList}
+          />
+        );
       case 'past':
         return <UserPastReservations data={filteredReservations.past} />;
       case 'cancelled':

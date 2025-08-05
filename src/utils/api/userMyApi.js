@@ -18,6 +18,10 @@ const userMyApi = {
   getReservationDetail: reservationId =>
     api.get(`/order/reservation/room/${reservationId}`),
 
+  // 예약 임시 취소
+  cancelTempGuesthouseReservation: reservationId =>
+    api.delete(`/order/reservation/temp/guesthouse/cancel/${reservationId}`),
+
   // 유저 작성한 리뷰 리스트
   getMyReviews: () => api.get('/user/reviews/my'),
 
