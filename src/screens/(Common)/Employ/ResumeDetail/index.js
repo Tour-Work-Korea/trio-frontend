@@ -122,77 +122,76 @@ const ResumeDetail = () => {
     }
   };
 
-  if (formData)
-    return (
-      <View style={styles.container}>
-        <Header title={id == null ? '이력서 작성' : '이력서 수정'} />
-        <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            flexGrow: 1,
-            gap: 20,
-          }}>
-          {formData ? (
-            <>
-              {/* 프로필 */}
-              {isNew ? <></> : <ApplicantProfileHeader data={originalInfo} />}
+  return (
+    <View style={styles.container}>
+      <Header title={id == null ? '이력서 작성' : '이력서 수정'} />
+      <ScrollView
+        contentContainerStyle={{
+          paddingHorizontal: 20,
+          flexGrow: 1,
+          gap: 20,
+        }}>
+        {formData ? (
+          <>
+            {/* 프로필 */}
+            {isNew ? <></> : <ApplicantProfileHeader data={originalInfo} />}
 
-              {/* 제목 */}
-              <ApplicantTitle
-                title={formData?.resumeTitle}
-                setTitle={data =>
-                  setFormData(prev => ({...prev, resumeTitle: data}))
-                }
-                isEditable={isEditable}
-              />
-              {/* 경력 */}
-              <ApplicantExperienceSection
-                experiences={formData?.workExperience}
-                isEditable={isEditable}
-                setExperience={newList =>
-                  setFormData(prev => ({...prev, workExperience: newList}))
-                }
-              />
-              {/* 해시태그 */}
-              <ApplicantTag
-                tags={formData?.hashtags}
-                isEditable={isEditable}
-                setTags={newList =>
-                  setFormData(prev => ({...prev, hashtags: newList}))
-                }
-              />
-              <ApplicantSelfIntroduction
-                text={formData?.selfIntro}
-                isEditable={isEditable}
-                setSelfIntro={data =>
-                  setFormData(prev => ({...prev, selfIntro: data}))
-                }
-              />
-              {isEditable ? (
-                <View style={{marginBottom: 40}}>
-                  <ButtonScarlet
-                    title={'저장하기'}
-                    onPress={() =>
-                      id == null ? tryPostResumeById() : tryUpdateResumeById()
-                    }
-                  />
-                </View>
-              ) : (
-                <View style={{marginBottom: 40}} />
-              )}
-            </>
-          ) : (
-            <Loading title={'이력서를 불러오는 중입니다...'} />
-          )}
-        </ScrollView>
-        <ErrorModal
-          visible={errorModal.visible}
-          title={errorModal.message}
-          buttonText={errorModal.buttonText}
-          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-        />
-      </View>
-    );
+            {/* 제목 */}
+            <ApplicantTitle
+              title={formData?.resumeTitle}
+              setTitle={data =>
+                setFormData(prev => ({...prev, resumeTitle: data}))
+              }
+              isEditable={isEditable}
+            />
+            {/* 경력 */}
+            <ApplicantExperienceSection
+              experiences={formData?.workExperience}
+              isEditable={isEditable}
+              setExperience={newList =>
+                setFormData(prev => ({...prev, workExperience: newList}))
+              }
+            />
+            {/* 해시태그 */}
+            <ApplicantTag
+              tags={formData?.hashtags}
+              isEditable={isEditable}
+              setTags={newList =>
+                setFormData(prev => ({...prev, hashtags: newList}))
+              }
+            />
+            <ApplicantSelfIntroduction
+              text={formData?.selfIntro}
+              isEditable={isEditable}
+              setSelfIntro={data =>
+                setFormData(prev => ({...prev, selfIntro: data}))
+              }
+            />
+            {isEditable ? (
+              <View style={{marginBottom: 40}}>
+                <ButtonScarlet
+                  title={'저장하기'}
+                  onPress={() =>
+                    id == null ? tryPostResumeById() : tryUpdateResumeById()
+                  }
+                />
+              </View>
+            ) : (
+              <View style={{marginBottom: 40}} />
+            )}
+          </>
+        ) : (
+          <Loading title={'이력서를 불러오는 중입니다...'} />
+        )}
+      </ScrollView>
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.message}
+        buttonText={errorModal.buttonText}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
+    </View>
+  );
 };
 
 export default ResumeDetail;

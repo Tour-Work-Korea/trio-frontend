@@ -1,9 +1,9 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
@@ -16,8 +16,6 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
-
-const {height} = Dimensions.get('window');
 
 export default function EmploySelfIntroModal({
   visible,
@@ -32,22 +30,26 @@ export default function EmploySelfIntroModal({
   }, [initialData]);
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <Modal visible={visible} animationType="slide" transparent>
-        <View style={styles.overlay}>
-          <View style={styles.container}>
-            {/* 헤더 */}
-            <View style={styles.header}>
-              <View />
-              <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
-              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-                <XBtn width={24} height={24} />
-              </TouchableOpacity>
-            </View>
-            <KeyboardAvoidingView>
+    <Modal visible={visible} animationType="slide" transparent>
+      <KeyboardAvoidingView style={{flex: 1}} enabled>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.overlay}>
+            <View style={styles.container}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <View />
+                <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
+                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
+              </View>
+
               {/* 입력 폼 */}
-              <View style={styles.detailContainer}>
-                {/* 자기소개 입력 */}
+              <ScrollView
+                style={{flex: 1}}
+                contentContainerStyle={styles.detailContainer}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
                 <View>
                   <View style={styles.titleBox}>
                     <Text style={styles.titleText}>
@@ -68,30 +70,33 @@ export default function EmploySelfIntroModal({
                       value={selfIntro}
                       onChangeText={setSelfIntro}
                       maxLength={50000}
+                      multiline
+                      textAlignVertical="top"
                     />
                   </View>
                   <TouchableOpacity onPress={() => setSelfIntro('')}>
                     <Text style={styles.resetText}>다시쓰기</Text>
                   </TouchableOpacity>
                 </View>
-              </View>
-            </KeyboardAvoidingView>
-            {/* 하단 버튼 */}
-            <View style={styles.sticky}>
-              <View style={styles.confirmButton}>
-                <ButtonScarlet
-                  title="적용하기"
-                  onPress={() => {
-                    editSelfIntro(selfIntro);
-                    onClose();
-                  }}
-                />
+              </ScrollView>
+
+              {/* 하단 버튼 */}
+              <View style={styles.sticky}>
+                <View style={styles.confirmButton}>
+                  <ButtonScarlet
+                    title="적용하기"
+                    onPress={() => {
+                      editSelfIntro(selfIntro);
+                      onClose();
+                    }}
+                  />
+                </View>
               </View>
             </View>
           </View>
-        </View>
-      </Modal>
-    </TouchableWithoutFeedback>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
 
@@ -101,12 +106,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    height: height * 0.9,
+    flex: 1, // height → flex: 1 로 수정
     backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    flexDirection: 'column',
     paddingHorizontal: 20,
+  },
+  textInput: {
+    flex: 1,
+    paddingVertical: 0,
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_900,
+    textAlignVertical: 'top', // 멀티라인 입력 시 위 정렬
   },
   header: {
     flexDirection: 'row',
@@ -171,11 +182,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: 222,
   },
-  textInput: {
-    paddingVertical: 0,
-    ...FONTS.fs_14_regular,
-    color: COLORS.grayscale_900,
-  },
+
   resetText: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_500,
