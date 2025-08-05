@@ -1,6 +1,7 @@
 import React from 'react';
 import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './Home.styles';
 import {FONTS} from '@constants/fonts';
@@ -12,11 +13,18 @@ import Star from '@assets/images/star_white.svg';
 export default function Guesthouses({guesthouses}) {
   const navigation = useNavigation();
 
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
+
   const renderGuesthouse = ({item}) => (
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
           id: item.id,
+          isFromDeeplink: true,
+          checkIn: today.format('YYYY-MM-DD'),
+          checkOut: tomorrow.format('YYYY-MM-DD'),
+          guestCount: 1,
         });
       }}>
       <View style={styles.guesthouseCard}>

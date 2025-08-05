@@ -243,9 +243,15 @@ const UserGuesthouseReviewForm = () => {
         <ReviewConfirmModal
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
-          onConfirm={() => {
+          guesthouseId={guesthouseId}
+          data={{
+            rating,
+            detail: reviewText.trim(),
+            imageUrls: images,
+            isJobReview: false,
+          }}
+          onSuccess={() => {
             setModalVisible(false);
-            // 리뷰 등록 로직 실행 성공하면
             setSuccessModalVisible(true);
           }}
         />

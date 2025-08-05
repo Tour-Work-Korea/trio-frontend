@@ -1,12 +1,24 @@
 import React from 'react';
 import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
-
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
+import userMyApi from '@utils/api/userMyApi';
 
-const ReviewConfirmModal = ({ visible, onCancel, onConfirm }) => {
+const ReviewConfirmModal = ({ visible, onCancel, guesthouseId, data, onSuccess }) => {
+
+  const handleConfirm = async () => {
+    try {
+      await userMyApi.createReview(guesthouseId, data);
+      onSuccess?.(); // 성공 시 부모에서 후처리
+    } catch (error) {
+      console.log('리뷰 등록 실패:', error);
+      Alert.alert('리뷰 등록 실패', '잠시 후 다시 시도해주세요.');
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -30,7 +42,7 @@ const ReviewConfirmModal = ({ visible, onCancel, onConfirm }) => {
             />
             <ButtonScarlet
               title={'등록하기'}
-              onPress={onConfirm}
+              onPress={handleConfirm}
               style={styles.confirmButton}
             />
           </View>

@@ -142,19 +142,47 @@ const GuesthouseDetail = ({route}) => {
 
         <TouchableOpacity
           style={styles.backButton}
+          // onPress={() => {
+          //   console.log('isFromDeeplink:', isFromDeeplink);
+          //   if (isFromDeeplink) {
+          //     navigation.navigate('MainTabs', {
+          //       screen: '게하',
+          //       params: {
+          //         screen: 'GuesthouseSearch',
+          //       },
+          //     });
+          //   } else {
+          //     navigation.goBack(); // 일반 뒤로가기
+          //   }
+          // }}
           onPress={() => {
             console.log('isFromDeeplink:', isFromDeeplink);
             if (isFromDeeplink) {
-              navigation.navigate('MainTabs', {
-                screen: '게하',
-                params: {
-                  screen: 'GuesthouseSearch',
-                },
+              navigation.reset({
+                index: 0,
+                routes: [
+                  {
+                    name: 'MainTabs',
+                    state: {
+                      routes: [
+                        {
+                          name: '게하',
+                          state: {
+                            routes: [
+                              { name: 'GuesthouseSearch' }
+                            ],
+                          },
+                        },
+                      ],
+                    },
+                  },
+                ],
               });
             } else {
-              navigation.goBack(); // 일반 뒤로가기
+              navigation.goBack();  // 일반 뒤로가기
             }
-          }}>
+          }}
+          >
           <LeftArrow width={28} height={28}/>
         </TouchableOpacity>
         <View style={styles.tagContainer}>

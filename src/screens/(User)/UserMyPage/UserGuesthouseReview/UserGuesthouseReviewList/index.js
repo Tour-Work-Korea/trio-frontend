@@ -4,6 +4,8 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 
 import EmptyState from '@components/EmptyState';
+import Loading from '@components/Loading';
+import userMyApi from '@utils/api/userMyApi';
 
 import StarIcon from '@assets/images/star_white.svg';
 import TrashIcon from '@assets/images/x_gray.svg';

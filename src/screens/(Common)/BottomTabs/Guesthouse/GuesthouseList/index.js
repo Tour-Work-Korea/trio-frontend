@@ -267,12 +267,41 @@ const GuesthouseList = () => {
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
         <TouchableOpacity
           style={styles.backButton}
+          // onPress={() => {
+          //   navigation.navigate("GuesthouseSearch", {
+          //     displayDate: displayDateState,
+          //     adultCount,
+          //     childCount,
+          //     searchText,
+          //   });
+          // }}
           onPress={() => {
-            navigation.navigate("GuesthouseSearch", {
-              displayDate: displayDateState,
-              adultCount,
-              childCount,
-              searchText,
+            navigation.reset({
+              index: 0,
+              routes: [
+                {
+                  name: 'MainTabs',
+                  state: {
+                    routes: [
+                      {
+                        name: '게하',
+                        state: {
+                          routes: [
+                            { name: 'GuesthouseSearch',
+                              params: {
+                                displayDate: displayDateState,
+                                adultCount,
+                                childCount,
+                                searchText,
+                              }
+                            }
+                          ],
+                        },
+                      },
+                    ],
+                  },
+                },
+              ],
             });
           }}
         >

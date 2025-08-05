@@ -23,53 +23,18 @@ const UserGuesthouseReview = () => {
   useEffect(() => {
     fetchReservationList();
   }, []);
-  
+
   const fetchReservationList = async () => {
     try {
       setLoading(true);
-
-      // 임시 데이터
-      const tempData = [
-        {
-          reservationId: 2,
-          amount: 85000,
-          guesthouseId: 102,
-          guesthouseName: '산속의 하늘 게스트하우스',
-          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg',
-          guesthouseAddress: '제주도 애월 어쩌고 저저고',
-          roomName: '산뷰 트윈룸',
-          reservationStatus: 'COMPLETED',
-          checkIn: '2025-07-20T14:00:00',
-          checkOut: '2025-07-22T11:00:00',
-          reviewed: false,
-        },
-      ];
-
-      setReservations(tempData);
-
-      // 실제 API 호출 코드 (주석 처리)
-      // const res = await userMyApi.getMyReservations();
-      // setReservations(res.data);
-
+      const res = await userMyApi.getMyReservations();
+      setReservations(res.data);
     } catch (error) {
-      console.log('예약 목록 불러오기 실패', error);
+      console.log('예약 목록 불러오기 실패');
     } finally {
       setLoading(false);
     }
   };
-
-
-  // const fetchReservationList = async () => {
-  //   try {
-  //     setLoading(true);
-  //     const res = await userMyApi.getMyReservations();
-  //     setReservations(res.data);
-  //   } catch (error) {
-  //     console.log('예약 목록 불러오기 실패');
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   const renderTabContent = () => {
     if (activeTab === 'write') {
