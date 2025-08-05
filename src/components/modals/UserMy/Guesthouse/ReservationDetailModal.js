@@ -1,44 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal } from 'react-native';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonScarlet from '@components/ButtonScarlet';
-
-// 임시 데이터 예시
-const mockPastReservation = [
-  {
-    reservationId: 1,
-    reservationUserName: '홍길동',
-    reservationUserPhone: '010-3333-3333',
-    reservationAmount: 150000,
-    paymentMethod: '카드결제',
-    paymentStatus: '결제완료',
-    paymentAt: "2025-08-05T06:48:19",
-    guesthouseId: 101,
-    guesthouseName: '서울 한옥 게스트하우스',
-    guesthouseImage: 'https://picsum.photos/200/200?random=1',
-    guesthousePhone: '010-1234-5678',
-    guesthouseAddress: '서울특별시 종로구 한옥마을길 12',
-    roomName: '온돌방',
-    roomCapacity: 2,
-    roomMaxCapacity: 4,
-    reservationStatus: '이용완료',
-    checkIn: '2025-07-10T15:00:00',
-    checkOut: '2025-07-12T11:00:00',
-    reservationRequest: "string",
-    reservationAt: "2025-08-05T06:48:19",
-    amount: 30000,
-  },
-];
+import Loading from '@components/Loading';
+import userMyApi from '@utils/api/userMyApi';
 
 export default function ReservationDetailModal({
   visible,
   onClose,
-  reservation = mockPastReservation[0], // 기본값 mock 데이터,
   reservationId,
 }) {
+  const [reservation, setReservation] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [visible, reservationId]);
+
+  const fetchReservationDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await userMyApi.getReservationDetail(reservationId);
+      setReservation(res.data);
+    } catch (error) {
+      console.log('예약 상세 불러오기 실패', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !reservation) {
+    return (
+      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <Loading
+              title={'내용을 불러오는 중 이에요'}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       animationType="slide"
@@ -147,6 +156,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
     paddingBottom: 40,
+    minHeight: '40%',
   },
   // 헤더
   header: {

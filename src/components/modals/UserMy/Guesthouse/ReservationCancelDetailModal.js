@@ -1,39 +1,53 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal, ScrollView } from 'react-native';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonScarlet from '@components/ButtonScarlet';
-
-// 임시 데이터 예시
-const mockPastReservation = [
-  {
-    reservationId: 1,
-    reservationUserName: '홍길동',
-    reservationAmount: 150000,
-    paymentMethod: '카드결제',
-    paymentStatus: '결제완료',
-    guesthouseId: 101,
-    guesthouseName: '서울 한옥 게스트하우스',
-    guesthouseImage: 'https://picsum.photos/200/200?random=1',
-    guesthousePhone: '010-1234-5678',
-    guesthouseAddress: '서울특별시 종로구 한옥마을길 12',
-    roomName: '온돌방',
-    roomCapacity: 2,
-    roomMaxCapacity: 4,
-    reservationStatus: '이용완료',
-    checkIn: '2025-07-10T15:00:00',
-    checkOut: '2025-07-12T11:00:00',
-  },
-];
+import Loading from '@components/Loading';
+import userMyApi from '@utils/api/userMyApi';
 
 export default function ReservationCancelDetailModal({
   visible,
   onClose,
-  reservation = mockPastReservation[0], // 기본값 mock 데이터,
   reservationId,
 }) {
+  const [reservation, setReservation] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [visible, reservationId]);
+
+  const fetchReservationDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await userMyApi.getReservationDetail(reservationId);
+      setReservation(res.data);
+    } catch (error) {
+      console.log('예약 상세 불러오기 실패', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !reservation) {
+    return (
+      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <Loading
+              title={'내용을 불러오는 중 이에요'}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
   return (
     <Modal
       animationType="slide"
@@ -66,11 +80,11 @@ export default function ReservationCancelDetailModal({
           <View style={styles.devide}/>
 
           {/* 결제 정보 */}
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <View style={styles.row}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>취소/환불 정보</Text>
               <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
-                2025.04.15 (화) 18:59
+                {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).time}
               </Text>
             </View>
             <View style={styles.row}>
@@ -85,6 +99,25 @@ export default function ReservationCancelDetailModal({
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>결제 수단</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.paymentMethod}</Text>
+            </View>
+          </View> */}
+
+          {/* 임시 예약 정보 */}
+          <View style={styles.section}>
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>취소/환불 정보</Text>
+              <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
+                {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}
+              </Text>
+            </View>
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>가격</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>
+                (취소){' '}
+                <Text style={{ textDecorationLine: 'line-through' }}>
+                  {reservation.amount.toLocaleString()}원
+                </Text>
+              </Text>
             </View>
           </View>
 

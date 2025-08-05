@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
@@ -8,6 +8,7 @@ dayjs.locale('ko');
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 
 import ArrowRight from '@assets/images/arrow_right_white.svg';
@@ -45,15 +46,49 @@ const mockPastReservation = [
 export default function ReservationCancelModal({
   visible,
   onClose,
-  reservation = mockPastReservation[0], // 기본값 mock 데이터,
   reservationId,
 }) {
+  const [reservation, setReservation] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: 취소 정보, 2: 취소 사유
   const [reasonOpen, setReasonOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
 
-  const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkIn);
-  const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkOut);
+  // 예약 상세내역
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [visible, reservationId]);
+
+  const fetchReservationDetail = async () => {
+    try {
+      setLoading(true);
+      const res = await userMyApi.getReservationDetail(reservationId);
+      setReservation(res.data);
+    } catch (error) {
+      console.log('예약 상세 불러오기 실패', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading || !reservation) {
+    return (
+      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+        <View style={styles.overlay}>
+          <View style={styles.modalContainer}>
+            <Loading
+              title={'내용을 불러오는 중 이에요'}
+            />
+          </View>
+        </View>
+      </Modal>
+    );
+  }
+
+  const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkInDate);
+  const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkOutDate);
 
   const cancelDateTime = dayjs().format('YYYY. MM. DD (dd) HH:mm');
 
