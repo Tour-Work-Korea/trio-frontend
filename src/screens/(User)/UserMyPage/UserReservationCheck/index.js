@@ -42,6 +42,7 @@ const UserReservationCheck = () => {
           reservationStatus: 'CONFIRMED',
           checkIn: '2025-08-15T14:00:00',
           checkOut: '2025-08-17T11:00:00',
+          reviewed: false,
         },
         {
           reservationId: 2,
@@ -53,6 +54,7 @@ const UserReservationCheck = () => {
           reservationStatus: 'COMPLETED',
           checkIn: '2025-07-20T14:00:00',
           checkOut: '2025-07-22T11:00:00',
+          reviewed: true,
         },
         {
           reservationId: 3,
@@ -64,6 +66,19 @@ const UserReservationCheck = () => {
           reservationStatus: 'CANCELLED',
           checkIn: '2025-08-10T14:00:00',
           checkOut: '2025-08-12T11:00:00',
+          reviewed: false,
+        },
+        {
+          reservationId: 4,
+          amount: 80000,
+          guesthouseId: 106,
+          guesthouseName: '산속의 하늘 게스트하우스22',
+          guesthouseImage: 'https://cdn.pixabay.com/photo/2024/07/17/08/53/sunrise-8901014_1280.jpg', 
+          roomName: '산뷰 트윈룸',
+          reservationStatus: 'COMPLETED',
+          checkIn: '2025-07-20T14:00:00',
+          checkOut: '2025-07-22T11:00:00',
+          reviewed: false,
         },
       ];
 

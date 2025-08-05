@@ -76,6 +76,7 @@ export default function UserCancelledReservations({ data }) {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: data.length === 0 ? 'center' : 'flex-start',
+          paddingVertical: 24,
         }}
         ListEmptyComponent={
           <EmptyState
@@ -103,7 +104,6 @@ export default function UserCancelledReservations({ data }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
   },
   devide: {
     marginVertical: 16,

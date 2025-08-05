@@ -3,7 +3,7 @@ import {
   View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder, 
   Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform,
 } from 'react-native';
-import { useRoute } from '@react-navigation/native';
+import { useRoute, useNavigation } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import { COLORS } from '@constants/colors';
@@ -11,6 +11,8 @@ import { FONTS } from '@constants/fonts';
 import styles from './UserGuesthouseReviewForm.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import { uploadMultiImage } from '@utils/imageUploadHandler';
+import ReviewConfirmModal from '@components/modals/UserMy/Guesthouse/ReviewConfirmModal';
+import ReviewSuccessModal from '@components/modals/UserMy/Guesthouse/ReviewSuccessModal';
 
 import StarFilled from '@assets/images/star_filled.svg';
 import StarHalf from '@assets/images/star_half.svg';
@@ -26,9 +28,13 @@ const noticeList = [
 
 const UserGuesthouseReviewForm = () => {
   const route = useRoute();
+  const navigation = useNavigation();
+
   const { guesthouseId } = route.params;
   const [images, setImages] = useState([]);
   const [reviewText, setReviewText] = useState('');
+  const [modalVisible, setModalVisible] = useState(false); // 확인 모달
+  const [successModalVisible, setSuccessModalVisible] = useState(false); // 성공 모달
 
   // 별점 터치
   const starSize = 40; // 별 아이콘 가로 크기(px)
@@ -204,6 +210,10 @@ const UserGuesthouseReviewForm = () => {
           </TouchableOpacity>
         </View>
 
+        <Text style={[FONTS.fs_12_light, { color: COLORS.grayscale_600, marginTop: 4 }]}>
+          별점과 리뷰 내용은 필수 입력 항목입니다.
+        </Text>
+
         {/* 안내 문구 */}
         <View style={styles.noticeWrapper}>
           {noticeList.map((text, idx) => (
@@ -216,9 +226,31 @@ const UserGuesthouseReviewForm = () => {
         {/* 버튼 */}
         <View style={styles.submitBtn}>
           <ButtonScarlet
-           title={'리뷰 등록하기'}
+            disabled={rating === 0 || reviewText.trim().length === 0}
+            title={'리뷰 등록하기'}
+            onPress={() => setModalVisible(true)}
           />
         </View>
+
+        {/* 리뷰 등록 확인 모달 */}
+        <ReviewConfirmModal
+          visible={modalVisible}
+          onCancel={() => setModalVisible(false)}
+          onConfirm={() => {
+            setModalVisible(false);
+            // 리뷰 등록 로직 실행 성공하면
+            setSuccessModalVisible(true);
+          }}
+        />
+
+        {/* 리뷰 등록 성공 모달 */}
+        <ReviewSuccessModal
+          visible={successModalVisible}
+          onClose={() => {
+            setSuccessModalVisible(false);
+            navigation.goBack();
+          }}
+        />
       </ScrollView>
     </View>
     </TouchableWithoutFeedback>

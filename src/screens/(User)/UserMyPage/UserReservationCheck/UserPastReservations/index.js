@@ -62,8 +62,28 @@ export default function UserPastReservations({ data }) {
           <TouchableOpacity style={styles.buttonContainer}>
             <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>다시 예약하기</Text>
           </TouchableOpacity>
-          <TouchableOpacity style={styles.buttonContainer}>
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>리뷰 작성하기</Text>
+          <TouchableOpacity
+            style={[
+              styles.buttonContainer,
+            ]}
+            disabled={item.reviewed}
+            onPress={() => {
+              if (!item.reviewed) {
+                navigation.navigate('UserGuesthouseReviewForm', {
+                  guesthouseId: item.guesthouseId,
+                });
+              }
+            }}
+          >
+            <Text
+              style={[
+                FONTS.fs_16_semibold,
+                styles.buttonText,
+                item.reviewed && { color: COLORS.grayscale_400 },
+              ]}
+            >
+              {item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
+            </Text>
           </TouchableOpacity>
         </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
@@ -80,6 +100,7 @@ export default function UserPastReservations({ data }) {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: data.length === 0 ? 'center' : 'flex-start',
+          paddingVertical: 24,
         }}
         ListEmptyComponent={
           <EmptyState
@@ -106,7 +127,6 @@ export default function UserPastReservations({ data }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
   },
   devide: {
     marginVertical: 16,

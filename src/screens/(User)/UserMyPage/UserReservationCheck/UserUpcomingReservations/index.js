@@ -76,6 +76,7 @@ export default function UserUpcomingReservations({ data }) {
         contentContainerStyle={{
           flexGrow: 1,
           justifyContent: data.length === 0 ? 'center' : 'flex-start',
+          paddingVertical: 24,
         }}
         ListEmptyComponent={
           <EmptyState
@@ -102,7 +103,6 @@ export default function UserUpcomingReservations({ data }) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
-    paddingVertical: 24,
   },
   cancelText: {
     color: COLORS.grayscale_400,
