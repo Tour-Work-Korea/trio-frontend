@@ -4,19 +4,23 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
+import EmployEmpty from '@components/Employ/EmployEmpty';
 
 import styles from './MyResumeList.styles';
 import {COLORS} from '@constants/colors';
 import EditIcon from '@assets/images/edit_gray';
 import TrashIcon from '@assets/images/delete_gray.svg';
-import ErrorModal from '@components/modals/ErrorModal';
-import Header from '@components/Header';
+import ResultModal from '@components/modals/ResultModal';
+import DeleteWaLogo from '@assets/images/delete_wa.svg';
+
 /*
  * 나의 이력서 목록 페이지
  */
 const MyResumeList = () => {
   const navigation = useNavigation();
-  const [resumes, setResumes] = useState();
+  const [resumes, setResumes] = useState([]);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     title: '',
@@ -24,6 +28,8 @@ const MyResumeList = () => {
     buttonText2: null,
     onPress2: null,
   });
+  const [loading, setLoading] = useState(true);
+  const [deleteCompleted, setDeleteCompleted] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -34,6 +40,7 @@ const MyResumeList = () => {
   );
 
   const tryFetchMyResumes = async () => {
+    setLoading(true);
     try {
       const response = await userEmployApi.getResumes();
       setResumes(response.data);
@@ -44,15 +51,18 @@ const MyResumeList = () => {
         title: '이력서를 불러오는 중 오류가 발생했어요',
         buttonText: '확인',
       }));
+    } finally {
+      setLoading(false);
     }
   };
 
   const tryDeleteResumeById = async id => {
     try {
       await userEmployApi.deleteResume(id);
+      setDeleteCompleted(true);
       setTimeout(() => {
         navigation.replace('MyResumeList');
-      }, 500);
+      }, 3000);
     } catch (error) {
       setErrorModal(prev => ({
         ...prev,
@@ -71,6 +81,7 @@ const MyResumeList = () => {
       buttonText2: '삭제',
       onPress2: () => {
         tryDeleteResumeById(id);
+        setErrorModal(prev => ({...prev, visible: false}));
       },
     });
   };
@@ -138,10 +149,14 @@ const MyResumeList = () => {
   return (
     <View style={styles.container}>
       <Header title={'나의 이력서'} />
-      <View style={styles.body}>
-        {renderResumeSelection()}
-        <ButtonScarlet
-          title="이력서 작성하기"
+
+      {loading ? (
+        <></>
+      ) : resumes?.length === 0 ? (
+        <EmployEmpty
+          title={'아직 정보가 부족해요'}
+          subTitle={'이력서를 완성하러 가볼까요?'}
+          buttonText={'이력서 작성하러 가기'}
           onPress={() =>
             navigation.navigate('ResumeDetail', {
               isEditable: true,
@@ -150,7 +165,21 @@ const MyResumeList = () => {
             })
           }
         />
-      </View>
+      ) : (
+        <View style={styles.body}>
+          {renderResumeSelection()}
+          <ButtonScarlet
+            title="이력서 작성하기"
+            onPress={() =>
+              navigation.navigate('ResumeDetail', {
+                isEditable: true,
+                role: 'USER',
+                isNew: true,
+              })
+            }
+          />
+        </View>
+      )}
       <ErrorModal
         visible={errorModal.visible}
         buttonText={errorModal.buttonText}
@@ -158,6 +187,14 @@ const MyResumeList = () => {
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         onPress2={errorModal.onPress2}
         title={errorModal.title}
+      />
+      <ResultModal
+        visible={deleteCompleted}
+        onClose={() => {
+          setDeleteCompleted(false);
+        }}
+        title="이력서 삭제가 완료되었어요"
+        Icon={DeleteWaLogo}
       />
     </View>
   );

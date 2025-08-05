@@ -1,25 +1,18 @@
 import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-  Image,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import styles from './MyApplicantList.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import userEmployApi from '@utils/api/userEmployApi';
 import ButtonWhite from '@components/ButtonWhite';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
+import EmployEmpty from '@components/Employ/EmployEmpty';
 
 const MyApplicantList = () => {
   const navigation = useNavigation();
-  const [applicants, setApplicants] = useState();
+  const [applicants, setApplicants] = useState([]);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     title: '',
@@ -27,6 +20,7 @@ const MyApplicantList = () => {
     buttonText2: null,
     onPress2: null,
   });
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -37,6 +31,7 @@ const MyApplicantList = () => {
   );
 
   const tryFetchMyApplicants = async () => {
+    setLoading(true);
     try {
       const response = await userEmployApi.getMyApplications();
       setApplicants(response.data);
@@ -47,6 +42,8 @@ const MyApplicantList = () => {
         title: '지원현황 조회 중 오류가 발생했어요',
         buttonText: '확인',
       }));
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -67,7 +64,7 @@ const MyApplicantList = () => {
         }>
         <View style={styles.jobItemContent}>
           <Image
-            source={require('@assets/images/exphoto.jpeg')}
+            source={{uri: item.thumbnailImage}}
             style={styles.jobImage}
             resizeMode="cover"
           />
@@ -120,15 +117,25 @@ const MyApplicantList = () => {
   return (
     <View style={styles.container}>
       <Header title={'지원 현황'} />
-
-      <View style={styles.body}>
-        <FlatList
-          data={applicants}
-          renderItem={renderApplyItem}
-          keyExtractor={item => item.id}
-          showsVerticalScrollIndicator={false}
+      {loading ? (
+        <></>
+      ) : applicants?.length === 0 ? (
+        <EmployEmpty
+          title={'지원한 알바가 없어요'}
+          subTitle={'마음에 드는 알바를 보러 가볼까요?'}
+          buttonText={'알바 찾으러 가기'}
+          onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
         />
-      </View>
+      ) : (
+        <View style={styles.body}>
+          <FlatList
+            data={applicants}
+            renderItem={renderApplyItem}
+            keyExtractor={item => item.id}
+            showsVerticalScrollIndicator={false}
+          />
+        </View>
+      )}
       <ErrorModal
         visible={errorModal.visible}
         buttonText={errorModal.buttonText}

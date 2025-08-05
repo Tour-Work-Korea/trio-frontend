@@ -84,11 +84,9 @@ export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegister
 // (User)
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
-//
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
-export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';

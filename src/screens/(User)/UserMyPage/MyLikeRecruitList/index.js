@@ -5,10 +5,9 @@ import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
-// 아이콘 불러오기
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
+import EmployEmpty from '@components/Employ/EmployEmpty';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
@@ -50,15 +49,16 @@ export default function MyLikeRecruitList() {
       guesthouseName: recruit.guesthouseName,
       recruitEnd: recruit.recruitEnd,
     });
-  const handleLikePress = (recruitId, isLiked, setRecruitList) => {
+  const handleLikePress = ({id, isLiked, setRecruitList}) => {
     toggleLikeRecruit({
-      id: recruitId,
+      id,
       isLiked,
       setRecruitList,
       showErrorModal: setErrorModal,
     });
+
     setTimeout(() => {
-      navigation.replace('MyLikeRecruitList'); // 또는 현재 라우트명
+      navigation.replace('MyLikeRecruitList');
     }, 500);
   };
 
@@ -66,14 +66,28 @@ export default function MyLikeRecruitList() {
     <View style={styles.container}>
       <Header title={'즐겨찾는 공고'} />
       <View style={styles.contentContainer}>
-        <RecruitList
-          data={recruits}
-          loading={loading}
-          onJobPress={handleJobPress}
-          onApplyPress={handleApplyPress}
-          onToggleFavorite={handleLikePress}
-          setRecruitList={setRecruits}
-        />
+        {loading ? (
+          <></>
+        ) : recruits?.length === 0 ? (
+          <EmployEmpty
+            title={'아직 즐겨찾는 알바가 없어요'}
+            subTitle={'마음에 드는 알바를 빠르게 볼 수 있어요 !'}
+            buttonText={'알바 찾으러 가기'}
+            onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
+          />
+        ) : (
+          <RecruitList
+            data={recruits}
+            loading={loading}
+            onJobPress={handleJobPress}
+            onApplyPress={handleApplyPress}
+            onToggleFavorite={handleLikePress}
+            setRecruitList={setRecruits}
+            onEndReached={() => {}}
+            scrollEnabled={false}
+            showErrorModal={setErrorModal}
+          />
+        )}
       </View>
 
       <ErrorModal
@@ -92,20 +106,10 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     backgroundColor: COLORS.grayscale_100,
   },
-  headerBox: {
-    padding: 20,
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    width: '100%',
-  },
-  headerText: {
-    ...FONTS.fs_20_semibold,
-    color: COLORS.grayscale_800,
-  },
   contentContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingTop: 24,
     flex: 1,
   },
 });
