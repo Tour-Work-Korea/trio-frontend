@@ -51,6 +51,9 @@ const userEmployApi = {
   //나의 지원현황 조회
   getMyApplications: () => api.get('/user/my/applications'),
 
+  //지원 취소
+  deleteApply: id => api.delete(`/user/my/applications/${id}`),
+
   //지원현황에서 지원서 상세 조회
   getMyApplicationById: applicationId =>
     api.get(`/user/my/applications/${applicationId}`),
