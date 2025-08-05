@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginBottom: 4,
   },
-  infoLabel: {...FONTS.fs_14_medium, color: COLORS.grayscale_400, width: 50},
+  infoLabel: {...FONTS.fs_14_medium, color: COLORS.grayscale_400, width: 80},
   infoValue: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,

@@ -1,7 +1,7 @@
-import qs from 'qs'; // qs는 query string을 stringify할 때 유용함
+import qs from 'qs';
 import axios from 'axios';
 import useUserStore from '@stores/userStore';
-import {API_BASE_URL} from '@env'; // api 백 주소 불러오기
+import {API_BASE_URL} from '@env';
 import authApi from './authApi';
 
 const api = axios.create({
@@ -14,61 +14,71 @@ const api = axios.create({
   paramsSerializer: params => qs.stringify(params),
 });
 
+// 📍 REQUEST INTERCEPTOR
 api.interceptors.request.use(
   async config => {
     const method = config.method?.toUpperCase() || 'GET';
     const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
     const endpoint = config.url?.replace(/^\//, '') || '';
+    const fullUrl = config.params
+      ? `${baseUrl}/${endpoint}?${qs.stringify(config.params)}`
+      : `${baseUrl}/${endpoint}`;
 
-    //토큰 주입 => 토큰 미포함시, withAuth: false처리(authApi에 예시 있음)
+    // ⛳️ STEP 1: 토큰 주입
     const token = useUserStore.getState().accessToken;
-
     if (config.withAuth !== false && token) {
       config.headers.Authorization = `Bearer ${token}`;
-    }
-    const cookie = useUserStore.getState()?.refreshToken;
-    if (cookie) {
-      config.headers.Cookie = 'refreshToken=' + cookie;
-    }
-    // 쿼리스트링 조합
-    let fullUrl = `${baseUrl}/${endpoint}`;
-    if (config.params) {
-      const queryString = qs.stringify(config.params, {encode: true});
-      fullUrl += `?${queryString}`;
+      console.log('🟡 [Request] Authorization 헤더 설정');
     }
 
-    console.log(`🔷 Request: ${method} ${fullUrl}`);
-    if (config.data) {
-      console.log('📦 Body:', config.data);
+    // ⛳️ STEP 2: RefreshToken 쿠키 직접 삽입 (React Native 용)
+    const cookie = useUserStore.getState().refreshToken;
+    if (cookie) {
+      config.headers.Cookie = 'refreshToken=' + cookie;
+      console.log('🟡 [Request] refreshToken 쿠키 설정');
     }
+
+    // ⛳️ STEP 3: 로그 출력
+    console.log(`🔷 [Request] ${method} ${fullUrl}`);
+    if (config.data) console.log('📦 [Request Body]', config.data);
 
     return config;
   },
   error => Promise.reject(error),
 );
 
-let isRefreshing = false; //재발급 중인지 여부
-let queue = []; //재발급 중인 요청을 잠시 보관 큐
+// 📍 TOKEN REFRESH FLOW
+let isRefreshing = false;
+let queue = [];
 
 const resolveQueue = (error, token = null) => {
   queue.forEach(p => (error ? p.reject(error) : p.resolve(token)));
   queue = [];
 };
 
+// 📍 RESPONSE INTERCEPTOR
 api.interceptors.response.use(
   res => {
-    console.log('🟢 Response:', res.status, res.data);
+    console.log('🟢 [Response]', res.status, res.data);
     return res;
-  }, //성공 응답은 그대로 반환
+  },
   async err => {
     const originalRequest = err.config;
+    const status = err.response?.status;
 
-    // accessToken 만료 또는 유효하지 않음 -> 401 응답 확인
-    if (err.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true; // 중복 재시도 방지
+    console.log(
+      `🔴 [Error] ${originalRequest.method?.toUpperCase()} ${
+        originalRequest.url
+      }`,
+    );
+    console.log('🔴 [Error Response]', status, err.response?.data);
+
+    if ((status === 401 || status === 403) && !originalRequest._retry) {
+      console.log('🔁 [Retry Trigger] accessToken 만료로 인해 재발급 시도');
+      originalRequest._retry = true;
 
       if (isRefreshing) {
-        //이미 재발급 중이라면 새토큰 받아서 대기 후 재요청
+        console.log('⏳ [Token Refreshing] 이미 재발급 중, 대기열에 요청 추가');
         return new Promise((res, rej) => {
           queue.push({resolve: res, reject: rej});
         }).then(token => {
@@ -78,49 +88,37 @@ api.interceptors.response.use(
       }
 
       isRefreshing = true;
-
       try {
-        //refreshToken 쿠키로 /auth/refresh 호출
+        console.log('🔄 [Refresh] /auth/refresh 요청 시작');
         const res = await authApi.refreshToken();
+        console.log('✅ [Refresh] 재발급 성공', res.status, res.data);
+
         const accessToken = res.data.accessToken;
-        let refreshToken;
-        const rawCookies =
-          res.headers['set-cookie'] || res.headers['Set-Cookie'];
-        if (rawCookies && rawCookies.length > 0) {
-          const cookie = rawCookies[0];
-          const match = cookie.match(/refreshToken=([^;]+);?/);
-          if (match) {
-            refreshToken = match[1];
-          }
-        }
-        useUserStore.getState().setTokens({accessToken, refreshToken});
+
+        // React Native에서는 set-cookie 헤더를 못 받으므로 refreshToken 파싱은 생략
+        useUserStore.getState().setTokens({accessToken});
         api.defaults.headers.Authorization = `Bearer ${accessToken}`;
 
-        //대기 중이던 요청들에 토큰 전달 및 재시도
+        // 대기 중이던 요청 재시도
         resolveQueue(null, accessToken);
-
-        //원래 요청에 새 토큰 붙여서 다시 호출
         originalRequest.headers.Authorization = `Bearer ${accessToken}`;
         return api(originalRequest);
       } catch (error) {
-        //refreshToken 만료 또는 재발급 실패
+        console.warn(
+          '❌ [Refresh Failed]',
+          error.response?.status,
+          error.response?.data?.message || error.message,
+        );
         resolveQueue(error, null);
-        //사용자 로그아웃 처리
         useUserStore.getState().clearUser();
-        // navigation.replace('Login') 가능
         return Promise.reject(error);
       } finally {
         isRefreshing = false;
       }
     }
 
-    console.log(
-      '🔴 Error Response:',
-      err,
-      err.response?.status,
-      err.response?.data,
-    );
     return Promise.reject(err);
   },
 );
+
 export default api;

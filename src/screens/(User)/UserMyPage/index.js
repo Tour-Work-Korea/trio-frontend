@@ -43,14 +43,13 @@ const UserMyPage = () => {
             <Text style={[FONTS.fs_14_medium, styles.age]}>
               성별 00세 (0000년생)
             </Text>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.profileEdit}
-              onPress={goToEditProfile}
-            >
+              onPress={goToEditProfile}>
               <Text>수정</Text>
             </TouchableOpacity>
           </View>
-          
+
           <View style={styles.profileContainer}>
             {user.photoUrl ? (
               <Image
@@ -64,20 +63,39 @@ const UserMyPage = () => {
             )}
             <View style={styles.profilePlaceholder}>
               <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>연락처</Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>{user.phone}</Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  연락처
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                  {user.phone}
+                </Text>
               </View>
               <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>이메일</Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>{user.email}</Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  이메일
+                </Text>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.profileContentText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {user.email}
+                </Text>
               </View>
               <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>MBTI</Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>{user.mbti}</Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  MBTI
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                  {user.mbti}
+                </Text>
               </View>
               <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>insta</Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>@{user.instagramId}</Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  insta
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                  @{user.instagramId}
+                </Text>
               </View>
             </View>
           </View>
@@ -86,7 +104,9 @@ const UserMyPage = () => {
         <View style={styles.bottomSection}>
           {/* 숙박 섹션 */}
           <View style={styles.section}>
-            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>숙박</Text>
+            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+              숙박
+            </Text>
             <View style={styles.menuContainer}>
               <MenuItem
                 IconComponent={FavoriteGuesthouseIcon}
@@ -106,11 +126,13 @@ const UserMyPage = () => {
             </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           {/* 공고 섹션 */}
           <View style={styles.section}>
-            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>공고</Text>
+            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+              공고
+            </Text>
             <View style={styles.menuContainer}>
               <MenuItem
                 IconComponent={FavoritePostIcon}
@@ -130,7 +152,7 @@ const UserMyPage = () => {
             </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           <ButtonScarlet
             title="로그아웃"
@@ -145,7 +167,9 @@ const UserMyPage = () => {
         </View>
 
         <TouchableOpacity style={styles.deleteAccount}>
-          <Text style={[FONTS.fs_14_medium, styles.deleteAccountText]}>탈퇴하기</Text>
+          <Text style={[FONTS.fs_14_medium, styles.deleteAccountText]}>
+            탈퇴하기
+          </Text>
         </TouchableOpacity>
       </View>
     </ScrollView>

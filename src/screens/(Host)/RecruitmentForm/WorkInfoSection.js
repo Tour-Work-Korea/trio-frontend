@@ -10,44 +10,66 @@ import styles from './RecruitmentForm';
 import Gray_ImageAdd from '@assets/images/Gray_ImageAdd.svg';
 import {launchImageLibrary} from 'react-native-image-picker';
 import XBtn from '@assets/images/x_gray.svg';
+import {uploadMultiImage} from '@utils/imageUploadHandler';
 
 export default function WorkInfoSection({
   formData,
   setFormData,
   handleInputChange,
 }) {
-  const pickImage = () => {
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: 1,
-        quality: 0.8,
-        includeBase64: false,
-      },
-      response => {
-        if (response.didCancel) return;
-        if (response.errorCode) {
-          Alert.alert('오류', '이미지를 선택하는 중 오류가 발생했습니다.');
-          return;
-        }
+  // const pickImage = () => {
+  //   launchImageLibrary(
+  //     {
+  //       mediaType: 'photo',
+  //       selectionLimit: 1,
+  //       quality: 0.8,
+  //       includeBase64: false,
+  //     },
+  //     response => {
+  //       if (response.didCancel) return;
+  //       if (response.errorCode) {
+  //         Alert.alert('오류', '이미지를 선택하는 중 오류가 발생했습니다.');
+  //         return;
+  //       }
 
-        if (response.assets && response.assets.length > 0) {
-          const uri = response.assets[0].uri;
-          if (formData.recruitImage.length < 6) {
-            const newImage = {
-              recruitImageUrl: uri,
-              isThumbnail: formData.recruitImage.length === 0, // 첫 번째 이미지를 썸네일로 설정
-            };
-            setFormData({
-              ...formData,
-              recruitImage: [...formData.recruitImage, newImage],
-            });
-          } else {
-            Alert.alert('사진 제한', '최대 6장까지 등록 가능합니다.');
-          }
-        }
-      },
-    );
+  //       if (response.assets && response.assets.length > 0) {
+  //         const uri = response.assets[0].uri;
+  //         if (formData.recruitImage.length < 6) {
+  //           const newImage = {
+  //             recruitImageUrl: uri,
+  //             isThumbnail: formData.recruitImage.length === 0, // 첫 번째 이미지를 썸네일로 설정
+  //           };
+  //           setFormData({
+  //             ...formData,
+  //             recruitImage: [...formData.recruitImage, newImage],
+  //           });
+  //         } else {
+  //           Alert.alert('사진 제한', '최대 6장까지 등록 가능합니다.');
+  //         }
+  //       }
+  //     },
+  //   );
+  // };
+
+  const pickImage = async () => {
+    const limit = 6 - formData.recruitImage.length;
+    if (limit <= 0) {
+      Alert.alert('사진 제한', '최대 6장까지 등록 가능합니다.');
+      return;
+    }
+
+    const uploadedUrls = await uploadMultiImage(limit);
+    if (!uploadedUrls || uploadedUrls.length === 0) return;
+
+    const newImages = uploadedUrls.map((url, idx) => ({
+      recruitImageUrl: url,
+      isThumbnail: formData.recruitImage.length === 0 && idx === 0,
+    }));
+
+    setFormData({
+      ...formData,
+      recruitImage: [...formData.recruitImage, ...newImages],
+    });
   };
 
   const removePhoto = index => {

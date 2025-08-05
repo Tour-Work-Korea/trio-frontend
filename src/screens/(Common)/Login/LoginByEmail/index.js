@@ -7,7 +7,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import styles from '../Login.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
@@ -61,7 +60,7 @@ export default function LoginByEmail({route}) {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
             {/* 로고 및 문구 */}
@@ -138,7 +137,7 @@ export default function LoginByEmail({route}) {
           buttonText={errorModal.buttonText}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 }

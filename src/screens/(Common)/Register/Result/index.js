@@ -1,5 +1,4 @@
 import {View, Text} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import ButtonScarlet from '@components/ButtonScarlet';
 import styles from '../RegisterIntro/Intro.styles';
 import LogoBlue from '@assets/images/logo_blue_smile.svg';
@@ -14,7 +13,7 @@ const Result = ({route}) => {
   } = route.params || {};
 
   return (
-    <SafeAreaView style={styles.signin}>
+    <View style={styles.signin}>
       <View style={styles.view}>
         <View style={styles.logoParent}>
           <LogoBlue width={168} />
@@ -30,7 +29,7 @@ const Result = ({route}) => {
         </View>
         <ButtonScarlet title={buttonTitle} to={to} onPress={onPress} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 export default Result;

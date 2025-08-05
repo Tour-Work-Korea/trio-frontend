@@ -21,7 +21,6 @@ import {
   MyApplicantList,
   MyLikeRecruitList,
   MyResumeList,
-  ResumeForm,
   EditProfileFieldScreen,
   EmployDetail,
   UserGuesthouseReview,
@@ -103,7 +102,6 @@ const My = () => {
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />
-      <Stack.Screen name="ResumeForm" component={ResumeForm} />
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   );

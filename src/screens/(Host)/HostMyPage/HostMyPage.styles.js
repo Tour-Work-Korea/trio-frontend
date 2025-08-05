@@ -1,72 +1,106 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   outContainer: {
     flex: 1,
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 20,
+  },
+  // 헤더
+  headerText: {
+    color: COLORS.grayscale_800,
+    lineHeight: 28,
+    textAlign: 'center',
+    marginTop: 13,
+  },
+
+  // 본문
+  container: {},
+
+  // 유저 프로필
+  userInfoContainer: {
     backgroundColor: COLORS.grayscale_0,
+    paddingHorizontal: 8,
+    paddingVertical: 12,
+    borderRadius: 8,
+    marginTop: 16,
   },
-  container: {
-    paddingHorizontal: 15,
-  },
-  header: {
+  // 이름 성별
+  profileHeader: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 30,
-    marginBottom: 40,
+    marginBottom: 16,
   },
+  name: {},
+  age: {
+    color: COLORS.grayscale_500,
+    marginLeft: 16,
+  },
+  profileEdit: {
+    position: 'absolute',
+    right: 0,
+    backgroundColor: COLORS.grayscale_100,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+
+  // 유저 정보
   profileContainer: {
     flexDirection: 'row',
-    alignItems: 'center',
   },
   profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    marginRight: 12,
-  },
-  profilePlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
+    width: 116,
+    height: 116,
+    borderRadius: 8,
+    marginRight: 20,
     backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
   },
-  name: {
-    color: COLORS.black,
+  profilePlaceholder: {
+    gap: 4,
+    justifyContent: 'flex-start',
+    flexDirection: 'column',
+    flex: 1,
   },
-  headerIcons: {
+  profileText: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
-  icon: {
-    marginLeft: 16,
+  profileTitleText: {
     color: COLORS.grayscale_400,
+    width: 42,
   },
-  section: {
-    marginBottom: 40,
+  profileContentText: {
+    marginLeft: 20,
+    flex: 1,
   },
+
+  // 마이페이지
+  bottomSection: {
+    marginTop: 16,
+    backgroundColor: COLORS.grayscale_0,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  section: {},
   sectionTitle: {
-    marginBottom: 10,
+    marginBottom: 16,
     color: COLORS.grayscale_800,
-    ...FONTS.fs_16_semibold,
+  },
+  menuContainer: {
+    gap: 8,
   },
   menuItem: {
     flexDirection: 'row',
-    alignItems: 'center',
     justifyContent: 'space-between',
-    paddingVertical: 10,
   },
   menuItemIconContainer: {
-    width: 36,
-    height: 36,
-    backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
-    borderRadius: 10,
   },
   menuLeft: {
     flexDirection: 'row',
@@ -74,7 +108,21 @@ export default StyleSheet.create({
   },
   menuLabel: {
     marginLeft: 12,
-    color: COLORS.grayscale_800,
-    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_700,
+  },
+  devide: {
+    marginVertical: 16,
+    height: 0.8,
+    backgroundColor: COLORS.grayscale_200,
+  },
+
+  // 회원 탈퇴
+  deleteAccount: {
+    marginVertical: 8,
+    alignSelf: 'flex-end',
+    marginRight: 12,
+  },
+  deleteAccountText: {
+    color: COLORS.grayscale_400,
   },
 });

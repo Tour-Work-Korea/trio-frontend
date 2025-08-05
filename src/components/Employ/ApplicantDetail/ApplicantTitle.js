@@ -1,26 +1,38 @@
 import React from 'react';
-import {View, Text, StyleSheet, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TextInput,
+  TouchableWithoutFeedback,
+  Keyboard,
+  KeyboardAvoidingView,
+} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 const ApplicantTitle = ({title, setTitle = null, isEditable = false}) => {
   return (
-    <View>
-      <View style={styles.sectionBox}>
-        <Text style={styles.inputLabel}>나를 표현하는 한 마디는?</Text>
-        <View style={styles.inputBox}>
-          <TextInput
-            style={styles.textInput}
-            placeholder="나를 표현하는 한 마디를 입력해주세요"
-            placeholderTextColor={COLORS.grayscale_400}
-            value={title}
-            onChangeText={setTitle}
-            maxLength={20}
-            editable={isEditable}
-          />
-        </View>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View>
+        <KeyboardAvoidingView>
+          <View style={styles.sectionBox}>
+            <Text style={styles.inputLabel}>나를 표현하는 한 마디는?</Text>
+            <View style={styles.inputBox}>
+              <TextInput
+                style={styles.textInput}
+                placeholder="나를 표현하는 한 마디를 입력해주세요"
+                placeholderTextColor={COLORS.grayscale_400}
+                value={title}
+                onChangeText={setTitle}
+                maxLength={20}
+                editable={isEditable}
+              />
+            </View>
+          </View>
+        </KeyboardAvoidingView>
       </View>
-    </View>
+    </TouchableWithoutFeedback>
   );
 };
 const styles = StyleSheet.create({

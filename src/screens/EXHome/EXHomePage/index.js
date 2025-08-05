@@ -1,6 +1,5 @@
-import React, {useEffect, useState} from 'react';
+import React from 'react';
 import {View, Text} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Logo from '@assets/images/logo_orange.svg'; // svg이미지 불러오기
 import styles from './Home.styles';
 import ButtonScarlet from '@components/ButtonScarlet'; // 버튼 컴포넌트 불러오기
@@ -11,19 +10,8 @@ import {tryLogout} from '@utils/auth/login';
 import Loading from '@components/Loading';
 
 const EXHomePage = () => {
-  /** 로딩창 사용 예시
-  const [loading, setLoading] = useState(true);
-  useEffect(() => {
-    setTimeout(() => {
-      setLoading(false);
-    }, 10000);
-  }, []);
-  if (loading) {
-    return <Loading title="로딩 중....!" />;
-  }
-  */
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       {/* 헤더 불러오기 2가지 */}
       <Header />
       {/* <Header title="지원자 조회" /> */}
@@ -48,7 +36,7 @@ const EXHomePage = () => {
       <ButtonWhite title="예시 로그인 & 저장 페이지로 이동" to="EXLogin" />
       {/* 버튼 컴포넌트 사용 */}
       <ButtonWhite title="하단바 있는 페이지로 이동" to="BottomTabs" />
-    </SafeAreaView>
+    </View>
   );
 };
 

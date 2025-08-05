@@ -1,11 +1,5 @@
 import React, {useState} from 'react';
-import {
-  View,
-  StyleSheet,
-  KeyboardAvoidingView,
-  Platform,
-  SafeAreaView,
-} from 'react-native';
+import {View, StyleSheet, KeyboardAvoidingView, Platform} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import EditFormInput from '@components/EditFormInput';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -163,7 +157,7 @@ const EditProfileFieldScreen = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
@@ -192,7 +186,7 @@ const EditProfileFieldScreen = () => {
         visible={errorModal.visible}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 
@@ -204,6 +198,8 @@ const styles = StyleSheet.create({
   saveButtonContainer: {
     position: 'absolute',
     bottom: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
     width: '100%',
   },
 });

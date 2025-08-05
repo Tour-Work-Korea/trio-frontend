@@ -1,12 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Alert} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
@@ -30,6 +23,7 @@ const MyRecruitmentList = () => {
   });
   const [resultModalVisible, setResultModalVisible] = useState(false);
   const [selectedRecruitId, setSelectedRecruitId] = useState(null);
+  const [loading, setLoading] = useState(true);
 
   useFocusEffect(
     useCallback(() => {
@@ -38,11 +32,14 @@ const MyRecruitmentList = () => {
   );
 
   const getMyRecruits = async () => {
+    setLoading(true);
     try {
       const response = await hostEmployApi.getMyRecruits();
       setMyRecruits(response.data);
     } catch (error) {
       Alert.alert('내 공고 조회에 실패했습니다.');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -104,10 +101,12 @@ const MyRecruitmentList = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title="나의 공고" />
       <View style={styles.body}>
-        {myRecruits.length === 0 ? (
+        {loading ? (
+          <></>
+        ) : myRecruits.length === 0 ? (
           <View style={styles.emptyContainer}>
             <ApplyLogo width={187} />
             <View style={styles.textContainer}>
@@ -143,7 +142,7 @@ const MyRecruitmentList = () => {
         title={'마감요청이 되었어요!'}
         Icon={LogoBlueSmile}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -42,7 +42,9 @@ const ApplicantProfileHeader = ({data}) => {
 const InfoRow = ({label, value}) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue}>{value}</Text>
+    <Text style={styles.infoValue} numberOfLines={1}>
+      {value}
+    </Text>
   </View>
 );
 
@@ -91,11 +93,12 @@ const styles = StyleSheet.create({
   infoLabel: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_400,
-    width: 37,
+    width: 50,
   },
   infoValue: {
     ...FONTS.fs_body,
     color: COLORS.black,
-    textAlign: 'right',
+    textAlign: 'left',
+    flex: 1,
   },
 });

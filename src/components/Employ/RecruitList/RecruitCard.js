@@ -11,7 +11,7 @@ const RecruitCard = ({item, onPress, onToggleFavorite}) => {
       <TouchableOpacity onPress={onPress}>
         <View style={styles.jobItemContent}>
           <Image
-            source={require('@assets/images/exphoto.jpeg')} // 실제로는 item.thumbnailImage
+            source={{uri: item.thumbnailImage || item.recruitImage}}
             style={styles.jobImage}
             resizeMode="cover"
           />
