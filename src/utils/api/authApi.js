@@ -1,4 +1,5 @@
 import api from './axiosInstance';
+let refreshPromise = null;
 
 const authApi = {
   //이메일 인증
@@ -42,10 +43,31 @@ const authApi = {
     api.post('/auth/login', {email, password, userRole}, {withAuth: false}),
 
   //토큰 재발급
-  refreshToken: () =>
-    api.post('/auth/refresh', null, {
+  refreshToken: async () => {
+    if (refreshPromise) return refreshPromise;
+
+    const url = '/auth/refresh';
+    console.log(`🔄 Refresh Request: POST ${url}`);
+
+    refreshPromise = api.post(url, null, {
       withAuth: false,
-    }),
+    });
+
+    try {
+      const res = await refreshPromise;
+      console.log('✅ Refresh Success:', res.status, res.data);
+      return res;
+    } catch (err) {
+      console.log(
+        '❌ Refresh Failed:',
+        err.response?.status,
+        err.response?.data,
+      );
+      throw err;
+    } finally {
+      refreshPromise = null; // reset
+    }
+  },
 
   //카카오 로그인
   loginKakao: accessCode =>

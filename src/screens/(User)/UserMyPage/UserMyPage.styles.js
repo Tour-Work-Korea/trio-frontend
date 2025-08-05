@@ -16,8 +16,7 @@ export default StyleSheet.create({
   },
 
   // 본문
-  container: {
-  },
+  container: {},
 
   // 유저 프로필
   userInfoContainer: {
@@ -33,8 +32,7 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginBottom: 16,
   },
-  name: {
-  },
+  name: {},
   age: {
     color: COLORS.grayscale_500,
     marginLeft: 16,
@@ -69,29 +67,28 @@ export default StyleSheet.create({
   },
   profileTitleText: {
     color: COLORS.grayscale_400,
-    width: 38,
+    width: 42,
   },
   profileContentText: {
     marginLeft: 20,
   },
 
   // 마이페이지
-  bottomSection:{
+  bottomSection: {
     marginTop: 16,
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 8,
   },
-  section: {
-  },
+  section: {},
   sectionTitle: {
     marginBottom: 16,
     color: COLORS.grayscale_800,
   },
   menuContainer: {
     gap: 8,
-  },  
+  },
   menuItem: {
     flexDirection: 'row',
     justifyContent: 'space-between',
