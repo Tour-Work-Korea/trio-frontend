@@ -1,12 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  SafeAreaView,
-  FlatList,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity, Alert} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
@@ -104,7 +97,7 @@ const MyRecruitmentList = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title="나의 공고" />
       <View style={styles.body}>
         {myRecruits.length === 0 ? (
@@ -143,7 +136,7 @@ const MyRecruitmentList = () => {
         title={'마감요청이 되었어요!'}
         Icon={LogoBlueSmile}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

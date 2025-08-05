@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {View, Text} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -12,7 +11,7 @@ export default function AgreeDetail({route}) {
   const navigation = useNavigation();
 
   return (
-    <SafeAreaView style={styles.safeareaview}>
+    <View style={styles.safeareaview}>
       <View style={{height: 40}}></View>
       <View style={styles.view}>
         <Text style={[styles.titleText]}>{title}</Text>
@@ -21,7 +20,7 @@ export default function AgreeDetail({route}) {
         </View>
         <ButtonScarlet title="확인" onPress={() => navigation.goBack()} />
       </View>
-    </SafeAreaView>
+    </View>
   );
 }
 const styles = StyleSheet.create({

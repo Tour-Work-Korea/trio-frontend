@@ -5,8 +5,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import {COLORS} from '@constants/colors';

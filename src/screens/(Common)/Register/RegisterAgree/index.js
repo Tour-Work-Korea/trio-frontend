@@ -1,6 +1,5 @@
 import React, {useState, useEffect} from 'react';
 import {Text, View, TouchableOpacity} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
 import Logo from '@assets/images/logo_orange.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
@@ -82,7 +81,7 @@ const RegisterAgree = ({route}) => {
   );
 
   return (
-    <SafeAreaView style={styles.signin}>
+    <View style={styles.signin}>
       <View style={[styles.viewFlexBox]}>
         {/* 로고 및 문구 */}
         <View style={styles.groupParent}>
@@ -142,7 +141,7 @@ const RegisterAgree = ({route}) => {
           )}
         </View>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

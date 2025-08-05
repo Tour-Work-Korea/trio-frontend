@@ -1,21 +1,13 @@
 // 기존 import 문은 동일하게 유지합니다
 
 import React, {useState, useEffect} from 'react';
-import {
-  View,
-  ScrollView,
-  SafeAreaView,
-  FlatList,
-  Alert,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import {View, FlatList, Alert, Text, TouchableOpacity} from 'react-native';
 import styles from './StoreRegisterList.styles';
 import Header from '@components/Header';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {FONTS} from '@constants/fonts';
-import {formatDate, formatLocalDateToDot} from '@utils/formatDate';
+import {formatDate} from '@utils/formatDate';
 
 const StoreRegisterList = () => {
   const [storeRegisters, setStoreRegisters] = useState([]);
@@ -53,7 +45,7 @@ const StoreRegisterList = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title="나의 입점신청서" />
       <View style={{paddingHorizontal: 20, paddingTop: 12}}>
         <ButtonScarlet title={'입점신청하기'} to={'StoreRegisterForm'} />
@@ -66,7 +58,7 @@ const StoreRegisterList = () => {
           scrollEnabled={false}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

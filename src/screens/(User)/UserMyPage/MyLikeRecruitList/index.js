@@ -1,11 +1,5 @@
 import React, {useState, useCallback} from 'react';
-import {
-  SafeAreaView,
-  StyleSheet,
-  TouchableOpacity,
-  View,
-  Text,
-} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -13,7 +7,6 @@ import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
 // 아이콘 불러오기
 import {COLORS} from '@constants/colors';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
 
@@ -70,7 +63,7 @@ export default function MyLikeRecruitList() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title={'즐겨찾는 공고'} />
       <View style={styles.contentContainer}>
         <RecruitList
@@ -89,7 +82,7 @@ export default function MyLikeRecruitList() {
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </SafeAreaView>
+    </View>
   );
 }
 

@@ -19,7 +19,6 @@ import {validateStoreForm} from '@utils/validation/storeRegisterValidation';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import {useNavigation} from '@react-navigation/native';
 import ErrorModal from '@components/modals/ErrorModal';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
 /*
  * 입점 등록 신청 페이지
@@ -156,7 +155,7 @@ const StoreRegister = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={80}>
       <View style={{flex: 1}}>
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
           <Header title={'입점 등록'} />
           <ScrollView
             style={styles.body}
@@ -320,7 +319,7 @@ const StoreRegister = () => {
             buttonText={'확인'}
             onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
           />
-        </SafeAreaView>
+        </View>
       </View>
     </KeyboardAvoidingView>
   );

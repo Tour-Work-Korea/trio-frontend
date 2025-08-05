@@ -5,7 +5,6 @@ import {
   TextInput,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
   Alert,
   Platform,
 } from 'react-native';
@@ -418,7 +417,7 @@ const ResumeForm = () => {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title={`이력서 ${isEditMode ? '수정' : '등록'}`} />
       <ScrollView style={styles.scrollView}>
         {renderBasicInfo()}
@@ -435,7 +434,7 @@ const ResumeForm = () => {
           </Text>
         </TouchableOpacity>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

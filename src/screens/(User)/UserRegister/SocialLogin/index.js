@@ -1,5 +1,5 @@
 import React, {useRef} from 'react';
-import {Alert, SafeAreaView} from 'react-native';
+import {Alert, View} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import {tryKakaoLogin} from '@utils/auth/login';
@@ -43,7 +43,7 @@ export default function SocialLogin() {
   };
 
   return (
-    <SafeAreaView style={{flex: 1}}>
+    <View style={{flex: 1}}>
       <WebView
         ref={webviewRef}
         source={{uri: kakaoAuthUrl}}
@@ -57,6 +57,6 @@ export default function SocialLogin() {
           return true;
         }}
       />
-    </SafeAreaView>
+    </View>
   );
 }

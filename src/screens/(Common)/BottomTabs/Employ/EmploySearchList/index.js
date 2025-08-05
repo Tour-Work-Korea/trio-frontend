@@ -82,7 +82,6 @@ const EmploySearchList = () => {
     <Loading title="채용 정보를 가져오는 중입니다..." />;
   }
   return (
-    // <SafeAreaView >
     <View style={[styles.container]}>
       {/* 헤더 */}
       <Header title="채용공고" />
@@ -142,7 +141,6 @@ const EmploySearchList = () => {
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </View>
-    // </SafeAreaView>
   );
 };
 

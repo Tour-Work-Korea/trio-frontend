@@ -2,7 +2,7 @@
 
 import React, {useState, useEffect} from 'react';
 import {useRoute, useNavigation} from '@react-navigation/native';
-import {View, ScrollView, SafeAreaView, FlatList, Alert} from 'react-native';
+import {View, ScrollView, FlatList, Alert} from 'react-native';
 import styles from './ApplicantList.styles';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import Header from '@components/Header';
@@ -10,7 +10,6 @@ import DropDownPicker from 'react-native-dropdown-picker';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Filter from './Filter';
 import ApplicantItem from './ApplicantItem';
-import {COLORS} from '@constants/colors';
 
 const ApplicantList = () => {
   const route = useRoute();
@@ -91,7 +90,7 @@ const ApplicantList = () => {
   });
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title="지원자 조회" />
       <View style={styles.body}>
         <Filter
@@ -132,7 +131,7 @@ const ApplicantList = () => {
           />
         </ScrollView>
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

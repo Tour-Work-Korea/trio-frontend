@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, SafeAreaView, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
@@ -136,11 +136,20 @@ const MyResumeList = () => {
   );
 
   return (
-    <SafeAreaView style={styles.container}>
+    <View style={styles.container}>
       <Header title={'나의 이력서'} />
       <View style={styles.body}>
         {renderResumeSelection()}
-        <ButtonScarlet title="이력서 작성하기" to="ResumeForm" />
+        <ButtonScarlet
+          title="이력서 작성하기"
+          onPress={() =>
+            navigation.navigate('ResumeDetail', {
+              isEditable: true,
+              role: 'USER',
+              isNew: true,
+            })
+          }
+        />
       </View>
       <ErrorModal
         visible={errorModal.visible}
@@ -150,7 +159,7 @@ const MyResumeList = () => {
         onPress2={errorModal.onPress2}
         title={errorModal.title}
       />
-    </SafeAreaView>
+    </View>
   );
 };
 

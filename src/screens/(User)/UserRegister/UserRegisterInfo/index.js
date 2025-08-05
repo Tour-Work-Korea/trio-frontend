@@ -7,7 +7,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -77,7 +76,7 @@ const UserRegisterInfo = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           {/* 상단+입력창 */}
           <View>
@@ -186,7 +185,7 @@ const UserRegisterInfo = () => {
             )}
           </View>
         </View>
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

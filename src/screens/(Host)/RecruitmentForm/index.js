@@ -1,7 +1,6 @@
 import React, {useState, useEffect} from 'react';
 import {
   View,
-  SafeAreaView,
   ScrollView,
   Alert,
   KeyboardAvoidingView,
@@ -173,7 +172,7 @@ const RecruitmentForm = () => {
       keyboardVerticalOffset={80} // 헤더 등 높이에 따라 조정
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <SafeAreaView style={styles.container}>
+        <View style={styles.container}>
           <Header title="구인공고" />
           <ScrollView contentContainerStyle={styles.scrollContainer}>
             {/* 기본정보 섹션 */}
@@ -226,7 +225,7 @@ const RecruitmentForm = () => {
               onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
             />
           </ScrollView>
-        </SafeAreaView>
+        </View>
       </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );

@@ -1,6 +1,5 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import styles from '../Login.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Logo from '@assets/images/logo_orange.svg';
@@ -12,7 +11,7 @@ export default function FindIntro({route}) {
 
   return (
     <>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
             {/* 로고 및 문구 */}
@@ -31,7 +30,7 @@ export default function FindIntro({route}) {
             onPress={() => navigation.navigate('VerifyPhone', {find, userRole})}
           />
         </View>
-      </SafeAreaView>
+      </View>
     </>
   );
 }

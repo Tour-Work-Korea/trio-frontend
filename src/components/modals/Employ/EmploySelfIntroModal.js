@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import {FONTS} from '@constants/fonts';
@@ -29,62 +32,66 @@ export default function EmploySelfIntroModal({
   }, [initialData]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View />
-            <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-          {/* 입력 폼 */}
-          <View style={styles.detailContainer}>
-            {/* 자기소개 입력 */}
-            <View>
-              <View style={styles.titleBox}>
-                <Text style={styles.titleText}>
-                  자기소개, 경력기술 등 자유롭게 입력해 주세요.
-                </Text>
-              </View>
-              <Text style={styles.titleLength}>
-                <Text style={{color: COLORS.primary_orange}}>
-                  {selfIntro?.length?.toLocaleString()}
-                </Text>
-                /50,000
-              </Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람으로서 열심히 하겠습니다."
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={selfIntro}
-                  onChangeText={setSelfIntro}
-                  maxLength={50000}
-                />
-              </View>
-              <TouchableOpacity onPress={() => setSelfIntro('')}>
-                <Text style={styles.resetText}>다시쓰기</Text>
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <Modal visible={visible} animationType="slide" transparent>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <View />
+              <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
+              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <XBtn width={24} height={24} />
               </TouchableOpacity>
             </View>
-          </View>
-          {/* 하단 버튼 */}
-          <View style={styles.sticky}>
-            <View style={styles.confirmButton}>
-              <ButtonScarlet
-                title="적용하기"
-                onPress={() => {
-                  editSelfIntro(selfIntro);
-                  onClose();
-                }}
-              />
+            <KeyboardAvoidingView>
+              {/* 입력 폼 */}
+              <View style={styles.detailContainer}>
+                {/* 자기소개 입력 */}
+                <View>
+                  <View style={styles.titleBox}>
+                    <Text style={styles.titleText}>
+                      자기소개, 경력기술 등 자유롭게 입력해 주세요.
+                    </Text>
+                  </View>
+                  <Text style={styles.titleLength}>
+                    <Text style={{color: COLORS.primary_orange}}>
+                      {selfIntro?.length?.toLocaleString()}
+                    </Text>
+                    /50,000
+                  </Text>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람으로서 열심히 하겠습니다."
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={selfIntro}
+                      onChangeText={setSelfIntro}
+                      maxLength={50000}
+                    />
+                  </View>
+                  <TouchableOpacity onPress={() => setSelfIntro('')}>
+                    <Text style={styles.resetText}>다시쓰기</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </KeyboardAvoidingView>
+            {/* 하단 버튼 */}
+            <View style={styles.sticky}>
+              <View style={styles.confirmButton}>
+                <ButtonScarlet
+                  title="적용하기"
+                  onPress={() => {
+                    editSelfIntro(selfIntro);
+                    onClose();
+                  }}
+                />
+              </View>
             </View>
           </View>
         </View>
-      </View>
-    </Modal>
+      </Modal>
+    </TouchableWithoutFeedback>
   );
 }
 
