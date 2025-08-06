@@ -1,6 +1,6 @@
 import 'react-native-reanimated';
 import React, {useState, useEffect} from 'react';
-import {SafeAreaView, StatusBar, StyleSheet, View, Button} from 'react-native';
+import {StatusBar, StyleSheet, View} from 'react-native';
 import 'react-native-gesture-handler';
 
 import RootNavigation from '@navigations/RootNavigation';
@@ -14,6 +14,7 @@ import LottieView from 'lottie-react-native';
 
 import firebase from '@react-native-firebase/app';
 import crashlytics from '@react-native-firebase/crashlytics';
+import {SafeAreaView} from 'react-native-safe-area-context';
 
 const App = () => {
   const [appLoaded, setAppLoaded] = useState(false);
@@ -67,7 +68,6 @@ const App = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_0,
   },
 });
 

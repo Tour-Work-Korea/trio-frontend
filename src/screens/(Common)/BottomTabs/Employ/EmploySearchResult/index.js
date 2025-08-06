@@ -81,12 +81,14 @@ const EmploySearchResult = ({route}) => {
   // 3. 최초 진입 시 (1회만 실행)
   useFocusEffect(
     React.useCallback(() => {
-      setIsLast(false);
-      setRecruitList([]);
-      fetchRecruitList(0, false);
-      setPage(0);
-      console.log('최초 진입 시 fetch');
-    }, []), // selectedSort, filterOptions 빼야 중복 호출 안 됨
+      if (searchText && searchText.trim().length > 0) {
+        setIsLast(false);
+        setRecruitList([]);
+        fetchRecruitList(0, false);
+        setPage(0);
+        console.log('최초 진입 시 fetch');
+      }
+    }, [searchText]), // selectedSort, filterOptions 빼야 중복 호출 안 됨
   );
 
   useEffect(() => {
@@ -150,7 +152,7 @@ const EmploySearchResult = ({route}) => {
     <Loading title="채용 정보를 가져오는 중입니다..." />;
   }
   return (
-    <View style={[styles.container]} contentContainerStyle={{gap: 12}}>
+    <View style={[styles.container]}>
       {/* 헤더 */}
       <Header title={'채용공고'} />
       {/* 검색창 */}
@@ -216,14 +218,14 @@ const EmploySearchResult = ({route}) => {
           }
         />
         {/* 지도 버튼 */}
-        <View style={styles.mapButtonContainer}>
+        {/* <View style={styles.mapButtonContainer}>
           <TouchableOpacity
             style={styles.mapButton}
             onPress={() => navigation.navigate('EmployMap')}>
             <MapIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
       </View>
       <EmployFilterModal
         visible={filterModalVisible}
