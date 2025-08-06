@@ -17,21 +17,41 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/GuesthousePostRegisterModal';
+import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseInfoModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 
 const MyGuesthouseAdd = () => {
-  // 게스트하우스 게시물 등록 모달 열림 상태
+  // 게스트하우스 게시물 등록 모달
   const [postModalVisible, setPostModalVisible] = useState(false);
+  const [postModalReset, setPostModalReset] = useState(true);
+  // 게스트하우스 정보 모달
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [infoModalReset, setInfoModalReset] = useState(true);
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
 
+  // 게시물 등록 모달에서 "적용" 눌렀을 때
   const handlePostRegisterSelect = (application) => {
-    setSelectedApplication(application); // { id, businessName, address }
+    setSelectedApplication(application); // { id, businessName, address, businessPhone }
+    setPostModalReset(false); // 닫아도 초기화 안 함
     setPostModalVisible(false);
+  };
+
+  // 게스트하우스 정보 모달에서 "적용" 눌렀을 때
+  const handleInfoSelect = (data) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      guesthouseName: data.name,
+      guesthouseAddress: data.address,
+      guesthousePhone: data.phone,
+      hashtagIds: data.tagIds,
+    }));
+    setInfoModalReset(false); // 닫아도 초기화 안 함
+    setInfoModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -114,7 +134,7 @@ const MyGuesthouseAdd = () => {
         {/* 게스트하우스 정보 */}
         <TouchableOpacity 
           style={styles.section}
-          onPress={() => console.log('게스트하우스 정보 클릭')}
+          onPress={() => setInfoModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 정보</Text>
@@ -184,8 +204,20 @@ const MyGuesthouseAdd = () => {
       {/* 게스트하우스 게시물 등록 모달 */}
       <GuesthousePostRegisterModal
         visible={postModalVisible}
+        shouldResetOnClose={postModalReset}
         onClose={() => setPostModalVisible(false)}
         onSelect={handlePostRegisterSelect}
+      />
+
+      {/* 게스트하우스 정보 모달 */}
+      <GuesthouseInfoModal
+        visible={infoModalVisible}
+        shouldResetOnClose={infoModalReset}
+        onClose={() => setInfoModalVisible(false)}
+        defaultName={selectedApplication?.businessName || ''}
+        defaultAddress={selectedApplication?.address || ''}
+        defaultPhone={selectedApplication?.businessPhone || ''}
+        onSelect={handleInfoSelect}
       />
       
     </View>

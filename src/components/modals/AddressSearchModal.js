@@ -31,14 +31,16 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
-    justifyContent: 'center',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
   },
   modalContainer: {
-    height: '80%',
+    height: '90%',
+    width: '100%',
+    borderRadius: 4,
     backgroundColor: COLORS.grayscale_0,
-    borderRadius: 10,
     overflow: 'hidden',
-    marginHorizontal: 20,
+    paddingTop: 8,
   },
   closeButtonContainer: {
     padding: 10,

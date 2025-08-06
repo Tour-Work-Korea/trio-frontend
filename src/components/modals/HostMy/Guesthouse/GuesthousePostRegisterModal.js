@@ -21,15 +21,19 @@ import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.8);
 
-const GuesthousePostRegisterModal = ({ visible, onClose, onSelect }) => {
+const GuesthousePostRegisterModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   // 입점신청서 리스트 상태
   const [applicationList, setApplicationList] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [appliedId, setAppliedId] = useState(null); // 마지막으로 적용한 ID 저장
 
   // 모달 열릴 때 데이터 불러오기
   React.useEffect(() => {
     if (visible) {
       fetchApplications();
+      if (appliedId) {
+        setSelectedId(appliedId);
+      }
     }
   }, [visible]);
 
@@ -48,6 +52,7 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect }) => {
           businessName: app.businessName,
           address: app.address,
           imgUrl: app.imgUrl,
+          businessPhone: app.businessPhone,
         }));
 
       setApplicationList(filtered);
@@ -63,8 +68,11 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect }) => {
   };
 
   // 단순 닫기일 때만 초기화
-  const handleClose = () => {
-    setSelectedId(null);
+  const handleModalClose = () => {
+    if (shouldResetOnClose) {
+      // 적용 후 다시 열고 바꾸고 그냥 닫으면 기존 적용값으로 복원
+      setSelectedId(appliedId);
+    }
     onClose();
   };
 
@@ -72,7 +80,8 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect }) => {
   const handleConfirm = () => {
     const selectedItem = applicationList.find((item) => item.id === selectedId);
     if (selectedItem) {
-      onSelect(selectedItem); // { id, businessName, address }
+      setAppliedId(selectedId); // 적용한 값 저장
+      onSelect(selectedItem); // { id, businessName, address, businessPhone }
       onClose();
     }
   };
@@ -106,9 +115,9 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect }) => {
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={onClose}
+      onRequestClose={handleModalClose}
     >
-      <TouchableWithoutFeedback onPress={handleClose}>
+      <TouchableWithoutFeedback onPress={handleModalClose}>
       <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={() => {}}>
         <View style={styles.modalContainer}>
