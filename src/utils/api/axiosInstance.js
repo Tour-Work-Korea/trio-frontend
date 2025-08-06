@@ -28,14 +28,13 @@ api.interceptors.request.use(
     const token = useUserStore.getState().accessToken;
     if (config.withAuth !== false && token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('🟡 [Request] Authorization 헤더 설정');
     }
 
     // ⛳️ STEP 2: RefreshToken 쿠키 직접 삽입 (React Native 용)
     const cookie = useUserStore.getState().refreshToken;
     if (cookie) {
       config.headers.Cookie = 'refreshToken=' + cookie;
-      console.log('🟡 [Request] refreshToken 쿠키 설정');
+      console.log('refreshToken = ', cookie);
     }
 
     // ⛳️ STEP 3: 로그 출력
@@ -66,6 +65,12 @@ api.interceptors.response.use(
     const originalRequest = err.config;
     const status = err.response?.status;
 
+    // ✅ [예외 처리] refreshToken 요청은 재시도 로직 타지 않음
+    if (originalRequest.url?.includes('/auth/refresh')) {
+      console.warn('🛑 [/auth/refresh 요청은 재시도하지 않음]');
+      return Promise.reject(err);
+    }
+
     console.log(
       `🔴 [Error] ${originalRequest.method?.toUpperCase()} ${
         originalRequest.url
@@ -73,7 +78,7 @@ api.interceptors.response.use(
     );
     console.log('🔴 [Error Response]', status, err.response?.data);
 
-    if ((status === 401 || status === 403) && !originalRequest._retry) {
+    if (status === 403 && !originalRequest._retry) {
       console.log('🔁 [Retry Trigger] accessToken 만료로 인해 재발급 시도');
       originalRequest._retry = true;
 

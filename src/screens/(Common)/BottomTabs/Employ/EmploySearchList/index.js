@@ -117,7 +117,6 @@ const EmploySearchList = () => {
           data={recruitList}
           loading={isEmLoading}
           onEndReached={handleEndReached}
-          onEndReachedThreshold={0.7}
           onJobPress={handleJobPress}
           onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruitList}
