@@ -21,9 +21,9 @@ import {
   MyApplicantList,
   MyLikeRecruitList,
   MyResumeList,
-  ResumeForm,
   EditProfileFieldScreen,
   EmployDetail,
+  UserGuesthouseReview,
 } from '@screens';
 
 import {Alert} from 'react-native';
@@ -82,6 +82,7 @@ const My = () => {
         component={MyGuesthouseReviewList}
       />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
+      <Stack.Screen name="UserGuesthouseReview" component={UserGuesthouseReview} />
       <Stack.Screen
         name="UserReservationCheck"
         component={UserReservationCheck}
@@ -101,7 +102,6 @@ const My = () => {
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />
-      <Stack.Screen name="ResumeForm" component={ResumeForm} />
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   );

@@ -1,5 +1,4 @@
 import {View, Text, StyleSheet} from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import ButtonScarlet from '@components/ButtonScarlet';
 import LogoBlue from '@assets/images/wa_blue_apply.svg';
 import {COLORS} from '@constants/colors';
@@ -9,7 +8,7 @@ import {useNavigation} from '@react-navigation/native';
 const ApplySuccess = () => {
   const navigation = useNavigation();
   return (
-    <SafeAreaView style={styles.signin}>
+    <View style={styles.signin}>
       <View style={styles.view}>
         <View style={styles.logoParent}>
           <LogoBlue width={168} />
@@ -23,7 +22,7 @@ const ApplySuccess = () => {
           onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

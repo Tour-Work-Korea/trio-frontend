@@ -5,8 +5,6 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
-  SafeAreaView,
-  Alert,
   StyleSheet,
 } from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -108,8 +106,8 @@ export default function RecruitTapSection({recruit}) {
                   }}>
                   <Image
                     source={{
-                      uri: 'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1752571419088_935096.jpg',
-                    }} //item.recruitImageUrl
+                      uri: item.recruitImageUrl,
+                    }}
                     style={styles.workplacePhoto}
                   />
                 </TouchableOpacity>
@@ -175,8 +173,7 @@ export default function RecruitTapSection({recruit}) {
         title={recruit.guesthouseName}
         images={recruit?.recruitImages?.map((item, idx) => ({
           id: idx,
-          imageUrl:
-            'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1752571419088_935096.jpg',
+          imageUrl: item.recruitImageUrl,
         }))}
         selectedImageIndex={selectedImageId}
         onClose={() => setImageModalVisible(false)}
@@ -225,7 +222,7 @@ const styles = StyleSheet.create({
   infoLabel: {
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_400,
-    width: 49,
+    width: 60,
   },
   infoValue: {
     ...FONTS.fs_14_medium,

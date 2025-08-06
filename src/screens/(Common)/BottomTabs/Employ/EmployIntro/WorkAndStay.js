@@ -81,7 +81,8 @@ export default function WorkAndStay({guesthouses}) {
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularGuesthouseList');
-          }}>
+          }}
+          disabled={true}>
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>

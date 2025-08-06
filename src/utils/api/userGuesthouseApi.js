@@ -66,6 +66,10 @@ const userGuesthouseApi = {
   reserveRoom: (roomId, body) =>
     api.post(`/order/reservation/room/${roomId}`, body),
 
+  // 예약 임시 승인
+  approveTempGuesthouseReservation: (reservationId) =>
+    api.put(`/order/reservation/temp/guesthouse/approve/${reservationId}`),
+
   // 결제 검증 및 확정
   verifyPayment: (reservationId, body) =>
     api.post(`/order/payment/${reservationId}`, body),

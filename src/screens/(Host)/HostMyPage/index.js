@@ -2,8 +2,6 @@ import React from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import PersonIcon from '@assets/images/person20_gray.svg';
-import SettingIcon from '@assets/images/settings_gray.svg';
 import MyGuesthouseIcon from '@assets/images/host-my-guesthouse-icon.svg';
 import ReservationCheckIcon from '@assets/images/host-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/host-guesthouse-review-icon.svg';
@@ -12,7 +10,7 @@ import MyPostIcon from '@assets/images/host-my-post-icon.svg';
 import ApplicationCheckIcon from '@assets/images/host-application-check-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 
-import Header from '@components/Header';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 import styles from './HostMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
@@ -31,9 +29,20 @@ const HostMyPage = () => {
 
   return (
     <ScrollView style={styles.outContainer}>
-      <Header />
+      <Text style={[FONTS.fs_20_semibold, styles.headerText]}>마이페이지</Text>
+
       <View style={styles.container}>
-        <View style={styles.header}>
+        {/* 사장 프로필 */}
+        <View style={styles.userInfoContainer}>
+          <View style={styles.profileHeader}>
+            <Text style={[FONTS.fs_16_semibold, styles.name]}>{host.name}</Text>
+            <TouchableOpacity
+              style={styles.profileEdit}
+              onPress={goToEditProfile}>
+              <Text>수정</Text>
+            </TouchableOpacity>
+          </View>
+
           <View style={styles.profileContainer}>
             {host.photoUrl ? (
               <Image
@@ -41,66 +50,99 @@ const HostMyPage = () => {
                 style={styles.profileImage}
               />
             ) : (
-              <View style={styles.profilePlaceholder}>
-                <PersonIcon width={32} height={32} />
+              <View style={styles.profileImage}>
+                <EmptyImage width={32} height={32} />
               </View>
             )}
-            <Text style={[FONTS.fs_16_semibold, styles.name]}>{host.name}</Text>
+            <View style={styles.profilePlaceholder}>
+              <View style={styles.profileText}>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  연락처
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                  {host.phone}
+                </Text>
+              </View>
+              <View style={styles.profileText}>
+                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                  이메일
+                </Text>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.profileContentText]}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {host.email}
+                </Text>
+              </View>
+            </View>
           </View>
-          <View style={styles.headerIcons}>
-            <PersonIcon
-              width={26}
-              height={26}
-              style={styles.icon}
-              onPress={goToEditProfile}
-            />
-            <SettingIcon width={26} height={26} style={styles.icon} />
+        </View>
+
+        <View style={styles.bottomSection}>
+          {/* 숙박 섹션 */}
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+              숙박
+            </Text>
+            <View style={styles.menuContainer}>
+              <MenuItem
+                IconComponent={MyGuesthouseIcon}
+                label="나의 게스트하우스"
+                onPress={() => navigation.navigate('MyGuesthouseList')}
+              />
+              <MenuItem
+                IconComponent={ReservationCheckIcon}
+                label="예약 조회"
+              />
+              <MenuItem
+                IconComponent={GuesthouseReviewIcon}
+                label="게하 리뷰"
+                onPress={() => navigation.navigate('MyGuesthouseReview')}
+              />
+              <MenuItem
+                IconComponent={StoreApplyIcon}
+                label="입점 신청"
+                onPress={() => navigation.navigate('StoreRegister')}
+              />
+            </View>
           </View>
-        </View>
-        {/* 숙박 섹션 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle]}>숙박</Text>
-          <MenuItem
-            IconComponent={MyGuesthouseIcon}
-            label="나의 게스트하우스"
-            onPress={() => navigation.navigate('MyGuesthouseList')}
-          />
-          <MenuItem IconComponent={ReservationCheckIcon} label="예약 조회" />
-          <MenuItem
-            IconComponent={GuesthouseReviewIcon}
-            label="게하 리뷰"
-            onPress={() => navigation.navigate('MyGuesthouseReview')}
-          />
-          <MenuItem
-            IconComponent={StoreApplyIcon}
-            label="입점 신청"
-            onPress={() => navigation.navigate('StoreRegister')}
-          />
-        </View>
-        {/* 공고 섹션 */}
-        <View style={styles.section}>
-          <Text style={[styles.sectionTitle]}>공고</Text>
-          <MenuItem
-            IconComponent={MyPostIcon}
-            label="나의 공고"
-            onPress={() => navigation.navigate('MyRecruitmentList')}
-          />
-          <MenuItem
-            IconComponent={ApplicationCheckIcon}
-            label="지원서 조회"
-            onPress={() => navigation.navigate('ApplicantList')}
+          <View style={styles.devide} />
+          {/* 공고 섹션 */}
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+              공고
+            </Text>
+            <View style={styles.menuContainer}>
+              <MenuItem
+                IconComponent={MyPostIcon}
+                label="나의 공고"
+                onPress={() => navigation.navigate('MyRecruitmentList')}
+              />
+              <MenuItem
+                IconComponent={ApplicationCheckIcon}
+                label="지원서 조회"
+                onPress={() => navigation.navigate('ApplicantList')}
+              />
+            </View>
+          </View>
+          <View style={styles.devide} />
+
+          <ButtonScarlet
+            title="로그아웃"
+            onPress={async () => {
+              await tryLogout();
+              navigation.reset({
+                index: 0,
+                routes: [{name: 'Login'}],
+              });
+            }}
           />
         </View>
-        <ButtonScarlet
-          title="로그아웃"
-          onPress={async () => {
-            await tryLogout();
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'Login'}],
-            });
-          }}
-        />
+        <TouchableOpacity style={styles.deleteAccount}>
+          <Text style={[FONTS.fs_14_medium, styles.deleteAccountText]}>
+            탈퇴하기
+          </Text>
+        </TouchableOpacity>
       </View>
     </ScrollView>
   );

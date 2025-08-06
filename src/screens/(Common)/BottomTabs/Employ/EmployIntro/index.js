@@ -123,7 +123,7 @@ const EmployIntro = () => {
             <TouchableOpacity
               style={styles.seeMoreButton}
               onPress={() => {
-                //   navigation.navigate('');
+                navigation.navigate('EmploySearchList');
               }}>
               <Text style={styles.seeMoreText}>더보기</Text>
               <Chevron_right_gray width={24} height={24} />

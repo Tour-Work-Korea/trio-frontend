@@ -20,7 +20,12 @@ import hostEmployApi from '@utils/api/hostEmployApi';
 const ResumeDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {id, isEditable = false, role = 'USER'} = route.params || {};
+  const {
+    id = null,
+    isEditable = false,
+    role = 'USER',
+    isNew = false,
+  } = route.params || {};
   const [originalInfo, setOriginalInfo] = useState();
   const [formData, setFormData] = useState({
     resumeTitle: '',
@@ -35,7 +40,9 @@ const ResumeDetail = () => {
   });
 
   useEffect(() => {
-    tryFetchResumeById();
+    if (id != null) {
+      tryFetchResumeById();
+    }
   }, []);
 
   const tryFetchResumeById = async () => {
@@ -89,9 +96,35 @@ const ResumeDetail = () => {
       console.warn('이력서 등록 실패:', error);
     }
   };
+
+  const tryPostResumeById = async () => {
+    try {
+      const newData = {
+        resumeTitle: formData.resumeTitle,
+        selfIntro: formData.selfIntro,
+        workExperience: formData.workExperience.map(exp => ({
+          ...exp,
+          startDate: parseDotDateToLocalDate(exp.startDate),
+          endDate: parseDotDateToLocalDate(exp.endDate),
+        })),
+        hashtags: formData.hashtags?.map(tag => tag.id),
+      };
+
+      await userEmployApi.addResume(newData);
+      navigation.goBack();
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        message: error?.response?.data?.message || '이력서 등록에 실패했습니다',
+        buttonText: '확인',
+      });
+      console.warn('이력서 등록 실패:', error);
+    }
+  };
+
   return (
     <View style={styles.container}>
-      <Header title={'이력서 수정'} />
+      <Header title={id == null ? '이력서 작성' : '이력서 수정'} />
       <ScrollView
         contentContainerStyle={{
           paddingHorizontal: 20,
@@ -101,7 +134,8 @@ const ResumeDetail = () => {
         {formData ? (
           <>
             {/* 프로필 */}
-            <ApplicantProfileHeader data={originalInfo} />
+            {isNew ? <></> : <ApplicantProfileHeader data={originalInfo} />}
+
             {/* 제목 */}
             <ApplicantTitle
               title={formData?.resumeTitle}
@@ -137,7 +171,9 @@ const ResumeDetail = () => {
               <View style={{marginBottom: 40}}>
                 <ButtonScarlet
                   title={'저장하기'}
-                  onPress={() => tryUpdateResumeById()}
+                  onPress={() =>
+                    id == null ? tryPostResumeById() : tryUpdateResumeById()
+                  }
                 />
               </View>
             ) : (

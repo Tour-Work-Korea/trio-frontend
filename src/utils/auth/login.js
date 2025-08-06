@@ -108,6 +108,7 @@ export const tryRefresh = async () => {
         refreshToken = match[1];
       }
     }
+    console.log('refreshToken 발급:', refreshToken);
     useUserStore.getState().setTokens({accessToken, refreshToken});
     return true;
   } catch (error) {

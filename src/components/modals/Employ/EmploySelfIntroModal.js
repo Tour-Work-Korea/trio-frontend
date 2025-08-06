@@ -1,11 +1,14 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Dimensions,
+  Keyboard,
+  KeyboardAvoidingView,
   Modal,
+  ScrollView,
   StyleSheet,
   Text,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import {FONTS} from '@constants/fonts';
@@ -13,8 +16,6 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
-
-const {height} = Dimensions.get('window');
 
 export default function EmploySelfIntroModal({
   visible,
@@ -30,60 +31,71 @@ export default function EmploySelfIntroModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View />
-            <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-          {/* 입력 폼 */}
-          <View style={styles.detailContainer}>
-            {/* 자기소개 입력 */}
-            <View>
-              <View style={styles.titleBox}>
-                <Text style={styles.titleText}>
-                  자기소개, 경력기술 등 자유롭게 입력해 주세요.
-                </Text>
+      <KeyboardAvoidingView style={{flex: 1}} enabled>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.overlay}>
+            <View style={styles.container}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <View />
+                <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
+                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
               </View>
-              <Text style={styles.titleLength}>
-                <Text style={{color: COLORS.primary_orange}}>
-                  {selfIntro?.length?.toLocaleString()}
-                </Text>
-                /50,000
-              </Text>
-              <View style={styles.inputBox}>
-                <TextInput
-                  style={styles.textInput}
-                  placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람으로서 열심히 하겠습니다."
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={selfIntro}
-                  onChangeText={setSelfIntro}
-                  maxLength={50000}
-                />
+
+              {/* 입력 폼 */}
+              <ScrollView
+                style={{flex: 1}}
+                contentContainerStyle={styles.detailContainer}
+                keyboardShouldPersistTaps="handled"
+                showsVerticalScrollIndicator={false}>
+                <View>
+                  <View style={styles.titleBox}>
+                    <Text style={styles.titleText}>
+                      자기소개, 경력기술 등 자유롭게 입력해 주세요.
+                    </Text>
+                  </View>
+                  <Text style={styles.titleLength}>
+                    <Text style={{color: COLORS.primary_orange}}>
+                      {selfIntro?.length?.toLocaleString()}
+                    </Text>
+                    /50,000
+                  </Text>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람으로서 열심히 하겠습니다."
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={selfIntro}
+                      onChangeText={setSelfIntro}
+                      maxLength={50000}
+                      multiline
+                      textAlignVertical="top"
+                    />
+                  </View>
+                  <TouchableOpacity onPress={() => setSelfIntro('')}>
+                    <Text style={styles.resetText}>다시쓰기</Text>
+                  </TouchableOpacity>
+                </View>
+              </ScrollView>
+
+              {/* 하단 버튼 */}
+              <View style={styles.sticky}>
+                <View style={styles.confirmButton}>
+                  <ButtonScarlet
+                    title="적용하기"
+                    onPress={() => {
+                      editSelfIntro(selfIntro);
+                      onClose();
+                    }}
+                  />
+                </View>
               </View>
-              <TouchableOpacity onPress={() => setSelfIntro('')}>
-                <Text style={styles.resetText}>다시쓰기</Text>
-              </TouchableOpacity>
             </View>
           </View>
-          {/* 하단 버튼 */}
-          <View style={styles.sticky}>
-            <View style={styles.confirmButton}>
-              <ButtonScarlet
-                title="적용하기"
-                onPress={() => {
-                  editSelfIntro(selfIntro);
-                  onClose();
-                }}
-              />
-            </View>
-          </View>
-        </View>
-      </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
@@ -94,12 +106,18 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    height: height * 0.9,
+    flex: 1, // height → flex: 1 로 수정
     backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
-    flexDirection: 'column',
     paddingHorizontal: 20,
+  },
+  textInput: {
+    flex: 1,
+    paddingVertical: 0,
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_900,
+    textAlignVertical: 'top', // 멀티라인 입력 시 위 정렬
   },
   header: {
     flexDirection: 'row',
@@ -164,11 +182,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     minHeight: 222,
   },
-  textInput: {
-    paddingVertical: 0,
-    ...FONTS.fs_14_regular,
-    color: COLORS.grayscale_900,
-  },
+
   resetText: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_500,

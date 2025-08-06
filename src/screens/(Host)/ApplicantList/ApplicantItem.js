@@ -23,16 +23,14 @@ export default function ApplicantItem({item, handleApplicantPress}) {
               style={styles.profileImage}
               resizeMode="cover"
             />
-            {/* <Text style={styles.nameText}>{item.nickname}</Text>
-            <Text style={styles.genderAgeText}>
-              ({item.gender}, {item.age}세)
-            </Text> */}
           </View>
 
           <View style={styles.detailsContainer}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>연락처</Text>
-              <Text style={styles.infoValue}>{item.phoneNumber}</Text>
+              <Text style={styles.infoLabel}>성별/나이</Text>
+              <Text style={styles.infoValue}>
+                {item.gender === 'F' ? '여자' : '남자'} / {item.age}
+              </Text>
             </View>
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>MBTI</Text>

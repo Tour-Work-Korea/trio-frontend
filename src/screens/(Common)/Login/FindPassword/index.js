@@ -9,7 +9,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect} from '@react-navigation/native';
 import LogoBlue from '@assets/images/logo_blue_smile.svg';
 import Logo from '@assets/images/logo_orange.svg';
@@ -121,7 +120,7 @@ const FindPassword = ({route}) => {
 
   if (success) {
     return (
-      <SafeAreaView style={styles.signin}>
+      <View style={styles.signin}>
         <View style={styles.view}>
           <View style={styles.logoParent}>
             <LogoBlue width={168} />
@@ -129,13 +128,13 @@ const FindPassword = ({route}) => {
           </View>
           <ButtonScarlet title="로그인 하러가기" to="LoginIntro" />
         </View>
-      </SafeAreaView>
+      </View>
     );
   }
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <KeyboardAvoidingView
           style={{flex: 1}}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -257,7 +256,7 @@ const FindPassword = ({route}) => {
           buttonText={errorModal.buttonText}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

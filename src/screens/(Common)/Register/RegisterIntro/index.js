@@ -1,7 +1,6 @@
 import {View, TouchableOpacity, Text} from 'react-native';
 import styles from './Intro.styles';
 import {useNavigation} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 
 import React, {useState, useEffect} from 'react';
 
@@ -31,7 +30,7 @@ const RegisterIntro = () => {
     return <Loading title="로딩 중..." />;
   }
   return (
-    <SafeAreaView style={styles.signin}>
+    <View style={styles.signin}>
       <View style={styles.view}>
         <View style={styles.logoParent}>
           <LogoWithText width={143} />
@@ -84,7 +83,7 @@ const RegisterIntro = () => {
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>
-    </SafeAreaView>
+    </View>
   );
 };
 

@@ -10,7 +10,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {
   useNavigation,
   useRoute,
@@ -178,12 +177,8 @@ const UserRegisterProfile = () => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
-        <KeyboardAvoidingView
-          style={{flex: 1}}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 0} // 필요 시 조정
-        >
+      <View style={styles.container}>
+        <KeyboardAvoidingView style={{flex: 1}}>
           <ScrollView
             style={[styles.viewFlexBox]}
             contentContainerStyle={{
@@ -395,7 +390,7 @@ const UserRegisterProfile = () => {
             }
           }}
         />
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

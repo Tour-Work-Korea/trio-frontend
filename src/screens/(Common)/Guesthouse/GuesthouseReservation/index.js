@@ -117,13 +117,16 @@ const GuesthouseReservation = ({ route }) => {
       });
       const reservationId = res.data;
 
+      // 예약 임시 승인
+      await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
+
       // 예약 성공 후 결제 페이지로 이동
       // navigation.navigate( 'GuesthousePayment' , {
       //   reservationId,
       //   amount: roomPrice,
       // });
       // 결제 화면 주석
-      navigation.navigate('PaymentSuccess');
+      navigation.navigate('GuesthousePaymentSuccess');
 
     } catch (err) {
       Alert.alert('예약 실패', '오류가 발생했습니다.');

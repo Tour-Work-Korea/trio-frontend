@@ -84,11 +84,9 @@ export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegister
 // (User)
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
-//
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
-export {default as ResumeForm} from './(User)/Employ/ResumeForm';
 
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
@@ -98,6 +96,9 @@ export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
 // 게하 예약 목록
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
+// 게하 리뷰
+export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
+export {default as UserGuesthouseReviewForm} from './(User)/UserMyPage/UserGuesthouseReview/UserGuesthouseReviewForm';
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //

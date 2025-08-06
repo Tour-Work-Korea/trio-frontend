@@ -10,7 +10,6 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
@@ -194,7 +193,7 @@ const HostRegisterInfo = ({route}) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <KeyboardAvoidingView
           style={{flex: 1}}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
@@ -404,7 +403,7 @@ const HostRegisterInfo = ({route}) => {
             }
           }}
         />
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

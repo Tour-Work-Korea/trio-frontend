@@ -1,14 +1,9 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, TouchableOpacity, Image} from 'react-native';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
-import PersonIcon from '@assets/images/person20_gray.svg';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
-import RightArrow from '@assets/images/chevron_right_gray.svg';
 
 import Header from '@components/Header';
 import styles from './HostEditProfile.styles';
@@ -19,7 +14,6 @@ import hostMyApi from '@utils/api/hostMyApi';
 
 const HostEditProfile = () => {
   const navigation = useNavigation();
-  const route = useRoute();
   const hostProfile = useUserStore(state => state.hostProfile);
   const setHostProfile = useUserStore(state => state.setHostProfile);
 
@@ -53,10 +47,10 @@ const HostEditProfile = () => {
 
   return (
     <View style={styles.outContainer}>
-      <Header title="마이페이지" />
+      <Header title="회원 정보 수정" />
       <View style={styles.container}>
-        {/* 프로필 영역 */}
-        <View style={styles.profileContainer}>
+        {/* 이미지 */}
+        <View style={styles.profileImageContainer}>
           <View style={styles.profileImageWrapper}>
             {host.photoUrl ? (
               <Image
@@ -66,56 +60,41 @@ const HostEditProfile = () => {
               />
             ) : (
               <View style={styles.profileImage}>
-                <PersonIcon width={36} height={36} />
+                <EmptyImage width={60} height={60} />
               </View>
             )}
             <TouchableOpacity
               style={styles.plusButton}
               onPress={handleEditProfileImage}>
-              <PlusIcon width={20} height={20} />
+              <PlusIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
-
-          <TouchableOpacity
-            style={styles.nameButton}
-            onPress={() => goToEditProfile('name', '이름', host.name)}>
-            <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
-              {host.name}
-            </Text>
-            <RightArrow width={20} height={20} />
-          </TouchableOpacity>
         </View>
 
-        {/* 정보 수정 리스트 */}
-        <View style={styles.infoContainer}>
-          <InfoItem
-            label="휴대폰 번호"
-            value={host.phone}
-            onPress={() => goToEditProfile('phone', '휴대폰 번호', host.phone)}
-          />
-          <InfoItem
-            label="이메일 주소"
-            value={host.email}
-            onPress={() => goToEditProfile('email', '이메일 주소', host.email)}
-          />
-          <InfoItem label="사업자 번호" value={host.businessNum} noArrow />
+        <View style={styles.contentContainer}>
+          <Text style={[FONTS.fs_16_medium, styles.label]}>이름</Text>
+          <TouchableOpacity
+            onPress={() => goToEditProfile('name', '이름', host.name)}>
+            <Text style={styles.input}>{host.name}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={[FONTS.fs_16_medium, styles.label]}>휴대폰 번호</Text>
+          <TouchableOpacity
+            onPress={() => goToEditProfile('phone', '휴대폰 번호', host.phone)}>
+            <Text style={styles.input}>{host.phone}</Text>
+          </TouchableOpacity>
+        </View>
+        <View style={styles.contentContainer}>
+          <Text style={[FONTS.fs_16_medium, styles.label]}>이메일 주소</Text>
+          <TouchableOpacity
+            onPress={() => goToEditProfile('email', '이메일 주소', host.email)}>
+            <Text style={styles.input}>{host.email}</Text>
+          </TouchableOpacity>
         </View>
       </View>
     </View>
   );
 };
-
-const InfoItem = ({label, value, noArrow, onPress}) => (
-  <TouchableOpacity
-    disabled={noArrow}
-    onPress={onPress}
-    style={styles.infoItem}>
-    <Text style={[FONTS.fs_h2_bold, styles.infoLabel]}>{label}</Text>
-    <View style={styles.infoRight}>
-      <Text style={[FONTS.fs_h2, styles.infoValue]}>{value}</Text>
-      {!noArrow && <RightArrow width={20} height={20} />}
-    </View>
-  </TouchableOpacity>
-);
 
 export default HostEditProfile;

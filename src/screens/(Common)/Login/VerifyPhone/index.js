@@ -8,7 +8,6 @@ import {
   Keyboard,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import {SafeAreaView} from 'react-native-safe-area-context';
 import Logo from '@assets/images/logo_orange.svg';
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -162,7 +161,7 @@ const VerifyPhone = ({route}) => {
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <SafeAreaView style={styles.container}>
+      <View style={styles.container}>
         <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
           <View>
             {/* 로고 및 문구 */}
@@ -267,7 +266,7 @@ const VerifyPhone = ({route}) => {
           buttonText={errorModal.buttonText}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
-      </SafeAreaView>
+      </View>
     </TouchableWithoutFeedback>
   );
 };

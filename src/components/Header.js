@@ -36,8 +36,7 @@ const Header = ({title}) => {
 
 const styles = StyleSheet.create({
   container: {
-    //height: 36,
-    paddingVertical: 12,
+    paddingVertical: 16,
   },
   subTitleWrapper: {
     alignItems: 'center',

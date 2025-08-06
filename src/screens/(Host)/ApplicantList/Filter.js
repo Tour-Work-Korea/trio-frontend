@@ -1,10 +1,14 @@
 import React from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import styles from './ApplicantList.styles';
 
 export default function Filter({selectedFilter, setSelectedFilter}) {
   return (
-    <View style={styles.filterButtonsContainer}>
+    <ScrollView
+      horizontal
+      showsHorizontalScrollIndicator={false}
+      contentContainerStyle={{paddingHorizontal: 16}}
+      style={{maxHeight: 50, paddingBottom: 12}}>
       <TouchableOpacity
         style={[
           styles.tagButton,
@@ -53,6 +57,6 @@ export default function Filter({selectedFilter, setSelectedFilter}) {
         onPress={() => setSelectedFilter('genderM')}>
         <Text style={styles.tagText}>남자</Text>
       </TouchableOpacity>
-    </View>
+    </ScrollView>
   );
 }

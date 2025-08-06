@@ -1,11 +1,5 @@
-import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  TouchableOpacity,
-  ActivityIndicator,
-} from 'react-native';
+import React, {useCallback, useState} from 'react';
+import {View, Text, TextInput, ActivityIndicator} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import styles from '../Employ.styles';
 import {RecruitList} from '@components/Employ/RecruitList';
@@ -14,7 +8,6 @@ import {toggleLikeRecruit} from '@utils/handleFavorite';
 // 아이콘 불러오기
 import SearchIcon from '@assets/images/search_gray.svg';
 import userEmployApi from '@utils/api/userEmployApi';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -82,7 +75,6 @@ const EmploySearchList = () => {
     <Loading title="채용 정보를 가져오는 중입니다..." />;
   }
   return (
-    // <SafeAreaView >
     <View style={[styles.container]}>
       {/* 헤더 */}
       <Header title="채용공고" />
@@ -142,7 +134,6 @@ const EmploySearchList = () => {
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </View>
-    // </SafeAreaView>
   );
 };
 

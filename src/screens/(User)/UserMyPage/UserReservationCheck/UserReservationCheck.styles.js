@@ -4,29 +4,29 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_100,
   },
-  card: {
+  // 탭
+  tabContainer: {
     flexDirection: 'row',
-    backgroundColor: COLORS.gray100,
-    borderRadius: 12,
-    padding: 12,
-    marginBottom: 16,
+    marginTop: 28,
+    marginBottom: 8,
+    paddingHorizontal: 20,
+  },
+  tabButton: {
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  image: {
-    width: 100,
-    height: 100,
-    borderRadius: 8,
-    marginRight: 12,
-  },
-  content: {
     flex: 1,
+  },
+  tabText: {
+    color: COLORS.grayscale_600,
+  },
+  activeTabText: {
+    color: COLORS.primary_orange,
+  },
+
+  tabContentContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
   },
 });
 
