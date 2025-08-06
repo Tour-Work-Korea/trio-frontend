@@ -5,11 +5,13 @@ import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Header from '@components/Header';
 import styles from './MyGuesthouseList.styles';
 import { FONTS } from '@constants/fonts';
-import ButtonScarlet from '@components/ButtonScarlet';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import { formatDate } from '@utils/formatDate';
 
-import fixedImage from '@assets/images/exphoto.jpeg'; // 임시 이미지 사용
+import ShowIcon from '@assets/images/show_password.svg';
+import HideIcon from '@assets/images/hide_password.svg';
+import EditIcon from '@assets/images/edit_gray.svg';
+import DeleteIcon from '@assets/images/delete_gray.svg';
+import PlusIcon from '@assets/images/plus_white.svg';
 
 // 임시 모달 높이
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.6);
@@ -22,16 +24,61 @@ const MyGuesthouseList = () => {
   const [showAppList, setShowAppList] = useState(false);
 
   // 게스트 하우스 전체 목록 불러오기
-  const fetchGuesthouses = async () => {
-    try {
-      const response = await hostGuesthouseApi.getMyGuesthouses();
-      setGuesthouses(response.data);
-    } catch (error) {
-      console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
-    }
-  };
+const fetchGuesthouses = async () => {
+  try {
+    // 임시 데이터 (디자인 확인용)
+    const tempData = [
+      {
+        id: 1,
+        guesthouseName: '서울 게스트하우스',
+        updatedAt: '2025-08-03T10:00:00',
+        thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
+      },
+      {
+        id: 2,
+        guesthouseName: '부산 오션뷰 게스트하우스',
+        updatedAt: '2025-08-05T15:30:00',
+        thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
+      },
+      {
+        id: 3,
+        guesthouseName: '제주 감성 게스트하우스',
+        updatedAt: '2025-08-04T09:15:00',
+        thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
+      },
+    ];
 
-  // ★ 화면 진입/복귀마다 호출!
+    // 최신순 정렬
+    const sortedData = tempData.sort(
+      (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+    );
+
+    setGuesthouses(sortedData);
+
+    // 실제 API 호출 (필요하면 주석 해제)
+    // const response = await hostGuesthouseApi.getMyGuesthouses();
+    // setGuesthouses(response.data);
+  } catch (error) {
+    console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+  }
+};
+
+  // 게스트 하우스 전체 목록 불러오기
+  // const fetchGuesthouses = async () => {
+  //   try {
+  //     const response = await hostGuesthouseApi.getMyGuesthouses();
+          // 최신순 정렬
+          // const sortedData = response.data.sort(
+          //   (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
+          // );
+
+          // setGuesthouses(sortedData);
+  //   } catch (error) {
+  //     console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+  //   }
+  // };
+
+  // 화면 진입/복귀마다 호출
   useFocusEffect(
     useCallback(() => {
       fetchGuesthouses();
@@ -73,33 +120,38 @@ const MyGuesthouseList = () => {
     }
   };
 
-  const renderItem = ({ item }) => (
+  const renderItem = ({ item, index }) => (
+    <>
     <View style={styles.card}>
-      {/* 실제 이미지 불러올 때 */}
-      {/* <Image source={item.thumbnailImg} style={styles.image} /> */}
-      <Image source={fixedImage} style={styles.image} />
+      <Image source={{ uri: item.thumbnailImg }} style={styles.image} />
       <View style={styles.cardContent}>
-        <Text style={[FONTS.fs_h2_bold, styles.name]}>{item.guesthouseName}</Text>
-        <Text style={[FONTS.fs_body, styles.date]}>{formatDate(item.updatedAt)}</Text>
-      </View>
-      <View style={styles.cardBtnContainer}>
-        <ButtonScarlet
-          title="방관리"
-          marginHorizontal={0}
-          onPress={() => navigation.navigate('MyGuesthouseDetail', {
-            id: item.id,
-            name: item.guesthouseName,
-          })}
-        />
-        {/* 임시 삭제 버튼 */}
-        <TouchableOpacity
-          style={[styles.deleteButton]}
-          onPress={() => handleDelete(item.id)}
-        >
-          <Text style={[FONTS.fs_body, { color: 'red' }]}>삭제</Text>
-        </TouchableOpacity>
+        <View style={styles.infoContent}>
+          <Text style={[FONTS.fs_16_semibold, styles.name]}>{item.guesthouseName}</Text>
+          <Text style={[FONTS.fs_12_medium, styles.adress]}>주소</Text>
+        </View>
+        <View style={styles.cardBtnContainer}>
+          <TouchableOpacity>
+            <ShowIcon width={24} height={24}/>
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => navigation.navigate('MyGuesthouseDetail', {
+              id: item.id,
+              name: item.guesthouseName,
+            })}
+          >
+            <EditIcon width={24} height={24}/>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[styles.deleteButton]}
+            onPress={() => handleDelete(item.id)}
+          >
+            <DeleteIcon width={24} height={24}/>
+          </TouchableOpacity>
+        </View>
       </View>
     </View>
+    {index < guesthouses.length - 1 && <View style={styles.devide} />}
+    </>
   );
 
   // 임의로 입점신청서 리스트만 간단히 표시
@@ -159,20 +211,21 @@ const MyGuesthouseList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="마이페이지" />
-      <View style={styles.buttonContainer}>
-        <ButtonScarlet
-          title="게스트 하우스 등록"
-          marginHorizontal="0"
-          onPress={handleRegisterPress}
+      <Header title="나의 게스트하우스" />
+      
+      <View style={styles.bodyContainer}>
+        <FlatList
+          data={guesthouses}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.id.toString()}
+          contentContainerStyle={styles.listContainer}
         />
+
+        <TouchableOpacity style={styles.addButton}>
+          <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>게스트하우스 등록</Text>
+          <PlusIcon width={24} height={24}/>
+        </TouchableOpacity>
       </View>
-      <FlatList
-        data={guesthouses}
-        renderItem={renderItem}
-        keyExtractor={(item) => item.id.toString()}
-        contentContainerStyle={styles.listContainer}
-      />
       {/* 입점신청서 모달 */}
       {renderApplicationListModal()}
     </View>

@@ -62,7 +62,7 @@ export {default as HostEditProfile} from './(Host)/HostMyPage/HostEditProfile';
 export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
 // 게하 목록 & 수정 & 등록
 export {default as MyGuesthouseDetail} from './(Host)/MyGuesthouseDetail';
-export {default as MyGuesthouseList} from './(Host)/MyGuesthouseList';
+export {default as MyGuesthouseList} from './(Host)/HostMyPage/MyGuesthouseList';
 export {default as MyGuesthouseAddEdit} from './(Host)/MyGuesthouseAddEdit';
 //
 export {default as RegisterRoomInfo} from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
