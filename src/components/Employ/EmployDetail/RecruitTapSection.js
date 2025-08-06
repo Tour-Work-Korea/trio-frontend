@@ -115,7 +115,6 @@ export default function RecruitTapSection({recruit}) {
             </ScrollView>
 
             <Text style={styles.sectionTitle}>근무지 위치</Text>
-            <View style={styles.mapContainer} />
             <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_800}}>
               {recruit.location}
             </Text>

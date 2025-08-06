@@ -1,5 +1,7 @@
+import useUserStore from '@stores/userStore';
 import api from './axiosInstance';
-let refreshPromise = null;
+
+const {setUserRole} = useUserStore.getState();
 
 const authApi = {
   //이메일 인증
@@ -44,28 +46,23 @@ const authApi = {
 
   //토큰 재발급
   refreshToken: async () => {
-    if (refreshPromise) return refreshPromise;
-
     const url = '/auth/refresh';
     console.log(`🔄 Refresh Request: POST ${url}`);
 
-    refreshPromise = api.post(url, null, {
-      withAuth: false,
-    });
-
     try {
-      const res = await refreshPromise;
-      console.log('✅ Refresh Success:', res.status, res.data);
+      const res = await api.post(url, null, {
+        withAuth: false,
+      });
       return res;
     } catch (err) {
-      console.log(
-        '❌ Refresh Failed:',
+      console.warn(
+        '🧨 [authApi.refreshToken] 실패=>userRole 리셋',
         err.response?.status,
-        err.response?.data,
+        err.response?.data || err.message,
       );
+      setUserRole('');
+
       throw err;
-    } finally {
-      refreshPromise = null; // reset
     }
   },
 

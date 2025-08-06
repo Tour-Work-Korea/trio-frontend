@@ -54,28 +54,6 @@ const RecruitmentForm = () => {
   });
 
   useEffect(() => {
-    setFormData({
-      recruitTitle: '비지터 게스트하우스 크루 모집',
-      recruitShortDescription:
-        '비지터 게스트하우스와 함께할 크루를 모집합니다!',
-      recruitStart: null,
-      recruitEnd: null,
-      recruitNumberMale: 2,
-      recruitNumberFemale: 3,
-      location: '제주 제주시 한림읍',
-      recruitCondition: '경력자 우대',
-      recruitMinAge: 20,
-      recruitMaxAge: 30,
-      workType: '3인 2교대 주 3일 근무',
-      workStartDate: null,
-      workEndDate: null,
-      workPart: '청소, 조식 준비',
-      welfare: '숙식 제공, 레저 강습 제공',
-      recruitDetail: '상세',
-      recruitImage: [],
-      hashtags: [10, 12, 16],
-      guesthouseId: 5,
-    });
     if (recruit) {
       setFormData({
         recruitTitle: recruit.recruitTitle,

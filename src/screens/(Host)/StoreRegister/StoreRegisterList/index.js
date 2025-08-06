@@ -1,6 +1,6 @@
 // 기존 import 문은 동일하게 유지합니다
 
-import React, {useState, useEffect} from 'react';
+import React, {useState, useCallback} from 'react';
 import {View, FlatList, Alert, Text, TouchableOpacity} from 'react-native';
 import styles from './StoreRegisterList.styles';
 import Header from '@components/Header';
@@ -8,13 +8,15 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {FONTS} from '@constants/fonts';
 import {formatDate} from '@utils/formatDate';
+import {useFocusEffect} from '@react-navigation/native';
 
 const StoreRegisterList = () => {
   const [storeRegisters, setStoreRegisters] = useState([]);
-
-  useEffect(() => {
-    tryFetchStoreRegister();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      tryFetchStoreRegister();
+    }, []),
+  );
 
   const tryFetchStoreRegister = async () => {
     try {

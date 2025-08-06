@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
   outContainer: {
@@ -63,11 +63,10 @@ export default StyleSheet.create({
     borderRadius: 8,
   },
   genderButton: {
-    flex: 1,    
+    flex: 1,
     alignItems: 'center',
   },
-  genderSelected: {
-  },
+  genderSelected: {},
   genderText: {
     color: COLORS.grayscale_400,
     fontWeight: '500',
@@ -100,8 +99,7 @@ export default StyleSheet.create({
     padding: 10,
     alignItems: 'center',
   },
-  mbtiSelected: {
-  },
+  mbtiSelected: {},
   mbtiText: {
     color: COLORS.grayscale_400,
   },
@@ -114,7 +112,8 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    padding: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 2,
     borderColor: COLORS.grayscale_200,
     borderRadius: 20,
   },
@@ -130,5 +129,4 @@ export default StyleSheet.create({
     marginTop: 40,
     marginBottom: 20,
   },
-
 });

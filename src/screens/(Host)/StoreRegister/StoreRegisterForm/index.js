@@ -23,37 +23,19 @@ import ErrorModal from '@components/modals/ErrorModal';
 /*
  * 입점 등록 신청 페이지
  */
-const dummy = {
-  name: '바다 게스트하우스',
-  employeeCount: 5,
-  address: '제주도 서귀포시 123-123',
-  managerName: '김매니저',
-  managerEmail: 'manager@mail.com',
-  businessPhone: '01012341234',
-  businessType: '숙박업',
-  businessRegistrationNumber: '7024100943',
-};
+
 const StoreRegister = () => {
   const navigation = useNavigation();
   const [formData, setFormData] = useState({
-    name: '바다 게스트하우스',
-    employeeCount: 5,
-    address: '제주도 서귀포시 123-123',
-    managerName: '김매니저',
-    managerEmail: 'manager@mail.com',
-    businessPhone: '01012341234',
-    businessType: '숙박업',
-    businessRegistrationNumber: '7024100943',
+    name: '',
+    employeeCount: 0,
+    address: '',
     img: null,
-    // name: '',
-    // employeeCount: 0,
-    // address: '',
-    // img: null,
-    // managerName: '',
-    // managerEmail: '',
-    // businessPhone: '',
-    // businessType: '',
-    // businessRegistrationNumber: '',
+    managerName: '',
+    managerEmail: '',
+    businessPhone: '',
+    businessType: '',
+    businessRegistrationNumber: '',
   });
   const [detailAddress, setDetailAddress] = useState('');
   const [errorModal, setErrorModal] = useState({
