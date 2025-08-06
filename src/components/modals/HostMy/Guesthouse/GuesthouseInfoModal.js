@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,9 @@ import {
   TouchableWithoutFeedback,
   TextInput,
   ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
 } from 'react-native';
 
 import { FONTS } from '@constants/fonts';
@@ -24,6 +27,18 @@ import XBtn from '@assets/images/x_gray.svg';
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
 const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, defaultPhone, onSelect, shouldResetOnClose }) => {
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
+    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
   const [nameOption, setNameOption] = useState('default'); // 'default' | 'custom'
   const [addressOption, setAddressOption] = useState('default'); // 'default' | 'custom'
   const [phoneOption, setPhoneOption] = useState('default'); // 'default' | 'custom'
@@ -123,6 +138,14 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     onClose();
   };
 
+  const handleOverlayPress = () => {
+    if (isKeyboardVisible) {
+      Keyboard.dismiss(); // 키보드만 닫기
+    } else {
+      handleModalClose(); // 모달 닫기
+    }
+  };
+
   return (
     <Modal
       visible={visible}
@@ -130,7 +153,12 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
       animationType="slide"
       onRequestClose={handleModalClose}
     >
-      <TouchableWithoutFeedback onPress={handleModalClose}>
+      <KeyboardAvoidingView
+        style={{ flex: 1 }}
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+      >
+      <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>
         <TouchableWithoutFeedback onPress={() => {}}>
         <View style={styles.modalContainer}>
@@ -281,6 +309,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
         </TouchableWithoutFeedback>
       </View>
       </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
     </Modal>
   );
 };

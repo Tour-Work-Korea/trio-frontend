@@ -18,6 +18,7 @@ import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/GuesthousePostRegisterModal';
 import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseInfoModal';
+import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/GuesthouseIntroSummaryModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -30,6 +31,9 @@ const MyGuesthouseAdd = () => {
   // 게스트하우스 정보 모달
   const [infoModalVisible, setInfoModalVisible] = useState(false);
   const [infoModalReset, setInfoModalReset] = useState(true);
+  // 게스트하우스 소개요약 모달
+  const [introModalVisible, setIntroModalVisible] = useState(false);
+  const [introModalReset, setIntroModalReset] = useState(true);
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -52,6 +56,17 @@ const MyGuesthouseAdd = () => {
     }));
     setInfoModalReset(false); // 닫아도 초기화 안 함
     setInfoModalVisible(false);
+  };
+
+  // 게스트하우스 소개요약 모달에서 "적용" 눌렀을 때
+  const handleIntroSelect = (data) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      guesthouseImages: data.guesthouseImages,
+      guesthouseShortIntro: data.shortIntroText,
+    }));
+    setIntroModalReset(false); // 닫아도 초기화 안 함
+    setIntroModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -141,9 +156,10 @@ const MyGuesthouseAdd = () => {
           <ChevronRight width={24} height={24}/>
         </TouchableOpacity>
 
+        {/* 게스트하우스 소개요약 */}
         <TouchableOpacity
           style={styles.section}
-          onPress={() => console.log('게스트하우스 소개요약 클릭')}
+          onPress={() => setIntroModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 소개요약</Text>
@@ -218,6 +234,14 @@ const MyGuesthouseAdd = () => {
         defaultAddress={selectedApplication?.address || ''}
         defaultPhone={selectedApplication?.businessPhone || ''}
         onSelect={handleInfoSelect}
+      />
+
+      {/* 게스트하우스 소개요약 모달 */}
+      <GuesthouseIntroSummaryModal
+        visible={introModalVisible}
+        shouldResetOnClose={introModalReset}
+        onClose={() => setIntroModalVisible(false)}
+        onSelect={handleIntroSelect}
       />
       
     </View>
