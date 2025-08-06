@@ -98,7 +98,7 @@ export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavorit
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
 // 게하 리뷰
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
-export {default as UserGuesthouseReviewForm} from './(User)/UserMyPage/UserGuesthouseReview/UserGuesthouseReviewForm';
+export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
