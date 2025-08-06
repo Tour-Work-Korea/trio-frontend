@@ -9,48 +9,30 @@ import {
   Image,
   Modal,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
 
 import styles from './MyGuesthouseAdd.styles';
-
+import Header from '@components/Header';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import { useNavigation, useRoute } from '@react-navigation/native';
-import { uploadSingleImage } from '@utils/imageUploadHandler';
-import { guesthouseTags } from '@data/guesthouseTags';
-import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
+import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/GuesthousePostRegisterModal';
 
-const inputStyle = {
-  borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 6,
-  padding: 10,
-  marginBottom: 12,
-};
-
-const tagButtonStyle = (selected) => ({
-  paddingVertical: 6,
-  paddingHorizontal: 10,
-  margin: 4,
-  borderRadius: 20,
-  borderWidth: 1,
-  borderColor: selected ? '#ff5a5f' : '#ccc',
-  backgroundColor: selected ? '#ffebeb' : '#fff',
-});
-
-const tagTextStyle = (selected) => ({
-  color: selected ? '#ff5a5f' : '#333',
-});
+import ChevronRight from '@assets/images/chevron_right_black.svg';
+import CheckBlack from '@assets/images/check_black.svg';
+import CheckWhite from '@assets/images/check_white.svg';
 
 const MyGuesthouseAdd = () => {
-  const navigation = useNavigation();
-  const route = useRoute();
-  const { applicationId } = route.params || {};
-  const [selectedAmenities, setSelectedAmenities] = useState([]); // amenity id 배열
-  const [selectedHashtags, setSelectedHashtags] = useState([]); // { id, hashtag } 객체 배열
+  // 게스트하우스 게시물 등록 모달 열림 상태
+  const [postModalVisible, setPostModalVisible] = useState(false);
+
+  // 선택된 입점 신청서 정보
+  const [selectedApplication, setSelectedApplication] = useState(null);
+
+  const handlePostRegisterSelect = (application) => {
+    setSelectedApplication(application); // { id, businessName, address }
+    setPostModalVisible(false);
+  };
 
   const [guesthouse, setGuesthouse] = useState({
     guesthouseName: '',
@@ -66,7 +48,6 @@ const MyGuesthouseAdd = () => {
     hashtagIds: [],
   });
 
-  const [roomModalVisible, setRoomModalVisible] = useState(false);
   const [newRoom, setNewRoom] = useState({
     roomName: '',
     roomType: '',
@@ -83,94 +64,6 @@ const MyGuesthouseAdd = () => {
     endDate: '',
     addPrice: '',
   });
-
-  const handleAddImage = async () => {
-    if (guesthouse.guesthouseImages.length >= 10) {
-      Alert.alert('이미지는 최대 10개까지 업로드할 수 있습니다.');
-      return;
-    }
-
-    const uploadedUrl = await uploadSingleImage();
-    if (!uploadedUrl) return;
-
-    const isThumbnail = guesthouse.guesthouseImages.length === 0;
-    setGuesthouse((prev) => ({
-      ...prev,
-      guesthouseImages: [
-        ...prev.guesthouseImages,
-        {
-          guesthouseImageUrl: uploadedUrl,
-          isThumbnail,
-        },
-      ],
-    }));
-  };
-
-  const handleAddRoomImage = async () => {
-    const uploadedUrl = await uploadSingleImage();
-    if (!uploadedUrl) return;
-
-    const isFirstImage = newRoom.roomImages.length === 0;
-    const image = { roomImageUrl: uploadedUrl, isThumbnail: isFirstImage };
-    setNewRoom((prev) => ({
-      ...prev,
-      roomImages: [...prev.roomImages, image],
-    }));
-  };
-
-  const handleAddRoomExtraFee = () => {
-    const { startDate, endDate, addPrice } = extraFeeInput;
-    if (startDate && endDate && addPrice) {
-      setNewRoom((prev) => ({
-        ...prev,
-        roomExtraFees: [...prev.roomExtraFees, {
-          startDate,
-          endDate,
-          addPrice: parseInt(addPrice),
-        }],
-      }));
-      setExtraFeeInput({ startDate: '', endDate: '', addPrice: '' });
-    } else {
-      Alert.alert('모든 추가요금 정보를 입력해주세요.');
-    }
-  };
-
-  const handleAddRoom = () => {
-    if (!newRoom.roomName || !newRoom.roomType || newRoom.roomImages.length === 0) {
-      Alert.alert('필수 정보(방 이름, 타입, 이미지)를 입력해주세요.');
-      return;
-    }
-
-    const room = {
-      ...newRoom,
-      roomCapacity: parseInt(newRoom.roomCapacity),
-      roomMaxCapacity: parseInt(newRoom.roomMaxCapacity),
-      roomPrice: parseInt(newRoom.roomPrice),
-    };
-
-    setGuesthouse((prev) => ({
-      ...prev,
-      roomInfos: [...prev.roomInfos, room],
-    }));
-    setNewRoom({
-      roomName: '',
-      roomType: '',
-      roomCapacity: '',
-      roomMaxCapacity: '',
-      roomPrice: '',
-      roomDesc: '',
-      roomImages: [],
-      roomExtraFees: [],
-    });
-    setRoomModalVisible(false);
-  };
-
-  const handleDeleteRoom = (index) => {
-    setGuesthouse((prev) => ({
-      ...prev,
-      roomInfos: prev.roomInfos.filter((_, idx) => idx !== index),
-    }));
-  };
 
   const handleSubmit = async () => {
     if (guesthouse.guesthouseImages.length === 0) {
@@ -208,154 +101,94 @@ const MyGuesthouseAdd = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-    style={{ flex: 1 }}
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    keyboardVerticalOffset={Platform.OS === 'ios' ? 72 : 0} // 필요에 따라 조절
-  >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text>게스트하우스 이름</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseName} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseName: text })} />
-      <Text>주소</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseAddress} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseAddress: text })} />
-      <Text>전화번호</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthousePhone} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthousePhone: text })} />
-      <Text>한줄 소개</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseShortIntro} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseShortIntro: text })} />
-      <Text>상세 설명</Text>
-      <TextInput style={inputStyle} multiline value={guesthouse.guesthouseLongDesc} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseLongDesc: text })} />
-      <Text>체크인 시간</Text>
-      <TextInput style={inputStyle} value={guesthouse.checkIn} onChangeText={(text) => setGuesthouse({ ...guesthouse, checkIn: text })} />
-      <Text>체크아웃 시간</Text>
-      <TextInput style={inputStyle} value={guesthouse.checkOut} onChangeText={(text) => setGuesthouse({ ...guesthouse, checkOut: text })} />
+    <View style={styles.container}>
+      <Header title="게스트하우스 등록" />
 
-      <Button title="이미지 추가 (갤러리에서)" onPress={handleAddImage} />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
-        {guesthouse.guesthouseImages.map((img, idx) => (
-          <Image
-            key={idx}
-            source={{ uri: img.guesthouseImageUrl }}
-            style={{ width: 100, height: 100, marginRight: 8, marginBottom: 8, borderRadius: 8 }}
-          />
-        ))}
-      </View>
+      <View style={styles.bodyContainer}>
+        {/* 임점신청서 조회 */}
+        <TouchableOpacity style={styles.section} onPress={() => setPostModalVisible(true)}>
+          <Text style={[FONTS.fs_16_semibold, styles.title, { color: COLORS.primary_orange }]}>게스트하우스 게시물 등록</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-      <Button title="방 추가" onPress={() => setRoomModalVisible(true)} />
-      {guesthouse.roomInfos.map((room, idx) => (
-        <View key={idx} style={{ marginTop: 10, padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 6 }}>
-          <Text style={{ fontWeight: 'bold' }}>{room.roomName}</Text>
-          <Text>{room.roomType}</Text>
-          <Text>{room.roomDesc}</Text>
-          <TouchableOpacity onPress={() => handleDeleteRoom(idx)}>
-            <Text style={{ color: 'red', marginTop: 6 }}>삭제</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-
-      <Text>편의 시설 선택</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {[...publicFacilities, ...roomFacilities, ...services].map((item) => {
-          const selected = selectedAmenities.includes(item.id);
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={tagButtonStyle(selected)}
-              onPress={() => {
-                setSelectedAmenities((prev) =>
-                  selected ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-                );
-              }}
-            >
-              <Text style={tagTextStyle(selected)}>{item.name}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <Text>태그 선택 (최대 3개)</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {guesthouseTags.map((tag) => {
-          const selected = selectedHashtags.some((t) => t.id === tag.id);
-          return (
-            <TouchableOpacity
-              key={tag.id}
-              style={tagButtonStyle(selected)}
-              onPress={() => {
-                if (selected) {
-                  setSelectedHashtags((prev) => prev.filter((t) => t.id !== tag.id));
-                } else if (selectedHashtags.length < 3) {
-                  setSelectedHashtags((prev) => [...prev, tag]);
-                } else {
-                  Alert.alert('태그는 최대 3개까지 선택할 수 있습니다.');
-                }
-              }}
-            >
-              <Text style={tagTextStyle(selected)}>{tag.hashtag}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="등록하기" onPress={handleSubmit} />
-      </View>
-
-      <Modal visible={roomModalVisible} animationType="slide">
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 72 : 0}
+        {/* 게스트하우스 정보 */}
+        <TouchableOpacity 
+          style={styles.section}
+          onPress={() => console.log('게스트하우스 정보 클릭')}
+          disabled={!selectedApplication}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={{ padding: 60 }}>
-            <Text>방 이름</Text>
-            <TextInput style={inputStyle} value={newRoom.roomName} onChangeText={(text) => setNewRoom({ ...newRoom, roomName: text })} />
-            <Text>방 타입 (FEMALE_ONLY, MALE_ONLY, MIXED)</Text>
-            <TextInput style={inputStyle} value={newRoom.roomType} onChangeText={(text) => setNewRoom({ ...newRoom, roomType: text })} />
-            <Text>수용 인원</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomCapacity} onChangeText={(text) => setNewRoom({ ...newRoom, roomCapacity: text })} />
-            <Text>최대 인원</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomMaxCapacity} onChangeText={(text) => setNewRoom({ ...newRoom, roomMaxCapacity: text })} />
-            <Text>기본 가격</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomPrice} onChangeText={(text) => setNewRoom({ ...newRoom, roomPrice: text })} />
-            <Text>방 설명</Text>
-            <TextInput style={inputStyle} value={newRoom.roomDesc} onChangeText={(text) => setNewRoom({ ...newRoom, roomDesc: text })} />
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 정보</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Button title="방 이미지 추가" onPress={handleAddRoomImage} />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginVertical: 10 }}>
-              {newRoom.roomImages.map((img, idx) => (
-                <Image
-                  key={idx}
-                  source={{ uri: img.roomImageUrl }}
-                  style={{ width: 80, height: 80, marginRight: 8, marginBottom: 8, borderRadius: 8 }}
-                />
-              ))}
-            </View>
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => console.log('게스트하우스 소개요약 클릭')}
+          disabled={!selectedApplication}
+        >
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 소개요약</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Text>추가요금 시작일 (YYYY-MM-DD)</Text>
-            <TextInput style={inputStyle} value={extraFeeInput.startDate} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, startDate: text })} />
-            <Text>추가요금 종료일 (YYYY-MM-DD)</Text>
-            <TextInput style={inputStyle} value={extraFeeInput.endDate} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, endDate: text })} />
-            <Text>추가요금 금액</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={extraFeeInput.addPrice} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, addPrice: text })} />
-            <Button title="추가요금 구간 추가" onPress={handleAddRoomExtraFee} />
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => console.log('객실 클릭')}
+          disabled={!selectedApplication}
+        >
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>객실</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            {newRoom.roomExtraFees.map((fee, idx) => (
-              <Text key={idx} style={{ marginTop: 6 }}>{fee.startDate} ~ {fee.endDate}: +{fee.addPrice}원</Text>
-            ))}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => console.log('상세정보 클릭')}
+          disabled={!selectedApplication}
+        >
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>상세정보</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Button title="방 등록" onPress={handleAddRoom} />
-            <View style={{ marginTop: 10 }}>
-              <Button title="닫기" onPress={() => setRoomModalVisible(false)} />
-            </View>
-          </ScrollView>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </Modal>
-    </ScrollView>
-    </TouchableWithoutFeedback>
-  </KeyboardAvoidingView>
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => console.log('이용규칙 클릭')}
+          disabled={!selectedApplication}
+        >
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>이용규칙</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
+
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => console.log('편의시설 및 서비스 클릭')}
+          disabled={!selectedApplication}
+        >
+          <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>편의시설 및 서비스</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
+
+        <Text style={[FONTS.fs_12_medium, styles.explainText]}>
+          모든 항목을 입력하셔야 등록이 완료됩니다.
+        </Text>
+      </View>
+
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.saveButton}>
+          <Text style={[FONTS.fs_14_medium, styles.saveText]}>임시저장</Text>
+        </TouchableOpacity>
+        <TouchableOpacity style={styles.submitButton}>
+          <Text style={[FONTS.fs_14_medium, styles.submitText]}>등록하기</Text>
+          <CheckBlack width={24} height={24}/>
+        </TouchableOpacity>
+      </View>
+
+      {/* 게스트하우스 게시물 등록 모달 */}
+      <GuesthousePostRegisterModal
+        visible={postModalVisible}
+        onClose={() => setPostModalVisible(false)}
+        onSelect={handlePostRegisterSelect}
+      />
+      
+    </View>
   );
 };
 

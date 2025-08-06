@@ -64,6 +64,7 @@ export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
 export {default as MyGuesthouseDetail} from './(Host)/MyGuesthouseDetail';
 export {default as MyGuesthouseList} from './(Host)/HostMyPage/MyGuesthouseList';
 export {default as MyGuesthouseAddEdit} from './(Host)/MyGuesthouseAddEdit';
+export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
 //
 export {default as RegisterRoomInfo} from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
 // 게하 숙박 리뷰
