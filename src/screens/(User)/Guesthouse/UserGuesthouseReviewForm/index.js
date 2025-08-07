@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder, 
   Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform,
@@ -48,7 +48,7 @@ const UserGuesthouseReviewForm = () => {
   const starSpacing = 8; // 별 사이 간격(px)
   const totalStars = 5;
   const [rating, setRating] = useState(0);
-
+  
   const [containerX, setContainerX] = useState(0);
   const ratingContainerRef = useRef(null);
 

@@ -107,7 +107,7 @@ export default function ReservationCancelDetailModal({
             <View style={styles.row}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>취소/환불 정보</Text>
               <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
-                {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}
+                {formatLocalDateTimeToDotAndTimeWithDay(reservation.cancelledAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.cancelledAt).time}
               </Text>
             </View>
             <View style={styles.row}>
