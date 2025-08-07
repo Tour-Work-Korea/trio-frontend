@@ -19,6 +19,7 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/GuesthousePostRegisterModal';
 import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseInfoModal';
 import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/GuesthouseIntroSummaryModal';
+import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/GuesthouseRoom/GuesthouseRoomModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -34,6 +35,9 @@ const MyGuesthouseAdd = () => {
   // 게스트하우스 소개요약 모달
   const [introModalVisible, setIntroModalVisible] = useState(false);
   const [introModalReset, setIntroModalReset] = useState(true);
+  // 객실 모달
+  const [roomModalVisible, setRoomModalVisible] = useState(false);
+  const [roomModalReset, setRoomModalReset] = useState(true); 
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -67,6 +71,16 @@ const MyGuesthouseAdd = () => {
     }));
     setIntroModalReset(false); // 닫아도 초기화 안 함
     setIntroModalVisible(false);
+  };
+
+  // 객실 모달에서 "적용" 눌렀을 때
+  const handleRoomSelect = (rooms) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      roomInfos: rooms,
+    }));
+    setRoomModalReset(false); // 닫아도 유지
+    setRoomModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -168,7 +182,7 @@ const MyGuesthouseAdd = () => {
 
         <TouchableOpacity
           style={styles.section}
-          onPress={() => console.log('객실 클릭')}
+          onPress={() => setRoomModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>객실</Text>
@@ -244,6 +258,13 @@ const MyGuesthouseAdd = () => {
         onSelect={handleIntroSelect}
       />
       
+      {/* 객실 모달 */}
+      <GuesthouseRoomModal
+        visible={roomModalVisible}
+        shouldResetOnClose={roomModalReset}
+        onClose={() => setRoomModalVisible(false)}
+        onSelect={handleRoomSelect}
+      />
     </View>
   );
 };

@@ -14,7 +14,7 @@ import LottieView from 'lottie-react-native';
 
 import firebase from '@react-native-firebase/app';
 import crashlytics from '@react-native-firebase/crashlytics';
-import {SafeAreaView} from 'react-native-safe-area-context';
+import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
 
 const App = () => {
   const [appLoaded, setAppLoaded] = useState(false);
@@ -51,7 +51,8 @@ const App = () => {
   }
 
   return (
-    <>
+    <SafeAreaProvider>
+      <>
       <SafeAreaView style={styles.container}>
         <StatusBar
           barStyle="light-content"
@@ -61,7 +62,8 @@ const App = () => {
         <DeeplinkHandler />
       </SafeAreaView>
       <Toast config={toastConfig} />
-    </>
+      </>
+    </SafeAreaProvider>
   );
 };
 
