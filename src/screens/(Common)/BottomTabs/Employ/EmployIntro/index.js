@@ -94,7 +94,7 @@ const EmployIntro = () => {
         contentContainerStyle={{
           gap: 16,
           paddingHorizontal: 20,
-          paddingBottom: 0,
+          paddingBottom: 16,
           flexGrow: 1,
         }}>
         {/* 검색창 */}

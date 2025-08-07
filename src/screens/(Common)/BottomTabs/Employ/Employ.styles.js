@@ -137,10 +137,10 @@ const styles = StyleSheet.create({
 
   //일자리 리스트
   employContainer: {
+    flex: 1,
     flexDirection: 'column',
     gap: 16,
     paddingVertical: 12,
-    paddingBottom: 40,
     paddingHorizontal: 20,
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,

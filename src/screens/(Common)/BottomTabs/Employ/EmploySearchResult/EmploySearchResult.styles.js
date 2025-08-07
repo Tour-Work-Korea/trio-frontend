@@ -27,7 +27,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
     height: 40,
     marginHorizontal: 20,
-    marginTop: 16,
     marginBottom: 12,
   },
   searchIcon: {
