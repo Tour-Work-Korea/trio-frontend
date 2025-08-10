@@ -22,6 +22,7 @@ import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/Gu
 import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/GuesthouseRoom/GuesthouseRoomModal';
 import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseDetailInfoModal';
 import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/GuesthouseRulesModal';
+import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/GuesthouseAmenitiesModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -46,6 +47,9 @@ const MyGuesthouseAdd = () => {
   // 이용규칙 모달
   const [rulesModalVisible, setRulesModalVisible] = useState(false);
   const [rulesModalReset, setRulesModalReset] = useState(true);
+  // 편의시설 모달
+  const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
+  const [amenitiesModalReset, setAmenitiesModalReset] = useState(true);
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -107,6 +111,19 @@ const MyGuesthouseAdd = () => {
     // setGuesthouse(prev => ({ ...prev, rules: data.rules }))
     setRulesModalReset(false); // 닫아도 유지
     setRulesModalVisible(false);
+  };
+
+  // 선택된 amenities
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+  // 편의시설 모달에서 "적용" 눌렀을 때
+  const handleAmenitiesSelect = (ids) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      amenities: ids.map(id => ({ amenityId: id, count: 1 })),
+    }));
+    setSelectedAmenities(ids); // 아이디 배열 저장
+    setAmenitiesModalReset(false); 
+    setAmenitiesModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -236,9 +253,10 @@ const MyGuesthouseAdd = () => {
           <ChevronRight width={24} height={24}/>
         </TouchableOpacity>
 
+        {/* 편의시설 및 서비스 */}
         <TouchableOpacity
           style={styles.section}
-          onPress={() => console.log('편의시설 및 서비스 클릭')}
+          onPress={() => setAmenitiesModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>편의시설 및 서비스</Text>
@@ -309,6 +327,14 @@ const MyGuesthouseAdd = () => {
         shouldResetOnClose={rulesModalReset}
         onClose={() => setRulesModalVisible(false)}
         onSelect={handleRulesSelect}
+      />
+
+      {/* 편의시설 및 서비스 모달 */}
+      <GuesthouseAmenitiesModal
+        visible={amenitiesModalVisible}
+        shouldResetOnClose={amenitiesModalReset}
+        onClose={() => setAmenitiesModalVisible(false)}
+        onSelect={handleAmenitiesSelect}
       />
     </View>
   );
