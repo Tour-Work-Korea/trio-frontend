@@ -5,6 +5,18 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
+// 데이터 주고 받을 때 로컬 타임으로 주고받음 initialValue
+// 분 기본 15분 단위로 되어있음
+
+// visible,
+// initialValue = '00:00:00',
+// onClose,
+// onConfirm,
+// 위 4가지만 입력해도 됨
+
+// 포멧 함수 있음 부모에서 사용
+// import { formatLocalTimeToKorean12Hour } from '@utils/formatDate';
+
 export default function TimePickerModal({
   visible,
   initialValue = '00:00:00',
