@@ -2,14 +2,11 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  ScrollView,
-  Button,
   Alert,
-  Image,
-  Modal,
   TouchableOpacity,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
+import { useNavigation } from '@react-navigation/native';
 
 import styles from './MyGuesthouseAdd.styles';
 import Header from '@components/Header';
@@ -29,6 +26,22 @@ import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 
 const MyGuesthouseAdd = () => {
+  const navigation = useNavigation();
+
+  const [guesthouse, setGuesthouse] = useState({
+    guesthouseName: '',
+    guesthouseAddress: '',
+    guesthousePhone: '',
+    guesthouseShortIntro: '',
+    guesthouseLongDesc: '',
+    checkIn: '15:00:00',
+    checkOut: '11:00:00',
+    guesthouseImages: [],
+    roomInfos: [],
+    amenities: [],
+    hashtagIds: [],
+  });
+
   // 게스트하우스 게시물 등록 모달
   const [postModalVisible, setPostModalVisible] = useState(false);
   const [postModalReset, setPostModalReset] = useState(true);
@@ -69,6 +82,8 @@ const MyGuesthouseAdd = () => {
       guesthouseAddress: data.address,
       guesthousePhone: data.phone,
       hashtagIds: data.tagIds,
+      checkIn: data.checkIn,
+      checkOut: data.checkOut
     }));
     setInfoModalReset(false); // 닫아도 초기화 안 함
     setInfoModalVisible(false);
@@ -126,69 +141,75 @@ const MyGuesthouseAdd = () => {
     setAmenitiesModalVisible(false);
   };
 
-  const [guesthouse, setGuesthouse] = useState({
-    guesthouseName: '',
-    guesthouseAddress: '',
-    guesthousePhone: '',
-    guesthouseShortIntro: '',
-    guesthouseLongDesc: '',
-    checkIn: '15:00:00',
-    checkOut: '11:00:00',
-    guesthouseImages: [],
-    roomInfos: [],
-    amenities: [],
-    hashtagIds: [],
-  });
+  // 유효성 체크
+  const isNonEmpty = (v) => typeof v === 'string' && v.trim().length > 0;
+  const hasThumb = (arr = []) => Array.isArray(arr) && arr.some(i => i?.isThumbnail === true);
+  const isRoomValid = (room) => {
+    return (
+      isNonEmpty(room?.roomName) &&
+      ['MIXED','MALE_ONLY','FEMALE_ONLY'].includes(room?.roomType ?? '') &&
+      Number.isFinite(Number(room?.roomCapacity)) &&
+      isNonEmpty(room?.roomDesc) &&
+      // 가격은 숫자 문자열도 허용 -> 서버에서 BigDecimal로 파싱
+      isNonEmpty(room?.roomPrice) && !isNaN(Number(room?.roomPrice)) &&
+      Array.isArray(room?.roomImages) && room.roomImages.length > 0 &&
+      hasThumb(room.roomImages)
+    );
+  };
 
-  const [newRoom, setNewRoom] = useState({
-    roomName: '',
-    roomType: '',
-    roomCapacity: '',
-    roomMaxCapacity: '',
-    roomPrice: '',
-    roomDesc: '',
-    roomImages: [],
-    roomExtraFees: [],
-  });
-
-  const [extraFeeInput, setExtraFeeInput] = useState({
-    startDate: '',
-    endDate: '',
-    addPrice: '',
-  });
+  const isSubmitReady =
+    // 기본 정보
+    isNonEmpty(guesthouse.guesthouseName) &&
+    isNonEmpty(guesthouse.guesthouseAddress) &&
+    isNonEmpty(guesthouse.guesthousePhone) &&
+    isNonEmpty(guesthouse.guesthouseShortIntro) &&
+    isNonEmpty(guesthouse.guesthouseLongDesc) &&
+    // 신청서 선택
+    !!selectedApplication?.id &&
+    // 체크인/체크아웃은 기본값 존재하므로 생략 가능 (원하면 isNonEmpty로 체크)
+    // 이미지(숙소)
+    Array.isArray(guesthouse.guesthouseImages) &&
+    guesthouse.guesthouseImages.length > 0 &&
+    hasThumb(guesthouse.guesthouseImages) &&
+    // 객실
+    Array.isArray(guesthouse.roomInfos) &&
+    guesthouse.roomInfos.length > 0 &&
+    guesthouse.roomInfos.every(isRoomValid) &&
+    // 편의시설(최소 1개)
+    Array.isArray(guesthouse.amenities) &&
+    guesthouse.amenities.length > 0 &&
+    // 해시태그(선택 기준이 있다면 유지)
+    Array.isArray(guesthouse.hashtagIds) &&
+    guesthouse.hashtagIds.length > 0;
 
   const handleSubmit = async () => {
-    if (guesthouse.guesthouseImages.length === 0) {
-      Alert.alert('게스트하우스 이미지를 1개 이상 등록해주세요.');
-      return;
-    }
-    if (guesthouse.roomInfos.length === 0) {
-      Alert.alert('객실 정보를 1개 이상 등록해주세요.');
-      return;
-    }
-
-    const hasEachRoomThumbnail = guesthouse.roomInfos.every(room =>
-      room.roomImages.some(img => img.isThumbnail === true)
-    );
-    if (!hasEachRoomThumbnail) {
-      Alert.alert('각 방에는 반드시 썸네일 이미지 1개가 포함되어야 합니다.');
-      return;
-    }
+    if (!isSubmitReady) return;
 
     try {
       const payload = {
         ...guesthouse,
-        applicationId: applicationId,
-        amenities: selectedAmenities.map(id => ({ amenityId: id, count: 1 })),
-        hashtagIds: selectedHashtags.map(tag => tag.id),
+        applicationId: selectedApplication?.id,
       };
+
+      console.log('📦 Guesthouse 등록 payload:', JSON.stringify(payload, null, 2));
+
       const res = await hostGuesthouseApi.registerGuesthouse(payload);
       console.log('등록 성공', res.data);
-      Alert.alert('게스트하우스 등록 완료');
-      navigation.goBack();
+      Toast.show({
+        type: 'success',
+        text1: '게스트하우스가 등록되었습니다!',
+        position: 'top',
+        visibilityTime: 1200,
+      });
+      
+      setTimeout(() => {
+        navigation.goBack();
+      }, 1200);
+      
     } catch (error) {
-      console.error('등록 실패:', error.response?.data || error.message);
-      Alert.alert('등록 실패');
+      Alert.alert('등록 실패', '잠시 후 다시 시도해주세요.', [
+        { text: '확인', onPress: () => navigation.goBack() }
+      ]);
     }
   };
 
@@ -272,9 +293,28 @@ const MyGuesthouseAdd = () => {
         <TouchableOpacity style={styles.saveButton}>
           <Text style={[FONTS.fs_14_medium, styles.saveText]}>임시저장</Text>
         </TouchableOpacity>
-        <TouchableOpacity style={styles.submitButton}>
-          <Text style={[FONTS.fs_14_medium, styles.submitText]}>등록하기</Text>
-          <CheckBlack width={24} height={24}/>
+        <TouchableOpacity 
+          style={[
+            styles.submitButton,
+            !isSubmitReady && styles.submitButtonDisabled,
+          ]}
+          disabled={!isSubmitReady}
+          onPress={handleSubmit}
+        >
+          <Text 
+            style={[
+              FONTS.fs_14_medium,
+              styles.submitText,
+              !isSubmitReady && styles.submitTextDisabled,
+            ]}
+          >
+            등록하기
+          </Text>
+          {isSubmitReady ? (
+            <CheckWhite width={24} height={24}/>
+          ) : (
+            <CheckBlack width={24} height={24}/>
+          )}
         </TouchableOpacity>
       </View>
 

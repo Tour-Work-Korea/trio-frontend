@@ -60,8 +60,15 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     alignItems: 'center',
     gap: 8,
+    backgroundColor: COLORS.primary_orange,
   },
   submitText: {
+    color: COLORS.grayscale_0,
+  },
+  submitButtonDisabled: {
+    backgroundColor: COLORS.grayscale_100,
+  },
+  submitTextDisabled: {
     color: COLORS.grayscale_800,
   },
 });

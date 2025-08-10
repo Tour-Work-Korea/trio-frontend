@@ -15,9 +15,11 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import EmptyState from '@components/EmptyState';
 
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
+import EmptyIcon from '@assets/images/wa_blue_apply.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.8);
 
@@ -38,77 +40,77 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect, shouldResetOn
   }, [visible]);
 
   // 입점신청서 가짜 데이터 조회
-const fetchApplications = async () => {
-  try {
-    const res = await hostGuesthouseApi.getHostApplications();
+// const fetchApplications = async () => {
+//   try {
+//     const res = await hostGuesthouseApi.getHostApplications();
 
-    // 승인 완료되고 등록 안된 입점 신청서만 출력
-    const filtered = (res.data || [])
-      .filter(
-        (app) => app.status === '승인 완료' && app.registered === false
-      )
-      .map((app) => ({
-        id: app.id,
-        businessName: app.businessName,
-        address: app.address,
-        imgUrl: app.imgUrl,
-        businessPhone: app.businessPhone,
-      }));
+//     // 승인 완료되고 등록 안된 입점 신청서만 출력
+//     const filtered = (res.data || [])
+//       .filter(
+//         (app) => app.status === '승인 완료' && app.registered === false
+//       )
+//       .map((app) => ({
+//         id: app.id,
+//         businessName: app.businessName,
+//         address: app.address,
+//         imgUrl: app.imgUrl,
+//         businessPhone: app.businessPhone,
+//       }));
 
-    // 데이터 없으면 임시 데이터 하나 추가
-    if (filtered.length === 0) {
-      setApplicationList([
-        {
-          id: 9999,
-          businessName: '임시 게스트하우스',
-          address: '서울시 강남구 테헤란로 123',
-          imgUrl: 'https://via.placeholder.com/150', // 샘플 이미지
-          businessPhone: '01012345678',
-        },
-      ]);
-    } else {
-      setApplicationList(filtered);
-    }
-  } catch (error) {
-    console.error('입점신청서 목록 불러오기 실패:', error);
-    // 실패 시에도 임시 데이터 제공
-    setApplicationList([
-      {
-        id: 9999,
-        businessName: '임시 게스트하우스',
-        address: '서울시 강남구 테헤란로 123',
-        imgUrl: 'https://via.placeholder.com/150',
-        businessPhone: '01012345678',
-      },
-    ]);
-  }
-};
+//     // 데이터 없으면 임시 데이터 하나 추가
+//     if (filtered.length === 0) {
+//       setApplicationList([
+//         {
+//           id: 9999,
+//           businessName: '임시 게스트하우스',
+//           address: '서울시 강남구 테헤란로 123',
+//           imgUrl: 'https://via.placeholder.com/150', // 샘플 이미지
+//           businessPhone: '01012345678',
+//         },
+//       ]);
+//     } else {
+//       setApplicationList(filtered);
+//     }
+//   } catch (error) {
+//     console.error('입점신청서 목록 불러오기 실패:', error);
+//     // 실패 시에도 임시 데이터 제공
+//     setApplicationList([
+//       {
+//         id: 9999,
+//         businessName: '임시 게스트하우스',
+//         address: '서울시 강남구 테헤란로 123',
+//         imgUrl: 'https://via.placeholder.com/150',
+//         businessPhone: '01012345678',
+//       },
+//     ]);
+//   }
+// };
 
 
   // 입점신청서 조회
-  // const fetchApplications = async () => {
-  //   try {
-  //     const res = await hostGuesthouseApi.getHostApplications();
+  const fetchApplications = async () => {
+    try {
+      const res = await hostGuesthouseApi.getHostApplications();
 
-  //     // 승인 완료되고 등록 안된 입점 신청서만 출력
-  //     const filtered = (res.data || [])
-  //       .filter(
-  //         (app) => app.status === '승인 완료' && app.registered === false
-  //       )
-  //       .map((app) => ({
-  //         id: app.id,
-  //         businessName: app.businessName,
-  //         address: app.address,
-  //         imgUrl: app.imgUrl,
-  //         businessPhone: app.businessPhone,
-  //       }));
+      // 승인 완료되고 등록 안된 입점 신청서만 출력
+      const filtered = (res.data || [])
+        .filter(
+          (app) => app.status === '승인 완료' && app.registered === false
+        )
+        .map((app) => ({
+          id: app.id,
+          businessName: app.businessName,
+          address: app.address,
+          imgUrl: app.imgUrl,
+          businessPhone: app.businessPhone,
+        }));
 
-  //     setApplicationList(filtered);
-  //   } catch (error) {
-  //     console.error('입점신청서 목록 불러오기 실패:', error);
-  //     setApplicationList([]);
-  //   }
-  // };
+      setApplicationList(filtered);
+    } catch (error) {
+      console.error('입점신청서 목록 불러오기 실패:', error);
+      setApplicationList([]);
+    }
+  };
 
   // 입점신청서 선택
   const handleSelect = (id) => {
@@ -181,6 +183,19 @@ const fetchApplications = async () => {
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+            contentContainerStyle={
+              applicationList.length === 0
+                ? [styles.listContainer, { flex: 1, justifyContent: 'center' }]
+                : styles.listContainer
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon={EmptyIcon}
+                iconSize={{ width: 188, height: 84 }}
+                title="입점된 게스트하우스가 없어요"
+                description="입점신청하러 가볼까요?"
+              />
+            }
           />
 
           {/* 등록하기 버튼 */}
@@ -221,6 +236,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
 
+  listContainer: {
+
+  },
   // 리스트
   itemContainer: {
     flexDirection: 'row',
