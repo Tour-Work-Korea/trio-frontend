@@ -15,7 +15,7 @@ export default function Banner({banners}) {
         data={banners}
         autoPlay
         loop
-        scrollAnimationDuration={2000}
+        scrollAnimationDuration={3000}
         pagingEnabled={false}
         onSnapToItem={index => setCurrentIndex(index)}
         mode="parallax"

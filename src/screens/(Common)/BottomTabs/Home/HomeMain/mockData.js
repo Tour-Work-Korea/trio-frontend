@@ -1,5 +1,5 @@
 export const banners = [
-  {id: 1, image: require('@assets/images/exphoto.jpeg')},
+  {id: 1, image: require('@assets/images/banners/jejuvisitor_banner.png')},
   {id: 2, image: require('@assets/images/exphoto.jpeg')},
   {id: 3, image: require('@assets/images/exphoto.jpeg')},
 ];
