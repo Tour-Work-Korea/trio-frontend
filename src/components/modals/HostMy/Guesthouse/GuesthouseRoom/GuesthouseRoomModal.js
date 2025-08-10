@@ -148,7 +148,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
           <View style={styles.body}>
             {step === 'list' && (
               <>
-                {console.log('[GuesthouseRoomModal] 등록된 객실:', JSON.stringify(rooms, null, 2))}
+                {/* {console.log('[GuesthouseRoomModal] 등록된 객실:', JSON.stringify(rooms, null, 2))} */}
                 <RoomList rooms={rooms} onAddRoom={goToRoomInfo} onDelete={handleDeleteRoom}/>
               </>
             )}

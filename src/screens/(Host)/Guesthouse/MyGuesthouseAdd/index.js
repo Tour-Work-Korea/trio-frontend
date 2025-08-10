@@ -20,6 +20,7 @@ import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/Gu
 import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseInfoModal';
 import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/GuesthouseIntroSummaryModal';
 import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/GuesthouseRoom/GuesthouseRoomModal';
+import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseDetailInfoModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -37,7 +38,10 @@ const MyGuesthouseAdd = () => {
   const [introModalReset, setIntroModalReset] = useState(true);
   // 객실 모달
   const [roomModalVisible, setRoomModalVisible] = useState(false);
-  const [roomModalReset, setRoomModalReset] = useState(true); 
+  const [roomModalReset, setRoomModalReset] = useState(true);
+  // 상세정보 모달
+  const [detailInfoModalVisible, setDetailInfoModalVisible] = useState(false);
+  const [detailInfoModalReset, setDetailInfoModalReset] = useState(true);
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -81,6 +85,16 @@ const MyGuesthouseAdd = () => {
     }));
     setRoomModalReset(false); // 닫아도 유지
     setRoomModalVisible(false);
+  };
+
+  // 상세정보 모달에서 "적용" 눌렀을 때
+  const handleDetailInfoSelect = (data) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      guesthouseLongDesc: data.guesthouseLongDesc,
+    }));
+    setDetailInfoModalReset(false); // 닫아도 유지
+    setDetailInfoModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -180,6 +194,7 @@ const MyGuesthouseAdd = () => {
           <ChevronRight width={24} height={24}/>
         </TouchableOpacity>
 
+        {/* 객실 */}
         <TouchableOpacity
           style={styles.section}
           onPress={() => setRoomModalVisible(true)}
@@ -189,9 +204,10 @@ const MyGuesthouseAdd = () => {
           <ChevronRight width={24} height={24}/>
         </TouchableOpacity>
 
+        {/* 상세정보 */}
         <TouchableOpacity
           style={styles.section}
-          onPress={() => console.log('상세정보 클릭')}
+          onPress={() => setDetailInfoModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>상세정보</Text>
@@ -264,6 +280,14 @@ const MyGuesthouseAdd = () => {
         shouldResetOnClose={roomModalReset}
         onClose={() => setRoomModalVisible(false)}
         onSelect={handleRoomSelect}
+      />
+
+      {/* 상세정보 모달 */}
+      <GuesthouseDetailInfoModal
+        visible={detailInfoModalVisible}
+        shouldResetOnClose={detailInfoModalReset}
+        onClose={() => setDetailInfoModalVisible(false)}
+        onSelect={handleDetailInfoSelect}
       />
     </View>
   );
