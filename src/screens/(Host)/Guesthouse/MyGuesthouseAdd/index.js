@@ -21,6 +21,7 @@ import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/Guesthouse
 import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/GuesthouseIntroSummaryModal';
 import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/GuesthouseRoom/GuesthouseRoomModal';
 import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseDetailInfoModal';
+import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/GuesthouseRulesModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -42,6 +43,9 @@ const MyGuesthouseAdd = () => {
   // 상세정보 모달
   const [detailInfoModalVisible, setDetailInfoModalVisible] = useState(false);
   const [detailInfoModalReset, setDetailInfoModalReset] = useState(true);
+  // 이용규칙 모달
+  const [rulesModalVisible, setRulesModalVisible] = useState(false);
+  const [rulesModalReset, setRulesModalReset] = useState(true);
 
   // 선택된 입점 신청서 정보
   const [selectedApplication, setSelectedApplication] = useState(null);
@@ -95,6 +99,14 @@ const MyGuesthouseAdd = () => {
     }));
     setDetailInfoModalReset(false); // 닫아도 유지
     setDetailInfoModalVisible(false);
+  };
+
+  // 이용규칙 모달에서 "적용" 눌렀을 때 (지금은 서버 전송 없음)
+  const handleRulesSelect = (/* data */) => {
+    // 추후 data가 필요하면 guesthouse에 머지
+    // setGuesthouse(prev => ({ ...prev, rules: data.rules }))
+    setRulesModalReset(false); // 닫아도 유지
+    setRulesModalVisible(false);
   };
 
   const [guesthouse, setGuesthouse] = useState({
@@ -214,9 +226,10 @@ const MyGuesthouseAdd = () => {
           <ChevronRight width={24} height={24}/>
         </TouchableOpacity>
 
+        {/* 이용규칙 */}
         <TouchableOpacity
           style={styles.section}
-          onPress={() => console.log('이용규칙 클릭')}
+          onPress={() => setRulesModalVisible(true)}
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>이용규칙</Text>
@@ -288,6 +301,14 @@ const MyGuesthouseAdd = () => {
         shouldResetOnClose={detailInfoModalReset}
         onClose={() => setDetailInfoModalVisible(false)}
         onSelect={handleDetailInfoSelect}
+      />
+
+      {/* 이용규칙 모달 */}
+      <GuesthouseRulesModal
+        visible={rulesModalVisible}
+        shouldResetOnClose={rulesModalReset}
+        onClose={() => setRulesModalVisible(false)}
+        onSelect={handleRulesSelect}
       />
     </View>
   );
