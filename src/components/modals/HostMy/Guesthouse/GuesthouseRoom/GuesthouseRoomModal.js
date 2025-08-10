@@ -41,18 +41,25 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
   const [step, setStep] = useState('list'); // 'list' | 'info' | 'type'
   const [rooms, setRooms] = useState([]);
 
-  const [tempRoomData, setTempRoomData] = useState({
+  const EMPTY_ROOM = {
     roomName: '',
     roomDesc: '',
     roomImages: [],
-  }); // info, type 입력 중인 데이터
+    roomCapacity: null,
+    roomType: null,
+    roomPrice: '',     // 문자열로 관리(숫자만 입력 허용)
+  }; 
+
+  const [tempRoomData, setTempRoomData] = useState(EMPTY_ROOM); // info, type 입력 중인 데이터
+
+  // 객실 추가: 새 입력 시작 -> 무조건 초기화
+  const startNewRoom = () => {
+    setTempRoomData(EMPTY_ROOM);
+    setStep('info');
+  };
 
   const goToRoomInfo = () => {
-    setTempRoomData({
-      roomName: '',
-      roomDesc: '',
-      roomImages: [],
-    }); // 새 방 입력 시작
+    setTempRoomData(prev => prev ?? EMPTY_ROOM); // 새 방 입력 시작
     setStep('info');
   };
 
@@ -63,6 +70,10 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
   const handleApplyRoom = () => {
     setRooms(prev => [...prev, tempRoomData]);
     setStep('list'); // 리스트로 돌아감
+  };
+
+  const handleDeleteRoom = (index) => {
+    setRooms((prevRooms) => prevRooms.filter((_, i) => i !== index));
   };
 
   // 마지막 적용된 값 저장
@@ -83,8 +94,8 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
       } else {
         setRooms([]); // 처음 상태로 초기화
       }
+      setTempRoomData(EMPTY_ROOM); // tempRoomData 초기화
       setStep('list'); // 초기화 시 항상 리스트부터 시작
-      setTempRoomData({}); // tempRoomData 초기화
     }
     onClose();
   };
@@ -138,7 +149,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
             {step === 'list' && (
               <>
                 {console.log('[GuesthouseRoomModal] 등록된 객실:', JSON.stringify(rooms, null, 2))}
-                <RoomList rooms={rooms} onAddRoom={goToRoomInfo} />
+                <RoomList rooms={rooms} onAddRoom={goToRoomInfo} onDelete={handleDeleteRoom}/>
               </>
             )}
 
@@ -164,7 +175,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
             <View style={styles.buttonContainer}>
               <TouchableOpacity
                 style={styles.addButton}
-                onPress={goToRoomInfo}
+                onPress={startNewRoom}
               >
                 <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>객실 추가</Text>
                 <PlusIcon width={16} height={16} />

@@ -11,6 +11,8 @@ import {
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 
+import DeleteIcon from '@assets/images/delete_gray.svg';
+
 const translateRoomType = (type) => {
   switch (type) {
     case 'FEMALE_ONLY':
@@ -24,32 +26,40 @@ const translateRoomType = (type) => {
   }
 };
 
-const RoomList = ({ rooms }) => {
-  const renderItem = ({ item }) => {
+const RoomList = ({ rooms, onDelete }) => {
+  const renderItem = ({ item, index }) => {
     const thumbnailUrl =
       item.roomImages?.find((img) => img.isThumbnail)?.guesthouseImageUrl;
 
     return (
       <View style={styles.card}>
-        <Image
-          source={{ uri: thumbnailUrl }}
-          style={styles.image}
-        />
-        <View style={styles.textContainer}>
-          <Text style={[FONTS.fs_16_medium, styles.roomName]}>
-            {item.roomName}
-          </Text>
-          <Text style={[FONTS.fs_14_regular, styles.roomSub]}>
-            {item.roomCapacity}인실 {translateRoomType(item.roomType)}
-          </Text>
+        <View style={{flexDirection: 'row'}}>
+          <Image
+            source={{ uri: thumbnailUrl }}
+            style={styles.image}
+          />
+          <View style={styles.textContainer}>
+            <Text style={[FONTS.fs_16_semibold, styles.roomName]}>
+              {item.roomName}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.roomSub]}>
+              {item.roomCapacity}인실 {translateRoomType(item.roomType)}
+            </Text>
+            <Text style={[FONTS.fs_14_semibold, styles.roomSub]}>
+              {item.roomPrice}원
+            </Text>
+          </View>
         </View>
+        <TouchableOpacity onPress={() => onDelete?.(index)}>
+          <DeleteIcon width={24} height={24}/>
+        </TouchableOpacity>
       </View>
     );
   };
 
   return (
     <View style={{ flex: 1 }}>
-      <Text style={[FONTS.fs_16_medium]}>
+      <Text style={[FONTS.fs_16_medium, {marginBottom: 8}]}>
         등록된 객실
       </Text>
 
@@ -75,31 +85,25 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingRight: 12,
+    justifyContent: 'space-between',
   },
+
+  // 객실 리스트
   image: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
+    width: 80,
+    height: 80,
+    borderRadius: 4,
     marginRight: 12,
   },
   textContainer: {
     justifyContent: 'center',
   },
   roomName: {
-    color: COLORS.grayscale_900,
-    marginBottom: 2,
+    marginBottom: 4,
   },
   roomSub: {
+    marginBottom: 4,
     color: COLORS.grayscale_500,
-  },
-  addButton: {
-    marginTop: 24,
-    alignSelf: 'center',
-    backgroundColor: COLORS.grayscale_100,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
   },
 });
 

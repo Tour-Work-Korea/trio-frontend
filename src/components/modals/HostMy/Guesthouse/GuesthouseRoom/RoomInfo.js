@@ -155,7 +155,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
         style={[styles.textArea, FONTS.fs_14_regular]}
         multiline
         maxLength={200}
-        placeholder="햇살 가득한 공간에서..."
+        placeholder="객실 소개를 입력해 주세요"
         placeholderTextColor={COLORS.grayscale_400}
         value={data.roomDesc}
         onChangeText={(text) => setData({ ...data, roomDesc: text })}

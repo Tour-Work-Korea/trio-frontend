@@ -17,8 +17,14 @@ import ArrowLeft from '@assets/images/arrow_left_black.svg';
 const ROOM_SIZES = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
 const RoomType = ({ data, setData, onBack, onApply }) => {
-  const isSelectedSize = (val) => data.roomCapacity?.toString() === val;
-  const isEtc = !ROOM_SIZES.includes(data.roomCapacity?.toString());
+  const isSelectedSize = (val) =>
+    data.roomCapacity !== null &&
+    data.roomCapacity !== undefined &&
+    data.roomCapacity.toString() === val;
+  const isEtc =
+    data.roomCapacity !== null &&
+    data.roomCapacity !== undefined &&
+    !ROOM_SIZES.includes(data.roomCapacity.toString());
 
   const handleSelectRoomSize = (val) => {
     setData({
@@ -56,9 +62,10 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     isNaN(Number(data.roomPrice));
 
   return (
+    <>
     <View style={{ flex: 1 }}>
       {/* 객실 타입 */}
-      <Text style={[FONTS.fs_14_semibold, { marginBottom: 12 }]}>객실 타입</Text>
+      <Text style={[FONTS.fs_16_medium, styles.title]}>객실 타입</Text>
       <View style={styles.roomGrid}>
         {ROOM_SIZES.map((size) => (
           <TouchableOpacity
@@ -67,32 +74,33 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
             onPress={() => handleSelectRoomSize(size)}
           >
             {isSelectedSize(size) ? (
-              <EnabledRadio width={20} height={20} />
+              <EnabledRadio width={28} height={28} />
             ) : (
-              <DisabledRadio width={20} height={20} />
+              <DisabledRadio width={28} height={28} />
             )}
-            <Text style={[FONTS.fs_14_regular, styles.radioLabel]}>{size}인실</Text>
+            <Text style={[FONTS.fs_14_medium, styles.radioLabel]}>{size}인실</Text>
           </TouchableOpacity>
         ))}
 
         {/* 기타 */}
         <View style={[styles.radioRow, { flex: 1 }]}>
           <TouchableOpacity
-            onPress={() => handleSelectRoomSize(data.roomCapacity || '')}
-            style={{ flexDirection: 'row', alignItems: 'center' }}
+            onPress={() => setData({ ...data, roomCapacity: '' })}
+            style={styles.radioTextContent}
           >
             {isEtc ? (
-              <EnabledRadio width={20} height={20} />
+              <EnabledRadio width={28} height={28} />
             ) : (
-              <DisabledRadio width={20} height={20} />
+              <DisabledRadio width={28} height={28} />
             )}
-            <Text style={[FONTS.fs_14_regular, styles.radioLabel]}>기타</Text>
+            <Text style={[FONTS.fs_14_regular, styles.radioLabel, {marginHorizontal: 8}]}>기타</Text>
           </TouchableOpacity>
           <TextInput
-            style={[styles.etcInput, isEtc ? styles.inputEnabled : styles.inputDisabled]}
+            style={styles.etcInput}
             editable={isEtc}
             keyboardType="numeric"
             placeholder="기타 인원을 입력해주세요"
+            placeholderTextColor={COLORS.grayscale_400}
             value={isEtc ? String(data.roomCapacity) : ''}
             onChangeText={handleEtcChange}
           />
@@ -100,22 +108,22 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
       </View>
 
       {/* 객실 이용대상 */}
-      <Text style={[FONTS.fs_14_semibold, { marginTop: 32, marginBottom: 12 }]}>
+      <Text style={[styles.title, FONTS.fs_16_medium, {marginTop: 20}]}>
         객실 이용대상
       </Text>
       <View style={styles.horizontalRow}>
         {['MIXED', 'MALE_ONLY', 'FEMALE_ONLY'].map((type) => (
           <TouchableOpacity
             key={type}
-            style={styles.radioRow}
+            style={styles.horizontalRadioRow}
             onPress={() => handleSelectRoomType(type)}
           >
             {data.roomType === type ? (
-              <EnabledRadio width={20} height={20} />
+              <EnabledRadio width={28} height={28} />
             ) : (
-              <DisabledRadio width={20} height={20} />
+              <DisabledRadio width={28} height={28} />
             )}
-            <Text style={[FONTS.fs_14_regular, styles.radioLabel]}>
+            <Text style={[FONTS.fs_14_regular, styles.radioLabel, {marginLeft: 8}]}>
               {type === 'MIXED'
                 ? '혼숙'
                 : type === 'MALE_ONLY'
@@ -127,7 +135,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
       </View>
 
       {/* 객실 가격 */}
-      <Text style={[FONTS.fs_14_semibold, { marginTop: 32, marginBottom: 8 }]}>
+      <Text style={[styles.title, FONTS.fs_16_medium, {marginTop: 20}]}>
         객실 가격
       </Text>
       <View style={styles.priceRow}>
@@ -136,78 +144,90 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
           value={data.roomPrice?.toString()}
           keyboardType="numeric"
           onChangeText={handlePriceChange}
+          placeholderTextColor={COLORS.grayscale_400}
           placeholder="객실 가격을 입력해 주세요"
         />
         <Text style={[FONTS.fs_14_regular, { marginLeft: 8 }]}>원</Text>
       </View>
-
-      {/* 하단 버튼 */}
-      <View style={styles.buttonRow}>
-        <TouchableOpacity style={styles.backButton} onPress={onBack}>
-          <ArrowLeft width={16} height={16} />
-          <Text style={FONTS.fs_14_medium}>이전</Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={[
-            styles.applyButton,
-            isDisabled && { backgroundColor: COLORS.grayscale_200 },
-          ]}
-          disabled={isDisabled}
-          onPress={onApply}
-        >
-          <Text style={[FONTS.fs_14_medium, { color: COLORS.grayscale_0 }]}>
-            적용하기
-          </Text>
-        </TouchableOpacity>
-      </View>
     </View>
+
+    {/* 하단 버튼 */}
+    <View style={styles.buttonRow}>
+      <TouchableOpacity style={styles.backButton} onPress={onBack}>
+        <ArrowLeft width={24} height={24} />
+        <Text style={FONTS.fs_14_medium}>이전</Text>
+      </TouchableOpacity>
+
+      <TouchableOpacity
+        style={[
+          styles.applyButton,
+          isDisabled && { backgroundColor: COLORS.grayscale_200 },
+        ]}
+        disabled={isDisabled}
+        onPress={onApply}
+      >
+        <Text 
+          style={[
+            FONTS.fs_14_medium,
+            styles.applyButtonText,
+            isDisabled && { color: COLORS.grayscale_400 },
+          ]}
+        >
+          적용하기
+        </Text>
+      </TouchableOpacity>
+    </View>
+    </>
   );
 };
 
 export default RoomType;
 
 const styles = StyleSheet.create({
+  title: {
+    marginBottom: 8,
+  },
+
+  // 몇 인실
   roomGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    gap: 12,
+    rowGap: 8,
+    columnGap: 16,
   },
   radioRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 12,
-    marginBottom: 12,
+    width: '47%',
+    justifyContent: 'space-between',
   },
   radioLabel: {
-    marginLeft: 4,
-    color: COLORS.grayscale_900,
+  },
+  radioTextContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
   etcInput: {
     flex: 1,
-    marginLeft: 8,
     borderWidth: 1,
-    borderRadius: 24,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    fontSize: 14,
-  },
-  inputDisabled: {
+    borderRadius: 20,
+    padding: 12,
     borderColor: COLORS.grayscale_200,
-    color: COLORS.grayscale_300,
-    backgroundColor: COLORS.grayscale_100,
   },
-  inputEnabled: {
-    borderColor: COLORS.grayscale_400,
-    color: COLORS.grayscale_900,
-    backgroundColor: COLORS.grayscale_0,
-  },
+  
+  // 성별
   horizontalRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    flexWrap: 'wrap',
-    gap: 12,
+    justifyContent: 'space-between',
+    gap: 40,
   },
+  horizontalRadioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+
+  // 가격
   priceRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -216,25 +236,37 @@ const styles = StyleSheet.create({
     flex: 1,
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
-    borderRadius: 24,
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    color: COLORS.grayscale_900,
+    borderRadius: 20,
+    padding: 12,
   },
+
+  // 버튼
   buttonRow: {
-    marginTop: 40,
+    position: 'absolute',
+    bottom: 16,
+    width: '100%',
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
   backButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    justifyContent: 'center',
+    gap: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_100,
   },
   applyButton: {
     backgroundColor: COLORS.primary_orange,
-    borderRadius: 24,
-    paddingHorizontal: 24,
-    paddingVertical: 10,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  applyButtonText: {
+    color: COLORS.grayscale_0,
   },
 });
