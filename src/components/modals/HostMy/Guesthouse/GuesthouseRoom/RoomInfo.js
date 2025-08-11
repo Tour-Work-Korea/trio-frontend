@@ -21,17 +21,21 @@ import ArrowRight from '@assets/images/arrow_right_black.svg';
 
 const RoomInfo = ({ data, setData, onNext }) => {
 
-  const handleSelectThumbnail = (id) => {
-    const updated = data.roomImages.map((img) => ({
+  const handleSelectThumbnail = (index) => {
+    const updated = data.roomImages.map((img, i) => ({
       ...img,
-      isThumbnail: img.id === id,
+      isThumbnail: i === index,
     }));
     setData({ ...data, roomImages: updated });
   };
 
-  const handleDeleteImage = (id) => {
-    const updated = data.roomImages.filter((img) => img.id !== id);
-    setData({ ...data, roomImages: updated });
+  const handleDeleteImage = (index) => {
+    const next = data.roomImages.filter((_, i) => i !== index);
+    const hasThumb = next.some((img) => img.isThumbnail);
+    const normalized = hasThumb
+      ? next
+      : next.map((img, i) => ({ ...img, isThumbnail: i === 0 }));
+    setData({ ...data, roomImages: normalized });
   };
 
   const handleAddImage = async () => {
@@ -39,16 +43,18 @@ const RoomInfo = ({ data, setData, onNext }) => {
       const selectedImages = await uploadMultiImage(); // 다중 이미지 선택
       if (!selectedImages) return;
 
+      const hasThumb = data.roomImages.some((img) => img.isThumbnail);
       const formatted = selectedImages.map((url, idx) => ({
-        id: Date.now().toString() + idx,
         guesthouseImageUrl: url,
-        isThumbnail: data.roomImages.length === 0 && idx === 0,
+        isThumbnail: !hasThumb && idx === 0,
       }));
 
-      setData({
-        ...data,
-        roomImages: [...data.roomImages, ...formatted].slice(0, 10),
-      });
+      const merged = [...data.roomImages, ...formatted].slice(0, 10);
+      const safe =
+        merged.some((img) => img.isThumbnail)
+          ? merged
+          : merged.map((img, i) => ({ ...img, isThumbnail: i === 0 }));
+      setData({ ...data, roomImages: safe });
     } catch (err) {
       console.error('이미지 업로드 실패:', err);
     }
@@ -60,7 +66,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
   const renderData =
     data.roomImages.length < 10
-      ? [{ id: 'add_button' }, ...data.roomImages]
+      ? [{ __add__: true }, ...data.roomImages]
       : data.roomImages;
 
   // 유효성 검사
@@ -101,9 +107,9 @@ const RoomInfo = ({ data, setData, onNext }) => {
           horizontal
           showsHorizontalScrollIndicator={false}
           data={renderData}
-          keyExtractor={(item) => item.id}
-          renderItem={({ item }) => {
-            if (item.id === 'add_button') {
+          keyExtractor={(_, index) => String(index)}
+          renderItem={({ item, index }) => {
+            if (item.__add__) {
               return (
                 <TouchableOpacity
                   style={styles.addImageBox}
@@ -114,6 +120,9 @@ const RoomInfo = ({ data, setData, onNext }) => {
                 </TouchableOpacity>
               );
             }
+
+            const offset = data.roomImages.length < 10 ? 1 : 0;
+            const effectiveIndex = index - offset;
 
             return (
               <View>
@@ -127,13 +136,13 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
                 <TouchableOpacity
                   style={styles.deleteBtn}
-                  onPress={() => handleDeleteImage(item.id)}
+                  onPress={() => handleDeleteImage(effectiveIndex)}
                 >
                   <XBtn width={14} height={14} />
                 </TouchableOpacity>
 
                 <TouchableOpacity
-                  onPress={() => handleSelectThumbnail(item.id)}
+                  onPress={() => handleSelectThumbnail(effectiveIndex)}
                   style={StyleSheet.absoluteFill}
                 />
               </View>

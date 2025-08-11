@@ -189,6 +189,12 @@ const MyGuesthouseAdd = () => {
       const payload = {
         ...guesthouse,
         applicationId: selectedApplication?.id,
+        roomInfos: guesthouse.roomInfos.map(room => ({
+          ...room,
+          roomCapacity: Number(room.roomCapacity),
+          roomMaxCapacity: Number(room.roomMaxCapacity),
+          roomPrice: Number(room.roomPrice), // 가격도 숫자 변환
+        })),
       };
 
       console.log('📦 Guesthouse 등록 payload:', JSON.stringify(payload, null, 2));
