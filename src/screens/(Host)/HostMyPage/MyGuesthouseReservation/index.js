@@ -3,7 +3,7 @@ import { View, Text, FlatList, TouchableOpacity, Modal } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Header from '@components/Header';
-import styles from './MyGuesthouseReview.styles';
+import styles from './MyGuesthouseReservation.styles';
 import { FONTS } from '@constants/fonts';
 
 const MyGuesthouseReservation = () => {

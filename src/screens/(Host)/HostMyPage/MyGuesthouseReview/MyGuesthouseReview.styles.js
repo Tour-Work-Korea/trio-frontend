@@ -6,56 +6,33 @@ const { width } = Dimensions.get('window');
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_100,
   },
-  selectContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    paddingHorizontal: 16,
-  },
-  card: {
-    width: width * 0.85,
-    backgroundColor: COLORS.gray100,
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    alignSelf: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 4,
-    elevation: 3,
-  },
-  image: {
-    width: '100%',
-    height: 160,
-    borderRadius: 8,
-    marginBottom: 12,
-  },
-  cardContent: {
-    alignItems: 'center',
-  },
-  name: {
-    color: COLORS.black,
-  },
-  reviewContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-    paddingTop: 20,
-  },
-  reviewCard: {
-    backgroundColor: COLORS.gray100,
-    borderRadius: 10,
-    padding: 16,
-    marginBottom: 12,
-  },
-  backButton: {
-    marginTop: 20,
-    backgroundColor: COLORS.scarlet,
+
+  body: {
+    backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
-    borderRadius: 8,
+    paddingHorizontal: 20,
+    flex: 1,
+  },
+
+  // 게하 선택 드롭다운 박스
+  selectContainer: {
+    borderWidth: 1,
+    paddingVertical: 12,
+    paddingHorizontal: 24,
+    borderRadius: 20,
+    borderColor: COLORS.primary_blue,
+  },
+  dropdownBox: {
+    flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  devide: {
+    height: 0.8,
+    backgroundColor: COLORS.grayscale_200,
+    marginVertical: 12,
   },
 });
 

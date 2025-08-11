@@ -1,26 +1,67 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Modal } from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  FlatList,
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import styles from './MyGuesthouseReview.styles';
 import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import MyGuesthouseReviewList from './MyGuesthouseReviewList';
 
+import ChevronDown from '@assets/images/chevron_down_black.svg';
+import ChevronUp from '@assets/images/chevron_up_black.svg';
+
+// 임시 데이터 3개
+const MOCK_GUESTHOUSES = [
+  { id: 101, guesthouseName: '김군빌리지 게스트하우스' },
+  { id: 102, guesthouseName: '바다뷰 라운지 하우스' },
+  { id: 103, guesthouseName: '산뜻한 포레스트 하우스' },
+];
+
 const MyGuesthouseReview = () => {
-  const navigation = useNavigation();
+
   const [guesthouses, setGuesthouses] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
+  const [selected, setSelected] = useState(null); // { id, guesthouseName }
 
+  // 임시 데이터
   const fetchGuesthouses = async () => {
     try {
-      const response = await hostGuesthouseApi.getMyGuesthouses();
-      setGuesthouses(response.data);
+      const res = await hostGuesthouseApi.getMyGuesthouses();
+      const data = (res?.data || []).map(g => ({
+        id: g.id,
+        guesthouseName: g.guesthouseName,
+      }));
+
+      // ✅ 비어오면 임시데이터로 채움
+      setGuesthouses(data.length ? data : MOCK_GUESTHOUSES);
     } catch (error) {
       console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+      // ✅ 에러일 때도 임시데이터로 노출
+      setGuesthouses(MOCK_GUESTHOUSES);
     }
   };
+
+  // 사장님 게하 리스트
+  // const fetchGuesthouses = async () => {
+  //   try {
+  //     const res = await hostGuesthouseApi.getMyGuesthouses();
+  //     const data = (res?.data || []).map(g => ({
+  //       id: g.id,
+  //       guesthouseName: g.guesthouseName,
+  //     }));
+  //     setGuesthouses(data);
+  //   } catch (error) {
+  //     console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
+  //   }
+  // };
 
   useFocusEffect(
     useCallback(() => {
@@ -28,56 +69,95 @@ const MyGuesthouseReview = () => {
     }, [])
   );
 
+  const handleSelect = (item) => {
+    setSelected(item);
+    setDropdownVisible(false);
+  };
+
   return (
     <View style={styles.container}>
       <Header title="게스트하우스 리뷰관리" />
       
-      <View style={styles.selectContainer}>
-        <Text style={[FONTS.fs_h2_bold, { marginBottom: 10 }]}>게스트하우스를 선택해주세요</Text>
-        <TouchableOpacity
-          style={{
-            borderWidth: 1,
-            borderColor: 'gray',
-            borderRadius: 8,
-            padding: 12,
-          }}
-          onPress={() => setDropdownVisible(true)}
-        >
-          <Text style={FONTS.fs_body}>
-            {'선택하세요'}
-          </Text>
-        </TouchableOpacity>
-      </View>
+      <View style={styles.body}>
+        {/* 게하 고르기 */}
+        <View style={styles.selectContainer}>
+          {/* 셀렉트 박스 */}
+          <TouchableOpacity
+            onPress={() => setDropdownVisible(v => !v)}
+            style={styles.dropdownBox}
+          >
+            <Text
+              style={[
+                FONTS.fs_16_medium,
+                { color: selected ? COLORS.grayscale_800 : COLORS.grayscale_500 },
+              ]}
+              numberOfLines={1}
+            >
+              {selected ? selected.guesthouseName : '게스트하우스를 골라주세요'}
+            </Text>
+            {dropdownVisible ? <ChevronUp width={24} height={24}/> : <ChevronDown width={24} height={24}/>}
+          </TouchableOpacity>
 
-      <Modal visible={dropdownVisible} transparent animationType="fade">
-        <TouchableOpacity style={{ flex: 1, backgroundColor: 'rgba(0,0,0,0.3)' }} onPress={() => setDropdownVisible(false)}>
-          <View style={{
-            position: 'absolute',
-            top: '30%',
-            left: '10%',
-            right: '10%',
-            backgroundColor: 'white',
-            borderRadius: 8,
-            padding: 16
-          }}>
-            <FlatList
-              data={guesthouses}
-              keyExtractor={(item) => item.id.toString()}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: '#ddd' }}
-                  onPress={() => {
-                    setDropdownVisible(false);
-                    navigation.navigate('MyGuesthouseReviewList', { guesthouseId: item.id });
+          {/* 드롭다운 */}
+          {dropdownVisible && (
+            <>
+              <View
+                style={{
+                  maxHeight: 240,
+                }}
+              >
+                <FlatList
+                  data={guesthouses}
+                  keyExtractor={(item) => String(item.id)}
+                  renderItem={({ item }) => {
+                    const isSelected = selected?.id === item.id;
+                    return (
+                      <>
+                      <View style={styles.devide}/>
+                      <TouchableOpacity
+                        onPress={() => handleSelect(item)}
+                        style={styles.dropdownBox}
+                      >
+                        <Text
+                          numberOfLines={1}
+                          style={[
+                            FONTS.fs_16_medium,
+                            {
+                              color: isSelected ? COLORS.primary_blue : COLORS.grayscale_500,
+                            },
+                          ]}
+                        >
+                          {item.guesthouseName}
+                        </Text>
+                      </TouchableOpacity>
+                      </>
+                    );
                   }}
-                >
-                  <Text style={FONTS.fs_body}>{item.guesthouseName}</Text>
-                </TouchableOpacity>
-              )}
+                  ListEmptyComponent={
+                    <View style={{ paddingTop: 12 }}>
+                      <Text style={[FONTS.fs_16_medium, { color: COLORS.grayscale_400 }]}>
+                        등록된 게스트하우스가 없습니다
+                      </Text>
+                    </View>
+                  }
+                />
+              </View>
+            </>
+          )}
+        </View>
+
+        {/* 선택된 게하의 리뷰 리스트를 같은 화면에 표시 */}
+        {selected?.id ? (
+          <View style={{ flex: 1 }}>
+            <MyGuesthouseReviewList
+              guesthouseId={selected.id}
+              key={selected.id} // 게하 바뀔 때 깔끔히 리셋
             />
           </View>
-        </TouchableOpacity>
-      </Modal>
+        ) : (
+          <View style={{ flex: 1 }} />
+        )}
+      </View>
     </View>
   );
 };

@@ -20,46 +20,6 @@ const MyGuesthouseList = () => {
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
 
-  // 게스트 하우스 임시 데이터 전체 목록 불러오기
-// const fetchGuesthouses = async () => {
-//   try {
-//     // 임시 데이터 (디자인 확인용)
-//     const tempData = [
-//       {
-//         id: 1,
-//         guesthouseName: '서울 게스트하우스',
-//         updatedAt: '2025-08-03T10:00:00',
-//         thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
-//       },
-//       {
-//         id: 2,
-//         guesthouseName: '부산 오션뷰 게스트하우스',
-//         updatedAt: '2025-08-05T15:30:00',
-//         thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
-//       },
-//       {
-//         id: 3,
-//         guesthouseName: '제주 감성 게스트하우스',
-//         updatedAt: '2025-08-04T09:15:00',
-//         thumbnailImg: 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg',
-//       },
-//     ];
-
-//     // 최신순 정렬
-//     const sortedData = tempData.sort(
-//       (a, b) => new Date(b.updatedAt) - new Date(a.updatedAt)
-//     );
-
-//     setGuesthouses(sortedData);
-
-//     // 실제 API 호출 (필요하면 주석 해제)
-//     // const response = await hostGuesthouseApi.getMyGuesthouses();
-//     // setGuesthouses(response.data);
-//   } catch (error) {
-//     console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
-//   }
-// };
-
   // 게스트 하우스 전체 목록 불러오기
   const fetchGuesthouses = async () => {
     try {
