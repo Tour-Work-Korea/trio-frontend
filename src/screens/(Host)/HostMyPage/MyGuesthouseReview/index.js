@@ -6,6 +6,7 @@ import Header from '@components/Header';
 import styles from './MyGuesthouseReview.styles';
 import { FONTS } from '@constants/fonts';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import MyGuesthouseReviewList from './MyGuesthouseReviewList';
 
 const MyGuesthouseReview = () => {
   const navigation = useNavigation();

@@ -1,4 +1,3 @@
-// 콘솔에만 출력
 import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';

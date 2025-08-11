@@ -1,4 +1,3 @@
-// 콘솔에만 출력
 import React, { useState } from 'react';
 import { View, Text, TextInput } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -6,7 +5,7 @@ import { useRoute, useNavigation } from '@react-navigation/native';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
-const DeleteReview = () => {
+const DeleteReviewModal = () => {
   const route = useRoute();
   const navigation = useNavigation();
   const { reviewId } = route.params;
@@ -50,4 +49,4 @@ const DeleteReview = () => {
   );
 };
 
-export default DeleteReview;
+export default DeleteReviewModal;
