@@ -16,7 +16,7 @@ import LeftArrow from '@assets/images/chevron_left_white.svg';
 const RoomDetail = ({ route }) => {
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImages } = route.params;
+  const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImages, roomCapacity, roomType } = route.params;
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
@@ -39,6 +39,12 @@ const RoomDetail = ({ route }) => {
     id: img.id,
     imageUrl: img.roomImageUrl,
   })) || [];
+
+  const roomTypeMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
 
   return (
     <View style={styles.container}>
@@ -63,7 +69,9 @@ const RoomDetail = ({ route }) => {
 
             <View style={styles.contentWrapper}>
                 <View style={styles.roomInfo}>
-                    <Text style={[FONTS.fs_20_semibold, styles.roomType]}>{roomName}</Text>
+                    <Text style={[FONTS.fs_20_semibold, styles.roomType]}>
+                     {roomName} ({roomCapacity}인실 {roomTypeMap[roomType] || ''})
+                    </Text>
                     <Text style={[FONTS.fs_14_regular, styles.description]}>
                         {roomDesc}
                     </Text>
