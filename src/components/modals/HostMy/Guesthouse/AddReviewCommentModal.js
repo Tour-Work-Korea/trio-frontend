@@ -9,7 +9,9 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
+  ScrollView,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -27,17 +29,15 @@ const AddReviewCommentModal = ({
   onSuccess,
 }) => {
   const [reply, setReply] = useState('');
-  const [loading, setLoading] = useState(false);
 
   // 모달 닫힐 때 입력 초기화
   useEffect(() => {
     if (!visible) {
       setReply('');
-      setLoading(false);
     }
   }, [visible]);
 
-  const canSubmit = reply.trim().length > 0 && !loading;
+  const canSubmit = reply.trim().length > 0;
 
   const submit = async () => {
     if (!canSubmit) return;
@@ -52,15 +52,17 @@ const AddReviewCommentModal = ({
           style: 'destructive',
           onPress: async () => {
             try {
-              setLoading(true);
               await hostGuesthouseApi.postReviewReply(reviewId, reply.trim());
+              Toast.show({
+                type: 'success',
+                text1: '등록되었어요!',
+                position: 'top',
+                visibilityTime: 2000,
+              });
               onSuccess?.();      // 부모에서 새로고침
               onClose?.();
             } catch (e) {
               Alert.alert('등록 실패', '잠시 후 다시 시도해주세요.');
-              console.log('postReviewReply error:', e?.response?.data || e?.message);
-            } finally {
-              setLoading(false);
             }
           },
         },
@@ -71,8 +73,9 @@ const AddReviewCommentModal = ({
 
   return (
     <Modal visible={visible} transparent animationType="slide">
-      <KeyboardAvoidingView
+      <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -160 : 0}
         style={styles.overlay}
       >
         <View style={styles.container}>
@@ -84,48 +87,54 @@ const AddReviewCommentModal = ({
             </TouchableOpacity>
           </View>
 
-          {/* 안내 + 글자수 */}
-          <View style={styles.captionRow}>
-            <Text style={[FONTS.fs_16_medium]}>
-              게스트하우스 리뷰에 답글을 달아주세요
-            </Text>
-            <Text style={[FONTS.fs_12_light, {color: COLORS.grayscale_400}]}>
-              <Text style={{color: COLORS.primary_orange}}>{reply.length}</Text>/{CHAR_LIMIT}
-            </Text>
-          </View>
+          <ScrollView 
+            style={styles.body}
+            contentContainerStyle={styles.bodyContent}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          >
+            {/* 안내 + 글자수 */}
+            <View style={styles.captionRow}>
+              <Text style={[FONTS.fs_16_medium]}>
+                게스트하우스 리뷰에 답글을 달아주세요
+              </Text>
+              <Text style={[FONTS.fs_12_light, {color: COLORS.grayscale_400}]}>
+                <Text style={{color: COLORS.primary_orange}}>{reply.length}</Text>/{CHAR_LIMIT}
+              </Text>
+            </View>
 
-          {/* 입력창 */}
-          <View style={styles.inputWrap}>
-            <TextInput
-              value={reply}
-              onChangeText={setReply}
-              placeholder="답글을 작성해주세요"
-              placeholderTextColor={COLORS.grayscale_400}
-              multiline
-              maxLength={CHAR_LIMIT}
-              style={[FONTS.fs_14_regular, styles.input]}
-              textAlignVertical="top"
-              autoFocus
-            />
-          </View>
-          <TouchableOpacity onPress={() => setReply('')} style={styles.rewriteButton}>
-            <Text style={[FONTS.fs_12_medium, { color: COLORS.grayscale_500, marginTop: 4 }]}>
-              다시쓰기
-            </Text>
-          </TouchableOpacity>
+            {/* 입력창 */}
+            <View style={styles.inputWrap}>
+              <TextInput
+                value={reply}
+                onChangeText={setReply}
+                placeholder="답글을 작성해주세요"
+                placeholderTextColor={COLORS.grayscale_400}
+                multiline
+                maxLength={CHAR_LIMIT}
+                style={[FONTS.fs_14_regular, styles.input]}
+                textAlignVertical="top"
+              />
+            </View>
+            <TouchableOpacity onPress={() => setReply('')} style={styles.rewriteButton}>
+              <Text style={[FONTS.fs_12_medium, { color: COLORS.grayscale_500, marginTop: 4 }]}>
+                다시쓰기
+              </Text>
+            </TouchableOpacity>
 
-          {/* 유의사항 */}
-          <View style={styles.noticeBox}>
-            <Text style={[FONTS.fs_12_light, styles.noticeText]}>
-              · 작성한 답글은 누구나 볼 수 있습니다.
-            </Text>
-            <Text style={[FONTS.fs_12_light, styles.noticeText]}>
-              · 솔직한 답글은 이용객들에게 큰 도움이 됩니다. 다만 허위사실/비방/모욕 등 타인의 권리를 침해하는 내용은 관련 법령 및 약관에 따라 제재될 수 있습니다.
-            </Text>
-            <Text style={[FONTS.fs_12_light, styles.noticeText]}>
-              · 답글의 책임은 작성자에게 있으며, 워케이에는 이에 대한 법적 책임을 지지 않습니다.
-            </Text>
-          </View>
+            {/* 유의사항 */}
+            <View style={styles.noticeBox}>
+              <Text style={[FONTS.fs_12_light, styles.noticeText]}>
+                · 작성한 답글은 누구나 볼 수 있습니다.
+              </Text>
+              <Text style={[FONTS.fs_12_light, styles.noticeText]}>
+                · 솔직한 답글은 이용객들에게 큰 도움이 됩니다. 다만 허위사실/비방/모욕 등 타인의 권리를 침해하는 내용은 관련 법령 및 약관에 따라 제재될 수 있습니다.
+              </Text>
+              <Text style={[FONTS.fs_12_light, styles.noticeText]}>
+                · 답글의 책임은 작성자에게 있으며, 워케이에는 이에 대한 법적 책임을 지지 않습니다.
+              </Text>
+            </View>
+          </ScrollView>
 
           {/* 적용 버튼 */}
           <ButtonScarlet
@@ -150,6 +159,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
+    maxHeight: '60%',
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 24,
     paddingHorizontal: 20,
@@ -170,6 +180,9 @@ const styles = StyleSheet.create({
     right: 0,
   },
 
+  body: {
+    paddingBottom: 24,
+  },
   // title
   captionRow: {
     marginBottom: 12,

@@ -181,8 +181,6 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
       >
       <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>
@@ -290,6 +288,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
                   onChangeText={setCustomPhone}
                   editable={phoneOption === 'custom'}
                   style={[styles.input, phoneOption === 'custom' ? {} : styles.disabledInput]}
+                  keyboardType="number-pad"
                 />
               </TouchableOpacity>
             </View>

@@ -78,7 +78,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
   return (
     <>
-    <ScrollView style={{ flex: 1 }}>
+    <ScrollView style={{ flex: 1, marginBottom: 120}}>
       {/* 룸 이름 */}
       <Text style={[FONTS.fs_16_medium, styles.title]}>객실 이름</Text>
       <TextInput

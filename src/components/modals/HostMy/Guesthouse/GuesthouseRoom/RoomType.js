@@ -5,6 +5,7 @@ import {
   TextInput,
   TouchableOpacity,
   StyleSheet,
+  ScrollView,
 } from 'react-native';
 
 import { FONTS } from '@constants/fonts';
@@ -63,7 +64,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
 
   return (
     <>
-    <View style={{ flex: 1 }}>
+    <ScrollView style={{ flex: 1, marginBottom: 120}}>
       {/* 객실 타입 */}
       <Text style={[FONTS.fs_16_medium, styles.title]}>객실 타입</Text>
       <View style={styles.roomGrid}>
@@ -149,7 +150,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
         />
         <Text style={[FONTS.fs_14_regular, { marginLeft: 8 }]}>원</Text>
       </View>
-    </View>
+    </ScrollView>
 
     {/* 하단 버튼 */}
     <View style={styles.buttonRow}>

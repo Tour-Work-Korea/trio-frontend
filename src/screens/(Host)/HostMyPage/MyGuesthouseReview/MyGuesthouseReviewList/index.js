@@ -18,47 +18,13 @@ import EmptyState from '@components/EmptyState';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
 import AddReviewCommentModal from '@components/modals/HostMy/Guesthouse/AddReviewCommentModal';
+import DeleteReviewModal from '@components/modals/HostMy/Guesthouse/DeleteReviewModal';
 
 import EmptyIcon from '@assets/images/wa_orange_noreview.svg';
 import StarIcon from '@assets/images/star_white.svg';
 
 const PAGE_SIZE = 10;
 const SORT = 'id';
-
-const MOCK_IMG = 'https://cdn.pixabay.com/photo/2023/02/01/10/37/sunset-7760143_1280.jpg';
-// ✅ 임시 리뷰 데이터 3개 (모두 isJobReview: false)
-const MOCK_REVIEWS = [
-  {
-    id: 9003,
-    nickname: '여행러버',
-    reviewDetail: '처음 도착했을 때부터 따뜻하게 맞아주셔서 기분 좋게 하루를 시작할 수 있었습니다. 숙소 위치도 시내와 가까워서 도보로 이동하기 편했고, 근처 맛집이나 카페 정보도 친절하게 안내해주셔서 너무 감사했어요. 방 안은 사진으로 봤던 것보다 훨씬 더 깨끗했고, 침구 상태나 조명 분위기, 전체적인 인테리어가 아기자기하면서도 깔끔해서 힐링이 절로 되더라고요. 공용 공간도 정돈이 잘 되어 있어서 다른 게스트분들과 부담 없이 인사도 나눌 수 있었고, 각자의 여행 이야기를 나누는 시간도 정말 특별했어요. 사장님이 직접 알려주신 로컬 맛집이 특히 인상 깊었고, 덕분에 제주도의 새로운 매력을 알게 된 것 같아요. 혼자 여행 왔지만 전혀 외롭지 않았고, 오히려 더 따뜻하게 느껴졌던 시간이었어요. 다음에는 친구들과 다시 꼭 방문하고 싶습니다. 감사합니다!',
-    reviewRating: 4.5,
-    isJobReview: false,
-    userImgUrl: MOCK_IMG,
-    imgUrls: [MOCK_IMG, MOCK_IMG, MOCK_IMG],
-    replies: [], // 댓글 없음 -> 우선 노출
-  },
-  {
-    id: 9002,
-    nickname: '워케이',
-    reviewDetail: '사장님 친절, 방 컨디션 양호. 위치가 최고입니다.',
-    reviewRating: 5.0,
-    isJobReview: false,
-    userImgUrl: MOCK_IMG,
-    imgUrls: [MOCK_IMG],
-    replies: ['감사합니다!'], // 댓글 있음
-  },
-  {
-    id: 9001,
-    nickname: '홍길동',
-    reviewDetail: '가성비 좋아요. 청결하고 조용합니다.',
-    reviewRating: 4.0,
-    isJobReview: false,
-    userImgUrl: MOCK_IMG,
-    imgUrls: [MOCK_IMG],
-    replies: [], // 댓글 없음 -> 우선 노출
-  },
-];
 
 // 댓글 없는거 우선 + 최신(id) 정렬
 const prioritizeNoReplies = (list) =>
@@ -86,6 +52,10 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
   const [replyModalOpen, setReplyModalOpen] = useState(false);
   const [activeReviewId, setActiveReviewId] = useState(null);
 
+  // 리뷰 삭제요청 모달
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [activeDeleteReviewId, setActiveDeleteReviewId] = useState(null);
+
   // 첫 로드 & guesthouse 변경 시
   useEffect(() => {
     if (!guesthouseId) return;
@@ -95,9 +65,9 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
     fetchReviews(0, true);
   }, [guesthouseId]);
 
-  // 임시 리뷰 목록 호출
+  // 특정 게하 리뷰 목록 조회
   const fetchReviews = async (pageToLoad = 0, isRefresh = false) => {
-    if (loading || (lastPage && !isRefresh)) return;
+    if (loading || lastPage && !isRefresh) return;
     setLoading(true);
 
     try {
@@ -108,64 +78,23 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
         sort: SORT,
       });
 
-      let newReviews = normalize(res?.data?.content || []);
-
-      // 첫 페이지가 비어오면 임시데이터 사용
-      
-        newReviews = normalize(MOCK_REVIEWS);
-        setLastPage(true);
+      const newReviews = res.data.content || [];
+      setLastPage(res.data.last);
 
       const merged = isRefresh || pageToLoad === 0
         ? newReviews
         : [...reviews, ...newReviews];
-
+      
       setReviews(prioritizeNoReplies(merged));
       setPage(pageToLoad);
     } catch (error) {
-      // 에러 시에도 임시데이터로 대체(첫 페이지일 때)
-      if (pageToLoad === 0) {
-        setReviews(prioritizeNoReplies(normalize(MOCK_REVIEWS)));
-        setLastPage(true);
-      } else {
-        Alert.alert('리뷰 불러오기 실패', '잠시 후 다시 시도해주세요.');
-      }
-      console.log('리뷰 목록 조회 실패:', error?.response?.data || error?.message);
+      Alert.alert('리뷰 불러오기 실패', '잠시 후 다시 시도해주세요.');
+      setLastPage(true);
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
   };
-
-  // 특정 게하 리뷰 목록 조회
-  // const fetchReviews = async (pageToLoad = 0, isRefresh = false) => {
-  //   if (loading || lastPage && !isRefresh) return;
-  //   setLoading(true);
-
-  //   try {
-  //     const res = await hostGuesthouseApi.getGuesthouseReviews({
-  //       guesthouseId,
-  //       page: pageToLoad,
-  //       size: PAGE_SIZE,
-  //       sort: SORT,
-  //     });
-
-  //     const newReviews = res.data.content || [];
-  //     setLastPage(res.data.last);
-
-  //     const merged = isRefresh || pageToLoad === 0
-  //       ? newReviews
-  //       : [...reviews, ...newReviews];
-      
-  //     setReviews(prioritizeNoReplies(merged));
-  //     setPage(pageToLoad);
-  //   } catch (error) {
-  //     Alert.alert('리뷰 불러오기 실패', '잠시 후 다시 시도해주세요.');
-  //     setLastPage(true);
-  //   } finally {
-  //     setLoading(false);
-  //     setRefreshing(false);
-  //   }
-  // };
 
   // 무한스크롤
   const handleEndReached = () => {
@@ -182,13 +111,20 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
 
     return (
       <View style={styles.card}>
-        <Text style={[FONTS.fs_16_medium, styles.roomText]}>방이름 (0인실 성별)</Text>
+        {/* <Text style={[FONTS.fs_16_medium, styles.roomText]}>방이름 (0인실 성별)</Text> */}
+        <Text style={[FONTS.fs_16_medium, styles.roomText]}>{item.nickname}</Text>
         <View style={styles.ratingDeleteRow}>
             <View style={styles.ratingBox}>
               <StarIcon width={14} height={14}/>
               <Text style={[FONTS.fs_14_semibold, styles.ratingText]}>{item.reviewRating}</Text>
             </View>
-            <TouchableOpacity style={styles.deleteButton}>
+            <TouchableOpacity 
+              style={styles.deleteButton}
+              onPress={() => {
+                setActiveDeleteReviewId(item.id);
+                setDeleteModalOpen(true);
+              }}
+            >
               <Text style={[FONTS.fs_14_semibold, styles.deleteText]}>삭제요청</Text>
             </TouchableOpacity>
         </View>
@@ -280,6 +216,16 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
         reviewId={activeReviewId}
         onClose={() => setReplyModalOpen(false)}
         onSuccess={() => fetchReviews(0, true)}
+      />
+
+      {/* 삭제요청 */}
+      <DeleteReviewModal
+        visible={deleteModalOpen}
+        reviewId={activeDeleteReviewId}
+        onClose={() => setDeleteModalOpen(false)}
+        onSuccess={() => {
+          setDeleteModalOpen(false);
+        }}
       />
     </View>
   );
