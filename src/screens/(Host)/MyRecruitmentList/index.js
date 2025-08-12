@@ -9,6 +9,8 @@ import styles from './MyRecruitmentList.styles';
 import ErrorModal from '@components/modals/ErrorModal';
 import ResultModal from '@components/modals/ResultModal';
 import LogoBlueSmile from '@assets/images/logo_blue_smile.svg';
+import PlusIcon from '@assets/images/plus_white.svg';
+import {FONTS} from '@constants/fonts';
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
@@ -115,16 +117,34 @@ const MyRecruitmentList = () => {
                 지금 바로 공고를 등록 해보세요!
               </Text>
             </View>
+            <TouchableOpacity
+              style={styles.addButton}
+              onPress={() => navigation.navigate('RecruitmentForm')}>
+              <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+                알바공고 등록하기
+              </Text>
+              <PlusIcon width={24} height={24} />
+            </TouchableOpacity>
           </View>
         ) : (
-          <FlatList
-            data={myRecruits}
-            renderItem={renderPostingItem}
-            keyExtractor={item => item.recruitId.toString()}
-            showsVerticalScrollIndicator={false}
-          />
+          <View>
+            <FlatList
+              data={myRecruits}
+              renderItem={renderPostingItem}
+              keyExtractor={item => item.recruitId.toString()}
+              showsVerticalScrollIndicator={false}
+            />
+            <TouchableOpacity
+              style={[styles.addButton, styles.addButtonLocation]}
+              onPress={() => navigation.navigate('RecruitmentForm')}>
+              <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+                알바공고 등록하기
+              </Text>
+              <PlusIcon width={24} height={24} />
+            </TouchableOpacity>
+          </View>
         )}
-        <ButtonScarlet title="새 공고" to="RecruitmentForm" />
+
         <ErrorModal
           title={errorModal.title}
           buttonText={errorModal.buttonText}

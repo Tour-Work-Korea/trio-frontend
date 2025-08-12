@@ -3,13 +3,120 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
+  outContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  scrollContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    gap: 16,
+    flex: 1,
+  },
+
+  //섹션별 제목
+  sectionBox: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    gap: 20,
+  },
+  titleBox: {flexDirection: 'row', justifyContent: 'space-between'},
+  titleText: {
+    ...FONTS.fs_16_medium,
+    color: COLORS.grayscale_500,
+  },
+  input: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    padding: 12,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_800,
+  },
+
+  //하단
+  bottomText: {
+    color: COLORS.primary_orange,
+    ...FONTS.fs_12_medium,
+    textAlign: 'center',
+  },
+  buttonLocation: {position: 'absolute', bottom: 20, right: 20},
+  buttonContainer: {flexDirection: 'row', justifyContent: 'flex-end'},
+  addButton: {
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    gap: 10,
+  },
+  addButtonText: {
+    color: COLORS.grayscale_800,
+    ...FONTS.fs_14_medium,
+  },
+
+  //모달
+
+  overlay: {
+    flex: 1,
+    justifyContent: 'flex-end',
+  },
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
+    borderTopLeftRadius: 24,
+    borderTopRightRadius: 24,
+    paddingHorizontal: 20,
   },
-  scrollContainer: {
-    padding: 16,
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginVertical: 20,
+    width: '100%',
   },
+  xBtn: {
+    position: 'absolute',
+    right: 0,
+  },
+
+  //본문
+  titleBox: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 8,
+  },
+  titleText: {
+    ...FONTS.fs_16_medium,
+    color: COLORS.grayscale_900,
+  },
+  titleLength: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+  },
+  // 하단 버튼
+  sticky: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    flexDirection: 'row',
+    backgroundColor: 'white',
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 40,
+    gap: 20,
+  },
+  resetButton: {
+    flex: 1,
+  },
+  confirmButton: {
+    flex: 2,
+  },
+
   section: {
     marginBottom: 24,
   },
@@ -27,14 +134,7 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     gap: 8,
   },
-  input: {
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_200,
-    borderRadius: 20,
-    padding: 12,
-    ...FONTS.fs_14_medium,
-    color: COLORS.grayscale_800,
-  },
+
   placeHolder: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_400,
@@ -178,10 +278,7 @@ const styles = StyleSheet.create({
   },
 
   // Button section styles
-  buttonContainer: {
-    marginTop: 24,
-    marginBottom: 32,
-  },
+
   submitButton: {
     backgroundColor: COLORS.scarlet,
     borderRadius: 4,

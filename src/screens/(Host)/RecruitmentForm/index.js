@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   ScrollView,
@@ -7,13 +7,16 @@ import {
   Platform,
   TouchableWithoutFeedback,
   Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
 } from 'react-native';
 import styles from './RecruitmentForm';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
-import BasicInfoSection from './BasicInfoSection';
+
 import HashTagSection from './HashTagSection';
 import RecruitConditionSection from './RecruitConditionSection';
 import WorkConditionSection from './WorkConditionSection';
@@ -21,6 +24,23 @@ import WorkInfoSection from './WorkInfoSection';
 import DetailInfoSection from './DetailInfoSection';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
+
+import CheckOrange from '@assets/images/check_orange.svg';
+import CheckBlack from '@assets/images/check_black.svg';
+import CheckWhite from '@assets/images/check_white.svg';
+import ChevronBlack from '@assets/images/chevron_right_black.svg';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import GuesthouseModal from './GuesthouseModal';
+
+const sections = [
+  {id: 'guesthouse', title: '게스트하우스'},
+  {id: 'shortDescription', title: '공고 요약'},
+  {id: 'recruitCondition', title: '모집 조건'},
+  {id: 'workCondition', title: '근무 조건'},
+  {id: 'workInfo', title: '근무지 정보'},
+  {id: 'detailInfo', title: '상세 정보'},
+];
 
 const RecruitmentForm = () => {
   const [formData, setFormData] = useState({
@@ -52,7 +72,32 @@ const RecruitmentForm = () => {
     title: '',
     buttonText: '',
   });
+  const [modalVisible, setModalVisible] = useState({
+    title: false, // 공고 제목
+    guesthouse: false, // 게스트하우스
+    shortDescription: false, //공고 요약
+    recruitCondition: false, //모집 조건
+    workCondition: false, //근무 조건
+    workInfo: false, //근무지 정보
+    detailInfo: false, //상세 정보
+  });
+  const [valid, setValid] = useState({
+    title: false, // 공고 제목
+    guesthouse: false, // 게스트하우스
+    shortDescription: false, //공고 요약
+    recruitCondition: false, //모집 조건
+    workCondition: false, //근무 조건
+    workInfo: false, //근무지 정보
+    detailInfo: false, //상세 정보
+  });
+  const isAllValid = useMemo(
+    () => Object.values(valid).every(Boolean),
+    [valid],
+  );
 
+  useEffect(() => {
+    console.log(formData);
+  }, [formData]);
   useEffect(() => {
     if (recruit) {
       setFormData({
@@ -150,57 +195,106 @@ const RecruitmentForm = () => {
       keyboardVerticalOffset={80} // 헤더 등 높이에 따라 조정
     >
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.container}>
-          <Header title="구인공고" />
+        <View style={styles.outContainer}>
+          <Header title="알바공고 등록" />
           <ScrollView contentContainerStyle={styles.scrollContainer}>
-            {/* 기본정보 섹션 */}
-            <BasicInfoSection
-              isUpdate={recruit != null}
-              handleInputChange={handleInputChange}
-              formData={formData}
-            />
-
-            {/* 태그 섹션 */}
-            <HashTagSection
-              handleInputChange={handleInputChange}
-              formData={formData}
-            />
-
-            {/* 모집조건 섹션 */}
-            <RecruitConditionSection
-              handleInputChange={handleInputChange}
-              formData={formData}
-            />
-
-            {/* 근무 조건 섹션 */}
-            <WorkConditionSection
-              handleInputChange={handleInputChange}
-              formData={formData}
-            />
-
-            {/* 근무지 정보 섹션 */}
-            <WorkInfoSection
-              formData={formData}
-              setFormData={setFormData}
-              handleInputChange={handleInputChange}
-            />
-
-            {/* 상세 소개글 섹션 */}
-            <DetailInfoSection
-              formData={formData}
-              handleInputChange={handleInputChange}
-            />
-
-            {/* 버튼 섹션 */}
-            <View style={styles.buttonContainer}>
-              <ButtonScarlet title={'등록하기'} onPress={handleSubmit} />
+            <TouchableOpacity
+              style={styles.sectionBox}
+              onPress={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  title: !prev.title,
+                }))
+              }>
+              <View style={styles.titleBox}>
+                <Text style={styles.titleText}>공고 제목</Text>
+                {valid.title ? (
+                  <CheckOrange width={24} />
+                ) : (
+                  <ChevronBlack width={24} />
+                )}
+              </View>
+              {modalVisible.title ? (
+                <TextInput
+                  style={styles.input}
+                  placeholder="공고제목을 입력해주세요."
+                  placeholderTextColor={COLORS.grayscale_400}
+                  value={formData.recruitTitle}
+                  onChangeText={text => handleInputChange('recruitTitle', text)}
+                />
+              ) : (
+                <></>
+              )}
+            </TouchableOpacity>
+            {sections.map(item => (
+              <TouchableOpacity
+                key={item.id}
+                style={styles.sectionBox}
+                onPress={() =>
+                  setModalVisible(prev => ({
+                    ...prev,
+                    [item.id]: !prev[item.id],
+                  }))
+                }>
+                <View style={styles.titleBox}>
+                  <Text style={styles.titleText}>{item.title}</Text>
+                  {valid[item.id] ? (
+                    <CheckOrange width={24} />
+                  ) : (
+                    <ChevronBlack width={24} />
+                  )}
+                </View>
+              </TouchableOpacity>
+            ))}
+            <Text style={styles.bottomText}>
+              모든 항목을 입력하셔야 등록이 완료됩니다
+            </Text>
+            <View style={[styles.buttonLocation, styles.buttonContainer]}>
+              <TouchableOpacity style={[styles.addButton]}>
+                <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+                  임시저장
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={[
+                  styles.addButton,
+                  isAllValid && {backgroundColor: COLORS.primary_orange},
+                ]}
+                disabled={!isAllValid}
+                onPress={handleSubmit}
+                accessibilityState={{disabled: !isAllValid}}>
+                <Text
+                  style={
+                    (styles.addButtonText,
+                    isAllValid && {color: COLORS.grayscale_0})
+                  }>
+                  등록하기
+                </Text>
+                {!isAllValid ? (
+                  <CheckBlack width={24} />
+                ) : (
+                  <CheckWhite width={24} />
+                )}
+              </TouchableOpacity>
             </View>
-
             <ErrorModal
               title={errorModal.title}
               visible={errorModal.visible}
               buttonText={errorModal.buttonText}
               onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+            />
+
+            {/* 게스트하우스 모달 */}
+            <GuesthouseModal
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.guesthouse}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  guesthouse: !prev.guesthouse,
+                }))
+              }
             />
           </ScrollView>
         </View>
