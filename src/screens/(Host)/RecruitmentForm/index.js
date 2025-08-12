@@ -49,12 +49,12 @@ const RecruitmentForm = () => {
     recruitShortDescription: '',
     recruitStart: null,
     recruitEnd: null,
-    recruitNumberMale: null,
-    recruitNumberFemale: null,
+    recruitNumberMale: 0,
+    recruitNumberFemale: 0,
     location: '',
-    recruitCondition: '',
-    recruitMinAge: null,
-    recruitMaxAge: null,
+    recruitCondition: [],
+    recruitMinAge: 0,
+    recruitMaxAge: 0,
     workType: '',
     workStartDate: null,
     workEndDate: null,
@@ -146,6 +146,7 @@ const RecruitmentForm = () => {
       workStartDate: formData.workStartDate.toISOString(),
       workEndDate: formData.workEndDate.toISOString(),
     };
+    console.log(formData);
 
     if (recruit?.recruitId != null) {
       const updatedPayload = {...payload};
@@ -306,6 +307,18 @@ const RecruitmentForm = () => {
                 setModalVisible(prev => ({
                   ...prev,
                   shortDescription: !prev.shortDescription,
+                }))
+              }
+            />
+            {/* 모집 조건 */}
+            <RecruitConditionSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.recruitCondition}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  recruitCondition: !prev.recruitCondition,
                 }))
               }
             />

@@ -1,28 +1,11 @@
-import React, {useState, useEffect} from 'react';
-import {
-  View,
-  Text,
-  Alert,
-  Modal,
-  TouchableOpacity,
-  FlatList,
-  StyleSheet,
-  Image,
-  TextInput,
-} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, Modal, TouchableOpacity, TextInput} from 'react-native';
 import styles from './RecruitmentForm';
-import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
-import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
-import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
-import EmployLogo from '@assets/images/wa_blue_apply.svg';
-
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import ResultModal from '@components/modals/ResultModal';
-import {useNavigation} from '@react-navigation/native';
 
 const ShortDescriptionModal = ({
   handleInputChange,
@@ -30,7 +13,9 @@ const ShortDescriptionModal = ({
   visible,
   onClose,
 }) => {
-  const [shortDescription, setShortDescription] = useState('');
+  const [shortDescription, setShortDescription] = useState(
+    formData.recruitShortDescription,
+  );
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>

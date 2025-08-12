@@ -1,442 +1,417 @@
-import React, {useState, useEffect} from 'react';
-import {View, Text, TextInput, TouchableOpacity, Platform} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  Platform,
+  Modal,
+  KeyboardAvoidingView,
+  TouchableWithoutFeedback,
+  Keyboard,
+  ScrollView,
+} from 'react-native';
 import styles from './RecruitmentForm';
-import Calendar from '@assets/images/Calendar.svg';
 
 import DateTimePicker from '@react-native-community/datetimepicker';
+import XBtn from '@assets/images/x_gray.svg';
+import Plus from '@assets/images/plus_gray.svg';
+import Minus from '@assets/images/minus_gray.svg';
+import Calendar from '@assets/images/calendar_gray.svg';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import DatePicker from '@components/Employ/DatePicker';
+import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
+import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
+import ButtonScarlet from '@components/ButtonScarlet';
 
-export default function RecruitConditionSection({handleInputChange, formData}) {
+export default function RecruitConditionSection({
+  handleInputChange,
+  formData,
+  visible,
+  onClose,
+}) {
   const [showRecruitStart, setShowRecruitStart] = useState(false);
   const [showRecruitEnd, setShowRecruitEnd] = useState(false);
   const [showWorkStartDate, setShowWorkStartDate] = useState(false);
-  const [showWorkEndDate, setShowWorkEndDate] = useState(false);
+  const [tags, setTags] = useState([
+    {id: 1, title: '외국어 능력자'},
+    {id: 2, title: '서비스업 경험자'},
+    {id: 3, title: '이벤트 기획 경험자'},
+    {id: 4, title: '즉시입도 가능자'},
+    {id: 5, title: 'SNS 운영 경험자'},
+    {id: 6, title: '운전 가능자'},
+  ]);
+  const [selectedTags, setSelectedTags] = useState(formData.recruitCondition);
+  const [etcText, setEtcText] = useState('');
 
-  const handleNumericInput = (field, value) => {
-    const numericValue = value.replace(/[^0-9]/g, '');
-
-    handleInputChange(field, parseInt(numericValue, 10));
-  };
+  const isSelectedEtc = selectedTags?.some(t => t.id === 7);
 
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>모집조건</Text>
-      <View style={styles.divider} />
+    <Modal visible={visible} animationType="slide" transparent>
+      <KeyboardAvoidingView style={{flex: 1}} enabled>
+        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+          <View style={styles.overlay}>
+            <View style={styles.container}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <View />
+                <Text style={[FONTS.fs_20_semibold]}>모집 조건</Text>
+                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView
+                style={{flex: 1}}
+                contentContainerStyle={styles.body}
+                showsVerticalScrollIndicator={false}>
+                {/* 모집 기간 */}
+                <View>
+                  <Text style={styles.subsectionTitle}>모집기간</Text>
+                  <View style={styles.dateRow}>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => setShowRecruitStart(true)}>
+                      <Text
+                        style={[
+                          styles.dateLabel,
+                          formData.recruitStart
+                            ? ''
+                            : {color: COLORS.grayscale_400},
+                        ]}>
+                        {formData.recruitStart
+                          ? new Date(formData.recruitStart).toLocaleDateString(
+                              'ko-KR',
+                            )
+                          : '시작일자'}
+                      </Text>
+                      <Calendar />
+                    </TouchableOpacity>
+                    {showRecruitStart && (
+                      <DateTimePicker
+                        value={formData.recruitStart ?? new Date()}
+                        mode="date"
+                        display={
+                          Platform.OS === 'android' ? 'calendar' : 'default'
+                        }
+                        preferredDatePickerStyle={
+                          Platform.OS === 'ios' ? 'inline' : undefined
+                        }
+                        onChange={(event, date) => {
+                          setShowRecruitStart(false);
+                          if (date) handleInputChange('recruitStart', date);
+                        }}
+                      />
+                    )}
 
-      {/* 모집 기간 */}
-      <View>
-        <Text style={styles.subsectionTitle}>모집기간</Text>
-        <View style={styles.dateRow}>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowRecruitStart(true)}
-          >
-            <Text
-              style={[
-                styles.dateLabel,
-                formData.recruitStart ? '' : {color: COLORS.grayscale_400},
-              ]}>
-              {formData.recruitStart
-                ? new Date(formData.recruitStart).toLocaleDateString('ko-KR')
-                : '시작일자'}
-            </Text>
-            <Calendar />
-          </TouchableOpacity>
-          {showRecruitStart && (
-            <DateTimePicker
-              value={formData.recruitStart ?? new Date()}
-              mode="date"
-              display={Platform.OS === 'android' ? 'calendar' : 'default'}
-              preferredDatePickerStyle={Platform.OS === 'ios' ? 'inline' : undefined}
-              onChange={(event, date) => {
-                setShowRecruitStart(false);
-                if (date) handleInputChange('recruitStart', date);
-              }}
-            />
-          )}
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => setShowRecruitEnd(true)}>
+                      <Text
+                        style={[
+                          styles.dateLabel,
+                          formData.recruitEnd
+                            ? ''
+                            : {color: COLORS.grayscale_400},
+                        ]}>
+                        {formData.recruitEnd
+                          ? new Date(formData.recruitEnd).toLocaleDateString(
+                              'ko-KR',
+                            )
+                          : '마감일자'}
+                      </Text>
+                      <Calendar />
+                    </TouchableOpacity>
+                    {showRecruitEnd && (
+                      <DateTimePicker
+                        value={formData.recruitEnd ?? new Date()}
+                        mode="date"
+                        display={
+                          Platform.OS === 'android' ? 'calendar' : 'default'
+                        }
+                        preferredDatePickerStyle={
+                          Platform.OS === 'ios' ? 'inline' : undefined
+                        }
+                        onChange={(event, date) => {
+                          setShowRecruitEnd(false);
+                          if (date) handleInputChange('recruitEnd', date);
+                        }}
+                      />
+                    )}
+                  </View>
+                </View>
+                {/* 모집인원 */}
+                <View>
+                  <Text style={styles.subsectionTitle}>모집 인원</Text>
+                  <View style={styles.detailContainer}>
+                    <View style={styles.countRow}>
+                      <Text style={styles.countLabel}>여자</Text>
+                      <View style={styles.countInputContainer}>
+                        <TouchableOpacity
+                          style={styles.buttonPlMi}
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitNumberFemale',
+                              formData.recruitNumberFemale - 1,
+                            )
+                          }>
+                          <Minus width={24} />
+                        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowRecruitEnd(true)}
-          >
-            <Text
-              style={[
-                styles.dateLabel,
-                formData.recruitEnd ? '' : {color: COLORS.grayscale_400},
-              ]}>
-              {formData.recruitEnd
-                ? new Date(formData.recruitEnd).toLocaleDateString('ko-KR')
-                : '마감일자'}
-            </Text>
-            <Calendar />
-          </TouchableOpacity>
-          {showRecruitEnd && (
-            <DateTimePicker
-              value={formData.recruitEnd ?? new Date()}
-              mode="date"
-              display={Platform.OS === 'android' ? 'calendar' : 'default'}
-              preferredDatePickerStyle={Platform.OS === 'ios' ? 'inline' : undefined}
-              onChange={(event, date) => {
-                setShowRecruitEnd(false);
-                if (date) handleInputChange('recruitEnd', date);
-              }}
-            />
-          )}
-        </View>
-      </View>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            {width: 48, height: 44, textAlign: 'center'},
+                          ]}
+                          value={String(formData.recruitNumberFemale)}
+                          keyboardType="number-pad"
+                          onChangeText={text =>
+                            handleInputChange('recruitNumberFemale', text)
+                          }
+                        />
 
-      {/* 근무기간 */}
-      <View>
-        <Text style={styles.subsectionTitle}>근무기간</Text>
-        <View style={styles.dateRow}>
-          <TouchableOpacity
-            style={styles.dateInput}
-            onPress={() => setShowWorkStartDate(true)}
-          >
-            <Text
-              style={[
-                styles.dateLabel,
-                formData.workStartDate ? '' : {color: COLORS.grayscale_400},
-              ]}>
-              {formData.workStartDate
-                ? new Date(formData.workStartDate).toLocaleDateString('ko-KR')
-                : '근무 시작일'}
-            </Text>
-            <Calendar />
-          </TouchableOpacity>
-          {showWorkStartDate && (
-            <DateTimePicker
-              value={formData.workStartDate ?? new Date()}
-              mode="date"
-              display={Platform.OS === 'android' ? 'calendar' : 'default'}
-              preferredDatePickerStyle={Platform.OS === 'ios' ? 'inline' : undefined}
-              onChange={(event, date) => {
-                setShowWorkStartDate(false);
-                if (date) handleInputChange('workStartDate', date);
-              }}
-            />
-          )}
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitNumberFemale',
+                              formData.recruitNumberFemale + 1,
+                            )
+                          }>
+                          <Plus width={24} style={styles.buttonPlMi} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.countRow}>
+                      <Text style={styles.countLabel}>남자</Text>
+                      <View style={styles.countInputContainer}>
+                        <TouchableOpacity
+                          style={styles.buttonPlMi}
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitNumberMale',
+                              formData.recruitNumberMale - 1,
+                            )
+                          }>
+                          <Minus width={24} />
+                        </TouchableOpacity>
 
-          <TouchableOpacity
-            style={[styles.dateInput]}
-            onPress={() => setShowWorkEndDate(true)}
-          >
-            <Text
-              style={[
-                styles.dateLabel,
-                formData.workEndDate ? '' : {color: COLORS.grayscale_400},
-              ]}>
-              {formData.workEndDate
-                ? new Date(formData.workEndDate).toLocaleDateString('ko-KR')
-                : '근무 종료일'}
-            </Text>
-            <Calendar />
-          </TouchableOpacity>
-          {showWorkEndDate && (
-            <DateTimePicker
-              value={formData.workEndDate ?? new Date()}
-              mode="date"
-              display={Platform.OS === 'android' ? 'calendar' : 'default'}
-              preferredDatePickerStyle={Platform.OS === 'ios' ? 'inline' : undefined}
-              onChange={(event, date) => {
-                setShowWorkEndDate(false);
-                if (date) handleInputChange('workEndDate', date);
-              }}
-            />
-          )}
-        </View>
-      </View>
+                        <TextInput
+                          style={[
+                            styles.input,
+                            {width: 48, height: 44, textAlign: 'center'},
+                          ]}
+                          value={String(formData.recruitNumberMale)}
+                          keyboardType="number-pad"
+                          onChangeText={text =>
+                            handleInputChange('recruitNumberMale', text)
+                          }
+                        />
 
-      {/* 모집인원 */}
-      <View>
-        <Text style={styles.subsectionTitle}>모집 인원</Text>
-        <View style={styles.countRow}>
-          <View style={styles.countItem}>
-            <TextInput
-              style={styles.input}
-              placeholder="여자"
-              placeholderTextColor={COLORS.grayscale_400}
-              keyboardType="numeric"
-              value={formData?.recruitNumberFemale?.toString()}
-              onChangeText={text =>
-                handleNumericInput('recruitNumberFemale', text)
-              }
-            />
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitNumberMale',
+                              formData.recruitNumberMale + 1,
+                            )
+                          }>
+                          <Plus width={24} style={styles.buttonPlMi} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                {/* 나이 */}
+                <View>
+                  <Text style={styles.subsectionTitle}>나이</Text>
+                  <View style={styles.detailContainer}>
+                    <View style={styles.countRow}>
+                      <Text style={styles.countLabel}>최소</Text>
+                      <View style={styles.countInputContainer}>
+                        <TouchableOpacity
+                          style={styles.buttonPlMi}
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitMinAge',
+                              formData.recruitMinAge - 1,
+                            )
+                          }>
+                          <Minus width={24} />
+                        </TouchableOpacity>
+
+                        <TextInput
+                          style={[
+                            styles.input,
+                            {width: 48, height: 44, textAlign: 'center'},
+                          ]}
+                          value={String(formData.recruitMinAge)}
+                          keyboardType="number-pad"
+                          onChangeText={text =>
+                            handleInputChange('recruitMinAge', text)
+                          }
+                        />
+
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitMinAge',
+                              formData.recruitMinAge + 1,
+                            )
+                          }>
+                          <Plus width={24} style={styles.buttonPlMi} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                    <View style={styles.countRow}>
+                      <Text style={styles.countLabel}>최대</Text>
+                      <View style={styles.countInputContainer}>
+                        <TouchableOpacity
+                          style={styles.buttonPlMi}
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitMaxAge',
+                              formData.recruitMaxAge - 1,
+                            )
+                          }>
+                          <Minus width={24} />
+                        </TouchableOpacity>
+
+                        <TextInput
+                          style={[
+                            styles.input,
+                            {width: 48, height: 44, textAlign: 'center'},
+                          ]}
+                          keyboardType="number-pad"
+                          value={String(formData.recruitMaxAge)}
+                          onChangeText={text =>
+                            handleInputChange('recruitMaxAge', text)
+                          }
+                        />
+
+                        <TouchableOpacity
+                          onPress={() =>
+                            handleInputChange(
+                              'recruitMaxAge',
+                              formData.recruitMaxAge + 1,
+                            )
+                          }>
+                          <Plus width={24} style={styles.buttonPlMi} />
+                        </TouchableOpacity>
+                      </View>
+                    </View>
+                  </View>
+                </View>
+                {/* 근무기간 */}
+                <View>
+                  <Text style={styles.subsectionTitle}>입도 날짜</Text>
+                  <View style={styles.dateRow}>
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => setShowWorkStartDate(!showWorkStartDate)}>
+                      <Text
+                        style={[
+                          styles.dateLabel,
+                          formData.workStartDate
+                            ? ''
+                            : {color: COLORS.grayscale_400},
+                        ]}>
+                        {new Date(formData.workStartDate).toLocaleDateString(
+                          'ko-KR',
+                        )}
+                      </Text>
+                      <Calendar width={24} />
+                    </TouchableOpacity>
+                  </View>
+                  {showWorkStartDate && (
+                    <DatePicker
+                      value={formData.workStartDate ?? new Date()}
+                      onChange={date => {
+                        setShowWorkStartDate(false);
+                        if (date) handleInputChange('workStartDate', date);
+                      }}
+                    />
+                  )}
+                </View>
+                <View>
+                  <Text style={styles.subsectionTitle}>우대조건</Text>
+                  <View style={styles.tagSelectRow}>
+                    {tags?.map(tag => {
+                      const isSelected = selectedTags?.some(
+                        t => t.id === tag.id,
+                      );
+                      return (
+                        <TouchableOpacity
+                          key={tag.id}
+                          onPress={() => {
+                            if (isSelected) {
+                              setSelectedTags(prev =>
+                                prev.filter(t => t.id !== tag.id),
+                              );
+                            } else {
+                              setSelectedTags(prev => [...prev, tag]);
+                            }
+                          }}
+                          style={styles.tagOptionContainer}>
+                          <Text
+                            style={[
+                              styles.tagOptionText,
+                              FONTS.fs_14_medium,
+                              isSelected && styles.tagOptionSelectedText,
+                              isSelected && FONTS.fs_14_semibold,
+                            ]}>
+                            {tag.title}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                  <View style={styles.dateRow}>
+                    <TextInput
+                      style={[styles.input, {flex: 1, marginTop: 12}]}
+                      placeholder="기타 입력"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      multiline={true}
+                      value={etcText}
+                      onChangeText={text => {
+                        setEtcText(text);
+                        setSelectedTags(prev =>
+                          prev.map(t => (t.id === 7 ? {...t, title: text} : t)),
+                        );
+                      }}
+                      editable={isSelectedEtc}
+                    />
+                    <TouchableOpacity
+                      onPress={() => {
+                        if (isSelectedEtc) {
+                          setSelectedTags(prev => prev.filter(t => t.id !== 7));
+                        } else {
+                          setSelectedTags(prev => [
+                            ...prev,
+                            {id: 7, title: etcText},
+                          ]);
+                        }
+                      }}>
+                      {selectedTags?.some(t => t.id === 7) ? (
+                        <EnabledRadioButton width={28} />
+                      ) : (
+                        <DisabledRadioButton width={28} />
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </View>
+                <View style={{marginVertical: 20}}>
+                  <ButtonScarlet
+                    title={'적용하기'}
+                    onPress={() => {
+                      handleInputChange('recruitCondition', selectedTags);
+                      onClose();
+                    }}
+                  />
+                </View>
+              </ScrollView>
+            </View>
           </View>
-
-          <View style={styles.countItem}>
-            <TextInput
-              style={styles.input}
-              placeholder="남자"
-              placeholderTextColor={COLORS.grayscale_400}
-              keyboardType="numeric"
-              value={formData?.recruitNumberMale?.toString()}
-              onChangeText={text =>
-                handleNumericInput('recruitNumberMale', text)
-              }
-            />
-          </View>
-        </View>
-      </View>
-
-      {/* 나이 */}
-      <View>
-        <Text style={styles.subsectionTitle}>나이</Text>
-        <View style={styles.ageRow}>
-          <View style={styles.ageItem}>
-            <TextInput
-              style={styles.input}
-              placeholder="최소 연령"
-              placeholderTextColor={COLORS.grayscale_400}
-              keyboardType="numeric"
-              value={formData?.recruitMinAge?.toString()}
-              onChangeText={text => handleNumericInput('recruitMinAge', text)}
-            />
-          </View>
-
-          <View style={styles.ageItem}>
-            <TextInput
-              style={styles.input}
-              placeholder="최대 연령"
-              placeholderTextColor={COLORS.grayscale_400}
-              keyboardType="numeric"
-              value={formData?.recruitMaxAge?.toString()}
-              onChangeText={text => handleNumericInput('recruitMaxAge', text)}
-            />
-          </View>
-        </View>
-      </View>
-      <View>
-        <Text style={styles.subsectionTitle}>우대조건</Text>
-        <TextInput
-          style={styles.textArea}
-          placeholder="우대조건"
-          placeholderTextColor={COLORS.grayscale_400}
-          multiline={true}
-          numberOfLines={4}
-          value={formData.recruitCondition}
-          onChangeText={text => handleInputChange('recruitCondition', text)}
-        />
-      </View>
-    </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </Modal>
   );
 }
-
-// 기존 코드
-// import React, {useState, useEffect} from 'react';
-// import {View, Text, TextInput, TouchableOpacity} from 'react-native';
-// import styles from './RecruitmentForm';
-// import Calendar from '@assets/images/Calendar.svg';
-
-// import DateTimePicker from '@react-native-community/datetimepicker';
-// import {COLORS} from '@constants/colors';
-
-// export default function RecruitConditionSection({handleInputChange, formData}) {
-//   const [showRecruitStart, setShowRecruitStart] = useState(false);
-//   const [showRecruitEnd, setShowRecruitEnd] = useState(false);
-//   const [showWorkStartDate, setShowWorkStartDate] = useState(false);
-//   const [showWorkEndDate, setShowWorkEndDate] = useState(false);
-//   const [datePicker, setDatePicker] = useState({
-//     visible: false,
-//     field: null,
-//     value: null,
-//   });
-
-//   const handleDateChange = (event, selectedDate, dateField) => {
-//     const currentDate = selectedDate || formData[dateField];
-//     setDatePicker(prev => ({...prev, visible: false}));
-
-//     handleInputChange(dateField, currentDate);
-//   };
-
-//   const handleNumericInput = (field, value) => {
-//     const numericValue = value.replace(/[^0-9]/g, '');
-
-//     handleInputChange(field, parseInt(numericValue, 10));
-//   };
-
-//   return (
-//     <View style={styles.section}>
-//       <Text style={styles.sectionTitle}>모집조건</Text>
-//       <View style={styles.divider} />
-
-//       {/* 모집 기간 */}
-//       <View>
-//         <Text style={styles.subsectionTitle}>모집기간</Text>
-//         <View style={styles.dateRow}>
-//           <TouchableOpacity
-//             style={styles.dateInput}
-//             onPress={() =>
-//               setDatePicker({
-//                 visible: true,
-//                 field: 'recruitStart',
-//                 value: formData.recruitStart,
-//               })
-//             }>
-//             <Text
-//               style={[
-//                 styles.dateLabel,
-//                 formData.recruitStart ? '' : {color: COLORS.grayscale_400},
-//               ]}>
-//               {formData.recruitStart
-//                 ? new Date(formData.recruitStart).toLocaleDateString('ko-KR')
-//                 : '시작일자'}
-//             </Text>
-//             <Calendar />
-//           </TouchableOpacity>
-//           <TouchableOpacity
-//             style={styles.dateInput}
-//             onPress={() =>
-//               setDatePicker({
-//                 visible: true,
-//                 field: 'recruitEnd',
-//                 value: formData.recruitEnd,
-//               })
-//             }>
-//             <Text
-//               style={[
-//                 styles.dateLabel,
-//                 formData.recruitEnd ? '' : {color: COLORS.grayscale_400},
-//               ]}>
-//               {formData.recruitEnd
-//                 ? new Date(formData.recruitEnd).toLocaleDateString('ko-KR')
-//                 : '마감일자'}
-//             </Text>
-//             <Calendar />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-
-//       {/* 근무기간 */}
-//       <View>
-//         <Text style={styles.subsectionTitle}>근무기간</Text>
-//         <View style={styles.dateRow}>
-//           <TouchableOpacity
-//             style={styles.dateInput}
-//             onPress={() =>
-//               setDatePicker({
-//                 visible: true,
-//                 field: 'workStartDate',
-//                 value: formData.workStartDate,
-//               })
-//             }>
-//             <Text
-//               style={[
-//                 styles.dateLabel,
-//                 formData.workStartDate ? '' : {color: COLORS.grayscale_400},
-//               ]}>
-//               {formData.workStartDate
-//                 ? new Date(formData.workStartDate).toLocaleDateString('ko-KR')
-//                 : '근무 시작일'}
-//             </Text>
-//             <Calendar />
-//           </TouchableOpacity>
-
-//           <TouchableOpacity
-//             style={[styles.dateInput]}
-//             onPress={() =>
-//               setDatePicker({
-//                 visible: true,
-//                 field: 'workEndDate',
-//                 value: formData.workEndDate,
-//               })
-//             }>
-//             <Text
-//               style={[
-//                 styles.dateLabel,
-//                 formData.workEndDate ? '' : {color: COLORS.grayscale_400},
-//               ]}>
-//               {formData.workEndDate
-//                 ? new Date(formData.workEndDate).toLocaleDateString('ko-KR')
-//                 : '근무 종료일'}
-//             </Text>
-//             <Calendar />
-//           </TouchableOpacity>
-//         </View>
-//       </View>
-
-//       {/* 모집인원 */}
-//       <View>
-//         <Text style={styles.subsectionTitle}>모집 인원</Text>
-//         <View style={styles.countRow}>
-//           <View style={styles.countItem}>
-//             <TextInput
-//               style={styles.input}
-//               placeholder="여자"
-//               placeholderTextColor={COLORS.grayscale_400}
-//               keyboardType="numeric"
-//               value={formData?.recruitNumberFemale?.toString()}
-//               onChangeText={text =>
-//                 handleNumericInput('recruitNumberFemale', text)
-//               }
-//             />
-//           </View>
-
-//           <View style={styles.countItem}>
-//             <TextInput
-//               style={styles.input}
-//               placeholder="남자"
-//               placeholderTextColor={COLORS.grayscale_400}
-//               keyboardType="numeric"
-//               value={formData?.recruitNumberMale?.toString()}
-//               onChangeText={text =>
-//                 handleNumericInput('recruitNumberMale', text)
-//               }
-//             />
-//           </View>
-//         </View>
-//       </View>
-
-//       {/* 나이 */}
-//       <View>
-//         <Text style={styles.subsectionTitle}>나이</Text>
-//         <View style={styles.ageRow}>
-//           <View style={styles.ageItem}>
-//             <TextInput
-//               style={styles.input}
-//               placeholder="최소 연령"
-//               placeholderTextColor={COLORS.grayscale_400}
-//               keyboardType="numeric"
-//               value={formData?.recruitMinAge?.toString()}
-//               onChangeText={text => handleNumericInput('recruitMinAge', text)}
-//             />
-//           </View>
-
-//           <View style={styles.ageItem}>
-//             <TextInput
-//               style={styles.input}
-//               placeholder="최대 연령"
-//               placeholderTextColor={COLORS.grayscale_400}
-//               keyboardType="numeric"
-//               value={formData?.recruitMaxAge?.toString()}
-//               onChangeText={text => handleNumericInput('recruitMaxAge', text)}
-//             />
-//           </View>
-//         </View>
-//       </View>
-//       <View>
-//         <Text style={styles.subsectionTitle}>우대조건</Text>
-//         <TextInput
-//           style={styles.textArea}
-//           placeholder="우대조건"
-//           placeholderTextColor={COLORS.grayscale_400}
-//           multiline={true}
-//           numberOfLines={4}
-//           value={formData.recruitCondition}
-//           onChangeText={text => handleInputChange('recruitCondition', text)}
-//         />
-//       </View>
-//       {datePicker.visible && (
-//         <DateTimePicker
-//           value={datePicker.value ?? new Date()}
-//           mode="date"
-//           display="default"
-//           onChange={(event, date) =>
-//             handleDateChange(event, date, datePicker.field)
-//           }
-//           on
-//         />
-//       )}
-//     </View>
-//   );
-// }
