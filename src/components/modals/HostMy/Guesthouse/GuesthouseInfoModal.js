@@ -135,6 +135,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     const addressValue = addressOption === 'default' ? defaultAddress : customAddress;
     const phoneValue = phoneOption === 'default' ? defaultPhone : customPhone;
     const tagIds = selectedTags.map((tag) => tag.id);
+    const addressDetailValue = addressOption === 'custom' ? customAddressDetail : '';
 
     // 현재 상태 저장
     setAppliedData({
@@ -150,7 +151,16 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
       checkOut
     });
 
-    onSelect({ name: nameValue, address: addressValue, phone: phoneValue, tagIds, checkIn: checkIn, checkOut: checkOut });
+    onSelect({
+      name: nameValue,
+      address: addressValue,
+      addressDetail: addressDetailValue,
+      phone: phoneValue,
+      tagIds,
+      checkIn,
+      checkOut
+    });    
+    
     onClose();
   };
 

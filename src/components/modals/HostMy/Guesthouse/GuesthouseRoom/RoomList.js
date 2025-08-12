@@ -29,7 +29,7 @@ const translateRoomType = (type) => {
 const RoomList = ({ rooms, onDelete }) => {
   const renderItem = ({ item, index }) => {
     const thumbnailUrl =
-      item.roomImages?.find((img) => img.isThumbnail)?.guesthouseImageUrl;
+      item.roomImages?.find((img) => img.isThumbnail)?.roomImageUrl;
 
     return (
       <View style={styles.card}>

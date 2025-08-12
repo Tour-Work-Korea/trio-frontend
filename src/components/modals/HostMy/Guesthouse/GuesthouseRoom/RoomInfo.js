@@ -45,7 +45,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
       const hasThumb = data.roomImages.some((img) => img.isThumbnail);
       const formatted = selectedImages.map((url, idx) => ({
-        guesthouseImageUrl: url,
+        roomImageUrl: url,
         isThumbnail: !hasThumb && idx === 0,
       }));
 
@@ -126,7 +126,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
             return (
               <View>
-                <Image source={{ uri: item.guesthouseImageUrl }} style={styles.image} />
+                <Image source={{ uri: item.roomImageUrl }} style={styles.image} />
 
                 {item.isThumbnail && (
                   <View style={styles.checkIconContainer}>

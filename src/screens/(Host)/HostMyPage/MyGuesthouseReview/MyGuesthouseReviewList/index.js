@@ -17,6 +17,7 @@ import { FONTS } from '@constants/fonts';
 import EmptyState from '@components/EmptyState';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
+import AddReviewCommentModal from '@components/modals/HostMy/Guesthouse/AddReviewCommentModal';
 
 import EmptyIcon from '@assets/images/wa_orange_noreview.svg';
 import StarIcon from '@assets/images/star_white.svg';
@@ -59,7 +60,6 @@ const MOCK_REVIEWS = [
   },
 ];
 
-
 // 댓글 없는거 우선 + 최신(id) 정렬
 const prioritizeNoReplies = (list) =>
   [...list].sort((a, b) => {
@@ -81,6 +81,10 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
   const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+
+  // 답글달기 모달
+  const [replyModalOpen, setReplyModalOpen] = useState(false);
+  const [activeReviewId, setActiveReviewId] = useState(null);
 
   // 첫 로드 & guesthouse 변경 시
   useEffect(() => {
@@ -170,12 +174,6 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
     }
   };
 
-  // 답글 달기
-  const handlePressReply = (review) => {
-    // TODO: 답글 작성 모달/화면 열기
-    // navigation.navigate('HostReplyModal', { reviewId: review.id })
-  };
-
   // 리뷰
   const renderItem = ({ item, index }) => {
     const hasReplies = Array.isArray(item.replies) && item.replies.length > 0;
@@ -234,7 +232,10 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
           </View>
         ) : (
           <TouchableOpacity
-            onPress={() => handlePressReply(item)}
+            onPress={() => {
+              setActiveReviewId(item.id);
+              setReplyModalOpen(true);
+            }}
             style={styles.replyButton}
           >
             <Text style={[FONTS.fs_16_semibold, styles.replyButtonText]}>답글달기</Text>
@@ -273,6 +274,13 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
         }
       />
 
+      {/* 답글달기 */}
+      <AddReviewCommentModal
+        visible={replyModalOpen}
+        reviewId={activeReviewId}
+        onClose={() => setReplyModalOpen(false)}
+        onSuccess={() => fetchReviews(0, true)}
+      />
     </View>
   );
 };

@@ -65,7 +65,7 @@ const GuesthouseRulesModal = ({ visible, onClose, onSelect, shouldResetOnClose }
     // 현재 상태 저장
     setAppliedData(text);
 
-    // onSelect({ guesthouseLongDesc: text });
+    onSelect?.(text);
     onClose();
   };
 

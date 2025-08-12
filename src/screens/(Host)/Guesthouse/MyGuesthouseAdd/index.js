@@ -40,6 +40,8 @@ const MyGuesthouseAdd = () => {
     roomInfos: [],
     amenities: [],
     hashtagIds: [],
+    rules: '',
+    guesthouseDetailAddress: '',
   });
 
   // 게스트하우스 게시물 등록 모달
@@ -80,6 +82,7 @@ const MyGuesthouseAdd = () => {
       ...prev,
       guesthouseName: data.name,
       guesthouseAddress: data.address,
+      guesthouseDetailAddress: data.addressDetail || '',
       guesthousePhone: data.phone,
       hashtagIds: data.tagIds,
       checkIn: data.checkIn,
@@ -120,10 +123,9 @@ const MyGuesthouseAdd = () => {
     setDetailInfoModalVisible(false);
   };
 
-  // 이용규칙 모달에서 "적용" 눌렀을 때 (지금은 서버 전송 없음)
-  const handleRulesSelect = (/* data */) => {
-    // 추후 data가 필요하면 guesthouse에 머지
-    // setGuesthouse(prev => ({ ...prev, rules: data.rules }))
+  // 이용규칙 모달에서 "적용" 눌렀을 때
+  const handleRulesSelect = (rulesText) => {
+    setGuesthouse(prev => ({ ...prev, rules: rulesText }));
     setRulesModalReset(false); // 닫아도 유지
     setRulesModalVisible(false);
   };
@@ -164,6 +166,7 @@ const MyGuesthouseAdd = () => {
     isNonEmpty(guesthouse.guesthousePhone) &&
     isNonEmpty(guesthouse.guesthouseShortIntro) &&
     isNonEmpty(guesthouse.guesthouseLongDesc) &&
+    isNonEmpty(guesthouse.rules) && 
     // 신청서 선택
     !!selectedApplication?.id &&
     // 체크인/체크아웃은 기본값 존재하므로 생략 가능 (원하면 isNonEmpty로 체크)
