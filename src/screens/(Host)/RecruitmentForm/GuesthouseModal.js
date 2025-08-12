@@ -16,13 +16,17 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
+import EmployLogo from '@assets/images/wa_blue_apply.svg';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import ResultModal from '@components/modals/ResultModal';
+import {useNavigation} from '@react-navigation/native';
 
 const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
   const [guesthouses, setGuesthouses] = useState([]);
   const [selectedId, setSelectedId] = useState(formData?.guesthouseId ?? 0);
+  const navigation = useNavigation();
 
   useEffect(() => {
     fetchMyGuestHouse();
@@ -74,6 +78,20 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
       </View>
     );
   };
+  if (guesthouses.length === 0) {
+    return (
+      <ResultModal
+        visible={visible}
+        onClose={onClose}
+        title={'게스트하우스'}
+        subTitle={'입점된 게스트하우스가 없어요'}
+        message={'입점 신청하러 가볼까요?'}
+        buttonText={'입점 신청하기'}
+        onPress={() => navigation.navigate('StoreRegister')}
+        Icon={EmployLogo}
+      />
+    );
+  }
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>

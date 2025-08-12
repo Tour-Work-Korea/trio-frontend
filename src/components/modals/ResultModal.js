@@ -13,6 +13,7 @@ export default function ResultModal({
   onClose,
   title,
   Icon,
+  subTitle = null,
   message = null,
   buttonText = null,
   onPress = null,
@@ -38,7 +39,25 @@ export default function ResultModal({
             </TouchableOpacity>
           </View>
           <Icon style={styles.image} />
-          {message ? <Text>{message}</Text> : <></>}
+          <View style={{gap: 4, alignItems: 'center'}}>
+            {subTitle ? (
+              <Text
+                style={{...FONTS.fs_20_semibold, color: COLORS.grayscale_700}}>
+                {subTitle}
+              </Text>
+            ) : (
+              <></>
+            )}
+            {message ? (
+              <Text
+                style={{...FONTS.fs_16_medium, color: COLORS.grayscale_500}}>
+                {message}
+              </Text>
+            ) : (
+              <></>
+            )}
+          </View>
+
           {buttonText ? (
             <ButtonScarlet title={buttonText} onPress={onPress} />
           ) : (

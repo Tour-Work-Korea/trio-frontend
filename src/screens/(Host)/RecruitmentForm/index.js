@@ -296,6 +296,7 @@ const RecruitmentForm = () => {
                 }))
               }
             />
+            {/* 공고 요약 */}
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>
