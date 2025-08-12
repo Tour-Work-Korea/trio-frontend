@@ -19,10 +19,13 @@ import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import { guesthouseTags } from '@data/guesthouseTags';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
+import TimePickerModal from '@components/modals/TimePickerModal';
+import { formatLocalTimeToKorean12Hour } from '@utils/formatDate';
 
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 import XBtn from '@assets/images/x_gray.svg';
+import ClockIcon from '@assets/images/clock_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
@@ -42,12 +45,17 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
   const [nameOption, setNameOption] = useState('default'); // 'default' | 'custom'
   const [addressOption, setAddressOption] = useState('default'); // 'default' | 'custom'
   const [phoneOption, setPhoneOption] = useState('default'); // 'default' | 'custom'
+  
 
   const [customName, setCustomName] = useState('');
   const [customAddress, setCustomAddress] = useState('');
   const [customAddressDetail, setCustomAddressDetail] = useState('');
   const [customPhone, setCustomPhone] = useState('');
   const [selectedTags, setSelectedTags] = useState([]); // { id, hashtag }
+
+  const [checkIn, setCheckIn] = useState('15:00:00');
+  const [checkOut, setCheckOut] = useState('11:00:00');
+  const [timePickerVisible, setTimePickerVisible] = useState({ type: null, visible: false });
 
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
@@ -66,6 +74,8 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
       setCustomAddressDetail(appliedData.customAddressDetail);
       setCustomPhone(appliedData.customPhone);
       setSelectedTags(appliedData.selectedTags);
+      setCheckIn(appliedData.checkIn);
+      setCheckOut(appliedData.checkOut);
     }
   }, [visible]);
 
@@ -89,6 +99,8 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
         setCustomAddressDetail(appliedData.customAddressDetail);
         setCustomPhone(appliedData.customPhone);
         setSelectedTags(appliedData.selectedTags);
+        setCheckIn(appliedData.checkIn);
+        setCheckOut(appliedData.checkOut);
       } else {
         // 처음 상태로 초기화
         setNameOption('default');
@@ -99,6 +111,8 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
         setCustomAddressDetail('');
         setCustomPhone('');
         setSelectedTags([]);
+        setCheckIn('15:00:00');
+        setCheckOut('11:00:00');
       }
     }
     onClose();
@@ -121,6 +135,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     const addressValue = addressOption === 'default' ? defaultAddress : customAddress;
     const phoneValue = phoneOption === 'default' ? defaultPhone : customPhone;
     const tagIds = selectedTags.map((tag) => tag.id);
+    const addressDetailValue = addressOption === 'custom' ? customAddressDetail : '';
 
     // 현재 상태 저장
     setAppliedData({
@@ -131,10 +146,21 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
       customAddress,
       customAddressDetail,
       customPhone,
-      selectedTags
+      selectedTags,
+      checkIn,
+      checkOut
     });
 
-    onSelect({ name: nameValue, address: addressValue, phone: phoneValue, tagIds });
+    onSelect({
+      name: nameValue,
+      address: addressValue,
+      addressDetail: addressDetailValue,
+      phone: phoneValue,
+      tagIds,
+      checkIn,
+      checkOut
+    });    
+    
     onClose();
   };
 
@@ -268,6 +294,46 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
               </TouchableOpacity>
             </View>
 
+            {/* 체크인 체크아웃 */}
+            <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>체크인 / 체크아웃</Text>
+            <View style={{ marginTop: 8, gap: 12 }}>
+              <View style={styles.timeRow}>
+                <Text style={[FONTS.fs_14_medium, styles.timeTitle]}>체크인</Text>
+                <TouchableOpacity
+                  style={styles.timeBtn}
+                  onPress={() => setTimePickerVisible({ type: 'checkIn', visible: true })}
+                >
+                  <Text style={styles.timeText}>{formatLocalTimeToKorean12Hour(checkIn)}</Text>
+                  <ClockIcon width={24} height={24} />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.timeRow}>
+                <Text style={[FONTS.fs_14_medium, styles.timeTitle]}>체크아웃</Text>
+                <TouchableOpacity
+                  style={styles.timeBtn}
+                  onPress={() => setTimePickerVisible({ type: 'checkOut', visible: true })}
+                >
+                  <Text style={styles.timeText}>{formatLocalTimeToKorean12Hour(checkOut)}</Text>
+                  <ClockIcon width={20} height={20} />
+                </TouchableOpacity>
+              </View>
+            </View>
+
+            {/* TimePickerModal */}
+            <TimePickerModal
+              visible={timePickerVisible.visible}
+              initialValue={
+                timePickerVisible.type === 'checkIn' ? checkIn : checkOut
+              }
+              onClose={() => setTimePickerVisible({ type: null, visible: false })}
+              onConfirm={(time) => {
+                if (timePickerVisible.type === 'checkIn') setCheckIn(time);
+                else setCheckOut(time);
+                setTimePickerVisible({ type: null, visible: false });
+              }}
+            />
+
             {/* 태그 */}
             <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>
               태그로 게스트하우스 특징을 알려주세요
@@ -305,6 +371,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
             onClose={() => setAddressSearchVisible(false)}
             onSelected={(data) => setCustomAddress(data.address)}
           />
+
         </View>
         </TouchableWithoutFeedback>
       </View>
@@ -413,5 +480,25 @@ const styles = StyleSheet.create({
   },
   tagSelected: {
     color: COLORS.primary_orange,
+  },
+
+  // 체크인 체크아웃
+  timeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  timeTitle: {
+    width: 60,
+    color: COLORS.grayscale_500,
+  },
+  timeBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    padding: 12,
+    borderRadius: 20,
+    justifyContent: 'space-between',
   },
 });

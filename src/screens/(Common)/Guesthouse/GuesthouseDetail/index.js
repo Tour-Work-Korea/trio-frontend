@@ -11,7 +11,7 @@ import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
 
 import styles from './GuesthouseDetail.styles';
-import {FONTS} from '@constants/fonts';
+import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import ImageModal from '@components/modals/ImageModal';
@@ -19,6 +19,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';
 import Loading from '@components/Loading';
+import { genderOptions } from '@data/guesthouseOptions';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -222,7 +223,7 @@ const GuesthouseDetail = ({route}) => {
         </View>
 
         <Text style={[FONTS.fs_14_regular, styles.address]}>
-          {detail.guesthouseAddress}
+          {detail.guesthouseAddress} {detail.guesthouseAddressDetail}
         </Text>
 
         <View style={styles.reviewRow}>
@@ -327,6 +328,11 @@ const GuesthouseDetail = ({route}) => {
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
           {detail.roomInfos?.map(room => {
           const isReserved = room.isReserved;
+          const roomTypeMap = {
+            MIXED: '혼숙',
+            FEMALE_ONLY: '여성전용',
+            MALE_ONLY: '남성전용',
+          };
 
           return (
             <View key={room.id}>
@@ -339,6 +345,8 @@ const GuesthouseDetail = ({route}) => {
                       roomName: room.roomName,
                       roomPrice: room.roomPrice,
                       roomDesc: room.roomDesc,
+                      roomCapacity: room.roomCapacity,
+                      roomType: room.roomType,
                       guesthouseName: detail.guesthouseName,
                       checkIn: `${checkIn}T${detail.checkIn}`,
                       checkOut: `${checkOut}T${detail.checkOut}`,
@@ -371,7 +379,7 @@ const GuesthouseDetail = ({route}) => {
                   <View style={styles.roomInfo}>
                     <View style={styles.roomNameDescContainer}>
                       <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
-                        {room.roomName}
+                        {room.roomName} ({room.roomCapacity}인실 {roomTypeMap[room.roomType] || ''})
                       </Text>
                       <View style={styles.checkTimeContainer}>
                         <Text style={[FONTS.fs_12_medium, styles.checkin]}>
@@ -417,21 +425,7 @@ const GuesthouseDetail = ({route}) => {
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>이용 규칙</Text>
           <View style={styles.longTextContainer}>
             <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
-              숙소 이용 규칙 {'\n'}
-              -전 객실 금연 (금연건물로 흡연 시 미환불 강제퇴실) {'\n'}
-              -흡연은 옥상과 테라스에서만 가능 {'\n'}
-              -타인에게 피해나 불쾌감을 주는 행위 또는 게스트하우스 이용규정을
-              지키지 않을 경우 강제 퇴실 조치 {'\n'}
-              -시설물을 파손하거나 침구류 훼손 및 오염 (세탁 불가능) 시 전액 배상{' '}
-              {'\n'}
-              -보호자 동반 없는 미성년자 입실 불가 (업체문의 필수) {'\n'}
-              주차장 정보 {'\n'}• 한옥마을 공용 주차장 약150m {'\n'}
-              취소 및 환불 규정 {'\n'}
-              -체크인일 기준 7일 전 : 100% 환불 {'\n'}
-              -체크인일 기준 6~ 4일 전 : 50% 환불 {'\n'}
-              -체크인일 기준 3일 전~ 당일 및 No-Show : 환불 불가 {'\n'}
-              -취소, 환불 시 수수료가 발생할 수 있습니다 {'\n'}
-              확인 사항 및 기타 {'\n'}• 시즌별 객실 가격 상이하오니 확인바랍니다
+              {detail.rules}
             </Text>
           </View>
           

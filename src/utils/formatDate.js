@@ -155,3 +155,18 @@ export const formatLocalTime = localTime => {
 export const parseTimeToLocalTime = time => {
   return time;
 };
+
+/**
+ * LocalTime (hour:minute:second) → "오전/오후 h:mm"
+ *  - 예: "15:00:00" → "오후 3:00"
+ */
+export const formatLocalTimeToKorean12Hour = (localTime) => {
+  if (!localTime) return '시간 없음';
+  const [hourStr, minuteStr] = localTime.split(':');
+  const hour = Number(hourStr);
+  const minute = Number(minuteStr);
+
+  const ampm = hour >= 12 ? '오후' : '오전';
+  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
+  return `${ampm} ${hour12}:${minute.toString().padStart(2, '0')}`;
+};

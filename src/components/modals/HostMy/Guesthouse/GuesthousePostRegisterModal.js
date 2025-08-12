@@ -15,9 +15,11 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import EmptyState from '@components/EmptyState';
 
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
+import EmptyIcon from '@assets/images/wa_blue_apply.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.8);
 
@@ -133,6 +135,19 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect, shouldResetOn
             keyExtractor={(item) => item.id.toString()}
             renderItem={renderItem}
             ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+            contentContainerStyle={
+              applicationList.length === 0
+                ? [styles.listContainer, { flex: 1, justifyContent: 'center' }]
+                : styles.listContainer
+            }
+            ListEmptyComponent={
+              <EmptyState
+                icon={EmptyIcon}
+                iconSize={{ width: 188, height: 84 }}
+                title="입점된 게스트하우스가 없어요"
+                description="입점신청하러 가볼까요?"
+              />
+            }
           />
 
           {/* 등록하기 버튼 */}
@@ -173,6 +188,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
 
+  listContainer: {
+
+  },
   // 리스트
   itemContainer: {
     flexDirection: 'row',
