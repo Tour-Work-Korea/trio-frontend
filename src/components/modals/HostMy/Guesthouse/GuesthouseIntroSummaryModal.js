@@ -144,8 +144,8 @@ const GuesthouseIntroSummaryModal = ({ visible, onClose, onSelect, shouldResetOn
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : 0}
       >
       <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>

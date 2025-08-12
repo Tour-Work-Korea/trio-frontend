@@ -86,8 +86,8 @@ const GuesthouseDetailInfoModal = ({ visible, onClose, onSelect, shouldResetOnCl
     >
       <KeyboardAvoidingView
         style={{ flex: 1 }}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -200 : 0}
       >
       <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>
@@ -131,7 +131,7 @@ const GuesthouseDetailInfoModal = ({ visible, onClose, onSelect, shouldResetOnCl
                 textAlignVertical="top"
               />
 
-              <TouchableOpacity onPress={() => setText('')}>
+              <TouchableOpacity style={{alignSelf: 'flex-end'}} onPress={() => setText('')}>
                 <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
               </TouchableOpacity>
             </View>
@@ -208,7 +208,6 @@ const styles = StyleSheet.create({
 
   rewriteText: {
     color: COLORS.grayscale_500,
-    alignSelf: 'flex-end',
     marginTop: 4,
   },
 });

@@ -137,7 +137,7 @@ const GuesthouseReservation = ({ route }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 100 : 0} // 필요 시 값 조정
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
     >
     <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={{ flex: 1 }}>

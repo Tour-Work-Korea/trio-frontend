@@ -1,24 +1,18 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  TouchableWithoutFeedback,
-  FlatList,
-} from 'react-native';
+import { View, Text, FlatList, TouchableOpacity } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import Header from '@components/Header';
-import styles from './MyGuesthouseReview.styles';
+import styles from './MyGuesthouseReservationStatus.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import MyGuesthouseReviewList from './MyGuesthouseReviewList';
+import ReservationList from './ReservationList';
 
 import ChevronDown from '@assets/images/chevron_down_black.svg';
 import ChevronUp from '@assets/images/chevron_up_black.svg';
 
-const MyGuesthouseReview = () => {
+const MyGuesthouseReservationStatus = () => {
   const [guesthouses, setGuesthouses] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selected, setSelected] = useState(null); // { id, guesthouseName }
@@ -47,10 +41,10 @@ const MyGuesthouseReview = () => {
     setSelected(item);
     setDropdownVisible(false);
   };
-
+  
   return (
     <View style={styles.container}>
-      <Header title="게스트하우스 리뷰관리" />
+      <Header title="게스트하우스 예약현황" />
       
       <View style={styles.body}>
         {/* 게하 고르기 */}
@@ -120,10 +114,10 @@ const MyGuesthouseReview = () => {
           )}
         </View>
 
-        {/* 선택된 게하의 리뷰 리스트를 같은 화면에 표시 */}
+        {/* 선택된 게하의 예약 현황을 같은 화면에 표시 */}
         {selected?.id ? (
           <View style={{ flex: 1 }}>
-            <MyGuesthouseReviewList
+            <ReservationList
               guesthouseId={selected.id}
               key={selected.id} // 게하 바뀔 때 깔끔히 리셋
             />
@@ -136,4 +130,4 @@ const MyGuesthouseReview = () => {
   );
 };
 
-export default MyGuesthouseReview;
+export default MyGuesthouseReservationStatus;

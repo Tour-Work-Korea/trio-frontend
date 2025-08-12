@@ -39,7 +39,7 @@ import {
   MyGuesthouseAdd,
   MyGuesthouseEdit,
   MyGuesthouseDetail,
-  MyGuesthouseReservationList,
+  MyGuesthouseReservationStatus,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -90,7 +90,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
-      <Stack.Screen name="MyGuesthouseReservationList" component={MyGuesthouseReservationList} />
+      <Stack.Screen name="MyGuesthouseReservationStatus" component={MyGuesthouseReservationStatus} />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />
