@@ -1,15 +1,42 @@
-import React from 'react';
+import React, { useEffect, useState , useCallback } from 'react';
 import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
 import EmptyState from '@components/EmptyState';
+import Loading from '@components/Loading';
+import userMyApi from '@utils/api/userMyApi';
 
-const UserGuesthouseReviewWrite = ({ reservations }) => {
+const UserGuesthouseReviewWrite = () => {
   const navigation = useNavigation();
+  const [reservations, setReservations] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const fetchReservationList = async () => {
+    try {
+      setLoading(true);
+      const res = await userMyApi.getMyReservations();
+      setReservations(res.data);
+    } catch (error) {
+      console.log('예약 목록 불러오기 실패');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchReservationList();
+    }, [])
+  );
+
+  // COMPLETED 상태, 리뷰 안 쓴것만
+  const completedReservations = reservations.filter(
+    (item) => item.reservationStatus === 'COMPLETED' && !item.reviewed
+  );
 
   const renderItem = ({ item, index }) => {
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
@@ -71,26 +98,30 @@ const UserGuesthouseReviewWrite = ({ reservations }) => {
 
   return (
     <>
-      <FlatList
-        data={reservations}
-        keyExtractor={item => item.reservationId.toString()}
-        renderItem={renderItem}
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: reservations.length === 0 ? 'center' : 'flex-start',
-          paddingVertical: 24,
-        }}
-        ListEmptyComponent={
-          <EmptyState
-            icon={NoReview}
-            iconSize={{ width: 100, height: 60 }}
-            title="아직 작성할 리뷰가 없어요"
-            description="게스트하우스를 예약하러 가볼까요?"
-            buttonText="게스트하우스 찾아보기"
-            onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
-          />
-        }
-      />
+      {loading ? (
+          <Loading title="리뷰 목록을 불러오고 있어요." />
+        ) : (
+        <FlatList
+          data={completedReservations}
+          keyExtractor={item => item.reservationId.toString()}
+          renderItem={renderItem}
+          contentContainerStyle={{
+            flexGrow: 1,
+            justifyContent: completedReservations.length === 0 ? 'center' : 'flex-start',
+            paddingVertical: 24,
+          }}
+          ListEmptyComponent={
+            <EmptyState
+              icon={NoReview}
+              iconSize={{ width: 100, height: 60 }}
+              title="아직 작성할 리뷰가 없어요"
+              description="게스트하우스를 예약하러 가볼까요?"
+              buttonText="게스트하우스 찾아보기"
+              onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+            />
+          }
+        />
+      )}
     </>
   );
 };

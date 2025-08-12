@@ -36,6 +36,10 @@ import {
   HostRegisterInfo,
   Result,
   UserGuesthouseReviewForm,
+  MyGuesthouseAdd,
+  MyGuesthouseEdit,
+  MyGuesthouseDetail,
+  MyGuesthouseReservationList,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -81,6 +85,12 @@ const RootNavigation = () => (
 
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserGuesthouseReviewForm" component={UserGuesthouseReviewForm} />
+
+      {/* 사장님 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
+      <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
+      <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
+      <Stack.Screen name="MyGuesthouseReservationList" component={MyGuesthouseReservationList} />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />

@@ -26,7 +26,8 @@ export default function Guesthouses({guesthouses}) {
           checkOut: tomorrow.format('YYYY-MM-DD'),
           guestCount: 1,
         });
-      }}>
+      }}
+    >
       <View style={styles.guesthouseCard}>
         <View>
           {item.thumbnailImgUrl ? (

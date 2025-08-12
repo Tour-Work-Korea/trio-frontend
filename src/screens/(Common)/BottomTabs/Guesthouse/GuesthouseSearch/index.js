@@ -31,9 +31,9 @@ import {regions} from '@data/filter';
 
 // 임시 게하
 const mockGuesthouseResults = [
-  '제주 WA 게스트하우스',
-  '제주 WB 게스트하우스',
-  '제주 WC 게스트하우스',
+  // '제주 WA 게스트하우스',
+  // '제주 WB 게스트하우스',
+  // '제주 WC 게스트하우스',
 ];
 
 const mockLocationResults = ['제주시', '제주 애월'];
@@ -150,18 +150,22 @@ const GuesthouseSearch = () => {
   // 검색어 입력시
   const renderSearchResults = () => (
     <View style={styles.searchResultContainer}>
-      <View style={styles.searchResultSection}>
-        {mockGuesthouseResults.map((name, idx) => (
-          <TouchableOpacity key={idx} style={styles.searchResultRow}>
-            <View style={styles.resultIconBox}>
-              <GuesthouseIcon width={24} height={24} />
-            </View>
-            <Text style={[FONTS.fs_14_medium]}>{name}</Text>
-          </TouchableOpacity>
-        ))}
-      </View>
+      {mockGuesthouseResults.length > 0 && (
+        <View style={styles.searchResultSection}>
+          {mockGuesthouseResults.map((name, idx) => (
+            <TouchableOpacity key={idx} style={styles.searchResultRow}>
+              <View style={styles.resultIconBox}>
+                <GuesthouseIcon width={24} height={24} />
+              </View>
+              <Text style={[FONTS.fs_14_medium]}>{name}</Text>
+            </TouchableOpacity>
+          ))}
+        </View>
+      )}
 
-      <View style={styles.searchResultDivider} />
+      {mockGuesthouseResults.length > 0 && (
+        <View style={styles.searchResultDivider} />
+      )}
 
       <View style={styles.searchResultSection}>
         {keywordResults.map(({ id, keyword }) => (

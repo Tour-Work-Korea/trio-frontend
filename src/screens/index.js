@@ -61,17 +61,16 @@ export {default as HostEditProfile} from './(Host)/HostMyPage/HostEditProfile';
 //
 export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
 // 게하 목록 & 수정 & 등록
-export {default as MyGuesthouseDetail} from './(Host)/MyGuesthouseDetail';
-export {default as MyGuesthouseList} from './(Host)/MyGuesthouseList';
-export {default as MyGuesthouseAddEdit} from './(Host)/MyGuesthouseAddEdit';
-//
-export {default as RegisterRoomInfo} from './(Host)/MyGuesthouseAddEdit/RegisterRoomInfo';
+export {default as MyGuesthouseDetail} from './(Host)/Guesthouse/MyGuesthouseDetail';
+export {default as MyGuesthouseList} from './(Host)/HostMyPage/MyGuesthouseList';
+export {default as MyGuesthouseEdit} from './(Host)/Guesthouse/MyGuesthouseEdit';
+export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
 // 게하 숙박 리뷰
-export {default as MyGuesthouseReview} from './(Host)/MyGuesthouseReview';
-export {default as MyGuesthouseReviewList} from './(Host)/MyGuesthouseReviewList';
-export {default as DeleteReview} from './(Host)/MyGuesthouseReviewList/DeleteReview';
-export {default as MyGuesthouseReviewDetail} from './(Host)/MyGuesthouseReviewList/MyGuesthouseReviewDetail';
-export {default as ReviewCommentAddEdit} from './(Host)/MyGuesthouseReviewList/ReviewCommentAddEdit';
+export {default as MyGuesthouseReview} from './(Host)/HostMyPage/MyGuesthouseReview';
+// 게하 예약 내역
+export {default as MyGuesthouseReservation} from './(Host)/HostMyPage/MyGuesthouseReservation';
+export {default as MyGuesthouseReservationList} from './(Host)/Guesthouse/MyGuesthouseReservationList';
+//
 export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
 //
@@ -98,7 +97,7 @@ export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavorit
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
 // 게하 리뷰
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
-export {default as UserGuesthouseReviewForm} from './(User)/UserMyPage/UserGuesthouseReview/UserGuesthouseReviewForm';
+export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
