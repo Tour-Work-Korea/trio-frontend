@@ -69,7 +69,7 @@ export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
 export {default as MyGuesthouseReview} from './(Host)/HostMyPage/MyGuesthouseReview';
 // 게하 예약 내역
 export {default as MyGuesthouseReservation} from './(Host)/HostMyPage/MyGuesthouseReservation';
-export {default as MyGuesthouseReservationList} from './(Host)/Guesthouse/MyGuesthouseReservationList';
+export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGuesthouseReservationStatus';
 //
 export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';

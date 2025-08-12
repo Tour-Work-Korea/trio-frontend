@@ -19,7 +19,6 @@ import ChevronDown from '@assets/images/chevron_down_black.svg';
 import ChevronUp from '@assets/images/chevron_up_black.svg';
 
 const MyGuesthouseReview = () => {
-
   const [guesthouses, setGuesthouses] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selected, setSelected] = useState(null); // { id, guesthouseName }

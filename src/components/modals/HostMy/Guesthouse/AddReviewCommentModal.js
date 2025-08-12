@@ -74,8 +74,8 @@ const AddReviewCommentModal = ({
   return (
     <Modal visible={visible} transparent animationType="slide">
       <KeyboardAvoidingView 
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -160 : 0}
         style={styles.overlay}
       >
         <View style={styles.container}>

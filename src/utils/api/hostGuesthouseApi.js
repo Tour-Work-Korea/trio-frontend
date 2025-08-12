@@ -50,6 +50,10 @@ const hostGuesthouseApi = {
         'Content-Type': 'multipart/form-data',
       },
     }),
+
+  // 게하 예약 현황 조회
+  getGuesthouseReservations: (guesthouseId) =>
+    api.get(`/order/host/reservation/${guesthouseId}`),
 };
 
 export default hostGuesthouseApi;
