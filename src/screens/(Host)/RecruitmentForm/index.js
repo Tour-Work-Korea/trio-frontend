@@ -32,6 +32,7 @@ import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import GuesthouseModal from './GuesthouseModal';
+import ShortDescriptionModal from './ShortDescriptionModal';
 
 const sections = [
   {id: 'guesthouse', title: '게스트하우스'},
@@ -297,6 +298,17 @@ const RecruitmentForm = () => {
               }
             />
             {/* 공고 요약 */}
+            <ShortDescriptionModal
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.shortDescription}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  shortDescription: !prev.shortDescription,
+                }))
+              }
+            />
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>

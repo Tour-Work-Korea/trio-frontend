@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     padding: 12,
     ...FONTS.fs_body,
     color: COLORS.black,
-    minHeight: 100,
+    minHeight: 350,
     textAlignVertical: 'top',
   },
   dropdown: {
