@@ -1,5 +1,6 @@
 import commonApi from './api/commonApi';
 import {launchImageLibrary} from 'react-native-image-picker';
+import ImageResizer from 'react-native-image-resizer';
 
 /**
  *
@@ -11,6 +12,41 @@ import {launchImageLibrary} from 'react-native-image-picker';
  * 이미지 url 받아서 수정, 등록에 쓰면 됩니다
  * 예시는 UserEditProfile 참고
  */
+
+// 원하는 기본값: 긴 변 1280px, 품질 0.8, JPEG로 강제(HEIC → JPEG 변환)
+const resizeImage = async (
+  sourceUri,
+  {
+    maxWidth = 1280,
+    maxHeight = 1280,
+    quality = 0.8, // 0~1
+    format = 'JPEG', // 'JPEG' | 'PNG' | 'WEBP'
+    rotation = 0,
+    keepMeta = false, // EXIF 유지 여부
+    mode = 'contain', // 'contain' | 'cover' | 'stretch'
+  } = {},
+) => {
+  const result = await ImageResizer.createResizedImage(
+    sourceUri,
+    maxWidth,
+    maxHeight,
+    format,
+    Math.round(quality * 100),
+    rotation,
+    undefined, // outputPath
+    keepMeta,
+    {onlyScaleDown: true, mode},
+  );
+  // result: { uri, path, name, size }
+  const ext =
+    (format || 'JPEG').toLowerCase() === 'jpeg'
+      ? 'jpg'
+      : (format || 'JPEG').toLowerCase();
+  const mime = `image/${ext === 'jpg' ? 'jpeg' : ext}`;
+  const name = result.name ?? `image_${Date.now()}.${ext}`;
+
+  return {uri: result.uri, name, type: mime, ext};
+};
 
 //비민감 이미지 URL 받기
 const getPresignedUrl = async filename => {
@@ -25,7 +61,7 @@ export const uploadImageToS3 = async (presignedUrl, fileUri, fileType) => {
 
   await fetch(presignedUrl, {
     method: 'PUT',
-    headers: {'Content-Type': 'image/*'},
+    headers: {'Content-Type': fileType},
     body: blob,
   });
 
@@ -33,7 +69,7 @@ export const uploadImageToS3 = async (presignedUrl, fileUri, fileType) => {
 };
 
 //단일 이미지 업로드
-export const uploadSingleImage = async () => {
+export const uploadSingleImage = async options => {
   const result = await new Promise(resolve =>
     launchImageLibrary({mediaType: 'photo'}, response => resolve(response)),
   );
@@ -41,25 +77,30 @@ export const uploadSingleImage = async () => {
   if (result.didCancel || result.errorCode || !result.assets) return null;
 
   const asset = result.assets[0];
-  const fileUri = asset.uri;
-  const fileType = asset.type || 'image/jpeg';
-  const filename = generateUniqueFilename();
+  const originalUri = asset.uri;
 
+  // ① 리사이징 (옵션으로 사이즈/품질 커스터마이즈 가능)
+  const resized = await resizeImage(originalUri, options); // {uri, name, type, ext}
+
+  // ② 파일명은 리사이즈 결과 확장자와 일치하도록 생성
+  const filename = resized.name; // or generateUniqueFilename(resized.ext)
   const presignedUrl = await getPresignedUrl(filename);
-  const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
+
+  // ④ S3 업로드 (정확한 MIME 전달)
+  const uploadedUrl = await uploadImageToS3(
+    presignedUrl,
+    resized.uri,
+    resized.type,
+  );
 
   return uploadedUrl;
 };
 
 //복수 이미지 업로드
-export const uploadMultiImage = async limit => {
+export const uploadMultiImage = async (limit, options) => {
   const result = await new Promise(resolve =>
-    launchImageLibrary(
-      {
-        mediaType: 'photo',
-        selectionLimit: limit,
-      },
-      response => resolve(response),
+    launchImageLibrary({mediaType: 'photo', selectionLimit: limit}, response =>
+      resolve(response),
     ),
   );
 
@@ -68,12 +109,17 @@ export const uploadMultiImage = async limit => {
   const uploadedUrls = [];
 
   for (const asset of result.assets) {
-    const fileUri = asset.uri;
-    const fileType = asset.type || 'image/jpeg';
-    const filename = generateUniqueFilename();
+    const originalUri = asset.uri;
+
+    const resized = await resizeImage(originalUri, options); // {uri, name, type, ext}
+    const filename = resized.name;
 
     const presignedUrl = await getPresignedUrl(filename);
-    const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
+    const uploadedUrl = await uploadImageToS3(
+      presignedUrl,
+      resized.uri,
+      resized.type,
+    );
 
     uploadedUrls.push(uploadedUrl);
   }
@@ -85,7 +131,7 @@ export const uploadMultiImage = async limit => {
  * 민감 이미지 업로드 (사업자등록증, 신분증 등)
  * → 백엔드에 직접 multipart/form-data로 업로드
  */
-export const uploadSensitiveImage = async () => {
+export const uploadSensitiveImage = async options => {
   const result = await new Promise(resolve =>
     launchImageLibrary({mediaType: 'photo'}, response => resolve(response)),
   );
@@ -93,16 +139,13 @@ export const uploadSensitiveImage = async () => {
   if (result.didCancel || result.errorCode || !result.assets) return null;
 
   const asset = result.assets[0];
-  const uri = asset.uri;
-  const fileName = generateUniqueFilename();
-  const fileType = asset.type || 'image/jpeg';
+  const resized = await resizeImage(asset.uri, options); // {uri, name, type}
 
-  // FormData 생성
   const formData = new FormData();
   formData.append('image', {
-    uri,
-    name: fileName,
-    type: fileType,
+    uri: resized.uri,
+    name: resized.name,
+    type: resized.type,
   });
 
   try {
