@@ -157,6 +157,39 @@ const styles = StyleSheet.create({
   tagOptionSelectedText: {
     color: COLORS.primary_orange,
   },
+  addPhotoButton: {
+    padding: 35,
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    backgroundColor: COLORS.grayscale_100,
+    width: 100,
+    height: 100,
+    marginBottom: 40,
+  },
+  photoItem: {
+    width: 100,
+    height: 100,
+    marginBottom: 12,
+  },
+  thumbnail: {
+    borderColor: COLORS.primary_blue,
+  },
+  removePhotoButton: {
+    position: 'absolute',
+    top: 6,
+    right: 6,
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 12,
+    padding: 2,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  photoGrid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    justifyContent: 'space-between',
+  },
 
   // // 하단 버튼
   // sticky: {

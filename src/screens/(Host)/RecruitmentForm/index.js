@@ -333,6 +333,18 @@ const RecruitmentForm = () => {
                 }))
               }
             />
+            {/* 근무지 정보 */}
+            <WorkInfoSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.workInfo}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  workInfo: false,
+                }))
+              }
+            />
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>

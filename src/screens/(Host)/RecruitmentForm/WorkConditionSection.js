@@ -330,7 +330,6 @@ export default function WorkConditionSection({
                           ? [welfareEtcText.trim()]
                           : []),
                       ]);
-                      console.log(workPartCombined);
                       // 상위로 전달 (배열 형태)
                       handleInputChange('workPart', workPartCombined);
                       handleInputChange('welfare', welfareCombined);
