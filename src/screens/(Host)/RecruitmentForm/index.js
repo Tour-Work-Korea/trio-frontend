@@ -58,8 +58,8 @@ const RecruitmentForm = () => {
     workType: '',
     workStartDate: null,
     workEndDate: null,
-    workPart: '',
-    welfare: '',
+    workPart: [],
+    welfare: [],
     recruitDetail: '',
     recruitImage: [],
     hashtags: [],
@@ -126,12 +126,11 @@ const RecruitmentForm = () => {
   }, []);
 
   const handleInputChange = (field, value) => {
-    setFormData({
-      ...formData,
+    setFormData(prev => ({
+      ...prev,
       [field]: value,
-    });
+    }));
   };
-
   const handleSubmit = () => {
     const errors = validateRecruitForm(formData);
     if (errors.length > 0) {
@@ -319,6 +318,18 @@ const RecruitmentForm = () => {
                 setModalVisible(prev => ({
                   ...prev,
                   recruitCondition: !prev.recruitCondition,
+                }))
+              }
+            />
+            {/* 근무 조건 */}
+            <WorkConditionSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.workCondition}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  workCondition: false,
                 }))
               }
             />
