@@ -18,20 +18,13 @@ import MyGuesthouseReviewList from './MyGuesthouseReviewList';
 import ChevronDown from '@assets/images/chevron_down_black.svg';
 import ChevronUp from '@assets/images/chevron_up_black.svg';
 
-// 임시 데이터 3개
-const MOCK_GUESTHOUSES = [
-  { id: 101, guesthouseName: '김군빌리지 게스트하우스' },
-  { id: 102, guesthouseName: '바다뷰 라운지 하우스' },
-  { id: 103, guesthouseName: '산뜻한 포레스트 하우스' },
-];
-
 const MyGuesthouseReview = () => {
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [dropdownVisible, setDropdownVisible] = useState(false);
   const [selected, setSelected] = useState(null); // { id, guesthouseName }
 
-  // 임시 데이터
+  // 사장님 게하 리스트
   const fetchGuesthouses = async () => {
     try {
       const res = await hostGuesthouseApi.getMyGuesthouses();
@@ -39,29 +32,11 @@ const MyGuesthouseReview = () => {
         id: g.id,
         guesthouseName: g.guesthouseName,
       }));
-
-      // ✅ 비어오면 임시데이터로 채움
-      setGuesthouses(data.length ? data : MOCK_GUESTHOUSES);
+      setGuesthouses(data);
     } catch (error) {
       console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
-      // ✅ 에러일 때도 임시데이터로 노출
-      setGuesthouses(MOCK_GUESTHOUSES);
     }
   };
-
-  // 사장님 게하 리스트
-  // const fetchGuesthouses = async () => {
-  //   try {
-  //     const res = await hostGuesthouseApi.getMyGuesthouses();
-  //     const data = (res?.data || []).map(g => ({
-  //       id: g.id,
-  //       guesthouseName: g.guesthouseName,
-  //     }));
-  //     setGuesthouses(data);
-  //   } catch (error) {
-  //     console.error('사장님 게스트하우스 목록 불러오기 실패:', error);
-  //   }
-  // };
 
   useFocusEffect(
     useCallback(() => {
