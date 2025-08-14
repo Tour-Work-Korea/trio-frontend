@@ -20,6 +20,9 @@ const useUserStore = create(
         email: '',
         mbti: '',
         instagramId: '',
+        gender: 'F',
+        birthDate: '',
+        age: '',
       },
       // 사장 프로필
       hostProfile: {

@@ -43,6 +43,13 @@ import {
   MyRecruitmentList,
   RecruitmentForm,
   MyRecruitmentDetail,
+  MyLikeRecruitList,
+  MyApplicantList,
+  MyResumeList,
+  UserEditProfile,
+  HostEditProfile,
+  ApplicantList,
+  EditProfileFieldScreen,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -53,6 +60,10 @@ const RootNavigation = () => (
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="EXHome" component={EXHome} />
       <Stack.Screen name="undefined" component={undefinedStack} />
+      <Stack.Screen
+        name="EditProfileFieldScreen"
+        component={EditProfileFieldScreen}
+      />
 
       {/* 하단탭 보여하 하는 곳으로 이동할 때 사용 */}
       <Stack.Screen name="MainTabs" component={BottomTabs} />
@@ -71,14 +82,16 @@ const RootNavigation = () => (
         name="GuesthousePaymentSuccess"
         component={GuesthousePaymentSuccess}
       />
+      <Stack.Screen name="StoreRegister" component={StoreRegister} />
 
+      {/* 공고 하단바 없는 화면 */}
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
       <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
-      <Stack.Screen name="StoreRegister" component={StoreRegister} />
 
+      {/* 로그인, 회원가입 하단바 없는 화면 */}
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
       <Stack.Screen name="SocialLogin" component={SocialLogin} />
       <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
@@ -93,12 +106,17 @@ const RootNavigation = () => (
       <Stack.Screen name="Result" component={Result} />
 
       {/* 유저 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
       <Stack.Screen
         name="UserGuesthouseReviewForm"
         component={UserGuesthouseReviewForm}
       />
+      <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
+      <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
+      <Stack.Screen name="MyResumeList" component={MyResumeList} />
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
@@ -112,6 +130,7 @@ const RootNavigation = () => (
         name="MyRecruitmentDetail"
         component={MyRecruitmentDetail}
       />
+      <Stack.Screen name="ApplicantList" component={ApplicantList} />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />

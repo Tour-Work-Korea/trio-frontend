@@ -41,7 +41,8 @@ const UserMyPage = () => {
               {user.nickname}
             </Text>
             <Text style={[FONTS.fs_14_medium, styles.age]}>
-              성별 00세 (0000년생)
+              {user.gender === 'F' ? '여자' : '남자'} {user.age ?? '00'}세 (
+              {user.birthDate?.split('-')[0] ?? '0000'}년생)
             </Text>
             <TouchableOpacity
               style={styles.profileEdit}

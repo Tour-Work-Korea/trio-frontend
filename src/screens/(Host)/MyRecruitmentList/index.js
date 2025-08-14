@@ -117,14 +117,6 @@ const MyRecruitmentList = () => {
                 지금 바로 공고를 등록 해보세요!
               </Text>
             </View>
-            <TouchableOpacity
-              style={styles.addButton}
-              onPress={() => navigation.navigate('RecruitmentForm')}>
-              <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-                알바공고 등록하기
-              </Text>
-              <PlusIcon width={24} height={24} />
-            </TouchableOpacity>
           </View>
         ) : (
           <View>
@@ -134,16 +126,16 @@ const MyRecruitmentList = () => {
               keyExtractor={item => item.recruitId.toString()}
               showsVerticalScrollIndicator={false}
             />
-            <TouchableOpacity
-              style={[styles.addButton, styles.addButtonLocation]}
-              onPress={() => navigation.navigate('RecruitmentForm')}>
-              <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-                알바공고 등록하기
-              </Text>
-              <PlusIcon width={24} height={24} />
-            </TouchableOpacity>
           </View>
         )}
+        <TouchableOpacity
+          style={[styles.addButton, styles.addButtonLocation]}
+          onPress={() => navigation.navigate('RecruitmentForm')}>
+          <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+            알바공고 등록하기
+          </Text>
+          <PlusIcon width={24} height={24} />
+        </TouchableOpacity>
 
         <ErrorModal
           title={errorModal.title}

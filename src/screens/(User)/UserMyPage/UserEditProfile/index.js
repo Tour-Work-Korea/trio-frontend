@@ -11,7 +11,7 @@ import {
   Platform,
   TouchableWithoutFeedback,
 } from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
@@ -23,6 +23,7 @@ import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const UserEditProfile = () => {
   const userProfile = useUserStore(state => state.userProfile);
@@ -31,19 +32,19 @@ const UserEditProfile = () => {
   const [user, setUser] = useState(userProfile);
   const [draft, setDraft] = useState({
     ...userProfile,
-    gender: userProfile.gender ?? 'FEMALE', // 기본 여자
-    age: userProfile.age ?? '', // 숫자 아님 → 빈 문자열
-    birthYear: userProfile.birthYear ?? '', // 숫자 아님 → 빈 문자열
+    gender: userProfile.gender ?? 'F', // 기본 여자
+    birthDate: userProfile.birthYear ?? '', // 숫자 아님 → 빈 문자열
   });
+  const navigation = useNavigation();
+  const [errorModal, setErrorModal] = useState({visible: false, title: ''});
 
   useFocusEffect(
     useCallback(() => {
       setUser(userProfile);
       setDraft({
         ...userProfile,
-        gender: userProfile.gender ?? 'FEMALE',
-        age: userProfile.age ?? '',
-        birthYear: userProfile.birthYear ?? '',
+        gender: userProfile.gender ?? 'F',
+        birthDate: userProfile.birthDate ?? '',
       }); // 수정 시 초기값 복사
     }, [userProfile]),
   );
@@ -51,7 +52,7 @@ const UserEditProfile = () => {
   const handleEditProfileImage = async () => {
     try {
       const imageUrl = await uploadSingleImage();
-      await userMyApi.updateMyProfile('photoUrl', imageUrl);
+      setDraft(prev => ({...prev, photoUrl: imageUrl}));
       setUserProfile({...user, photoUrl: imageUrl});
     } catch (error) {
       console.warn(
@@ -61,7 +62,35 @@ const UserEditProfile = () => {
     }
   };
 
-  const updateMyProfile = async () => {};
+  const updateMyProfile = async () => {
+    try {
+      const {age, ...rest} = draft;
+      console.log(rest);
+      await userMyApi.updateMyProfile(rest);
+      setUserProfile({
+        name: rest.name ?? '',
+        nickname: rest.nickname ?? '',
+        photoUrl:
+          rest.photoUrl && rest.photoUrl !== '사진을 추가해주세요'
+            ? rest.photoUrl
+            : null,
+        phone: rest.phone ?? '',
+        email: rest.email ?? '',
+        mbti: rest.mbti ?? '',
+        instagramId: rest.instagramId ?? '',
+        gender: rest.gender ?? 'F',
+        birthDate: rest.birthDate ?? null,
+        age: rest.calculateAge(rest.birthDate),
+      });
+      navigation.goBack();
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        title:
+          error?.response?.data?.message ?? '프로필 수정 중 오류가 발생했어요',
+      });
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -108,15 +137,15 @@ const UserEditProfile = () => {
                 <TouchableOpacity
                   style={[
                     styles.genderButton,
-                    draft.gender === 'FEMALE' && styles.genderSelected,
+                    draft.gender === 'F' && styles.genderSelected,
                   ]}
-                  onPress={() => setDraft({...draft, gender: 'FEMALE'})}>
+                  onPress={() => setDraft({...draft, gender: 'F'})}>
                   <Text
                     style={[
                       styles.genderText,
                       FONTS.fs_14_medium,
-                      draft.gender === 'FEMALE' && styles.genderSelectedText,
-                      draft.gender === 'FEMALE' && FONTS.fs_14_semibold,
+                      draft.gender === 'F' && styles.genderSelectedText,
+                      draft.gender === 'F' && FONTS.fs_14_semibold,
                     ]}>
                     여자
                   </Text>
@@ -124,15 +153,15 @@ const UserEditProfile = () => {
                 <TouchableOpacity
                   style={[
                     styles.genderButton,
-                    draft.gender === 'MALE' && styles.genderSelected,
+                    draft.gender === 'M' && styles.genderSelected,
                   ]}
-                  onPress={() => setDraft({...draft, gender: 'MALE'})}>
+                  onPress={() => setDraft({...draft, gender: 'M'})}>
                   <Text
                     style={[
                       styles.genderText,
                       FONTS.fs_14_medium,
-                      draft.gender === 'MALE' && styles.genderSelectedText,
-                      draft.gender === 'MALE' && FONTS.fs_14_semibold,
+                      draft.gender === 'M' && styles.genderSelectedText,
+                      draft.gender === 'M' && FONTS.fs_14_semibold,
                     ]}>
                     남자
                   </Text>
@@ -144,23 +173,13 @@ const UserEditProfile = () => {
             <View style={styles.contentContainer}>
               <View style={styles.ageBirthYearRow}>
                 <View style={styles.row}>
-                  <Text style={styles.label}>나이</Text>
+                  <Text style={styles.label}>생일</Text>
                   <TextInput
                     style={[styles.input]}
-                    value={draft.age?.toString()}
+                    value={draft.birthDate?.toString()}
                     keyboardType="numeric"
-                    onChangeText={text => setDraft({...draft, age: text})}
-                    placeholder="00"
-                  />
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>출생연도</Text>
-                  <TextInput
-                    style={[styles.input]}
-                    value={draft.birthYear?.toString()}
-                    keyboardType="numeric"
-                    onChangeText={text => setDraft({...draft, birthYear: text})}
-                    placeholder="0000"
+                    onChangeText={text => setDraft({...draft, birthDate: text})}
+                    placeholder="2000-01-01"
                   />
                 </View>
               </View>
@@ -250,6 +269,12 @@ const UserEditProfile = () => {
                 onPress={updateMyProfile}
               />
             </View>
+            <ErrorModal
+              visible={errorModal.visible}
+              title={errorModal.title}
+              buttonText={'확인'}
+              onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+            />
           </ScrollView>
         </View>
       </TouchableWithoutFeedback>

@@ -28,6 +28,7 @@ api.interceptors.request.use(
     const token = useUserStore.getState().accessToken;
     if (config.withAuth !== false && token) {
       config.headers.Authorization = `Bearer ${token}`;
+      console.log('accessToken:', token);
     }
 
     // ⛳️ STEP 2: RefreshToken 쿠키 직접 삽입 (React Native 용)

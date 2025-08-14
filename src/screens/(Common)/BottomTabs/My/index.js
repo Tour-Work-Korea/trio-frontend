@@ -4,19 +4,12 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   HostMyPage,
   UserMyPage,
-  HostEditProfile,
-  UserEditProfile,
   MyGuesthouseList,
   MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
   ApplicantList,
-  ApplicantForm,
-  MyApplicantList,
-  MyLikeRecruitList,
-  MyResumeList,
   EditProfileFieldScreen,
-  EmployDetail,
   UserGuesthouseReview,
   MyGuesthouseReservation,
 } from '@screens';
@@ -60,12 +53,7 @@ const My = () => {
       <Stack.Screen name="MyMain" component={MyMainScreen} />
       <Stack.Screen name="HostMyPage" component={HostMyPage} />
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
-      <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
-      <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
-      <Stack.Screen
-        name="EditProfileFieldScreen"
-        component={EditProfileFieldScreen}
-      />
+
       {/* 사장님 게하 */}
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
@@ -73,7 +61,6 @@ const My = () => {
         name="MyGuesthouseReservation"
         component={MyGuesthouseReservation}
       />
-      <Stack.Screen name="ApplicantList" component={ApplicantList} />
 
       {/* 유저 게하 */}
       <Stack.Screen
@@ -88,12 +75,6 @@ const My = () => {
         name="UserGuesthouseReview"
         component={UserGuesthouseReview}
       />
-
-      <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
-      <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
-      <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
-      <Stack.Screen name="MyResumeList" component={MyResumeList} />
-      <Stack.Screen name="EmployDetail" component={EmployDetail} />
     </Stack.Navigator>
   );
 };
