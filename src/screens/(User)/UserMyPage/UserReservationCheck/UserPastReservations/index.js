@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -11,6 +12,8 @@ import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/Reserva
 
 export default function UserPastReservations({ data }) {
   const navigation = useNavigation();
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
 
   // 모달
   const [selectedReservationId, setSelectedReservationId] = useState(null);
@@ -58,8 +61,19 @@ export default function UserPastReservations({ data }) {
           </View>
         </TouchableOpacity>
 
-        <View style={styles.buttonContent}>
-          <TouchableOpacity style={styles.buttonContainer}>
+        <View style={styles.buttonContent}> 
+          <TouchableOpacity 
+            style={styles.buttonContainer}
+            onPress={() => {
+              navigation.navigate('GuesthouseDetail', {
+                id: item.guesthouseId,
+                isFromDeeplink: true,
+                checkIn: today.format('YYYY-MM-DD'),
+                checkOut: tomorrow.format('YYYY-MM-DD'),
+                guestCount: 1,
+              });
+            }}
+          >
             <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>다시 예약하기</Text>
           </TouchableOpacity>
           <TouchableOpacity
