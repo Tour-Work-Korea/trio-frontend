@@ -91,13 +91,14 @@ const HostMyPage = () => {
                 onPress={() => navigation.navigate('MyGuesthouseList')}
               />
               <MenuItem
-                IconComponent={ReservationCheckIcon}
-                label="예약 조회"
+                IconComponent={GuesthouseReviewIcon}
+                label="리뷰 관리"
+                onPress={() => navigation.navigate('MyGuesthouseReview')}
               />
               <MenuItem
-                IconComponent={GuesthouseReviewIcon}
-                label="게하 리뷰"
-                onPress={() => navigation.navigate('MyGuesthouseReview')}
+                IconComponent={ReservationCheckIcon}
+                label="예약 조회"
+                onPress={() => navigation.navigate('MyGuesthouseReservation')}
               />
               <MenuItem
                 IconComponent={StoreApplyIcon}

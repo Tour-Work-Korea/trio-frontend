@@ -34,10 +34,10 @@ const hostGuesthouseApi = {
   postReviewReply: (reviewId, reply) =>
     api.post(`/host/reviews/${reviewId}/replies`, {reply}),
 
-  // 리뷰 삭제
+  // 리뷰 삭제 요청
   deleteReview: (reviewId, reason) =>
-    api.delete(`/host/reviews/${reviewId}`, {
-      data: {reason},
+    api.post(`/host/reviews/${reviewId}`, {
+      reason,
     }),
 
   // 사장님 입점신청서 조회
@@ -50,6 +50,10 @@ const hostGuesthouseApi = {
         'Content-Type': 'multipart/form-data',
       },
     }),
+
+  // 게하 예약 현황 조회
+  getGuesthouseReservations: (guesthouseId) =>
+    api.get(`/order/host/reservation/${guesthouseId}`),
 };
 
 export default hostGuesthouseApi;
