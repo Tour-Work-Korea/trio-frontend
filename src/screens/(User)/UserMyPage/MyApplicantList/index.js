@@ -11,6 +11,7 @@ import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
 import DeleteWaLogo from '@assets/images/delete_wa.svg';
 import ResultModal from '@components/modals/ResultModal';
+import {formatLocalDateToDot} from '@utils/formatDate';
 
 const MyApplicantList = () => {
   const navigation = useNavigation();
@@ -27,9 +28,7 @@ const MyApplicantList = () => {
 
   useFocusEffect(
     useCallback(() => {
-      setTimeout(() => {
-        tryFetchMyApplicants();
-      }, 500);
+      tryFetchMyApplicants();
     }, []),
   );
 
@@ -81,59 +80,73 @@ const MyApplicantList = () => {
   };
 
   const renderApplyItem = ({item}) => (
-    <View style={styles.RecruitCard}>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('EmployDetail', {id: item.recruitId})
-        }>
-        <View style={styles.jobItemContent}>
-          <Image
-            source={{uri: item.recruitImage}}
-            style={styles.jobImage}
-            resizeMode="cover"
-          />
-          <View style={styles.jobDetails}>
-            <View style={{flex: 1}}>
-              {/* 게하 이름+하트 */}
-              <View style={[styles.jobHeader, {marginBottom: 4}]}>
-                <Text style={styles.jobType}>{item.guesthouseName}</Text>
-              </View>
-              <View
-                style={{
-                  justifyContent: 'space-between',
-                  flex: 1,
-                }}>
-                {/* 공고 제목 + 날짜 */}
-                <View style={[styles.jobHeader]}>
-                  <Text
-                    style={styles.jobTitle}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {item.recruitTitle}
-                  </Text>
+    <View>
+      <View style={styles.RecruitCard}>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('EmployDetail', {id: item.recruitId})
+          }>
+          <View style={styles.jobItemContent}>
+            <Image
+              source={{uri: item.recruitImage}}
+              style={styles.jobImage}
+              resizeMode="cover"
+            />
+            <View style={styles.jobDetails}>
+              <View style={{flex: 1}}>
+                {/* 게하 이름+하트 */}
+                <View style={[styles.jobHeader, {marginBottom: 4}]}>
+                  <Text style={styles.jobType}>{item.guesthouseName}</Text>
                 </View>
+                <View
+                  style={{
+                    justifyContent: 'space-between',
+                    flex: 1,
+                  }}>
+                  {/* 공고 제목 + 날짜 */}
+                  <View style={[styles.jobHeader]}>
+                    <Text
+                      style={styles.jobTitle}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {item.recruitTitle}
+                    </Text>
+                  </View>
 
-                <View style={styles.jobHeader}>
-                  <Text style={styles.jobSmall}>{item.recruitAddress}</Text>
-                  <Text style={styles.jobSmall}>{item.workPeriod}</Text>
+                  <View style={styles.jobHeader}>
+                    <Text style={styles.jobSmall}>{item.recruitAddress}</Text>
+                    <Text style={styles.jobSmall}>{item.workPeriod}</Text>
+                  </View>
                 </View>
               </View>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('ResumeDetail', {id: item.resumeId})
-        }>
-        <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_900}}>
-          {item.resumeTitle}
-        </Text>
-      </TouchableOpacity>
-      <ButtonWhite
-        title={'지원 취소하기'}
-        onPress={() => handleDeleteApplicant(item.id)}
-      />
+        </TouchableOpacity>
+        <TouchableOpacity
+          onPress={() =>
+            navigation.navigate('ResumeDetail', {id: item.resumeId})
+          }>
+          <Text
+            style={{
+              ...FONTS.fs_14_medium,
+              color: COLORS.grayscale_900,
+              marginBottom: 4,
+            }}>
+            {item.resumeTitle}
+          </Text>
+          <View style={styles.applyContainer}>
+            <Text style={styles.applyText}>지원 날짜</Text>
+            <Text style={styles.applyText}>
+              {formatLocalDateToDot(item.applyDate)}
+            </Text>
+          </View>
+        </TouchableOpacity>
+        <ButtonWhite
+          title={'지원 취소하기'}
+          onPress={() => handleDeleteApplicant(item.id)}
+        />
+      </View>
+      <View style={styles.divider} />
     </View>
   );
 

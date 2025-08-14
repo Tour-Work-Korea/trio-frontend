@@ -8,7 +8,9 @@ export default StyleSheet.create({
   },
   body: {
     flex: 1,
-    paddingHorizontal: 15,
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    backgroundColor: COLORS.grayscale_0,
   },
 
   headerBox: {
@@ -24,11 +26,8 @@ export default StyleSheet.create({
 
   //공고 카드
   RecruitCard: {
-    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
-    marginBottom: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
+    paddingVertical: 16,
     gap: 12,
   },
   jobSmall: {
@@ -69,5 +68,17 @@ export default StyleSheet.create({
   jobItemContent: {
     flexDirection: 'row',
     alignContents: 'center',
+  },
+  applyContainer: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  applyText: {
+    color: COLORS.grayscale_500,
+    ...FONTS.fs_12_medium,
+  },
+  divider: {
+    borderWidth: 0.4,
+    borderColor: COLORS.grayscale_300,
   },
 });
