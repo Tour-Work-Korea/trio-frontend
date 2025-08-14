@@ -24,6 +24,7 @@ import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
+import {calculateAge} from '@utils/auth/login';
 
 const UserEditProfile = () => {
   const userProfile = useUserStore(state => state.userProfile);
@@ -80,7 +81,7 @@ const UserEditProfile = () => {
         instagramId: rest.instagramId ?? '',
         gender: rest.gender ?? 'F',
         birthDate: rest.birthDate ?? null,
-        age: rest.calculateAge(rest.birthDate),
+        age: calculateAge(rest.birthDate),
       });
       navigation.goBack();
     } catch (error) {

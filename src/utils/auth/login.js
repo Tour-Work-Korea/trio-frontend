@@ -174,7 +174,7 @@ const updateProfile = async role => {
   }
 };
 
-function calculateAge(birthDateString) {
+export function calculateAge(birthDateString) {
   if (!birthDateString) {
     return '00';
   }
