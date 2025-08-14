@@ -17,12 +17,10 @@ import hostEmployApi from '@utils/api/hostEmployApi';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
 
-import HashTagSection from './HashTagSection';
 import RecruitConditionSection from './RecruitConditionSection';
 import WorkConditionSection from './WorkConditionSection';
 import WorkInfoSection from './WorkInfoSection';
 import DetailInfoSection from './DetailInfoSection';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 
 import CheckOrange from '@assets/images/check_orange.svg';
@@ -91,14 +89,16 @@ const RecruitmentForm = () => {
     workInfo: false, //근무지 정보
     detailInfo: false, //상세 정보
   });
-  const isAllValid = useMemo(
-    () => Object.values(valid).every(Boolean),
-    [valid],
-  );
+  // const isAllValid = useMemo(
+  //   () => Object.values(valid).every(Boolean),
+  //   [valid],
+  // );
+  const isAllValid = true;
 
   useEffect(() => {
     console.log(formData);
   }, [formData]);
+
   useEffect(() => {
     if (recruit) {
       setFormData({
@@ -132,11 +132,11 @@ const RecruitmentForm = () => {
     }));
   };
   const handleSubmit = () => {
-    const errors = validateRecruitForm(formData);
-    if (errors.length > 0) {
-      setErrorModal({visible: true, title: errors[0], buttonText: '확인'});
-      return;
-    }
+    // const errors = validateRecruitForm(formData);
+    // if (errors.length > 0) {
+    //   setErrorModal({visible: true, title: errors[0], buttonText: '확인'});
+    //   return;
+    // }
 
     const payload = {
       ...formData,
@@ -144,6 +144,10 @@ const RecruitmentForm = () => {
       recruitEnd: formData.recruitEnd.toISOString(),
       workStartDate: formData.workStartDate.toISOString(),
       workEndDate: formData.workEndDate.toISOString(),
+      recruitCondition: formData.recruitCondition.map(c => c.title).join(', '),
+      workPart: formData.workPart.join(', '),
+      welfare: formData.welfare.join(', '),
+      location: '제주 서귀포시', //임시 주소
     };
     console.log(formData);
 
@@ -342,6 +346,18 @@ const RecruitmentForm = () => {
                 setModalVisible(prev => ({
                   ...prev,
                   workInfo: false,
+                }))
+              }
+            />
+            {/* 상세 정보 */}
+            <DetailInfoSection
+              handleInputChange={handleInputChange}
+              formData={formData}
+              visible={modalVisible.detailInfo}
+              onClose={() =>
+                setModalVisible(prev => ({
+                  ...prev,
+                  detailInfo: false,
                 }))
               }
             />

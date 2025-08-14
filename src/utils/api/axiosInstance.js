@@ -34,6 +34,7 @@ api.interceptors.request.use(
     const cookie = useUserStore.getState().refreshToken;
     if (cookie) {
       config.headers.Cookie = 'refreshToken=' + cookie;
+      console.log('refreshToken:', cookie);
     }
 
     // ⛳️ STEP 3: 로그 출력

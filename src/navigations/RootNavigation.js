@@ -40,6 +40,9 @@ import {
   MyGuesthouseEdit,
   MyGuesthouseDetail,
   MyGuesthouseReservationStatus,
+  MyRecruitmentList,
+  RecruitmentForm,
+  MyRecruitmentDetail,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -59,9 +62,15 @@ const RootNavigation = () => (
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
       <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
-      <Stack.Screen name="GuesthouseReservation" component={GuesthouseReservation} />
+      <Stack.Screen
+        name="GuesthouseReservation"
+        component={GuesthouseReservation}
+      />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
-      <Stack.Screen name="GuesthousePaymentSuccess" component={GuesthousePaymentSuccess} />
+      <Stack.Screen
+        name="GuesthousePaymentSuccess"
+        component={GuesthousePaymentSuccess}
+      />
 
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
@@ -84,13 +93,25 @@ const RootNavigation = () => (
       <Stack.Screen name="Result" component={Result} />
 
       {/* 유저 마이페이지 하단바 없는 화면 */}
-      <Stack.Screen name="UserGuesthouseReviewForm" component={UserGuesthouseReviewForm} />
+      <Stack.Screen
+        name="UserGuesthouseReviewForm"
+        component={UserGuesthouseReviewForm}
+      />
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
-      <Stack.Screen name="MyGuesthouseReservationStatus" component={MyGuesthouseReservationStatus} />
+      <Stack.Screen
+        name="MyGuesthouseReservationStatus"
+        component={MyGuesthouseReservationStatus}
+      />
+      <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
+      <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
+      <Stack.Screen
+        name="MyRecruitmentDetail"
+        component={MyRecruitmentDetail}
+      />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />

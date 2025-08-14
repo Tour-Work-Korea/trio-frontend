@@ -1,25 +1,87 @@
-import React from 'react';
-import {View, Text, TextInput} from 'react-native';
+import React, {useState} from 'react';
+import {View, Text, TextInput, Modal, TouchableOpacity} from 'react-native';
 import styles from './RecruitmentForm';
+import ButtonScarlet from '@components/ButtonScarlet';
+import XBtn from '@assets/images/x_gray.svg';
+import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
-export default function DetailInfoSection({formData, handleInputChange}) {
+export default function DetailInfoSection({
+  handleInputChange,
+  formData,
+  visible,
+  onClose,
+}) {
+  const [recruitDetail, setRecruitDetail] = useState(formData.recruitDetail);
   return (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>상세 소개글</Text>
-      <View style={styles.divider} />
+    <Modal visible={visible} animationType="slide" transparent>
+      <View style={styles.overlay}>
+        <View style={styles.container}>
+          {/* 헤더 */}
+          <View style={styles.header}>
+            <View />
+            <Text style={[FONTS.fs_20_semibold]}>공고 요약</Text>
+            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+              <XBtn width={24} height={24} />
+            </TouchableOpacity>
+          </View>
 
-      <View style={styles.formGroup}>
-        <TextInput
-          style={styles.textArea}
-          placeholder="공고에 대한 상세 정보를 입력해주세요."
-          placeholderTextColor={COLORS.grayscale_400}
-          multiline={true}
-          numberOfLines={4}
-          value={formData.recruitDetail}
-          onChangeText={text => handleInputChange('recruitDetail', text)}
-        />
+          <View style={{gap: 4}}>
+            <Text
+              style={{
+                color: COLORS.grayscale_900,
+                ...FONTS.fs_16_medium,
+              }}>
+              알바공고 상세정보를 자유롭게 작성해주세요
+            </Text>
+            <Text
+              style={{
+                ...FONTS.fs_12_medium,
+                color: COLORS.grayscale_400,
+                textAlign: 'right',
+              }}>
+              <Text style={{color: COLORS.primary_orange}}>
+                {recruitDetail?.length?.toLocaleString()}
+              </Text>
+              /5,000
+            </Text>
+            <TextInput
+              style={styles.textArea}
+              placeholder="🏡 막내네 게스트하우스에서 스탭을 모집합니다!
+안녕하세요 :)막내네 게스트하우스는 여행자들이 편히 쉬고, 사람들과 자연스럽게 어울릴 수 있는 공간을 만들고자 노력하는 숙소입니다."
+              placeholderTextColor={COLORS.grayscale_400}
+              multiline={true}
+              maxLength={5000}
+              value={recruitDetail}
+              onChangeText={setRecruitDetail}
+            />
+
+            <TouchableOpacity onPress={() => setRecruitDetail('')}>
+              <Text
+                style={{
+                  textAlign: 'right',
+                  color: COLORS.grayscale_500,
+                  ...FONTS.fs_12_medium,
+                }}>
+                다시쓰기
+              </Text>
+            </TouchableOpacity>
+          </View>
+
+          {/* 하단 버튼 */}
+          <View style={styles.sticky}>
+            <View style={styles.confirmButton}>
+              <ButtonScarlet
+                title="적용하기"
+                onPress={() => {
+                  handleInputChange('recruitDetail', recruitDetail);
+                  onClose();
+                }}
+              />
+            </View>
+          </View>
+        </View>
       </View>
-    </View>
+    </Modal>
   );
 }

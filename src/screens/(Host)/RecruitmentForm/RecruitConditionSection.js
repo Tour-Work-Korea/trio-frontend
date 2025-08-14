@@ -87,22 +87,6 @@ export default function RecruitConditionSection({
                       </Text>
                       <Calendar />
                     </TouchableOpacity>
-                    {showRecruitStart && (
-                      <DateTimePicker
-                        value={formData.recruitStart ?? new Date()}
-                        mode="date"
-                        display={
-                          Platform.OS === 'android' ? 'calendar' : 'default'
-                        }
-                        preferredDatePickerStyle={
-                          Platform.OS === 'ios' ? 'inline' : undefined
-                        }
-                        onChange={(event, date) => {
-                          setShowRecruitStart(false);
-                          if (date) handleInputChange('recruitStart', date);
-                        }}
-                      />
-                    )}
 
                     <TouchableOpacity
                       style={styles.dateInput}
@@ -122,23 +106,25 @@ export default function RecruitConditionSection({
                       </Text>
                       <Calendar />
                     </TouchableOpacity>
-                    {showRecruitEnd && (
-                      <DateTimePicker
-                        value={formData.recruitEnd ?? new Date()}
-                        mode="date"
-                        display={
-                          Platform.OS === 'android' ? 'calendar' : 'default'
-                        }
-                        preferredDatePickerStyle={
-                          Platform.OS === 'ios' ? 'inline' : undefined
-                        }
-                        onChange={(event, date) => {
-                          setShowRecruitEnd(false);
-                          if (date) handleInputChange('recruitEnd', date);
-                        }}
-                      />
-                    )}
                   </View>
+                  {showRecruitStart && (
+                    <DatePicker
+                      value={formData.recruitStart ?? new Date()}
+                      onChange={date => {
+                        setShowRecruitStart(false);
+                        if (date) handleInputChange('recruitStart', date);
+                      }}
+                    />
+                  )}
+                  {showRecruitEnd && (
+                    <DatePicker
+                      value={formData.recruitEnd ?? new Date()}
+                      onChange={date => {
+                        setShowRecruitEnd(false);
+                        if (date) handleInputChange('recruitEnd', date);
+                      }}
+                    />
+                  )}
                 </View>
                 {/* 모집인원 */}
                 <View>
