@@ -50,6 +50,7 @@ import {
   HostEditProfile,
   ApplicantList,
   EditProfileFieldScreen,
+  ApplicantListByRecruit,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -131,6 +132,10 @@ const RootNavigation = () => (
         component={MyRecruitmentDetail}
       />
       <Stack.Screen name="ApplicantList" component={ApplicantList} />
+      <Stack.Screen
+        name="ApplicantListByRecruit"
+        component={ApplicantListByRecruit}
+      />
 
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />

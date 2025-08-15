@@ -31,6 +31,8 @@ export default StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 12,
   },
   postingCard: {
     backgroundColor: COLORS.grayscale_0,

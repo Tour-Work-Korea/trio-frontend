@@ -124,7 +124,10 @@ const MyApplicantList = () => {
         </TouchableOpacity>
         <TouchableOpacity
           onPress={() =>
-            navigation.navigate('ResumeDetail', {id: item.resumeId})
+            navigation.navigate('ResumeDetail', {
+              id: item.resumeId,
+              headerTitle: '나의 이력서',
+            })
           }>
           <Text
             style={{

@@ -22,6 +22,10 @@ const hostEmployApi = {
   //지원서 전체 조회
   getAllApplicants: () => api.get('/host/recruits/applications'),
 
+  //공고별 지원서 조회
+  getApplicantsByRecruit: recruitId =>
+    api.get(`/host/recruits/applications/recruit/${recruitId}`),
+
   //지원서 상세 조회
   getApplicantDetail: applicantId =>
     api.get(`/host/recruits/application/detail/${applicantId}`),

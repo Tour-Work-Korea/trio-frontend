@@ -52,7 +52,6 @@ export {default as FindId} from './(Common)/Login/FindId';
 export {default as FindPassword} from './(Common)/Login/FindPassword';
 
 // (Host)
-export {default as ApplicantList} from './(Host)/ApplicantList';
 
 // 마이 페이지
 export {default as HostMyPage} from './(Host)/HostMyPage';
@@ -73,8 +72,10 @@ export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGu
 //
 export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
-//
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';
+export {default as ApplicantList} from './(Host)/ApplicantList';
+export {default as ApplicantListByRecruit} from './(Host)/ApplicantListByRecruit';
+
 //
 export {default as StoreRegister} from './(Host)/StoreRegister';
 export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegisterForm';
@@ -86,7 +87,6 @@ export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
-
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필

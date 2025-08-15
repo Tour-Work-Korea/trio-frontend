@@ -15,7 +15,7 @@ import styles from './RecruitmentForm';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {useNavigation, useRoute} from '@react-navigation/native';
-import {validateRecruitForm} from '@utils/validation/recruitmentFormValidation';
+import {computeValidSections} from '@utils/validation/recruitmentFormValidation';
 
 import RecruitConditionSection from './RecruitConditionSection';
 import WorkConditionSection from './WorkConditionSection';
@@ -89,14 +89,13 @@ const RecruitmentForm = () => {
     workInfo: false, //근무지 정보
     detailInfo: false, //상세 정보
   });
-  // const isAllValid = useMemo(
-  //   () => Object.values(valid).every(Boolean),
-  //   [valid],
-  // );
-  const isAllValid = true;
+  const isAllValid = useMemo(
+    () => Object.values(valid).every(Boolean),
+    [valid],
+  );
 
   useEffect(() => {
-    console.log(formData);
+    setValid(computeValidSections(formData));
   }, [formData]);
 
   useEffect(() => {

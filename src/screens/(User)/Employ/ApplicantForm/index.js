@@ -88,7 +88,11 @@ const ApplicantForm = () => {
   };
 
   const handleEditResume = id => {
-    navigation.navigate('ResumeDetail', {id, isEditable: true});
+    navigation.navigate('ResumeDetail', {
+      id,
+      isEditable: true,
+      headerTitle: '이력서 수정',
+    });
   };
 
   const handleDateChange = (event, selectedDate, dateField) => {

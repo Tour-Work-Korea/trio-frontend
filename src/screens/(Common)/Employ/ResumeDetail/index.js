@@ -27,6 +27,7 @@ const ResumeDetail = () => {
     isEditable = false,
     role = 'USER',
     isNew = false,
+    headerTitle = '이력서 수정',
   } = route.params || {};
   const [originalInfo, setOriginalInfo] = useState();
   const [formData, setFormData] = useState({
@@ -127,7 +128,7 @@ const ResumeDetail = () => {
 
   return (
     <View style={styles.container}>
-      <Header title={id == null ? '이력서 작성' : '이력서 수정'} />
+      <Header title={headerTitle} />
       {newResumeSuccess ? (
         <EmptyState
           icon={EmploySuccessIcon}

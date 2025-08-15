@@ -1,44 +1,104 @@
-// 각 필드 유효성 검사 함수
-export const isValidString = value =>
-  typeof value === 'string' && value.trim().length > 0;
-export const isValidNumber = value =>
-  typeof value === 'number' && !isNaN(value);
-export const isValidDate = date =>
-  date instanceof Date && !isNaN(date.getTime());
-export const isValidImageArray = arr => Array.isArray(arr) && arr.length > 0;
-export const isValidHashtagArray = arr =>
-  Array.isArray(arr) && arr.length > 0 && arr.length <= 3;
-export const isValidAgeRange = (min, max) =>
-  isValidNumber(min) && isValidNumber(max) && min <= max;
+// 문자열: 공백 제거 후 비어있지 않은지
+const isNonEmpty = v => typeof v === 'string' && v.trim().length > 0;
 
-// 전체 폼 유효성 검사
-export const validateRecruitForm = form => {
-  const errors = [];
+// 숫자: 문자열이어도 숫자로 파싱해서 검증
+const toNum = v =>
+  v === '' || v === null || v === undefined ? NaN : Number(v);
+const isFiniteNum = v => Number.isFinite(toNum(v));
 
-  if (!isValidString(form.recruitTitle))
-    errors.push('공고 제목을 입력해주세요.');
-  if (!isValidString(form.recruitShortDescription))
-    errors.push('공고 소개를 입력해주세요.');
-  if (!isValidDate(form.recruitStart) || !isValidDate(form.recruitEnd))
-    errors.push('모집 시작일과 종료일을 모두 선택해주세요.');
-  if (!isValidDate(form.workStartDate) || !isValidDate(form.workEndDate))
-    errors.push('근무 시작일과 종료일을 모두 선택해주세요.');
-  if (
-    !isValidNumber(form.recruitNumberMale) &&
-    !isValidNumber(form.recruitNumberFemale)
-  )
-    errors.push('모집 인원을 입력해주세요.');
-  if (!isValidAgeRange(form.recruitMinAge, form.recruitMaxAge))
-    errors.push('올바른 나이 범위를 입력해주세요.');
-  if (!isValidString(form.location)) errors.push('근무 지역을 입력해주세요.');
-  if (!isValidString(form.workType)) errors.push('근무 형태를 입력해주세요.');
-  if (!isValidString(form.workPart)) errors.push('주요 업무를 입력해주세요.');
-  if (!isValidString(form.recruitDetail))
-    errors.push('상세 소개를 입력해주세요.');
-  if (!isValidHashtagArray(form.hashtags))
-    errors.push('태그는 1개 이상, 3개 이하로 선택해주세요.');
-  if (!isValidNumber(form.guesthouseId))
-    errors.push('게스트하우스를 선택해주세요.');
+// 날짜: Date 객체이거나 ISO 문자열이어도 허용
+const toDate = v => (v instanceof Date ? v : v ? new Date(v) : null);
+const isValidDate = v => {
+  const d = toDate(v);
+  return d instanceof Date && !isNaN(d.getTime());
+};
+const isDateOrder = (start, end) =>
+  isValidDate(start) && isValidDate(end) && toDate(start) <= toDate(end);
 
-  return errors;
+// 배열: 최소 1개 이상 (← 기존 length >= 0 버그 수정)
+const hasItems = arr => Array.isArray(arr) && arr.length > 0;
+
+export const computeValidSections = data => {
+  const {
+    recruitTitle,
+    recruitShortDescription,
+    recruitStart,
+    recruitEnd,
+    recruitNumberMale,
+    recruitNumberFemale,
+    recruitCondition, // [{id, title}] 배열 가정
+    recruitMinAge,
+    recruitMaxAge,
+    workType,
+    workStartDate,
+    workEndDate,
+    workPart, // ['예약 관리', ...]
+    welfare, // ['식사 제공', ...]
+    location,
+    recruitImage, // [{recruitImageUrl, isThumbnail}]
+    recruitDetail,
+    guesthouseId,
+  } = data;
+
+  // 숫자 강제 파싱 (TextInput에서 온 문자열도 처리)
+  const male = toNum(recruitNumberMale);
+  const female = toNum(recruitNumberFemale);
+  const minAge = toNum(recruitMinAge);
+  const maxAge = toNum(recruitMaxAge);
+
+  // --- 섹션별 ---
+  const title = isNonEmpty(recruitTitle);
+  const guesthouse = Number.isInteger(guesthouseId) && guesthouseId > 0;
+  const shortDescription = isNonEmpty(recruitShortDescription);
+
+  // "모집 조건"
+  const headcountOk =
+    isFiniteNum(male) &&
+    male >= 0 &&
+    isFiniteNum(female) &&
+    female >= 0 &&
+    // 최소 1명 이상 조건을 원하면 아래 한 줄 추가:
+    male + female > 0;
+
+  const ageOk =
+    isFiniteNum(minAge) &&
+    isFiniteNum(maxAge) &&
+    minAge >= 0 &&
+    maxAge >= 0 &&
+    minAge <= maxAge;
+
+  const conditionTagsOk = hasItems(recruitCondition); // 최소 1개
+
+  const recruitConditionValid =
+    isValidDate(recruitStart) &&
+    isValidDate(recruitEnd) &&
+    isDateOrder(recruitStart, recruitEnd) &&
+    headcountOk &&
+    ageOk &&
+    conditionTagsOk;
+
+  // "근무 조건"
+  const workConditionValid =
+    isNonEmpty(workType) &&
+    isValidDate(workStartDate) &&
+    isValidDate(workEndDate) &&
+    isDateOrder(workStartDate, workEndDate) &&
+    hasItems(workPart) &&
+    hasItems(welfare);
+
+  // "근무지 정보" (썸네일 필수면 some(img => img?.isThumbnail) 추가)
+  const workInfoValid = hasItems(recruitImage); //isNonEmpty(location) &&
+
+  // "상세 정보"
+  const detailInfo = isNonEmpty(recruitDetail);
+
+  return {
+    title,
+    guesthouse,
+    shortDescription,
+    recruitCondition: recruitConditionValid,
+    workCondition: workConditionValid,
+    workInfo: workInfoValid,
+    detailInfo,
+  };
 };

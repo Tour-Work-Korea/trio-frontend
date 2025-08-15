@@ -96,6 +96,7 @@ const MyResumeList = () => {
           onPress={() => {
             navigation.navigate('ResumeDetail', {
               id: item.resumeId,
+              headerTitle: '나의 이력서',
             });
           }}>
           <View style={styles.resumeMiddleSection}>
@@ -121,6 +122,7 @@ const MyResumeList = () => {
                     navigation.navigate('ResumeDetail', {
                       id: item.resumeId,
                       isEditable: true,
+                      headerTitle: '이력서 수정',
                     })
                   }>
                   <EditIcon
@@ -162,6 +164,7 @@ const MyResumeList = () => {
               isEditable: true,
               role: 'USER',
               isNew: true,
+              headerTitle: '이력서 작성',
             })
           }
         />
@@ -175,6 +178,7 @@ const MyResumeList = () => {
                 isEditable: true,
                 role: 'USER',
                 isNew: true,
+                headerTitle: '이력서 작성',
               })
             }
           />
