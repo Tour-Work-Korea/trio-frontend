@@ -85,7 +85,7 @@ export default function RecruitTapSection({recruit}) {
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>복지</Text>
-              <Text style={styles.infoValue}>{recruit.recruitCondition}</Text>
+              <Text style={styles.infoValue}>{recruit.welfare}</Text>
             </View>
           </View>
         );

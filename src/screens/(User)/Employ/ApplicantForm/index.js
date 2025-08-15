@@ -19,7 +19,6 @@ import userEmployApi from '@utils/api/userEmployApi';
 import {checkUserPermission} from '@utils/auth/verifyPermission';
 
 import CalendarIcon from '@assets/images/Calendar.svg';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
 import EditIcon from '@assets/images/edit_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
 import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
@@ -89,7 +88,11 @@ const ApplicantForm = () => {
   };
 
   const handleEditResume = id => {
-    navigation.navigate('ResumeDetail', {id, isEditable: true});
+    navigation.navigate('ResumeDetail', {
+      id,
+      isEditable: true,
+      headerTitle: '이력서 수정',
+    });
   };
 
   const handleDateChange = (event, selectedDate, dateField) => {

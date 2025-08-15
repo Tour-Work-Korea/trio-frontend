@@ -45,8 +45,12 @@ const RecruitCard = ({item, onPress, onToggleFavorite}) => {
             </View>
 
             <View style={styles.jobHeader}>
-              <Text style={styles.jobSmall}>{item.address}</Text>
-              <Text style={styles.jobSmall}>{item.workDate}</Text>
+              <Text style={styles.jobSmall}>
+                {item.address ?? item.recruitAddress}
+              </Text>
+              <Text style={styles.jobSmall}>
+                {item.workDate ?? item.workPeriod}
+              </Text>
             </View>
           </View>
         </View>

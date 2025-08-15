@@ -1,18 +1,21 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Modal, TouchableOpacity} from 'react-native';
+import {View, Text, Modal, TouchableOpacity, TextInput} from 'react-native';
 import styles from './RecruitmentForm';
+
 import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
-export default function DetailInfoSection({
+const ShortDescriptionModal = ({
   handleInputChange,
   formData,
   visible,
   onClose,
-}) {
-  const [recruitDetail, setRecruitDetail] = useState(formData.recruitDetail);
+}) => {
+  const [shortDescription, setShortDescription] = useState(
+    formData.recruitShortDescription,
+  );
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
@@ -32,7 +35,7 @@ export default function DetailInfoSection({
                 color: COLORS.grayscale_900,
                 ...FONTS.fs_16_medium,
               }}>
-              알바공고 상세정보를 자유롭게 작성해주세요
+              간략하게 들어갈 공고 소개를 작성해주세요
             </Text>
             <Text
               style={{
@@ -41,22 +44,20 @@ export default function DetailInfoSection({
                 textAlign: 'right',
               }}>
               <Text style={{color: COLORS.primary_orange}}>
-                {recruitDetail?.length?.toLocaleString()}
+                {shortDescription?.length?.toLocaleString()}
               </Text>
-              /5,000
+              /1,000
             </Text>
             <TextInput
               style={styles.textArea}
-              placeholder="🏡 막내네 게스트하우스에서 스탭을 모집합니다!
-안녕하세요 :)막내네 게스트하우스는 여행자들이 편히 쉬고, 사람들과 자연스럽게 어울릴 수 있는 공간을 만들고자 노력하는 숙소입니다."
+              placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람을 구해요."
               placeholderTextColor={COLORS.grayscale_400}
               multiline={true}
-              maxLength={5000}
-              value={recruitDetail}
-              onChangeText={setRecruitDetail}
+              maxLength={1000}
+              value={shortDescription}
+              onChangeText={setShortDescription}
             />
-
-            <TouchableOpacity onPress={() => setRecruitDetail('')}>
+            <TouchableOpacity onPress={() => setShortDescription('')}>
               <Text
                 style={{
                   textAlign: 'right',
@@ -74,7 +75,10 @@ export default function DetailInfoSection({
               <ButtonScarlet
                 title="적용하기"
                 onPress={() => {
-                  handleInputChange('recruitDetail', recruitDetail);
+                  handleInputChange(
+                    'recruitShortDescription',
+                    shortDescription,
+                  );
                   onClose();
                 }}
               />
@@ -84,4 +88,6 @@ export default function DetailInfoSection({
       </View>
     </Modal>
   );
-}
+};
+
+export default ShortDescriptionModal;

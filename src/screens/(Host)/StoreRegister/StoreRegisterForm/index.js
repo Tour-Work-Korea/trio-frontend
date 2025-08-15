@@ -44,10 +44,6 @@ const StoreRegister = () => {
     buttonText: '확인',
   });
 
-  useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
   const handleInputChange = (field, value) => {
     setFormData({
       ...formData,

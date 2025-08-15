@@ -31,6 +31,8 @@ export default StyleSheet.create({
     flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 20,
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 12,
   },
   postingCard: {
     backgroundColor: COLORS.grayscale_0,
@@ -75,5 +77,22 @@ export default StyleSheet.create({
     borderRadius: 100,
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary_orange,
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  addButtonLocation: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  addButtonText: {
+    color: COLORS.grayscale_0,
+    marginRight: 10,
   },
 });
