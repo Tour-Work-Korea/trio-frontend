@@ -143,11 +143,6 @@ const HostMyPage = () => {
               }}
             />
           </View>
-          <TouchableOpacity style={styles.deleteAccount}>
-            <Text style={[FONTS.fs_14_medium, styles.deleteAccountText]}>
-              탈퇴하기
-            </Text>
-          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>
