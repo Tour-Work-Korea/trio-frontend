@@ -51,6 +51,8 @@ import {
   ApplicantList,
   EditProfileFieldScreen,
   ApplicantListByRecruit,
+  Setting,
+  Terms,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -70,6 +72,9 @@ const RootNavigation = () => (
       <Stack.Screen name="MainTabs" component={BottomTabs} />
       {/* navigation.navigate('MainTabs', { screen: '홈' }); 이런식으로 사용하면 하단탭 보이게 이동됨 */}
       {/* 화면 이름은 bottomtabs에 index파일 안에 있음 */}
+
+      <Stack.Screen name="Setting" component={Setting} />
+      <Stack.Screen name="Terms" component={Terms} />
 
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />

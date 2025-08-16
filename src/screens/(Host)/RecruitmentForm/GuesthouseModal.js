@@ -57,7 +57,7 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
         <View style={ghStyle.ghThumbWrap}>
           <Image
             source={{
-              uri: 'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1754983680537_129464.jpg',
+              uri: item?.thumbnailImg,
             }}
             width={80}
             height={80}
@@ -72,7 +72,7 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
             {item.guesthouseName}
           </Text>
           <Text style={{...FONTS.fs_12_medium, color: COLORS.grayscale_500}}>
-            주소
+            {item?.guesthouseAddress}
           </Text>
         </View>
       </View>
