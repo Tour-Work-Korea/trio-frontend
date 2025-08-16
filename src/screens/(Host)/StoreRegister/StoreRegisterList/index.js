@@ -7,10 +7,12 @@ import Header from '@components/Header';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {FONTS} from '@constants/fonts';
-import {formatDate} from '@utils/formatDate';
-import {useFocusEffect} from '@react-navigation/native';
+import PlusIcon from '@assets/images/plus_white.svg';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {COLORS} from '@constants/colors';
 
 const StoreRegisterList = () => {
+  const navigation = useNavigation();
   const [storeRegisters, setStoreRegisters] = useState([]);
   useFocusEffect(
     useCallback(() => {
@@ -32,16 +34,26 @@ const StoreRegisterList = () => {
     <View style={styles.postingCard}>
       <TouchableOpacity style={styles.jobItemContent}>
         <View style={styles.titleRow}>
-          <Text style={FONTS.fs_16_semibold} numberOfLines={1}>
+          <Text
+            style={[{...FONTS.fs_14_medium, color: COLORS.grayscale_800}]}
+            numberOfLines={1}>
             {item.businessName}
           </Text>
-          <Text style={styles.detailText}>{formatDate(item.createdAt)}</Text>
+          <Text style={styles.detailText}>{item.address}</Text>
         </View>
-        <Text style={styles.detailText}>{item.address}</Text>
-        <View style={{flexDirection: 'row', justifyContent: 'space-between'}}>
-          <Text style={styles.detailText}>{item.managerName}</Text>
-          <Text style={styles.detailText}>{item.managerEmail}</Text>
-        </View>
+
+        <Text
+          style={{
+            ...FONTS.fs_14_semibold,
+            color:
+              item.status !== '승인 완료'
+                ? COLORS.primary_orange
+                : COLORS.grayscale_400,
+          }}>
+          {item.status === '승인 완료'
+            ? '입점이 완료된 상태예요'
+            : '입점 신청 중이에요!'}
+        </Text>
       </TouchableOpacity>
     </View>
   );
@@ -49,16 +61,21 @@ const StoreRegisterList = () => {
   return (
     <View style={styles.container}>
       <Header title="나의 입점신청서" />
-      <View style={{paddingHorizontal: 20, paddingTop: 12}}>
-        <ButtonScarlet title={'입점신청하기'} to={'StoreRegisterForm'} />
-
+      <View style={{paddingHorizontal: 20, paddingTop: 12, flex: 1}}>
         <FlatList
-          style={{marginTop: 20}}
           data={storeRegisters}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
         />
+        <TouchableOpacity
+          style={[styles.addButton, styles.addButtonLocation]}
+          onPress={() => navigation.navigate('StoreRegisterForm')}>
+          <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+            입점 신청하기
+          </Text>
+          <PlusIcon width={24} height={24} />
+        </TouchableOpacity>
       </View>
     </View>
   );

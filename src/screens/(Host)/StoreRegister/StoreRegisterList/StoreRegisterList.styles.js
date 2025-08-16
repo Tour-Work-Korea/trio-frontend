@@ -19,27 +19,18 @@ export default StyleSheet.create({
 
   postingCard: {
     backgroundColor: 'white',
-    borderRadius: 10,
-    padding: 20,
-    marginBottom: 15,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 8,
   },
-  guestHouseTag: {
-    backgroundColor: COLORS.light_gray,
-    alignSelf: 'flex-start',
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 15,
+
+  titleRow: {
     marginBottom: 10,
   },
-  titleRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
   detailText: {
-    ...FONTS.fs_14_medium,
-    color: COLORS.grayscale_600,
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
   },
   iconsContainer: {
     flexDirection: 'row',
@@ -61,5 +52,22 @@ export default StyleSheet.create({
   },
   date: {
     color: COLORS.gray,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary_orange,
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  addButtonLocation: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  addButtonText: {
+    color: COLORS.grayscale_0,
+    marginRight: 10,
   },
 });
