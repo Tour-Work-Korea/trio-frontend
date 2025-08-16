@@ -4,7 +4,7 @@ import {COLORS} from '@constants/colors';
 export default StyleSheet.create({
   outContainer: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_100,
+
     paddingHorizontal: 20,
   },
   // 헤더

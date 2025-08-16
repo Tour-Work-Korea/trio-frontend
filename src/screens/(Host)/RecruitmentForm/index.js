@@ -254,11 +254,11 @@ const RecruitmentForm = () => {
               모든 항목을 입력하셔야 등록이 완료됩니다
             </Text>
             <View style={[styles.buttonLocation, styles.buttonContainer]}>
-              <TouchableOpacity style={[styles.addButton]}>
+              {/*<TouchableOpacity style={[styles.addButton]}>
                 <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
                   임시저장
                 </Text>
-              </TouchableOpacity>
+              </TouchableOpacity>*/}
               <TouchableOpacity
                 style={[
                   styles.addButton,
