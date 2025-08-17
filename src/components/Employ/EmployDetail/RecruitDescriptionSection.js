@@ -17,6 +17,7 @@ const styles = StyleSheet.create({
   detailSection: {
     flexDirection: 'column',
     gap: 12,
+    marginBottom: 20,
   },
   detailTitle: {
     ...FONTS.fs_18_semibold,

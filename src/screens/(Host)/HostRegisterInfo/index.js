@@ -395,13 +395,7 @@ const HostRegisterInfo = ({route}) => {
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
-          onPress={() => {
-            if (errorModal.onPress === 'moveToLogin') {
-              navigation.navigate('EXLogin');
-            } else {
-              setErrorModal(prev => ({...prev, visible: false}));
-            }
-          }}
+          onPress={errorModal.onPress}
         />
       </View>
     </TouchableWithoutFeedback>

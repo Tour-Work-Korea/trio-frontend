@@ -87,7 +87,7 @@ const GuesthouseRulesModal = ({ visible, onClose, onSelect, shouldResetOnClose }
       <KeyboardAvoidingView
         style={{ flex: 1 }}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -200 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -220 : 0}
       >
       <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>
@@ -127,7 +127,7 @@ const GuesthouseRulesModal = ({ visible, onClose, onSelect, shouldResetOnClose }
                 placeholderTextColor={COLORS.grayscale_400}
                 value={text}
                 onChangeText={setText}
-                scrollEnabled={false}
+                scrollEnabled={true}
                 textAlignVertical="top"
               />
 
@@ -203,7 +203,7 @@ const styles = StyleSheet.create({
     padding: 12,
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
-    minHeight: 400,
+    height: 400,
   },
 
   rewriteText: {

@@ -16,6 +16,8 @@ import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {tryLogout} from '@utils/auth/login';
+import Header from '@components/Header';
+import {COLORS} from '@constants/colors';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
@@ -28,124 +30,122 @@ const HostMyPage = () => {
   };
 
   return (
-    <ScrollView style={styles.outContainer}>
-      <Text style={[FONTS.fs_20_semibold, styles.headerText]}>마이페이지</Text>
+    <View style={{flex: 1, backgroundColor: COLORS.grayscale_100}}>
+      <Header title={'마이페이지'} isSetting={true} />
+      <ScrollView style={styles.outContainer}>
+        <View style={styles.container}>
+          {/* 사장 프로필 */}
+          <View style={styles.userInfoContainer}>
+            <View style={styles.profileHeader}>
+              <Text style={[FONTS.fs_16_semibold, styles.name]}>
+                {host.name}
+              </Text>
+              <TouchableOpacity
+                style={styles.profileEdit}
+                onPress={goToEditProfile}>
+                <Text>수정</Text>
+              </TouchableOpacity>
+            </View>
 
-      <View style={styles.container}>
-        {/* 사장 프로필 */}
-        <View style={styles.userInfoContainer}>
-          <View style={styles.profileHeader}>
-            <Text style={[FONTS.fs_16_semibold, styles.name]}>{host.name}</Text>
-            <TouchableOpacity
-              style={styles.profileEdit}
-              onPress={goToEditProfile}>
-              <Text>수정</Text>
-            </TouchableOpacity>
-          </View>
-
-          <View style={styles.profileContainer}>
-            {host.photoUrl ? (
-              <Image
-                source={{uri: host.photoUrl}}
-                style={styles.profileImage}
-              />
-            ) : (
-              <View style={styles.profileImage}>
-                <EmptyImage width={32} height={32} />
-              </View>
-            )}
-            <View style={styles.profilePlaceholder}>
-              <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                  연락처
-                </Text>
-                <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
-                  {host.phone}
-                </Text>
-              </View>
-              <View style={styles.profileText}>
-                <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                  이메일
-                </Text>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.profileContentText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
-                  {host.email}
-                </Text>
+            <View style={styles.profileContainer}>
+              {host.photoUrl ? (
+                <Image
+                  source={{uri: host.photoUrl}}
+                  style={styles.profileImage}
+                />
+              ) : (
+                <View style={styles.profileImage}>
+                  <EmptyImage width={32} height={32} />
+                </View>
+              )}
+              <View style={styles.profilePlaceholder}>
+                <View style={styles.profileText}>
+                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                    연락처
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
+                    {host.phone}
+                  </Text>
+                </View>
+                <View style={styles.profileText}>
+                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
+                    이메일
+                  </Text>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.profileContentText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {host.email}
+                  </Text>
+                </View>
               </View>
             </View>
+          </View>
+
+          <View style={styles.bottomSection}>
+            {/* 숙박 섹션 */}
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                숙박
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={MyGuesthouseIcon}
+                  label="나의 게스트하우스"
+                  onPress={() => navigation.navigate('MyGuesthouseList')}
+                />
+                <MenuItem
+                  IconComponent={GuesthouseReviewIcon}
+                  label="리뷰 관리"
+                  onPress={() => navigation.navigate('MyGuesthouseReview')}
+                />
+                <MenuItem
+                  IconComponent={ReservationCheckIcon}
+                  label="예약 조회"
+                  onPress={() => navigation.navigate('MyGuesthouseReservation')}
+                />
+                <MenuItem
+                  IconComponent={StoreApplyIcon}
+                  label="입점 신청"
+                  onPress={() => navigation.navigate('StoreRegister')}
+                />
+              </View>
+            </View>
+            <View style={styles.devide} />
+            {/* 공고 섹션 */}
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                공고
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={MyPostIcon}
+                  label="나의 공고"
+                  onPress={() => navigation.navigate('MyRecruitmentList')}
+                />
+                <MenuItem
+                  IconComponent={ApplicationCheckIcon}
+                  label="지원서 조회"
+                  onPress={() => navigation.navigate('ApplicantList')}
+                />
+              </View>
+            </View>
+            <View style={styles.devide} />
+
+            <ButtonScarlet
+              title="로그아웃"
+              onPress={async () => {
+                await tryLogout();
+                navigation.reset({
+                  index: 0,
+                  routes: [{name: 'Login'}],
+                });
+              }}
+            />
           </View>
         </View>
-
-        <View style={styles.bottomSection}>
-          {/* 숙박 섹션 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-              숙박
-            </Text>
-            <View style={styles.menuContainer}>
-              <MenuItem
-                IconComponent={MyGuesthouseIcon}
-                label="나의 게스트하우스"
-                onPress={() => navigation.navigate('MyGuesthouseList')}
-              />
-              <MenuItem
-                IconComponent={GuesthouseReviewIcon}
-                label="리뷰 관리"
-                onPress={() => navigation.navigate('MyGuesthouseReview')}
-              />
-              <MenuItem
-                IconComponent={ReservationCheckIcon}
-                label="예약 조회"
-                onPress={() => navigation.navigate('MyGuesthouseReservation')}
-              />
-              <MenuItem
-                IconComponent={StoreApplyIcon}
-                label="입점 신청"
-                onPress={() => navigation.navigate('StoreRegister')}
-              />
-            </View>
-          </View>
-          <View style={styles.devide} />
-          {/* 공고 섹션 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-              공고
-            </Text>
-            <View style={styles.menuContainer}>
-              <MenuItem
-                IconComponent={MyPostIcon}
-                label="나의 공고"
-                onPress={() => navigation.navigate('MyRecruitmentList')}
-              />
-              <MenuItem
-                IconComponent={ApplicationCheckIcon}
-                label="지원서 조회"
-                onPress={() => navigation.navigate('ApplicantList')}
-              />
-            </View>
-          </View>
-          <View style={styles.devide} />
-
-          <ButtonScarlet
-            title="로그아웃"
-            onPress={async () => {
-              await tryLogout();
-              navigation.reset({
-                index: 0,
-                routes: [{name: 'Login'}],
-              });
-            }}
-          />
-        </View>
-        <TouchableOpacity style={styles.deleteAccount}>
-          <Text style={[FONTS.fs_14_medium, styles.deleteAccountText]}>
-            탈퇴하기
-          </Text>
-        </TouchableOpacity>
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 

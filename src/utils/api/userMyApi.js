@@ -30,17 +30,17 @@ const userMyApi = {
     api.post(`/user/reviews/${guesthouseId}`, data),
 
   // 리뷰 삭제
-  deleteReview: reviewId =>
-    api.delete(`/user/reviews/${reviewId}`),
+  deleteReview: reviewId => api.delete(`/user/reviews/${reviewId}`),
 
   //유저 프로필 정보 수정
-  updateMyProfile: async (field, value) => {
-    const config = userFieldMap[field];
-    if (!config) throw new Error('지원하지 않는 필드');
+  // updateMyProfile: async (field, value) => {
+  //   const config = userFieldMap[field];
+  //   if (!config) throw new Error('지원하지 않는 필드');
 
-    const body = {[config.key]: value};
-    return api.put(`/user/my/${config.path}`, body);
-  },
+  //   const body = {[config.key]: value};
+  //   return api.put(`/user/my/${config.path}`, body);
+  // },
+  updateMyProfile: draft => api.put('/user/my', draft),
 };
 
 export default userMyApi;

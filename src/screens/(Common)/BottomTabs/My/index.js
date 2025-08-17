@@ -4,22 +4,12 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   HostMyPage,
   UserMyPage,
-  HostEditProfile,
-  UserEditProfile,
   MyGuesthouseList,
   MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
   ApplicantList,
-  MyRecruitmentDetail,
-  MyRecruitmentList,
-  RecruitmentForm,
-  ApplicantForm,
-  MyApplicantList,
-  MyLikeRecruitList,
-  MyResumeList,
   EditProfileFieldScreen,
-  EmployDetail,
   UserGuesthouseReview,
   MyGuesthouseReservation,
 } from '@screens';
@@ -63,31 +53,28 @@ const My = () => {
       <Stack.Screen name="MyMain" component={MyMainScreen} />
       <Stack.Screen name="HostMyPage" component={HostMyPage} />
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
-      <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
-      <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
-      <Stack.Screen
-        name="EditProfileFieldScreen"
-        component={EditProfileFieldScreen}
-      />
+
       {/* 사장님 게하 */}
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
-      <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
-      <Stack.Screen name="ApplicantList" component={ApplicantList} />
+      <Stack.Screen
+        name="MyGuesthouseReservation"
+        component={MyGuesthouseReservation}
+      />
 
       {/* 유저 게하 */}
-      <Stack.Screen name="UserReservationCheck" component={UserReservationCheck} />
-      <Stack.Screen name="UserFavoriteGuesthouse" component={UserFavoriteGuesthouse} />
-      <Stack.Screen name="UserGuesthouseReview" component={UserGuesthouseReview} />
-      
-      <Stack.Screen name="MyRecruitmentDetail" component={MyRecruitmentDetail} />
-      <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
-      <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
-      <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
-      <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
-      <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
-      <Stack.Screen name="MyResumeList" component={MyResumeList} />
-      <Stack.Screen name="EmployDetail" component={EmployDetail} />
+      <Stack.Screen
+        name="UserReservationCheck"
+        component={UserReservationCheck}
+      />
+      <Stack.Screen
+        name="UserFavoriteGuesthouse"
+        component={UserFavoriteGuesthouse}
+      />
+      <Stack.Screen
+        name="UserGuesthouseReview"
+        component={UserGuesthouseReview}
+      />
     </Stack.Navigator>
   );
 };

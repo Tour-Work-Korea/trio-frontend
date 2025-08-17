@@ -34,6 +34,8 @@ export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPay
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as EditProfileFieldScreen} from './(Common)/EditProfileFieldScreen';
+export {default as Setting} from './(Common)/Setting';
+export {default as Terms} from './(Common)/Setting/Terms';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
@@ -52,7 +54,6 @@ export {default as FindId} from './(Common)/Login/FindId';
 export {default as FindPassword} from './(Common)/Login/FindPassword';
 
 // (Host)
-export {default as ApplicantList} from './(Host)/ApplicantList';
 
 // 마이 페이지
 export {default as HostMyPage} from './(Host)/HostMyPage';
@@ -73,10 +74,14 @@ export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGu
 //
 export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
-//
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';
+export {default as ApplicantList} from './(Host)/ApplicantList';
+export {default as ApplicantListByRecruit} from './(Host)/ApplicantListByRecruit';
+
 //
 export {default as StoreRegister} from './(Host)/StoreRegister';
+export {default as StoreRegisterForm1} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm1';
+export {default as StoreRegisterForm2} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm2';
 export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegisterForm';
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 
@@ -86,7 +91,6 @@ export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
-
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필

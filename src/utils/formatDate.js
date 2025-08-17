@@ -29,7 +29,7 @@ export function formatDateToLocalISOString(date) {
 export const formatLocalDateToDot = localDate => {
   if (!localDate) return '날짜 없음';
   const [year, month, day] = localDate.split('-');
-  return `${year}.${month}.${day}`;
+  return `${year}.${month}.${day.split('T')[0]}`;
 };
 
 /**
@@ -160,7 +160,7 @@ export const parseTimeToLocalTime = time => {
  * LocalTime (hour:minute:second) → "오전/오후 h:mm"
  *  - 예: "15:00:00" → "오후 3:00"
  */
-export const formatLocalTimeToKorean12Hour = (localTime) => {
+export const formatLocalTimeToKorean12Hour = localTime => {
   if (!localTime) return '시간 없음';
   const [hourStr, minuteStr] = localTime.split(':');
   const hour = Number(hourStr);

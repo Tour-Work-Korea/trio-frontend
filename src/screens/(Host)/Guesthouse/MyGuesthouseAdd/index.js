@@ -299,9 +299,9 @@ const MyGuesthouseAdd = () => {
       </View>
 
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.saveButton}>
+        {/* <TouchableOpacity style={styles.saveButton}>
           <Text style={[FONTS.fs_14_medium, styles.saveText]}>임시저장</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
         <TouchableOpacity 
           style={[
             styles.submitButton,

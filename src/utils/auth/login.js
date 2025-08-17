@@ -143,8 +143,17 @@ const updateProfile = async role => {
       });
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
-      const {name, nickname, photoUrl, phone, email, mbti, instagramId} =
-        res.data;
+      const {
+        name,
+        nickname,
+        photoUrl,
+        phone,
+        email,
+        mbti,
+        instagramId,
+        gender,
+        birthDate,
+      } = res.data;
 
       setUserProfile({
         name: name ?? '',
@@ -155,9 +164,31 @@ const updateProfile = async role => {
         email: email ?? '',
         mbti: mbti ?? '',
         instagramId: instagramId ?? '',
+        gender: gender ?? 'F',
+        birthDate: birthDate ?? null,
+        age: calculateAge(birthDate),
       });
     }
   } catch (error) {
     console.warn(`${role} 정보를 가져오는데 실패했습니다.`);
   }
 };
+
+export function calculateAge(birthDateString) {
+  if (!birthDateString) {
+    return '00';
+  }
+  const today = new Date();
+  const birthDate = new Date(birthDateString);
+  let age = today.getFullYear() - birthDate.getFullYear();
+
+  // 생일이 안 지났으면 1살 빼기
+  const monthDiff = today.getMonth() - birthDate.getMonth();
+  if (
+    monthDiff < 0 ||
+    (monthDiff === 0 && today.getDate() < birthDate.getDate())
+  ) {
+    age--;
+  }
+  return age;
+}

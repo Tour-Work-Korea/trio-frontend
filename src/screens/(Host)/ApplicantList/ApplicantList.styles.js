@@ -1,132 +1,98 @@
 import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-
-const styles = StyleSheet.create({
+export default StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_100,
-  },
-  body: {
-    paddingHorizontal: 20,
-    flex: 1,
-  },
-  scrollView: {
-    marginTop: 12,
-    flex: 1,
-  },
-  filterButtonsContainer: {
-    flexDirection: 'row',
-    overflow: 'hidden',
-    paddingVertical: 12,
-  },
-  tagButton: {
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 100,
-    backgroundColor: COLORS.grayscale_100,
-    marginRight: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  selectedFilterButton: {
-    backgroundColor: COLORS.stroke_gray,
-  },
-  tagText: {
-    ...FONTS.fs_body,
-    color: COLORS.primary_blue,
-  },
-  //드롭다운
-  dropdown: {
-    borderRadius: 20,
-    borderColor: COLORS.grayscale_200,
-    paddingHorizontal: 20,
-  },
-
-  //지원 아이템
-  applicantCard: {
-    backgroundColor: COLORS.white,
-    borderRadius: 8,
-    paddingHorizontal: 20,
-    paddingVertical: 12,
-    gap: 12,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  tagContainer: {
-    flexDirection: 'row',
-  },
-  tag: {
     backgroundColor: COLORS.light_gray,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
   },
-  applicantInfo: {
-    flexDirection: 'row',
-  },
-  profileImageContainer: {
-    alignItems: 'center',
-    marginRight: 16,
-  },
-  profileImage: {
-    width: 60,
-    height: 60,
-    borderRadius: 8,
-  },
-  nameText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
-    textAlign: 'center',
-  },
-  genderAgeText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-    textAlign: 'center',
-  },
-  detailsContainer: {
+  //공고 없는 경우
+  emptyContainer: {
     flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 40,
   },
-  introductionText: {
-    ...FONTS.fs_14_medium,
-    color: COLORS.primary_orange,
-    marginBottom: 8,
+  textContainer: {
+    alignItems: 'center',
   },
-  tagsRow: {
-    flexDirection: 'row',
+  emptyTitle: {
+    ...FONTS.fs_18_semibold,
+    color: COLORS.grayscale_500,
     marginBottom: 12,
   },
-  hashTag: {
-    ...FONTS.fs_12_medium,
-    color: COLORS.primary_blue,
-    backgroundColor: COLORS.light_gray,
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 20,
-    marginRight: 8,
+  emptySubTitle: {
+    ...FONTS.fs_18_regular,
+    color: COLORS.grayscale_500,
   },
-  infoRow: {
-    flexDirection: 'row',
+
+  //본문
+  body: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingBottom: 20,
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 12,
+  },
+  postingCard: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 12,
+    marginBottom: 8,
+  },
+  guestHouseText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_600,
     marginBottom: 4,
   },
-  infoLabel: {...FONTS.fs_14_medium, color: COLORS.grayscale_400, width: 80},
-  infoValue: {
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    overflow: 'visible',
+  },
+  title: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,
     flex: 1,
+    minWidth: 0,
+    marginRight: 8,
   },
-  careerYears: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.scarlet,
-    marginTop: 8,
+  iconsContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    flexShrink: 0,
   },
-  separator: {
-    height: 8,
+  icon: {
+    width: 24,
+    height: 24,
+    color: COLORS.grayscale_500,
+  },
+  deleteButton: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_800,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary_orange,
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  addButtonLocation: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  addButtonText: {
+    color: COLORS.grayscale_0,
+    marginRight: 10,
   },
 });
-
-export default styles;

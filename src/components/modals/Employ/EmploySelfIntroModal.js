@@ -118,6 +118,7 @@ const styles = StyleSheet.create({
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_900,
     textAlignVertical: 'top', // 멀티라인 입력 시 위 정렬
+    maxHeight: 450,
   },
   header: {
     flexDirection: 'row',
