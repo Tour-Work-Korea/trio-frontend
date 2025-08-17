@@ -36,7 +36,7 @@ const MyMainScreen = ({navigation}) => {
         [
           {
             text: '확인',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('Login'),
           },
         ],
         {cancelable: false},
