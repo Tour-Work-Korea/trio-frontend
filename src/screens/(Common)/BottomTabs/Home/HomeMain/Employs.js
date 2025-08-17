@@ -26,7 +26,7 @@ export default function Employs({jobs, setEmployList}) {
         <TouchableOpacity
           style={styles.seeMoreButton}
           onPress={() => {
-            navigation.navigate('EmployIntro');
+            navigation.navigate('MainTabs', {screen: '채용'});
           }}>
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />

@@ -53,18 +53,15 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <>
-        <SafeAreaView
-          edges={['top']}
-          style={styles.container}
-        >
-        <StatusBar
-          barStyle="light-content"
-          backgroundColor={COLORS.grayscale_0}
-        />
-        <RootNavigation />
-        <DeeplinkHandler />
-      </SafeAreaView>
-      <Toast config={toastConfig} />
+        <SafeAreaView edges={['top']} style={styles.container}>
+          <StatusBar
+            barStyle="light-content"
+            backgroundColor={COLORS.grayscale_0}
+          />
+          <RootNavigation />
+          <DeeplinkHandler />
+        </SafeAreaView>
+        <Toast config={toastConfig} />
       </>
     </SafeAreaProvider>
   );
