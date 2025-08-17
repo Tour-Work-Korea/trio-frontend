@@ -53,7 +53,12 @@ const App = () => {
   return (
     <SafeAreaProvider>
       <>
-        <SafeAreaView edges={['top']} style={styles.container}>
+        <StatusBar
+          translucent
+          backgroundColor="transparent"
+          barStyle="light-content"
+        />
+        <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
           <StatusBar
             barStyle="light-content"
             backgroundColor={COLORS.grayscale_0}
