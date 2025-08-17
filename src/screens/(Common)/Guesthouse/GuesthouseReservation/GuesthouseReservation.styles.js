@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   },
   button: {
     marginHorizontal: 20,
-    marginBottom: 12,
+    marginBottom: 40,
   },
 });
 
