@@ -15,26 +15,6 @@ import {COLORS} from '@constants/colors';
 
 // 이미지 크게 보기 모달
 // ex) 공고 상세에서 이미지 모달
-/** RecruitTapSection의 사용 예시
- *  <ImageModal
-         visible={imageModalVisible}
-         title="사진 미리보기"
-         images={[
-           {
-             id: 0,
-             imageUrl:
-               'https://images.unsplash.com/photo-1682685796002-e05458d61f07?q=80&w=1171&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDF8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-           },
-           {
-             id: 1,
-             imageUrl:
-               'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1752571419088_935096.jpg',
-           },
-         ]}
-         selectedImageIndex={selectedImageId}
-         onClose={() => setImageModalVisible(false)}
-       />
- */
 
 const screenWidth = Dimensions.get('window').width;
 const imageSize = screenWidth * 0.8 - 40; // 80% 너비에서 패딩 20*2 제외
