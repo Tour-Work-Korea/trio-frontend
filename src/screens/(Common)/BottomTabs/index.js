@@ -91,6 +91,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingTop: 24,
     paddingHorizontal: 36,
+    paddingBottom: 80,
   },
   iconWrapper: {
     alignItems: 'center',
