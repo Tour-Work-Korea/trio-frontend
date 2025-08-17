@@ -16,6 +16,8 @@ import Photo from '@assets/images/Photo.svg';
 import NextIcon from '@assets/images/arrow_right_white.svg';
 import NextDisabledIcon from '@assets/images/arrow_right_black.svg';
 import Logo from '@assets/images/logo_orange.svg';
+import CheckGray from '@assets/images/check20_gray.svg';
+import CheckOrange from '@assets/images/check20_orange.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {useEffect, useMemo, useState} from 'react';
@@ -27,6 +29,7 @@ import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import {useNavigation} from '@react-navigation/native';
 import ErrorModal from '@components/modals/ErrorModal';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
+import {hostStorRegisterAgrees} from '@data/agree';
 
 /*
  * 입점 등록 신청 페이지
@@ -34,13 +37,17 @@ import AddressSearchModal from '@components/modals/AddressSearchModal';
 
 const StoreRegisterForm2 = ({route}) => {
   const navigation = useNavigation();
+
   const {prevData} = route.params;
   const [formData, setFormData] = useState({
     ...prevData,
     img: prevData?.img ?? {uri: ''},
   });
   const [detailAddress, setDetailAddress] = useState('');
+  const [isAllAgreed, setIsAllAgreed] = useState(false);
+  const [agreements, setAgreements] = useState(hostStorRegisterAgrees);
   const [addressSearchVisible, setAddressSearchVisible] = useState(false);
+
   const [errorModal, setErrorModal] = useState({
     visible: false,
     title: '',
@@ -51,13 +58,19 @@ const StoreRegisterForm2 = ({route}) => {
     return errors.length === 0;
   }, [formData]);
 
+  useEffect(() => {
+    const all = agreements.every(item => item.isAgree);
+    setIsAllAgreed(all);
+  }, [agreements]);
+
+  //input 핸들러
   const handleInputChange = (field, value) => {
     setFormData({
       ...formData,
       [field]: value,
     });
   };
-
+  //사업자 등록증 파일 업로드
   const pickImage = async () => {
     const result = await launchImageLibrary({mediaType: 'photo'});
     if (!result.didCancel && result.assets?.length > 0) {
@@ -72,7 +85,30 @@ const StoreRegisterForm2 = ({route}) => {
       });
     }
   };
-
+  //약관동의 항목 렌더링
+  const renderCheckbox = (isChecked, onPress) => (
+    <View>
+      {isChecked ? (
+        <TouchableOpacity
+          style={[styles.checkbox, styles.checked]}
+          onPress={onPress}>
+          <CheckOrange width={24} height={24} />
+        </TouchableOpacity>
+      ) : (
+        <TouchableOpacity style={styles.checkbox} onPress={onPress}>
+          <CheckGray width={24} height={24} />
+        </TouchableOpacity>
+      )}
+    </View>
+  );
+  //약관동의 핸들러
+  const handleAgreement = key => {
+    const updated = agreements.map(item =>
+      item.id === key ? {...item, isAgree: !item.isAgree} : item,
+    );
+    setAgreements(updated);
+  };
+  //입점신청서 제출
   const handleSubmit = async () => {
     const validationErrors = validateStoreForm(formData);
 
@@ -165,8 +201,6 @@ const StoreRegisterForm2 = ({route}) => {
                     </Text>
                   </View>
                 </View>
-
-                {/* ===== 인풋들 ===== */}
                 <View style={styles.inputGroup}>
                   {/* 사업장 전화번호 */}
                   <View style={styles.inputContainer}>
@@ -272,6 +306,58 @@ const StoreRegisterForm2 = ({route}) => {
                       </TouchableOpacity>
                     </View>
                   </View>
+
+                  {/* 동의 목록 */}
+                  <View style={{gap: 12}}>
+                    {agreements.map(item => (
+                      <View style={[styles.parentWrapperFlexBox]} key={item.id}>
+                        <View
+                          style={[
+                            styles.checkboxGroup,
+                            styles.parentWrapperFlexBox,
+                          ]}>
+                          {renderCheckbox(item.isAgree, () =>
+                            handleAgreement(item.id),
+                          )}
+                          <View
+                            style={[
+                              styles.frameContainer,
+                              styles.parentWrapperFlexBox,
+                            ]}>
+                            <View
+                              style={[
+                                styles.parent,
+                                styles.parentWrapperFlexBox,
+                              ]}>
+                              {item.isRequired ? (
+                                <Text
+                                  style={[
+                                    styles.textRequired,
+                                    styles.textBlue,
+                                  ]}>
+                                  [필수]
+                                </Text>
+                              ) : null}
+                              <Text style={styles.textAgreeTitle}>
+                                {item.title}
+                              </Text>
+                            </View>
+                            <TouchableOpacity
+                              onPress={() =>
+                                navigation.navigate('AgreeDetail', {
+                                  title: item.title,
+                                  detail: item.description,
+                                })
+                              }>
+                              <Text style={[styles.textSmall, styles.textBlue]}>
+                                보기
+                              </Text>
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      </View>
+                    ))}
+                  </View>
                 </View>
               </View>
 
@@ -281,19 +367,20 @@ const StoreRegisterForm2 = ({route}) => {
                   style={[
                     styles.addButton,
                     styles.addButtonLocation,
-                    !isNextEnabled && styles.addButtonDisable,
+                    (!isNextEnabled || !isAllAgreed) && styles.addButtonDisable,
                   ]}
-                  disabled={!isNextEnabled}
+                  disabled={!isNextEnabled || !isAllAgreed}
                   onPress={handleSubmit}>
                   <Text
                     style={[
                       FONTS.fs_14_medium,
                       styles.addButtonText,
-                      !isNextEnabled && styles.addButtonTextDisable,
+                      (!isNextEnabled || !isAllAgreed) &&
+                        styles.addButtonTextDisable,
                     ]}>
                     다음
                   </Text>
-                  {isNextEnabled ? (
+                  {isNextEnabled && isAllAgreed ? (
                     <NextIcon width={24} height={24} />
                   ) : (
                     <NextDisabledIcon width={24} height={24} />
