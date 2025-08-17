@@ -30,6 +30,7 @@ import {useNavigation} from '@react-navigation/native';
 import ErrorModal from '@components/modals/ErrorModal';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import {hostStorRegisterAgrees} from '@data/agree';
+import authApi from '@utils/api/authApi';
 
 /*
  * 입점 등록 신청 페이지
@@ -47,6 +48,8 @@ const StoreRegisterForm2 = ({route}) => {
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [agreements, setAgreements] = useState(hostStorRegisterAgrees);
   const [addressSearchVisible, setAddressSearchVisible] = useState(false);
+  const [isBussinessNumChecked, setIsBussinessNumChecked] = useState(false);
+  const [isBussinessNumbVerified, setIsBussinessNumVerified] = useState(false);
 
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -107,6 +110,22 @@ const StoreRegisterForm2 = ({route}) => {
       item.id === key ? {...item, isAgree: !item.isAgree} : item,
     );
     setAgreements(updated);
+  };
+
+  const handleBussinessNumChange = text => {
+    handleInputChange('businessRegistrationNumber', text);
+    setIsBussinessNumChecked(false);
+  };
+  // 사업자등록번호 확인
+  const verifybussinessNum = async () => {
+    try {
+      await authApi.verifyBusiness(formData.businessRegistrationNumber);
+      setIsBussinessNumChecked(true);
+      setIsBussinessNumVerified(true);
+    } catch (error) {
+      setIsBussinessNumChecked(true);
+      setIsBussinessNumVerified(false);
+    }
   };
   //입점신청서 제출
   const handleSubmit = async () => {
@@ -265,18 +284,53 @@ const StoreRegisterForm2 = ({route}) => {
                   {/* 사업자 등록번호 */}
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>사업자 등록번호</Text>
-                    <View style={styles.inputBox}>
+                    <View style={[styles.inputBox, {position: 'relative'}]}>
                       <TextInput
                         style={styles.textInput}
                         placeholder="사업자 등록번호를 입력해주세요"
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.businessRegistrationNumber}
-                        onChangeText={text =>
-                          handleInputChange('businessRegistrationNumber', text)
-                        }
+                        onChangeText={text => {
+                          const filtered = text.replace(/[^0-9]/g, '');
+                          handleBussinessNumChange(filtered);
+                        }}
                         keyboardType="number-pad"
+                        maxLength={10}
                       />
+                      <TouchableOpacity
+                        style={[
+                          styles.inputButtonAbsolute,
+                          {
+                            backgroundColor: COLORS.primary_orange,
+                          },
+                        ]}
+                        onPress={verifybussinessNum}>
+                        <Text
+                          style={{
+                            ...FONTS.fs_14_medium,
+                            color: COLORS.white,
+                          }}>
+                          확인
+                        </Text>
+                      </TouchableOpacity>
                     </View>
+                    {isBussinessNumChecked ? (
+                      <View style={styles.validBox}>
+                        <Text
+                          style={[
+                            styles.validDefaultText,
+                            isBussinessNumbVerified
+                              ? styles.validText
+                              : styles.invalidText,
+                          ]}>
+                          {isBussinessNumbVerified
+                            ? '유효한 사업자번호입니다'
+                            : '유효하지 않은 사업자번호입니다.'}
+                        </Text>
+                      </View>
+                    ) : (
+                      ''
+                    )}
                   </View>
 
                   {/* 사업자 등록증 */}
@@ -367,20 +421,27 @@ const StoreRegisterForm2 = ({route}) => {
                   style={[
                     styles.addButton,
                     styles.addButtonLocation,
-                    (!isNextEnabled || !isAllAgreed) && styles.addButtonDisable,
+                    (!isNextEnabled ||
+                      !isAllAgreed ||
+                      !isBussinessNumbVerified) &&
+                      styles.addButtonDisable,
                   ]}
-                  disabled={!isNextEnabled || !isAllAgreed}
+                  disabled={
+                    !isNextEnabled || !isAllAgreed || !isBussinessNumbVerified
+                  }
                   onPress={handleSubmit}>
                   <Text
                     style={[
                       FONTS.fs_14_medium,
                       styles.addButtonText,
-                      (!isNextEnabled || !isAllAgreed) &&
+                      (!isNextEnabled ||
+                        !isAllAgreed ||
+                        !isBussinessNumbVerified) &&
                         styles.addButtonTextDisable,
                     ]}>
                     다음
                   </Text>
-                  {isNextEnabled && isAllAgreed ? (
+                  {isNextEnabled && isAllAgreed && isBussinessNumbVerified ? (
                     <NextIcon width={24} height={24} />
                   ) : (
                     <NextDisabledIcon width={24} height={24} />
