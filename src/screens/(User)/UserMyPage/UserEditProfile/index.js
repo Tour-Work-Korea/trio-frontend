@@ -25,36 +25,32 @@ import {uploadSingleImage} from '@utils/imageUploadHandler';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import {calculateAge} from '@utils/auth/login';
+import {Email} from '@components/Certificate/Email';
+import Phone from '@components/Certificate/Phone';
 
 const UserEditProfile = () => {
+  const navigation = useNavigation();
   const userProfile = useUserStore(state => state.userProfile);
   const setUserProfile = useUserStore(state => state.setUserProfile);
-
-  const [user, setUser] = useState(userProfile);
-  const [draft, setDraft] = useState({
-    ...userProfile,
-    gender: userProfile.gender ?? 'F', // 기본 여자
-    birthDate: userProfile.birthYear ?? '', // 숫자 아님 → 빈 문자열
+  const [formData, setFormData] = useState({
+    photoUrl: userProfile.photoUrl,
+    name: userProfile.name,
+    nickname: userProfile.nickname,
+    phone: userProfile.phone,
+    email: userProfile.email,
+    mbti: userProfile.mbti,
+    instagramId: userProfile.instagramId,
+    gender: userProfile.gender,
+    birthDate: userProfile.birthDate,
   });
-  const navigation = useNavigation();
+  const [editEmail, setEditEmail] = useState(false);
+  const [editPhone, setEditPhone] = useState(false);
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
-
-  useFocusEffect(
-    useCallback(() => {
-      setUser(userProfile);
-      setDraft({
-        ...userProfile,
-        gender: userProfile.gender ?? 'F',
-        birthDate: userProfile.birthDate ?? '',
-      }); // 수정 시 초기값 복사
-    }, [userProfile]),
-  );
 
   const handleEditProfileImage = async () => {
     try {
       const imageUrl = await uploadSingleImage();
-      setDraft(prev => ({...prev, photoUrl: imageUrl}));
-      setUserProfile({...user, photoUrl: imageUrl});
+      setFormData(prev => ({...prev, photoUrl: imageUrl}));
     } catch (error) {
       console.warn(
         '프로필 이미지 업로드 실패: ',
@@ -63,25 +59,33 @@ const UserEditProfile = () => {
     }
   };
 
+  const handleEditEmail = email => {
+    setEditEmail(false);
+    setFormData(prev => ({...prev, email}));
+  };
+
+  const handleEditPhone = phone => {
+    setEditPhone(false);
+    setFormData(prev => ({...prev, phone}));
+  };
+
   const updateMyProfile = async () => {
     try {
-      const {age, ...rest} = draft;
-      console.log(rest);
-      await userMyApi.updateMyProfile(rest);
+      await userMyApi.updateMyProfile(formData);
       setUserProfile({
-        name: rest.name ?? '',
-        nickname: rest.nickname ?? '',
+        name: formData.name ?? '',
+        nickname: formData.nickname ?? '',
         photoUrl:
-          rest.photoUrl && rest.photoUrl !== '사진을 추가해주세요'
-            ? rest.photoUrl
+          formData.photoUrl && formData.photoUrl !== '사진을 추가해주세요'
+            ? formData.photoUrl
             : null,
-        phone: rest.phone ?? '',
-        email: rest.email ?? '',
-        mbti: rest.mbti ?? '',
-        instagramId: rest.instagramId ?? '',
-        gender: rest.gender ?? 'F',
-        birthDate: rest.birthDate ?? null,
-        age: calculateAge(rest.birthDate),
+        phone: formData.phone ?? '',
+        email: formData.email ?? '',
+        mbti: formData.mbti ?? '',
+        instagramId: formData.instagramId ?? '',
+        gender: formData.gender ?? 'F',
+        birthDate: formData.birthDate ?? null,
+        age: calculateAge(formData.birthDate),
       });
       navigation.goBack();
     } catch (error) {
@@ -94,204 +98,208 @@ const UserEditProfile = () => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={{flex: 1}}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={80} // 필요에 따라 조절
-    >
-      <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-        <View style={styles.outContainer}>
-          <Header title="회원 정보 수정" />
-          <ScrollView style={styles.container}>
-            {/* 이미지 */}
-            <View style={styles.profileImageContainer}>
-              <View style={styles.profileImageWrapper}>
-                {user.photoUrl ? (
-                  <Image
-                    source={{uri: user.photoUrl}}
-                    style={styles.profileImage}
-                    resizeMode="cover"
-                  />
-                ) : (
-                  <View style={styles.profileImage}>
-                    <EmptyImage width={60} height={60} />
+    <>
+      {!editEmail && !editPhone ? (
+        <KeyboardAvoidingView
+          style={{flex: 1}}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={80} // 필요에 따라 조절
+        >
+          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
+            <View style={styles.outContainer}>
+              <Header title="회원 정보 수정" />
+              <ScrollView style={styles.container}>
+                {/* 이미지 */}
+                <View style={styles.profileImageContainer}>
+                  <View style={styles.profileImageWrapper}>
+                    {formData.photoUrl ? (
+                      <Image
+                        source={{uri: formData.photoUrl}}
+                        style={styles.profileImage}
+                        resizeMode="cover"
+                      />
+                    ) : (
+                      <View style={styles.profileImage}>
+                        <EmptyImage width={60} height={60} />
+                      </View>
+                    )}
+                    <TouchableOpacity
+                      style={styles.plusButton}
+                      onPress={handleEditProfileImage}>
+                      <PlusIcon width={24} height={24} />
+                    </TouchableOpacity>
                   </View>
-                )}
-                <TouchableOpacity
-                  style={styles.plusButton}
-                  onPress={handleEditProfileImage}>
-                  <PlusIcon width={24} height={24} />
-                </TouchableOpacity>
-              </View>
-            </View>
+                </View>
 
-            {/* 이름 */}
-            <View style={styles.contentContainer}>
-              <Text style={[FONTS.fs_16_medium, styles.label]}>이름</Text>
-              <TextInput
-                style={styles.input}
-                value={draft.nickname}
-                onChangeText={text => setDraft({...draft, nickname: text})}
-              />
-              {/* 성별 */}
-              <View style={styles.genderRow}>
-                <TouchableOpacity
-                  style={[
-                    styles.genderButton,
-                    draft.gender === 'F' && styles.genderSelected,
-                  ]}
-                  onPress={() => setDraft({...draft, gender: 'F'})}>
-                  <Text
-                    style={[
-                      styles.genderText,
-                      FONTS.fs_14_medium,
-                      draft.gender === 'F' && styles.genderSelectedText,
-                      draft.gender === 'F' && FONTS.fs_14_semibold,
-                    ]}>
-                    여자
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[
-                    styles.genderButton,
-                    draft.gender === 'M' && styles.genderSelected,
-                  ]}
-                  onPress={() => setDraft({...draft, gender: 'M'})}>
-                  <Text
-                    style={[
-                      styles.genderText,
-                      FONTS.fs_14_medium,
-                      draft.gender === 'M' && styles.genderSelectedText,
-                      draft.gender === 'M' && FONTS.fs_14_semibold,
-                    ]}>
-                    남자
-                  </Text>
-                </TouchableOpacity>
-              </View>
-            </View>
-
-            {/* 생일 */}
-            <View style={styles.contentContainer}>
-              <View style={styles.ageBirthYearRow}>
-                <View style={styles.row}>
-                  <Text style={styles.label}>생일</Text>
+                {/* 이름 */}
+                <View style={styles.contentContainer}>
+                  <Text style={[FONTS.fs_16_medium, styles.label]}>이름</Text>
                   <TextInput
-                    style={[styles.input]}
-                    value={draft.birthDate?.toString()}
-                    keyboardType="numeric"
-                    onChangeText={text => setDraft({...draft, birthDate: text})}
-                    placeholder="2000-01-01"
+                    style={styles.input}
+                    value={formData.nickname}
+                    onChangeText={text =>
+                      setFormData({...formData, nickname: text})
+                    }
+                  />
+                  {/* 성별 */}
+                  <View style={styles.genderRow}>
+                    <TouchableOpacity
+                      style={[
+                        styles.genderButton,
+                        formData.gender === 'F' && styles.genderSelected,
+                      ]}
+                      onPress={() => setFormData({...formData, gender: 'F'})}>
+                      <Text
+                        style={[
+                          styles.genderText,
+                          FONTS.fs_14_medium,
+                          formData.gender === 'F' && styles.genderSelectedText,
+                          formData.gender === 'F' && FONTS.fs_14_semibold,
+                        ]}>
+                        여자
+                      </Text>
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      style={[
+                        styles.genderButton,
+                        formData.gender === 'M' && styles.genderSelected,
+                      ]}
+                      onPress={() => setFormData({...formData, gender: 'M'})}>
+                      <Text
+                        style={[
+                          styles.genderText,
+                          FONTS.fs_14_medium,
+                          formData.gender === 'M' && styles.genderSelectedText,
+                          formData.gender === 'M' && FONTS.fs_14_semibold,
+                        ]}>
+                        남자
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </View>
+
+                {/* 생일 */}
+                <View style={styles.contentContainer}>
+                  <View style={styles.ageBirthYearRow}>
+                    <View style={styles.row}>
+                      <Text style={styles.label}>생일</Text>
+                      <TextInput
+                        style={[styles.input]}
+                        value={formData.birthDate?.toString()}
+                        keyboardType="numeric"
+                        onChangeText={text =>
+                          setFormData({...formData, birthDate: text})
+                        }
+                        placeholder="2000-01-01"
+                      />
+                    </View>
+                  </View>
+                </View>
+
+                {/* 연락처 */}
+                <View style={styles.contentContainer}>
+                  <Text style={styles.label}>연락처</Text>
+                  <TouchableOpacity onPress={() => setEditPhone(true)}>
+                    <TextInput
+                      editable={false}
+                      style={styles.input}
+                      value={formData.phone}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* 이메일 */}
+                <View style={styles.contentContainer}>
+                  <Text style={styles.label}>이메일</Text>
+                  <TouchableOpacity onPress={() => setEditEmail(true)}>
+                    <TextInput
+                      editable={false}
+                      style={styles.input}
+                      value={formData.email}
+                    />
+                  </TouchableOpacity>
+                </View>
+
+                {/* MBTI */}
+                <View style={styles.contentContainer}>
+                  <Text style={styles.label}>MBTI</Text>
+                  <View style={styles.mbtiGrid}>
+                    {[
+                      'ISTJ',
+                      'ISFJ',
+                      'INTJ',
+                      'INFJ',
+                      'ISTP',
+                      'ISFP',
+                      'INTP',
+                      'INFP',
+                      'ESTJ',
+                      'ESFJ',
+                      'ENTJ',
+                      'ENFJ',
+                      'ESTP',
+                      'ESFP',
+                      'ENTP',
+                      'ENFP',
+                    ].map(type => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.mbtiButton,
+                          formData.mbti === type && styles.mbtiSelected,
+                        ]}
+                        onPress={() => setFormData({...formData, mbti: type})}>
+                        <Text
+                          style={[
+                            styles.mbtiText,
+                            FONTS.fs_14_medium,
+                            formData.mbti === type && styles.mbtiSelectedText,
+                            formData.mbti === type && FONTS.fs_14_semibold,
+                          ]}>
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                {/* 인스타 */}
+                <View style={styles.contentContainer}>
+                  <Text style={styles.label}>insta</Text>
+                  <View style={styles.instagramRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.atSymbol]}>@</Text>
+                    <TextInput
+                      style={styles.instagramInput}
+                      value={formData.instagramId}
+                      onChangeText={text =>
+                        setFormData({...formData, instagramId: text})
+                      }
+                    />
+                  </View>
+                </View>
+
+                <View style={styles.saveButton}>
+                  <ButtonScarlet
+                    title={'정보 저장하기'}
+                    onPress={updateMyProfile}
                   />
                 </View>
-              </View>
+              </ScrollView>
             </View>
-
-            {/* 연락처 */}
-            <View style={styles.contentContainer}>
-              <Text style={styles.label}>연락처</Text>
-              <TextInput
-                style={styles.input}
-                value={draft.phone}
-                keyboardType="phone-pad"
-                onChangeText={text => setDraft({...draft, phone: text})}
-              />
-            </View>
-
-            {/* 이메일 */}
-            <TouchableOpacity
-              style={styles.contentContainer}
-              onPress={() =>
-                navigation.navigate('EmailCertificate', {
-                  editProfile: true,
-                  user: 'USER',
-                  editOnPress: email => {
-                    setDraft(prev => ({...prev, email}));
-                    navigation.goBack();
-                  },
-                })
-              }>
-              <Text style={styles.label}>이메일</Text>
-              <TextInput
-                editable={false}
-                style={styles.input}
-                value={draft.email}
-                keyboardType="email-address"
-                onChangeText={text => setDraft({...draft, email: text})}
-              />
-            </TouchableOpacity>
-
-            {/* MBTI */}
-            <View style={styles.contentContainer}>
-              <Text style={styles.label}>MBTI</Text>
-              <View style={styles.mbtiGrid}>
-                {[
-                  'ISTJ',
-                  'ISFJ',
-                  'INTJ',
-                  'INFJ',
-                  'ISTP',
-                  'ISFP',
-                  'INTP',
-                  'INFP',
-                  'ESTJ',
-                  'ESFJ',
-                  'ENTJ',
-                  'ENFJ',
-                  'ESTP',
-                  'ESFP',
-                  'ENTP',
-                  'ENFP',
-                ].map(type => (
-                  <TouchableOpacity
-                    key={type}
-                    style={[
-                      styles.mbtiButton,
-                      draft.mbti === type && styles.mbtiSelected,
-                    ]}
-                    onPress={() => setDraft({...draft, mbti: type})}>
-                    <Text
-                      style={[
-                        styles.mbtiText,
-                        FONTS.fs_14_medium,
-                        draft.mbti === type && styles.mbtiSelectedText,
-                        draft.mbti === type && FONTS.fs_14_semibold,
-                      ]}>
-                      {type}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            {/* 인스타 */}
-            <View style={styles.contentContainer}>
-              <Text style={styles.label}>insta</Text>
-              <View style={styles.instagramRow}>
-                <Text style={[FONTS.fs_14_medium, styles.atSymbol]}>@</Text>
-                <TextInput
-                  style={styles.instagramInput}
-                  value={draft.instagramId}
-                  onChangeText={text => setDraft({...draft, instagramId: text})}
-                />
-              </View>
-            </View>
-
-            <View style={styles.saveButton}>
-              <ButtonScarlet
-                title={'정보 저장하기'}
-                onPress={updateMyProfile}
-              />
-            </View>
-            <ErrorModal
-              visible={errorModal.visible}
-              title={errorModal.title}
-              buttonText={'확인'}
-              onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-            />
-          </ScrollView>
-        </View>
-      </TouchableWithoutFeedback>
-    </KeyboardAvoidingView>
+          </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
+      ) : (
+        <></>
+      )}
+      {editEmail ? <Email onPress={handleEditEmail} user="USER" /> : <></>}
+      {editPhone ? <Phone onPress={handleEditPhone} user="USER" /> : <></>}
+      <ErrorModal
+        visible={errorModal.visible}
+        title={errorModal.title}
+        buttonText={'확인'}
+        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
+    </>
   );
 };
 

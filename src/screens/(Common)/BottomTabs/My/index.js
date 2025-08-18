@@ -8,8 +8,6 @@ import {
   MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
-  ApplicantList,
-  EditProfileFieldScreen,
   UserGuesthouseReview,
   MyGuesthouseReservation,
 } from '@screens';
