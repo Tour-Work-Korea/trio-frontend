@@ -8,10 +8,13 @@ export default StyleSheet.create({
   },
   // 본문
   container: {
+    flex: 1,
     backgroundColor: COLORS.grayscale_0,
     marginHorizontal: 16,
+    marginVertical: 20,
     paddingHorizontal: 8,
     paddingVertical: 20,
+    borderRadius: 8,
   },
 
   // 이미지
@@ -126,7 +129,6 @@ export default StyleSheet.create({
 
   // 버튼
   saveButton: {
-    marginTop: 40,
-    marginBottom: 20,
+    marginVertical: 40,
   },
 });

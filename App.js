@@ -1,6 +1,6 @@
 import 'react-native-reanimated';
 import React, {useState, useEffect} from 'react';
-import {StatusBar, StyleSheet, View} from 'react-native';
+import {Platform, StatusBar, StyleSheet, View} from 'react-native';
 import 'react-native-gesture-handler';
 
 import RootNavigation from '@navigations/RootNavigation';
@@ -12,71 +12,79 @@ import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
 
-import firebase from '@react-native-firebase/app';
 import crashlytics from '@react-native-firebase/crashlytics';
-import {SafeAreaView, SafeAreaProvider} from 'react-native-safe-area-context';
+import {
+  SafeAreaView,
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from 'react-native-safe-area-context';
 
-const App = () => {
+const toastConfig = {
+  success: props => <BasicToast {...props} />,
+};
+
+function AppContent() {
   const [appLoaded, setAppLoaded] = useState(false);
+  const insets = useSafeAreaInsets();
 
   useEffect(() => {
     tryAutoLogin();
     crashlytics().log('App mounted - Crashlytics initialized');
   }, []);
 
-  const toastConfig = {
-    success: props => <BasicToast {...props} />,
-  };
-
   if (!appLoaded) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-          backgroundColor: 'white',
-        }}>
+      <View style={styles.splash}>
         <LottieView
           source={require('@assets/lottie/splash.json')}
           style={{width: 180, height: 153}}
           autoPlay
           loop={false}
-          onAnimationFinish={() => {
-            setAppLoaded(true);
-          }}
+          onAnimationFinish={() => setAppLoaded(true)}
         />
       </View>
     );
   }
 
   return (
-    <SafeAreaProvider>
-      <>
+    <>
+      <SafeAreaView
+        edges={['top']}
+        style={[
+          styles.container,
+          // ✅ 안드로이드에서만 하단 시스템 바 높이만큼 패딩
+          Platform.OS === 'android' && {paddingBottom: insets.bottom},
+        ]}>
         <StatusBar
-          translucent
-          backgroundColor="transparent"
-          barStyle="light-content"
+          translucent={false}
+          backgroundColor={COLORS.grayscale_100}
+          barStyle="dark-content"
         />
-        <SafeAreaView edges={['top', 'bottom']} style={styles.container}>
-          <StatusBar
-            barStyle="light-content"
-            backgroundColor={COLORS.grayscale_0}
-          />
-          <RootNavigation />
-          <DeeplinkHandler />
-        </SafeAreaView>
-        <Toast config={toastConfig} />
-      </>
+        <RootNavigation />
+        <DeeplinkHandler />
+      </SafeAreaView>
+      <Toast config={toastConfig} />
+    </>
+  );
+}
+
+export default function App() {
+  return (
+    <SafeAreaProvider>
+      <AppContent />
     </SafeAreaProvider>
   );
-};
+}
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
+  splash: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    backgroundColor: COLORS.white,
+  },
 });
-
-export default App;

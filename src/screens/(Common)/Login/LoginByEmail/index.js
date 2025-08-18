@@ -112,7 +112,7 @@ export default function LoginByEmail({route}) {
           <View style={{flexDirection: 'column', gap: 20}}>
             <View>
               <View
-                style={(styles.frameGroup, {flexDirection: 'column', gap: 20})}>
+                style={(styles.frameGroup, {flexDirection: 'column', gap: 8})}>
                 <ButtonScarlet title={'로그인하기'} onPress={handleLogin} />
                 <ButtonWhite
                   title={'이메일로 가입하기'}

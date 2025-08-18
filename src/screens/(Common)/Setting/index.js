@@ -28,7 +28,7 @@ const Settings = () => {
           {/* 버전정보 */}
           <View style={styles.menuRow}>
             <Text style={styles.menuText}>버전 정보</Text>
-            <Text style={styles.versionText}>v.1</Text>
+            <Text style={styles.versionText}>ver.1</Text>
           </View>
           {/* 이용약관 */}
           <TouchableOpacity

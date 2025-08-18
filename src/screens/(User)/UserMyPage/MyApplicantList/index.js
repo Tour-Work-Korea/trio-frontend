@@ -41,7 +41,9 @@ const MyApplicantList = () => {
       setErrorModal(prev => ({
         ...prev,
         visible: true,
-        title: '지원현황 조회 중 오류가 발생했어요',
+        title:
+          error?.response?.data?.message ||
+          '지원현황 조회 중 오류가 발생했어요',
         buttonText: '확인',
       }));
     } finally {

@@ -24,57 +24,48 @@ const BottomTabs = () => {
     <Tab.Navigator
       initialRouteName="홈"
       screenOptions={({route}) => ({
+        // 1) 아이콘만 반환
         tabBarIcon: ({focused}) => {
-          const iconProps = {
-            width: 24,
-            height: 24,
+          const iconProps = {width: 24, height: 24};
+          const map = {
+            게하: focused ? GuesthouseIconFilled : GuesthouseIcon,
+            채용: focused ? EmployIconFilled : EmployIcon,
+            홈: focused ? HomeIconFilled : HomeIcon,
+            모임: focused ? MeetIconFilled : MeetIcon,
+            마이: focused ? MyIconFilled : MyIcon,
           };
-
-          let IconComponent;
-
-          switch (route.name) {
-            case '게하':
-              IconComponent = focused ? GuesthouseIconFilled : GuesthouseIcon;
-              break;
-            case '채용':
-              IconComponent = focused ? EmployIconFilled : EmployIcon;
-              break;
-            case '홈':
-              IconComponent = focused ? HomeIconFilled : HomeIcon;
-              break;
-            case '모임':
-              IconComponent = focused ? MeetIconFilled : MeetIcon;
-              break;
-            case '마이':
-              IconComponent = focused ? MyIconFilled : MyIcon;
-              break;
-          }
-
-          return (
-            <View style={styles.iconWrapper}>
-              <IconComponent {...iconProps} />
-              <Text style={[FONTS.fs_12_medium, styles.label]}>
-                {route.name}
-              </Text>
-            </View>
-          );
+          const Icon = map[route.name];
+          return <Icon {...iconProps} />;
         },
-        tabBarShowLabel: false,
+
+        // 2) 내장 라벨 사용 + 스타일링
+        tabBarShowLabel: true,
+        tabBarLabel: ({focused}) => (
+          <Text
+            style={[
+              FONTS.fs_12_medium,
+              styles.label,
+              focused && styles.labelFocused,
+            ]}
+            numberOfLines={1}
+            allowFontScaling={false}>
+            {route.name}
+          </Text>
+        ),
+
+        // 3) 탭바 레이아웃 안정화
         tabBarStyle: styles.tabBar,
+        tabBarItemStyle: styles.tabBarItem,
+        tabBarSafeAreaInset: {bottom: 0}, // SafeArea 중복 방지
         headerShown: false,
       })}>
-      <Tab.Screen 
-        name="게하" 
-        component={Guesthouse} 
-        listeners={({ navigation, route }) => ({
-          tabPress: (e) => {
-            // 기본 동작 막기
+      <Tab.Screen
+        name="게하"
+        component={Guesthouse}
+        listeners={({navigation}) => ({
+          tabPress: e => {
             e.preventDefault();
-
-            // '게하' 스택에서 GuesthouseSearch로 이동
-            navigation.navigate('게하', {
-              screen: 'GuesthouseSearch',
-            });
+            navigation.navigate('게하', {screen: 'GuesthouseSearch'});
           },
         })}
       />
@@ -89,16 +80,23 @@ const BottomTabs = () => {
 const styles = StyleSheet.create({
   tabBar: {
     backgroundColor: COLORS.grayscale_0,
-    paddingTop: 24,
-    paddingHorizontal: 36,
-    paddingBottom: 80,
+    height: 64, // 고정 높이
+    paddingTop: 6,
+    paddingBottom: 6,
+    paddingHorizontal: 12,
+    borderTopWidth: StyleSheet.hairlineWidth,
+    borderTopColor: COLORS.grayscale_200,
   },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'center',
+  tabBarItem: {
+    paddingVertical: 0, // 아이템 자체 여백 제거
   },
   label: {
-    marginTop: 4,
+    marginTop: 2,
+    includeFontPadding: false, // Android 폰트 여백 제거
+    color: COLORS.grayscale_700,
+  },
+  labelFocused: {
+    color: COLORS.grayscale_900,
   },
 });
 
