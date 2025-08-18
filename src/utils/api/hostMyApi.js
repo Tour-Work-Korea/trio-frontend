@@ -5,13 +5,7 @@ const hostMyApi = {
   getMyProfile: () => api.get('/host/my'),
 
   //사장님 프로필 정보 수정
-  updateMyProfile: async (field, value) => {
-    const config = hostFieldMap[field];
-    if (!config) throw new Error('지원하지 않는 필드');
-
-    const body = {[config.key]: value};
-    return api.put(`/host/my/${config.path}`, body);
-  },
+  updateMyProfile: async formData => api.put(`/host/my`, formData),
 
   //사장님 사업자 번호 등록
   updateBusinessNum: businessNum =>

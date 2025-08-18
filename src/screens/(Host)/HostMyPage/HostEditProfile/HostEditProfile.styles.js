@@ -11,7 +11,14 @@ export default StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     marginHorizontal: 16,
     paddingHorizontal: 8,
-    paddingVertical: 20,
+    paddingTop: 20,
+    justifyContent: 'space-between',
+    flex: 1,
+    marginBottom: 20,
+    borderRadius: 8,
+  },
+  buttonContainer: {
+    marginBottom: 8,
   },
 
   // 이미지

@@ -170,7 +170,7 @@ const UserEditProfile = () => {
               </View>
             </View>
 
-            {/* 나이 & 출생년도 */}
+            {/* 생일 */}
             <View style={styles.contentContainer}>
               <View style={styles.ageBirthYearRow}>
                 <View style={styles.row}>
@@ -198,15 +198,27 @@ const UserEditProfile = () => {
             </View>
 
             {/* 이메일 */}
-            <View style={styles.contentContainer}>
+            <TouchableOpacity
+              style={styles.contentContainer}
+              onPress={() =>
+                navigation.navigate('EmailCertificate', {
+                  editProfile: true,
+                  user: 'USER',
+                  editOnPress: email => {
+                    setDraft(prev => ({...prev, email}));
+                    navigation.goBack();
+                  },
+                })
+              }>
               <Text style={styles.label}>이메일</Text>
               <TextInput
+                editable={false}
                 style={styles.input}
                 value={draft.email}
                 keyboardType="email-address"
                 onChangeText={text => setDraft({...draft, email: text})}
               />
-            </View>
+            </TouchableOpacity>
 
             {/* MBTI */}
             <View style={styles.contentContainer}>
