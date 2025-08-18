@@ -33,7 +33,9 @@ export default function MyLikeRecruitList() {
     } catch (error) {
       setErrorModal({
         visible: true,
-        title: '즐겨찾기한 공고를 불러오는 중 오류가 발생했습니다',
+        title:
+          error?.response?.data?.message ||
+          '즐겨찾기한 공고를 불러오는 중 오류가 발생했습니다',
         buttonText: '확인',
       });
     } finally {
@@ -64,7 +66,7 @@ export default function MyLikeRecruitList() {
 
   return (
     <View style={styles.container}>
-      <Header title={'즐겨찾는 공고'} />
+      <Header title={'즐겨찾는 알바'} />
       <View style={styles.contentContainer}>
         {loading ? (
           <></>
@@ -92,7 +94,7 @@ export default function MyLikeRecruitList() {
 
       <ErrorModal
         visible={errorModal.visible}
-        title={errorModal.message}
+        title={errorModal.title}
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />

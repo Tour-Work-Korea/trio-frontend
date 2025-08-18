@@ -125,4 +125,68 @@ export default StyleSheet.create({
     borderRadius: 4,
     backgroundColor: COLORS.grayscale_100,
   },
+  //약관동의
+  iconPosition: {
+    maxWidth: '100%',
+    top: '50%',
+    position: 'absolute',
+    overflow: 'hidden',
+  },
+  parentWrapperFlexBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  checkbox: {
+    height: 28,
+    borderWidth: 1,
+    borderStyle: 'solid',
+    width: 28,
+    borderRadius: 4,
+    borderColor: COLORS.grayscale_300,
+    overflow: 'hidden',
+    alignContent: 'center',
+    justifyContent: 'center',
+  },
+  checked: {
+    borderColor: COLORS.scarlet,
+  },
+  textBlue: {
+    color: COLORS.primary_blue,
+  },
+  textAllAgree: {
+    textAlign: 'left',
+    ...FONTS.fs_14_semibold,
+  },
+  checkboxParent: {
+    alignSelf: 'stretch',
+  },
+
+  textRequired: {
+    ...FONTS.fs_14_semibold,
+  },
+  textAgreeTitle: {
+    color: COLORS.grayscale_600,
+    ...FONTS.fs_14_regular,
+  },
+  parent: {
+    gap: 4,
+  },
+  textSmall: {
+    ...FONTS.fs_12_medium,
+  },
+  frameContainer: {
+    gap: 0,
+    justifyContent: 'space-between',
+    flex: 1,
+  },
+  checkboxGroup: {
+    gap: 12,
+    flex: 1,
+  },
+  frameWrapper: {
+    alignSelf: 'stretch',
+    width: 335,
+    alignContent: 'center',
+    justifyContent: 'center',
+  },
 });

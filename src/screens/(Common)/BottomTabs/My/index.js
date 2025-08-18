@@ -8,8 +8,6 @@ import {
   MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
-  ApplicantList,
-  EditProfileFieldScreen,
   UserGuesthouseReview,
   MyGuesthouseReservation,
 } from '@screens';
@@ -36,7 +34,7 @@ const MyMainScreen = ({navigation}) => {
         [
           {
             text: '확인',
-            onPress: () => navigation.goBack(),
+            onPress: () => navigation.navigate('Login'),
           },
         ],
         {cancelable: false},

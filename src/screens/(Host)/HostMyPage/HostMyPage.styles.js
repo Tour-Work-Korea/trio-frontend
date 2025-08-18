@@ -4,7 +4,6 @@ import {COLORS} from '@constants/colors';
 export default StyleSheet.create({
   outContainer: {
     flex: 1,
-
     paddingHorizontal: 20,
   },
   // 헤더
@@ -16,7 +15,7 @@ export default StyleSheet.create({
   },
 
   // 본문
-  container: {},
+  container: {marginBottom: 20},
 
   // 유저 프로필
   userInfoContainer: {
