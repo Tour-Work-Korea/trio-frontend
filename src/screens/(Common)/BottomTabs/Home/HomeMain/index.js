@@ -32,20 +32,8 @@ const HomeMain = () => {
   );
 
   const tryFetchGuesthouses = useCallback(async () => {
-    const today = dayjs();
-    const tomorrow = today.add(1, 'day');
-
     try {
-      const params = {
-        checkIn: today.format('YYYY-MM-DD'),
-        checkOut: tomorrow.format('YYYY-MM-DD'),
-        guestCount: 1,
-        page: 0,
-        size: 10,
-        sort: 'RECOMMEND',
-        regionIds: [1,2,3,4],
-      };
-      const response = await userGuesthouseApi.getGuesthouseList(params);
+      const response = await userGuesthouseApi.getPopularGuesthouses();
       setGuesthouseList(response.data.content);
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);

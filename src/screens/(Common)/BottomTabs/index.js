@@ -1,5 +1,5 @@
 import React from 'react';
-import {StyleSheet, View, Text} from 'react-native';
+import {StyleSheet, View, Text, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -54,7 +54,10 @@ const BottomTabs = () => {
         ),
 
         // 3) 탭바 레이아웃 안정화
-        tabBarStyle: styles.tabBar,
+        tabBarStyle: [
+          // styles.tabBarBase,
+          Platform.OS === 'android' ? styles.tabBarAndroid : styles.tabBarIOS,
+        ],
         tabBarItemStyle: styles.tabBarItem,
         tabBarSafeAreaInset: {bottom: 0}, // SafeArea 중복 방지
         headerShown: false,
@@ -78,7 +81,7 @@ const BottomTabs = () => {
 };
 
 const styles = StyleSheet.create({
-  tabBar: {
+  tabBarAndroid: {
     backgroundColor: COLORS.grayscale_0,
     height: 64, // 고정 높이
     paddingTop: 6,
@@ -86,6 +89,11 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLORS.grayscale_200,
+  },
+  tabBarIOS: {
+    height: 92,
+    paddingTop: 12,
+    paddingHorizontal: 36,
   },
   tabBarItem: {
     paddingVertical: 0, // 아이템 자체 여백 제거

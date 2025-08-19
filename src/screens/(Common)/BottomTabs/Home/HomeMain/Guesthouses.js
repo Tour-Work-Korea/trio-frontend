@@ -20,7 +20,7 @@ export default function Guesthouses({guesthouses}) {
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
-          id: item.id,
+          id: item.guesthouseId,
           isFromDeeplink: true,
           checkIn: today.format('YYYY-MM-DD'),
           checkOut: tomorrow.format('YYYY-MM-DD'),
@@ -30,9 +30,9 @@ export default function Guesthouses({guesthouses}) {
     >
       <View style={styles.guesthouseCard}>
         <View>
-          {item.thumbnailImgUrl ? (
+          {item.thumbnailUrl ? (
             <Image
-              source={{ uri: item.thumbnailImgUrl }}
+              source={{ uri: item.thumbnailUrl }}
               style={styles.guesthouseImage}
             />
           ) : (
@@ -40,7 +40,7 @@ export default function Guesthouses({guesthouses}) {
           )}
           <View style={styles.ratingBox}>
             <Star width={14} height={14}/>
-            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.averageRating}</Text>
+            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.avgRating}</Text>
           </View>
         </View>
         <View style={[styles.titleSection, {marginBottom: 10}]}>
@@ -48,14 +48,14 @@ export default function Guesthouses({guesthouses}) {
             style={styles.guesthouseTitle}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {item.name}
+            {item.guesthouseName}
           </Text>
           <View style={styles.guesthousePrice}>
             <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
               최저가
             </Text>
             <Text style={FONTS.fs_16_semibold}>
-              {item.minPrice.toLocaleString()}원 ~
+              {item.minAmount.toLocaleString()}원 ~
             </Text>
           </View>
         </View>
