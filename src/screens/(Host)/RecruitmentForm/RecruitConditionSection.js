@@ -4,7 +4,6 @@ import {
   Text,
   TextInput,
   TouchableOpacity,
-  Platform,
   Modal,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
@@ -13,7 +12,6 @@ import {
 } from 'react-native';
 import styles from './RecruitmentForm';
 
-import DateTimePicker from '@react-native-community/datetimepicker';
 import XBtn from '@assets/images/x_gray.svg';
 import Plus from '@assets/images/plus_gray.svg';
 import Minus from '@assets/images/minus_gray.svg';
@@ -31,17 +29,19 @@ export default function RecruitConditionSection({
   visible,
   onClose,
 }) {
-  const [showRecruitStart, setShowRecruitStart] = useState(false);
-  const [showRecruitEnd, setShowRecruitEnd] = useState(false);
+  const [showRecruitCalendar, setShowRecruitCalendar] = useState(false);
+  const [selectedRecruit, setSelectedRecruit] = useState('');
+  const [showEntryCalendar, setShowEntryCalendar] = useState(false);
+  const [selectedEntry, setSelectedEntry] = useState('');
   const [showWorkStartDate, setShowWorkStartDate] = useState(false);
-  const [tags, setTags] = useState([
+  const tags = [
     {id: 1, title: '외국어 능력자'},
     {id: 2, title: '서비스업 경험자'},
     {id: 3, title: '이벤트 기획 경험자'},
     {id: 4, title: '즉시입도 가능자'},
     {id: 5, title: 'SNS 운영 경험자'},
     {id: 6, title: '운전 가능자'},
-  ]);
+  ];
   const [selectedTags, setSelectedTags] = useState(formData.recruitCondition);
   const [etcText, setEtcText] = useState('');
 
@@ -71,7 +71,14 @@ export default function RecruitConditionSection({
                   <View style={styles.dateRow}>
                     <TouchableOpacity
                       style={styles.dateInput}
-                      onPress={() => setShowRecruitStart(true)}>
+                      onPress={() => {
+                        if (selectedRecruit === 'recruitStart') {
+                          setShowRecruitCalendar(!showRecruitCalendar);
+                        } else {
+                          setShowRecruitCalendar(true);
+                          setSelectedRecruit('recruitStart');
+                        }
+                      }}>
                       <Text
                         style={[
                           styles.dateLabel,
@@ -90,7 +97,14 @@ export default function RecruitConditionSection({
 
                     <TouchableOpacity
                       style={styles.dateInput}
-                      onPress={() => setShowRecruitEnd(true)}>
+                      onPress={() => {
+                        if (selectedRecruit === 'recruitEnd') {
+                          setShowRecruitCalendar(!showRecruitCalendar);
+                        } else {
+                          setShowRecruitCalendar(true);
+                          setSelectedRecruit('recruitEnd');
+                        }
+                      }}>
                       <Text
                         style={[
                           styles.dateLabel,
@@ -107,21 +121,12 @@ export default function RecruitConditionSection({
                       <Calendar />
                     </TouchableOpacity>
                   </View>
-                  {showRecruitStart && (
+                  {showRecruitCalendar && (
                     <DatePicker
                       value={formData.recruitStart ?? new Date()}
                       onChange={date => {
-                        setShowRecruitStart(false);
-                        if (date) handleInputChange('recruitStart', date);
-                      }}
-                    />
-                  )}
-                  {showRecruitEnd && (
-                    <DatePicker
-                      value={formData.recruitEnd ?? new Date()}
-                      onChange={date => {
-                        setShowRecruitEnd(false);
-                        if (date) handleInputChange('recruitEnd', date);
+                        setShowRecruitCalendar(false);
+                        if (date) handleInputChange(selectedRecruit, date);
                       }}
                     />
                   )}
@@ -286,37 +291,73 @@ export default function RecruitConditionSection({
                     </View>
                   </View>
                 </View>
-                {/* 근무기간 */}
+                {/* 입도기간 */}
                 <View>
-                  <Text style={styles.subsectionTitle}>입도 날짜</Text>
+                  <Text style={styles.subsectionTitle}>입도기간</Text>
                   <View style={styles.dateRow}>
                     <TouchableOpacity
                       style={styles.dateInput}
-                      onPress={() => setShowWorkStartDate(!showWorkStartDate)}>
+                      onPress={() => {
+                        if (selectedEntry === 'entryStart') {
+                          setShowEntryCalendar(!showEntryCalendar);
+                        } else {
+                          setShowEntryCalendar(true);
+                          setSelectedEntry('entryStart');
+                        }
+                      }}>
                       <Text
                         style={[
                           styles.dateLabel,
-                          formData.workStartDate
+                          formData.entryStart
                             ? ''
                             : {color: COLORS.grayscale_400},
                         ]}>
-                        {new Date(formData.workStartDate).toLocaleDateString(
-                          'ko-KR',
-                        )}
+                        {formData.entryStart
+                          ? new Date(formData.entryStart).toLocaleDateString(
+                              'ko-KR',
+                            )
+                          : '시작일자'}
                       </Text>
-                      <Calendar width={24} />
+                      <Calendar />
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={styles.dateInput}
+                      onPress={() => {
+                        if (selectedEntry === 'entryEnd') {
+                          setShowEntryCalendar(!showEntryCalendar);
+                        } else {
+                          setShowEntryCalendar(true);
+                          setSelectedEntry('entryEnd');
+                        }
+                      }}>
+                      <Text
+                        style={[
+                          styles.dateLabel,
+                          formData.entryEnd
+                            ? ''
+                            : {color: COLORS.grayscale_400},
+                        ]}>
+                        {formData.entryEnd
+                          ? new Date(formData.entryEnd).toLocaleDateString(
+                              'ko-KR',
+                            )
+                          : '마감일자'}
+                      </Text>
+                      <Calendar />
                     </TouchableOpacity>
                   </View>
-                  {showWorkStartDate && (
+                  {showEntryCalendar && (
                     <DatePicker
-                      value={formData.workStartDate ?? new Date()}
+                      value={formData.entryStart ?? new Date()}
                       onChange={date => {
-                        setShowWorkStartDate(false);
-                        if (date) handleInputChange('workStartDate', date);
+                        setShowEntryCalendar(false);
+                        if (date) handleInputChange(selectedEntry, date);
                       }}
                     />
                   )}
                 </View>
+                {/* 우대조건 */}
                 <View>
                   <Text style={styles.subsectionTitle}>우대조건</Text>
                   <View style={styles.tagSelectRow}>
