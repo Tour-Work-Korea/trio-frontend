@@ -14,7 +14,7 @@ const ApplicantItem = ({
       <View style={styles.postingCard}>
         <View style={{flexDirection: 'row', gap: 10, alignItems: 'flex-start'}}>
           <Image
-            source={require('@assets/images/exphoto.jpeg')}
+            source={{uri: item.thumbnailImage}}
             style={{width: 80, height: 80, borderRadius: 4}}
           />
 
@@ -28,15 +28,15 @@ const ApplicantItem = ({
                 style={[styles.detailText, styles.leftEllipsis]}
                 numberOfLines={1}
                 ellipsizeMode="tail">
-                제주시 애월리 20002-7
+                {item.address}
               </Text>
-              <Text style={styles.detailText}>3주 이상</Text>
+              <Text style={styles.detailText}>{item.workDate} 이상</Text>
             </View>
           </View>
         </View>
 
         <View style={[styles.titleRow, styles.fullWidth, {marginTop: 10}]}>
-          <Text style={styles.detailText}>공고날짜: 2025. 05. 12</Text>
+          <Text style={styles.detailText}>마감일: {item.deadline}</Text>
           {isRemovable ? (
             <View style={styles.iconsContainer}>
               <TouchableOpacity
