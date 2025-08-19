@@ -95,6 +95,10 @@ const RecruitmentForm = () => {
   );
 
   useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  useEffect(() => {
     setValid(computeValidSections(formData));
   }, [formData]);
 
@@ -131,12 +135,6 @@ const RecruitmentForm = () => {
     }));
   };
   const handleSubmit = () => {
-    // const errors = validateRecruitForm(formData);
-    // if (errors.length > 0) {
-    //   setErrorModal({visible: true, title: errors[0], buttonText: '확인'});
-    //   return;
-    // }
-
     const payload = {
       ...formData,
       recruitStart: formData.recruitStart.toISOString(),
@@ -148,7 +146,6 @@ const RecruitmentForm = () => {
       welfare: formData.welfare.join(', '),
       location: '제주 서귀포시', //임시 주소
     };
-    console.log(formData);
 
     if (recruit?.recruitId != null) {
       const updatedPayload = {...payload};

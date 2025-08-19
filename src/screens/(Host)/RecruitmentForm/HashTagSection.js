@@ -3,6 +3,7 @@ import {View, Text, TouchableOpacity, Alert} from 'react-native';
 import styles from './RecruitmentForm';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
 const HashTagSection = ({handleInputChange, formData}) => {
   const [tags, setTags] = useState();
@@ -36,7 +37,13 @@ const HashTagSection = ({handleInputChange, formData}) => {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>태그</Text>
+      <Text
+        style={{
+          color: COLORS.grayscale_900,
+          ...FONTS.fs_16_medium,
+        }}>
+        태그
+      </Text>
       <View style={styles.divider} />
 
       <Text style={styles.description}>
