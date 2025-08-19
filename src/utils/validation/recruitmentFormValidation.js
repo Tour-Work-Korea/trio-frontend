@@ -24,17 +24,17 @@ export const computeValidSections = data => {
     recruitShortDescription,
     recruitStart,
     recruitEnd,
+    entryStart,
+    entryEnd,
     recruitNumberMale,
     recruitNumberFemale,
     recruitCondition, // [{id, title}] 배열 가정
     recruitMinAge,
     recruitMaxAge,
     workType,
-    workStartDate,
-    workEndDate,
+    workDuration,
     workPart, // ['예약 관리', ...]
     welfare, // ['식사 제공', ...]
-    location,
     recruitImage, // [{recruitImageUrl, isThumbnail}]
     recruitDetail,
     guesthouseId,
@@ -73,6 +73,9 @@ export const computeValidSections = data => {
     isValidDate(recruitStart) &&
     isValidDate(recruitEnd) &&
     isDateOrder(recruitStart, recruitEnd) &&
+    isValidDate(entryStart) &&
+    isValidDate(entryEnd) &&
+    isDateOrder(entryStart, entryEnd) &&
     headcountOk &&
     ageOk &&
     conditionTagsOk;
@@ -80,10 +83,8 @@ export const computeValidSections = data => {
   // "근무 조건"
   const workConditionValid =
     isNonEmpty(workType) &&
-    isValidDate(workStartDate) &&
-    isValidDate(workEndDate) &&
-    isDateOrder(workStartDate, workEndDate) &&
     hasItems(workPart) &&
+    isNonEmpty(workDuration) &&
     hasItems(welfare);
 
   // "근무지 정보" (썸네일 필수면 some(img => img?.isThumbnail) 추가)

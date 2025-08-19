@@ -13,11 +13,9 @@ import {
 import styles from './RecruitmentForm';
 
 import XBtn from '@assets/images/x_gray.svg';
-import Calendar from '@assets/images/calendar_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
-import MonthPicker from '@components/Employ/MonthPicker';
 
 export default function WorkConditionSection({
   handleInputChange,
@@ -25,9 +23,6 @@ export default function WorkConditionSection({
   visible,
   onClose,
 }) {
-  const [showWorkStartDate, setShowWorkStartDate] = useState(false);
-  const [showWorkEndDate, setShowWorkEndDate] = useState(false);
-
   const [workParts] = useState([
     {id: 1, title: '예약 관리'},
     {id: 2, title: '파티 보조'},
@@ -50,7 +45,13 @@ export default function WorkConditionSection({
     {id: 8, title: 'BBQ 무제한 참여'},
   ]);
 
-  // ---- helpers ----
+  const [workDurations] = useState([
+    {id: 1, title: '2주 이상'},
+    {id: 2, title: '3주 이상'},
+    {id: 3, title: '한달 이상'},
+    {id: 4, title: '2달 이상'},
+  ]);
+
   const normalizeToObjList = val => {
     if (!Array.isArray(val)) return [];
     return val.map((t, idx) =>
@@ -62,28 +63,14 @@ export default function WorkConditionSection({
       .map(x => (typeof x === 'string' ? x : x.title))
       .filter(Boolean);
   const uniq = arr => Array.from(new Set(arr));
-  const toYM = d => {
-    if (!d) {
-      const now = new Date();
-      return {year: now.getFullYear(), month: now.getMonth() + 1};
-    }
-    const dd = new Date(d);
-    return {year: dd.getFullYear(), month: dd.getMonth() + 1};
-  };
-  const handlePickMonth = ({year, month, field}) => {
-    const firstDay = new Date(year, month - 1, 1);
-    handleInputChange(field, firstDay);
-    if (field === 'workStartDate') setShowWorkStartDate(false);
-    if (field === 'workEndDate') setShowWorkEndDate(false);
-  };
 
-  // ---- local state (정규화) ----
   const [selectedWorkParts, setSelectedWorkParts] = useState(
     normalizeToObjList(formData.workPart),
   );
   const [selectedWelfares, setSelectedWelfares] = useState(
     normalizeToObjList(formData.welfare),
   );
+  const [selectedWorkDuration, setSelectedWorkDuration] = useState();
   const [workEtcText, setWorkEtcText] = useState('');
   const [welfareEtcText, setWelfareEtcText] = useState('');
 
@@ -190,75 +177,30 @@ export default function WorkConditionSection({
                 {/* 근무 기간 */}
                 <View>
                   <Text style={styles.subsectionTitle}>근무 기간</Text>
-                  <View style={styles.dateRow}>
-                    <TouchableOpacity
-                      style={styles.dateInput}
-                      onPress={() => {
-                        setShowWorkEndDate(false);
-                        setShowWorkStartDate(!showWorkStartDate);
-                      }}>
-                      <Text
-                        style={[
-                          styles.dateLabel,
-                          formData.workStartDate
-                            ? null
-                            : {color: COLORS.grayscale_400},
-                        ]}>
-                        {formData.workStartDate
-                          ? new Date(formData.workStartDate).toLocaleDateString(
-                              'ko-KR',
-                              {
-                                year: 'numeric',
-                                month: 'long',
-                              },
-                            )
-                          : '시작일자'}
-                      </Text>
-                      <Calendar />
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={styles.dateInput}
-                      onPress={() => {
-                        setShowWorkEndDate(!showWorkEndDate);
-                        setShowWorkStartDate(false);
-                      }}>
-                      <Text
-                        style={[
-                          styles.dateLabel,
-                          formData.workEndDate
-                            ? null
-                            : {color: COLORS.grayscale_400},
-                        ]}>
-                        {formData.workEndDate
-                          ? new Date(formData.workEndDate).toLocaleDateString(
-                              'ko-KR',
-                              {
-                                year: 'numeric',
-                                month: 'long',
-                              },
-                            )
-                          : '마감일자'}
-                      </Text>
-                      <Calendar />
-                    </TouchableOpacity>
+                  <View style={styles.tagSelectRow}>
+                    {workDurations?.map(tag => {
+                      return (
+                        <TouchableOpacity
+                          key={tag.id}
+                          onPress={() => {
+                            setSelectedWorkDuration(tag);
+                          }}
+                          style={styles.tagOptionContainer}>
+                          <Text
+                            style={[
+                              styles.tagOptionText,
+                              FONTS.fs_14_medium,
+                              selectedWorkDuration?.id === tag.id &&
+                                styles.tagOptionSelectedText,
+                              selectedWorkDuration?.id === tag.id &&
+                                FONTS.fs_14_semibold,
+                            ]}>
+                            {tag.title}
+                          </Text>
+                        </TouchableOpacity>
+                      );
+                    })}
                   </View>
-                  {showWorkStartDate && (
-                    <MonthPicker
-                      selectedDate={toYM(formData.workStartDate)}
-                      onChange={d =>
-                        handlePickMonth({...d, field: 'workStartDate'})
-                      }
-                    />
-                  )}
-                  {showWorkEndDate && (
-                    <MonthPicker
-                      selectedDate={toYM(formData.workEndDate)}
-                      onChange={d =>
-                        handlePickMonth({...d, field: 'workEndDate'})
-                      }
-                    />
-                  )}
                 </View>
 
                 {/* 복지 */}
@@ -317,22 +259,22 @@ export default function WorkConditionSection({
                   <ButtonScarlet
                     title={'적용하기'}
                     onPress={() => {
-                      // workPart: 선택 title + 기타 입력 합치기(+중복 제거)
                       const workPartCombined = uniq([
                         ...asTitles(selectedWorkParts),
                         ...(workEtcText?.trim() ? [workEtcText.trim()] : []),
                       ]);
-
-                      // welfare: 선택 title + 기타 입력 합치기(+중복 제거)
                       const welfareCombined = uniq([
                         ...asTitles(selectedWelfares),
                         ...(welfareEtcText?.trim()
                           ? [welfareEtcText.trim()]
                           : []),
                       ]);
-                      // 상위로 전달 (배열 형태)
                       handleInputChange('workPart', workPartCombined);
                       handleInputChange('welfare', welfareCombined);
+                      handleInputChange(
+                        'workDuration',
+                        selectedWorkDuration.title,
+                      );
                       setTimeout(onClose, 0);
                     }}
                   />

@@ -28,7 +28,6 @@ import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 import GuesthouseModal from './GuesthouseModal';
 import ShortDescriptionModal from './ShortDescriptionModal';
 
@@ -51,13 +50,11 @@ const RecruitmentForm = () => {
     entryEnd: null,
     recruitNumberMale: 0,
     recruitNumberFemale: 0,
-    location: '',
     recruitCondition: [],
     recruitMinAge: 0,
     recruitMaxAge: 0,
     workType: '',
-    workStartDate: null,
-    workEndDate: null,
+    workDuration: '',
     workPart: [],
     welfare: [],
     recruitDetail: '',
@@ -113,8 +110,7 @@ const RecruitmentForm = () => {
         recruitEnd: new Date(recruit.recruitEnd),
         entryStart: new Date(recruit.entryStart),
         entryEnd: new Date(recruit.entryEnd),
-        workStartDate: new Date(recruit.workStartDate),
-        workEndDate: new Date(recruit.workEndDate),
+        workDuration: '',
         recruitNumberFemale: recruit.recruitNumberFemale,
         recruitNumberMale: recruit.recruitNumberMale,
         recruitMinAge: recruit.recruitMinAge,
@@ -123,7 +119,6 @@ const RecruitmentForm = () => {
         workType: recruit.workType,
         workPart: recruit.workPart,
         welfare: recruit.welfare,
-        location: recruit.location,
         recruitImage: recruit.recruitImages,
         recruitDetail: recruit.recruitDetail,
         hashtags: recruit.hashtags?.map(tag => tag.id) || [],
@@ -143,12 +138,11 @@ const RecruitmentForm = () => {
       ...formData,
       recruitStart: formData.recruitStart.toISOString(),
       recruitEnd: formData.recruitEnd.toISOString(),
-      workStartDate: formData.workStartDate.toISOString(),
-      workEndDate: formData.workEndDate.toISOString(),
+      entryStart: formData.entryStart.toISOString(),
+      entryEnd: formData.entryEnd.toISOString(),
       recruitCondition: formData.recruitCondition.map(c => c.title).join(', '),
       workPart: formData.workPart.join(', '),
       welfare: formData.welfare.join(', '),
-      location: '제주 서귀포시', //임시 주소
     };
 
     if (recruit?.recruitId != null) {

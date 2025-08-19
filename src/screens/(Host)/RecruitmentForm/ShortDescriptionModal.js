@@ -5,7 +5,6 @@ import {
   Modal,
   TouchableOpacity,
   TextInput,
-  Alert,
   KeyboardAvoidingView,
   TouchableWithoutFeedback,
   Keyboard,
@@ -18,6 +17,7 @@ import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import hostEmployApi from '@utils/api/hostEmployApi';
+import ErrorModal from '@components/modals/ErrorModal';
 
 const ShortDescriptionModal = ({
   handleInputChange,
@@ -29,24 +29,30 @@ const ShortDescriptionModal = ({
     formData.recruitShortDescription,
   );
   const [tags, setTags] = useState();
+  const [errorModal, setErrorModal] = useState({visible: false, title: ''});
 
   useEffect(() => {
     fetchHostHashtags();
   }, []);
 
-  //해시태그 조회
   const fetchHostHashtags = async () => {
     try {
       const response = await hostEmployApi.getHostHashtags();
       setTags(response.data);
     } catch (error) {
-      Alert.alert('해시태그 조회에 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        title: error?.response?.data?.message || '해시태그 조회에 실패했습니다',
+      });
     }
   };
 
   const handleTagToggle = (tagId, isSelected) => {
     if (!isSelected && formData.hashtags.length >= 3) {
-      Alert.alert('알림', '태그는 최대 3개까지 선택할 수 있어요.');
+      setErrorModal({
+        visible: true,
+        title: '해시태그는 최대 3개까지 선택가능해요',
+      });
       return;
     }
 
@@ -56,6 +62,7 @@ const ShortDescriptionModal = ({
 
     handleInputChange('hashtags', updatedHashtags);
   };
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView style={{flex: 1}} enabled>
@@ -166,6 +173,12 @@ const ShortDescriptionModal = ({
                 />
               </View>
             </View>
+            <ErrorModal
+              visible={errorModal.visible}
+              title={errorModal.title}
+              buttonText={'확인'}
+              onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+            />
           </View>
         </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
