@@ -33,8 +33,8 @@ const HomeMain = () => {
 
   const tryFetchGuesthouses = useCallback(async () => {
     try {
-      const response = await userGuesthouseApi.getPopularGuesthouses();
-      setGuesthouseList(response.data.content);
+      const { data } = await userGuesthouseApi.getPopularGuesthouses();
+      setGuesthouseList(data);
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);
     } finally {
