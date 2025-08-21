@@ -417,8 +417,8 @@ const StoreRegisterForm2 = ({route}) => {
                             <TouchableOpacity
                               onPress={() =>
                                 navigation.navigate('AgreeDetail', {
-                                  title: item.title,
-                                  detail: item.description,
+                                  id: item.id,
+                                  who: 'HOST',
                                 })
                               }>
                               <Text style={[styles.textSmall, styles.textBlue]}>
