@@ -87,7 +87,7 @@ export const uploadSingleImage = async () => {
 };
 
 //복수 이미지 업로드 (✅ 각 이미지 압축 추가)
-export const uploadMultiImage = async limit => {
+export const uploadMultiImage = async (limit = 10) => {
   const result = await new Promise(resolve =>
     launchImageLibrary(
       {
