@@ -117,16 +117,17 @@ const GuesthouseReservation = ({ route }) => {
       });
       const reservationId = res.data;
 
-      // 예약 임시 승인
-      await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
-
-      // 예약 성공 후 결제 페이지로 이동
-      // navigation.navigate( 'GuesthousePayment' , {
-      //   reservationId,
-      //   amount: roomPrice,
-      // });
-      // 결제 화면 주석
-      navigation.navigate('GuesthousePaymentSuccess');
+      if (Platform.OS === 'ios') {
+        // iOS: 예약 임시 승인, 결제 X
+        await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
+        navigation.navigate('GuesthousePaymentSuccess');
+      } else {
+        // Android: 결제 O
+        navigation.navigate('GuesthousePayment', {
+          reservationId,
+          amount: roomPrice,
+        });
+      }
 
     } catch (err) {
       Alert.alert('예약 실패', '오류가 발생했습니다.');
