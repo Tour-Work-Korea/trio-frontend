@@ -298,24 +298,24 @@ export default function RecruitConditionSection({
                     <TouchableOpacity
                       style={styles.dateInput}
                       onPress={() => {
-                        if (selectedEntry === 'entryStart') {
+                        if (selectedEntry === 'entryStartDate') {
                           setShowEntryCalendar(!showEntryCalendar);
                         } else {
                           setShowEntryCalendar(true);
-                          setSelectedEntry('entryStart');
+                          setSelectedEntry('entryStartDate');
                         }
                       }}>
                       <Text
                         style={[
                           styles.dateLabel,
-                          formData.entryStart
+                          formData.entryStartDate
                             ? ''
                             : {color: COLORS.grayscale_400},
                         ]}>
-                        {formData.entryStart
-                          ? new Date(formData.entryStart).toLocaleDateString(
-                              'ko-KR',
-                            )
+                        {formData.entryStartDate
+                          ? new Date(
+                              formData.entryStartDate,
+                            ).toLocaleDateString('ko-KR')
                           : '시작일자'}
                       </Text>
                       <Calendar />
@@ -324,22 +324,22 @@ export default function RecruitConditionSection({
                     <TouchableOpacity
                       style={styles.dateInput}
                       onPress={() => {
-                        if (selectedEntry === 'entryEnd') {
+                        if (selectedEntry === 'entryEndDate') {
                           setShowEntryCalendar(!showEntryCalendar);
                         } else {
                           setShowEntryCalendar(true);
-                          setSelectedEntry('entryEnd');
+                          setSelectedEntry('entryEndDate');
                         }
                       }}>
                       <Text
                         style={[
                           styles.dateLabel,
-                          formData.entryEnd
+                          formData.entryEndDate
                             ? ''
                             : {color: COLORS.grayscale_400},
                         ]}>
-                        {formData.entryEnd
-                          ? new Date(formData.entryEnd).toLocaleDateString(
+                        {formData.entryEndDate
+                          ? new Date(formData.entryEndDate).toLocaleDateString(
                               'ko-KR',
                             )
                           : '마감일자'}
@@ -349,7 +349,7 @@ export default function RecruitConditionSection({
                   </View>
                   {showEntryCalendar && (
                     <DatePicker
-                      value={formData.entryStart ?? new Date()}
+                      value={formData.entryStartDate ?? new Date()}
                       onChange={date => {
                         setShowEntryCalendar(false);
                         if (date) handleInputChange(selectedEntry, date);

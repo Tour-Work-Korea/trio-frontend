@@ -30,7 +30,7 @@ const ApplicantItem = ({
                 ellipsizeMode="tail">
                 {item.address}
               </Text>
-              <Text style={styles.detailText}>{item.workDate} 이상</Text>
+              <Text style={styles.detailText}>{item.workDuration}</Text>
             </View>
           </View>
         </View>

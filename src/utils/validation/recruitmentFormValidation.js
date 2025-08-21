@@ -24,8 +24,8 @@ export const computeValidSections = data => {
     recruitShortDescription,
     recruitStart,
     recruitEnd,
-    entryStart,
-    entryEnd,
+    entryStartDate,
+    entryEndDate,
     recruitNumberMale,
     recruitNumberFemale,
     recruitCondition, // [{id, title}] 배열 가정
@@ -73,9 +73,9 @@ export const computeValidSections = data => {
     isValidDate(recruitStart) &&
     isValidDate(recruitEnd) &&
     isDateOrder(recruitStart, recruitEnd) &&
-    isValidDate(entryStart) &&
-    isValidDate(entryEnd) &&
-    isDateOrder(entryStart, entryEnd) &&
+    isValidDate(entryStartDate) &&
+    isValidDate(entryEndDate) &&
+    isDateOrder(entryStartDate, entryEndDate) &&
     headcountOk &&
     ageOk &&
     conditionTagsOk;
