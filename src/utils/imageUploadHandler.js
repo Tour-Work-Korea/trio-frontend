@@ -141,25 +141,35 @@ export const uploadSensitiveImage = async () => {
   const result = await new Promise(resolve =>
     launchImageLibrary({mediaType: 'photo'}, response => resolve(response)),
   );
-
   if (result.didCancel || result.errorCode || !result.assets) return null;
 
   const asset = result.assets[0];
-  const uri = asset.uri;
-  const fileName = generateUniqueFilename(); // 기본 jpg
-  const fileType = asset.type || 'image/jpeg';
+  const originalUri = asset.uri;
 
-  // FormData 생성
+  // 📌 더 공격적인 적응형 압축 적용
+  let fileUri = originalUri;
+  try {
+    fileUri = await adaptiveCompressToJPEG(originalUri, {
+      targetBytes: 1.8 * 1024 * 1024, // 서버 한도 2MB라 가정 시 여유
+      startMax: 1600,
+      minMax: 800,
+      startQuality: 0.8,
+      minQuality: 0.55,
+      stepQuality: 0.1,
+    });
+  } catch (e) {
+    console.warn('[uploadSensitiveImage] adaptive compress failed:', e);
+  }
+
+  const fileName = generateUniqueFilename('jpg');
+  const fileType = 'image/jpeg';
+
   const formData = new FormData();
-  formData.append('image', {
-    uri,
-    name: fileName,
-    type: fileType,
-  });
+  formData.append('image', {uri: fileUri, name: fileName, type: fileType});
 
   try {
     const response = await commonApi.postImage(formData);
-    return response.data; // S3 public URL
+    return response.data;
   } catch (error) {
     console.error('민감 이미지 업로드 실패:', error?.response?.data?.message);
     return null;
@@ -170,4 +180,65 @@ export const generateUniqueFilename = (extension = 'jpg') => {
   const timestamp = Date.now(); // 현재 시간 (ms)
   const random = Math.floor(Math.random() * 1000000); // 0 ~ 999999
   return `image_${timestamp}_${random}.${extension}`;
+};
+
+// 바이트 크기 구하기 (RN fetch → blob → size)
+const getFileSize = async uri => {
+  const res = await fetch(uri);
+  const blob = await res.blob();
+  return blob.size; // bytes
+};
+
+// 목표 용량 이하가 될 때까지 maxWidth/quality를 줄여가며 재압축
+export const adaptiveCompressToJPEG = async (
+  uri,
+  {
+    targetBytes = 1.8 * 1024 * 1024, // 1.8MB
+    startMax = 1600,
+    minMax = 800,
+    startQuality = 0.8,
+    minQuality = 0.5,
+    stepQuality = 0.1,
+  } = {},
+) => {
+  let maxEdge = startMax;
+  let quality = startQuality;
+  let outUri = uri;
+
+  // 1차 압축
+  outUri = (
+    await ImageResizer.createResizedImage(
+      uri,
+      maxEdge,
+      maxEdge,
+      'JPEG',
+      Math.round(quality * 100),
+    )
+  ).uri;
+  let size = await getFileSize(outUri);
+  if (size <= targetBytes) return outUri;
+
+  // 반복 압축
+  while (quality > minQuality || maxEdge > minMax) {
+    if (quality > minQuality) {
+      quality = Math.max(minQuality, +(quality - stepQuality).toFixed(2));
+    } else if (maxEdge > minMax) {
+      maxEdge = Math.max(minMax, maxEdge - 200);
+      // quality는 살짝 롤백해서 too small 방지
+      quality = Math.min(startQuality, quality + stepQuality);
+    }
+
+    outUri = (
+      await ImageResizer.createResizedImage(
+        uri,
+        maxEdge,
+        maxEdge,
+        'JPEG',
+        Math.round(quality * 100),
+      )
+    ).uri;
+    size = await getFileSize(outUri);
+    if (size <= targetBytes) break;
+  }
+  return outUri;
 };

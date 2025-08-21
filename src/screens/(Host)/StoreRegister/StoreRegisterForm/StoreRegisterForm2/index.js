@@ -31,6 +31,7 @@ import ErrorModal from '@components/modals/ErrorModal';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import {hostStorRegisterAgrees} from '@data/agree';
 import authApi from '@utils/api/authApi';
+import {adaptiveCompressToJPEG} from '@utils/imageUploadHandler';
 
 /*
  * 입점 등록 신청 페이지
@@ -78,12 +79,29 @@ const StoreRegisterForm2 = ({route}) => {
     const result = await launchImageLibrary({mediaType: 'photo'});
     if (!result.didCancel && result.assets?.length > 0) {
       const selected = result.assets[0];
+      const originalUri = selected.uri;
+
+      // 📌 압축 시도
+      let compressedUri = originalUri;
+      try {
+        compressedUri = await adaptiveCompressToJPEG(originalUri, {
+          targetBytes: 1.8 * 1024 * 1024, // 서버 한도 2MB라고 가정
+          startMax: 1600,
+          minMax: 800,
+          startQuality: 0.8,
+          minQuality: 0.55,
+          stepQuality: 0.1,
+        });
+      } catch (e) {
+        console.warn('[pickImage] compress failed -> fallback to original:', e);
+      }
+
       setFormData({
         ...formData,
         img: {
-          uri: selected.uri,
-          type: selected.type,
-          name: selected.fileName ?? 'image.jpg',
+          uri: compressedUri,
+          type: 'image/jpeg', // 압축 후 항상 JPEG
+          name: selected.fileName ?? 'business_cert.jpg',
         },
       });
     }
