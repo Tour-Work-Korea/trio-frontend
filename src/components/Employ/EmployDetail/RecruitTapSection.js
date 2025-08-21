@@ -52,7 +52,8 @@ export default function RecruitTapSection({recruit}) {
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>입도날짜</Text>
               <Text style={styles.infoValue}>
-                {formatLocalDateTimeToDotAndTime(recruit.workStartDate).date}
+                {formatLocalDateTimeToDotAndTime(recruit.entryStartDate).date} ~{' '}
+                {formatLocalDateTimeToDotAndTime(recruit.entryEndDate).date}
               </Text>
             </View>
 
@@ -77,10 +78,7 @@ export default function RecruitTapSection({recruit}) {
 
             <View style={styles.infoRow}>
               <Text style={styles.infoLabel}>근무기간</Text>
-              <Text style={styles.infoValue}>
-                {formatLocalDateTimeToDotAndTime(recruit.workStartDate).date} ~{' '}
-                {formatLocalDateTimeToDotAndTime(recruit.workEndDate).date}
-              </Text>
+              <Text style={styles.infoValue}>{recruit.workDuration}</Text>
             </View>
 
             <View style={styles.infoRow}>

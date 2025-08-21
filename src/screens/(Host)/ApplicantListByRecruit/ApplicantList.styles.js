@@ -37,6 +37,7 @@ export default StyleSheet.create({
     borderRadius: 8,
     padding: 12,
     gap: 12,
+    marginBottom: 8,
   },
   applyRow: {
     flexDirection: 'row',
