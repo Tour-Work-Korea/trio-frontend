@@ -233,6 +233,7 @@ const GuesthouseIntroSummaryModal = ({ visible, onClose, onSelect, shouldResetOn
                 multiline
                 maxLength={1000}
                 placeholder="게스트하우스 소개를 입력해주세요"
+                placeholderTextColor={COLORS.grayscale_400}
               />
               <TouchableOpacity style={styles.rewriteButton} onPress={() => setShortIntroText('')}>
                 <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
