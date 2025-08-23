@@ -8,7 +8,6 @@ const useUserStore = create(
     set => ({
       // 초기 상태값
       accessToken: null,
-      refreshToken: null,
       userRole: null,
 
       // 유저 프로필
@@ -34,8 +33,7 @@ const useUserStore = create(
       },
 
       // 토큰 저장 함수
-      setTokens: ({accessToken, refreshToken}) =>
-        set({accessToken, refreshToken}),
+      setTokens: ({accessToken}) => set({accessToken}),
 
       // 사용자 역할 저장 함수
       setUserRole: role => set({userRole: role}),

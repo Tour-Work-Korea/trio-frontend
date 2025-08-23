@@ -45,14 +45,18 @@ const authApi = {
     api.post('/auth/login', {email, password, userRole}, {withAuth: false}),
 
   //토큰 재발급
-  refreshToken: async () => {
+  refreshToken: async refreshToken => {
     const url = '/auth/refresh';
     console.log(`🔄 Refresh Request: POST ${url}`);
 
     try {
-      const res = await api.post(url, null, {
-        withAuth: false,
-      });
+      const res = await api.post(
+        url,
+        {refreshToken},
+        {
+          withAuth: false,
+        },
+      );
       return res;
     } catch (err) {
       console.warn(

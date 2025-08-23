@@ -1,22 +1,24 @@
+// authFlow.js
 import EncryptedStorage from 'react-native-encrypted-storage';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import hostMyApi from '@utils/api/hostMyApi';
 
+const REFRESH_KEY = 'refresh-token'; // 👈 refreshToken만 저장
+
 export const tryAutoLogin = async () => {
   try {
-    const credentials = await EncryptedStorage.getItem('user-credentials');
-    console.log('🔑 Stored Credentials:', credentials);
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    console.log('🔑 Has refresh token?', !!storedRefresh);
 
-    if (!credentials) {
-      return;
-    }
+    if (!storedRefresh) return;
 
-    const {userRole} = JSON.parse(credentials);
     const isRefreshSuccess = await tryRefresh();
     if (isRefreshSuccess) {
-      updateProfile(userRole);
+      // userRole은 Zustand에 저장/유지
+      const {userRole} = useUserStore.getState();
+      if (userRole) await updateProfile(userRole);
     }
   } catch (err) {
     console.warn('❌ tryAutoLogin Error:', err);
@@ -24,50 +26,29 @@ export const tryAutoLogin = async () => {
   }
 };
 
-const storeLoginInfo = (res, userRole) => {
-  const authorizationHeader = res.headers?.authorization;
-  let accessToken = authorizationHeader?.replace('Bearer ', '');
-  let refreshToken;
-
-  const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-  if (rawCookies && rawCookies.length > 0) {
-    const cookie = rawCookies[0];
-    const match = cookie.match(/refreshToken=([^;]+);?/);
-
-    if (match) {
-      refreshToken = match[1];
-    }
-  }
-
-  if (!accessToken) {
-    accessToken = res.data?.accessToken;
-  }
-  if (!refreshToken) {
-    throw new Error('refreshToken 없음');
-  }
+const storeLoginInfo = async (res, userRole) => {
+  const accessToken = res.data.accessToken;
+  const refreshToken = res.data.refreshToken;
 
   const {setTokens, setUserRole} = useUserStore.getState();
-  setTokens({accessToken, refreshToken});
+
+  // accessToken만 store에 반영 (persist 허용)
+  setTokens({accessToken});
   setUserRole(userRole);
 
-  console.log('accessToken: ', accessToken);
-  console.log('refreshToken: ', refreshToken);
+  // 🔐 refreshToken은 암호 저장소에만
+  await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
 
-  updateProfile(userRole);
+  await updateProfile(userRole);
 };
 
 export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password, userRole);
-    storeLoginInfo(res, userRole);
-
-    await EncryptedStorage.setItem(
-      'user-credentials',
-      JSON.stringify({userRole}),
-    );
-    return true; // 성공
+    await storeLoginInfo(res, userRole); // 👈 await 빠뜨리지 않기
+    return true;
   } catch (err) {
-    await EncryptedStorage.removeItem('user-credentials');
+    await EncryptedStorage.removeItem(REFRESH_KEY);
     useUserStore.getState().clearUser();
     throw err;
   }
@@ -76,48 +57,48 @@ export const tryLogin = async (email, password, userRole) => {
 export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
-    storeLoginInfo(res, userRole);
-
-    // 소셜 로그인은 아이디/비번이 없으므로 provider 정보만 저장
-    await EncryptedStorage.setItem(
-      'user-credentials',
-      JSON.stringify({userRole}),
-    );
+    await storeLoginInfo(res, userRole);
     return {
       success: true,
       isNewUser: res.data.isNewUser,
     };
   } catch (err) {
-    console.log('실패', err.message);
+    console.log('소셜 로그인 실패:', err?.message);
     useUserStore.getState().clearUser();
-    await EncryptedStorage.removeItem('user-credentials');
+    await EncryptedStorage.removeItem(REFRESH_KEY);
     return {success: false};
   }
 };
 
 export const tryRefresh = async () => {
   try {
-    const res = await authApi.refreshToken();
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    if (!storedRefresh) return false;
+
+    const res = await authApi.refreshToken(storedRefresh);
+
     const accessToken = res.data.accessToken;
-    let refreshToken;
-    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-    if (rawCookies && rawCookies.length > 0) {
-      const cookie = rawCookies[0];
-      const match = cookie.match(/refreshToken=([^;]+);?/);
-      if (match) {
-        refreshToken = match[1];
-      }
+    const refreshTokenUpdated = res.data.refreshToken;
+
+    // accessToken만 store에 반영
+    useUserStore.getState().setTokens({accessToken});
+
+    // 서버가 새 refreshToken을 발급하면 교체 저장
+    if (refreshTokenUpdated) {
+      await EncryptedStorage.setItem(REFRESH_KEY, refreshTokenUpdated);
     }
-    useUserStore.getState().setTokens({accessToken, refreshToken});
     return true;
   } catch (error) {
+    // refresh 실패 시 정리
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+    useUserStore.getState().clearUser();
     return false;
   }
 };
 
 export const tryLogout = async () => {
   try {
-    await EncryptedStorage.removeItem('user-credentials');
+    await EncryptedStorage.removeItem(REFRESH_KEY);
   } catch (err) {
     console.warn('EncryptedStorage 삭제 실패:', err);
   } finally {
@@ -126,7 +107,7 @@ export const tryLogout = async () => {
 };
 
 const updateProfile = async role => {
-  const {setUserProfile, setHostProfile} = useUserStore.getState(); // ✅ 안전하게 접근
+  const {setUserProfile, setHostProfile} = useUserStore.getState();
 
   try {
     if (role === 'HOST') {
@@ -170,19 +151,15 @@ const updateProfile = async role => {
       });
     }
   } catch (error) {
-    console.warn(`${role} 정보를 가져오는데 실패했습니다.`);
+    console.warn(`${role} 정보를 가져오는데 실패했습니다.`, error?.message);
   }
 };
 
 export function calculateAge(birthDateString) {
-  if (!birthDateString) {
-    return '00';
-  }
+  if (!birthDateString) return '00';
   const today = new Date();
   const birthDate = new Date(birthDateString);
   let age = today.getFullYear() - birthDate.getFullYear();
-
-  // 생일이 안 지났으면 1살 빼기
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (
     monthDiff < 0 ||
