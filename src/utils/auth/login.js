@@ -4,25 +4,29 @@ import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import hostMyApi from '@utils/api/hostMyApi';
+import {log, mask} from '@utils/logger';
+import {navigate} from '@utils/navigationService';
 
 const REFRESH_KEY = 'refresh-token'; // 👈 refreshToken만 저장
 
 export const tryAutoLogin = async () => {
+  log.info('🚪 tryAutoLogin: start');
   try {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
-    console.log('🔑 Has refresh token?', !!storedRefresh);
+    log.info('🔐 has refreshToken?', !!storedRefresh);
+    if (!storedRefresh) return false;
 
-    if (!storedRefresh) return;
-
-    const isRefreshSuccess = await tryRefresh();
-    if (isRefreshSuccess) {
-      // userRole은 Zustand에 저장/유지
+    const ok = await tryRefresh({silent: true});
+    log.info('🚪 tryAutoLogin: refresh result =', ok);
+    if (ok) {
       const {userRole} = useUserStore.getState();
+      log.info('👤 tryAutoLogin: userRole =', userRole);
       if (userRole) await updateProfile(userRole);
     }
+    return ok;
   } catch (err) {
-    console.warn('❌ tryAutoLogin Error:', err);
-    throw new Error('자동 로그인 실패');
+    log.warn('❌ tryAutoLogin Error:', err?.message);
+    return false;
   }
 };
 
@@ -30,83 +34,110 @@ const storeLoginInfo = async (res, userRole) => {
   const accessToken = res.data.accessToken;
   const refreshToken = res.data.refreshToken;
 
-  const {setTokens, setUserRole} = useUserStore.getState();
+  log.info(
+    '✅ login success: accessToken=',
+    mask(accessToken),
+    'refreshToken=',
+    mask(refreshToken),
+    'role=',
+    userRole,
+  );
 
-  // accessToken만 store에 반영 (persist 허용)
+  const {setTokens, setUserRole} = useUserStore.getState();
   setTokens({accessToken});
   setUserRole(userRole);
 
-  // 🔐 refreshToken은 암호 저장소에만
   await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
+  const check = await EncryptedStorage.getItem(REFRESH_KEY);
+  log.info('🔐 saved refresh?', !!check);
 
   await updateProfile(userRole);
 };
 
 export const tryLogin = async (email, password, userRole) => {
+  log.info('🔓 tryLogin: role=', userRole);
   try {
     const res = await authApi.login(email, password, userRole);
-    await storeLoginInfo(res, userRole); // 👈 await 빠뜨리지 않기
+    await storeLoginInfo(res, userRole);
     return true;
   } catch (err) {
+    log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
     await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
+
     useUserStore.getState().clearUser();
     throw err;
   }
 };
 
 export const tryKakaoLogin = async (accessCode, userRole) => {
+  log.info('🟨 tryKakaoLogin: role=', userRole);
   try {
     const res = await authApi.loginKakao(accessCode);
     await storeLoginInfo(res, userRole);
-    return {
-      success: true,
-      isNewUser: res.data.isNewUser,
-    };
+    return {success: true, isNewUser: res.data.isNewUser};
   } catch (err) {
-    console.log('소셜 로그인 실패:', err?.message);
+    log.warn('❌ tryKakaoLogin failed:', err?.message);
     useUserStore.getState().clearUser();
     await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
+
     return {success: false};
   }
 };
 
-export const tryRefresh = async () => {
+export const tryRefresh = async ({silent = false} = {}) => {
+  log.info('🔄 tryRefresh: start');
   try {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
-    if (!storedRefresh) return false;
-
+    if (!storedRefresh) {
+      log.warn('🔄 tryRefresh: no refresh token');
+      return false;
+    }
     const res = await authApi.refreshToken(storedRefresh);
 
     const accessToken = res.data.accessToken;
     const refreshTokenUpdated = res.data.refreshToken;
 
-    // accessToken만 store에 반영
     useUserStore.getState().setTokens({accessToken});
+    log.info('🔄 tryRefresh: new accessToken=', mask(accessToken));
 
-    // 서버가 새 refreshToken을 발급하면 교체 저장
     if (refreshTokenUpdated) {
       await EncryptedStorage.setItem(REFRESH_KEY, refreshTokenUpdated);
+      log.info('🔄 tryRefresh: refreshToken rotated');
     }
     return true;
   } catch (error) {
-    // refresh 실패 시 정리
+    log.warn('❌ tryRefresh failed:', error?.response?.status, error?.message);
     await EncryptedStorage.removeItem(REFRESH_KEY);
     useUserStore.getState().clearUser();
+
+    if (!silent) {
+      navigate('Login', {reason: 'refresh_failed'});
+    }
     return false;
   }
 };
 
 export const tryLogout = async () => {
+  log.info('🚪 tryLogout');
   try {
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    await authApi.logout(storedRefresh);
     await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
   } catch (err) {
-    console.warn('EncryptedStorage 삭제 실패:', err);
+    log.warn('EncryptedStorage 삭제 실패:', err?.message);
   } finally {
     useUserStore.getState().clearUser();
   }
 };
 
 const updateProfile = async role => {
+  log.info('👤 updateProfile: role=', role);
   const {setUserProfile, setHostProfile} = useUserStore.getState();
 
   try {
@@ -122,6 +153,7 @@ const updateProfile = async role => {
         email: email ?? '',
         businessNum: businessNum ?? '',
       });
+      log.info('👤 HOST profile loaded');
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
@@ -149,9 +181,10 @@ const updateProfile = async role => {
         birthDate: birthDate ?? null,
         age: calculateAge(birthDate),
       });
+      log.info('👤 USER profile loaded');
     }
   } catch (error) {
-    console.warn(`${role} 정보를 가져오는데 실패했습니다.`, error?.message);
+    log.warn(`👤 ${role} profile fetch failed:`, error?.message);
   }
 };
 

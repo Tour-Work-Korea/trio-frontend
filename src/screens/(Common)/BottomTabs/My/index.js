@@ -24,21 +24,8 @@ const MyMainScreen = ({navigation}) => {
   useEffect(() => {
     if (userRole === 'HOST') {
       navigation.replace('HostMyPage');
-    } else if (userRole === 'USER') {
-      navigation.replace('UserMyPage');
     } else {
-      // userRole이 없거나 잘못된 값일 때 임시(나중에 로그인 페이지로 가게 수정 예정)
-      Alert.alert(
-        '로그인 필요',
-        '로그인이 필요합니다.',
-        [
-          {
-            text: '확인',
-            onPress: () => navigation.navigate('Login'),
-          },
-        ],
-        {cancelable: false},
-      );
+      navigation.replace('UserMyPage');
     }
   }, [userRole, navigation]);
 
