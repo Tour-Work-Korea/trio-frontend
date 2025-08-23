@@ -71,9 +71,10 @@ const MyApplicantList = () => {
   const handleDeleteApplicant = async id => {
     setErrorModal({
       visible: true,
-      title: '정말 삭제하시겠어요?',
-      buttonText: '취소',
-      buttonText2: '삭제',
+      title:
+        '지원 취소한 알바는\n다시 지원하기 어려워요\n알바 지원을 취소하시겠습니까?',
+      buttonText: '안할래요',
+      buttonText2: '취소하기',
       onPress2: () => {
         tryDeleteApplicantById(id);
         setErrorModal(prev => ({...prev, visible: false}));
