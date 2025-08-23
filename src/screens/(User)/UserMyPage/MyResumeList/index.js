@@ -3,7 +3,6 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
@@ -14,6 +13,8 @@ import EditIcon from '@assets/images/edit_gray';
 import TrashIcon from '@assets/images/delete_gray.svg';
 import ResultModal from '@components/modals/ResultModal';
 import DeleteWaLogo from '@assets/images/delete_wa.svg';
+import PlusIcon from '@assets/images/plus_white.svg';
+import {FONTS} from '@constants/fonts';
 
 /*
  * 나의 이력서 목록 페이지
@@ -67,7 +68,7 @@ const MyResumeList = () => {
       setErrorModal(prev => ({
         ...prev,
         visible: true,
-        title: '삭제 중 오류가 발생했어요',
+        title: error?.response?.data?.message ?? '삭제 중 오류가 발생했어요',
         buttonText: '확인',
       }));
     }
@@ -76,9 +77,9 @@ const MyResumeList = () => {
   const handleDeletePosting = id => {
     setErrorModal({
       visible: true,
-      title: '정말 삭제하시겠어요?',
-      buttonText: '취소',
-      buttonText2: '삭제',
+      title: '삭제한 이력서는 복구할 수 없어요\n삭제를 진행하시겠어요?',
+      buttonText: '보류하기',
+      buttonText2: '삭제하기',
       onPress2: () => {
         tryDeleteResumeById(id);
         setErrorModal(prev => ({...prev, visible: false}));
@@ -171,8 +172,8 @@ const MyResumeList = () => {
       ) : (
         <View style={styles.body}>
           {renderResumeSelection()}
-          <ButtonScarlet
-            title="이력서 작성하기"
+          <TouchableOpacity
+            style={[styles.addButton, styles.addButtonLocation]}
             onPress={() =>
               navigation.navigate('ResumeDetail', {
                 isEditable: true,
@@ -180,8 +181,12 @@ const MyResumeList = () => {
                 isNew: true,
                 headerTitle: '이력서 작성',
               })
-            }
-          />
+            }>
+            <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+              이력서 추가하기
+            </Text>
+            <PlusIcon width={24} height={24} />
+          </TouchableOpacity>
         </View>
       )}
       <ErrorModal
