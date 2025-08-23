@@ -1,132 +1,144 @@
+// authFlow.js
 import EncryptedStorage from 'react-native-encrypted-storage';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import hostMyApi from '@utils/api/hostMyApi';
+import {log, mask} from '@utils/logger';
+import {navigate} from '@utils/navigationService';
+
+const REFRESH_KEY = 'refresh-token'; // 👈 refreshToken만 저장
 
 export const tryAutoLogin = async () => {
+  log.info('🚪 tryAutoLogin: start');
   try {
-    const credentials = await EncryptedStorage.getItem('user-credentials');
-    console.log('🔑 Stored Credentials:', credentials);
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🔐 has refreshToken?', !!storedRefresh);
+    if (!storedRefresh) return false;
 
-    if (!credentials) {
-      return;
+    const ok = await tryRefresh({silent: true});
+    log.info('🚪 tryAutoLogin: refresh result =', ok);
+    if (ok) {
+      const {userRole} = useUserStore.getState();
+      log.info('👤 tryAutoLogin: userRole =', userRole);
+      if (userRole) await updateProfile(userRole);
     }
-
-    const {userRole} = JSON.parse(credentials);
-    const isRefreshSuccess = await tryRefresh();
-    if (isRefreshSuccess) {
-      updateProfile(userRole);
-    }
+    return ok;
   } catch (err) {
-    console.warn('❌ tryAutoLogin Error:', err);
-    throw new Error('자동 로그인 실패');
+    log.warn('❌ tryAutoLogin Error:', err?.message);
+    return false;
   }
 };
 
-const storeLoginInfo = (res, userRole) => {
-  const authorizationHeader = res.headers?.authorization;
-  let accessToken = authorizationHeader?.replace('Bearer ', '');
-  let refreshToken;
+const storeLoginInfo = async (res, userRole) => {
+  const accessToken = res.data.accessToken;
+  const refreshToken = res.data.refreshToken;
 
-  const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-  if (rawCookies && rawCookies.length > 0) {
-    const cookie = rawCookies[0];
-    const match = cookie.match(/refreshToken=([^;]+);?/);
-
-    if (match) {
-      refreshToken = match[1];
-    }
-  }
-
-  if (!accessToken) {
-    accessToken = res.data?.accessToken;
-  }
-  if (!refreshToken) {
-    throw new Error('refreshToken 없음');
-  }
+  log.info(
+    '✅ login success: accessToken=',
+    mask(accessToken),
+    'refreshToken=',
+    mask(refreshToken),
+    'role=',
+    userRole,
+  );
 
   const {setTokens, setUserRole} = useUserStore.getState();
-  setTokens({accessToken, refreshToken});
+  setTokens({accessToken});
   setUserRole(userRole);
 
-  console.log('accessToken: ', accessToken);
-  console.log('refreshToken: ', refreshToken);
+  await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
+  const check = await EncryptedStorage.getItem(REFRESH_KEY);
+  log.info('🔐 saved refresh?', !!check);
 
-  updateProfile(userRole);
+  await updateProfile(userRole);
 };
 
 export const tryLogin = async (email, password, userRole) => {
+  log.info('🔓 tryLogin: role=', userRole);
   try {
     const res = await authApi.login(email, password, userRole);
-    storeLoginInfo(res, userRole);
-
-    await EncryptedStorage.setItem(
-      'user-credentials',
-      JSON.stringify({userRole}),
-    );
-    return true; // 성공
+    await storeLoginInfo(res, userRole);
+    return true;
   } catch (err) {
-    await EncryptedStorage.removeItem('user-credentials');
+    log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
+
     useUserStore.getState().clearUser();
     throw err;
   }
 };
 
 export const tryKakaoLogin = async (accessCode, userRole) => {
+  log.info('🟨 tryKakaoLogin: role=', userRole);
   try {
     const res = await authApi.loginKakao(accessCode);
-    storeLoginInfo(res, userRole);
-
-    // 소셜 로그인은 아이디/비번이 없으므로 provider 정보만 저장
-    await EncryptedStorage.setItem(
-      'user-credentials',
-      JSON.stringify({userRole}),
-    );
-    return {
-      success: true,
-      isNewUser: res.data.isNewUser,
-    };
+    await storeLoginInfo(res, userRole);
+    return {success: true, isNewUser: res.data.isNewUser};
   } catch (err) {
-    console.log('실패', err.message);
+    log.warn('❌ tryKakaoLogin failed:', err?.message);
     useUserStore.getState().clearUser();
-    await EncryptedStorage.removeItem('user-credentials');
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
+
     return {success: false};
   }
 };
 
-export const tryRefresh = async () => {
+export const tryRefresh = async ({silent = false} = {}) => {
+  log.info('🔄 tryRefresh: start');
   try {
-    const res = await authApi.refreshToken();
-    const accessToken = res.data.accessToken;
-    let refreshToken;
-    const rawCookies = res.headers['set-cookie'] || res.headers['Set-Cookie'];
-    if (rawCookies && rawCookies.length > 0) {
-      const cookie = rawCookies[0];
-      const match = cookie.match(/refreshToken=([^;]+);?/);
-      if (match) {
-        refreshToken = match[1];
-      }
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    if (!storedRefresh) {
+      log.warn('🔄 tryRefresh: no refresh token');
+      return false;
     }
-    useUserStore.getState().setTokens({accessToken, refreshToken});
+    const res = await authApi.refreshToken(storedRefresh);
+
+    const accessToken = res.data.accessToken;
+    const refreshTokenUpdated = res.data.refreshToken;
+
+    useUserStore.getState().setTokens({accessToken});
+    log.info('🔄 tryRefresh: new accessToken=', mask(accessToken));
+
+    if (refreshTokenUpdated) {
+      await EncryptedStorage.setItem(REFRESH_KEY, refreshTokenUpdated);
+      log.info('🔄 tryRefresh: refreshToken rotated');
+    }
     return true;
   } catch (error) {
+    log.warn('❌ tryRefresh failed:', error?.response?.status, error?.message);
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+    useUserStore.getState().clearUser();
+
+    if (!silent) {
+      navigate('Login', {reason: 'refresh_failed'});
+    }
     return false;
   }
 };
 
 export const tryLogout = async () => {
+  log.info('🚪 tryLogout');
   try {
-    await EncryptedStorage.removeItem('user-credentials');
+    const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
+    await authApi.logout(storedRefresh);
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🧹 removed refresh?', !check);
   } catch (err) {
-    console.warn('EncryptedStorage 삭제 실패:', err);
+    log.warn('EncryptedStorage 삭제 실패:', err?.message);
   } finally {
     useUserStore.getState().clearUser();
   }
 };
 
 const updateProfile = async role => {
-  const {setUserProfile, setHostProfile} = useUserStore.getState(); // ✅ 안전하게 접근
+  log.info('👤 updateProfile: role=', role);
+  const {setUserProfile, setHostProfile} = useUserStore.getState();
 
   try {
     if (role === 'HOST') {
@@ -141,6 +153,7 @@ const updateProfile = async role => {
         email: email ?? '',
         businessNum: businessNum ?? '',
       });
+      log.info('👤 HOST profile loaded');
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
@@ -168,21 +181,18 @@ const updateProfile = async role => {
         birthDate: birthDate ?? null,
         age: calculateAge(birthDate),
       });
+      log.info('👤 USER profile loaded');
     }
   } catch (error) {
-    console.warn(`${role} 정보를 가져오는데 실패했습니다.`);
+    log.warn(`👤 ${role} profile fetch failed:`, error?.message);
   }
 };
 
 export function calculateAge(birthDateString) {
-  if (!birthDateString) {
-    return '00';
-  }
+  if (!birthDateString) return '00';
   const today = new Date();
   const birthDate = new Date(birthDateString);
   let age = today.getFullYear() - birthDate.getFullYear();
-
-  // 생일이 안 지났으면 1살 빼기
   const monthDiff = today.getMonth() - birthDate.getMonth();
   if (
     monthDiff < 0 ||

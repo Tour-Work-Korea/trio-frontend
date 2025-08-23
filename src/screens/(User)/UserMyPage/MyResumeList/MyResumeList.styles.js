@@ -84,4 +84,21 @@ export default StyleSheet.create({
     justifyContent: 'center',
     padding: 4,
   },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary_orange,
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  addButtonLocation: {
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+  },
+  addButtonText: {
+    color: COLORS.grayscale_0,
+    marginRight: 10,
+  },
 });

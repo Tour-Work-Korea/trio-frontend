@@ -45,14 +45,18 @@ const authApi = {
     api.post('/auth/login', {email, password, userRole}, {withAuth: false}),
 
   //토큰 재발급
-  refreshToken: async () => {
+  refreshToken: async refreshToken => {
     const url = '/auth/refresh';
     console.log(`🔄 Refresh Request: POST ${url}`);
 
     try {
-      const res = await api.post(url, null, {
-        withAuth: false,
-      });
+      const res = await api.post(
+        url,
+        {refreshToken},
+        {
+          withAuth: false,
+        },
+      );
       return res;
     } catch (err) {
       console.warn(
@@ -100,6 +104,8 @@ const authApi = {
   //비밀번호 찾기
   findPassword: body =>
     api.post('/auth/find/password', body, {withAuth: false}),
+  //로그아웃
+  logout: refreshToken => api.post('/auth/logout', {refreshToken}),
 };
 
 export default authApi;

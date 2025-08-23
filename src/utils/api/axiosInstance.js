@@ -1,22 +1,31 @@
+// axiosInstance.js
 import qs from 'qs';
 import axios from 'axios';
+import EncryptedStorage from 'react-native-encrypted-storage';
 import useUserStore from '@stores/userStore';
 import {API_BASE_URL} from '@env';
 import authApi from './authApi';
+import {log, mask} from '@utils/logger';
+import {tryRefresh} from '@utils/auth/login';
 
+const REFRESH_KEY = 'refresh-token';
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 5000,
-  headers: {
-    'Content-Type': 'application/json',
-  },
+  headers: {'Content-Type': 'application/json'},
   paramsSerializer: params => qs.stringify(params),
 });
 
-// 📍 REQUEST INTERCEPTOR
+// 간단한 요청 ID 생성
+const rid = () => Math.random().toString(36).slice(2, 8);
+
+// REQUEST
 api.interceptors.request.use(
   async config => {
+    const id = rid();
+    config._reqId = id;
+
     const method = config.method?.toUpperCase() || 'GET';
     const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
     const endpoint = config.url?.replace(/^\//, '') || '';
@@ -24,100 +33,93 @@ api.interceptors.request.use(
       ? `${baseUrl}/${endpoint}?${qs.stringify(config.params)}`
       : `${baseUrl}/${endpoint}`;
 
-    // ⛳️ STEP 1: 토큰 주입
+    // accessToken 주입
     const token = useUserStore.getState().accessToken;
     if (config.withAuth !== false && token) {
       config.headers.Authorization = `Bearer ${token}`;
-      console.log('accessToken:', token);
     }
 
-    // ⛳️ STEP 2: RefreshToken 쿠키 직접 삽입 (React Native 용)
-    const cookie = useUserStore.getState().refreshToken;
-    if (cookie) {
-      config.headers.Cookie = 'refreshToken=' + cookie;
-      console.log('refreshToken:', cookie);
-    }
+    log.time(`⏱️ ${id}`);
+    log.info(`➡️ [${id}] ${method} ${fullUrl}`);
 
-    // ⛳️ STEP 3: 로그 출력
-    console.log(`🔷 [Request] ${method} ${fullUrl}`);
-    if (config.data) console.log('📦 [Request Body]', config.data);
+    if (config.withAuth !== false) {
+      log.info(`🔑 [${id}] accessToken=`, mask(token));
+    }
+    if (config.data) log.info(`📦 [${id}] body=`, config.data);
 
     return config;
   },
   error => Promise.reject(error),
 );
 
-// 📍 TOKEN REFRESH FLOW
+// 리프레시 큐
 let isRefreshing = false;
 let queue = [];
-
 const resolveQueue = (error, token = null) => {
   queue.forEach(p => (error ? p.reject(error) : p.resolve(token)));
   queue = [];
 };
 
-// 📍 RESPONSE INTERCEPTOR
+// RESPONSE
 api.interceptors.response.use(
   res => {
-    console.log('🟢 [Response]', res.status, res.data);
+    const id = res.config._reqId;
+    log.info(`✅ [${id}] status=`, res.status);
+    if (res.data) {
+      try {
+        log.info(
+          `📩 [${id}] response data=`,
+          JSON.stringify(res.data, null, 2),
+        );
+      } catch (e) {
+        log.info(`📩 [${id}] response data=`, res.data);
+      }
+    }
+    log.timeEnd(`⏱️ ${res.config._reqId}`);
     return res;
   },
   async err => {
-    const originalRequest = err.config;
+    const original = err.config;
+    const id = original?._reqId || rid();
     const status = err.response?.status;
 
-    // ✅ [예외 처리] refreshToken 요청은 재시도 로직 타지 않음
-    if (originalRequest.url?.includes('/auth/refresh')) {
-      console.warn('🛑 [/auth/refresh 요청은 재시도하지 않음]');
+    log.info(`🛑 [${id}] error status=`, status, 'url=', original?.url);
+    log.timeEnd(`⏱️ ${id}`);
+
+    if (original?.url?.includes('/auth/refresh')) {
+      log.warn(`🧯 [${id}] refresh call itself failed — no retry`);
       return Promise.reject(err);
     }
 
-    console.log(
-      `🔴 [Error] ${originalRequest.method?.toUpperCase()} ${
-        originalRequest.url
-      }`,
-    );
-    console.log('🔴 [Error Response]', status, err.response?.data);
-
-    if (status === 403 && !originalRequest._retry) {
-      console.log('🔁 [Retry Trigger] accessToken 만료로 인해 재발급 시도');
-      originalRequest._retry = true;
+    if (status === 403 && !original._retry) {
+      log.info(`🔁 [${id}] accessToken expired → refresh flow`);
+      original._retry = true;
 
       if (isRefreshing) {
-        console.log('⏳ [Token Refreshing] 이미 재발급 중, 대기열에 요청 추가');
-        return new Promise((res, rej) => {
-          queue.push({resolve: res, reject: rej});
+        log.info(`⏳ [${id}] waiting for ongoing refresh`);
+        return new Promise((resolve, reject) => {
+          queue.push({resolve, reject});
         }).then(token => {
-          originalRequest.headers.Authorization = `Bearer ${token}`;
-          return api(originalRequest);
+          original.headers.Authorization = `Bearer ${token}`;
+          return api(original);
         });
       }
 
       isRefreshing = true;
       try {
-        console.log('🔄 [Refresh] /auth/refresh 요청 시작');
-        const res = await authApi.refreshToken();
-        console.log('✅ [Refresh] 재발급 성공', res.status, res.data);
+        const ok = await tryRefresh(); // ✅ 여기서 호출
+        if (!ok) {
+          resolveQueue(new Error('refresh failed'), null);
+          return Promise.reject(err);
+        }
 
-        const accessToken = res.data.accessToken;
-
-        // React Native에서는 set-cookie 헤더를 못 받으므로 refreshToken 파싱은 생략
-        useUserStore.getState().setTokens({accessToken});
-        api.defaults.headers.Authorization = `Bearer ${accessToken}`;
-
-        // 대기 중이던 요청 재시도
-        resolveQueue(null, accessToken);
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
-        return api(originalRequest);
-      } catch (error) {
-        console.warn(
-          '❌ [Refresh Failed]',
-          error.response?.status,
-          error.response?.data?.message || error.message,
-        );
-        resolveQueue(error, null);
-        useUserStore.getState().clearUser();
-        return Promise.reject(error);
+        const newAccess = useUserStore.getState().accessToken;
+        resolveQueue(null, newAccess);
+        original.headers.Authorization = `Bearer ${newAccess}`;
+        return api(original);
+      } catch (e) {
+        resolveQueue(e, null);
+        return Promise.reject(e);
       } finally {
         isRefreshing = false;
       }
