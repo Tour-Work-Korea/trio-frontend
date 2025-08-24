@@ -6,12 +6,14 @@ import dayjs from 'dayjs';
 import styles from './Home.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import { guesthouseTags } from '@data/guesthouseTags';
 
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Star from '@assets/images/star_white.svg';
 
 export default function Guesthouses({guesthouses}) {
   const navigation = useNavigation();
+  const tagNameById = Object.fromEntries(guesthouseTags.map(t => [t.id, t.hashtag]));
 
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
@@ -20,7 +22,7 @@ export default function Guesthouses({guesthouses}) {
     <TouchableOpacity
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
-          id: item.id,
+          id: item.guesthouseId,
           isFromDeeplink: true,
           checkIn: today.format('YYYY-MM-DD'),
           checkOut: tomorrow.format('YYYY-MM-DD'),
@@ -30,9 +32,9 @@ export default function Guesthouses({guesthouses}) {
     >
       <View style={styles.guesthouseCard}>
         <View>
-          {item.thumbnailImgUrl ? (
+          {item.thumbnailUrl ? (
             <Image
-              source={{ uri: item.thumbnailImgUrl }}
+              source={{ uri: item.thumbnailUrl }}
               style={styles.guesthouseImage}
             />
           ) : (
@@ -40,7 +42,7 @@ export default function Guesthouses({guesthouses}) {
           )}
           <View style={styles.ratingBox}>
             <Star width={14} height={14}/>
-            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.averageRating}</Text>
+            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.avgRating}</Text>
           </View>
         </View>
         <View style={[styles.titleSection, {marginBottom: 10}]}>
@@ -48,22 +50,32 @@ export default function Guesthouses({guesthouses}) {
             style={styles.guesthouseTitle}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {item.name}
+            {item.guesthouseName}
           </Text>
-          <View style={styles.guesthousePrice}>
-            <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-              최저가
-            </Text>
-            <Text style={FONTS.fs_16_semibold}>
-              {item.minPrice.toLocaleString()}원 ~
-            </Text>
-          </View>
+          {Number(item.minAmount) > 0 ? (
+            // 정상 가격 노출
+            <View style={styles.guesthousePrice}>
+              <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+                최저가
+              </Text>
+              <Text style={FONTS.fs_16_semibold}>
+                {Number(item.minAmount).toLocaleString()}원 ~
+              </Text>
+            </View>
+          ) : (
+            // 예약 마감 노출
+            <View style={styles.guesthousePrice}>
+              <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
+                예약마감
+              </Text>
+            </View>
+          )}
         </View>
         <View style={styles.hashTagContainer}>
-          {item.hashtags.map((hashtag, idx) => (
-            <View style={styles.hashtagButton} key={idx}>
+          {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
+            <View style={styles.hashtagButton} key={id}>
               <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-                {hashtag}
+                {tagNameById[id] ?? `#${id}`}
               </Text>
             </View>
           ))}
@@ -92,7 +104,7 @@ export default function Guesthouses({guesthouses}) {
         data={guesthouses}
         horizontal
         showsHorizontalScrollIndicator={false}
-        keyExtractor={item => item.id.toString()}
+        keyExtractor={item => String(item.guesthouseId)}
         renderItem={renderGuesthouse}
         ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
       />

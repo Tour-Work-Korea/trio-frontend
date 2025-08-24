@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import { StyleSheet, Platform } from 'react-native';
 import { COLORS } from '@constants/colors';
 
 const styles = StyleSheet.create({
@@ -65,6 +65,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 20,
     bottom : 20,
+    ...Platform.select({
+      ios: {
+        marginBottom: 20,
+      },
+    }),
   },
   addButtonText: {
     color: COLORS.grayscale_0,

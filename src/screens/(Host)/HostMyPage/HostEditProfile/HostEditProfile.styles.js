@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
@@ -16,6 +16,11 @@ export default StyleSheet.create({
     flex: 1,
     marginBottom: 20,
     borderRadius: 8,
+    ...Platform.select({
+      ios: {
+        marginBottom: 40,
+      },
+    }),
   },
   buttonContainer: {
     marginBottom: 8,

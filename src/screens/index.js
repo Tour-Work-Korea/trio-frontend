@@ -62,13 +62,13 @@ export {default as HostEditProfile} from './(Host)/HostMyPage/HostEditProfile';
 export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
 // 게하 목록 & 수정 & 등록
 export {default as MyGuesthouseDetail} from './(Host)/Guesthouse/MyGuesthouseDetail';
-export {default as MyGuesthouseList} from './(Host)/HostMyPage/MyGuesthouseList';
+export {default as MyGuesthouseList} from './(Host)/Guesthouse/MyGuesthouseList';
 export {default as MyGuesthouseEdit} from './(Host)/Guesthouse/MyGuesthouseEdit';
 export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
 // 게하 숙박 리뷰
-export {default as MyGuesthouseReview} from './(Host)/HostMyPage/MyGuesthouseReview';
+export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseReview';
 // 게하 예약 내역
-export {default as MyGuesthouseReservation} from './(Host)/HostMyPage/MyGuesthouseReservation';
+export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
 export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGuesthouseReservationStatus';
 //
 export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';

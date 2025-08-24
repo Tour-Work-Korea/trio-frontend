@@ -21,6 +21,10 @@ import CalendarIcon from '@assets/images/calendar_gray.svg';
 import Person from '@assets/images/person20_gray.svg';
 import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 import AllIcon from '@assets/images/wlogo_blue_left.svg';
+import JejuEast from '@assets/images/regions/jeju/jeju_east.svg';
+import JejuWest from '@assets/images/regions/jeju/jeju_west.svg';
+import JejuSouth from '@assets/images/regions/jeju/jeju_south.svg';
+import JejuNorth from '@assets/images/regions/jeju/jeju_north.svg';
 
 import styles from './GuesthouseSearch.styles';
 import {FONTS} from '@constants/fonts';
@@ -36,7 +40,13 @@ const mockGuesthouseResults = [
   // '제주 WC 게스트하우스',
 ];
 
-const mockLocationResults = ['제주시', '제주 애월'];
+const regionIcons = {
+  제주전체: AllIcon,
+  제주북부: JejuNorth,
+  제주동부: JejuEast,
+  제주남부: JejuSouth,
+  제주서부: JejuWest,
+};
 
 const GuesthouseSearch = () => {
   const navigation = useNavigation();
@@ -125,24 +135,30 @@ const GuesthouseSearch = () => {
   );
 
   // 세부 지역
-  const renderSubRegionItem = subRegion => (
-    <TouchableOpacity
-      key={subRegion.name}
-      style={styles.subRegionItem}
-      onPress={() => goToGuesthouseList(subRegion.regionIds, subRegion.name)}>
-      {/* 이미지 대신 회색 박스 */}
-      {subRegion.name === '제주전체' ? (
-        <View style={styles.imagePlaceholder}>
-          <AllIcon width={36} height={36} />
-        </View>
-      ) : (
-        <View style={styles.EXimagePlaceholder} />
-      )}
-      <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
-        {subRegion.name}
-      </Text>
-    </TouchableOpacity>
-  );
+  const renderSubRegionItem = subRegion => {
+    const IconComponent = regionIcons[subRegion.name];
+    const isAll = subRegion.name === '제주전체';
+
+    return(
+      <TouchableOpacity
+        key={subRegion.name}
+        style={styles.subRegionItem}
+        onPress={() => goToGuesthouseList(subRegion.regionIds, subRegion.name)}>
+        {isAll ? (
+          <View style={styles.imagePlaceholder}>
+            <AllIcon width={36} height={36} />
+          </View>
+        ) : (
+          <View style={styles.regionImgPlaceholder}>
+            <IconComponent width={50} height={50} />
+          </View>
+        )}
+        <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
+          {subRegion.name}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
 
   const currentSubRegions =
     regions.find(r => r.name === selectedRegion)?.subRegions || [];

@@ -1,8 +1,11 @@
-import React, { useEffect } from 'react';
-import { Linking } from 'react-native';
+import React, { useEffect, useRef } from 'react';
+import { Linking, Alert } from 'react-native';
 import { navigate } from './navigationService';
+import useUserStore from '@stores/userStore';
 
 const deeplinkHandler = () => {
+  const accessToken = useUserStore(state => state.accessToken);
+  const promptingRef = useRef(false); // 중복 알림/네비게이션 가드
 
   // 최초 실행시 (앱이 딥링크로 켜질 때)
   useEffect(() => {
@@ -23,10 +26,37 @@ const deeplinkHandler = () => {
     return () => {
       subscription.remove();
     };
-  }, []);
+  }, [accessToken]);
 
   const handleUrl = (url) => {
     console.log('딥링크 URL 받음:', url);
+
+    // 로그인 여부 확인
+    if (!accessToken) {
+      if (promptingRef.current) return; // 이미 알림 띄웠으면 무시
+      promptingRef.current = true;
+      Alert.alert(
+        '로그인이 필요합니다',
+        '서비스 이용을 위해 로그인 해주세요.',
+        [
+          {
+            text: '확인',
+            onPress: () => {
+              navigate('Login');
+              promptingRef.current = false;
+            },
+          },
+        ],
+        {
+          cancelable: true,
+          onDismiss: () => {
+            // 뒤로가기/외부 터치로 닫힌 경우도 가드 해제
+            promptingRef.current = false;
+          },
+        }
+      );
+      return;
+    }
     
     try {
       const path = url.replace('workaway://', '');
@@ -47,18 +77,12 @@ const deeplinkHandler = () => {
         const checkOut = formatDate(tomorrow);
         const guestCount = 1;
 
-        navigate('MainTabs', {
-          screen: '게하',
-          params: {
-            screen: 'GuesthouseDetail',
-            params: {
-              id: guesthouseId,
-              checkIn,
-              checkOut,
-              guestCount,
-              isFromDeeplink: true,
-            },
-          },
+        navigate('GuesthouseDetail', {
+          id: guesthouseId,
+          checkIn,
+          checkOut,
+          guestCount,
+          isFromDeeplink: true,
         });
         console.log('게하 디테일 화면으로 이동');
       } 
