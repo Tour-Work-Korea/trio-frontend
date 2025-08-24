@@ -7,10 +7,11 @@ import RootNavigation from '@navigations/RootNavigation';
 import Toast from 'react-native-toast-message';
 import BasicToast from '@components/toasts/BasicToast';
 import DeeplinkHandler from '@utils/deeplinkHandler';
-
 import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
+import {navigationRef} from '@utils/navigationService';
+import {CommonActions} from '@react-navigation/native';
 
 import crashlytics from '@react-native-firebase/crashlytics';
 import {
@@ -23,28 +24,54 @@ const toastConfig = {
   success: props => <BasicToast {...props} />,
 };
 
+function SplashOverlay({onFinish}) {
+  return (
+    <View style={styles.splashOverlay}>
+      <LottieView
+        source={require('@assets/lottie/splash.json')}
+        style={{width: 180, height: 153}}
+        autoPlay
+        loop={false}
+        onAnimationFinish={onFinish}
+      />
+    </View>
+  );
+}
+
+const wait = ms => new Promise(r => setTimeout(r, ms));
+// 네비 준비 대기 (RootNavigation의 NavigationContainer가 ref에 연결될 때까지)
+const waitForNavReady = async () => {
+  let tries = 0;
+  while (!navigationRef.isReady() && tries < 100) {
+    await wait(30);
+    tries++;
+  }
+};
+
 function AppContent() {
   const [appLoaded, setAppLoaded] = useState(false);
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    tryAutoLogin();
+    const bootstrap = async () => {
+      try {
+        await wait(120);
+        await waitForNavReady();
+        const ok = await tryAutoLogin();
+        navigationRef.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: ok ? 'MainTabs' : 'Login'}],
+          }),
+        );
+      } finally {
+        setAppLoaded(true); // 스플래시 제거
+      }
+    };
+
+    bootstrap();
     crashlytics().log('App mounted - Crashlytics initialized');
   }, []);
-
-  if (!appLoaded) {
-    return (
-      <View style={styles.splash}>
-        <LottieView
-          source={require('@assets/lottie/splash.json')}
-          style={{width: 180, height: 153}}
-          autoPlay
-          loop={false}
-          onAnimationFinish={() => setAppLoaded(true)}
-        />
-      </View>
-    );
-  }
 
   return (
     <>
@@ -52,7 +79,6 @@ function AppContent() {
         edges={['top']}
         style={[
           styles.container,
-          // ✅ 안드로이드에서만 하단 시스템 바 높이만큼 패딩
           Platform.OS === 'android' && {paddingBottom: insets.bottom},
         ]}>
         <StatusBar
@@ -60,9 +86,18 @@ function AppContent() {
           backgroundColor={COLORS.grayscale_100}
           barStyle="dark-content"
         />
+
         <RootNavigation />
         <DeeplinkHandler />
       </SafeAreaView>
+
+      {!appLoaded && (
+        <SplashOverlay
+          onFinish={() => {
+            /* 부팅 로직 끝날 때 숨김 */
+          }}
+        />
+      )}
       <Toast config={toastConfig} />
     </>
   );
@@ -81,8 +116,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
-  splash: {
-    flex: 1,
+  splashOverlay: {
+    ...StyleSheet.absoluteFillObject,
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.white,

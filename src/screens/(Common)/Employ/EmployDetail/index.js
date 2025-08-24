@@ -18,6 +18,7 @@ import ErrorModal from '@components/modals/ErrorModal';
 const EmployDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const userRole = useUserStore.getState()?.userRole;
   const {id} = route.params;
   const [recruit, setRecruit] = useState({});
   const [errorModal, setErrorModal] = useState({
@@ -81,6 +82,7 @@ const EmployDetail = () => {
               });
             }}
             title="지원하기"
+            disabled={userRole !== 'USER'}
           />
         </View>
       </ScrollView>

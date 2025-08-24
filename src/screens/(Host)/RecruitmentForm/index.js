@@ -28,7 +28,6 @@ import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 import GuesthouseModal from './GuesthouseModal';
 import ShortDescriptionModal from './ShortDescriptionModal';
 
@@ -47,15 +46,15 @@ const RecruitmentForm = () => {
     recruitShortDescription: '',
     recruitStart: null,
     recruitEnd: null,
+    entryStartDate: null,
+    entryEndDate: null,
     recruitNumberMale: 0,
     recruitNumberFemale: 0,
-    location: '',
     recruitCondition: [],
     recruitMinAge: 0,
     recruitMaxAge: 0,
     workType: '',
-    workStartDate: null,
-    workEndDate: null,
+    workDuration: '',
     workPart: [],
     welfare: [],
     recruitDetail: '',
@@ -95,6 +94,10 @@ const RecruitmentForm = () => {
   );
 
   useEffect(() => {
+    console.log(formData);
+  }, [formData]);
+
+  useEffect(() => {
     setValid(computeValidSections(formData));
   }, [formData]);
 
@@ -105,8 +108,9 @@ const RecruitmentForm = () => {
         recruitShortDescription: recruit.recruitShortDescription,
         recruitStart: new Date(recruit.recruitStart),
         recruitEnd: new Date(recruit.recruitEnd),
-        workStartDate: new Date(recruit.workStartDate),
-        workEndDate: new Date(recruit.workEndDate),
+        entryStartDate: new Date(recruit.entryStartDate),
+        entryEndDate: new Date(recruit.entryEndDate),
+        workDuration: '',
         recruitNumberFemale: recruit.recruitNumberFemale,
         recruitNumberMale: recruit.recruitNumberMale,
         recruitMinAge: recruit.recruitMinAge,
@@ -115,7 +119,6 @@ const RecruitmentForm = () => {
         workType: recruit.workType,
         workPart: recruit.workPart,
         welfare: recruit.welfare,
-        location: recruit.location,
         recruitImage: recruit.recruitImages,
         recruitDetail: recruit.recruitDetail,
         hashtags: recruit.hashtags?.map(tag => tag.id) || [],
@@ -131,24 +134,16 @@ const RecruitmentForm = () => {
     }));
   };
   const handleSubmit = () => {
-    // const errors = validateRecruitForm(formData);
-    // if (errors.length > 0) {
-    //   setErrorModal({visible: true, title: errors[0], buttonText: '확인'});
-    //   return;
-    // }
-
     const payload = {
       ...formData,
       recruitStart: formData.recruitStart.toISOString(),
       recruitEnd: formData.recruitEnd.toISOString(),
-      workStartDate: formData.workStartDate.toISOString(),
-      workEndDate: formData.workEndDate.toISOString(),
+      entryStartDate: formData.entryStartDate.toISOString(),
+      entryEndDate: formData.entryEndDate.toISOString(),
       recruitCondition: formData.recruitCondition.map(c => c.title).join(', '),
       workPart: formData.workPart.join(', '),
       welfare: formData.welfare.join(', '),
-      location: '제주 서귀포시', //임시 주소
     };
-    console.log(formData);
 
     if (recruit?.recruitId != null) {
       const updatedPayload = {...payload};

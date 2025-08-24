@@ -52,8 +52,8 @@ const RegisterAgree = ({route}) => {
     }));
   };
 
-  const handleAgreeDetail = (title, detail) => {
-    navigation.navigate('AgreeDetail', {title, detail});
+  const handleAgreeDetail = id => {
+    navigation.navigate('AgreeDetail', {id, who: user});
   };
 
   const handleMoveNext = () => {
@@ -122,9 +122,7 @@ const RegisterAgree = ({route}) => {
                       <Text style={styles.textAgreeTitle}>{item.title}</Text>
                     </View>
                     <TouchableOpacity
-                      onPress={() =>
-                        handleAgreeDetail(item.title, item.description)
-                      }>
+                      onPress={() => handleAgreeDetail(item.id)}>
                       <Text style={[styles.textSmall, styles.textBlue]}>
                         보기
                       </Text>

@@ -1,12 +1,5 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {
-  View,
-  Text,
-  TextInput,
-  ScrollView,
-  TouchableOpacity,
-  Alert,
-} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
 import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
 import {
@@ -14,11 +7,9 @@ import {
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
-import DateTimePicker from '@react-native-community/datetimepicker';
 import userEmployApi from '@utils/api/userEmployApi';
 import {checkUserPermission} from '@utils/auth/verifyPermission';
 
-import CalendarIcon from '@assets/images/Calendar.svg';
 import EditIcon from '@assets/images/edit_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
 import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
@@ -43,8 +34,6 @@ const ApplicantForm = () => {
     resumeId: null,
   });
   const [agreements, setAgreements] = useState(userApplyAgrees);
-  const [showStartDate, setShowStartDate] = useState(false);
-  const [showEndDate, setShowEndDate] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
@@ -95,16 +84,9 @@ const ApplicantForm = () => {
     });
   };
 
-  const handleDateChange = (event, selectedDate, dateField) => {
-    const currentDate = selectedDate || applicant[dateField];
-    if (dateField === 'startDate') setShowStartDate(false);
-    if (dateField === 'endDate') setShowEndDate(false);
-    setApplicant(prev => ({...prev, [dateField]: currentDate}));
-  };
-
   //약관동의 상세 보기
-  const handleAgreeDetail = (title, detail) => {
-    navigation.navigate('AgreeDetail', {title, detail});
+  const handleAgreeDetail = id => {
+    navigation.navigate('AgreeDetail', {id, who: 'USER'});
   };
   //약관동의 체크 핸들러
   const handleAgreement = key => {
@@ -222,79 +204,13 @@ const ApplicantForm = () => {
                 ) : null}
                 <Text style={styles.textAgreeTitle}>{item.title}</Text>
               </View>
-              <TouchableOpacity
-                onPress={() => handleAgreeDetail(item.title, item.description)}>
+              <TouchableOpacity onPress={() => handleAgreeDetail(item.id)}>
                 <Text style={[styles.textSmall, styles.textBlue]}>보기</Text>
               </TouchableOpacity>
             </View>
           </View>
         </View>
       ))}
-    </View>
-  );
-  const renderWorkPeriod = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>희망 근무기간</Text>
-
-      <View style={styles.datePickerRow}>
-        <TouchableOpacity
-          style={styles.datePickerButton}
-          onPress={() => setShowStartDate(true)}>
-          <View style={styles.datePickerContent}>
-            <Text style={styles.dateText}>
-              {applicant.startDate
-                ? new Date(applicant.startDate).toLocaleDateString('ko-KR')
-                : '시작일자'}
-            </Text>
-            <CalendarIcon width={24} height={24} />
-          </View>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          style={styles.datePickerButton}
-          onPress={() => setShowEndDate(true)}>
-          <View style={styles.datePickerContent}>
-            <Text style={styles.dateText}>
-              {applicant.endDate
-                ? new Date(applicant.endDate).toLocaleDateString('ko-KR')
-                : '마감일자'}
-            </Text>
-            <CalendarIcon width={24} height={24} />
-          </View>
-        </TouchableOpacity>
-      </View>
-
-      {showStartDate && (
-        <DateTimePicker
-          value={applicant.startDate ?? new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => handleDateChange(event, date, 'startDate')}
-        />
-      )}
-
-      {showEndDate && (
-        <DateTimePicker
-          value={applicant.endDate ?? new Date()}
-          mode="date"
-          display="default"
-          onChange={(event, date) => handleDateChange(event, date, 'endDate')}
-        />
-      )}
-    </View>
-  );
-  const renderMessageToOwner = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>사장님께 한마디</Text>
-
-      <TextInput
-        style={styles.messageInput}
-        placeholder="지원 동기나 각오를 입력하거나 사장님께서 따로 작성해달라고 한 항목을 입력해주세요"
-        value={applicant.message}
-        onChangeText={text => setApplicant(prev => ({...prev, message: text}))}
-        multiline
-        textAlignVertical="top"
-      />
     </View>
   );
   return (
@@ -304,8 +220,6 @@ const ApplicantForm = () => {
       <View style={{paddingHorizontal: 20}}>
         <ScrollView style={styles.scrollView}>
           {renderResumeSelection()}
-          {/* {renderWorkPeriod()}
-        {renderMessageToOwner()} */}
         </ScrollView>
       </View>
       <View style={styles.bottomButtonContainer}>
