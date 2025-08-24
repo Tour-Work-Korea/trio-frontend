@@ -52,6 +52,9 @@ import {
   ApplicantListByRecruit,
   Setting,
   Terms,
+  MyGuesthouseList,
+  MyGuesthouseReview,
+  MyGuesthouseReservation,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -118,9 +121,12 @@ const RootNavigation = () => (
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
+      <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
+      <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
+      <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
       <Stack.Screen
         name="MyGuesthouseReservationStatus"
         component={MyGuesthouseReservationStatus}

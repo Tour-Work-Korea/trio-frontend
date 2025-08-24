@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -10,11 +10,16 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ImageModal from '@components/modals/ImageModal';
+import useUserStore from '@stores/userStore';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 
 const RoomDetail = ({ route }) => {
   const navigation = useNavigation();
+
+  // 호스트 예약 막기
+  const userRole = useUserStore(state => state.userRole);
+
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const { roomId, roomName, roomPrice, roomDesc, guesthouseName, checkIn, checkOut, guestCount, roomImages, roomCapacity, roomType } = route.params;
   const formatTime = (timeStr) => {
@@ -99,7 +104,16 @@ const RoomDetail = ({ route }) => {
         <View style={styles.button}>
             <ButtonScarlet
                 title="숙박 예약"
-                onPress={() =>
+                onPress={() => {
+                    if (userRole === 'HOST') {
+                    Alert.alert(
+                        '예약 불가',
+                        '호스트 계정으로는\n 숙박 예약을 진행할 수 없어요.',
+                        [{ text: '확인' }]
+                    );
+                    return;
+                    }
+
                     navigation.navigate('GuesthouseReservation', {
                     roomId,
                     roomName,
@@ -108,8 +122,8 @@ const RoomDetail = ({ route }) => {
                     checkIn,
                     checkOut,
                     guestCount,
-                    })
-                }
+                    });
+                }}
             />
         </View>
 

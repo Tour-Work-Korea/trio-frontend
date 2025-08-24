@@ -4,12 +4,9 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   HostMyPage,
   UserMyPage,
-  MyGuesthouseList,
-  MyGuesthouseReview,
   UserReservationCheck,
   UserFavoriteGuesthouse,
   UserGuesthouseReview,
-  MyGuesthouseReservation,
 } from '@screens';
 
 import {Alert} from 'react-native';
@@ -38,14 +35,6 @@ const My = () => {
       <Stack.Screen name="MyMain" component={MyMainScreen} />
       <Stack.Screen name="HostMyPage" component={HostMyPage} />
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
-
-      {/* 사장님 게하 */}
-      <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
-      <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
-      <Stack.Screen
-        name="MyGuesthouseReservation"
-        component={MyGuesthouseReservation}
-      />
 
       {/* 유저 게하 */}
       <Stack.Screen

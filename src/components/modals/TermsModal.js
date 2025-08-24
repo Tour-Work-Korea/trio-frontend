@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   ScrollView,
+  TouchableWithoutFeedback,
 } from 'react-native';
 
 import { COLORS } from '@constants/colors';
@@ -26,6 +27,7 @@ const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
       visible={visible}
       onRequestClose={onClose}
     >
+      <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           <View style={styles.contentContainer}>
@@ -57,6 +59,7 @@ const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
 
         </View>
       </View>
+      </TouchableWithoutFeedback>
     </Modal>
   );
 };

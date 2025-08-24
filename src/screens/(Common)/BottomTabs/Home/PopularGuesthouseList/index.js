@@ -15,6 +15,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
+import { guesthouseTags } from '@data/guesthouseTags';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
 import Workaways from '@assets/images/workaways_text_white.svg';
@@ -27,31 +28,44 @@ const PopularGuesthouseList = () => {
   const route = useRoute();
   const guesthouses = route.params?.guesthouses || [];
   const flatListRef = useRef(null);
+  const tagNameById = Object.fromEntries(guesthouseTags.map(t => [t.id, t.hashtag]));
 
   const renderTrendingCard = (item) => (
-    <View key={item.id} style={[styles.trendingCard, { width: SCREEN_WIDTH * 0.9}]}>
-      {item.thumbnailImgUrl ? (
-        <Image source={{ uri: item.thumbnailImgUrl }} style={styles.trendingImage} />
+    <View key={item.guesthouseId} style={[styles.trendingCard, { width: SCREEN_WIDTH * 0.9}]}>
+      {item.thumbnailUrl ? (
+        <Image source={{ uri: item.thumbnailUrl }} style={styles.trendingImage} />
       ) : (
         <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
       )}
       <View style={styles.trendingRating}>
         <View style={styles.ratingRow}>
           <StarIcon width={14} height={14} />
-          <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.averageRating?.toFixed(1) ?? '0.0'}</Text>
+          <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
+            {Number(item.avgRating ?? 0).toFixed(1)}
+          </Text>
         </View>
       </View>
       <View style={styles.trendingInfo}>
-        <Text style={[FONTS.fs_16_semibold, styles.trendingName]}>{item.name}</Text>
-        <View style={styles.trendingPriceContainer}>
-          <Text style={[FONTS.fs_12_medium, styles.trendingPrice]}>최저가</Text>
-          <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText]}>{item.minPrice?.toLocaleString()}원 ~</Text>
-        </View>
+        <Text style={[FONTS.fs_16_semibold, styles.trendingName]}>{item.guesthouseName}</Text>
+        {Number(item.minAmount) > 0 ? (
+          // 정상 가격 노출
+          <View style={styles.trendingPriceContainer}>
+            <Text style={[FONTS.fs_12_medium, styles.trendingPrice]}>최저가</Text>
+            <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText]}>{item.minAmount?.toLocaleString()}원 ~</Text>
+          </View>
+        ) : (
+          // 예약 마감 노출
+          <View style={styles.trendingPriceContainer}>
+            <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText, { color: COLORS.grayscale_300 }]}>
+              예약마감
+            </Text>
+          </View>
+        )}
       </View>
       <View style={styles.trendingTag}>
         <View style={styles.tags}>
-          {item.hashtags?.map((tag, index) => (
-            <Text key={index} style={styles.tag}>{tag}</Text>
+          {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
+            <Text key={id} style={styles.tag}>{tagNameById[id] ?? `#${id}`}</Text>
           ))}
         </View>
       </View>
@@ -60,26 +74,34 @@ const PopularGuesthouseList = () => {
 
   const renderPopularCard = (item) => (
     <View key={item.id} style={styles.popularCard}>
-      {item.thumbnailImgUrl ? (
-        <Image source={{ uri: item.thumbnailImgUrl }} style={styles.popularImage} />
+      {item.thumbnailUrl ? (
+        <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
       ) : (
         <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
       )}
       <View style={styles.popularInfo}>
         <View style={styles.popularTitleRow}>
-          <Text style={[FONTS.fs_16_semibold, styles.popularName]}>{item.name}</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.popularName]}>{item.guesthouseName}</Text>
           <View style={styles.ratingRow}>
             <StarIcon width={14} height={14} />
-            <Text style={styles.ratingText}>{item.averageRating?.toFixed(1) ?? '0.0'}</Text>
+            <Text style={styles.ratingText}>{Number(item.avgRating ?? 0).toFixed(1)}</Text>
           </View>
         </View>
         <View style={styles.popularBottomRow}>
           <View style={styles.tags}>
-            {item.hashtags?.map((tag, index) => (
-              <Text key={index} style={styles.tag}>{tag}</Text>
+            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
+              <Text key={id} style={styles.tag}>{tagNameById[id] ?? `#${id}`}</Text>
             ))}
           </View>
-          <Text style={[FONTS.fs_18_semibold, styles.popularPrice]}>{item.minPrice?.toLocaleString()}원 ~</Text>
+          {Number(item.minAmount) > 0 ? (
+            // 정상 가격 노출
+            <Text style={[FONTS.fs_18_semibold, styles.popularPrice]}>{item.minAmount?.toLocaleString()}원 ~</Text>
+          ) : (
+            // 예약 마감 노출 
+            <Text style={[FONTS.fs_18_semibold, styles.popularPrice, { color: COLORS.grayscale_300 }]}>
+              예약마감
+            </Text>
+          )}
         </View>
       </View>
     </View>
@@ -106,7 +128,7 @@ const PopularGuesthouseList = () => {
         ref={flatListRef}
         data={guesthouses.slice(0, 3)}
         renderItem={({ item }) => renderTrendingCard(item)}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => String(item.guesthouseId)}
         horizontal
         pagingEnabled
         showsHorizontalScrollIndicator={false}
@@ -134,7 +156,7 @@ const PopularGuesthouseList = () => {
       <FlatList
         data={guesthouses.slice(3)}
         renderItem={({ item }) => renderPopularCard(item)}
-        keyExtractor={(item) => item.id.toString()}
+        keyExtractor={(item) => String(item.guesthouseId)}
         scrollEnabled={false}
       />
     </ScrollView>

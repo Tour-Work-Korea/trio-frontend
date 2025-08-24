@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -68,6 +68,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
+    ...Platform.select({
+      ios: {
+        maxHeight: '90%',
+      },
+    }),
   },
   header: {
     flexDirection: 'row',

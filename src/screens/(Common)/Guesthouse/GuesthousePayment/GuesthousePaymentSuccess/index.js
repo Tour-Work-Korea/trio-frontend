@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
@@ -49,5 +49,10 @@ const styles = StyleSheet.create({
     position: 'absolute',
     width: '100%',
     bottom: 0,
+    ...Platform.select({
+      ios: {
+        paddingBottom: 40,
+      },
+    }),
   },
 });

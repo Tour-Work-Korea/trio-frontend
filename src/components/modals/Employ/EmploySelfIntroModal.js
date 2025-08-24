@@ -10,6 +10,7 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
+  Platform,
 } from 'react-native';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -111,6 +112,11 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
+    ...Platform.select({
+      ios: {
+        maxHeight: '90%',
+      },
+    }),
   },
   textInput: {
     flex: 1,

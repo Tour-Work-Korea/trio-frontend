@@ -23,13 +23,13 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     borderRadius: 20,
   },
-    searchInput: {
+  searchInput: {
     flex: 1,
     marginLeft: 8,
     color: COLORS.grayscale_900,
     fontSize: 14,
   },
-    selectRow: {
+  selectRow: {
     flexDirection: 'row',
     justifyContent: 'center',
     marginBottom: 12,
@@ -82,31 +82,31 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 12,
   },
-    regionItem: {
+  regionItem: {
     paddingVertical: 8,
     paddingHorizontal: 10,
     borderRadius: 8,
     alignItems: 'center',
     justifyContent: 'center',
   },
-    regionItemSelected: {
+  regionItemSelected: {
     backgroundColor: COLORS.grayscale_0,
   },
-    regionText: {
+  regionText: {
     color: COLORS.grayscale_900,
   },
-    regionTextSelected: {
+  regionTextSelected: {
     color: COLORS.primary_blue,
     fontWeight: '600',
   },
-    rightSubRegionGrid: {
+  rightSubRegionGrid: {
     flex: 1,
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 32,
     marginLeft: 20,
   },
-    subRegionItem: {
+  subRegionItem: {
     width: 50,
     alignItems: 'center',
     justifyContent: 'center',
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  EXimagePlaceholder: {
+  regionImgPlaceholder: {
     width: 50,
     height: 50,
     backgroundColor: COLORS.grayscale_300,
