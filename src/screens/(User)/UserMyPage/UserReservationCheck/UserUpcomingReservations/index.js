@@ -13,6 +13,9 @@ import ReservationCancelModal from '@components/modals/UserMy/Guesthouse/Reserva
 export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
 
+  const toLocalDateTime = (date, time) =>
+    date ? `${date}T${time ?? '00:00:00'}` : '';
+
   // 상세 모달
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -42,8 +45,12 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   };
 
   const renderItem = ({ item, index }) => {
-    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+    );
+    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+    );
 
     return (
       <View style={styles.container}>

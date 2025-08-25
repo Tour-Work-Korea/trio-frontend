@@ -1,12 +1,12 @@
 import React, {useState, useCallback, useEffect} from 'react';
 import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
-import {COLORS} from '@constants/colors';
-import styles from './ApplicantForm.styles';
 import {
   useNavigation,
   useRoute,
   useFocusEffect,
 } from '@react-navigation/native';
+import {COLORS} from '@constants/colors';
+import styles from './ApplicantForm.styles';
 import userEmployApi from '@utils/api/userEmployApi';
 import {checkUserPermission} from '@utils/auth/verifyPermission';
 
@@ -40,7 +40,9 @@ const ApplicantForm = () => {
     buttonText: '',
   });
 
-  //약관동의 여부 확인
+  // 👇 footer 높이 측정용 state
+  const [footerHeight, setFooterHeight] = useState(0);
+
   useEffect(() => {
     const allRequired = agreements
       .filter(item => item.isRequired)
@@ -57,19 +59,15 @@ const ApplicantForm = () => {
         }
       };
       init();
-    }, []),
+    }, [navigation]),
   );
 
   const fetchResumeList = async () => {
     try {
       const response = await userEmployApi.getResumes();
       setResumes(response.data);
-
       if (response.data.length > 0) {
-        setApplicant(prev => ({
-          ...prev,
-          resumeId: response.data[0].resumeId,
-        }));
+        setApplicant(prev => ({...prev, resumeId: response.data[0].resumeId}));
       }
     } catch (error) {
       Alert.alert('이력서를 가져오는데 실패했습니다.');
@@ -84,11 +82,10 @@ const ApplicantForm = () => {
     });
   };
 
-  //약관동의 상세 보기
   const handleAgreeDetail = id => {
     navigation.navigate('AgreeDetail', {id, who: 'USER'});
   };
-  //약관동의 체크 핸들러
+
   const handleAgreement = key => {
     const updated = agreements.map(item =>
       item.id === key ? {...item, isAgree: !item.isAgree} : item,
@@ -99,7 +96,6 @@ const ApplicantForm = () => {
   const handleSubmit = async () => {
     try {
       const parsedData = {
-        //message, startDate, endDate는 임시
         message: '열심히 하겠습니다.',
         startDate: '2026-01-01',
         endDate: '2026-12-25',
@@ -121,57 +117,67 @@ const ApplicantForm = () => {
   const renderResumeSelection = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>지원할 이력서를 선택해주세요</Text>
-
-      {resumes?.map(item => (
-        <TouchableOpacity
-          key={item.resumeId}
-          style={styles.resumeItem}
-          onPress={() => {
-            if (item.resumeId === applicant.resumeId) {
-              setApplicant(prev => ({...prev, resumeId: null}));
-            } else {
-              setApplicant(prev => ({...prev, resumeId: item.resumeId}));
-            }
-          }}>
-          <View style={styles.resumeLeftSection}>
-            {applicant.resumeId === item.resumeId ? (
-              <CheckedCircleIcon
-                width={24}
-                height={24}
-                color={COLORS.scarlet}
-              />
-            ) : (
-              <UncheckedCircleIcon width={24} height={24} color={COLORS.gray} />
-            )}
-          </View>
-
-          <View style={styles.resumeMiddleSection}>
-            <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
-            <View style={styles.tagsContainer}>
-              {item.hashtags.map((tag, index) => (
-                <Text key={index} style={styles.tagText}>
-                  {tag.hashtag}
-                </Text>
-              ))}
+      <View style={{gap: 8}}>
+        {resumes?.map(item => (
+          <TouchableOpacity
+            key={item.resumeId}
+            style={styles.resumeItem}
+            onPress={() => {
+              setApplicant(prev => ({
+                ...prev,
+                resumeId:
+                  prev.resumeId === item.resumeId ? null : item.resumeId,
+              }));
+            }}>
+            <View style={styles.resumeLeftSection}>
+              {applicant.resumeId === item.resumeId ? (
+                <CheckedCircleIcon
+                  width={24}
+                  height={24}
+                  color={COLORS.scarlet}
+                />
+              ) : (
+                <UncheckedCircleIcon
+                  width={24}
+                  height={24}
+                  color={COLORS.gray}
+                />
+              )}
             </View>
-            <View style={styles.modifiedContainer}>
-              <View style={styles.modifiedTextBox}>
-                <Text style={styles.lastModifiedText}>최종수정일</Text>
-                <Text style={styles.lastModifiedText}>
-                  {item.updatedAt.split('T')[0]}
-                </Text>
+
+            <View style={styles.resumeMiddleSection}>
+              <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
+              <View style={styles.tagsContainer}>
+                {item.hashtags.map((tag, index) => (
+                  <Text key={index} style={styles.tagText}>
+                    {tag.hashtag}
+                  </Text>
+                ))}
               </View>
-              <TouchableOpacity
-                style={styles.editButton}
-                onPress={() => handleEditResume(item.resumeId)}>
-                <EditIcon width={24} height={24} color={COLORS.grayscale_400} />
-              </TouchableOpacity>
+              <View style={styles.modifiedContainer}>
+                <View style={styles.modifiedTextBox}>
+                  <Text style={styles.lastModifiedText}>최종수정일</Text>
+                  <Text style={styles.lastModifiedText}>
+                    {item.updatedAt.split('T')[0]}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.editButton}
+                  onPress={() => handleEditResume(item.resumeId)}>
+                  <EditIcon
+                    width={24}
+                    height={24}
+                    color={COLORS.grayscale_400}
+                  />
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
-        </TouchableOpacity>
-      ))}
+          </TouchableOpacity>
+        ))}
+      </View>
     </View>
   );
+
   const renderCheckbox = (isChecked, onPress) => (
     <View>
       {isChecked ? (
@@ -187,9 +193,9 @@ const ApplicantForm = () => {
       )}
     </View>
   );
+
   const renderPrivacyAgreement = () => (
     <View style={[styles.section, {marginBottom: 20}]}>
-      {/* 동의 목록 */}
       <View style={styles.horizontalLine} />
       {agreements.map(item => (
         <View style={[styles.parentWrapperFlexBox]} key={item.id}>
@@ -213,23 +219,36 @@ const ApplicantForm = () => {
       ))}
     </View>
   );
+
   return (
     <View style={styles.container}>
-      {/* 헤더 */}
       <Header title={'채용공고'} />
-      <View style={{paddingHorizontal: 20}}>
-        <ScrollView style={styles.scrollView}>
+
+      {/* 본문: 스크롤 영역 */}
+      <View style={{flex: 1}}>
+        <ScrollView
+          style={{flex: 1}}
+          contentContainerStyle={{
+            paddingHorizontal: 20,
+            // 👇 footer 높이만큼 패딩 추가해서 가려지지 않게
+            paddingBottom: footerHeight + 16,
+          }}>
           {renderResumeSelection()}
         </ScrollView>
+
+        {/* 하단 고정 영역 */}
+        <View
+          style={styles.bottomButtonContainer}
+          onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
+          {renderPrivacyAgreement()}
+          <ButtonScarlet
+            title="지원하기"
+            onPress={handleSubmit}
+            disabled={!applicant.personalInfoConsent || !applicant.resumeId}
+          />
+        </View>
       </View>
-      <View style={styles.bottomButtonContainer}>
-        {renderPrivacyAgreement()}
-        <ButtonScarlet
-          title="지원하기"
-          onPress={handleSubmit}
-          disabled={!applicant.personalInfoConsent || !applicant.resumeId}
-        />
-      </View>
+
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}

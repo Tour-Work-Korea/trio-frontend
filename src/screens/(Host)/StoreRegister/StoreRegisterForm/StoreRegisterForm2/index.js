@@ -173,7 +173,7 @@ const StoreRegisterForm2 = ({route}) => {
       managerEmail: fullForm.managerEmail,
       businessPhone: fullForm.businessPhone,
       businessType: fullForm.businessType,
-      businessRegistrationNumber: fullForm.businessRegistrationNumber,
+      // businessRegistrationNumber: fullForm.businessRegistrationNumber,
     };
 
     form.append('dto', {
@@ -268,6 +268,7 @@ const StoreRegisterForm2 = ({route}) => {
                         onChangeText={text =>
                           handleInputChange('address', text)
                         }
+                        editable={false}
                       />
                       <TouchableOpacity
                         style={[
@@ -300,7 +301,7 @@ const StoreRegisterForm2 = ({route}) => {
                   </View>
 
                   {/* 사업자 등록번호 */}
-                  <View style={styles.inputContainer}>
+                  {/* <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>사업자 등록번호</Text>
                     <View style={[styles.inputBox, {position: 'relative'}]}>
                       <TextInput
@@ -349,7 +350,7 @@ const StoreRegisterForm2 = ({route}) => {
                     ) : (
                       ''
                     )}
-                  </View>
+                  </View> */}
 
                   {/* 사업자 등록증 */}
                   <View style={styles.inputContainer}>
@@ -439,27 +440,30 @@ const StoreRegisterForm2 = ({route}) => {
                   style={[
                     styles.addButton,
                     styles.addButtonLocation,
-                    (!isNextEnabled ||
-                      !isAllAgreed ||
-                      !isBussinessNumbVerified) &&
-                      styles.addButtonDisable,
+                    // (!isNextEnabled ||
+                    //   !isAllAgreed ||
+                    //   !isBussinessNumbVerified) &&
+                    (!isNextEnabled || !isAllAgreed) && styles.addButtonDisable,
                   ]}
                   disabled={
-                    !isNextEnabled || !isAllAgreed || !isBussinessNumbVerified
+                    // !isNextEnabled || !isAllAgreed || !isBussinessNumbVerified
+                    !isNextEnabled || !isAllAgreed
                   }
                   onPress={handleSubmit}>
                   <Text
                     style={[
                       FONTS.fs_14_medium,
                       styles.addButtonText,
-                      (!isNextEnabled ||
-                        !isAllAgreed ||
-                        !isBussinessNumbVerified) &&
+                      // (!isNextEnabled ||
+                      //   !isAllAgreed ||
+                      //   !isBussinessNumbVerified) &&
+                      (!isNextEnabled || !isAllAgreed) &&
                         styles.addButtonTextDisable,
                     ]}>
                     다음
                   </Text>
-                  {isNextEnabled && isAllAgreed && isBussinessNumbVerified ? (
+                  {/* {isNextEnabled && isAllAgreed && isBussinessNumbVerified ? ( */}
+                  {isNextEnabled && isAllAgreed ? (
                     <NextIcon width={24} height={24} />
                   ) : (
                     <NextDisabledIcon width={24} height={24} />

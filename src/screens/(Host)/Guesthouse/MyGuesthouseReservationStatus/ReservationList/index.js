@@ -1,91 +1,32 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList } from 'react-native';
+import React, { useEffect, useState, useCallback } from 'react';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
 
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import { formatLocalDateToDotWithDay } from '@utils/formatDate';
+// 예약 확정 임시
+import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 
 import EmptyIcon from '@assets/images/search_empty.svg';
 
-const statusOrder = (s) => (s === 'CONFIRMED' ? 0 : s === 'COMPLETED' ? 1 : 2);
-const statusLabel = (s) => (s === 'CONFIRMED' ? '이용예정' : '이용완료');
-
-// 임시 데이터
-const toISO = (date) => new Date(date).toISOString();
-const addDays = (base, d) => {
-  const dt = new Date(base);
-  dt.setDate(dt.getDate() + d);
-  return dt;
-};
-
-const makeMockReservations = () => {
-  const now = new Date();
-  return [
-    {
-      reservationId: 1,
-      roomName: '도미토리 A',
-      roomCapacity: 4,
-      roomMaxCapacity: 6,
-      reservationUserName: '홍길동',
-      reservationUserPhone: '010-1111-2222',
-      reservationStatus: 'CONFIRMED',
-      checkInDate: toISO(addDays(now, 2)),
-      checkOutDate: toISO(addDays(now, 3)),
-    },
-    {
-      reservationId: 2,
-      roomName: '여성전용 B',
-      roomCapacity: 2,
-      roomMaxCapacity: 2,
-      reservationUserName: '김영희',
-      reservationUserPhone: '010-3333-4444',
-      reservationStatus: 'CONFIRMED',
-      checkInDate: toISO(addDays(now, 5)),
-      checkOutDate: toISO(addDays(now, 6)),
-    },
-    {
-      reservationId: 3,
-      roomName: '패밀리룸 C',
-      roomCapacity: 4,
-      roomMaxCapacity: 4,
-      reservationUserName: '이철수',
-      reservationUserPhone: '010-5555-6666',
-      reservationStatus: 'CONFIRMED',
-      checkInDate: toISO(addDays(now, 1)),
-      checkOutDate: toISO(addDays(now, 2)),
-    },
-    {
-      reservationId: 4,
-      roomName: '싱글 D',
-      roomCapacity: 1,
-      roomMaxCapacity: 1,
-      reservationUserName: '박민수',
-      reservationUserPhone: '010-7777-8888',
-      reservationStatus: 'COMPLETED',
-      checkInDate: toISO(addDays(now, -6)),
-      checkOutDate: toISO(addDays(now, -5)),
-    },
-    {
-      reservationId: 5,
-      roomName: '트윈 E',
-      roomCapacity: 2,
-      roomMaxCapacity: 2,
-      reservationUserName: '정다은',
-      reservationUserPhone: '010-9999-0000',
-      reservationStatus: 'COMPLETED',
-      checkInDate: toISO(addDays(now, -10)),
-      checkOutDate: toISO(addDays(now, -9)),
-    },
-  ];
-};
+const statusOrder = (s) =>
+  s === 'PENDING' ? 0 :
+  s === 'CONFIRMED' ? 1 :
+  s === 'COMPLETED' ? 2 : 3;
+const statusLabel = (s) =>
+  s === 'PENDING' ? '예약대기' :
+  s === 'CONFIRMED' ? '이용예정(예약확정)' :
+  s === 'COMPLETED' ? '이용완료' : s;
 
 const ReservationList = ({ guesthouseId }) => {
   const [data, setData] = useState([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+
+  const [approvingId, setApprovingId] = useState(null); // 예약 확정 중인 아이템 id
 
   useEffect(() => {
     if (!guesthouseId) return;
@@ -99,16 +40,14 @@ const ReservationList = ({ guesthouseId }) => {
         if (cancelled) return;
 
         const raw = Array.isArray(res?.data) ? res.data : [];
-        // 예약상태는 CONFIRMED/COMPLETED만 사용
-        const filtered = raw.filter(
-          (r) => r?.reservationStatus === 'CONFIRMED' || r?.reservationStatus === 'COMPLETED'
+        // 예약상태는 PENDING/CONFIRMED/COMPLETED만 사용
+        const filtered = raw.filter((r) =>
+          ['PENDING', 'CONFIRMED', 'COMPLETED'].includes(r?.reservationStatus)
         );
 
-        // 임시데이터 사용
-        // const base = filtered.length === 0 ? makeMockReservations() : filtered;
         const base = filtered;
 
-        // CONFIRMED 먼저 정렬
+        // PENDING/CONFIRMED 먼저 정렬
         const sorted = [...base].sort((a, b) => statusOrder(a.reservationStatus) - statusOrder(b.reservationStatus));
 
         setData(sorted);
@@ -134,6 +73,20 @@ const ReservationList = ({ guesthouseId }) => {
     );
   }
 
+  // 예약 확정
+  const approveReservation = async (reservationId) => {
+    try {
+      setApprovingId(reservationId);
+      await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
+      // 성공 후 재조회
+      await fetchReservations();
+    } catch (e) {
+      
+    } finally {
+      setApprovingId(null);
+    }
+  };
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -148,9 +101,11 @@ const ReservationList = ({ guesthouseId }) => {
               <Text
                 style={[
                   FONTS.fs_14_semibold,
-                  item.reservationStatus === 'CONFIRMED'
-                    ? styles.statusConfirmed
-                    : styles.statusCompleted,
+                  ({
+                    PENDING:   styles.statusPending,
+                    CONFIRMED: styles.statusConfirmed,
+                    COMPLETED: styles.statusCompleted,
+                  }[item.reservationStatus] || styles.statusUnknown )
                 ]}
               >
                 {statusLabel(item.reservationStatus)}
@@ -168,13 +123,28 @@ const ReservationList = ({ guesthouseId }) => {
             {/* 이용 날짜 */}
             <View style={styles.dateContainer}>
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {formatLocalDateTimeToDotAndTimeWithDay(item.checkInDate).date}
+                {formatLocalDateToDotWithDay(item.checkInDate)}
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.dateText]}>~</Text>
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {formatLocalDateTimeToDotAndTimeWithDay(item.checkOutDate).date}
+                {formatLocalDateToDotWithDay(item.checkOutDate)}
               </Text>
             </View>
+
+            {/* 예약확정 버튼 */}
+            {item.reservationStatus === 'PENDING' && (
+              <TouchableOpacity
+                style={styles.approveButton}
+                onPress={() => approveReservation(item.reservationId)}
+                disabled={approvingId === item.reservationId}
+              >
+                {approvingId === item.reservationId ? (
+                  <ActivityIndicator />
+                ) : (
+                  <Text style={[FONTS.fs_16_semibold, styles.approveText]}>예약확정 하기</Text>
+                )}
+              </TouchableOpacity>
+            )}
 
             {index !== data.length - 1 && <View style={styles.devide} />}
           </View>
@@ -221,6 +191,9 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   // 이용 상황
+  statusPending: {
+    color: COLORS.semantic_yellow,
+  },
   statusConfirmed: {
     color: COLORS.semantic_red,
   },
@@ -253,5 +226,18 @@ const styles = StyleSheet.create({
     height: 0.8,
     backgroundColor: COLORS.grayscale_200,
     marginVertical: 12,
+  },
+
+  // 예약확정 버튼
+  approveButton: {
+    marginTop: 10,
+    alignSelf: 'flex-end',
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_800,
+  },
+  approveText: {
+    color: COLORS.grayscale_0,
   },
 });

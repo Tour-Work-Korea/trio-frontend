@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
@@ -89,7 +89,7 @@ const MyResumeList = () => {
 
   // 이력서 리스트 렌더링
   const renderResumeSelection = () => (
-    <View style={styles.section}>
+    <ScrollView contentContainerStyle={styles.section}>
       {resumes?.map(item => (
         <TouchableOpacity
           key={item.resumeId}
@@ -146,7 +146,7 @@ const MyResumeList = () => {
           </View>
         </TouchableOpacity>
       ))}
-    </View>
+    </ScrollView>
   );
 
   return (

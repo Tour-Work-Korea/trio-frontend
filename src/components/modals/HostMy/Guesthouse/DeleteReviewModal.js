@@ -51,7 +51,7 @@ const DeleteReviewModal = ({ visible, reviewId, onClose, onSuccess }) => {
     <Modal visible={visible} transparent animationType="slide" onRequestClose={handleClose}>
       <KeyboardAvoidingView 
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -160 : 0}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -130 : 0}
         style={styles.overlay}
       >
         <View style={styles.container}>
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
   },
 
   input: {
-    minHeight: 320,
+    height: 320,
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
     borderRadius: 20,
