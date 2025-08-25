@@ -118,8 +118,7 @@ const GuesthouseReservation = ({ route }) => {
       const reservationId = res.data;
 
       if (Platform.OS === 'ios') {
-        // iOS: 예약 임시 승인, 결제 X
-        await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
+        // iOS: 예약 pendding 승인, 결제 X
         navigation.navigate('GuesthousePaymentSuccess');
       } else {
         // Android: 결제 O
@@ -138,12 +137,14 @@ const GuesthouseReservation = ({ route }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-    >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <View style={{ flex: 1 }}>
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
+      <View style={{flex: 1}}>
         <Header title="예약" />
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
           {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
@@ -293,7 +294,6 @@ const GuesthouseReservation = ({ route }) => {
         />
 
     </View>
-    </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

@@ -1,15 +1,14 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef, useCallback } from 'react';
 import {
   View,
   Text,
   FlatList,
   Image,
   StyleSheet,
-  ActivityIndicator,
-  RefreshControl,
-  Alert,
   TouchableOpacity,
   ScrollView,
+  ActivityIndicator,
+  Alert,
 } from 'react-native';
 
 import { COLORS } from '@constants/colors';
@@ -42,11 +41,16 @@ const normalize = (arr = []) =>
     .map((r) => ({ ...r, replies: Array.isArray(r.replies) ? r.replies : [] }));
 
 const MyGuesthouseReviewList = ({ guesthouseId }) => {
+  // 목록/페이지 상태
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(0);
-  const [lastPage, setLastPage] = useState(false);
-  const [loading, setLoading] = useState(false);
+  const [hasNext, setHasNext] = useState(true);
+
+  // 로딩 상태
+  const [initialLoading, setInitialLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
+  const inFlight = useRef(false); // onEndReached 중복 호출 가드
 
   // 답글달기 모달
   const [replyModalOpen, setReplyModalOpen] = useState(false);
@@ -56,58 +60,86 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
   const [deleteModalOpen, setDeleteModalOpen] = useState(false);
   const [activeDeleteReviewId, setActiveDeleteReviewId] = useState(null);
 
+  const fetchPage = useCallback(
+    async (p, { replace = false } = {}) => {
+      // 중복 호출 방지
+      if (inFlight.current) return;
+      inFlight.current = true;
+
+      // 상태별 스피너
+      if (replace) {
+        setRefreshing(true);
+      } else if (p === 0) {
+        setInitialLoading(true);
+      } else {
+        setLoadingMore(true);
+      }
+
+      try {
+        const res = await hostGuesthouseApi.getGuesthouseReviews({
+          guesthouseId,
+          page: p,
+          size: PAGE_SIZE,
+          sort: SORT,
+        });
+
+        const content = Array.isArray(res?.data?.content)
+          ? res.data.content
+          : Array.isArray(res?.data)
+          ? res.data
+          : [];
+
+        const last = res?.data?.last ?? true;
+
+        const normalized = normalize(content);
+        
+        // 댓글 없는 리뷰 우선 + id 최신
+        setReviews(prev => {
+          const merged = replace || p === 0 ? normalized : [...prev, ...normalized];
+          const deduped = Array.from(new Map(merged.map(r => [String(r.id), r])).values());
+          return prioritizeNoReplies(deduped);
+        });
+
+        setPage(p);
+        setHasNext(!last);
+      } catch (e) {
+        console.log('리뷰 불러오기 실패:', e?.message ?? e);
+      } finally {
+        if (replace) setRefreshing(false);
+        else if (p === 0) setInitialLoading(false);
+        else setLoadingMore(false);
+        inFlight.current = false;
+      }
+    }, [guesthouseId]
+  );
+
   // 첫 로드 & guesthouse 변경 시
   useEffect(() => {
     if (!guesthouseId) return;
     setReviews([]);
     setPage(0);
-    setLastPage(false);
-    fetchReviews(0, true);
+    setHasNext(true);
+    fetchPage(0, { replace: true });
   }, [guesthouseId]);
 
-  // 특정 게하 리뷰 목록 조회
-  const fetchReviews = async (pageToLoad = 0, isRefresh = false) => {
-    if (loading || lastPage && !isRefresh) return;
-    setLoading(true);
-
-    try {
-      const res = await hostGuesthouseApi.getGuesthouseReviews({
-        guesthouseId,
-        page: pageToLoad,
-        size: PAGE_SIZE,
-        sort: SORT,
-      });
-
-      const newReviews = res.data.content || [];
-      setLastPage(res.data.last);
-
-      const merged = isRefresh || pageToLoad === 0
-        ? newReviews
-        : [...reviews, ...newReviews];
-      
-      setReviews(prioritizeNoReplies(merged));
-      setPage(pageToLoad);
-    } catch (error) {
-      Alert.alert('리뷰 불러오기 실패', '잠시 후 다시 시도해주세요.');
-      setLastPage(true);
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
+  // 무한 스크롤
+  const handleEndReached = () => {
+    if (initialLoading || refreshing || loadingMore) return;
+    if (!hasNext) return;
+    fetchPage(page + 1);
   };
 
-  // 무한스크롤
-  const handleEndReached = () => {
-    if (!loading && !lastPage) {
-      fetchReviews(page + 1);
-    }
+  // 당겨서 새로고침
+  const handleRefresh = () => {
+    if (initialLoading || refreshing) return;
+    fetchPage(0, { replace: true });
   };
 
   // 리뷰
   const renderItem = ({ item, index }) => {
-    const hasReplies = Array.isArray(item.replies) && item.replies.length > 0;
     const isLast = index === reviews.length - 1;
     const images = Array.isArray(item.imgUrls) ? item.imgUrls : [];
+    const hasReplies = (item.replies || []).length > 0;
 
     return (
       <View style={styles.card}>
@@ -184,6 +216,14 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
     );
   };
 
+  if (initialLoading && !refreshing) {
+    return (
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center' }}>
+        <Loading title="리뷰를 불러오는 중이에요" />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flex: 1 }}>
       <FlatList
@@ -193,7 +233,11 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
         onEndReached={handleEndReached}
         // onEndReached가 어느 시점에서 호출될지 결정 (0.5 → 화면 절반 전 도달 시 호출)
         onEndReachedThreshold={0.5}
-        ListFooterComponent={loading && !refreshing ? <Loading title="리뷰를 불러오는 중이에요" /> : null}
+        refreshing={refreshing}
+        onRefresh={handleRefresh}
+        ListFooterComponent={
+          loadingMore ? <Loading title="리뷰를 불러오는 중이에요" /> : null
+        }
         contentContainerStyle={
           reviews.length === 0
             ? { flex: 1, justifyContent: 'center', alignItems: 'center' }
@@ -215,7 +259,7 @@ const MyGuesthouseReviewList = ({ guesthouseId }) => {
         visible={replyModalOpen}
         reviewId={activeReviewId}
         onClose={() => setReplyModalOpen(false)}
-        onSuccess={() => fetchReviews(0, true)}
+        onSuccess={() => fetchPage(0, { replace: true })}
       />
 
       {/* 삭제요청 */}

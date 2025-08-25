@@ -12,6 +12,9 @@ import ReservationCancelDetailModal from '@components/modals/UserMy/Guesthouse/R
 
 export default function UserCancelledReservations({ data }) {
   const navigation = useNavigation();
+
+  const toLocalDateTime = (date, time) =>
+    date ? `${date}T${time ?? '00:00:00'}` : '';
   
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
@@ -31,8 +34,12 @@ export default function UserCancelledReservations({ data }) {
   };
 
   const renderItem = ({ item, index }) => {
-      const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-      const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+      const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+      );
+      const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+      );
   
       return (
         <View style={styles.container}>
