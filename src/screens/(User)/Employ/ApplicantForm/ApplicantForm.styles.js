@@ -174,9 +174,6 @@ const styles = StyleSheet.create({
 
   //하단바
   bottomButtonContainer: {
-    position: 'absolute',
-    bottom: 0,
-    width: '100%',
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
     paddingBottom: 40,
