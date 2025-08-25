@@ -77,212 +77,214 @@ export default function WorkConditionSection({
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView style={{flex: 1}} enabled>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.overlay}>
-            <View style={styles.container}>
-              {/* 헤더 */}
-              <View style={styles.header}>
-                <View />
-                <Text style={[FONTS.fs_20_semibold]}>근무 조건</Text>
-                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-                  <XBtn width={24} height={24} />
-                </TouchableOpacity>
-              </View>
-              <ScrollView
-                style={{flex: 1}}
-                contentContainerStyle={styles.body}
-                showsVerticalScrollIndicator={false}>
-                {/* 근무형태 */}
-                <View>
-                  <View style={[styles.countRow]}>
-                    <Text style={styles.subsectionTitle}>근무 형태</Text>
-                    <Text
-                      style={{
-                        ...FONTS.fs_12_medium,
-                        color: COLORS.grayscale_400,
-                        textAlign: 'right',
-                      }}>
-                      <Text style={{color: COLORS.primary_orange}}>
-                        {formData?.workType?.length?.toLocaleString()}
-                      </Text>
-                      /50
+        {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <View />
+              <Text style={[FONTS.fs_20_semibold]}>근무 조건</Text>
+              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView
+              style={{flex: 1}}
+              contentContainerStyle={styles.body}
+              showsVerticalScrollIndicator={false}
+              keyboardDismissMode="on-drag"
+              keyboardShouldPersistTaps="handled">
+              {/* 근무형태 */}
+              <View>
+                <View style={[styles.countRow]}>
+                  <Text style={styles.subsectionTitle}>근무 형태</Text>
+                  <Text
+                    style={{
+                      ...FONTS.fs_12_medium,
+                      color: COLORS.grayscale_400,
+                      textAlign: 'right',
+                    }}>
+                    <Text style={{color: COLORS.primary_orange}}>
+                      {formData?.workType?.length?.toLocaleString()}
                     </Text>
-                  </View>
+                    /50
+                  </Text>
+                </View>
+                <TextInput
+                  style={[styles.input, {flex: 1}]}
+                  placeholder="기타 입력"
+                  placeholderTextColor={COLORS.grayscale_400}
+                  multiline={true}
+                  maxLength={50}
+                  value={formData.workType}
+                  onChangeText={text => {
+                    handleInputChange('workType', text);
+                  }}
+                />
+              </View>
+              {/* 주요 업무 */}
+              <View>
+                <View style={[styles.countRow]}>
+                  <Text style={styles.subsectionTitle}>주요 업무</Text>
+                </View>
+                <View style={styles.tagSelectRow}>
+                  {workParts?.map(tag => {
+                    const isSelected = selectedWorkParts?.some(
+                      t => t.id === tag.id,
+                    );
+                    return (
+                      <TouchableOpacity
+                        key={tag.id}
+                        onPress={() => {
+                          if (isSelected) {
+                            setSelectedWorkParts(prev =>
+                              prev.filter(t => t.id !== tag.id),
+                            );
+                          } else {
+                            setSelectedWorkParts(prev => [...prev, tag]);
+                          }
+                        }}
+                        style={styles.tagOptionContainer}>
+                        <Text
+                          style={[
+                            styles.tagOptionText,
+                            FONTS.fs_14_medium,
+                            isSelected && styles.tagOptionSelectedText,
+                            isSelected && FONTS.fs_14_semibold,
+                          ]}>
+                          {tag.title}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                   <TextInput
-                    style={[styles.input, {flex: 1}]}
+                    style={[
+                      styles.input,
+                      {
+                        flex: 1,
+                        backgroundColor: COLORS.grayscale_0,
+                        marginHorizontal: 10,
+                        marginBottom: 10,
+                      },
+                    ]}
                     placeholder="기타 입력"
                     placeholderTextColor={COLORS.grayscale_400}
                     multiline={true}
                     maxLength={50}
-                    value={formData.workType}
-                    onChangeText={text => {
-                      handleInputChange('workType', text);
-                    }}
+                    value={workEtcText}
+                    onChangeText={setWorkEtcText}
                   />
                 </View>
-                {/* 주요 업무 */}
-                <View>
-                  <View style={[styles.countRow]}>
-                    <Text style={styles.subsectionTitle}>주요 업무</Text>
-                  </View>
-                  <View style={styles.tagSelectRow}>
-                    {workParts?.map(tag => {
-                      const isSelected = selectedWorkParts?.some(
-                        t => t.id === tag.id,
-                      );
-                      return (
-                        <TouchableOpacity
-                          key={tag.id}
-                          onPress={() => {
-                            if (isSelected) {
-                              setSelectedWorkParts(prev =>
-                                prev.filter(t => t.id !== tag.id),
-                              );
-                            } else {
-                              setSelectedWorkParts(prev => [...prev, tag]);
-                            }
-                          }}
-                          style={styles.tagOptionContainer}>
-                          <Text
-                            style={[
-                              styles.tagOptionText,
-                              FONTS.fs_14_medium,
-                              isSelected && styles.tagOptionSelectedText,
-                              isSelected && FONTS.fs_14_semibold,
-                            ]}>
-                            {tag.title}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                    <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          flex: 1,
-                          backgroundColor: COLORS.grayscale_0,
-                          marginHorizontal: 10,
-                          marginBottom: 10,
-                        },
-                      ]}
-                      placeholder="기타 입력"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      multiline={true}
-                      maxLength={50}
-                      value={workEtcText}
-                      onChangeText={setWorkEtcText}
-                    />
-                  </View>
+              </View>
+              {/* 근무 기간 */}
+              <View>
+                <Text style={styles.subsectionTitle}>근무 기간</Text>
+                <View style={styles.tagSelectRow}>
+                  {workDurations?.map(tag => {
+                    return (
+                      <TouchableOpacity
+                        key={tag.id}
+                        onPress={() => {
+                          setSelectedWorkDuration(tag);
+                        }}
+                        style={styles.tagOptionContainer}>
+                        <Text
+                          style={[
+                            styles.tagOptionText,
+                            FONTS.fs_14_medium,
+                            selectedWorkDuration?.id === tag.id &&
+                              styles.tagOptionSelectedText,
+                            selectedWorkDuration?.id === tag.id &&
+                              FONTS.fs_14_semibold,
+                          ]}>
+                          {tag.title}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
-                {/* 근무 기간 */}
-                <View>
-                  <Text style={styles.subsectionTitle}>근무 기간</Text>
-                  <View style={styles.tagSelectRow}>
-                    {workDurations?.map(tag => {
-                      return (
-                        <TouchableOpacity
-                          key={tag.id}
-                          onPress={() => {
-                            setSelectedWorkDuration(tag);
-                          }}
-                          style={styles.tagOptionContainer}>
-                          <Text
-                            style={[
-                              styles.tagOptionText,
-                              FONTS.fs_14_medium,
-                              selectedWorkDuration?.id === tag.id &&
-                                styles.tagOptionSelectedText,
-                              selectedWorkDuration?.id === tag.id &&
-                                FONTS.fs_14_semibold,
-                            ]}>
-                            {tag.title}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                </View>
+              </View>
 
-                {/* 복지 */}
-                <View>
-                  <Text style={styles.subsectionTitle}>복지</Text>
-                  <View style={styles.tagSelectRow}>
-                    {welfares?.map(tag => {
-                      const isSelected = selectedWelfares?.some(
-                        t => t.id === tag.id,
-                      );
-                      return (
-                        <TouchableOpacity
-                          key={tag.id}
-                          onPress={() => {
-                            if (isSelected) {
-                              setSelectedWelfares(prev =>
-                                prev.filter(t => t.id !== tag.id),
-                              );
-                            } else {
-                              setSelectedWelfares(prev => [...prev, tag]);
-                            }
-                          }}
-                          style={styles.tagOptionContainer}>
-                          <Text
-                            style={[
-                              styles.tagOptionText,
-                              FONTS.fs_14_medium,
-                              isSelected && styles.tagOptionSelectedText,
-                              isSelected && FONTS.fs_14_semibold,
-                            ]}>
-                            {tag.title}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                    <TextInput
-                      style={[
-                        styles.input,
-                        {
-                          flex: 1,
-                          backgroundColor: COLORS.grayscale_0,
-                          marginHorizontal: 10,
-                          marginBottom: 10,
-                        },
-                      ]}
-                      placeholder="기타 입력"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      multiline={true}
-                      maxLength={50}
-                      value={welfareEtcText}
-                      onChangeText={setWelfareEtcText}
-                    />
-                  </View>
-                </View>
-                <View style={{marginVertical: 20}}>
-                  <ButtonScarlet
-                    title={'적용하기'}
-                    onPress={() => {
-                      const workPartCombined = uniq([
-                        ...asTitles(selectedWorkParts),
-                        ...(workEtcText?.trim() ? [workEtcText.trim()] : []),
-                      ]);
-                      const welfareCombined = uniq([
-                        ...asTitles(selectedWelfares),
-                        ...(welfareEtcText?.trim()
-                          ? [welfareEtcText.trim()]
-                          : []),
-                      ]);
-                      handleInputChange('workPart', workPartCombined);
-                      handleInputChange('welfare', welfareCombined);
-                      handleInputChange(
-                        'workDuration',
-                        selectedWorkDuration.title,
-                      );
-                      setTimeout(onClose, 0);
-                    }}
+              {/* 복지 */}
+              <View>
+                <Text style={styles.subsectionTitle}>복지</Text>
+                <View style={styles.tagSelectRow}>
+                  {welfares?.map(tag => {
+                    const isSelected = selectedWelfares?.some(
+                      t => t.id === tag.id,
+                    );
+                    return (
+                      <TouchableOpacity
+                        key={tag.id}
+                        onPress={() => {
+                          if (isSelected) {
+                            setSelectedWelfares(prev =>
+                              prev.filter(t => t.id !== tag.id),
+                            );
+                          } else {
+                            setSelectedWelfares(prev => [...prev, tag]);
+                          }
+                        }}
+                        style={styles.tagOptionContainer}>
+                        <Text
+                          style={[
+                            styles.tagOptionText,
+                            FONTS.fs_14_medium,
+                            isSelected && styles.tagOptionSelectedText,
+                            isSelected && FONTS.fs_14_semibold,
+                          ]}>
+                          {tag.title}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                  <TextInput
+                    style={[
+                      styles.input,
+                      {
+                        flex: 1,
+                        backgroundColor: COLORS.grayscale_0,
+                        marginHorizontal: 10,
+                        marginBottom: 10,
+                      },
+                    ]}
+                    placeholder="기타 입력"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    multiline={true}
+                    maxLength={50}
+                    value={welfareEtcText}
+                    onChangeText={setWelfareEtcText}
                   />
                 </View>
-              </ScrollView>
-            </View>
+              </View>
+              <View style={{marginVertical: 20}}>
+                <ButtonScarlet
+                  title={'적용하기'}
+                  onPress={() => {
+                    const workPartCombined = uniq([
+                      ...asTitles(selectedWorkParts),
+                      ...(workEtcText?.trim() ? [workEtcText.trim()] : []),
+                    ]);
+                    const welfareCombined = uniq([
+                      ...asTitles(selectedWelfares),
+                      ...(welfareEtcText?.trim()
+                        ? [welfareEtcText.trim()]
+                        : []),
+                    ]);
+                    handleInputChange('workPart', workPartCombined);
+                    handleInputChange('welfare', welfareCombined);
+                    handleInputChange(
+                      'workDuration',
+                      selectedWorkDuration.title,
+                    );
+                    setTimeout(onClose, 0);
+                  }}
+                />
+              </View>
+            </ScrollView>
           </View>
-        </TouchableWithoutFeedback>
+        </View>
+        {/* </TouchableWithoutFeedback> */}
       </KeyboardAvoidingView>
     </Modal>
   );
