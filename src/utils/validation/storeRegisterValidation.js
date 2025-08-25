@@ -37,8 +37,8 @@ export const validateStoreForm2 = form => {
   const errors = [];
 
   if (!isValidAddress(form.address)) errors.push('주소를 입력해주세요.');
-  if (!isValidBusinessNumber(form.businessRegistrationNumber))
-    errors.push('10자리 숫자 사업자등록번호를 입력해주세요.');
+  // if (!isValidBusinessNumber(form.businessRegistrationNumber))
+  //   errors.push('10자리 숫자 사업자등록번호를 입력해주세요.');
   if (!isValidImageUri(form.img.uri))
     errors.push('사업자 등록증 이미지를 첨부해주세요.');
   if (!isValidPhone(form.businessPhone))
@@ -63,8 +63,8 @@ export const validateStoreForm = form => {
   if (!isValidName(form.managerName))
     errors.push('담당자 이름을 입력해주세요.');
   if (!isValidAddress(form.address)) errors.push('주소를 입력해주세요.');
-  if (!isValidBusinessNumber(form.businessRegistrationNumber))
-    errors.push('10자리 숫자 사업자등록번호를 입력해주세요.');
+  // if (!isValidBusinessNumber(form.businessRegistrationNumber))
+  //   errors.push('10자리 숫자 사업자등록번호를 입력해주세요.');
   if (!isValidImageUri(form.img.uri))
     errors.push('사업자 등록증 이미지를 첨부해주세요.');
 
