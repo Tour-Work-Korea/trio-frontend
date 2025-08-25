@@ -408,7 +408,8 @@ const GuesthouseList = () => {
       </View>
 
       {/* 지도 버튼 */}
-      <View style={styles.mapButtonContainer}>
+      {/* 지도 임시 제외 */}
+      {/* <View style={styles.mapButtonContainer}>
         <TouchableOpacity
           style={styles.mapButton}
           onPress={() => navigation.navigate('GuesthouseMap')}
@@ -416,7 +417,7 @@ const GuesthouseList = () => {
           <MapIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
         </TouchableOpacity>
-      </View>
+      </View> */}
       
       {/* 인원, 날짜 선택 모달 */}
       <DateGuestModal

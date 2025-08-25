@@ -141,7 +141,7 @@ const AddReviewCommentModal = ({
             title={'적용하기'}
             onPress={submit}
             disabled={!canSubmit}
-            style={{ marginTop: 46 }}
+            style={{ marginTop: 24 }}
           />
         </View>
       </KeyboardAvoidingView>
@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   },
   container: {
     width: '100%',
-    maxHeight: '60%',
+    minHeight: '60%',
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 24,
     paddingHorizontal: 20,
@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayscale_200,
     borderRadius: 12,
     padding: 12,
-    minHeight: 200,
+    height: 200,
   },
   input: {
   },

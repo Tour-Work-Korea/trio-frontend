@@ -15,6 +15,9 @@ export default function UserPastReservations({ data }) {
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
 
+  const toLocalDateTime = (date, time) =>
+    date ? `${date}T${time ?? '00:00:00'}` : '';
+
   // 모달
   const [selectedReservationId, setSelectedReservationId] = useState(null);
   const [modalVisible, setModalVisible] = useState(false);
@@ -30,8 +33,12 @@ export default function UserPastReservations({ data }) {
   };
 
   const renderItem = ({ item, index }) => {
-    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+    );
+    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+    );
 
     return (
       <View style={styles.container}>
@@ -83,8 +90,12 @@ export default function UserPastReservations({ data }) {
             disabled={item.reviewed}
             onPress={() => {
               if (!item.reviewed) {
-                const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-                const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+                const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+                  toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+                );
+                const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+                  toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+                );
 
                 navigation.navigate('UserGuesthouseReviewForm', {
                   guesthouseId: item.guesthouseId,

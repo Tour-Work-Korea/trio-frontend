@@ -15,6 +15,9 @@ const UserGuesthouseReviewWrite = () => {
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const toLocalDateTime = (date, time) =>
+    date ? `${date}T${time ?? '00:00:00'}` : '';
+
   const fetchReservationList = async () => {
     try {
       setLoading(true);
@@ -39,8 +42,12 @@ const UserGuesthouseReviewWrite = () => {
   );
 
   const renderItem = ({ item, index }) => {
-    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+    );
+    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+    );
 
     return (
       <View style={styles.container}>
@@ -74,16 +81,20 @@ const UserGuesthouseReviewWrite = () => {
           style={styles.reviewButton} 
           onPress={() => {
             if (!item.reviewed) {
-              const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-              const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
+              const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+                toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+              );
+              const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+                toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+              );
 
               navigation.navigate('UserGuesthouseReviewForm', {
                 guesthouseId: item.guesthouseId,
                 guesthouseName: item.guesthouseName,
                 roomName: item.roomName,
                 guesthouseAddress: item.guesthouseAddress,
-                checkInFormatted,
-                checkOutFormatted,
+                checkInFormatted: checkInFormatted,
+                checkOutFormatted: checkOutFormatted,
               });
             }
           }}

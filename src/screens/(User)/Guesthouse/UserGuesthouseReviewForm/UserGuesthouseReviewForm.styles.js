@@ -132,5 +132,6 @@ export default StyleSheet.create({
 
   submitBtn: {
     marginTop: 36,
+    marginBottom: 20,
   },
 });
