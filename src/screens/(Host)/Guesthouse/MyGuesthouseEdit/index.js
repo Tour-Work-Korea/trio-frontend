@@ -2,53 +2,29 @@ import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
-  TextInput,
-  ScrollView,
-  Button,
   Alert,
-  Image,
-  Modal,
   TouchableOpacity,
-  KeyboardAvoidingView,
-  Platform,
-  TouchableWithoutFeedback,
-  Keyboard,
 } from 'react-native';
-
-import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import Toast from 'react-native-toast-message';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import { uploadSingleImage } from '@utils/imageUploadHandler';
-import { guesthouseTags } from '@data/guesthouseTags';
-import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
 
-const inputStyle = {
-  borderWidth: 1,
-  borderColor: '#ccc',
-  borderRadius: 6,
-  padding: 10,
-  marginBottom: 12,
-};
+import styles from './MyGuesthouseEdit.styles';
+import Header from '@components/Header';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
+import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseInfoModal';
+import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseIntroSummaryModal';
+import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseRoom/GuesthouseRoomModal';
+import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseDetailInfoModal';
+import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseRulesModal';
+import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseAmenitiesModal';
 
-const tagButtonStyle = (selected) => ({
-  paddingVertical: 6,
-  paddingHorizontal: 10,
-  margin: 4,
-  borderRadius: 20,
-  borderWidth: 1,
-  borderColor: selected ? '#ff5a5f' : '#ccc',
-  backgroundColor: selected ? '#ffebeb' : '#fff',
-});
+import ChevronRight from '@assets/images/chevron_right_black.svg';
+import CheckWhite from '@assets/images/check_white.svg';
 
-const tagTextStyle = (selected) => ({
-  color: selected ? '#ff5a5f' : '#333',
-});
-
-const MyGuesthouseAddEdit = () => {
+const MyGuesthouseEdit = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { applicationId } = route.params || {};
-  const [selectedAmenities, setSelectedAmenities] = useState([]); // amenity id 배열
-  const [selectedHashtags, setSelectedHashtags] = useState([]); // { id, hashtag } 객체 배열
 
   const [guesthouse, setGuesthouse] = useState({
     guesthouseName: '',
@@ -61,300 +37,259 @@ const MyGuesthouseAddEdit = () => {
     guesthouseImages: [],
     roomInfos: [],
     amenities: [],
-    hashtagIds: [],
+    hashtags: [],
+    rules: '',
+    guesthouseDetailAddress: '',
   });
 
+  // 선택된 amenities id만 별도로 들고 다니는 상태 (모달 프리셋용)
+  const [selectedAmenities, setSelectedAmenities] = useState([]);
+
+  // 상세 화면에서 보낸 초기값 주입
+  useEffect(() => {
+    const initial = route.params?.initialGuesthouse;
+    if (initial) {
+      setGuesthouse(prev => ({ ...prev, ...initial }));
+      setSelectedAmenities((initial.amenities || []).map(a => a.amenityId));
+    }
+  }, [route.params]);
+
+  // 게스트하우스 정보 모달
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [infoModalReset, setInfoModalReset] = useState(true);
+  // 게스트하우스 소개요약 모달
+  const [introModalVisible, setIntroModalVisible] = useState(false);
+  const [introModalReset, setIntroModalReset] = useState(true);
+  // 객실 모달
   const [roomModalVisible, setRoomModalVisible] = useState(false);
-  const [newRoom, setNewRoom] = useState({
-    roomName: '',
-    roomType: '',
-    roomCapacity: '',
-    roomMaxCapacity: '',
-    roomPrice: '',
-    roomDesc: '',
-    roomImages: [],
-    roomExtraFees: [],
-  });
+  const [roomModalReset, setRoomModalReset] = useState(true);
+  // 상세정보 모달
+  const [detailInfoModalVisible, setDetailInfoModalVisible] = useState(false);
+  const [detailInfoModalReset, setDetailInfoModalReset] = useState(true);
+  // 이용규칙 모달
+  const [rulesModalVisible, setRulesModalVisible] = useState(false);
+  const [rulesModalReset, setRulesModalReset] = useState(true);
+  // 편의시설 모달
+  const [amenitiesModalVisible, setAmenitiesModalVisible] = useState(false);
+  const [amenitiesModalReset, setAmenitiesModalReset] = useState(true);
 
-  const [extraFeeInput, setExtraFeeInput] = useState({
-    startDate: '',
-    endDate: '',
-    addPrice: '',
-  });
-
-  const handleAddImage = async () => {
-    if (guesthouse.guesthouseImages.length >= 10) {
-      Alert.alert('이미지는 최대 10개까지 업로드할 수 있습니다.');
-      return;
-    }
-
-    const uploadedUrl = await uploadSingleImage();
-    if (!uploadedUrl) return;
-
-    const isThumbnail = guesthouse.guesthouseImages.length === 0;
-    setGuesthouse((prev) => ({
+  // 게스트하우스 정보 모달에서 "적용" 눌렀을 때
+  const handleInfoSelect = (data) => {
+    setGuesthouse(prev => ({
       ...prev,
-      guesthouseImages: [
-        ...prev.guesthouseImages,
-        {
-          guesthouseImageUrl: uploadedUrl,
-          isThumbnail,
-        },
-      ],
+      guesthouseName: data.name,
+      guesthouseAddress: data.address,
+      guesthouseDetailAddress: data.addressDetail || '',
+      guesthousePhone: data.phone,
+      hashtagIds: data.tagIds,
+      checkIn: data.checkIn,
+      checkOut: data.checkOut
     }));
+    setInfoModalReset(false); // 닫아도 초기화 안 함
+    setInfoModalVisible(false);
   };
 
-  const handleAddRoomImage = async () => {
-    const uploadedUrl = await uploadSingleImage();
-    if (!uploadedUrl) return;
-
-    const isFirstImage = newRoom.roomImages.length === 0;
-    const image = { roomImageUrl: uploadedUrl, isThumbnail: isFirstImage };
-    setNewRoom((prev) => ({
+  // 게스트하우스 소개요약 모달에서 "적용" 눌렀을 때
+  const handleIntroSelect = (data) => {
+    setGuesthouse(prev => ({
       ...prev,
-      roomImages: [...prev.roomImages, image],
+      guesthouseImages: data.guesthouseImages,
+      guesthouseShortIntro: data.shortIntroText,
     }));
+    setIntroModalReset(false); // 닫아도 초기화 안 함
+    setIntroModalVisible(false);
   };
 
-  const handleAddRoomExtraFee = () => {
-    const { startDate, endDate, addPrice } = extraFeeInput;
-    if (startDate && endDate && addPrice) {
-      setNewRoom((prev) => ({
-        ...prev,
-        roomExtraFees: [...prev.roomExtraFees, {
-          startDate,
-          endDate,
-          addPrice: parseInt(addPrice),
-        }],
-      }));
-      setExtraFeeInput({ startDate: '', endDate: '', addPrice: '' });
-    } else {
-      Alert.alert('모든 추가요금 정보를 입력해주세요.');
-    }
-  };
-
-  const handleAddRoom = () => {
-    if (!newRoom.roomName || !newRoom.roomType || newRoom.roomImages.length === 0) {
-      Alert.alert('필수 정보(방 이름, 타입, 이미지)를 입력해주세요.');
-      return;
-    }
-
-    const room = {
-      ...newRoom,
-      roomCapacity: parseInt(newRoom.roomCapacity),
-      roomMaxCapacity: parseInt(newRoom.roomMaxCapacity),
-      roomPrice: parseInt(newRoom.roomPrice),
-    };
-
-    setGuesthouse((prev) => ({
+  // 객실 모달에서 "적용" 눌렀을 때
+  const handleRoomSelect = (rooms) => {
+    setGuesthouse(prev => ({
       ...prev,
-      roomInfos: [...prev.roomInfos, room],
+      roomInfos: rooms,
     }));
-    setNewRoom({
-      roomName: '',
-      roomType: '',
-      roomCapacity: '',
-      roomMaxCapacity: '',
-      roomPrice: '',
-      roomDesc: '',
-      roomImages: [],
-      roomExtraFees: [],
-    });
+    setRoomModalReset(false); // 닫아도 유지
     setRoomModalVisible(false);
   };
 
-  const handleDeleteRoom = (index) => {
-    setGuesthouse((prev) => ({
+  // 상세정보 모달에서 "적용" 눌렀을 때
+  const handleDetailInfoSelect = (data) => {
+    setGuesthouse(prev => ({
       ...prev,
-      roomInfos: prev.roomInfos.filter((_, idx) => idx !== index),
+      guesthouseLongDesc: data.guesthouseLongDesc,
     }));
+    setDetailInfoModalReset(false); // 닫아도 유지
+    setDetailInfoModalVisible(false);
+  };
+
+  // 이용규칙 모달에서 "적용" 눌렀을 때
+  const handleRulesSelect = (rulesText) => {
+    setGuesthouse(prev => ({ ...prev, rules: rulesText }));
+    setRulesModalReset(false); // 닫아도 유지
+    setRulesModalVisible(false);
+  };
+
+  // 편의시설 모달에서 "적용" 눌렀을 때
+  const handleAmenitiesSelect = (ids) => {
+    setGuesthouse(prev => ({
+      ...prev,
+      amenities: ids.map(id => ({ amenityId: id, count: 1 })),
+    }));
+    setSelectedAmenities(ids);
+    setAmenitiesModalReset(false); 
+    setAmenitiesModalVisible(false);
   };
 
   const handleSubmit = async () => {
-    if (guesthouse.guesthouseImages.length === 0) {
-      Alert.alert('게스트하우스 이미지를 1개 이상 등록해주세요.');
-      return;
-    }
-    if (guesthouse.roomInfos.length === 0) {
-      Alert.alert('객실 정보를 1개 이상 등록해주세요.');
-      return;
-    }
-
-    const hasEachRoomThumbnail = guesthouse.roomInfos.every(room =>
-      room.roomImages.some(img => img.isThumbnail === true)
-    );
-    if (!hasEachRoomThumbnail) {
-      Alert.alert('각 방에는 반드시 썸네일 이미지 1개가 포함되어야 합니다.');
-      return;
-    }
-
-    try {
-      const payload = {
-        ...guesthouse,
-        applicationId: applicationId,
-        amenities: selectedAmenities.map(id => ({ amenityId: id, count: 1 })),
-        hashtagIds: selectedHashtags.map(tag => tag.id),
-      };
-      const res = await hostGuesthouseApi.registerGuesthouse(payload);
-      console.log('등록 성공', res.data);
-      Alert.alert('게스트하우스 등록 완료');
-      navigation.goBack();
-    } catch (error) {
-      console.error('등록 실패:', error.response?.data || error.message);
-      Alert.alert('등록 실패');
-    }
+    
   };
 
   return (
-    <KeyboardAvoidingView
-    style={{ flex: 1 }}
-    behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-    keyboardVerticalOffset={Platform.OS === 'ios' ? 72 : 0} // 필요에 따라 조절
-  >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-    <ScrollView contentContainerStyle={{ padding: 20 }}>
-      <Text>게스트하우스 이름</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseName} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseName: text })} />
-      <Text>주소</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseAddress} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseAddress: text })} />
-      <Text>전화번호</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthousePhone} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthousePhone: text })} />
-      <Text>한줄 소개</Text>
-      <TextInput style={inputStyle} value={guesthouse.guesthouseShortIntro} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseShortIntro: text })} />
-      <Text>상세 설명</Text>
-      <TextInput style={inputStyle} multiline value={guesthouse.guesthouseLongDesc} onChangeText={(text) => setGuesthouse({ ...guesthouse, guesthouseLongDesc: text })} />
-      <Text>체크인 시간</Text>
-      <TextInput style={inputStyle} value={guesthouse.checkIn} onChangeText={(text) => setGuesthouse({ ...guesthouse, checkIn: text })} />
-      <Text>체크아웃 시간</Text>
-      <TextInput style={inputStyle} value={guesthouse.checkOut} onChangeText={(text) => setGuesthouse({ ...guesthouse, checkOut: text })} />
+    <View style={styles.container}>
+      <Header title="게스트하우스 게시물 수정" />
 
-      <Button title="이미지 추가 (갤러리에서)" onPress={handleAddImage} />
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginTop: 10 }}>
-        {guesthouse.guesthouseImages.map((img, idx) => (
-          <Image
-            key={idx}
-            source={{ uri: img.guesthouseImageUrl }}
-            style={{ width: 100, height: 100, marginRight: 8, marginBottom: 8, borderRadius: 8 }}
-          />
-        ))}
-      </View>
-
-      <Button title="방 추가" onPress={() => setRoomModalVisible(true)} />
-      {guesthouse.roomInfos.map((room, idx) => (
-        <View key={idx} style={{ marginTop: 10, padding: 10, borderWidth: 1, borderColor: '#ccc', borderRadius: 6 }}>
-          <Text style={{ fontWeight: 'bold' }}>{room.roomName}</Text>
-          <Text>{room.roomType}</Text>
-          <Text>{room.roomDesc}</Text>
-          <TouchableOpacity onPress={() => handleDeleteRoom(idx)}>
-            <Text style={{ color: 'red', marginTop: 6 }}>삭제</Text>
-          </TouchableOpacity>
-        </View>
-      ))}
-
-      <Text>편의 시설 선택</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {[...publicFacilities, ...roomFacilities, ...services].map((item) => {
-          const selected = selectedAmenities.includes(item.id);
-          return (
-            <TouchableOpacity
-              key={item.id}
-              style={tagButtonStyle(selected)}
-              onPress={() => {
-                setSelectedAmenities((prev) =>
-                  selected ? prev.filter((id) => id !== item.id) : [...prev, item.id]
-                );
-              }}
-            >
-              <Text style={tagTextStyle(selected)}>{item.name}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <Text>태그 선택 (최대 3개)</Text>
-      <View style={{ flexDirection: 'row', flexWrap: 'wrap' }}>
-        {guesthouseTags.map((tag) => {
-          const selected = selectedHashtags.some((t) => t.id === tag.id);
-          return (
-            <TouchableOpacity
-              key={tag.id}
-              style={tagButtonStyle(selected)}
-              onPress={() => {
-                if (selected) {
-                  setSelectedHashtags((prev) => prev.filter((t) => t.id !== tag.id));
-                } else if (selectedHashtags.length < 3) {
-                  setSelectedHashtags((prev) => [...prev, tag]);
-                } else {
-                  Alert.alert('태그는 최대 3개까지 선택할 수 있습니다.');
-                }
-              }}
-            >
-              <Text style={tagTextStyle(selected)}>{tag.hashtag}</Text>
-            </TouchableOpacity>
-          );
-        })}
-      </View>
-
-      <View style={{ marginTop: 20 }}>
-        <Button title="등록하기" onPress={handleSubmit} />
-      </View>
-
-      <Modal visible={roomModalVisible} animationType="slide">
-        <KeyboardAvoidingView
-          style={{ flex: 1 }}
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          keyboardVerticalOffset={Platform.OS === 'ios' ? 72 : 0}
+      <View style={styles.bodyContainer}>
+        {/* 게스트하우스 정보 */}
+        <TouchableOpacity 
+          style={styles.section}
+          onPress={() => setInfoModalVisible(true)}
         >
-          <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
-          <ScrollView contentContainerStyle={{ padding: 60 }}>
-            <Text>방 이름</Text>
-            <TextInput style={inputStyle} value={newRoom.roomName} onChangeText={(text) => setNewRoom({ ...newRoom, roomName: text })} />
-            <Text>방 타입 (FEMALE_ONLY, MALE_ONLY, MIXED)</Text>
-            <TextInput style={inputStyle} value={newRoom.roomType} onChangeText={(text) => setNewRoom({ ...newRoom, roomType: text })} />
-            <Text>수용 인원</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomCapacity} onChangeText={(text) => setNewRoom({ ...newRoom, roomCapacity: text })} />
-            <Text>최대 인원</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomMaxCapacity} onChangeText={(text) => setNewRoom({ ...newRoom, roomMaxCapacity: text })} />
-            <Text>기본 가격</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={newRoom.roomPrice} onChangeText={(text) => setNewRoom({ ...newRoom, roomPrice: text })} />
-            <Text>방 설명</Text>
-            <TextInput style={inputStyle} value={newRoom.roomDesc} onChangeText={(text) => setNewRoom({ ...newRoom, roomDesc: text })} />
+          <Text style={[FONTS.fs_14_medium, styles.title]}>게스트하우스 정보 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Button title="방 이미지 추가" onPress={handleAddRoomImage} />
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', marginVertical: 10 }}>
-              {newRoom.roomImages.map((img, idx) => (
-                <Image
-                  key={idx}
-                  source={{ uri: img.roomImageUrl }}
-                  style={{ width: 80, height: 80, marginRight: 8, marginBottom: 8, borderRadius: 8 }}
-                />
-              ))}
-            </View>
+        {/* 게스트하우스 소개요약 */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setIntroModalVisible(true)}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.title]}>게스트하우스 소개요약 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Text>추가요금 시작일 (YYYY-MM-DD)</Text>
-            <TextInput style={inputStyle} value={extraFeeInput.startDate} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, startDate: text })} />
-            <Text>추가요금 종료일 (YYYY-MM-DD)</Text>
-            <TextInput style={inputStyle} value={extraFeeInput.endDate} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, endDate: text })} />
-            <Text>추가요금 금액</Text>
-            <TextInput style={inputStyle} keyboardType="numeric" value={extraFeeInput.addPrice} onChangeText={(text) => setExtraFeeInput({ ...extraFeeInput, addPrice: text })} />
-            <Button title="추가요금 구간 추가" onPress={handleAddRoomExtraFee} />
+        {/* 객실 */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setRoomModalVisible(true)}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.title]}>객실 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            {newRoom.roomExtraFees.map((fee, idx) => (
-              <Text key={idx} style={{ marginTop: 6 }}>{fee.startDate} ~ {fee.endDate}: +{fee.addPrice}원</Text>
-            ))}
+        {/* 상세정보 */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setDetailInfoModalVisible(true)}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.title]}>상세정보 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
 
-            <Button title="방 등록" onPress={handleAddRoom} />
-            <View style={{ marginTop: 10 }}>
-              <Button title="닫기" onPress={() => setRoomModalVisible(false)} />
-            </View>
-          </ScrollView>
-          </TouchableWithoutFeedback>
-        </KeyboardAvoidingView>
-      </Modal>
-    </ScrollView>
-    </TouchableWithoutFeedback>
-  </KeyboardAvoidingView>
+        {/* 이용규칙 */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setRulesModalVisible(true)}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.title]}>이용규칙 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
+
+        {/* 편의시설 및 서비스 */}
+        <TouchableOpacity
+          style={styles.section}
+          onPress={() => setAmenitiesModalVisible(true)}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.title]}>편의시설 및 서비스 수정</Text>
+          <ChevronRight width={24} height={24}/>
+        </TouchableOpacity>
+
+        <Text style={[FONTS.fs_12_medium, styles.explainText]}>
+          각 섹션마다 수정사항이 바로 적용됩니다.
+        </Text>
+      </View>
+
+      <View style={styles.bottomContainer}>
+        <TouchableOpacity style={styles.saveButton}>
+          <Text style={[FONTS.fs_14_medium, styles.saveText]}>미리보기</Text>
+        </TouchableOpacity>
+        <TouchableOpacity 
+          style={[
+            styles.submitButton,
+          ]}
+          onPress={handleSubmit}
+        >
+          <Text 
+            style={[
+              FONTS.fs_14_medium,
+              styles.submitText,
+            ]}
+          >
+            수정완료
+          </Text>
+          <CheckWhite width={24} height={24}/>
+        </TouchableOpacity>
+      </View>
+
+      {/* 게스트하우스 정보 모달 */}
+      <GuesthouseInfoModal
+        visible={infoModalVisible}
+        shouldResetOnClose={infoModalReset}
+        onClose={() => setInfoModalVisible(false)}
+        defaultName={guesthouse?.guesthouseName || ''}
+        defaultAddress={guesthouse?.guesthouseAddress || ''}
+        defaultDetailAddress={guesthouse?.guesthouseDetailAddress || ''}
+        defaultPhone={guesthouse?.guesthousePhone || ''}
+        defaultCheckIn={guesthouse?.checkIn || '15:00:00'}
+        defaultCheckOut={guesthouse?.checkOut || '11:00:00'}
+        defaultHashtags={guesthouse?.hashtags || []}
+        onSelect={handleInfoSelect}
+      />
+
+      {/* 게스트하우스 소개요약 모달 */}
+      <GuesthouseIntroSummaryModal
+        visible={introModalVisible}
+        shouldResetOnClose={introModalReset}
+        onClose={() => setIntroModalVisible(false)}
+        defaultImages={guesthouse?.guesthouseImages || []}
+        defaultShortIntro={guesthouse?.guesthouseShortIntro || ''}
+        onSelect={handleIntroSelect}
+      />
+      
+      {/* 객실 모달 */}
+      <GuesthouseRoomModal
+        visible={roomModalVisible}
+        shouldResetOnClose={roomModalReset}
+        onClose={() => setRoomModalVisible(false)}
+        defaultRooms={guesthouse?.roomInfos || []}
+        onSelect={handleRoomSelect}
+      />
+
+      {/* 상세정보 모달 */}
+      <GuesthouseDetailInfoModal
+        visible={detailInfoModalVisible}
+        shouldResetOnClose={detailInfoModalReset}
+        onClose={() => setDetailInfoModalVisible(false)}
+        defaultLongDesc={guesthouse?.guesthouseLongDesc || ''}
+        onSelect={handleDetailInfoSelect}
+      />
+
+      {/* 이용규칙 모달 */}
+      <GuesthouseRulesModal
+        visible={rulesModalVisible}
+        shouldResetOnClose={rulesModalReset}
+        onClose={() => setRulesModalVisible(false)}
+        defaultRules={guesthouse?.rules || ''}
+        onSelect={handleRulesSelect}
+      />
+
+      {/* 편의시설 및 서비스 모달 */}
+      <GuesthouseAmenitiesModal
+        visible={amenitiesModalVisible}
+        shouldResetOnClose={amenitiesModalReset}
+        onClose={() => setAmenitiesModalVisible(false)}
+        defaultSelected={selectedAmenities}
+        onSelect={handleAmenitiesSelect}
+      />
+    </View>
   );
 };
 
-export default MyGuesthouseAddEdit;
+export default MyGuesthouseEdit;
