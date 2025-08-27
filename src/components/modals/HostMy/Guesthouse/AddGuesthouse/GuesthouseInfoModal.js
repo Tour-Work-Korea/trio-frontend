@@ -29,7 +29,7 @@ import ClockIcon from '@assets/images/clock_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, defaultPhone, onSelect, shouldResetOnClose }) => {
+const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, defaultDetailAddress, defaultPhone, onSelect, shouldResetOnClose }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -44,9 +44,9 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
 
   const [nameOption, setNameOption] = useState('default'); // 'default' | 'custom'
   const [addressOption, setAddressOption] = useState('default'); // 'default' | 'custom'
+  const [detailAddressOption, setDetailAddressOption] = useState('default'); // 'default' | 'custom'
   const [phoneOption, setPhoneOption] = useState('default'); // 'default' | 'custom'
   
-
   const [customName, setCustomName] = useState('');
   const [customAddress, setCustomAddress] = useState('');
   const [customAddressDetail, setCustomAddressDetail] = useState('');
@@ -56,6 +56,13 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
   const [checkIn, setCheckIn] = useState('15:00:00');
   const [checkOut, setCheckOut] = useState('11:00:00');
   const [timePickerVisible, setTimePickerVisible] = useState({ type: null, visible: false });
+
+  // 핸드폰 번호 유효성 검사
+  const currentPhone = phoneOption === 'default' ? (defaultPhone || '') : (customPhone || '');
+  // 숫자만 남겨서 검사
+  const normalizedPhone = currentPhone.replace(/\D/g, '');
+  // 입력이 있을 때만 경고, 010으로 시작
+  const showPhoneWarn = normalizedPhone.length > 0 && !normalizedPhone.startsWith('010');
 
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
@@ -135,7 +142,8 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     const addressValue = addressOption === 'default' ? defaultAddress : customAddress;
     const phoneValue = phoneOption === 'default' ? defaultPhone : customPhone;
     const tagIds = selectedTags.map((tag) => tag.id);
-    const addressDetailValue = addressOption === 'custom' ? customAddressDetail : '';
+    const addressDetailValue =
+    addressOption === 'custom' ? customAddressDetail : (defaultDetailAddress || '');
 
     // 현재 상태 저장
     setAppliedData({
@@ -232,6 +240,14 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
                   <Text style={styles.radioText}>{defaultAddress}</Text>
                 </View>
               </TouchableOpacity>
+              {Boolean(defaultDetailAddress?.trim()) && (
+                <View style={[styles.radioBtn]}>
+                  <View style={{height: 28, width: 28}}/>
+                  <View style={styles.input}>
+                    <Text style={styles.radioText}>{defaultDetailAddress}</Text>
+                  </View>
+                </View>
+              )}
               <TouchableOpacity style={styles.radioBtn} onPress={() => setAddressOption('custom')}>
                 {addressOption === 'custom' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
                 {addressOption === 'default' && (
@@ -273,6 +289,11 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
 
             {/* 전화번호 */}
             <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>전화번호</Text>
+            {showPhoneWarn && (
+              <Text style={[FONTS.fs_12_medium, { color: COLORS.semantic_red, marginTop: 4 }]}>
+                010으로 시작하는 전화번호를 사용해주세요
+              </Text>
+            )}
             <View style={styles.radioRow}>
               <TouchableOpacity style={styles.radioBtn} onPress={() => setPhoneOption('default')}>
                 {phoneOption === 'default' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}

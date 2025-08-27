@@ -71,7 +71,7 @@ const MyGuesthouseAdd = () => {
 
   // 게시물 등록 모달에서 "적용" 눌렀을 때
   const handlePostRegisterSelect = (application) => {
-    setSelectedApplication(application); // { id, businessName, address, businessPhone }
+    setSelectedApplication(application); // { id, businessName, address, detailAddress,businessPhone }
     setPostModalReset(false); // 닫아도 초기화 안 함
     setPostModalVisible(false);
   };
