@@ -40,14 +40,14 @@ const styles = StyleSheet.create({
     right: 20,
     bottom: 40,
   },
-  saveButton: {
+  previewButton: {
     flexDirection: 'row',
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 100,
     alignItems: 'center',
   },
-  saveText: {
+  previewText: {
     color: COLORS.grayscale_800,
   },
   submitButton: {

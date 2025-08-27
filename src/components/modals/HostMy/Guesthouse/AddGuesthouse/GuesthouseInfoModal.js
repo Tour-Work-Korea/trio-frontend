@@ -314,7 +314,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
                   onPress={() => setTimePickerVisible({ type: 'checkOut', visible: true })}
                 >
                   <Text style={styles.timeText}>{formatLocalTimeToKorean12Hour(checkOut)}</Text>
-                  <ClockIcon width={20} height={20} />
+                  <ClockIcon width={24} height={24} />
                 </TouchableOpacity>
               </View>
             </View>

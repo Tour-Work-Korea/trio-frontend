@@ -49,7 +49,7 @@ const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
 const MyGuesthouseDetail = ({ route }) => {
   const navigation = useNavigation();
-  const { id } = route.params;
+  const { id, isPreview = false, previewData = null } = route.params || {};
 
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
@@ -68,6 +68,12 @@ const MyGuesthouseDetail = ({ route }) => {
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
+    // 프리뷰면 API 스킵
+    if (isPreview && previewData) {
+      setDetail(previewData);
+      return;
+    }
+
     const fetchDetail = async () => {
       try {
         const response = await hostGuesthouseApi.getGuesthouseDetail(id);
@@ -77,7 +83,7 @@ const MyGuesthouseDetail = ({ route }) => {
       }
     };
     fetchDetail();
-  }, [id]);
+  }, [id, isPreview, previewData]);
 
   // 로딩처리
   if (!detail) {
@@ -85,7 +91,7 @@ const MyGuesthouseDetail = ({ route }) => {
   }
 
   // 객실 서비스
-  const amenityIds = (detail.amenities || []).map(a => a.id);
+  const amenityIds = (detail.amenities || []).map(a => a.id ?? a.amenityId);
 
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
   const sortedImages = [...(detail.guesthouseImages || [])].sort((a, b) =>
@@ -164,15 +170,21 @@ const MyGuesthouseDetail = ({ route }) => {
           <LeftArrow width={28} height={28}/>
         </TouchableOpacity>
 
-        <TouchableOpacity
-          style={styles.editButton}
-          onPress={() => {
-            const initialGuesthouse = mapDetailToEdit(detail);
-            navigation.navigate('MyGuesthouseEdit', { initialGuesthouse });
-          }}
-        >
-          <EditIcon width={18} height={18}/>
-        </TouchableOpacity>
+        {isPreview ? (
+          <View style={styles.previewBox}>
+            <Text style={[FONTS.fs_14_medium, styles.previewText]}>임시화면</Text>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={styles.editButton}
+            onPress={() => {
+              const initialGuesthouse = mapDetailToEdit(detail);
+              navigation.navigate('MyGuesthouseEdit', { initialGuesthouse });
+            }}
+          >
+            <EditIcon width={18} height={18}/>
+          </TouchableOpacity>
+        )}
 
         {/* 해시태그 */}
         <View style={styles.tagContainer}>

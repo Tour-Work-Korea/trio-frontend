@@ -18,6 +18,7 @@ import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/EditGuesth
 import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseDetailInfoModal';
 import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseRulesModal';
 import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseAmenitiesModal';
+import { guesthouseTags } from '@data/guesthouseTags';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
@@ -139,7 +140,13 @@ const MyGuesthouseEdit = () => {
   };
 
   const handleSubmit = async () => {
-    
+    Toast.show({
+      type: 'success',
+      text1: '수정이 완료되었습니다!',
+      position: 'top',
+      visibilityTime: 1200,
+    });
+    navigation.goBack()
   };
 
   return (
@@ -207,8 +214,17 @@ const MyGuesthouseEdit = () => {
       </View>
 
       <View style={styles.bottomContainer}>
-        <TouchableOpacity style={styles.saveButton}>
-          <Text style={[FONTS.fs_14_medium, styles.saveText]}>미리보기</Text>
+        <TouchableOpacity 
+          style={styles.previewButton}
+          onPress={() => {
+            // 상세 화면으로 '미리보기 모드'로 이동
+            navigation.navigate('MyGuesthouseDetail', {
+              isPreview: true,
+              previewData: guesthouse,
+            });
+          }}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.previewText]}>미리보기</Text>
         </TouchableOpacity>
         <TouchableOpacity 
           style={[

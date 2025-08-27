@@ -32,6 +32,18 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
   },
+  previewBox: {
+    position: 'absolute',
+    top: 16,
+    alignSelf: 'center',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_900,
+  },
+  previewText: {
+    color: COLORS.grayscale_0,
+  },
   tagContainer: {
     position: 'absolute',
     flexDirection: 'row',
