@@ -53,6 +53,7 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect, shouldResetOn
           id: app.id,
           businessName: app.businessName,
           address: app.address,
+          detailAddress: app.detailAddress,
           imgUrl: app.imgUrl,
           businessPhone: app.businessPhone,
         }));
@@ -99,14 +100,14 @@ const GuesthousePostRegisterModal = ({ visible, onClose, onSelect, shouldResetOn
       ) : (
         <DisabledRadioButton width={28} height={28} />
       )}
-      <Image
+      {/* <Image
         source={{ uri: item.imgUrl }}
         style={styles.itemImage}
-      />
+      /> */}
       <View style={styles.itemTextContainer}>
         <Text style={[FONTS.fs_16_semibold, styles.itemName]}>{item.businessName}</Text>
         <Text style={[FONTS.fs_12_medium, styles.itemAddress]}>
-          {item.address}
+          {item.address} {item.detailAddress}
         </Text>
       </View>
     </TouchableOpacity>

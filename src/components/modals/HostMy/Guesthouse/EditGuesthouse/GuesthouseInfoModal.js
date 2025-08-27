@@ -21,15 +21,28 @@ import { guesthouseTags } from '@data/guesthouseTags';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import TimePickerModal from '@components/modals/TimePickerModal';
 import { formatLocalTimeToKorean12Hour } from '@utils/formatDate';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
-import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
-import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 import XBtn from '@assets/images/x_gray.svg';
 import ClockIcon from '@assets/images/clock_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, defaultPhone, onSelect, shouldResetOnClose }) => {
+const GuesthouseInfoModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+
+  // 기본값 props
+  defaultName = '',
+  defaultAddress = '',
+  defaultDetailAddress = '',
+  defaultPhone = '',
+  defaultCheckIn = '15:00:00',
+  defaultCheckOut = '11:00:00',
+  defaultHashtags = [],
+}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   useEffect(() => {
@@ -42,17 +55,11 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
     };
   }, []);
 
-  const [nameOption, setNameOption] = useState('default'); // 'default' | 'custom'
-  const [addressOption, setAddressOption] = useState('default'); // 'default' | 'custom'
-  const [phoneOption, setPhoneOption] = useState('default'); // 'default' | 'custom'
-  
-
-  const [customName, setCustomName] = useState('');
-  const [customAddress, setCustomAddress] = useState('');
-  const [customAddressDetail, setCustomAddressDetail] = useState('');
-  const [customPhone, setCustomPhone] = useState('');
-  const [selectedTags, setSelectedTags] = useState([]); // { id, hashtag }
-
+  const [name, setName] = useState('');
+  const [address, setAddress] = useState('');
+  const [addressDetail, setAddressDetail] = useState('');
+  const [phone, setPhone] = useState('');
+  const [selectedTags, setSelectedTags] = useState([]); // [{id, hashtag}]
   const [checkIn, setCheckIn] = useState('15:00:00');
   const [checkOut, setCheckOut] = useState('11:00:00');
   const [timePickerVisible, setTimePickerVisible] = useState({ type: null, visible: false });
@@ -63,66 +70,65 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
   // 주소 검색 모달
   const [addressSearchVisible, setAddressSearchVisible] = useState(false);
 
-  // 모달 열릴 때 마지막 적용 값 복원
-  React.useEffect(() => {
-    if (visible && appliedData) {
-      setNameOption(appliedData.nameOption);
-      setAddressOption(appliedData.addressOption);
-      setPhoneOption(appliedData.phoneOption);
-      setCustomName(appliedData.customName);
-      setCustomAddress(appliedData.customAddress);
-      setCustomAddressDetail(appliedData.customAddressDetail);
-      setCustomPhone(appliedData.customPhone);
+  // 모달 열릴 때 초기화/복원
+  useEffect(() => {
+    if (!visible) return;
+
+    if (appliedData && !shouldResetOnClose) {
+      // 마지막 적용값 복원
+      setName(appliedData.name);
+      setAddress(appliedData.address);
+      setAddressDetail(appliedData.addressDetail);
+      setPhone(appliedData.phone);
       setSelectedTags(appliedData.selectedTags);
       setCheckIn(appliedData.checkIn);
       setCheckOut(appliedData.checkOut);
-    }
-  }, [visible]);
+    } else {
+      // 부모 기본값으로 초기화
+      setName(defaultName || '');
+      setAddress(defaultAddress || '');
+      setAddressDetail(defaultDetailAddress || '');
+      setPhone(defaultPhone || '');
+      setCheckIn(defaultCheckIn || '15:00:00');
+      setCheckOut(defaultCheckOut || '11:00:00');
 
-  // 버튼 활성화 조건
+      // 태그 프리셋 (최대 3개)
+      const preset = guesthouseTags.filter(t =>
+        (defaultHashtags || []).some(h => h.hashtag === t.hashtag)
+      ).slice(0, 3);
+      setSelectedTags(preset);
+    }
+  }, [
+    visible,
+    appliedData,
+    shouldResetOnClose,
+    defaultName,
+    defaultAddress,
+    defaultDetailAddress,
+    defaultPhone,
+    defaultCheckIn,
+    defaultCheckOut,
+    defaultHashtags,
+  ]);
+
+  // 필수값 유효성
   const isDisabled =
-    !(nameOption === 'default' ? defaultName : customName) ||
-    !(addressOption === 'default' ? defaultAddress : customAddress) ||
-    !(phoneOption === 'default' ? defaultPhone : customPhone) ||
+    !name?.trim() ||
+    !address?.trim() ||
+    !phone?.trim() ||
     selectedTags.length === 0;
   
-  // 단순 닫기일 때만 초기화
+  // 단순 닫기
   const handleModalClose = () => {
-    if (shouldResetOnClose) {
-      if (appliedData) {
-        // 마지막 적용값 복원
-        setNameOption(appliedData.nameOption);
-        setAddressOption(appliedData.addressOption);
-        setPhoneOption(appliedData.phoneOption);
-        setCustomName(appliedData.customName);
-        setCustomAddress(appliedData.customAddress);
-        setCustomAddressDetail(appliedData.customAddressDetail);
-        setCustomPhone(appliedData.customPhone);
-        setSelectedTags(appliedData.selectedTags);
-        setCheckIn(appliedData.checkIn);
-        setCheckOut(appliedData.checkOut);
-      } else {
-        // 처음 상태로 초기화
-        setNameOption('default');
-        setAddressOption('default');
-        setPhoneOption('default');
-        setCustomName('');
-        setCustomAddress('');
-        setCustomAddressDetail('');
-        setCustomPhone('');
-        setSelectedTags([]);
-        setCheckIn('15:00:00');
-        setCheckOut('11:00:00');
-      }
-    }
+    
     onClose();
   };
 
   // 태그 선택 (최대 3개)
   const toggleTag = (tag) => {
-    const alreadySelected = selectedTags.find((t) => t.id === tag.id);
-    if (alreadySelected) {
-      setSelectedTags(selectedTags.filter((t) => t.id !== tag.id));
+    const exists = selectedTags.some(t => t.id === tag.id);
+    if (exists) {
+      setSelectedTags(selectedTags.filter(t => t.id !== tag.id));
     } else {
       if (selectedTags.length >= 3) return;
       setSelectedTags([...selectedTags, tag]);
@@ -131,36 +137,27 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
 
   // 적용 버튼 눌렀을 때
   const handleConfirm = () => {
-    const nameValue = nameOption === 'default' ? defaultName : customName;
-    const addressValue = addressOption === 'default' ? defaultAddress : customAddress;
-    const phoneValue = phoneOption === 'default' ? defaultPhone : customPhone;
-    const tagIds = selectedTags.map((tag) => tag.id);
-    const addressDetailValue = addressOption === 'custom' ? customAddressDetail : '';
-
-    // 현재 상태 저장
-    setAppliedData({
-      nameOption,
-      addressOption,
-      phoneOption,
-      customName,
-      customAddress,
-      customAddressDetail,
-      customPhone,
+    const snapshot = {
+      name,
+      address,
+      addressDetail,
+      phone,
       selectedTags,
       checkIn,
-      checkOut
-    });
+      checkOut,
+    };
+    setAppliedData(snapshot);
 
     onSelect({
-      name: nameValue,
-      address: addressValue,
-      addressDetail: addressDetailValue,
-      phone: phoneValue,
-      tagIds,
+      name,
+      address,
+      addressDetail,
+      phone,
+      tagIds: selectedTags.map(t => t.id),
       checkIn,
-      checkOut
-    });    
-    
+      checkOut,
+    });
+
     onClose();
   };
 
@@ -202,22 +199,13 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
             {/* 이름 */}
             <Text style={FONTS.fs_16_medium}>게스트하우스 이름</Text>
             <View style={styles.radioRow}>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setNameOption('default')}>
-                {nameOption === 'default' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                <View style={styles.input}>
-                  <Text style={styles.radioText}>{defaultName}</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setNameOption('custom')}>
-                {nameOption === 'custom' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                <TextInput
-                  placeholder="이름이 달라요"
-                  value={customName}
-                  onChangeText={setCustomName}
-                  editable={nameOption === 'custom'}
-                  style={[styles.input, nameOption === 'custom' ? {} : styles.disabledInput]}
-                />
-              </TouchableOpacity>
+              <TextInput
+                placeholder="이름을 입력해 주세요"
+                value={name}
+                onChangeText={setName}
+                style={styles.input}
+                placeholderTextColor={COLORS.grayscale_400}
+              />
             </View>
 
             {/* 위치 */}
@@ -226,71 +214,41 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
               도로명 주소 또는 지번 주소를 정확히 입력해주세요.{'\n'}(지도에서 검색 가능한 주소)
             </Text>
             <View style={styles.radioRow}>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setAddressOption('default')}>
-                {addressOption === 'default' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                <View style={styles.input}>
-                  <Text style={styles.radioText}>{defaultAddress}</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setAddressOption('custom')}>
-                {addressOption === 'custom' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                {addressOption === 'default' && (
-                  <View style={[styles.input, addressOption === 'custom' ? {} : styles.disabledInput]}>
-                    <Text style={[{color: COLORS.grayscale_400}]}>
-                      주소가 달라요
-                    </Text>
-                  </View>
-                )}
-                {addressOption === 'custom' && (
-                  <TextInput
-                    placeholder="주소를 입력해 주세요"
-                    value={customAddress}
-                    onChangeText={setCustomAddress}
-                    editable={addressOption === 'custom'}
-                    style={[styles.input]}
-                  />
-                )}
-              </TouchableOpacity>
-              {addressOption === 'custom' && (
-                <View style={[styles.radioBtn]}>
-                  <View style={[{height: 28, width:28}]}/>
-                  <TextInput
-                    placeholder="상세 주소를 입력해 주세요"
-                    value={customAddressDetail}
-                    onChangeText={setCustomAddressDetail}
-                    editable={addressOption === 'custom'}
-                    style={[styles.input]}
-                  />
-                  <TouchableOpacity
-                    style={styles.searchBtn}
-                    onPress={() => setAddressSearchVisible(true)}
-                  >
-                    <Text style={[FONTS.fs_14_medium, styles.searchBtnText]}>주소 검색</Text>
-                  </TouchableOpacity>
-                </View>
-              )}
+              <TextInput
+                placeholder="주소를 입력해 주세요"
+                value={address}
+                onChangeText={setAddress}
+                placeholderTextColor={COLORS.grayscale_400}
+                style={styles.input}
+              />
+              <View style={[styles.radioBtn]}>
+                <TextInput
+                  placeholder="상세 주소를 입력해 주세요"
+                  value={addressDetail}
+                  onChangeText={setAddressDetail}
+                  style={styles.input}
+                  placeholderTextColor={COLORS.grayscale_400}
+                />
+                <TouchableOpacity
+                  style={styles.searchBtn}
+                  onPress={() => setAddressSearchVisible(true)}
+                >
+                  <Text style={[FONTS.fs_14_medium, styles.searchBtnText]}>주소 검색</Text>
+                </TouchableOpacity>
+              </View>
             </View>
 
             {/* 전화번호 */}
             <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>전화번호</Text>
             <View style={styles.radioRow}>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setPhoneOption('default')}>
-                {phoneOption === 'default' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                <View style={styles.input}>
-                  <Text style={styles.radioText}>{defaultPhone}</Text>
-                </View>
-              </TouchableOpacity>
-              <TouchableOpacity style={styles.radioBtn} onPress={() => setPhoneOption('custom')}>
-                {phoneOption === 'custom' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
-                <TextInput
-                  placeholder="전화번호가 달라요"
-                  value={customPhone}
-                  onChangeText={setCustomPhone}
-                  editable={phoneOption === 'custom'}
-                  style={[styles.input, phoneOption === 'custom' ? {} : styles.disabledInput]}
-                  keyboardType="number-pad"
-                />
-              </TouchableOpacity>
+              <TextInput
+                placeholder="전화번호를 입력해 주세요"
+                value={phone}
+                onChangeText={setPhone}
+                style={styles.input}
+                keyboardType="number-pad"
+                placeholderTextColor={COLORS.grayscale_400}
+              />
             </View>
 
             {/* 체크인 체크아웃 */}
@@ -314,7 +272,7 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
                   onPress={() => setTimePickerVisible({ type: 'checkOut', visible: true })}
                 >
                   <Text style={styles.timeText}>{formatLocalTimeToKorean12Hour(checkOut)}</Text>
-                  <ClockIcon width={20} height={20} />
+                  <ClockIcon width={24} height={24} />
                 </TouchableOpacity>
               </View>
             </View>
@@ -356,9 +314,9 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
             </View>
           </ScrollView>
 
-          {/* 적용하기 버튼 */}
+          {/* 수정하기 버튼 */}
           <ButtonScarlet
-            title={'적용하기'}
+            title={'수정하기'}
             onPress={handleConfirm}
             disabled={isDisabled}
             style={{ marginBottom: 16 }}
@@ -368,7 +326,9 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
           <AddressSearchModal
             visible={addressSearchVisible}
             onClose={() => setAddressSearchVisible(false)}
-            onSelected={(data) => setCustomAddress(data.address)}
+            onSelected={(data) => {
+              setAddress(data.address);
+            }}
           />
 
         </View>
@@ -430,7 +390,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
     borderRadius: 20,
-    marginLeft: 8,
     padding: 12,
   },
   disabledInput: {

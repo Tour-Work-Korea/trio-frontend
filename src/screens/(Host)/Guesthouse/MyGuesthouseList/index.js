@@ -79,16 +79,17 @@ const MyGuesthouseList = () => {
       <View style={styles.cardContent}>
         <View style={styles.infoContent}>
           <Text style={[FONTS.fs_16_semibold, styles.name]}>{item.guesthouseName}</Text>
-          <Text style={[FONTS.fs_12_medium, styles.adress]}>주소</Text>
+          <Text style={[FONTS.fs_12_medium, styles.adress]}>
+            {item.guesthouseAddress} {'\n'} {item.guesthouseDetailAddress}
+          </Text>
         </View>
         <View style={styles.cardBtnContainer}>
-          <TouchableOpacity>
+          {/* <TouchableOpacity>
             <ShowIcon width={24} height={24}/>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <TouchableOpacity
             onPress={() => navigation.navigate('MyGuesthouseDetail', {
               id: item.id,
-              name: item.guesthouseName,
             })}
           >
             <EditIcon width={24} height={24}/>

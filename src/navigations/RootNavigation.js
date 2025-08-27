@@ -55,6 +55,7 @@ import {
   MyGuesthouseList,
   MyGuesthouseReview,
   MyGuesthouseReservation,
+  MyRoomDetail,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -125,6 +126,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
+      <Stack.Screen name="MyRoomDetail" component={MyRoomDetail} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
       <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
       <Stack.Screen
