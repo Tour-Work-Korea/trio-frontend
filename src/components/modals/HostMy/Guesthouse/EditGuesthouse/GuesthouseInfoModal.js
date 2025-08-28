@@ -47,6 +47,7 @@ const GuesthouseInfoModal = ({
 }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [baseline, setBaseline] = useState(null);
+  const [baselineTags, setBaselineTags] = useState([]);
 
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
@@ -86,6 +87,15 @@ const GuesthouseInfoModal = ({
       setSelectedTags(appliedData.selectedTags);
       setCheckIn(appliedData.checkIn);
       setCheckOut(appliedData.checkOut);
+      setBaseline({
+        name: appliedData.name,
+        address: appliedData.address,
+        addressDetail: appliedData.addressDetail,
+        phone: appliedData.phone,
+        checkIn: appliedData.checkIn,
+        checkOut: appliedData.checkOut,
+      });
+      setBaselineTags((appliedData.selectedTags || []).map(t => t.id));
     } else {
       // 부모 기본값으로 초기화
       setName(defaultName || '');
@@ -100,6 +110,7 @@ const GuesthouseInfoModal = ({
         (defaultHashtags || []).some(h => h.hashtag === t.hashtag)
       ).slice(0, 3);
       setSelectedTags(preset);
+      setBaselineTags(preset.map(t => t.id));
 
       setBaseline({
         name: defaultName || '',
@@ -169,6 +180,15 @@ const GuesthouseInfoModal = ({
     return payload;
   };
 
+  // 태그 변경 여부 비교(정렬 무시, 중복 무시)
+  const idsChanged = (prevIds = [], nextIds = []) => {
+    const a = Array.from(new Set(prevIds)).sort((x, y) => x - y);
+    const b = Array.from(new Set(nextIds)).sort((x, y) => x - y);
+    if (a.length !== b.length) return true;
+    for (let i = 0; i < a.length; i++) if (a[i] !== b[i]) return true;
+    return false;
+  };
+
   // 적용 버튼 눌렀을 때
    const handleConfirm = async () => {
     const snapshot = {
@@ -183,8 +203,10 @@ const GuesthouseInfoModal = ({
     setAppliedData(snapshot);
 
     const payload = pickChangedBasics(baseline || {}, snapshot);
+    const nextTagIds = selectedTags.map(t => t.id);
+    const tagWasChanged = idsChanged(baselineTags, nextTagIds);
     // 아무 것도 안 바뀌었으면 API 호출 생략
-    if (Object.keys(payload).length === 0) {
+    if (Object.keys(payload).length === 0 && !tagWasChanged) {
       Toast.show({ type: 'success', text1: '수정이 등록되었습니다!', position: 'top' });
       onClose();
       return;
@@ -194,8 +216,22 @@ const GuesthouseInfoModal = ({
       return;
     }
     try {
-      await hostGuesthouseApi.updateGuesthouseBasic(guesthouseId, payload);
+      const requests = [];
+      if (Object.keys(payload).length > 0) {
+        requests.push(hostGuesthouseApi.updateGuesthouseBasic(guesthouseId, payload));
+      }
+      if (tagWasChanged) {
+        // 최대 3개 유지(방어코드)
+        requests.push(
+          hostGuesthouseApi.updateGuesthouseHashtags(guesthouseId, nextTagIds.slice(0, 3))
+        );
+      }
+      await Promise.all(requests);
       Toast.show({ type: 'success', text1: '수정이 등록되었습니다!', position: 'top' });
+
+      // 다음 비교를 위한 기준값 갱신
+      setBaseline({ name, address, addressDetail, phone, checkIn, checkOut });
+      setBaselineTags(nextTagIds.slice(0, 3));
 
       // 부모에 최신 값 전달 (미리보기 용)
       onSelect({
@@ -203,7 +239,7 @@ const GuesthouseInfoModal = ({
         address,
         addressDetail,
         phone,
-        tagIds: selectedTags.map(t => t.id),
+        tagIds: nextTagIds,
         checkIn,
         checkOut,
       });
