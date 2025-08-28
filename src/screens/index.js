@@ -91,6 +91,7 @@ export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';
 export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitList';
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
+export {default as ProfileUpdate} from './(User)/Employ/ProfileUpdate';
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필
