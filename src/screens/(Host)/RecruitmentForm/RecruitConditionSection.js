@@ -397,6 +397,7 @@ export default function RecruitConditionSection({
                     placeholder="기타 입력"
                     placeholderTextColor={COLORS.grayscale_400}
                     multiline={true}
+                    maxLength={50}
                     value={etcText}
                     onChangeText={text => {
                       setEtcText(text);

@@ -219,6 +219,7 @@ const RecruitmentForm = () => {
                   placeholder="공고제목을 입력해주세요."
                   placeholderTextColor={COLORS.grayscale_400}
                   value={formData.recruitTitle}
+                  maxLength={30}
                   onChangeText={text => handleInputChange('recruitTitle', text)}
                 />
               ) : (
