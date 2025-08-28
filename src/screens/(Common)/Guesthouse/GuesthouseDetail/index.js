@@ -378,8 +378,15 @@ const GuesthouseDetail = ({route}) => {
                   })()}
                   <View style={styles.roomInfo}>
                     <View style={styles.roomNameDescContainer}>
-                      <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
-                        {room.roomName} ({room.roomCapacity}인실 {roomTypeMap[room.roomType] || ''})
+                      <Text 
+                        style={[FONTS.fs_16_semibold, styles.roomType]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {room.roomName}
+                      </Text>
+                      <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                        {room.roomCapacity}인실 {roomTypeMap[room.roomType] || ''}
                       </Text>
                       <View style={styles.checkTimeContainer}>
                         <Text style={[FONTS.fs_12_medium, styles.checkin]}>
