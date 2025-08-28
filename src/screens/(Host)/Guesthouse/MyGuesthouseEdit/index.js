@@ -23,6 +23,14 @@ import { guesthouseTags } from '@data/guesthouseTags';
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 
+// 해시태그 맵핑
+const nameToId = (name) => guesthouseTags.find(t => t.hashtag === name)?.id ?? null;
+const idToName = (id) => guesthouseTags.find(t => t.id === id)?.hashtag ?? null;
+const toTagObjectByName = (name) => {
+  const found = guesthouseTags.find(t => t.hashtag === name);
+  return found ? { id: found.id, hashtag: found.hashtag } : { id: null, hashtag: name };
+};
+
 const MyGuesthouseEdit = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -50,7 +58,18 @@ const MyGuesthouseEdit = () => {
   useEffect(() => {
     const initial = route.params?.initialGuesthouse;
     if (initial) {
-      setGuesthouse(prev => ({ ...prev, ...initial }));
+      // 이름 배열 -> id 배열 동시 보관
+      const hashtagNames = Array.isArray(initial.hashtags) ? initial.hashtags : [];
+      const hashtagIds = hashtagNames
+        .map(nameToId)
+        .filter((v) => v !== null);
+
+      setGuesthouse(prev => ({
+        ...prev,
+        ...initial,
+        hashtagIds,      // 모달 프리셋/서버 전송용
+        hashtags: hashtagNames, // 화면/미리보기용(이름)
+      }));
       setSelectedAmenities((initial.amenities || []).map(a => a.amenityId));
     }
   }, [route.params]);
@@ -76,13 +95,18 @@ const MyGuesthouseEdit = () => {
 
   // 게스트하우스 정보 모달에서 "적용" 눌렀을 때
   const handleInfoSelect = (data) => {
+    const namesFromIds = (data.tagIds || [])
+    .map(idToName)
+    .filter(Boolean);
+
     setGuesthouse(prev => ({
       ...prev,
       guesthouseName: data.name,
       guesthouseAddress: data.address,
       guesthouseDetailAddress: data.addressDetail || '',
       guesthousePhone: data.phone,
-      hashtagIds: data.tagIds,
+      hashtagIds: data.tagIds,   // 서버 전송/프리셋(id)
+      hashtags: namesFromIds,    // 미리보기/렌더용(이름)
       checkIn: data.checkIn,
       checkOut: data.checkOut
     }));
@@ -218,9 +242,19 @@ const MyGuesthouseEdit = () => {
           style={styles.previewButton}
           onPress={() => {
             // 상세 화면으로 '미리보기 모드'로 이동
+            const previewHashtags = (guesthouse?.hashtags || [])
+              .map(toTagObjectByName)
+              // id 매칭 못 찾은 경우도 표시하고 싶다면 아래 filter는 제거
+              .filter(t => t.id !== null);
+
+            const previewData = {
+              ...guesthouse,
+              hashtags: previewHashtags,
+            };
+
             navigation.navigate('MyGuesthouseDetail', {
               isPreview: true,
-              previewData: guesthouse,
+              previewData,
             });
           }}
         >
@@ -249,13 +283,18 @@ const MyGuesthouseEdit = () => {
         visible={infoModalVisible}
         shouldResetOnClose={infoModalReset}
         onClose={() => setInfoModalVisible(false)}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         defaultName={guesthouse?.guesthouseName || ''}
         defaultAddress={guesthouse?.guesthouseAddress || ''}
         defaultDetailAddress={guesthouse?.guesthouseDetailAddress || ''}
         defaultPhone={guesthouse?.guesthousePhone || ''}
         defaultCheckIn={guesthouse?.checkIn || '15:00:00'}
         defaultCheckOut={guesthouse?.checkOut || '11:00:00'}
-        defaultHashtags={guesthouse?.hashtags || []}
+        defaultHashtags={
+          (guesthouse?.hashtags || [])
+            .map((name) => guesthouseTags.find(t => t.hashtag === name))
+            .filter(Boolean)
+        }
         onSelect={handleInfoSelect}
       />
 

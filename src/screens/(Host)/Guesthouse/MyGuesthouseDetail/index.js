@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -6,8 +6,7 @@ import {
   ScrollView,
   TouchableOpacity,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-import dayjs from 'dayjs';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 import Toast from 'react-native-toast-message';
@@ -67,23 +66,24 @@ const MyGuesthouseDetail = ({ route }) => {
   const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
 
   // 게하 상세 정보 불러오기
-  useEffect(() => {
-    // 프리뷰면 API 스킵
+  const fetchDetail = useCallback(async () => {
     if (isPreview && previewData) {
       setDetail(previewData);
       return;
     }
-
-    const fetchDetail = async () => {
-      try {
-        const response = await hostGuesthouseApi.getGuesthouseDetail(id);
-        setDetail(response.data);
-      } catch (e) {
-        // console.log('getGuesthouseDetail error', e);
-      }
-    };
-    fetchDetail();
+    try {
+      const response = await hostGuesthouseApi.getGuesthouseDetail(id);
+      setDetail(response.data);
+    } catch (e) {
+      // 에러 처리 필요시 추가
+    }
   }, [id, isPreview, previewData]);
+
+  useFocusEffect(
+    useCallback(() => {
+      fetchDetail();
+    }, [fetchDetail])
+  );
 
   // 로딩처리
   if (!detail) {
@@ -91,7 +91,9 @@ const MyGuesthouseDetail = ({ route }) => {
   }
 
   // 객실 서비스
-  const amenityIds = (detail.amenities || []).map(a => a.id ?? a.amenityId);
+  const amenityNameSet = new Set(
+    (detail.amenities || []).map(a => String(a.amenityName).toUpperCase())
+  );
 
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
   const sortedImages = [...(detail.guesthouseImages || [])].sort((a, b) =>
@@ -143,8 +145,8 @@ const MyGuesthouseDetail = ({ route }) => {
       count: a.count ?? 1,
     })),
 
-    // 해시태그
-    hashtags: (d.hashtags || []),
+    // 해시태그 (이름만 넘김)
+    hashtags: (d.hashtags || []).map(h => h.hashtag),
 
     rules: d.rules || '',
   });
@@ -179,7 +181,10 @@ const MyGuesthouseDetail = ({ route }) => {
             style={styles.editButton}
             onPress={() => {
               const initialGuesthouse = mapDetailToEdit(detail);
-              navigation.navigate('MyGuesthouseEdit', { initialGuesthouse });
+              navigation.navigate('MyGuesthouseEdit', {
+                initialGuesthouse,
+                guesthouseId: detail.id,
+              });
             }}
           >
             <EditIcon width={18} height={18}/>
@@ -232,8 +237,8 @@ const MyGuesthouseDetail = ({ route }) => {
         {/* 객실 서비스 */}
         <View style={styles.iconServiceContainer}>
           <View style={styles.iconServiceRowWithMore}>
-            {serviceIcons.map(({ id: amenityId, icon: Icon, label, width, height, iconName }, i) => {
-              const isEnabled = amenityIds.includes(amenityId);
+            {serviceIcons.map(({ icon: Icon, label, width, height, iconName }, i) => {
+              const isEnabled = amenityNameSet.has(String(iconName).toUpperCase());
 
               const GrayscaleIcon = {
                 WIFI: UnWifiIcon,
@@ -311,7 +316,6 @@ const MyGuesthouseDetail = ({ route }) => {
         <View style={styles.roomContentWrapper}>
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
           {detail.roomInfos?.map(room => {
-          const isReserved = room.isReserved;
           const roomTypeMap = {
             MIXED: '혼숙',
             FEMALE_ONLY: '여성전용',
@@ -357,8 +361,15 @@ const MyGuesthouseDetail = ({ route }) => {
                   })()}
                   <View style={styles.roomInfo}>
                     <View style={styles.roomNameDescContainer}>
-                      <Text style={[FONTS.fs_16_semibold, styles.roomType]}>
-                        {room.roomName} ({room.roomCapacity}인실 {roomTypeMap[room.roomType] || ''})
+                      <Text 
+                        style={[FONTS.fs_16_semibold, styles.roomType]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail"
+                      >
+                        {room.roomName}
+                      </Text>
+                      <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                        {room.roomCapacity}인실 {roomTypeMap[room.roomType] || ''}
                       </Text>
                       <View style={styles.checkTimeContainer}>
                         <Text style={[FONTS.fs_12_medium, styles.checkin]}>
