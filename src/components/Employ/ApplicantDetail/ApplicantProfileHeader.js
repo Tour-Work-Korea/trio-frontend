@@ -42,9 +42,7 @@ const ApplicantProfileHeader = ({data}) => {
 const InfoRow = ({label, value}) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue} numberOfLines={1}>
-      {value}
-    </Text>
+    <Text style={styles.infoValue}>{value}</Text>
   </View>
 );
 
