@@ -15,12 +15,14 @@ import ResultModal from '@components/modals/ResultModal';
 import DeleteWaLogo from '@assets/images/delete_wa.svg';
 import PlusIcon from '@assets/images/plus_white.svg';
 import {FONTS} from '@constants/fonts';
+import useUserStore from '@stores/userStore';
 
 /*
  * 나의 이력서 목록 페이지
  */
 const MyResumeList = () => {
   const navigation = useNavigation();
+  const userProfile = useUserStore(state => state.userProfile);
   const [resumes, setResumes] = useState([]);
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -160,14 +162,21 @@ const MyResumeList = () => {
           title={'아직 정보가 부족해요'}
           subTitle={'이력서를 완성하러 가볼까요?'}
           buttonText={'이력서 작성하러 가기'}
-          onPress={() =>
-            navigation.navigate('ResumeDetail', {
-              isEditable: true,
-              role: 'USER',
-              isNew: true,
-              headerTitle: '이력서 작성',
-            })
-          }
+          onPress={() => {
+            if (
+              userProfile?.mbti == '' ||
+              userProfile?.instagramId === 'ID를 추가해주세요'
+            ) {
+              navigation.navigate('ProfileUpdate');
+            } else {
+              navigation.navigate('ResumeDetail', {
+                isEditable: true,
+                role: 'USER',
+                isNew: true,
+                headerTitle: '이력서 작성',
+              });
+            }
+          }}
         />
       ) : (
         <View style={styles.body}>

@@ -42,9 +42,16 @@ const ImageModal = ({visible, title, images, onClose, selectedImageIndex}) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <View />
-            <Text style={[FONTS.fs_16_semibold]}>{title}</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+            <Text
+              style={[FONTS.fs_16_semibold, styles.headerTitle]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {title}
+            </Text>
+            <TouchableOpacity
+              onPress={onClose}
+              style={styles.headerClose}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -104,14 +111,26 @@ const styles = StyleSheet.create({
     padding: 20,
   },
   header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
+    position: 'relative', // 절대 배치 기준
     width: '100%',
+    minHeight: 24, // X 버튼 높이만큼 확보
+    alignItems: 'center',
+    justifyContent: 'center', // 제목을 정확히 중앙
+    paddingHorizontal: 20, // 모달 내부 패딩과 맞추면 깔끔
   },
-  xBtn: {
+  headerTitle: {
+    textAlign: 'center',
+    flexShrink: 1, // 공간 부족 시 줄어들도록
+    minWidth: 0, // ellipsis가 동작하도록 (중요)
+    marginLeft: 24, // 왼쪽 아이콘 자리 확보
+    marginRight: 24, // 오른쪽 X 자리 확보
+  },
+  headerClose: {
     position: 'absolute',
-    right: 0,
+    right: 0, // 헤더 오른쪽 끝에 고정
+    // top을 정확히 중앙에 놓고 싶다면:
+    top: '50%',
+    marginTop: -12, // 아이콘 높이(24)의 절반만큼 올려 중앙 정렬
   },
   mainImageContainer: {
     borderRadius: 19.76,

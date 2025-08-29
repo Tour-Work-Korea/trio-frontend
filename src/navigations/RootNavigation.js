@@ -55,6 +55,8 @@ import {
   MyGuesthouseList,
   MyGuesthouseReview,
   MyGuesthouseReservation,
+  MyRoomDetail,
+  ProfileUpdate,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -94,6 +96,7 @@ const RootNavigation = () => (
       <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
+      <Stack.Screen name="ProfileUpdate" component={ProfileUpdate} />
 
       {/* 로그인, 회원가입 하단바 없는 화면 */}
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
@@ -125,8 +128,12 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
+      <Stack.Screen name="MyRoomDetail" component={MyRoomDetail} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
-      <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
+      <Stack.Screen
+        name="MyGuesthouseReservation"
+        component={MyGuesthouseReservation}
+      />
       <Stack.Screen
         name="MyGuesthouseReservationStatus"
         component={MyGuesthouseReservationStatus}

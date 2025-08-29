@@ -61,11 +61,10 @@ const ResumeDetail = () => {
         resumeTitle: response.data.resumeTitle || '',
         selfIntro: response.data.selfIntro || '',
         workExperience: response.data.workExperience || [],
-        hashtags: response.data.hashtags || [],
+        hashtags: response.data.hashtags || response.data.userHashtag || [],
       };
       setFormData(parsedFormData);
       setOriginalInfo(response.data);
-      console.log('hashtaags:', response.data.hashtags);
     } catch (error) {
       console.warn('이력서 조회 실패:', error);
       setErrorModal({

@@ -30,7 +30,7 @@ const ApplicantProfileHeader = ({data}) => {
           <View style={styles.infoContainer}>
             <InfoRow label="연락처" value={data?.phone} />
             <InfoRow label="이메일" value={data?.email} />
-            <InfoRow label="MBTI" value={data?.mbti} />
+            <InfoRow label="MBTI" value={data?.mbti ?? data?.resumeMbti} />
             <InfoRow label="insta" value={data?.instagramId} />
           </View>
         </View>
@@ -42,9 +42,7 @@ const ApplicantProfileHeader = ({data}) => {
 const InfoRow = ({label, value}) => (
   <View style={styles.infoRow}>
     <Text style={styles.infoLabel}>{label}</Text>
-    <Text style={styles.infoValue} numberOfLines={1}>
-      {value}
-    </Text>
+    <Text style={styles.infoValue}>{value}</Text>
   </View>
 );
 

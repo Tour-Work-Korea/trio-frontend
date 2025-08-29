@@ -13,13 +13,13 @@ import Header from '@components/Header';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/GuesthousePostRegisterModal';
-import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseInfoModal';
-import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/GuesthouseIntroSummaryModal';
-import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/GuesthouseRoom/GuesthouseRoomModal';
-import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/GuesthouseDetailInfoModal';
-import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/GuesthouseRulesModal';
-import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/GuesthouseAmenitiesModal';
+import GuesthousePostRegisterModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthousePostRegisterModal';
+import GuesthouseInfoModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseInfoModal';
+import GuesthouseIntroSummaryModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseIntroSummaryModal';
+import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseRoom/GuesthouseRoomModal';
+import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseDetailInfoModal';
+import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseRulesModal';
+import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/AddGuesthouse/GuesthouseAmenitiesModal';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
@@ -71,7 +71,7 @@ const MyGuesthouseAdd = () => {
 
   // 게시물 등록 모달에서 "적용" 눌렀을 때
   const handlePostRegisterSelect = (application) => {
-    setSelectedApplication(application); // { id, businessName, address, businessPhone }
+    setSelectedApplication(application); // { id, businessName, address, detailAddress,businessPhone }
     setPostModalReset(false); // 닫아도 초기화 안 함
     setPostModalVisible(false);
   };

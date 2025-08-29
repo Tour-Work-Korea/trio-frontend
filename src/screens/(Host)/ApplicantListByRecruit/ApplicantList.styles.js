@@ -69,10 +69,14 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
+
   profileImage: {
     width: 68,
     height: 68,
     borderRadius: 8,
+    backgroundColor: COLORS.grayscale_200,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   nameText: {
     ...FONTS.fs_body_bold,

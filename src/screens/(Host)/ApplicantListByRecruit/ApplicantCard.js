@@ -2,6 +2,7 @@ import React from 'react';
 import {View, Image, Text, TouchableOpacity} from 'react-native';
 import styles from './ApplicantList.styles';
 import {formatLocalDateToDot} from '@utils/formatDate';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 
 export default function ApplicantCard({item, handleApplicantPress}) {
   return (
@@ -16,11 +17,17 @@ export default function ApplicantCard({item, handleApplicantPress}) {
 
         <View style={styles.applicantInfo}>
           <View style={styles.profileImageContainer}>
-            <Image
-              source={{uri: item.photoUrl}}
-              style={styles.profileImage}
-              resizeMode="cover"
-            />
+            {item.photoUrl !== '사진을 추가해주세요' ? (
+              <Image
+                source={{uri: item.photoUrl}}
+                style={styles.profileImage}
+                resizeMode="cover"
+              />
+            ) : (
+              <View style={styles.profileImage}>
+                <EmptyImage width={32} height={32} />
+              </View>
+            )}
           </View>
 
           <View style={styles.detailsContainer}>

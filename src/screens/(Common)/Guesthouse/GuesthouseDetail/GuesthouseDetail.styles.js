@@ -239,6 +239,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   roomNameDescContainer: {
+    flex: 1,       // 왼쪽 블럭이 남는 공간을 사용
+    minWidth: 0,   // 텍스트가 ellipsis 되도록 필요한 트릭
+    paddingRight: 8,
   },
   roomType: {
     marginBottom: 4,
@@ -253,6 +256,7 @@ const styles = StyleSheet.create({
   },
   roomPrice: {
     color: COLORS.grayscale_800,
+    flexShrink: 0,
   },
   
   // 긴 소개
