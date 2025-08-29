@@ -305,6 +305,7 @@ const MyGuesthouseEdit = () => {
         onClose={() => setIntroModalVisible(false)}
         defaultImages={guesthouse?.guesthouseImages || []}
         defaultShortIntro={guesthouse?.guesthouseShortIntro || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleIntroSelect}
       />
       

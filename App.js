@@ -6,6 +6,7 @@ import 'react-native-gesture-handler';
 import RootNavigation from '@navigations/RootNavigation';
 import Toast from 'react-native-toast-message';
 import BasicToast from '@components/toasts/BasicToast';
+import ErrorToast from '@components/toasts/ErrorToast';
 import DeeplinkHandler from '@utils/deeplinkHandler';
 import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
@@ -22,6 +23,7 @@ import {
 
 const toastConfig = {
   success: props => <BasicToast {...props} />,
+  error: props => <ErrorToast {...props} />,
 };
 
 function SplashOverlay({onFinish}) {
