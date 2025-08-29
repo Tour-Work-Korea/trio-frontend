@@ -315,6 +315,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={roomModalReset}
         onClose={() => setRoomModalVisible(false)}
         defaultRooms={guesthouse?.roomInfos || []}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleRoomSelect}
       />
 
