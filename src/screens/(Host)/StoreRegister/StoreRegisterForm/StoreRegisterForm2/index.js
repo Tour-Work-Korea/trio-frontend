@@ -195,7 +195,7 @@ const StoreRegisterForm2 = ({route}) => {
         visible: true,
         title: '성공적으로 입점신청이 완료되었습니다',
       });
-      navigation.navigate('StoreRegisterList');
+      navigation.navigate('MainTabs', {screen:'마이'});
     } catch (error) {
       console.warn('입점신청서 등록 실패:', error);
       setErrorModal({

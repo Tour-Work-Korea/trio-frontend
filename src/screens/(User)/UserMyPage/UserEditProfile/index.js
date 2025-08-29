@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -6,12 +6,10 @@ import {
   Image,
   TextInput,
   ScrollView,
-  Keyboard,
   KeyboardAvoidingView,
   Platform,
-  TouchableWithoutFeedback,
 } from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
