@@ -87,19 +87,19 @@ const MyGuesthouseList = () => {
           {/* <TouchableOpacity>
             <ShowIcon width={24} height={24}/>
           </TouchableOpacity> */}
-          {/* <TouchableOpacity
+          <TouchableOpacity
             onPress={() => navigation.navigate('MyGuesthouseDetail', {
               id: item.id,
             })}
           >
             <EditIcon width={24} height={24}/>
-          </TouchableOpacity> */}
-          <TouchableOpacity
+          </TouchableOpacity>
+          {/* <TouchableOpacity
             style={[styles.deleteButton]}
             onPress={() => handleDelete(item.id)}
           >
             <DeleteIcon width={24} height={24}/>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
         </View>
       </View>
     </View>

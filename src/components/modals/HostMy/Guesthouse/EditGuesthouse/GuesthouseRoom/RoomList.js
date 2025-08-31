@@ -12,6 +12,7 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 
 import DeleteIcon from '@assets/images/delete_gray.svg';
+import EditIcon from '@assets/images/edit_gray.svg';
 
 const translateRoomType = (type) => {
   switch (type) {
@@ -26,7 +27,7 @@ const translateRoomType = (type) => {
   }
 };
 
-const RoomList = ({ rooms, onDelete }) => {
+const RoomList = ({ rooms, onDelete, onEdit }) => {
   const renderItem = ({ item, index }) => {
     const thumbnailUrl =
       item.roomImages?.find((img) => img.isThumbnail)?.roomImageUrl;
@@ -50,9 +51,14 @@ const RoomList = ({ rooms, onDelete }) => {
             </Text>
           </View>
         </View>
-        <TouchableOpacity onPress={() => onDelete?.(index)}>
-          <DeleteIcon width={24} height={24}/>
-        </TouchableOpacity>
+        <View style={styles.buttonContainer}>
+          <TouchableOpacity onPress={() => onEdit?.(item.id, index)}>
+            <EditIcon width={24} height={24}/>
+          </TouchableOpacity>
+          {/* <TouchableOpacity onPress={() => onDelete?.(item.id, index)}>
+            <DeleteIcon width={24} height={24}/>
+          </TouchableOpacity> */}
+        </View>
       </View>
     );
   };
@@ -65,7 +71,9 @@ const RoomList = ({ rooms, onDelete }) => {
 
       <FlatList
         data={rooms}
-        keyExtractor={(_, index) => index.toString()}
+        keyExtractor={(item, index) =>
+          item?.id != null ? String(item.id) : `local-${index}`
+        }
         renderItem={renderItem}
         ListEmptyComponent={() => (
           <Text style={[FONTS.fs_14_regular, { color: COLORS.grayscale_400, marginTop: 12 }]}>
@@ -104,6 +112,12 @@ const styles = StyleSheet.create({
   roomSub: {
     marginBottom: 4,
     color: COLORS.grayscale_500,
+  },
+
+  // 수정, 삭제 버튼
+  buttonContainer: {
+    flexDirection: 'row',
+    gap: 8,
   },
 });
 

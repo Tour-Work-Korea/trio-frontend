@@ -9,34 +9,45 @@ import {
   TouchableWithoutFeedback,
   ScrollView,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const GuesthouseAmenitiesModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const GuesthouseAmenitiesModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+
+  defaultSelected = [],
+  guesthouseId,
+}) => {
   // 현재 선택된 amenity id 집합
   const [selectedIds, setSelectedIds] = useState(new Set());
 
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
 
+  const [saving, setSaving] = useState(false);
+
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
-    if (visible) {
-      if (appliedData && appliedData.length > 0) {
-        setSelectedIds(new Set(appliedData));
-      } else {
-        // 아무것도 적용된 적 없으면 초기상태
-        setSelectedIds(new Set());
-      }
-    }
-  }, [visible, appliedData]);
+    if (!visible) return;
+    // shouldResetOnClose=false 이고 이전에 적용했던 값이 있으면 그걸 우선
+    const base = (appliedData && appliedData.length > 0 && !shouldResetOnClose)
+      ? appliedData
+      : defaultSelected;
+
+    setSelectedIds(new Set(Array.isArray(base) ? base : []));
+  }, [visible, appliedData, shouldResetOnClose, defaultSelected]);
 
   const toggleSelect = (id) => {
     setSelectedIds(prev => {
@@ -47,28 +58,40 @@ const GuesthouseAmenitiesModal = ({ visible, onClose, onSelect, shouldResetOnClo
     });
   };
 
-  // 단순 닫기 시 초기화
+  // 단순 닫기
   const handleModalClose = () => {
     if (shouldResetOnClose) {
-      if (appliedData && appliedData.length > 0) {
-        // 마지막 적용값 복원
-        setSelectedIds(new Set(appliedData));
-      } else {
-        // 처음 상태로 초기화
-        setSelectedIds(new Set());
-      }
+      // 닫을 때는 마지막 적용값이 있으면 복원, 없으면 비움
+      const base = (appliedData && appliedData.length > 0) ? appliedData : [];
+      setSelectedIds(new Set(base));
     }
     onClose();
   };
 
   // 적용 버튼 눌렀을 때
-  const handleConfirm = () => {
+  const handleConfirm = async () => {
     const ids = Array.from(selectedIds);
-    // 현재 상태 저장
-    setAppliedData(ids);
+    const payload = ids.map(id => ({ amenityId: id, count: 1 }));
 
-    onSelect(ids);
-    onClose();
+    try {
+      setSaving(true);
+
+      // guesthouseId가 있을 때만 서버 업데이트
+      if (guesthouseId) {
+        await hostGuesthouseApi.updateGuesthouseAmenities(guesthouseId, payload);
+        Toast.show({ type: 'success', text1: '수정이 등록되었습니다!', position: 'top' });
+      }
+
+      // 성공 시 마지막 적용값/부모 콜백 반영
+      setAppliedData(ids);
+      onSelect(ids);  // 부모에서 기존대로 ids 받아서 상태 갱신
+      onClose();
+    } catch (e) {
+      Toast.show({ type: 'error', text1: '수정 중 오류가 발생했어요.', position: 'top' });
+      onClose();
+    } finally {
+      setSaving(false);
+    }
   };
 
   // 버튼 비활성화
