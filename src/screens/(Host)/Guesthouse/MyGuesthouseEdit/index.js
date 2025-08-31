@@ -325,6 +325,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={detailInfoModalReset}
         onClose={() => setDetailInfoModalVisible(false)}
         defaultLongDesc={guesthouse?.guesthouseLongDesc || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleDetailInfoSelect}
       />
 

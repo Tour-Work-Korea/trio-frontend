@@ -13,18 +13,32 @@ import {
   Platform,
   TextInput,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const GuesthouseDetailInfoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const GuesthouseDetailInfoModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+
+  defaultLongDesc = '',
+  guesthouseId,
+}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [text, setText] = useState('');
+
+  // 마지막 적용값/비교용 기준값
+  const [appliedData, setAppliedData] = useState(null);
+  const [baselineText, setBaselineText] = useState('');
   
   useEffect(() => {
     const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
@@ -36,37 +50,59 @@ const GuesthouseDetailInfoModal = ({ visible, onClose, onSelect, shouldResetOnCl
     };
   }, []);
 
-  // 마지막 적용된 값 저장
-  const [appliedData, setAppliedData] = useState('');
-
   // 모달 열릴 때 마지막 적용 값 복원
-  React.useEffect(() => {
-    if (visible && appliedData) {
+  useEffect(() => {
+    if (!visible) return;
+
+    if (appliedData && !shouldResetOnClose) {
       setText(appliedData);
+      setBaselineText(appliedData);
+    } else {
+      setText(defaultLongDesc ?? '');
+      setBaselineText(defaultLongDesc ?? '');
     }
-  }, [visible]);
+  }, [visible, shouldResetOnClose, appliedData, defaultLongDesc]);
 
   // 단순 닫기 시 초기화
   const handleModalClose = () => {
-    if (shouldResetOnClose) {
-      if (appliedData) {
-        // 마지막 적용값 복원
-        setText(appliedData);
-      } else {
-        // 처음 상태로 초기화
-        setText('');
-      }
-    }
     onClose();
   };
 
   // 적용 버튼 눌렀을 때
-  const handleConfirm = () => {
-    // 현재 상태 저장
-    setAppliedData(text);
+  const handleConfirm = async () => {
+    const next = (text ?? '').trim();
+    const changed = baselineText !== next;
 
-    onSelect({ guesthouseLongDesc: text });
-    onClose();
+    // 변경 없으면 그냥 닫기
+    if (!changed) {
+      Toast.show({ type: 'success', text1: '수정이 등록되었습니다!', position: 'top' });
+      onSelect({ guesthouseLongDesc: next });
+      onClose();
+      return;
+    }
+
+    if (!guesthouseId) {
+      Toast.show({ type: 'error', text1: '수정 중 오류가 발생했어요.', position: 'top' });
+      return;
+    }
+
+    try {
+      await hostGuesthouseApi.updateGuesthouseBasic(guesthouseId, {
+        guesthouseLongDescription: next,
+      });
+
+      Toast.show({ type: 'success', text1: '수정이 등록되었습니다!', position: 'top' });
+
+      // 기준/적용값 갱신 + 부모 동기화
+      setAppliedData(next);
+      setBaselineText(next);
+      onSelect({ guesthouseLongDesc: next });
+
+      onClose();
+    } catch (e) {
+      Toast.show({ type: 'error', text1: '수정 중 오류가 발생했어요.', position: 'top' });
+      onClose();
+    }
   };
 
   const handleOverlayPress = () => {

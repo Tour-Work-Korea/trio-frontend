@@ -246,7 +246,7 @@ const GuesthouseInfoModal = ({
       onClose();
     } catch (e) {
       Toast.show({ type: 'error', text1: '수정 중 오류가 발생했어요.', position: 'top' });
-      // 에러 시 모달은 그대로 열어둘 수도 있고, 닫을 수도 있음. 지금은 열어둠.
+      onClose();
     }
   };
 

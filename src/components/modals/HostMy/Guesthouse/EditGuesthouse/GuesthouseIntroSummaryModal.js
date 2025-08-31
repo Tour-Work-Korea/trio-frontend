@@ -205,6 +205,7 @@ const GuesthouseIntroSummaryModal = ({
       onClose();
     } catch (e) {
       Toast.show({ type: 'error', text1: '수정 중 오류가 발생했어요.', position: 'top' });
+      onClose();
     }
   };
 
