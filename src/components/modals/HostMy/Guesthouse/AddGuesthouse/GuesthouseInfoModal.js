@@ -12,6 +12,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
+  Pressable
 } from 'react-native';
 
 import { FONTS } from '@constants/fonts';
@@ -187,12 +188,12 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
       animationType="slide"
       onRequestClose={handleModalClose}
     >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-      >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
       <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
+      <Pressable
+        style={StyleSheet.absoluteFill}
+        onPress={handleModalClose}
+      />
+        <KeyboardAvoidingView style={{ width: '100%' }}>
         <View style={styles.modalContainer}>
 
           {/* 헤더 */}
@@ -206,7 +207,10 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
           </View>
 
           {/* 게하 정보 */}
-          <ScrollView style={styles.body}>
+          <ScrollView 
+            style={styles.body}
+            keyboardShouldPersistTaps="handled"
+          >
             {/* 이름 */}
             <Text style={FONTS.fs_16_medium}>게스트하우스 이름</Text>
             <View style={styles.radioRow}>
@@ -393,10 +397,8 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
           />
 
         </View>
-        </TouchableWithoutFeedback>
+        </KeyboardAvoidingView>
       </View>
-      </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
     </Modal>
   );
 };
