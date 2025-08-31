@@ -1,4 +1,4 @@
-import React, {useEffect, useState, useCallback} from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import ImageModal from '@components/modals/ImageModal';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
+import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import LeftArrow from '@assets/images/chevron_left_white.svg';
@@ -44,7 +45,37 @@ const serviceIcons = [
   { id: 7, icon: LoungeIcon, label: '공용라운지', width: 28, height: 28, iconName: 'LOUNGE' },
 ];
 
+// 한글 라벨 → 아이콘 토큰으로 정규화
+const normalizeAmenityToken = (v) => {
+  const s = String(v || '').trim();
+  const koToToken = {
+    '무선인터넷': 'WIFI',
+    '무선 인터넷': 'WIFI',
+    '반려동물 동반': 'PET_FRIENDLY',
+    '반려견동반': 'PET_FRIENDLY',
+    '짐보관': 'BAGGAGE_STORAGE',
+    '라운지': 'LOUNGE',
+    '공용라운지': 'LOUNGE',
+  };
+  // 이미 영문(예: WIFI) 오면 대문자로, 한글 라벨이면 매핑
+  return koToToken[s] || s.toUpperCase();
+};
+
 const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
+
+const CATEGORY = {
+  PUBLIC: '숙소 공용시설',
+  ROOM: '객실 내 시설',
+  SERVICE: '기타 시설 및 서비스',
+};
+
+const inList = (list, name) => list.some(x => x.name === name);
+const getCategoryByName = (name) => {
+  if (inList(publicFacilities, name)) return CATEGORY.PUBLIC;
+  if (inList(roomFacilities, name)) return CATEGORY.ROOM;
+  if (inList(services, name)) return CATEGORY.SERVICE;
+  return '';
+};
 
 const MyGuesthouseDetail = ({ route }) => {
   const navigation = useNavigation();
@@ -85,26 +116,33 @@ const MyGuesthouseDetail = ({ route }) => {
     }, [fetchDetail])
   );
 
-  // 로딩처리
-  if (!detail) {
-    return <Loading title="게스트하우스를 불러오고 있어요" />;
-  }
-
   // 객실 서비스
-  const amenityNameSet = new Set(
-    (detail.amenities || []).map(a => String(a.amenityName).toUpperCase())
-  );
+  const amenityTokenSet = useMemo(() => {
+    const list = detail?.amenities ?? [];
+    return new Set(
+      list
+        .map(a => {
+          if (typeof a === 'string') return normalizeAmenityToken(a);
+          if (a?.amenityName)     return normalizeAmenityToken(a.amenityName);
+          if (a?.amenityType)     return normalizeAmenityToken(a.amenityType);
+          return '';
+        })
+        .filter(Boolean)
+    );
+  }, [detail?.amenities]);
 
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
-  const sortedImages = [...(detail.guesthouseImages || [])].sort((a, b) =>
-    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
-  );
+  const sortedImages = useMemo(() => {
+    const imgs = [...(detail?.guesthouseImages ?? [])];
+    return imgs.sort((a, b) =>
+      a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
+    );
+  }, [detail?.guesthouseImages]);
   const hasImages = sortedImages.length > 0;
   const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
-  const modalImages = sortedImages.map(img => ({
-    id: img.id,
-    imageUrl: img.guesthouseImageUrl,
-  }));
+  const modalImages = useMemo(() => (
+    sortedImages.map(img => ({ id: img.id, imageUrl: img.guesthouseImageUrl }))
+  ), [sortedImages]);
 
   // 수정 화면이동 시 데이터
   const mapDetailToEdit = (d) => ({
@@ -139,17 +177,34 @@ const MyGuesthouseDetail = ({ route }) => {
       roomType: r.roomType,
     })),
 
-    // 편의시설: 편집 화면에서 기대하는 형태({ amenityId, count })로 변환
-    amenities: (d.amenities || []).map(a => ({
-      amenityId: a.id,
-      count: a.count ?? 1,
-    })),
+    // amenityType(한글 라벨)만 넘김
+    amenities: (d.amenities || [])
+      .map(a => a.amenityType)
+      .filter(Boolean),
 
     // 해시태그 (이름만 넘김)
     hashtags: (d.hashtags || []).map(h => h.hashtag),
 
     rules: d.rules || '',
   });
+
+  const selectedAmenitiesForModal = useMemo(() => {
+    const am = detail?.amenities ?? [];
+    if (!isPreview) return am;
+    if (am.length && typeof am[0] !== 'string') return am;
+
+    return am.map((name, idx) => ({
+      id: idx + 1,
+      amenityName: normalizeAmenityToken(name), // WIFI 등
+      amenityType: name,                        // 한글 라벨
+      category: getCategoryByName(name),
+      count: 1,
+    }));
+  }, [detail?.amenities, isPreview]);
+
+  if (!detail) {
+    return <Loading title="게스트하우스를 불러오고 있어요" />;
+  }
 
   return (
     <ScrollView style={styles.container}>
@@ -238,7 +293,7 @@ const MyGuesthouseDetail = ({ route }) => {
         <View style={styles.iconServiceContainer}>
           <View style={styles.iconServiceRowWithMore}>
             {serviceIcons.map(({ icon: Icon, label, width, height, iconName }, i) => {
-              const isEnabled = amenityNameSet.has(String(iconName).toUpperCase());
+              const isEnabled = amenityTokenSet.has(iconName);
 
               const GrayscaleIcon = {
                 WIFI: UnWifiIcon,
@@ -431,7 +486,7 @@ const MyGuesthouseDetail = ({ route }) => {
     <ServiceInfoModal
       visible={modalVisible}
       onClose={() => setModalVisible(false)}
-      selectedAmenities={detail.amenities}
+      selectedAmenities={selectedAmenitiesForModal}
     />
 
     {/* 이미지 모달 */}
