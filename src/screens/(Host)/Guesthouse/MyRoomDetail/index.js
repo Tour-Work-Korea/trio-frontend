@@ -70,7 +70,10 @@ const MyRoomDetail = ({ route }) => {
         <View style={styles.contentWrapper}>
           <View style={styles.roomInfo}>
             <Text style={[FONTS.fs_20_semibold, styles.roomType]}>
-              {roomName} ({roomCapacity}인실 {roomTypeMap[roomType] || ''})
+              {roomName}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, {marginVertical: 4}]}>
+              {roomCapacity}인실 {roomTypeMap[roomType] || ''}
             </Text>
             <Text style={[FONTS.fs_14_regular, styles.description]}>
               {roomDesc}

@@ -19,9 +19,37 @@ import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/Edit
 import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseRulesModal';
 import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseAmenitiesModal';
 import { guesthouseTags } from '@data/guesthouseTags';
+import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
+
+// 해시태그 맵핑
+const nameToId = (name) => guesthouseTags.find(t => t.hashtag === name)?.id ?? null;
+const idToName = (id) => guesthouseTags.find(t => t.id === id)?.hashtag ?? null;
+const toTagObjectByName = (name) => {
+  const found = guesthouseTags.find(t => t.hashtag === name);
+  return found ? { id: found.id, hashtag: found.hashtag } : { id: null, hashtag: name };
+};
+
+// 어매너티 이름→id 매핑
+const AMENITY_NAME_TO_ID = [
+  ...publicFacilities,
+  ...roomFacilities,
+  ...services,
+].reduce((acc, cur) => {
+  acc[cur.name] = cur.id;
+  return acc;
+}, {});
+// 어매너티 id→이름 매핑
+const AMENITY_ID_TO_NAME = [
+  ...publicFacilities,
+  ...roomFacilities,
+  ...services,
+].reduce((acc, cur) => {
+  acc[cur.id] = cur.name;
+  return acc;
+}, {});
 
 const MyGuesthouseEdit = () => {
   const navigation = useNavigation();
@@ -49,10 +77,44 @@ const MyGuesthouseEdit = () => {
   // 상세 화면에서 보낸 초기값 주입
   useEffect(() => {
     const initial = route.params?.initialGuesthouse;
-    if (initial) {
-      setGuesthouse(prev => ({ ...prev, ...initial }));
-      setSelectedAmenities((initial.amenities || []).map(a => a.amenityId));
+    if (!initial) return;
+
+    // 해시태그 처리
+    const hashtagNames = Array.isArray(initial.hashtags) ? initial.hashtags : [];
+    const hashtagIds = hashtagNames.map(nameToId).filter(v => v !== null);
+
+    // 어매너티 문자열(amenityType 라벨) | { amenityId } | (상세의) { amenityType } 모두 대응
+    const initAmenities = initial.amenities || [];
+    let selectedIds = [];
+
+    if (initAmenities.length > 0) {
+      const first = initAmenities[0];
+      if (typeof first === 'string') {
+        selectedIds = initAmenities
+          .map(name => AMENITY_NAME_TO_ID[name])
+          .filter(Boolean);
+      } else if (first && typeof first === 'object') {
+        if ('amenityId' in first) {
+          selectedIds = initAmenities
+            .map(a => a.amenityId)
+            .filter(v => v != null);
+        } else if ('amenityType' in first) {
+          selectedIds = initAmenities
+            .map(a => AMENITY_NAME_TO_ID[a.amenityType])
+            .filter(Boolean);
+        }
+      }
     }
+
+    setGuesthouse(prev => ({
+      ...prev,
+      ...initial,
+      hashtagIds,            // 모달 프리셋/서버 전송용
+      hashtags: hashtagNames, // 화면 표기용
+      // 내부 상태는 id 기반으로 맞춰서 들고다니면 이후 처리(저장) 편함
+      amenities: selectedIds.map(id => ({ amenityId: id, count: 1 })),
+    }));
+    setSelectedAmenities(selectedIds);
   }, [route.params]);
 
   // 게스트하우스 정보 모달
@@ -76,13 +138,18 @@ const MyGuesthouseEdit = () => {
 
   // 게스트하우스 정보 모달에서 "적용" 눌렀을 때
   const handleInfoSelect = (data) => {
+    const namesFromIds = (data.tagIds || [])
+    .map(idToName)
+    .filter(Boolean);
+
     setGuesthouse(prev => ({
       ...prev,
       guesthouseName: data.name,
       guesthouseAddress: data.address,
       guesthouseDetailAddress: data.addressDetail || '',
       guesthousePhone: data.phone,
-      hashtagIds: data.tagIds,
+      hashtagIds: data.tagIds,   // 서버 전송/프리셋(id)
+      hashtags: namesFromIds,    // 미리보기/렌더용(이름)
       checkIn: data.checkIn,
       checkOut: data.checkOut
     }));
@@ -217,10 +284,33 @@ const MyGuesthouseEdit = () => {
         <TouchableOpacity 
           style={styles.previewButton}
           onPress={() => {
-            // 상세 화면으로 '미리보기 모드'로 이동
+            // 해시태그: 이름 -> {id, hashtag}
+            const previewHashtags = (guesthouse?.hashtags || [])
+              .map(toTagObjectByName)
+              .filter(t => t.id !== null);
+
+            // 어매니티: 상태가 어떤 형태든 "이름" 배열로 통일
+            const previewAmenities = (guesthouse?.amenities || [])
+              .map(a => {
+                if (typeof a === 'string') return a;                  // 이미 이름
+                if (typeof a === 'number') return AMENITY_ID_TO_NAME[a]; // id 값
+                if (a && typeof a === 'object') {
+                  if ('amenityType' in a) return a.amenityType;      
+                  if ('amenityId' in a) return AMENITY_ID_TO_NAME[a.amenityId];
+                }
+                return null;
+              })
+              .filter(Boolean);
+
+            const previewData = {
+              ...guesthouse,
+              hashtags: previewHashtags,
+              amenities: previewAmenities, // 이름 배열로 전달
+            };
+
             navigation.navigate('MyGuesthouseDetail', {
               isPreview: true,
-              previewData: guesthouse,
+              previewData,
             });
           }}
         >
@@ -249,13 +339,18 @@ const MyGuesthouseEdit = () => {
         visible={infoModalVisible}
         shouldResetOnClose={infoModalReset}
         onClose={() => setInfoModalVisible(false)}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         defaultName={guesthouse?.guesthouseName || ''}
         defaultAddress={guesthouse?.guesthouseAddress || ''}
         defaultDetailAddress={guesthouse?.guesthouseDetailAddress || ''}
         defaultPhone={guesthouse?.guesthousePhone || ''}
         defaultCheckIn={guesthouse?.checkIn || '15:00:00'}
         defaultCheckOut={guesthouse?.checkOut || '11:00:00'}
-        defaultHashtags={guesthouse?.hashtags || []}
+        defaultHashtags={
+          (guesthouse?.hashtags || [])
+            .map((name) => guesthouseTags.find(t => t.hashtag === name))
+            .filter(Boolean)
+        }
         onSelect={handleInfoSelect}
       />
 
@@ -266,6 +361,7 @@ const MyGuesthouseEdit = () => {
         onClose={() => setIntroModalVisible(false)}
         defaultImages={guesthouse?.guesthouseImages || []}
         defaultShortIntro={guesthouse?.guesthouseShortIntro || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleIntroSelect}
       />
       
@@ -275,6 +371,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={roomModalReset}
         onClose={() => setRoomModalVisible(false)}
         defaultRooms={guesthouse?.roomInfos || []}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleRoomSelect}
       />
 
@@ -284,6 +381,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={detailInfoModalReset}
         onClose={() => setDetailInfoModalVisible(false)}
         defaultLongDesc={guesthouse?.guesthouseLongDesc || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleDetailInfoSelect}
       />
 
@@ -293,6 +391,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={rulesModalReset}
         onClose={() => setRulesModalVisible(false)}
         defaultRules={guesthouse?.rules || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleRulesSelect}
       />
 
@@ -302,6 +401,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={amenitiesModalReset}
         onClose={() => setAmenitiesModalVisible(false)}
         defaultSelected={selectedAmenities}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleAmenitiesSelect}
       />
     </View>

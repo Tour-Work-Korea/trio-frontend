@@ -24,6 +24,7 @@ import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/AddGu
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
+import CheckOrange from '@assets/images/check_orange.svg';
 
 const MyGuesthouseAdd = () => {
   const navigation = useNavigation();
@@ -200,7 +201,7 @@ const MyGuesthouseAdd = () => {
         })),
       };
 
-      console.log('📦 Guesthouse 등록 payload:', JSON.stringify(payload, null, 2));
+      // console.log('📦 Guesthouse 등록 payload:', JSON.stringify(payload, null, 2));
 
       const res = await hostGuesthouseApi.registerGuesthouse(payload);
       console.log('등록 성공', res.data);
@@ -222,6 +223,43 @@ const MyGuesthouseAdd = () => {
     }
   };
 
+  // 섹션 완료 여부 플래그
+  const isPostDone = !!selectedApplication?.id;
+
+  const isInfoDone =
+    isNonEmpty(guesthouse.guesthouseName) &&
+    isNonEmpty(guesthouse.guesthouseAddress) &&
+    isNonEmpty(guesthouse.guesthousePhone) &&
+    isNonEmpty(guesthouse.checkIn) &&
+    isNonEmpty(guesthouse.checkOut) &&
+    Array.isArray(guesthouse.hashtagIds) &&
+    guesthouse.hashtagIds.length > 0;
+
+  const isIntroDone =
+    isNonEmpty(guesthouse.guesthouseShortIntro) &&
+    Array.isArray(guesthouse.guesthouseImages) &&
+    guesthouse.guesthouseImages.length > 0 &&
+    hasThumb(guesthouse.guesthouseImages);
+
+  const isRoomDone =
+    Array.isArray(guesthouse.roomInfos) &&
+    guesthouse.roomInfos.length > 0 &&
+    guesthouse.roomInfos.every(isRoomValid);
+
+  const isDetailDone = isNonEmpty(guesthouse.guesthouseLongDesc);
+
+  const isRulesDone = isNonEmpty(guesthouse.rules);
+
+  const isAmenitiesDone =
+    Array.isArray(guesthouse.amenities) &&
+    guesthouse.amenities.length > 0;
+
+  // 아이콘 렌더 유틸
+  const renderRightIcon = (done, enabled = true) => {
+    if (!enabled) return <ChevronRight width={24} height={24} />;
+    return done ? <CheckOrange width={24} height={24} /> : <ChevronRight width={24} height={24} />;
+  };
+
   return (
     <View style={styles.container}>
       <Header title="게스트하우스 등록" />
@@ -230,7 +268,7 @@ const MyGuesthouseAdd = () => {
         {/* 임점신청서 조회 */}
         <TouchableOpacity style={styles.section} onPress={() => setPostModalVisible(true)}>
           <Text style={[FONTS.fs_16_semibold, styles.title, { color: COLORS.primary_orange }]}>게스트하우스 게시물 등록</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isPostDone)}
         </TouchableOpacity>
 
         {/* 게스트하우스 정보 */}
@@ -240,7 +278,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 정보</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isInfoDone, !!selectedApplication)}
         </TouchableOpacity>
 
         {/* 게스트하우스 소개요약 */}
@@ -250,7 +288,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>게스트하우스 소개요약</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isIntroDone, !!selectedApplication)}
         </TouchableOpacity>
 
         {/* 객실 */}
@@ -260,7 +298,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>객실</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isRoomDone, !!selectedApplication)}
         </TouchableOpacity>
 
         {/* 상세정보 */}
@@ -270,7 +308,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>상세정보</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isDetailDone, !!selectedApplication)}
         </TouchableOpacity>
 
         {/* 이용규칙 */}
@@ -280,7 +318,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>이용규칙</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isRulesDone, !!selectedApplication)}
         </TouchableOpacity>
 
         {/* 편의시설 및 서비스 */}
@@ -290,7 +328,7 @@ const MyGuesthouseAdd = () => {
           disabled={!selectedApplication}
         >
           <Text style={[FONTS.fs_14_medium, !selectedApplication ? styles.disabled : styles.title]}>편의시설 및 서비스</Text>
-          <ChevronRight width={24} height={24}/>
+          {renderRightIcon(isAmenitiesDone, !!selectedApplication)}
         </TouchableOpacity>
 
         <Text style={[FONTS.fs_12_medium, styles.explainText]}>

@@ -7,13 +7,13 @@ import { COLORS } from '@constants/colors';
 // 사용법 
 // import Toast from 'react-native-toast-message';
 // Toast.show({
-//   type: 'success',
-//   text1: '복사되었어요!',
+//   type: 'error',
+//   text1: '오류가 생겼어요',
 //   position: 'top',
 //   visibilityTime: 2000,
 // });
 
-const BasicToast = ({ text1 }) => {
+const ErrorToast = ({ text1 }) => {
   return (
     <View style={styles.container}>
       <Text style={[FONTS.fs_14_medium, styles.text]}>{text1}</Text>
@@ -23,7 +23,7 @@ const BasicToast = ({ text1 }) => {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.grayscale_900,
+    backgroundColor: COLORS.semantic_red,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 100,
@@ -36,4 +36,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default BasicToast;
+export default ErrorToast;
