@@ -335,6 +335,7 @@ const MyGuesthouseEdit = () => {
         shouldResetOnClose={rulesModalReset}
         onClose={() => setRulesModalVisible(false)}
         defaultRules={guesthouse?.rules || ''}
+        guesthouseId={route.params?.guesthouseId || route.params?.initialGuesthouse?.id || guesthouse?.id}
         onSelect={handleRulesSelect}
       />
 
