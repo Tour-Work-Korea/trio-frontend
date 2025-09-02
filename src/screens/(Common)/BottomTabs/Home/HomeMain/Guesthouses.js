@@ -49,7 +49,8 @@ export default function Guesthouses({guesthouses}) {
           <Text
             style={styles.guesthouseTitle}
             numberOfLines={1}
-            ellipsizeMode="tail">
+            ellipsizeMode="tail"
+          >
             {item.guesthouseName}
           </Text>
           {Number(item.minAmount) > 0 ? (
