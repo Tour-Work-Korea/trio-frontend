@@ -8,13 +8,19 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_100,
   },
   scroll: {
-    flex: 1, // ← scrollView가 하단까지 확장되도록
+    flex: 1,
   },
   scrollContent: {
-    flexGrow: 1, // ← 내용이 적어도 꽉 채우기
+    flexGrow: 1,
     paddingHorizontal: 20,
-    paddingBottom: 32, // 필요한 만큼 여백 (SafeAreaView와 맞춤)
+    paddingBottom: 32,
     justifyContent: 'flex-start',
+  },
+  scrollContentEmployIntro: {
+    gap: 16,
+    paddingHorizontal: 20,
+    paddingBottom: 16,
+    flexGrow: 1,
   },
   //헤더
   headerBox: {
