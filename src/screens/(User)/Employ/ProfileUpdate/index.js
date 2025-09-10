@@ -73,7 +73,7 @@ const ProfileUpdate = () => {
         birthDate: formData.birthDate ?? null,
         age: calculateAge(formData.birthDate),
       });
-      navigation.navigate('ResumeDetail', {
+      navigation.replace('ResumeDetail', {
         isEditable: true,
         role: 'USER',
         isNew: true,

@@ -26,7 +26,7 @@ import {
   validateStoreForm2,
 } from '@utils/validation/storeRegisterValidation';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import ErrorModal from '@components/modals/ErrorModal';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import {hostStorRegisterAgrees} from '@data/agree';
@@ -67,25 +67,23 @@ const StoreRegisterForm2 = ({route}) => {
     setIsAllAgreed(all);
   }, [agreements]);
 
-  //input 핸들러
   const handleInputChange = (field, value) => {
     setFormData({
       ...formData,
       [field]: value,
     });
   };
-  //사업자 등록증 파일 업로드
+
   const pickImage = async () => {
     const result = await launchImageLibrary({mediaType: 'photo'});
     if (!result.didCancel && result.assets?.length > 0) {
       const selected = result.assets[0];
       const originalUri = selected.uri;
 
-      // 📌 압축 시도
       let compressedUri = originalUri;
       try {
         compressedUri = await adaptiveCompressToJPEG(originalUri, {
-          targetBytes: 1.8 * 1024 * 1024, // 서버 한도 2MB라고 가정
+          targetBytes: 1.8 * 1024 * 1024,
           startMax: 1600,
           minMax: 800,
           startQuality: 0.8,
@@ -100,13 +98,13 @@ const StoreRegisterForm2 = ({route}) => {
         ...formData,
         img: {
           uri: compressedUri,
-          type: 'image/jpeg', // 압축 후 항상 JPEG
+          type: 'image/jpeg',
           name: selected.fileName ?? 'business_cert.jpg',
         },
       });
     }
   };
-  //약관동의 항목 렌더링
+
   const renderCheckbox = (isChecked, onPress) => (
     <View>
       {isChecked ? (
@@ -122,7 +120,6 @@ const StoreRegisterForm2 = ({route}) => {
       )}
     </View>
   );
-  //약관동의 핸들러
   const handleAgreement = key => {
     const updated = agreements.map(item =>
       item.id === key ? {...item, isAgree: !item.isAgree} : item,
@@ -134,7 +131,6 @@ const StoreRegisterForm2 = ({route}) => {
     handleInputChange('businessRegistrationNumber', text);
     setIsBussinessNumChecked(false);
   };
-  // 사업자등록번호 확인
   const verifybussinessNum = async () => {
     try {
       await authApi.verifyBusiness(formData.businessRegistrationNumber);
@@ -145,7 +141,6 @@ const StoreRegisterForm2 = ({route}) => {
       setIsBussinessNumVerified(false);
     }
   };
-  //입점신청서 제출
   const handleSubmit = async () => {
     const validationErrors = validateStoreForm(formData);
 
@@ -194,8 +189,19 @@ const StoreRegisterForm2 = ({route}) => {
       setErrorModal({
         visible: true,
         title: '성공적으로 입점신청이 완료되었습니다',
+        onPress: () => {
+          setErrorModal(prev => ({...prev, visible: false}));
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 1,
+              routes: [
+                {name: 'MainTabs', params: {screen: '마이'}},
+                {name: 'StoreRegisterList'},
+              ],
+            }),
+          );
+        },
       });
-      navigation.navigate('MainTabs', {screen:'마이'});
     } catch (error) {
       console.warn('입점신청서 등록 실패:', error);
       setErrorModal({
@@ -486,7 +492,10 @@ const StoreRegisterForm2 = ({route}) => {
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={'확인'}
-          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+          onPress={
+            errorModal.onPress ??
+            (() => setErrorModal(prev => ({...prev, visible: false})))
+          }
         />
       </View>
     </TouchableWithoutFeedback>

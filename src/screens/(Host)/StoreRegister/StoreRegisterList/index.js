@@ -1,15 +1,14 @@
-// 기존 import 문은 동일하게 유지합니다
-
 import React, {useState, useCallback} from 'react';
 import {View, FlatList, Alert, Text, TouchableOpacity} from 'react-native';
 import styles from './StoreRegisterList.styles';
 import Header from '@components/Header';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import {FONTS} from '@constants/fonts';
 import PlusIcon from '@assets/images/plus_white.svg';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
+import EmptyState from '@components/EmptyState';
+import EmptyIcon from '@assets/images/wa_blue_apply.svg';
 
 const StoreRegisterList = () => {
   const navigation = useNavigation();
@@ -67,10 +66,18 @@ const StoreRegisterList = () => {
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
+          ListEmptyComponent={
+            <EmptyState
+              icon={EmptyIcon}
+              iconSize={{width: 188, height: 84}}
+              title="입점된 게스트하우스가 없어요"
+              description="지금 입점신청을 해보세요!"
+            />
+          }
         />
         <TouchableOpacity
           style={[styles.addButton, styles.addButtonLocation]}
-          onPress={() => navigation.navigate('StoreRegisterForm')}>
+          onPress={() => navigation.navigate('StoreRegisterForm1')}>
           <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
             입점 신청하기
           </Text>

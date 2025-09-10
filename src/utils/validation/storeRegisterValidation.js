@@ -5,7 +5,7 @@ export const isValidBusinessType = type => type.trim().length > 0;
 export const isValidEmployeeCount = count =>
   !isNaN(count) && parseInt(count, 10) >= 0;
 
-export const isValidPhone = phone => /^01[016789][0-9]{7,8}$/.test(phone); // 01012345678 형식
+export const isValidPhone = phone => /^0\d{8,10}$/.test(phone);
 
 export const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
