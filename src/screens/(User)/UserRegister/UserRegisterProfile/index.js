@@ -14,6 +14,7 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
+  CommonActions,
 } from '@react-navigation/native';
 import styles from '../../../(Common)/Register/Register.styles';
 import Logo from '@assets/images/logo_orange.svg';
@@ -160,11 +161,28 @@ const UserRegisterProfile = () => {
       'USER',
     );
     if (isSuccessLogin) {
-      navigation.navigate('Result', {
-        onPress: () => navigation.navigate('MainTabs', {screen: '홈'}),
-        nickname: formData.name,
-        role: formData.userRole,
-      });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {name: 'MainTabs', params: {screen: '홈'}},
+            {
+              name: 'Result',
+              params: {
+                nickname: formData.name,
+                role: formData.userRole,
+                onPress: () =>
+                  navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+                    }),
+                  ),
+              },
+            },
+          ],
+        }),
+      );
     } else {
       setErrorModal({
         visible: true,

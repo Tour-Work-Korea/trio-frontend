@@ -36,9 +36,7 @@ const MyResumeList = () => {
 
   useFocusEffect(
     useCallback(() => {
-      setTimeout(() => {
-        tryFetchMyResumes();
-      }, 500);
+      tryFetchMyResumes();
     }, []),
   );
 

@@ -14,7 +14,7 @@ import {
   ResumeDetail,
   AgreeDetail,
   ApplySuccess,
-  StoreRegister,
+  StoreRegisterList,
   MeetMain,
   MeetSearch,
   MeetDetail,
@@ -57,6 +57,8 @@ import {
   MyGuesthouseReservation,
   MyRoomDetail,
   ProfileUpdate,
+  StoreRegisterForm1,
+  StoreRegisterForm2,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -88,7 +90,7 @@ const RootNavigation = () => (
         name="GuesthousePaymentSuccess"
         component={GuesthousePaymentSuccess}
       />
-      <Stack.Screen name="StoreRegister" component={StoreRegister} />
+      <Stack.Screen name="StoreRegisterList" component={StoreRegisterList} />
 
       {/* 공고 하단바 없는 화면 */}
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
@@ -124,6 +126,8 @@ const RootNavigation = () => (
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
+      <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
+      <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />

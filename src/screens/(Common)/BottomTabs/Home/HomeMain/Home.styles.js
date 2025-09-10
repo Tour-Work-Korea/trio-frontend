@@ -132,9 +132,13 @@ export default StyleSheet.create({
   guesthouseTitle: {
     marginTop: 4,
     marginRight: 8,
+    flex: 1,
+    minWidth: 0,
   },
   guesthousePrice: {
     flexDirection: 'row',
+    flexShrink: 0,
+    alignItems: 'center',
   },
   guesthousePriceName: {
     marginTop: 4,
