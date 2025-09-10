@@ -31,12 +31,11 @@ const EmploySearchList = () => {
     useCallback(() => {
       setRecruitList([]);
       setHasNext(true);
-      fetchRecruitList(0);
-    }, [fetchRecruitList]),
+      tryFetchRecruitList(0);
+    }, [tryFetchRecruitList]),
   );
 
-  //채용 공고 조회
-  const fetchRecruitList = useCallback(
+  const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0) => {
       if (isEmLoading || !hasNext) {
         return;
