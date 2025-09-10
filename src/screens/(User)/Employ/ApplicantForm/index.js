@@ -4,6 +4,7 @@ import {
   useNavigation,
   useRoute,
   useFocusEffect,
+  CommonActions,
 } from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
@@ -103,7 +104,16 @@ const ApplicantForm = () => {
         resumeId: applicant.resumeId,
       };
       await userEmployApi.apply(recruitId, parsedData);
-      navigation.navigate('ApplySuccess');
+      // navigation.navigate('ApplySuccess');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {name: 'MainTabs', params: {screen: '채용'}},
+            {name: 'ApplySuccess'},
+          ],
+        }),
+      );
     } catch (error) {
       setErrorModal({
         visible: true,

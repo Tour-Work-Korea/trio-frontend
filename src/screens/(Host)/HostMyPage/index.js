@@ -107,7 +107,7 @@ const HostMyPage = () => {
                 <MenuItem
                   IconComponent={StoreApplyIcon}
                   label="입점 신청"
-                  onPress={() => navigation.navigate('StoreRegister')}
+                  onPress={() => navigation.navigate('StoreRegisterList')}
                 />
               </View>
             </View>

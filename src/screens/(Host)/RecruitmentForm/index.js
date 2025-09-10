@@ -14,7 +14,7 @@ import {
 import styles from './RecruitmentForm';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {computeValidSections} from '@utils/validation/recruitmentFormValidation';
 
 import RecruitConditionSection from './RecruitConditionSection';
@@ -163,7 +163,15 @@ const RecruitmentForm = () => {
         title: '새로운 공고를 등록했습니다',
         buttonText: '확인',
       });
-      navigation.navigate('MyRecruitmentList');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {name: 'MainTabs', params: {screen: '마이'}},
+            {name: 'MyRecruitmentList'},
+          ],
+        }),
+      );
     } catch (error) {
       const serverMessage =
         error.response?.data?.message ||
@@ -177,7 +185,15 @@ const RecruitmentForm = () => {
     try {
       await hostEmployApi.updateRecruit(updatedRecruitId, payload);
       Alert.alert('공고를 성공적으로 수정했습니다.');
-      navigation.navigate('MyRecruitmentList');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {name: 'MainTabs', params: {screen: '마이'}},
+            {name: 'MyRecruitmentList'},
+          ],
+        }),
+      );
     } catch (error) {
       const serverMessage =
         error.response?.data?.message ||
@@ -250,11 +266,6 @@ const RecruitmentForm = () => {
               모든 항목을 입력하셔야 등록이 완료됩니다
             </Text>
             <View style={[styles.buttonLocation, styles.buttonContainer]}>
-              {/*<TouchableOpacity style={[styles.addButton]}>
-                <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-                  임시저장
-                </Text>
-              </TouchableOpacity>*/}
               <TouchableOpacity
                 style={[
                   styles.addButton,

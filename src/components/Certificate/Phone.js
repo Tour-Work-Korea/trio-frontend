@@ -52,7 +52,7 @@ const Phone = ({user, onPress}) => {
 
   //휴대폰 번호 유효성 확인
   useEffect(() => {
-    if (phoneNumber.length === 11) {
+    if (phoneNumber.length >= 9) {
       setIsPhoneNumberValid(true);
     } else {
       setIsPhoneNumberValid(false);

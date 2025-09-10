@@ -10,7 +10,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
 import {validateHostRegister} from '@utils/validation/registerValidation';
@@ -146,6 +150,7 @@ const HostRegisterInfo = ({route}) => {
         visible: true,
         message: '유효하지 않은 사업자번호입니다',
         buttonText: '확인',
+        onPress: () => setErrorModal(prev => ({...prev, visible: false})),
       });
     }
   };
@@ -167,6 +172,7 @@ const HostRegisterInfo = ({route}) => {
           error.response?.data?.message ||
           '오류가 발생했습니다\n다시 시도해주세요',
         buttonText: '확인',
+        onPress: () => setErrorModal(prev => ({...prev, visible: false})),
       });
     }
   };
@@ -175,17 +181,37 @@ const HostRegisterInfo = ({route}) => {
   const afterSuccessRegister = async () => {
     try {
       await tryLogin(formData.email, formData.password, 'HOST');
-      navigation.navigate('Result', {
-        onPress: () => navigation.navigate('MainTabs', {screen: '홈'}),
-        nickname: formData.name,
-        role: formData.userRole,
-      });
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [
+            {name: 'MainTabs', params: {screen: '홈'}},
+            {
+              name: 'Result',
+              params: {
+                nickname: formData.name,
+                role: formData.userRole,
+                onPress: () =>
+                  navigation.dispatch(
+                    CommonActions.reset({
+                      index: 0,
+                      routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+                    }),
+                  ),
+              },
+            },
+          ],
+        }),
+      );
     } catch (error) {
       setErrorModal({
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: () => navigation.navigate('Login'),
+        onPress: () => {
+          navigation.navigate('Login');
+          setErrorModal(prev => ({...prev, visible: false}));
+        },
       });
       console.warn('지동 로그인 실패:', error);
     }

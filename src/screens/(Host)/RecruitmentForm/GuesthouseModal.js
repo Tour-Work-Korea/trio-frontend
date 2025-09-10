@@ -85,9 +85,9 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
         onClose={onClose}
         title={'게스트하우스'}
         subTitle={'입점된 게스트하우스가 없어요'}
-        message={'입점 신청하러 가볼까요?'}
-        buttonText={'입점 신청하기'}
-        onPress={() => navigation.navigate('StoreRegister')}
+        message={'게스트하우스를 등록하러 가볼까요?'}
+        buttonText={'게스트하우스 등록하기'}
+        onPress={() => navigation.navigate('MyGuesthouseAdd')}
         Icon={EmployLogo}
       />
     );
