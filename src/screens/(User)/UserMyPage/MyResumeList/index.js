@@ -162,7 +162,7 @@ const MyResumeList = () => {
           buttonText={'이력서 작성하러 가기'}
           onPress={() => {
             if (
-              userProfile?.mbti == '' ||
+              userProfile?.mbti === 'DEFAULT' ||
               userProfile?.instagramId === 'ID를 추가해주세요'
             ) {
               navigation.navigate('ProfileUpdate');

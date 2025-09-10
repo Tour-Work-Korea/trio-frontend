@@ -103,7 +103,6 @@ const UserEditProfile = () => {
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={80} // 필요에 따라 조절
         >
-          {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss}> */}
           <View style={styles.outContainer}>
             <Header title="회원 정보 수정" />
             <ScrollView
@@ -287,7 +286,6 @@ const UserEditProfile = () => {
               </View>
             </ScrollView>
           </View>
-          {/* </TouchableWithoutFeedback> */}
         </KeyboardAvoidingView>
       ) : (
         <></>
