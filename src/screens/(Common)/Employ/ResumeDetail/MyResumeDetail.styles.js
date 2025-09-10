@@ -7,6 +7,8 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
+  scrollContent: {paddingHorizontal: 20, flexGrow: 1, gap: 20},
+  bottomGap: {marginBottom: 40},
   //헤더
   headerBox: {
     paddingTop: 30,

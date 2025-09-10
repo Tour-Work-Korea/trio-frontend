@@ -1,5 +1,5 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import {View, ScrollView} from 'react-native';
 
 import styles from './EmployDetail.styles';
