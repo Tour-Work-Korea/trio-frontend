@@ -72,7 +72,6 @@ export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseRev
 export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
 export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGuesthouseReservationStatus';
 //
-export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';
 export {default as ApplicantList} from './(Host)/ApplicantList';
