@@ -39,9 +39,10 @@ const ProfileUpdate = () => {
 
   const canSave = useMemo(() => {
     const rawId = (formData.instagramId ?? '').trim();
-    const id = rawId.replace(/^@+/, ''); // 혹시 @ 입력하면 제거
+    const id = rawId.replace(/^@+/, '');
     const isIdValid = id.length > 0 && id !== 'ID를 추가해주세요';
-    const isMbtiValid = !!(formData.mbti ?? '').trim();
+    const isMbtiValid =
+      !!(formData.mbti ?? '').trim() && formData.mbti !== 'DEFAULT';
     return isIdValid && isMbtiValid;
   }, [formData.instagramId, formData.mbti]);
   const updateMyProfile = async () => {
