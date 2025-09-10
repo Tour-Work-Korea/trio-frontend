@@ -33,6 +33,12 @@ const styles = StyleSheet.create({
     ...FONTS.fs_20_semibold,
     color: COLORS.grayscale_800,
   },
+  headerBoxEmploySearchList: {
+    paddingHorizontal: 20,
+    flexDirection: 'column',
+    gap: 16,
+    paddingBottom: 12,
+  },
   //검색창
   searchInputContainer: {
     flexDirection: 'row',

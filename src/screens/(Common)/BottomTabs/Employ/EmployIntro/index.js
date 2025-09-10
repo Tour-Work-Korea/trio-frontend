@@ -20,7 +20,7 @@ import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
 // 아이콘 불러오기
-import styles from '../Employ.styles';
+import styles from './EmployIntro.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
 import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
 
@@ -90,7 +90,7 @@ const EmployIntro = () => {
   return (
     <View style={styles.container}>
       <Header title="채용공고" />
-      <ScrollView contentContainerStyle={styles.scrollContentEmployIntro}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 검색창 */}
         <TouchableOpacity
           onPress={() => navigation.navigate('EmploySearchList')}>
@@ -113,7 +113,7 @@ const EmployIntro = () => {
         {/* 추천 일자리 */}
         <View style={styles.employContainer}>
           <View style={[styles.titleSection]}>
-            <Text style={styles.sectionTitle}>추천 일자리</Text>
+            <Text style={styles.titleText}>추천 일자리</Text>
             <TouchableOpacity
               style={styles.seeMoreButton}
               onPress={() => {
