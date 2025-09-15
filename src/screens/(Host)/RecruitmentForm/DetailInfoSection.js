@@ -20,7 +20,7 @@ export default function DetailInfoSection({
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>공고 요약</Text>
+            <Text style={[FONTS.fs_20_semibold]}>상세 정보</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
