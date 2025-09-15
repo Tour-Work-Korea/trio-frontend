@@ -1,14 +1,15 @@
 import React, {useState, useEffect} from 'react';
 import {Text, View, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+
+import ButtonScarlet from '@components/ButtonScarlet';
+import {userRegisterAgrees, hostRegisterAgrees} from '@data/agree';
+import ButtonWhite from '@components/ButtonWhite';
 
 import Logo from '@assets/images/logo_orange.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
-import ButtonScarlet from '@components/ButtonScarlet';
-import {userRegisterAgrees, hostRegisterAgrees} from '@data/agree';
-import ButtonWhite from '@components/ButtonWhite';
-import {useNavigation} from '@react-navigation/native';
 
 const RegisterAgree = ({route}) => {
   const {user} = route.params;
