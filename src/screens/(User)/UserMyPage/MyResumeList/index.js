@@ -6,20 +6,17 @@ import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
+import ResultModal from '@components/modals/ResultModal';
+import useUserStore from '@stores/userStore';
 
 import styles from './MyResumeList.styles';
 import {COLORS} from '@constants/colors';
 import EditIcon from '@assets/images/edit_gray';
 import TrashIcon from '@assets/images/delete_gray.svg';
-import ResultModal from '@components/modals/ResultModal';
 import DeleteWaLogo from '@assets/images/delete_wa.svg';
 import PlusIcon from '@assets/images/plus_white.svg';
 import {FONTS} from '@constants/fonts';
-import useUserStore from '@stores/userStore';
 
-/*
- * 나의 이력서 목록 페이지
- */
 const MyResumeList = () => {
   const navigation = useNavigation();
   const userProfile = useUserStore(state => state.userProfile);
@@ -87,7 +84,6 @@ const MyResumeList = () => {
     });
   };
 
-  // 이력서 리스트 렌더링
   const renderResumeSelection = () => (
     <ScrollView contentContainerStyle={styles.section}>
       {resumes?.map(item => (
@@ -116,7 +112,7 @@ const MyResumeList = () => {
                   {item.updatedAt.split('T')[0]}
                 </Text>
               </View>
-              <View style={{flexDirection: 'row', gap: 8}}>
+              <View style={styles.editContainer}>
                 <TouchableOpacity
                   style={styles.editButton}
                   onPress={() =>

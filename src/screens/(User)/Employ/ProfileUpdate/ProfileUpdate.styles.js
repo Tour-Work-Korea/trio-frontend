@@ -7,6 +7,8 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
   },
+  flex: {flex: 1},
+  scrollViewContent: {justifyContent: 'space-between'},
   // 본문
   container: {
     flex: 1,

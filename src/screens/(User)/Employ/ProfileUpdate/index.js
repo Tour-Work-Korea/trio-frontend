@@ -11,13 +11,14 @@ import {
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
-import styles from './ProfileUpdate.styles';
-import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import {calculateAge} from '@utils/auth/login';
+
+import styles from './ProfileUpdate.styles';
+import {FONTS} from '@constants/fonts';
 
 const ProfileUpdate = () => {
   const navigation = useNavigation();
@@ -92,7 +93,7 @@ const ProfileUpdate = () => {
   return (
     <>
       <KeyboardAvoidingView
-        style={{flex: 1}}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80} // 필요에 따라 조절
       >
@@ -100,9 +101,7 @@ const ProfileUpdate = () => {
           <Header title="내 정보 추가하기" />
           <ScrollView
             style={styles.container}
-            contentContainerStyle={{
-              justifyContent: 'space-between',
-            }}
+            contentContainerStyle={styles.scrollViewContent}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled">
             <View>

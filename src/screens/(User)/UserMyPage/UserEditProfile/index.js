@@ -11,12 +11,8 @@ import {
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import PlusIcon from '@assets/images/plus_gray.svg';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
-
 import Header from '@components/Header';
 import styles from './UserEditProfile.styles';
-import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
@@ -25,6 +21,10 @@ import ErrorModal from '@components/modals/ErrorModal';
 import {calculateAge} from '@utils/auth/login';
 import {Email} from '@components/Certificate/Email';
 import Phone from '@components/Certificate/Phone';
+
+import PlusIcon from '@assets/images/plus_gray.svg';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import {FONTS} from '@constants/fonts';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
@@ -99,7 +99,7 @@ const UserEditProfile = () => {
     <>
       {!editEmail && !editPhone ? (
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}
           keyboardVerticalOffset={80} // 필요에 따라 조절
         >
