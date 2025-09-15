@@ -68,9 +68,9 @@ const HostRegisterInfo = ({route}) => {
         name: '',
         bussinessNum: '',
         agreements,
-        email: email, // props에서 받은 값 유지
+        email: email,
         userRole: 'HOST',
-        phoneNum: phoneNumber, // props에서 받은 값 유지
+        phoneNum: phoneNumber,
       });
 
       setFormValid({
@@ -137,7 +137,6 @@ const HostRegisterInfo = ({route}) => {
     }));
   };
 
-  // 사업자등록번호 확인
   const verifybussinessNum = async () => {
     try {
       await authApi.verifyBusiness(formData.bussinessNum);
@@ -155,7 +154,6 @@ const HostRegisterInfo = ({route}) => {
     }
   };
 
-  // 회원가입 완료 처리
   const handleSubmit = async () => {
     try {
       await authApi.hostSignUp(formData);
@@ -177,7 +175,6 @@ const HostRegisterInfo = ({route}) => {
     }
   };
 
-  //회원가입 후 자동 로그인 처리
   const afterSuccessRegister = async () => {
     try {
       await tryLogin(formData.email, formData.password, 'HOST');
@@ -221,18 +218,16 @@ const HostRegisterInfo = ({route}) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={styles.keyboardAvoidingView}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // 필요 시 조정
         >
           <ScrollView
-            style={{flex: 1}}
-            contentContainerStyle={{flexGrow: 1}}
+            style={styles.keyboardAvoidingView}
+            contentContainerStyle={styles.scrollView}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            <View
-              style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
-              {/* 상단+입력창 */}
+            <View style={styles.viewFlexBox}>
               <View>
                 {/* 로고 및 문구 */}
                 <View style={styles.groupParent}>
@@ -262,7 +257,7 @@ const HostRegisterInfo = ({route}) => {
                   </View>
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>사업자번호</Text>
-                    <View style={[styles.inputBox, {position: 'relative'}]}>
+                    <View style={[styles.inputBox, styles.inputRelative]}>
                       <TextInput
                         style={styles.textInput}
                         placeholder="사업자번호를 입력해주세요"

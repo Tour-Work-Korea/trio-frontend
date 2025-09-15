@@ -1,13 +1,8 @@
-import React, {useCallback, useState} from 'react';
+import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, Image, TextInput} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
-import PlusIcon from '@assets/images/plus_gray.svg';
+import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
-import styles from './HostEditProfile.styles';
-import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
 import hostMyApi from '@utils/api/hostMyApi';
@@ -15,6 +10,11 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import {Email} from '@components/Certificate/Email';
 import Phone from '@components/Certificate/Phone';
 import ErrorModal from '@components/modals/ErrorModal';
+
+import styles from './HostEditProfile.styles';
+import {FONTS} from '@constants/fonts';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import PlusIcon from '@assets/images/plus_gray.svg';
 
 const HostEditProfile = () => {
   const navigation = useNavigation();

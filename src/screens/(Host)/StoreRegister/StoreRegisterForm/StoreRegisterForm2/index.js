@@ -10,17 +10,9 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {launchImageLibrary} from 'react-native-image-picker';
-import styles from '../StoreRegisterForm.styles';
-import Photo from '@assets/images/Photo.svg';
-import NextIcon from '@assets/images/arrow_right_white.svg';
-import NextDisabledIcon from '@assets/images/arrow_right_black.svg';
-import Logo from '@assets/images/logo_orange.svg';
-import CheckGray from '@assets/images/check20_gray.svg';
-import CheckOrange from '@assets/images/check20_orange.svg';
-import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
 import {useEffect, useMemo, useState} from 'react';
+import {launchImageLibrary} from 'react-native-image-picker';
+
 import {
   validateStoreForm,
   validateStoreForm2,
@@ -33,9 +25,15 @@ import {hostStorRegisterAgrees} from '@data/agree';
 import authApi from '@utils/api/authApi';
 import {adaptiveCompressToJPEG} from '@utils/imageUploadHandler';
 
-/*
- * 입점 등록 신청 페이지
- */
+import styles from '../StoreRegisterForm.styles';
+import Photo from '@assets/images/Photo.svg';
+import NextIcon from '@assets/images/arrow_right_white.svg';
+import NextDisabledIcon from '@assets/images/arrow_right_black.svg';
+import Logo from '@assets/images/logo_orange.svg';
+import CheckGray from '@assets/images/check20_gray.svg';
+import CheckOrange from '@assets/images/check20_orange.svg';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 const StoreRegisterForm2 = ({route}) => {
   const navigation = useNavigation();
@@ -159,7 +157,6 @@ const StoreRegisterForm2 = ({route}) => {
 
     const form = new FormData();
 
-    // 1. dto를 Blob으로 감싸기
     const dto = {
       name: fullForm.name,
       employeeCount: parseInt(fullForm.employeeCount),
@@ -175,7 +172,6 @@ const StoreRegisterForm2 = ({route}) => {
       string: JSON.stringify(dto),
       type: 'application/json',
     });
-    // 2. 이미지 파일 추가
     if (fullForm.img) {
       form.append('img', {
         uri: fullForm.img.uri,
@@ -217,29 +213,25 @@ const StoreRegisterForm2 = ({route}) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
           <ScrollView
-            style={{flex: 1}}
-            contentContainerStyle={{flexGrow: 1}}
+            style={styles.flex}
+            contentContainerStyle={styles.flexGrow}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            <View
-              style={[
-                styles.viewFlexBox,
-                {justifyContent: 'space-between', gap: 20},
-              ]}>
+            <View style={styles.viewFlexBox}>
               {/* 상단+입력창 */}
               <View>
                 {/* 로고 및 문구 */}
                 <View style={styles.groupParent}>
                   <Logo width={60} height={29} />
                   <View>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       workaway에 입점하기 위한,
                     </Text>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       필수정보를 알려주세요 (2/2)
                     </Text>
                   </View>
@@ -265,9 +257,9 @@ const StoreRegisterForm2 = ({route}) => {
                   {/* 사업장 주소 */}
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>사업장 주소</Text>
-                    <View style={[styles.inputBox, {position: 'relative'}]}>
+                    <View style={[styles.inputBox, styles.inputRelative]}>
                       <TextInput
-                        style={[styles.textInput, {flex: 1}]}
+                        style={[styles.textInput, styles.flex]}
                         placeholder="주소를 입력해주세요"
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.address}
@@ -363,22 +355,16 @@ const StoreRegisterForm2 = ({route}) => {
                     <Text style={styles.inputLabel}>사업자 등록증</Text>
                     <View style={[styles.inputBox, styles.imageBox]}>
                       <TouchableOpacity
-                        style={{width: '100%', height: '100%'}}
+                        style={styles.photoBox}
                         onPress={pickImage}>
                         {formData?.img?.uri ? (
                           <Image
                             source={{uri: formData?.img?.uri}}
-                            style={{width: '100%', height: '100%'}}
+                            style={styles.photoBox}
                             resizeMode="cover"
                           />
                         ) : (
-                          <View
-                            style={{
-                              flex: 1,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              gap: 8,
-                            }}>
+                          <View style={styles.photoContainer}>
                             <Photo width={30} height={30} />
                           </View>
                         )}
@@ -387,7 +373,7 @@ const StoreRegisterForm2 = ({route}) => {
                   </View>
 
                   {/* 동의 목록 */}
-                  <View style={{gap: 12}}>
+                  <View style={styles.agreeGap}>
                     {agreements.map(item => (
                       <View style={[styles.parentWrapperFlexBox]} key={item.id}>
                         <View
@@ -441,7 +427,7 @@ const StoreRegisterForm2 = ({route}) => {
               </View>
 
               {/* 하단 버튼 */}
-              <View style={{alignItems: 'flex-end'}}>
+              <View style={styles.buttonLayout}>
                 <TouchableOpacity
                   style={[
                     styles.addButton,

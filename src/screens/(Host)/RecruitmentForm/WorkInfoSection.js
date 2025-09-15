@@ -1,18 +1,22 @@
 import {
   View,
   Text,
-  TextInput,
   TouchableOpacity,
   Image,
-  Alert,
   Modal,
+  StyleSheet,
 } from 'react-native';
-import styles from './RecruitmentForm';
-import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
-import XBtn from '@assets/images/x_gray.svg';
+
 import {uploadMultiImage} from '@utils/imageUploadHandler';
+import ErrorModal from '@components/modals/ErrorModal';
+
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
+import XBtn from '@assets/images/x_gray.svg';
+import styles from './RecruitmentForm';
+import {useState} from 'react';
+
 export default function WorkInfoSection({
   formData,
   visible,
@@ -20,16 +24,22 @@ export default function WorkInfoSection({
   handleInputChange,
 }) {
   const limitImage = 6;
+  const [errorModal, setErrorModal] = useState({visible: false, title: ''});
 
   const pickImage = async () => {
     const limit = limitImage - (formData?.recruitImage?.length ?? 0);
     if (limit <= 0) {
-      Alert.alert('사진 제한', `최대 ${limitImage}장까지 등록 가능합니다.`);
+      setErrorModal({
+        visible: true,
+        title: `최대 ${limitImage}장까지 등록 가능합니다.`,
+      });
       return;
     }
 
     const uploadedUrls = await uploadMultiImage(limit);
-    if (!uploadedUrls?.length) return;
+    if (!uploadedUrls?.length) {
+      return;
+    }
 
     const baseLen = formData.recruitImage.length;
     const newImages = uploadedUrls.map((url, idx) => ({
@@ -42,8 +52,6 @@ export default function WorkInfoSection({
 
   const removePhoto = index => {
     const next = formData.recruitImage.filter((_, i) => i !== index);
-
-    // 썸네일 없으면 첫 번째 이미지에 isThumbnail 부여
     if (next.length > 0 && !next.some(img => img.isThumbnail)) {
       next[0] = {...next[0], isThumbnail: true};
     }
@@ -58,7 +66,7 @@ export default function WorkInfoSection({
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>근무지 정보</Text>
+            <Text style={recruitStyle.headerText}>근무지 정보</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
@@ -68,8 +76,8 @@ export default function WorkInfoSection({
               <Text style={styles.subsectionTitle}>
                 근무지 사진을 추가해주세요
               </Text>
-              <Text style={{...FONTS.fs_12_light, color: COLORS.grayscale_500}}>
-                <Text style={{color: COLORS.primary_orange}}>
+              <Text style={recruitStyle.lengthTextAll}>
+                <Text style={recruitStyle.lengthText}>
                   {limitImage - formData.recruitImage.length}
                 </Text>
                 /{limitImage}
@@ -91,16 +99,6 @@ export default function WorkInfoSection({
                       styles.addPhotoButton,
                       imageObj.isThumbnail ? styles.thumbnail : '',
                     ]}
-                    onLoad={() =>
-                      console.log('IMG loaded', imageObj.recruitImageUrl)
-                    }
-                    onError={e =>
-                      console.log(
-                        'IMG error',
-                        imageObj.recruitImageUrl,
-                        e?.nativeEvent,
-                      )
-                    }
                     resizeMode="cover"
                   />
                   <TouchableOpacity
@@ -113,7 +111,24 @@ export default function WorkInfoSection({
             </View>
           </View>
         </View>
+        <ErrorModal
+          visible={errorModal.visible}
+          title={errorModal.title}
+          buttonText={'확인'}
+          onPress={() => setErrorModal({visible: false, title: ''})}
+        />
       </View>
     </Modal>
   );
 }
+
+const recruitStyle = StyleSheet.create({
+  headerText: [FONTS.fs_20_semibold],
+
+  lengthTextAll: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+  lengthText: {color: COLORS.primary_orange},
+});

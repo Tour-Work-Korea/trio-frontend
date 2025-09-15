@@ -6,11 +6,12 @@ import {
   TouchableOpacity,
   Modal,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
-import styles from './RecruitmentForm';
+
+import DatePicker from '@components/Employ/DatePicker';
+import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
 import Plus from '@assets/images/plus_gray.svg';
@@ -18,10 +19,9 @@ import Minus from '@assets/images/minus_gray.svg';
 import Calendar from '@assets/images/calendar_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import DatePicker from '@components/Employ/DatePicker';
+import styles from './RecruitmentForm';
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
-import ButtonScarlet from '@components/ButtonScarlet';
 
 export default function RecruitConditionSection({
   handleInputChange,
@@ -33,7 +33,6 @@ export default function RecruitConditionSection({
   const [selectedRecruit, setSelectedRecruit] = useState('');
   const [showEntryCalendar, setShowEntryCalendar] = useState(false);
   const [selectedEntry, setSelectedEntry] = useState('');
-  const [showWorkStartDate, setShowWorkStartDate] = useState(false);
   const tags = [
     {id: 1, title: '외국어 능력자'},
     {id: 2, title: '서비스업 경험자'},
@@ -49,8 +48,7 @@ export default function RecruitConditionSection({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
-        {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+      <KeyboardAvoidingView style={recruitStyle.flex} enabled>
         <View style={styles.overlay}>
           <View style={styles.container}>
             {/* 헤더 */}
@@ -62,7 +60,7 @@ export default function RecruitConditionSection({
               </TouchableOpacity>
             </View>
             <ScrollView
-              style={{flex: 1}}
+              style={recruitStyle.flex}
               contentContainerStyle={styles.body}
               showsVerticalScrollIndicator={false}
               keyboardDismissMode="on-drag"
@@ -128,7 +126,9 @@ export default function RecruitConditionSection({
                     value={formData.recruitStart ?? new Date()}
                     onChange={date => {
                       setShowRecruitCalendar(false);
-                      if (date) handleInputChange(selectedRecruit, date);
+                      if (date) {
+                        handleInputChange(selectedRecruit, date);
+                      }
                     }}
                   />
                 )}
@@ -152,10 +152,7 @@ export default function RecruitConditionSection({
                       </TouchableOpacity>
 
                       <TextInput
-                        style={[
-                          styles.input,
-                          {width: 48, height: 44, textAlign: 'center'},
-                        ]}
+                        style={[styles.input, recruitStyle.input]}
                         value={String(formData.recruitNumberFemale)}
                         keyboardType="number-pad"
                         onChangeText={text =>
@@ -189,10 +186,7 @@ export default function RecruitConditionSection({
                       </TouchableOpacity>
 
                       <TextInput
-                        style={[
-                          styles.input,
-                          {width: 48, height: 44, textAlign: 'center'},
-                        ]}
+                        style={[styles.input, recruitStyle.input]}
                         value={String(formData.recruitNumberMale)}
                         keyboardType="number-pad"
                         onChangeText={text =>
@@ -232,10 +226,7 @@ export default function RecruitConditionSection({
                       </TouchableOpacity>
 
                       <TextInput
-                        style={[
-                          styles.input,
-                          {width: 48, height: 44, textAlign: 'center'},
-                        ]}
+                        style={[styles.input, recruitStyle.input]}
                         value={String(formData.recruitMinAge)}
                         keyboardType="number-pad"
                         onChangeText={text =>
@@ -269,10 +260,7 @@ export default function RecruitConditionSection({
                       </TouchableOpacity>
 
                       <TextInput
-                        style={[
-                          styles.input,
-                          {width: 48, height: 44, textAlign: 'center'},
-                        ]}
+                        style={[styles.input, recruitStyle.input]}
                         keyboardType="number-pad"
                         value={String(formData.recruitMaxAge)}
                         onChangeText={text =>
@@ -354,7 +342,9 @@ export default function RecruitConditionSection({
                     value={formData.entryStartDate ?? new Date()}
                     onChange={date => {
                       setShowEntryCalendar(false);
-                      if (date) handleInputChange(selectedEntry, date);
+                      if (date) {
+                        handleInputChange(selectedEntry, date);
+                      }
                     }}
                   />
                 )}
@@ -393,7 +383,7 @@ export default function RecruitConditionSection({
                 </View>
                 <View style={styles.dateRow}>
                   <TextInput
-                    style={[styles.input, {flex: 1, marginTop: 12}]}
+                    style={[styles.input, recruitStyle.otherInput]}
                     placeholder="기타 입력"
                     placeholderTextColor={COLORS.grayscale_400}
                     multiline={true}
@@ -426,7 +416,7 @@ export default function RecruitConditionSection({
                   </TouchableOpacity>
                 </View>
               </View>
-              <View style={{marginVertical: 20}}>
+              <View style={recruitStyle.bottomContainer}>
                 <ButtonScarlet
                   title={'적용하기'}
                   onPress={() => {
@@ -438,8 +428,14 @@ export default function RecruitConditionSection({
             </ScrollView>
           </View>
         </View>
-        {/* </TouchableWithoutFeedback> */}
       </KeyboardAvoidingView>
     </Modal>
   );
 }
+
+const recruitStyle = StyleSheet.create({
+  flex: {flex: 1},
+  input: {width: 48, height: 44, textAlign: 'center'},
+  bottomContainer: {marginVertical: 20},
+  otherInput: {flex: 1, marginTop: 12},
+});
