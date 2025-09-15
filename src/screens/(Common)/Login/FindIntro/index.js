@@ -1,9 +1,11 @@
 import React from 'react';
 import {View, Text} from 'react-native';
-import styles from '../Login.styles';
-import ButtonScarlet from '@components/ButtonScarlet';
-import Logo from '@assets/images/logo_orange.svg';
 import {useNavigation} from '@react-navigation/native';
+
+import ButtonScarlet from '@components/ButtonScarlet';
+
+import styles from '../Login.styles';
+import Logo from '@assets/images/logo_orange.svg';
 
 export default function FindIntro({route}) {
   const {userRole, find} = route.params;
@@ -12,7 +14,7 @@ export default function FindIntro({route}) {
   return (
     <>
       <View style={styles.container}>
-        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+        <View style={styles.viewFlexBox}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>

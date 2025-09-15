@@ -125,4 +125,18 @@ export default StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
   },
+  bottomSection: {flexDirection: 'column', gap: 20},
+  buttonSection: {flexDirection: 'column', gap: 8},
+  findSection: {flexDirection: 'row', justifyContent: 'center', gap: 20},
+  findText: {...FONTS.fs_16_semibold},
+  findEmailBox: {
+    backgroundColor: COLORS.grayscale_200,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+    marginTop: 30,
+    flexDirection: 'column',
+    justifyContent: 'center',
+  },
+  findEmailText: {...FONTS.fs_16_semibold, color: COLORS.grayscale_900},
 });

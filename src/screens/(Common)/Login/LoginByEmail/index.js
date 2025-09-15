@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -7,17 +7,18 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import styles from '../Login.styles';
+
+import {useNavigation} from '@react-navigation/native';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ErrorModal from '@components/modals/ErrorModal';
+import {tryLogin} from '@utils/auth/login';
+
+import styles from '../Login.styles';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
 import Logo from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
-import {useNavigation} from '@react-navigation/native';
-import {tryLogin} from '@utils/auth/login';
 
 export default function LoginByEmail({route}) {
   const {userRole} = route.params;
@@ -61,7 +62,7 @@ export default function LoginByEmail({route}) {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+        <View style={styles.viewFlexBox}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
@@ -109,10 +110,9 @@ export default function LoginByEmail({route}) {
               </View>
             </View>
           </View>
-          <View style={{flexDirection: 'column', gap: 20}}>
+          <View style={styles.bottomSection}>
             <View>
-              <View
-                style={(styles.frameGroup, {flexDirection: 'column', gap: 8})}>
+              <View style={styles.buttonSection}>
                 <ButtonScarlet title={'로그인하기'} onPress={handleLogin} />
                 <ButtonWhite
                   title={'이메일로 가입하기'}
@@ -120,13 +120,12 @@ export default function LoginByEmail({route}) {
                 />
               </View>
             </View>
-            <View
-              style={{flexDirection: 'row', justifyContent: 'center', gap: 20}}>
+            <View style={styles.findSection}>
               <TouchableOpacity onPress={moveToFindId}>
-                <Text style={{...FONTS.fs_16_semibold}}>아이디찾기</Text>
+                <Text style={styles.findText}>아이디찾기</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={moveToFindPassword}>
-                <Text style={{...FONTS.fs_16_semibold}}>비밀번호찾기</Text>
+                <Text style={styles.findText}>비밀번호찾기</Text>
               </TouchableOpacity>
             </View>
           </View>

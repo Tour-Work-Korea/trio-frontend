@@ -10,15 +10,17 @@ import {
   Keyboard,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
+
+import authApi from '@utils/api/authApi';
+import {validateNewPassword} from '@utils/validation/registerValidation';
+import ErrorModal from '@components/modals/ErrorModal';
+import ButtonScarlet from '@components/ButtonScarlet';
+
 import LogoBlue from '@assets/images/logo_blue_smile.svg';
 import Logo from '@assets/images/logo_orange.svg';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
-import authApi from '@utils/api/authApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import {COLORS} from '@constants/colors';
-import {validateNewPassword} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
 import styles from '../Login.styles';
 
 const FindPassword = ({route}) => {

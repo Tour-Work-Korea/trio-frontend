@@ -8,14 +8,16 @@ import {
   Keyboard,
 } from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import Logo from '@assets/images/logo_orange.svg';
+
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
 import ErrorModal from '@components/modals/ErrorModal';
+
 import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
+import Logo from '@assets/images/logo_orange.svg';
 
 const VerifyPhone = ({route}) => {
   const {userRole, find} = route.params;
@@ -162,7 +164,7 @@ const VerifyPhone = ({route}) => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+        <View style={styles.viewFlexBox}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
@@ -182,7 +184,7 @@ const VerifyPhone = ({route}) => {
                     onChangeText={text => {
                       const filtered = text.replace(/[^0-9]/g, '');
                       setPhoneNumber(filtered);
-                      setHasRequestedCode(false); // 전화번호 변경 → 인증 요청 초기화
+                      setHasRequestedCode(false);
                       setIsCodeSent(false);
                       setIsResendEnabled(false);
                     }}
