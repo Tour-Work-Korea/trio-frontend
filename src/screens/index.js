@@ -105,6 +105,10 @@ export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
 export {default as UserRegisterInfo} from './(User)/UserRegister/UserRegisterInfo';
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
+// 좋아하는 모임
+export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';
+// 모임 예약내역
+export {default as UserMeetReservationCheck} from './(User)/UserMyPage/UserMeetReservationCheck';
 
 // 예시 화면들
 export {default as EXDeeplink} from './EXDeeplink';

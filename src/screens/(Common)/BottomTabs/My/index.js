@@ -4,9 +4,6 @@ import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   HostMyPage,
   UserMyPage,
-  UserReservationCheck,
-  UserFavoriteGuesthouse,
-  UserGuesthouseReview,
 } from '@screens';
 import useUserStore from '@stores/userStore';
 
@@ -31,21 +28,7 @@ const My = () => {
     <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="MyMain" component={MyMainScreen} />
       <Stack.Screen name="HostMyPage" component={HostMyPage} />
-      <Stack.Screen name="UserMyPage" component={UserMyPage} />
-
-      {/* 유저 게하 */}
-      <Stack.Screen
-        name="UserReservationCheck"
-        component={UserReservationCheck}
-      />
-      <Stack.Screen
-        name="UserFavoriteGuesthouse"
-        component={UserFavoriteGuesthouse}
-      />
-      <Stack.Screen
-        name="UserGuesthouseReview"
-        component={UserGuesthouseReview}
-      />
+      <Stack.Screen name="UserMyPage" component={UserMyPage} />      
     </Stack.Navigator>
   );
 };
