@@ -1,24 +1,26 @@
 import React, {useState, useCallback, useEffect} from 'react';
-import {View, Text, ScrollView, TouchableOpacity, Alert} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {
   useNavigation,
   useRoute,
   useFocusEffect,
+  CommonActions,
 } from '@react-navigation/native';
-import {COLORS} from '@constants/colors';
-import styles from './ApplicantForm.styles';
+
 import userEmployApi from '@utils/api/userEmployApi';
 import {checkUserPermission} from '@utils/auth/verifyPermission';
+import {userApplyAgrees} from '@data/agree';
+import ButtonScarlet from '@components/ButtonScarlet';
+import ErrorModal from '@components/modals/ErrorModal';
+import Header from '@components/Header';
 
 import EditIcon from '@assets/images/edit_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
 import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
-import {userApplyAgrees} from '@data/agree';
-import ButtonScarlet from '@components/ButtonScarlet';
-import ErrorModal from '@components/modals/ErrorModal';
-import Header from '@components/Header';
+import {COLORS} from '@constants/colors';
+import styles from './ApplicantForm.styles';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
@@ -39,8 +41,6 @@ const ApplicantForm = () => {
     message: '',
     buttonText: '',
   });
-
-  // 👇 footer 높이 측정용 state
   const [footerHeight, setFooterHeight] = useState(0);
 
   useEffect(() => {
@@ -55,14 +55,14 @@ const ApplicantForm = () => {
       const init = async () => {
         const hasPermission = await checkUserPermission(navigation);
         if (hasPermission) {
-          fetchResumeList();
+          tryFetchResumeList();
         }
       };
       init();
     }, [navigation]),
   );
 
-  const fetchResumeList = async () => {
+  const tryFetchResumeList = async () => {
     try {
       const response = await userEmployApi.getResumes();
       setResumes(response.data);
@@ -70,7 +70,11 @@ const ApplicantForm = () => {
         setApplicant(prev => ({...prev, resumeId: response.data[0].resumeId}));
       }
     } catch (error) {
-      Alert.alert('이력서를 가져오는데 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        message: '이력서를 가져오는데 실패했습니다',
+        buttonText: '확인',
+      });
     }
   };
 
@@ -103,7 +107,15 @@ const ApplicantForm = () => {
         resumeId: applicant.resumeId,
       };
       await userEmployApi.apply(recruitId, parsedData);
-      navigation.navigate('ApplySuccess');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 1,
+          routes: [
+            {name: 'MainTabs', params: {screen: '채용'}},
+            {name: 'ApplySuccess'},
+          ],
+        }),
+      );
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -117,7 +129,7 @@ const ApplicantForm = () => {
   const renderResumeSelection = () => (
     <View style={styles.section}>
       <Text style={styles.sectionTitle}>지원할 이력서를 선택해주세요</Text>
-      <View style={{gap: 8}}>
+      <View style={styles.body}>
         {resumes?.map(item => (
           <TouchableOpacity
             key={item.resumeId}
@@ -195,7 +207,7 @@ const ApplicantForm = () => {
   );
 
   const renderPrivacyAgreement = () => (
-    <View style={[styles.section, {marginBottom: 20}]}>
+    <View style={[styles.section, styles.privacySection]}>
       <View style={styles.horizontalLine} />
       {agreements.map(item => (
         <View style={[styles.parentWrapperFlexBox]} key={item.id}>
@@ -225,12 +237,11 @@ const ApplicantForm = () => {
       <Header title={'채용공고'} />
 
       {/* 본문: 스크롤 영역 */}
-      <View style={{flex: 1}}>
+      <View style={styles.flex}>
         <ScrollView
-          style={{flex: 1}}
+          style={styles.flex}
           contentContainerStyle={{
             paddingHorizontal: 20,
-            // 👇 footer 높이만큼 패딩 추가해서 가려지지 않게
             paddingBottom: footerHeight + 16,
           }}>
           {renderResumeSelection()}

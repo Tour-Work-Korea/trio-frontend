@@ -1,25 +1,20 @@
 import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  ScrollView,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
+import ErrorModal from '@components/modals/ErrorModal';
+
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
-import ErrorModal from '@components/modals/ErrorModal';
 
 const Settings = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
 
   return (
-    <View style={{flex: 1, backgroundColor: COLORS.grayscale_100}}>
+    <View style={styles.background}>
       <Header title={'설정'} />
 
       <View style={styles.container}>
@@ -68,6 +63,7 @@ const Settings = () => {
 };
 
 const styles = StyleSheet.create({
+  background: {flex: 1, backgroundColor: COLORS.grayscale_100},
   container: {paddingHorizontal: 20},
   menuContainer: {backgroundColor: COLORS.grayscale_0, borderRadius: 8},
   menuRow: {

@@ -8,21 +8,21 @@ import {
   ScrollView,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import styles from '../Employ.styles';
-import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import dayjs from 'dayjs';
 
-// 아이콘 불러오기
-import SearchIcon from '@assets/images/search_gray.svg';
-import userEmployApi from '@utils/api/userEmployApi';
 import WorkAndStay from './WorkAndStay';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
-import Loading from '@components/Loading';
+import {RecruitList} from '@components/Employ/RecruitList';
 import useUserStore from '@stores/userStore';
+import {toggleLikeRecruit} from '@utils/handleFavorite';
+import userEmployApi from '@utils/api/userEmployApi';
+import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
+// 아이콘 불러오기
+import styles from './EmployIntro.styles';
+import SearchIcon from '@assets/images/search_gray.svg';
+import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
 
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
@@ -40,8 +40,8 @@ const EmployIntro = () => {
   useFocusEffect(
     useCallback(() => {
       tryFetchGuesthouses();
-      fetchRecruitList();
-    }, [tryFetchGuesthouses, fetchRecruitList]),
+      tryFetchRecruitList();
+    }, [tryFetchGuesthouses, tryFetchRecruitList]),
   );
 
   const tryFetchGuesthouses = useCallback(async () => {
@@ -67,7 +67,7 @@ const EmployIntro = () => {
     }
   }, []);
 
-  const fetchRecruitList = useCallback(async () => {
+  const tryFetchRecruitList = useCallback(async () => {
     try {
       const userRole = useUserStore.getState()?.userRole;
       const response = await userEmployApi.getRecruits(
@@ -90,13 +90,7 @@ const EmployIntro = () => {
   return (
     <View style={styles.container}>
       <Header title="채용공고" />
-      <ScrollView
-        contentContainerStyle={{
-          gap: 16,
-          paddingHorizontal: 20,
-          paddingBottom: 16,
-          flexGrow: 1,
-        }}>
+      <ScrollView contentContainerStyle={styles.scrollContent}>
         {/* 검색창 */}
         <TouchableOpacity
           onPress={() => navigation.navigate('EmploySearchList')}>
@@ -119,14 +113,14 @@ const EmployIntro = () => {
         {/* 추천 일자리 */}
         <View style={styles.employContainer}>
           <View style={[styles.titleSection]}>
-            <Text style={styles.sectionTitle}>추천 일자리</Text>
+            <Text style={styles.titleText}>추천 일자리</Text>
             <TouchableOpacity
               style={styles.seeMoreButton}
               onPress={() => {
                 navigation.navigate('EmploySearchList');
               }}>
               <Text style={styles.seeMoreText}>더보기</Text>
-              <Chevron_right_gray width={24} height={24} />
+              <ChevronRightIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
           <RecruitList

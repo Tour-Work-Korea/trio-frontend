@@ -2,6 +2,7 @@ import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
+  view: {flex: 1, backgroundColor: COLORS.grayscale_100},
   outContainer: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,

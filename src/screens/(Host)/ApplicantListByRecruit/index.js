@@ -1,14 +1,16 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import styles from './ApplicantList.styles';
 import ErrorModal from '@components/modals/ErrorModal';
 import ApplicantItem from '@components/Employ/ApplicantItem';
 import ApplicantCard from './ApplicantCard';
+
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import styles from './ApplicantList.styles';
 
 const ApplicantListByRecruit = ({route}) => {
   const {recruit} = route.params;
@@ -21,7 +23,6 @@ const ApplicantListByRecruit = ({route}) => {
     buttonText: '',
     buttonText2: '',
   });
-  const [loading, setLoading] = useState(true);
   const [applicants, setApplicants] = useState([]);
 
   useFocusEffect(
@@ -31,7 +32,6 @@ const ApplicantListByRecruit = ({route}) => {
   );
 
   const fetchApplicants = async () => {
-    setLoading(false);
     try {
       const response = await hostEmployApi.getApplicantsByRecruit(
         recruit?.recruitId,
@@ -47,7 +47,6 @@ const ApplicantListByRecruit = ({route}) => {
           '지원자를 불러오는 중 오류가 발생했습니다',
       }));
     } finally {
-      setLoading(true);
     }
   };
 
@@ -64,18 +63,14 @@ const ApplicantListByRecruit = ({route}) => {
       <Header title="지원서 조회" />
       <View style={styles.body}>
         <ApplicantItem item={recruit} onPress={handleViewDetail} />
-        <View style={{marginBottom: 8, marginTop: 20}}>
-          <Text style={{...FONTS.fs_14_semibold, color: COLORS.grayscale_500}}>
+        <View style={styles.applyHeaderBox}>
+          <Text style={styles.applyHeaderText}>
             지원서 ({applicants.length})
           </Text>
         </View>
         {applicants.length === 0 ? (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Text
-              style={{...FONTS.fs_14_semibold, color: COLORS.grayscale_500}}>
-              아직 지원자가 없어요
-            </Text>
+          <View style={styles.emptyContainer}>
+            <Text style={styles.emptyText}>아직 지원자가 없어요</Text>
           </View>
         ) : (
           <FlatList

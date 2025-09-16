@@ -30,7 +30,7 @@ const HostMyPage = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLORS.grayscale_100}}>
+    <View style={styles.view}>
       <Header title={'마이페이지'} isSetting={true} />
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>
@@ -74,7 +74,7 @@ const HostMyPage = () => {
                   <Text
                     style={[FONTS.fs_14_medium, styles.profileContentText]}
                     numberOfLines={1}
-                    ellipsizeMode="tail">
+                    elipsizeMode="tail">
                     {host.email}
                   </Text>
                 </View>
@@ -107,7 +107,7 @@ const HostMyPage = () => {
                 <MenuItem
                   IconComponent={StoreApplyIcon}
                   label="입점 신청"
-                  onPress={() => navigation.navigate('StoreRegister')}
+                  onPress={() => navigation.navigate('StoreRegisterList')}
                 />
               </View>
             </View>

@@ -10,7 +10,21 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
+import {useEffect, useMemo, useState} from 'react';
 import {launchImageLibrary} from 'react-native-image-picker';
+
+import {
+  validateStoreForm,
+  validateStoreForm2,
+} from '@utils/validation/storeRegisterValidation';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import {CommonActions, useNavigation} from '@react-navigation/native';
+import ErrorModal from '@components/modals/ErrorModal';
+import AddressSearchModal from '@components/modals/AddressSearchModal';
+import {hostStorRegisterAgrees} from '@data/agree';
+import authApi from '@utils/api/authApi';
+import {adaptiveCompressToJPEG} from '@utils/imageUploadHandler';
+
 import styles from '../StoreRegisterForm.styles';
 import Photo from '@assets/images/Photo.svg';
 import NextIcon from '@assets/images/arrow_right_white.svg';
@@ -20,22 +34,6 @@ import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {useEffect, useMemo, useState} from 'react';
-import {
-  validateStoreForm,
-  validateStoreForm2,
-} from '@utils/validation/storeRegisterValidation';
-import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import {useNavigation} from '@react-navigation/native';
-import ErrorModal from '@components/modals/ErrorModal';
-import AddressSearchModal from '@components/modals/AddressSearchModal';
-import {hostStorRegisterAgrees} from '@data/agree';
-import authApi from '@utils/api/authApi';
-import {adaptiveCompressToJPEG} from '@utils/imageUploadHandler';
-
-/*
- * 입점 등록 신청 페이지
- */
 
 const StoreRegisterForm2 = ({route}) => {
   const navigation = useNavigation();
@@ -67,25 +65,23 @@ const StoreRegisterForm2 = ({route}) => {
     setIsAllAgreed(all);
   }, [agreements]);
 
-  //input 핸들러
   const handleInputChange = (field, value) => {
     setFormData({
       ...formData,
       [field]: value,
     });
   };
-  //사업자 등록증 파일 업로드
+
   const pickImage = async () => {
     const result = await launchImageLibrary({mediaType: 'photo'});
     if (!result.didCancel && result.assets?.length > 0) {
       const selected = result.assets[0];
       const originalUri = selected.uri;
 
-      // 📌 압축 시도
       let compressedUri = originalUri;
       try {
         compressedUri = await adaptiveCompressToJPEG(originalUri, {
-          targetBytes: 1.8 * 1024 * 1024, // 서버 한도 2MB라고 가정
+          targetBytes: 1.8 * 1024 * 1024,
           startMax: 1600,
           minMax: 800,
           startQuality: 0.8,
@@ -100,13 +96,13 @@ const StoreRegisterForm2 = ({route}) => {
         ...formData,
         img: {
           uri: compressedUri,
-          type: 'image/jpeg', // 압축 후 항상 JPEG
+          type: 'image/jpeg',
           name: selected.fileName ?? 'business_cert.jpg',
         },
       });
     }
   };
-  //약관동의 항목 렌더링
+
   const renderCheckbox = (isChecked, onPress) => (
     <View>
       {isChecked ? (
@@ -122,7 +118,6 @@ const StoreRegisterForm2 = ({route}) => {
       )}
     </View>
   );
-  //약관동의 핸들러
   const handleAgreement = key => {
     const updated = agreements.map(item =>
       item.id === key ? {...item, isAgree: !item.isAgree} : item,
@@ -134,7 +129,6 @@ const StoreRegisterForm2 = ({route}) => {
     handleInputChange('businessRegistrationNumber', text);
     setIsBussinessNumChecked(false);
   };
-  // 사업자등록번호 확인
   const verifybussinessNum = async () => {
     try {
       await authApi.verifyBusiness(formData.businessRegistrationNumber);
@@ -145,7 +139,6 @@ const StoreRegisterForm2 = ({route}) => {
       setIsBussinessNumVerified(false);
     }
   };
-  //입점신청서 제출
   const handleSubmit = async () => {
     const validationErrors = validateStoreForm(formData);
 
@@ -153,6 +146,13 @@ const StoreRegisterForm2 = ({route}) => {
       setErrorModal({
         visible: true,
         title: validationErrors[0],
+      });
+      return;
+    }
+    if (!isAllAgreed) {
+      setErrorModal({
+        visible: true,
+        title: '이용 약관에 동의해주세요.',
       });
       return;
     }
@@ -164,7 +164,6 @@ const StoreRegisterForm2 = ({route}) => {
 
     const form = new FormData();
 
-    // 1. dto를 Blob으로 감싸기
     const dto = {
       name: fullForm.name,
       employeeCount: parseInt(fullForm.employeeCount),
@@ -180,7 +179,6 @@ const StoreRegisterForm2 = ({route}) => {
       string: JSON.stringify(dto),
       type: 'application/json',
     });
-    // 2. 이미지 파일 추가
     if (fullForm.img) {
       form.append('img', {
         uri: fullForm.img.uri,
@@ -194,8 +192,19 @@ const StoreRegisterForm2 = ({route}) => {
       setErrorModal({
         visible: true,
         title: '성공적으로 입점신청이 완료되었습니다',
+        onPress: () => {
+          setErrorModal(prev => ({...prev, visible: false}));
+          navigation.dispatch(
+            CommonActions.reset({
+              index: 1,
+              routes: [
+                {name: 'MainTabs', params: {screen: '마이'}},
+                {name: 'StoreRegisterList'},
+              ],
+            }),
+          );
+        },
       });
-      navigation.navigate('MainTabs', {screen:'마이'});
     } catch (error) {
       console.warn('입점신청서 등록 실패:', error);
       setErrorModal({
@@ -211,29 +220,25 @@ const StoreRegisterForm2 = ({route}) => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20}>
           <ScrollView
-            style={{flex: 1}}
-            contentContainerStyle={{flexGrow: 1}}
+            style={styles.flex}
+            contentContainerStyle={styles.flexGrow}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            <View
-              style={[
-                styles.viewFlexBox,
-                {justifyContent: 'space-between', gap: 20},
-              ]}>
+            <View style={styles.viewFlexBox}>
               {/* 상단+입력창 */}
               <View>
                 {/* 로고 및 문구 */}
                 <View style={styles.groupParent}>
                   <Logo width={60} height={29} />
                   <View>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       workaway에 입점하기 위한,
                     </Text>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       필수정보를 알려주세요 (2/2)
                     </Text>
                   </View>
@@ -259,9 +264,9 @@ const StoreRegisterForm2 = ({route}) => {
                   {/* 사업장 주소 */}
                   <View style={styles.inputContainer}>
                     <Text style={styles.inputLabel}>사업장 주소</Text>
-                    <View style={[styles.inputBox, {position: 'relative'}]}>
+                    <View style={[styles.inputBox, styles.inputRelative]}>
                       <TextInput
-                        style={[styles.textInput, {flex: 1}]}
+                        style={[styles.textInput, styles.flex]}
                         placeholder="주소를 입력해주세요"
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.address}
@@ -357,22 +362,16 @@ const StoreRegisterForm2 = ({route}) => {
                     <Text style={styles.inputLabel}>사업자 등록증</Text>
                     <View style={[styles.inputBox, styles.imageBox]}>
                       <TouchableOpacity
-                        style={{width: '100%', height: '100%'}}
+                        style={styles.photoBox}
                         onPress={pickImage}>
                         {formData?.img?.uri ? (
                           <Image
                             source={{uri: formData?.img?.uri}}
-                            style={{width: '100%', height: '100%'}}
+                            style={styles.photoBox}
                             resizeMode="cover"
                           />
                         ) : (
-                          <View
-                            style={{
-                              flex: 1,
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              gap: 8,
-                            }}>
+                          <View style={styles.photoContainer}>
                             <Photo width={30} height={30} />
                           </View>
                         )}
@@ -381,7 +380,7 @@ const StoreRegisterForm2 = ({route}) => {
                   </View>
 
                   {/* 동의 목록 */}
-                  <View style={{gap: 12}}>
+                  <View style={styles.agreeGap}>
                     {agreements.map(item => (
                       <View style={[styles.parentWrapperFlexBox]} key={item.id}>
                         <View
@@ -435,7 +434,7 @@ const StoreRegisterForm2 = ({route}) => {
               </View>
 
               {/* 하단 버튼 */}
-              <View style={{alignItems: 'flex-end'}}>
+              <View style={styles.buttonLayout}>
                 <TouchableOpacity
                   style={[
                     styles.addButton,
@@ -445,10 +444,6 @@ const StoreRegisterForm2 = ({route}) => {
                     //   !isBussinessNumbVerified) &&
                     (!isNextEnabled || !isAllAgreed) && styles.addButtonDisable,
                   ]}
-                  disabled={
-                    // !isNextEnabled || !isAllAgreed || !isBussinessNumbVerified
-                    !isNextEnabled || !isAllAgreed
-                  }
                   onPress={handleSubmit}>
                   <Text
                     style={[
@@ -486,7 +481,10 @@ const StoreRegisterForm2 = ({route}) => {
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={'확인'}
-          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+          onPress={
+            errorModal.onPress ??
+            (() => setErrorModal(prev => ({...prev, visible: false})))
+          }
         />
       </View>
     </TouchableWithoutFeedback>

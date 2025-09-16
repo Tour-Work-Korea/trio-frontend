@@ -5,9 +5,8 @@ import {useNavigation} from '@react-navigation/native';
 import styles from '../Employ.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-
-import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
-import Star from '@assets/images/star_white.svg';
+import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
+import StarIcon from '@assets/images/star_white.svg';
 
 export default function WorkAndStay({guesthouses}) {
   const navigation = useNavigation();
@@ -35,7 +34,7 @@ export default function WorkAndStay({guesthouses}) {
             />
           )}
           <View style={styles.ratingBox}>
-            <Star width={14} height={14} />
+            <StarIcon width={14} height={14} />
             <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
               {item.averageRating}
             </Text>
@@ -81,10 +80,9 @@ export default function WorkAndStay({guesthouses}) {
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularGuesthouseList');
-          }}
-          disabled={true}>
+          }}>
           <Text style={styles.seeMoreText}>더보기</Text>
-          <Chevron_right_gray width={24} height={24} />
+          <ChevronRightIcon width={24} height={24} />
         </TouchableOpacity>
       </View>
       <FlatList

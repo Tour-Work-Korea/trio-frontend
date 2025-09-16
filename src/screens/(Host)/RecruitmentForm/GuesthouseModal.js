@@ -2,30 +2,31 @@ import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
-  Alert,
   Modal,
   TouchableOpacity,
   FlatList,
   StyleSheet,
   Image,
 } from 'react-native';
-import styles from './RecruitmentForm';
-import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import {useNavigation} from '@react-navigation/native';
 
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ResultModal from '@components/modals/ResultModal';
+import ErrorModal from '@components/modals/ErrorModal';
+
+import styles from './RecruitmentForm';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import XBtn from '@assets/images/x_gray.svg';
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 import EmployLogo from '@assets/images/wa_blue_apply.svg';
 
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
-import ResultModal from '@components/modals/ResultModal';
-import {useNavigation} from '@react-navigation/native';
-
 const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
   const [guesthouses, setGuesthouses] = useState([]);
   const [selectedId, setSelectedId] = useState(formData?.guesthouseId ?? 0);
+  const [errorModal, setErrorModal] = useState({visible: false, title: ''});
   const navigation = useNavigation();
 
   useEffect(() => {
@@ -38,7 +39,12 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
       const response = await hostGuesthouseApi.getMyGuesthouses();
       setGuesthouses(response?.data ?? []);
     } catch (error) {
-      Alert.alert('나의 게스트하우스 조회에 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        title:
+          error?.response?.data?.message ??
+          '나의 게스트하우스 조회에 실패했습니다.',
+      });
     }
   };
 
@@ -66,14 +72,10 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
           />
         </View>
         <View style={ghStyle.ghContent}>
-          <Text
-            style={{...FONTS.fs_16_semibold, color: COLORS.grayscale_900}}
-            numberOfLines={1}>
+          <Text style={ghStyle.ghTitleText} numberOfLines={1}>
             {item.guesthouseName}
           </Text>
-          <Text style={{...FONTS.fs_12_medium, color: COLORS.grayscale_500}}>
-            {item?.guesthouseAddress}
-          </Text>
+          <Text style={ghStyle.ghAddressText}>{item?.guesthouseAddress}</Text>
         </View>
       </View>
     );
@@ -85,9 +87,9 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
         onClose={onClose}
         title={'게스트하우스'}
         subTitle={'입점된 게스트하우스가 없어요'}
-        message={'입점 신청하러 가볼까요?'}
-        buttonText={'입점 신청하기'}
-        onPress={() => navigation.navigate('StoreRegister')}
+        message={'게스트하우스를 등록하러 가볼까요?'}
+        buttonText={'게스트하우스 등록하기'}
+        onPress={() => navigation.navigate('MyGuesthouseAdd')}
         Icon={EmployLogo}
       />
     );
@@ -99,18 +101,13 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>게스트하우스</Text>
+            <Text style={ghStyle.titleText}>게스트하우스</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
 
-          <Text
-            style={{
-              color: COLORS.grayscale_400,
-              ...FONTS.fs_14_medium,
-              textAlign: 'center',
-            }}>
+          <Text style={ghStyle.subTitle}>
             알바 공고에 등록할 게스트하우스를 선택해주세요
           </Text>
           <FlatList
@@ -132,6 +129,12 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
             </View>
           </View>
         </View>
+        <ErrorModal
+          title={errorModal.title}
+          visible={errorModal.visible}
+          buttonText={'확인'}
+          onPress={() => setErrorModal({visible: false, title: ''})}
+        />
       </View>
     </Modal>
   );
@@ -163,6 +166,14 @@ const ghStyle = StyleSheet.create({
     height: '100%',
     paddingTop: 4,
   },
+  subTitle: {
+    color: COLORS.grayscale_400,
+    ...FONTS.fs_14_medium,
+    textAlign: 'center',
+  },
+  titleText: [FONTS.fs_20_semibold],
+  ghTitleText: {...FONTS.fs_16_semibold, color: COLORS.grayscale_900},
+  ghAddressText: {...FONTS.fs_12_medium, color: COLORS.grayscale_500},
 });
 
 export default GuesthouseModal;

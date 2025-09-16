@@ -72,17 +72,14 @@ export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseRev
 export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
 export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGuesthouseReservationStatus';
 //
-export {default as MyRecruitmentDetail} from './(Host)/MyRecruitmentDetail';
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';
 export {default as ApplicantList} from './(Host)/ApplicantList';
 export {default as ApplicantListByRecruit} from './(Host)/ApplicantListByRecruit';
 
 //
-export {default as StoreRegister} from './(Host)/StoreRegister';
 export {default as StoreRegisterForm1} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm1';
 export {default as StoreRegisterForm2} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm2';
-export {default as StoreRegisterForm} from './(Host)/StoreRegister/StoreRegisterForm';
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
 
 // (User)

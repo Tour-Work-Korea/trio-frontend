@@ -5,7 +5,7 @@ export const isValidBusinessType = type => type.trim().length > 0;
 export const isValidEmployeeCount = count =>
   !isNaN(count) && parseInt(count, 10) >= 0;
 
-export const isValidPhone = phone => /^01[016789][0-9]{7,8}$/.test(phone); // 01012345678 형식
+export const isValidPhone = phone => /^0\d{8,}$/.test(phone);
 
 export const isValidEmail = email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
@@ -24,7 +24,6 @@ export const validateStoreForm1 = form => {
     errors.push('사업장 유형을 입력해주세요.');
   if (!isValidEmployeeCount(form.employeeCount))
     errors.push('직원 수를 정확히 입력해주세요.');
-
   if (!isValidEmail(form.managerEmail))
     errors.push('담당자 이메일 형식이 올바르지 않습니다.');
   if (!isValidName(form.managerName))

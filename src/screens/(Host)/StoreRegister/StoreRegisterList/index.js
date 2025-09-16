@@ -1,15 +1,16 @@
-// 기존 import 문은 동일하게 유지합니다
-
 import React, {useState, useCallback} from 'react';
 import {View, FlatList, Alert, Text, TouchableOpacity} from 'react-native';
-import styles from './StoreRegisterList.styles';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
+
 import Header from '@components/Header';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
-import ButtonScarlet from '@components/ButtonScarlet';
+import EmptyState from '@components/EmptyState';
+
+import styles from './StoreRegisterList.styles';
 import {FONTS} from '@constants/fonts';
 import PlusIcon from '@assets/images/plus_white.svg';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
+import EmptyIcon from '@assets/images/wa_blue_apply.svg';
 
 const StoreRegisterList = () => {
   const navigation = useNavigation();
@@ -34,9 +35,7 @@ const StoreRegisterList = () => {
     <View style={styles.postingCard}>
       <TouchableOpacity style={styles.jobItemContent}>
         <View style={styles.titleRow}>
-          <Text
-            style={[{...FONTS.fs_14_medium, color: COLORS.grayscale_800}]}
-            numberOfLines={1}>
+          <Text style={styles.titleText} numberOfLines={1}>
             {item.businessName}
           </Text>
           <Text style={styles.detailText}>{item.address}</Text>
@@ -61,16 +60,24 @@ const StoreRegisterList = () => {
   return (
     <View style={styles.container}>
       <Header title="나의 입점신청서" />
-      <View style={{paddingHorizontal: 20, paddingTop: 12, flex: 1}}>
+      <View style={styles.body}>
         <FlatList
           data={storeRegisters}
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
+          ListEmptyComponent={
+            <EmptyState
+              icon={EmptyIcon}
+              iconSize={{width: 188, height: 84}}
+              title="입점된 게스트하우스가 없어요"
+              description="지금 입점신청을 해보세요!"
+            />
+          }
         />
         <TouchableOpacity
           style={[styles.addButton, styles.addButtonLocation]}
-          onPress={() => navigation.navigate('StoreRegisterForm')}>
+          onPress={() => navigation.navigate('StoreRegisterForm1')}>
           <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
             입점 신청하기
           </Text>

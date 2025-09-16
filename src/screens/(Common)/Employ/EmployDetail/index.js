@@ -1,25 +1,24 @@
 import React, {useEffect, useState} from 'react';
-import {useNavigation, useRoute} from '@react-navigation/native';
-import {View, ScrollView, Alert} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {View, ScrollView} from 'react-native';
+
 import styles from './EmployDetail.styles';
 import userEmployApi from '@utils/api/userEmployApi';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
-import {
-  RecruitProfileSection,
-  RecruitTapSection,
-  RecruitDescriptionSection,
-  RecruitHeaderSection,
-} from '@components/Employ/EmployDetail';
+import RecruitDescriptionSection from './RecruitDescriptionSection';
+import RecruitHeaderSection from './RecruitHeaderSection';
+import RecruitProfileSection from './RecruitProfileSection';
+import RecruitTapSection from './RecruitTapSection';
 import Loading from '@components/Loading';
 import ButtonScarlet from '@components/ButtonScarlet';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
+import hostEmployApi from '@utils/api/hostEmployApi';
 
-const EmployDetail = () => {
+const EmployDetail = ({route}) => {
   const navigation = useNavigation();
-  const route = useRoute();
   const userRole = useUserStore.getState()?.userRole;
-  const {id} = route.params;
+  const {id, fromHost = false} = route.params ?? {};
   const [recruit, setRecruit] = useState({});
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -28,24 +27,42 @@ const EmployDetail = () => {
   });
 
   useEffect(() => {
-    fetchRecruitById();
+    tryFetchRecruitById();
   }, []);
 
-  const fetchRecruitById = async () => {
+  const tryFetchRecruitById = async () => {
     try {
-      const userRole = useUserStore.getState()?.userRole;
-      const response = await userEmployApi.getRecruitById(
-        id,
-        userRole === 'USER',
-      );
+      let response;
+      if (fromHost) {
+        response = await hostEmployApi.getRecruitDetail(id);
+      } else {
+        response = await userEmployApi.getRecruitById(id, userRole === 'USER');
+      }
       setRecruit(response.data);
     } catch (error) {
-      Alert.alert('공고 상세 조회에 실패했습니다.');
+      setErrorModal({
+        visible: true,
+        message: '공고 상세 조회에 실패했습니다.',
+        buttonText: '확인',
+      });
     }
   };
 
   const toggleFavorite = async isLiked => {
-    toggleLikeRecruit({id, isLiked, setRecruit, showErrorModal: setErrorModal});
+    if (fromHost) {
+      setErrorModal({
+        visible: true,
+        message: '알바 로그인 후 이용가능해요',
+        buttonText: '확인',
+      });
+    } else {
+      toggleLikeRecruit({
+        id,
+        isLiked,
+        setRecruit,
+        showErrorModal: setErrorModal,
+      });
+    }
   };
 
   if (!recruit) {
@@ -61,7 +78,7 @@ const EmployDetail = () => {
           guesthouseName={recruit?.guesthouseName}
           recruitImages={recruit?.recruitImages}
         />
-        <View style={{paddingHorizontal: 20}}>
+        <View style={styles.contentContainer}>
           {/* 상단 기본 정보(공고 제목, 위치, 요약) */}
           <RecruitProfileSection
             recruit={recruit}
@@ -74,17 +91,19 @@ const EmployDetail = () => {
           <RecruitDescriptionSection description={recruit?.recruitDetail} />
         </View>
         {/* 하단 버튼 */}
-        <View style={styles.bottomButtonContainer}>
-          <ButtonScarlet
-            onPress={() => {
-              navigation.navigate('ApplicantForm', {
-                recruitId: recruit?.recruitId,
-              });
-            }}
-            title="지원하기"
-            disabled={userRole !== 'USER'}
-          />
-        </View>
+        {!fromHost && (
+          <View style={styles.bottomButtonContainer}>
+            <ButtonScarlet
+              onPress={() => {
+                navigation.navigate('ApplicantForm', {
+                  recruitId: recruit?.recruitId,
+                });
+              }}
+              title="지원하기"
+              disabled={userRole !== 'USER'}
+            />
+          </View>
+        )}
       </ScrollView>
       <ErrorModal
         visible={errorModal.visible}

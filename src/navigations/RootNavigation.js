@@ -14,7 +14,7 @@ import {
   ResumeDetail,
   AgreeDetail,
   ApplySuccess,
-  StoreRegister,
+  StoreRegisterList,
   MeetMain,
   MeetSearch,
   MeetDetail,
@@ -42,7 +42,6 @@ import {
   MyGuesthouseReservationStatus,
   MyRecruitmentList,
   RecruitmentForm,
-  MyRecruitmentDetail,
   MyLikeRecruitList,
   MyApplicantList,
   MyResumeList,
@@ -62,6 +61,8 @@ import {
   UserGuesthouseReview,
   UserMeetReservationCheck,
   UserFavoriteMeet,
+  StoreRegisterForm1,
+  StoreRegisterForm2,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -93,7 +94,7 @@ const RootNavigation = () => (
         name="GuesthousePaymentSuccess"
         component={GuesthousePaymentSuccess}
       />
-      <Stack.Screen name="StoreRegister" component={StoreRegister} />
+      <Stack.Screen name="StoreRegisterList" component={StoreRegisterList} />
 
       {/* 공고 하단바 없는 화면 */}
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
@@ -134,6 +135,8 @@ const RootNavigation = () => (
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
+      <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
+      <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
       <Stack.Screen name="MyGuesthouseAdd" component={MyGuesthouseAdd} />
       <Stack.Screen name="MyGuesthouseEdit" component={MyGuesthouseEdit} />
@@ -150,10 +153,6 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
-      <Stack.Screen
-        name="MyRecruitmentDetail"
-        component={MyRecruitmentDetail}
-      />
       <Stack.Screen name="ApplicantList" component={ApplicantList} />
       <Stack.Screen
         name="ApplicantListByRecruit"

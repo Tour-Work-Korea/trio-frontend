@@ -1,16 +1,18 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ApplyLogo from '@assets/images/wa_blue_apply.svg';
-import styles from './MyRecruitmentList.styles';
 import ErrorModal from '@components/modals/ErrorModal';
 import ResultModal from '@components/modals/ResultModal';
-import LogoBlueSmile from '@assets/images/logo_blue_smile.svg';
+import ApplicantItem from '@components/Employ/ApplicantItem';
+
+import ApplyLogo from '@assets/images/wa_blue_apply.svg';
+import styles from './MyRecruitmentList.styles';
+import BlueSmileLogo from '@assets/images/logo_blue_smile.svg';
 import PlusIcon from '@assets/images/plus_white.svg';
 import {FONTS} from '@constants/fonts';
-import ApplicantItem from '@components/Employ/ApplicantItem';
 
 const MyRecruitmentList = () => {
   const navigation = useNavigation();
@@ -54,7 +56,10 @@ const MyRecruitmentList = () => {
   };
 
   const handleViewDetail = recruit => {
-    navigation.navigate('MyRecruitmentDetail', recruit?.recruitId);
+    navigation.navigate('EmployDetail', {
+      id: recruit?.recruitId,
+      fromHost: true,
+    });
   };
 
   const handleDeletePosting = id => {
@@ -151,7 +156,7 @@ const MyRecruitmentList = () => {
           setResultModalVisible(false);
         }}
         title={'마감요청이 되었어요!'}
-        Icon={LogoBlueSmile}
+        Icon={BlueSmileLogo}
       />
     </View>
   );
