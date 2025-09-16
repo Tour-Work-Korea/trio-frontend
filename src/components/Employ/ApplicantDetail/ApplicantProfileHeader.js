@@ -1,6 +1,6 @@
 import React from 'react';
 import {View, Text, Image, StyleSheet} from 'react-native';
-import ProfileIcon from '@assets/images/person20_gray.svg';
+import ProfileIcon from '@assets/images/wlogo_gray_up.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -16,14 +16,14 @@ const ApplicantProfileHeader = ({data}) => {
           </Text>
         </View>
         <View style={styles.profileMainContainer}>
-          {data?.photoUrl ? (
+          {data?.photoUrl !== '사진을 추가해주세요' ? (
             <Image
               source={{uri: data?.photoUrl}}
               style={styles.profileImageContainer}
             />
           ) : (
             <View style={styles.profileImageContainer}>
-              <ProfileIcon width={80} height={80} />
+              <ProfileIcon width={40} height={40} />
             </View>
           )}
 

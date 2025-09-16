@@ -8,24 +8,22 @@ import {
   ScrollView,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import styles from './EmploySearchResult.styles';
+
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
 import EmploySortModal from '@components/modals/Employ/EmploySortModal';
-// 아이콘 불러오기
-import SearchIcon from '@assets/images/search_gray.svg';
-import FilterIcon from '@assets/images/filter_gray.svg';
-import SortIcon from '@assets/images/sort_toggle_gray.svg';
-import Chevron_left_black from '@assets/images/chevron_left_black.svg';
-import MapIcon from '@assets/images/map_black.svg';
-import Loading from '@components/Loading';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
+import Loading from '@components/Loading';
+// 아이콘 불러오기
+import styles from './EmploySearchResult.styles';
+import SearchIcon from '@assets/images/search_gray.svg';
+import FilterIcon from '@assets/images/filter_gray.svg';
+import SortIcon from '@assets/images/sort_toggle_gray.svg';
+import {COLORS} from '@constants/colors';
 
 const EmploySearchResult = ({route}) => {
   const {search} = route.params;
@@ -42,16 +40,13 @@ const EmploySearchResult = ({route}) => {
     buttonText: '',
   });
 
-  //모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
-  //필터 정보
   const [filterOptions, setFilterOptions] = useState({
     regions: [],
     tags: [],
   });
   const [keywords, setKeywords] = useState([]);
-  //정렬
   const [selectedSort, setSelectedSort] = useState({
     label: '추천 순',
     value: 'RECOMMEND',
@@ -59,11 +54,12 @@ const EmploySearchResult = ({route}) => {
 
   // 1. 검색 버튼 누르면 search 트리거
   useEffect(() => {
-    if (!isSearch) return;
-
+    if (!isSearch) {
+      return;
+    }
     setIsLast(false);
     setRecruitList([]);
-    fetchRecruitList(0, false);
+    tryFetchRecruitList(0, false);
     setIsSearch(false);
     setPage(0);
     console.log('검색 트리거로 fetch');
@@ -73,7 +69,7 @@ const EmploySearchResult = ({route}) => {
   useEffect(() => {
     setIsLast(false);
     setRecruitList([]);
-    fetchRecruitList(0, false);
+    tryFetchRecruitList(0, false);
     setPage(0);
     console.log('필터/정렬 변경 시 fetch');
   }, [filterOptions, selectedSort]);
@@ -84,11 +80,10 @@ const EmploySearchResult = ({route}) => {
       if (searchText && searchText.trim().length > 0) {
         setIsLast(false);
         setRecruitList([]);
-        fetchRecruitList(0, false);
+        tryFetchRecruitList(0, false);
         setPage(0);
-        console.log('최초 진입 시 fetch');
       }
-    }, [searchText]), // selectedSort, filterOptions 빼야 중복 호출 안 됨
+    }, [searchText]),
   );
 
   useEffect(() => {
@@ -101,7 +96,7 @@ const EmploySearchResult = ({route}) => {
   }, [filterOptions]);
 
   //채용 공고 조회
-  const fetchRecruitList = async (pageToFetch = 0, lastToFetch) => {
+  const tryFetchRecruitList = async (pageToFetch = 0, lastToFetch) => {
     if (isEmLoading || lastToFetch) {
       console.log(isEmLoading, lastToFetch);
       return;
@@ -141,8 +136,8 @@ const EmploySearchResult = ({route}) => {
   const handleEndReached = () => {
     if (!isEmLoading && !isLast) {
       const nextPage = page + 1;
-      fetchRecruitList(nextPage, isLast); // 먼저 요청 보내고
-      setPage(nextPage); // 그다음 상태 업데이트
+      tryFetchRecruitList(nextPage, isLast);
+      setPage(nextPage);
     }
   };
 
@@ -167,9 +162,9 @@ const EmploySearchResult = ({route}) => {
           onSubmitEditing={() => setIsSearch(true)}
         />
       </View>
-      {/* 뽑고 있는 게스트하우스 */}
-      <View style={styles.guesthouseListContainer}>
-        <View style={styles.guesthouseListHeader}>
+      {/* 공고 리스트 */}
+      <View style={styles.recruitListContainer}>
+        <View style={styles.recruitListHeader}>
           <View style={styles.filterContainer}>
             <TouchableOpacity
               style={styles.filterButtonContainer}
@@ -178,19 +173,17 @@ const EmploySearchResult = ({route}) => {
                 setFilterModalVisible(true);
               }}>
               <FilterIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
+              <Text style={styles.filterTitleText}>필터</Text>
             </TouchableOpacity>
             {/* 필터 선택 내용 */}
             <ScrollView
-              style={{flex: 1}}
+              style={styles.modalContainer}
               horizontal
               showsHorizontalScrollIndicator={false}
               contentContainerStyle={styles.selectFilterContainer}>
               {keywords.map((tag, index) => (
                 <View key={index} style={styles.selectFilter}>
-                  <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
-                    {tag}
-                  </Text>
+                  <Text style={styles.selectFilterText}>{tag}</Text>
                 </View>
               ))}
             </ScrollView>
@@ -199,9 +192,7 @@ const EmploySearchResult = ({route}) => {
             style={styles.sortContainer}
             onPress={() => setSortModalVisible(true)}>
             <SortIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.sortText]}>
-              {selectedSort.label}
-            </Text>
+            <Text style={styles.sortText}>{selectedSort.label}</Text>
           </TouchableOpacity>
         </View>
 

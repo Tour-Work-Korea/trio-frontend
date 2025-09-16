@@ -9,20 +9,18 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import styles from '../StoreRegisterForm.styles';
-import {FONTS} from '@constants/fonts';
 import {useMemo, useState} from 'react';
+
 import {validateStoreForm1} from '@utils/validation/storeRegisterValidation';
 import {useNavigation} from '@react-navigation/native';
 import ErrorModal from '@components/modals/ErrorModal';
+
+import styles from '../StoreRegisterForm.styles';
+import {FONTS} from '@constants/fonts';
 import Logo from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
 import NextIcon from '@assets/images/arrow_right_white.svg';
 import NextDisabledIcon from '@assets/images/arrow_right_black.svg';
-
-/*
- * 입점 등록 신청 페이지
- */
 
 const StoreRegisterForm1 = () => {
   const navigation = useNavigation();
@@ -72,27 +70,26 @@ const StoreRegisterForm1 = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={styles.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
           keyboardVerticalOffset={Platform.OS === 'ios' ? 0 : 20} // 필요 시 조정
         >
           <ScrollView
-            style={{flex: 1}}
-            contentContainerStyle={{flexGrow: 1}}
+            style={styles.flex}
+            contentContainerStyle={styles.flexGrow}
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled">
-            <View
-              style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+            <View style={styles.viewFlexBox}>
               {/* 상단+입력창 */}
               <View>
                 {/* 로고 및 문구 */}
                 <View style={styles.groupParent}>
                   <Logo width={60} height={29} />
                   <View>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       workaway에 입점하기 위한,
                     </Text>
-                    <Text style={[styles.titleText]}>
+                    <Text style={styles.titleText}>
                       필수정보를 알려주세요 (1/2)
                     </Text>
                   </View>
@@ -178,14 +175,13 @@ const StoreRegisterForm1 = () => {
                 </View>
               </View>
 
-              <View style={{alignItems: 'flex-end'}}>
+              <View style={styles.buttonLayout}>
                 <TouchableOpacity
                   style={[
                     styles.addButton,
                     styles.addButtonLocation,
                     !isNextEnabled && styles.addButtonDisable,
                   ]}
-                  disabled={!isNextEnabled}
                   onPress={handleSubmit}>
                   <Text
                     style={[

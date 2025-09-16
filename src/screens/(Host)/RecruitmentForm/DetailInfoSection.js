@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {View, Text, TextInput, Modal, TouchableOpacity} from 'react-native';
+import {
+  View,
+  Text,
+  TextInput,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import styles from './RecruitmentForm';
 import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
@@ -20,7 +27,7 @@ export default function DetailInfoSection({
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>공고 요약</Text>
+            <Text style={[FONTS.fs_20_semibold]}>상세 정보</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
@@ -34,13 +41,8 @@ export default function DetailInfoSection({
               }}>
               알바공고 상세정보를 자유롭게 작성해주세요
             </Text>
-            <Text
-              style={{
-                ...FONTS.fs_12_medium,
-                color: COLORS.grayscale_400,
-                textAlign: 'right',
-              }}>
-              <Text style={{color: COLORS.primary_orange}}>
+            <Text style={detailStyle.lengthTextAll}>
+              <Text style={detailStyle.lengthText}>
                 {recruitDetail?.length?.toLocaleString()}
               </Text>
               /5,000
@@ -57,14 +59,7 @@ export default function DetailInfoSection({
             />
 
             <TouchableOpacity onPress={() => setRecruitDetail('')}>
-              <Text
-                style={{
-                  textAlign: 'right',
-                  color: COLORS.grayscale_500,
-                  ...FONTS.fs_12_medium,
-                }}>
-                다시쓰기
-              </Text>
+              <Text style={detailStyle.rewriteText}>다시쓰기</Text>
             </TouchableOpacity>
           </View>
 
@@ -85,3 +80,17 @@ export default function DetailInfoSection({
     </Modal>
   );
 }
+
+const detailStyle = StyleSheet.create({
+  lengthTextAll: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+  lengthText: {color: COLORS.primary_orange},
+  rewriteText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+});

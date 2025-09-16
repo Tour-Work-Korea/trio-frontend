@@ -42,7 +42,6 @@ import {
   MyGuesthouseReservationStatus,
   MyRecruitmentList,
   RecruitmentForm,
-  MyRecruitmentDetail,
   MyLikeRecruitList,
   MyApplicantList,
   MyResumeList,
@@ -144,10 +143,6 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
-      <Stack.Screen
-        name="MyRecruitmentDetail"
-        component={MyRecruitmentDetail}
-      />
       <Stack.Screen name="ApplicantList" component={ApplicantList} />
       <Stack.Screen
         name="ApplicantListByRecruit"

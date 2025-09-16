@@ -24,7 +24,6 @@ export default StyleSheet.create({
     color: COLORS.grayscale_800,
   },
 
-  //공고 카드
   RecruitCard: {
     borderRadius: 8,
     paddingVertical: 16,
@@ -50,6 +49,13 @@ export default StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     gap: 8,
+  },
+  titleHeader: {justifyContent: 'space-between', flex: 1},
+  guestHouseHeader: {marginBottom: 4},
+  titleText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
   },
   jobType: {
     ...FONTS.fs_12_medium,

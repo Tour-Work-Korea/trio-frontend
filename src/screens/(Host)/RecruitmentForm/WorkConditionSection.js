@@ -6,16 +6,16 @@ import {
   TouchableOpacity,
   Modal,
   KeyboardAvoidingView,
-  TouchableWithoutFeedback,
-  Keyboard,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
-import styles from './RecruitmentForm';
 
+import ButtonScarlet from '@components/ButtonScarlet';
+
+import styles from './RecruitmentForm';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import ButtonScarlet from '@components/ButtonScarlet';
 
 export default function WorkConditionSection({
   handleInputChange,
@@ -76,42 +76,36 @@ export default function WorkConditionSection({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
-        {/* <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}> */}
+      <KeyboardAvoidingView style={recruitStyle.flex} enabled>
         <View style={styles.overlay}>
           <View style={styles.container}>
             {/* 헤더 */}
             <View style={styles.header}>
               <View />
-              <Text style={[FONTS.fs_20_semibold]}>근무 조건</Text>
+              <Text style={recruitStyle.headerText}>근무 조건</Text>
               <TouchableOpacity style={styles.xBtn} onPress={onClose}>
                 <XBtn width={24} height={24} />
               </TouchableOpacity>
             </View>
             <ScrollView
-              style={{flex: 1}}
+              style={recruitStyle.flex}
               contentContainerStyle={styles.body}
               showsVerticalScrollIndicator={false}
               keyboardDismissMode="on-drag"
               keyboardShouldPersistTaps="handled">
               {/* 근무형태 */}
               <View>
-                <View style={[styles.countRow]}>
+                <View style={styles.countRow}>
                   <Text style={styles.subsectionTitle}>근무 형태</Text>
-                  <Text
-                    style={{
-                      ...FONTS.fs_12_medium,
-                      color: COLORS.grayscale_400,
-                      textAlign: 'right',
-                    }}>
-                    <Text style={{color: COLORS.primary_orange}}>
+                  <Text style={recruitStyle.lengthTextAll}>
+                    <Text style={recruitStyle.lengthText}>
                       {formData?.workType?.length?.toLocaleString()}
                     </Text>
                     /50
                   </Text>
                 </View>
                 <TextInput
-                  style={[styles.input, {flex: 1}]}
+                  style={[styles.input, recruitStyle.flex]}
                   placeholder="기타 입력"
                   placeholderTextColor={COLORS.grayscale_400}
                   multiline={true}
@@ -158,15 +152,7 @@ export default function WorkConditionSection({
                     );
                   })}
                   <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        flex: 1,
-                        backgroundColor: COLORS.grayscale_0,
-                        marginHorizontal: 10,
-                        marginBottom: 10,
-                      },
-                    ]}
+                    style={[styles.input, recruitStyle.otherInput]}
                     placeholder="기타 입력"
                     placeholderTextColor={COLORS.grayscale_400}
                     multiline={true}
@@ -239,15 +225,7 @@ export default function WorkConditionSection({
                     );
                   })}
                   <TextInput
-                    style={[
-                      styles.input,
-                      {
-                        flex: 1,
-                        backgroundColor: COLORS.grayscale_0,
-                        marginHorizontal: 10,
-                        marginBottom: 10,
-                      },
-                    ]}
+                    style={[styles.input, recruitStyle.otherInput]}
                     placeholder="기타 입력"
                     placeholderTextColor={COLORS.grayscale_400}
                     multiline={true}
@@ -257,7 +235,7 @@ export default function WorkConditionSection({
                   />
                 </View>
               </View>
-              <View style={{marginVertical: 20}}>
+              <View style={recruitStyle.bottomContainer}>
                 <ButtonScarlet
                   title={'적용하기'}
                   onPress={() => {
@@ -284,8 +262,36 @@ export default function WorkConditionSection({
             </ScrollView>
           </View>
         </View>
-        {/* </TouchableWithoutFeedback> */}
       </KeyboardAvoidingView>
     </Modal>
   );
 }
+
+const recruitStyle = StyleSheet.create({
+  flex: {flex: 1},
+  headerText: [FONTS.fs_20_semibold],
+  innerContainer: {gap: 4},
+  subtitle: {
+    color: COLORS.grayscale_900,
+    ...FONTS.fs_16_medium,
+  },
+  lengthTextAll: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+  lengthText: {color: COLORS.primary_orange},
+  rewriteText: {
+    textAlign: 'right',
+    color: COLORS.grayscale_500,
+    ...FONTS.fs_12_medium,
+  },
+  tagText: {...FONTS.fs_14_medium, color: COLORS.primary_blue},
+  bottomContainer: {marginVertical: 20},
+  otherInput: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
+    marginHorizontal: 10,
+    marginBottom: 10,
+  },
+});

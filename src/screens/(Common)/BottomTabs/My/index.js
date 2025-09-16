@@ -8,13 +8,10 @@ import {
   UserFavoriteGuesthouse,
   UserGuesthouseReview,
 } from '@screens';
-
-import {Alert} from 'react-native';
 import useUserStore from '@stores/userStore';
 
 const Stack = createNativeStackNavigator();
 
-// 유저인지 사장님인지에 따라 분기
 const MyMainScreen = ({navigation}) => {
   const userRole = useUserStore(state => state.userRole);
 

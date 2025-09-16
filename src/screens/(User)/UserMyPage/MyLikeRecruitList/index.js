@@ -1,13 +1,15 @@
 import React, {useState, useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
+
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
-import {COLORS} from '@constants/colors';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
+
+import {COLORS} from '@constants/colors';
 
 export default function MyLikeRecruitList() {
   const navigation = useNavigation();
@@ -21,11 +23,11 @@ export default function MyLikeRecruitList() {
 
   useFocusEffect(
     useCallback(() => {
-      fetchRecruitList();
+      tryFetchRecruitList();
     }, []),
   );
-  //좋아요한 채용 공고 조회
-  const fetchRecruitList = async () => {
+
+  const tryFetchRecruitList = async () => {
     setLoading(true);
     try {
       const res = await userEmployApi.getLikeRecruits();

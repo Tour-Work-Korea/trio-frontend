@@ -1,17 +1,17 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
-import styles from './MyApplicantList.styles';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
+
 import userEmployApi from '@utils/api/userEmployApi';
 import ButtonWhite from '@components/ButtonWhite';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
-import DeleteWaLogo from '@assets/images/delete_wa.svg';
 import ResultModal from '@components/modals/ResultModal';
 import {formatLocalDateToDot} from '@utils/formatDate';
+
+import styles from './MyApplicantList.styles';
+import DeleteWaLogo from '@assets/images/delete_wa.svg';
 
 const MyApplicantList = () => {
   const navigation = useNavigation();
@@ -98,14 +98,10 @@ const MyApplicantList = () => {
             <View style={styles.jobDetails}>
               <View style={{flex: 1}}>
                 {/* 게하 이름+하트 */}
-                <View style={[styles.jobHeader, {marginBottom: 4}]}>
+                <View style={[styles.jobHeader, styles.guestHouseHeader]}>
                   <Text style={styles.jobType}>{item.guesthouseName}</Text>
                 </View>
-                <View
-                  style={{
-                    justifyContent: 'space-between',
-                    flex: 1,
-                  }}>
+                <View style={styles.titleHeader}>
                   {/* 공고 제목 + 날짜 */}
                   <View style={[styles.jobHeader]}>
                     <Text
@@ -132,14 +128,7 @@ const MyApplicantList = () => {
               headerTitle: '나의 이력서',
             })
           }>
-          <Text
-            style={{
-              ...FONTS.fs_14_medium,
-              color: COLORS.grayscale_900,
-              marginBottom: 4,
-            }}>
-            {item.resumeTitle}
-          </Text>
+          <Text style={styles.titleText}>{item.resumeTitle}</Text>
           <View style={styles.applyContainer}>
             <Text style={styles.applyText}>지원 날짜</Text>
             <Text style={styles.applyText}>

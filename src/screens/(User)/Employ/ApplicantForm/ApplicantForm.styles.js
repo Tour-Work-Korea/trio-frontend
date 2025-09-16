@@ -12,6 +12,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     flexDirection: 'column',
   },
+  body: {gap: 8},
+  flex: {flex: 1},
   //헤더
   headerBox: {
     flexDirection: 'row',
@@ -23,8 +25,7 @@ const styles = StyleSheet.create({
     ...FONTS.fs_20_semibold,
     color: COLORS.grayscale_800,
   },
-
-  //이력서 리스트
+  privacySection: {marginBottom: 20},
   sectionTitle: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_400,

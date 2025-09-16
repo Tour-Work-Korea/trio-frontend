@@ -1,15 +1,15 @@
 import {View, TouchableOpacity, Text} from 'react-native';
-import styles from './Intro.styles';
 import {useNavigation} from '@react-navigation/native';
-
 import React, {useState} from 'react';
 
+import ButtonWhite from '@components/ButtonWhite';
+import ErrorModal from '@components/modals/ErrorModal';
+
+import styles from './LoginIntro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
 import NaverLogo from '@assets/images/naver_logo.svg';
 import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
-import ButtonWhite from '@components/ButtonWhite';
-import ErrorModal from '@components/modals/ErrorModal';
 
 const LoginIntro = () => {
   const navigation = useNavigation();
@@ -41,7 +41,6 @@ const LoginIntro = () => {
             />
             <ButtonWhite
               title="네이버로 시작하기"
-              // to="UserRegisterAgree"
               onPress={() =>
                 setErrorModal({
                   visible: true,

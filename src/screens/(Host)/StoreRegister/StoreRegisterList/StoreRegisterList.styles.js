@@ -6,11 +6,7 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.light_gray,
   },
-  body: {
-    flex: 1,
-    paddingHorizontal: 15,
-    paddingVertical: 20,
-  },
+  body: {paddingHorizontal: 20, paddingTop: 12, flex: 1},
   headerText: {
     color: COLORS.scarlet, // Red-orange color
     textAlign: 'right',
@@ -28,6 +24,7 @@ export default StyleSheet.create({
   titleRow: {
     marginBottom: 10,
   },
+  titleText: {paddingHorizontal: 20, paddingTop: 12, flex: 1},
   detailText: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_500,

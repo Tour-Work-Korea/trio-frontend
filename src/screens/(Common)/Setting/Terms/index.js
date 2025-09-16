@@ -1,14 +1,12 @@
 import React from 'react';
 import {View, Text, ScrollView, StyleSheet} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
+
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 const Terms = () => {
-  const navigation = useNavigation();
-
   return (
     <View style={{flex: 1, backgroundColor: COLORS.grayscale_100}}>
       <Header title={'이용약관'} />

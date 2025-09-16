@@ -4,15 +4,15 @@ import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   container: {
+    paddingVertical: 40,
     backgroundColor: COLORS.white,
     flex: 1,
     color: COLORS.grayscale_900,
-    paddingVertical: 40,
   },
   flex: {
     flex: 1,
   },
-  widthFour: {width: 4},
+  scrollContent: {flexGrow: 1, justifyContent: 'space-between'},
   viewFlexBox: {
     gap: 0,
     flex: 1,
@@ -20,7 +20,6 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
@@ -74,6 +73,7 @@ export default StyleSheet.create({
     borderColor: COLORS.grayscale_200,
     borderWidth: 1,
   },
+  inputRelative: {position: 'relative'},
   textInput: {
     flex: 1,
     height: 44,

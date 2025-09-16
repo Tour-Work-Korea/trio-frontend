@@ -6,7 +6,6 @@ import {
   TouchableOpacity,
   KeyboardAvoidingView,
   ScrollView,
-  Platform,
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
@@ -16,17 +15,19 @@ import {
   useFocusEffect,
   CommonActions,
 } from '@react-navigation/native';
-import styles from '../../../(Common)/Register/Register.styles';
+
+import authApi from '@utils/api/authApi';
+import ButtonScarlet from '@components/ButtonScarlet';
+import {validateRegisterProfile} from '@utils/validation/registerValidation';
+import ErrorModal from '@components/modals/ErrorModal';
+import {tryLogin} from '@utils/auth/login';
+
+import styles from './UserRegisterProfile.styles';
 import Logo from '@assets/images/logo_orange.svg';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
-import authApi from '@utils/api/authApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import {COLORS} from '@constants/colors';
-import {validateRegisterProfile} from '@utils/validation/registerValidation';
 import {FONTS} from '@constants/fonts';
-import ErrorModal from '@components/modals/ErrorModal';
-import {tryLogin} from '@utils/auth/login';
 
 const UserRegisterProfile = () => {
   const route = useRoute();
@@ -153,7 +154,6 @@ const UserRegisterProfile = () => {
     }
   };
 
-  //회원가입 후 자동 로그인 처리
   const afterSuccessRegister = async () => {
     const isSuccessLogin = await tryLogin(
       formData.email,
@@ -196,13 +196,10 @@ const UserRegisterProfile = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <KeyboardAvoidingView style={{flex: 1}}>
+        <KeyboardAvoidingView style={styles.flex}>
           <ScrollView
             style={[styles.viewFlexBox]}
-            contentContainerStyle={{
-              flexGrow: 1,
-              justifyContent: 'space-between',
-            }}
+            contentContainerStyle={styles.scrollContent}
             keyboardShouldPersistTaps="handled">
             {/* 상단+입력창 */}
             <View>
@@ -219,7 +216,7 @@ const UserRegisterProfile = () => {
               <View style={styles.inputGroup}>
                 <View style={styles.inputContainer}>
                   <Text style={styles.inputLabel}>닉네임</Text>
-                  <View style={[styles.inputBox, {position: 'relative'}]}>
+                  <View style={[styles.inputBox, styles.inputRelative]}>
                     <TextInput
                       style={styles.textInput}
                       placeholder="닉네임을 입력해주세요"

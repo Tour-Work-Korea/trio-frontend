@@ -11,13 +11,14 @@ import {
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
-import styles from './ProfileUpdate.styles';
-import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import {calculateAge} from '@utils/auth/login';
+
+import styles from './ProfileUpdate.styles';
+import {FONTS} from '@constants/fonts';
 
 const ProfileUpdate = () => {
   const navigation = useNavigation();
@@ -39,9 +40,10 @@ const ProfileUpdate = () => {
 
   const canSave = useMemo(() => {
     const rawId = (formData.instagramId ?? '').trim();
-    const id = rawId.replace(/^@+/, ''); // 혹시 @ 입력하면 제거
+    const id = rawId.replace(/^@+/, '');
     const isIdValid = id.length > 0 && id !== 'ID를 추가해주세요';
-    const isMbtiValid = !!(formData.mbti ?? '').trim();
+    const isMbtiValid =
+      !!(formData.mbti ?? '').trim() && formData.mbti !== 'DEFAULT';
     return isIdValid && isMbtiValid;
   }, [formData.instagramId, formData.mbti]);
   const updateMyProfile = async () => {
@@ -91,7 +93,7 @@ const ProfileUpdate = () => {
   return (
     <>
       <KeyboardAvoidingView
-        style={{flex: 1}}
+        style={styles.flex}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={80} // 필요에 따라 조절
       >
@@ -99,9 +101,7 @@ const ProfileUpdate = () => {
           <Header title="내 정보 추가하기" />
           <ScrollView
             style={styles.container}
-            contentContainerStyle={{
-              justifyContent: 'space-between',
-            }}
+            contentContainerStyle={styles.scrollViewContent}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled">
             <View>

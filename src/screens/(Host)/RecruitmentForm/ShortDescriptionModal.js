@@ -9,15 +9,17 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   ScrollView,
+  StyleSheet,
 } from 'react-native';
 import styles from './RecruitmentForm';
 
 import ButtonScarlet from '@components/ButtonScarlet';
+import hostEmployApi from '@utils/api/hostEmployApi';
+import ErrorModal from '@components/modals/ErrorModal';
+
 import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import hostEmployApi from '@utils/api/hostEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
 
 const ShortDescriptionModal = ({
   handleInputChange,
@@ -65,37 +67,28 @@ const ShortDescriptionModal = ({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
+      <KeyboardAvoidingView style={recruitStyle.flex} enabled>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.overlay}>
             <View style={styles.container}>
               {/* 헤더 */}
               <View style={styles.header}>
                 <View />
-                <Text style={[FONTS.fs_20_semibold]}>공고 요약</Text>
+                <Text style={recruitStyle.headerText}>공고 요약</Text>
                 <TouchableOpacity style={styles.xBtn} onPress={onClose}>
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
               <ScrollView
-                style={{flex: 1}}
+                style={recruitStyle.flex}
                 contentContainerStyle={styles.body}
                 showsVerticalScrollIndicator={false}>
-                <View style={{gap: 4}}>
-                  <Text
-                    style={{
-                      color: COLORS.grayscale_900,
-                      ...FONTS.fs_16_medium,
-                    }}>
+                <View style={recruitStyle.innerContainer}>
+                  <Text style={recruitStyle.subtitle}>
                     간략하게 들어갈 공고 소개를 작성해주세요
                   </Text>
-                  <Text
-                    style={{
-                      ...FONTS.fs_12_medium,
-                      color: COLORS.grayscale_400,
-                      textAlign: 'right',
-                    }}>
-                    <Text style={{color: COLORS.primary_orange}}>
+                  <Text style={recruitStyle.lengthTextAll}>
+                    <Text style={recruitStyle.lengthText}>
                       {shortDescription?.length?.toLocaleString()}
                     </Text>
                     /1,000
@@ -110,28 +103,14 @@ const ShortDescriptionModal = ({
                     onChangeText={setShortDescription}
                   />
                   <TouchableOpacity onPress={() => setShortDescription('')}>
-                    <Text
-                      style={{
-                        textAlign: 'right',
-                        color: COLORS.grayscale_500,
-                        ...FONTS.fs_12_medium,
-                      }}>
-                      다시쓰기
-                    </Text>
+                    <Text style={recruitStyle.rewriteText}>다시쓰기</Text>
                   </TouchableOpacity>
                 </View>
 
-                <View style={{gap: 4}}>
-                  <Text
-                    style={{
-                      color: COLORS.grayscale_900,
-                      ...FONTS.fs_16_medium,
-                    }}>
-                    태그
-                  </Text>
+                <View style={recruitStyle.innerContainer}>
+                  <Text style={recruitStyle.subtitle}>태그</Text>
 
-                  <Text
-                    style={{...FONTS.fs_14_medium, color: COLORS.primary_blue}}>
+                  <Text style={recruitStyle.tagText}>
                     태그로 공고를 눈에 띄게 나타내보세요! (최대 3개)
                   </Text>
 
@@ -160,7 +139,7 @@ const ShortDescriptionModal = ({
               </ScrollView>
 
               {/* 하단 버튼 */}
-              <View style={{marginVertical: 20}}>
+              <View style={recruitStyle.bottomContainer}>
                 <ButtonScarlet
                   title="적용하기"
                   onPress={() => {
@@ -185,5 +164,27 @@ const ShortDescriptionModal = ({
     </Modal>
   );
 };
+const recruitStyle = StyleSheet.create({
+  flex: {flex: 1},
+  headerText: [FONTS.fs_20_semibold],
+  innerContainer: {gap: 4},
+  subtitle: {
+    color: COLORS.grayscale_900,
+    ...FONTS.fs_16_medium,
+  },
+  lengthTextAll: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
+    textAlign: 'right',
+  },
+  lengthText: {color: COLORS.primary_orange},
+  rewriteText: {
+    textAlign: 'right',
+    color: COLORS.grayscale_500,
+    ...FONTS.fs_12_medium,
+  },
+  tagText: {...FONTS.fs_14_medium, color: COLORS.primary_blue},
+  bottomContainer: {marginVertical: 20},
+});
 
 export default ShortDescriptionModal;

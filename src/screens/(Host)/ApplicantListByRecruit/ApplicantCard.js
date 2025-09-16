@@ -9,8 +9,8 @@ export default function ApplicantCard({item, handleApplicantPress}) {
     <TouchableOpacity onPress={() => handleApplicantPress(item.id)}>
       <View style={styles.applicantCard}>
         <View style={styles.applyRow}>
-          <Text style={styles.applyText}>지원 날짜</Text>
-          <Text style={styles.applyText}>
+          <Text style={styles.applyBox}>지원 날짜</Text>
+          <Text style={styles.applyBox}>
             {formatLocalDateToDot(item.applyDate)}
           </Text>
         </View>
