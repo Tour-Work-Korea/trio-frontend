@@ -149,6 +149,13 @@ const StoreRegisterForm2 = ({route}) => {
       });
       return;
     }
+    if (!isAllAgreed) {
+      setErrorModal({
+        visible: true,
+        title: '이용 약관에 동의해주세요.',
+      });
+      return;
+    }
 
     const fullForm = {
       ...formData,
@@ -437,10 +444,6 @@ const StoreRegisterForm2 = ({route}) => {
                     //   !isBussinessNumbVerified) &&
                     (!isNextEnabled || !isAllAgreed) && styles.addButtonDisable,
                   ]}
-                  disabled={
-                    // !isNextEnabled || !isAllAgreed || !isBussinessNumbVerified
-                    !isNextEnabled || !isAllAgreed
-                  }
                   onPress={handleSubmit}>
                   <Text
                     style={[

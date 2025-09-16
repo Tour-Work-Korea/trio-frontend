@@ -182,7 +182,6 @@ const StoreRegisterForm1 = () => {
                     styles.addButtonLocation,
                     !isNextEnabled && styles.addButtonDisable,
                   ]}
-                  disabled={!isNextEnabled}
                   onPress={handleSubmit}>
                   <Text
                     style={[
