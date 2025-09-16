@@ -293,11 +293,11 @@ const GuesthouseInfoModal = ({ visible, onClose, defaultName, defaultAddress, de
 
             {/* 전화번호 */}
             <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>전화번호</Text>
-            {showPhoneWarn && (
+            {/* {showPhoneWarn && (
               <Text style={[FONTS.fs_12_medium, { color: COLORS.semantic_red, marginTop: 4 }]}>
                 010으로 시작하는 전화번호를 사용해주세요
               </Text>
-            )}
+            )} */}
             <View style={styles.radioRow}>
               <TouchableOpacity style={styles.radioBtn} onPress={() => setPhoneOption('default')}>
                 {phoneOption === 'default' ? <EnabledRadioButton width={28} height={28}/> : <DisabledRadioButton width={28} height={28}/>}
