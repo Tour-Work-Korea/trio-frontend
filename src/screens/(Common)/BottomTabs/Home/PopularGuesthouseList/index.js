@@ -9,6 +9,7 @@ import {
   Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
@@ -30,8 +31,24 @@ const PopularGuesthouseList = () => {
   const flatListRef = useRef(null);
   const tagNameById = Object.fromEntries(guesthouseTags.map(t => [t.id, t.hashtag]));
 
+  // 디테일 페이지 이동 시 날짜 기본값 (오늘/내일)
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
+
   const renderTrendingCard = (item) => (
-    <View key={item.guesthouseId} style={[styles.trendingCard, { width: SCREEN_WIDTH * 0.9}]}>
+    <TouchableOpacity 
+      key={item.guesthouseId} 
+      style={[styles.trendingCard, { width: SCREEN_WIDTH * 0.9}]}
+      onPress={() => {
+        navigation.navigate('GuesthouseDetail', {
+          id: item.guesthouseId,
+          isFromDeeplink: true,
+          checkIn: today.format('YYYY-MM-DD'),
+          checkOut: tomorrow.format('YYYY-MM-DD'),
+          guestCount: 1,
+        });
+      }}
+    >
       {item.thumbnailUrl ? (
         <Image source={{ uri: item.thumbnailUrl }} style={styles.trendingImage} />
       ) : (
@@ -69,11 +86,23 @@ const PopularGuesthouseList = () => {
           ))}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   const renderPopularCard = (item) => (
-    <View key={item.id} style={styles.popularCard}>
+    <TouchableOpacity 
+      key={item.id} 
+      style={styles.popularCard}
+      onPress={() => {
+        navigation.navigate('GuesthouseDetail', {
+          id: item.guesthouseId,
+          isFromDeeplink: true,
+          checkIn: today.format('YYYY-MM-DD'),
+          checkOut: tomorrow.format('YYYY-MM-DD'),
+          guestCount: 1,
+        });
+      }}
+    >
       {item.thumbnailUrl ? (
         <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
       ) : (
@@ -104,7 +133,7 @@ const PopularGuesthouseList = () => {
           )}
         </View>
       </View>
-    </View>
+    </TouchableOpacity>
   );
 
   return (

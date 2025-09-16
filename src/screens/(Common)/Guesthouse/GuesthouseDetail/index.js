@@ -5,10 +5,12 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
+import Carousel from 'react-native-reanimated-carousel';
 
 import styles from './GuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
@@ -48,6 +50,13 @@ const serviceIcons = [
 
 const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
 
+// 안심번호 일 경우만 공개
+const is050Number = (phone) => {
+  if (!phone) return false;
+  const digits = String(phone).replace(/\D/g, '');
+  return digits.startsWith('050');
+};
+
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
   const { id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange } = route.params;
@@ -60,6 +69,25 @@ const GuesthouseDetail = ({route}) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
   const formatTime = (timeStr) => timeStr ? timeStr.slice(0, 5) : '';
+
+  const rawImages = detail?.guesthouseImages ?? [];
+  // 썸네일을 맨 앞으로 정렬한 이미지 리스트
+  const sortedImages = [...rawImages].sort((a, b) =>
+    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
+  );
+  const hasImages = sortedImages.length > 0;
+  const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
+  const modalImages = sortedImages.map(img => ({ id: img.id, imageUrl: img.guesthouseImageUrl }));
+
+  const { width: SCREEN_W } = Dimensions.get('window');
+  const IMAGE_H = 280;
+
+  const thumbnailIndex = Math.max(sortedImages.findIndex(i => i?.isThumbnail), 0);
+  const [imageIndex, setImageIndex] = useState(thumbnailIndex);
+  useEffect(() => {
+    // detail이 갱신되어 썸네일 위치가 달라져도 현재 인덱스를 맞춰줌
+    setImageIndex(thumbnailIndex);
+  }, [thumbnailIndex]);
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
@@ -116,27 +144,26 @@ const GuesthouseDetail = ({route}) => {
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
 
-  // 썸네일을 맨 앞으로 정렬한 이미지 리스트
-  const sortedImages = [...(detail.guesthouseImages || [])].sort((a, b) =>
-    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
-  );
-  const hasImages = sortedImages.length > 0;
-  const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
-  const modalImages = sortedImages.map(img => ({
-    id: img.id,
-    imageUrl: img.guesthouseImageUrl,
-  }));
-
   return (
     <ScrollView style={styles.container}>
       <View>
         {/* 대표 이미지 */}
         {hasImages ? (
-          <TouchableOpacity
-            onPress={() => setImageModalVisible(true)}
-          >
-            <Image source={{ uri: thumbnailImage }} style={styles.mainImage} />
-          </TouchableOpacity>
+          <Carousel
+            width={SCREEN_W}
+            height={IMAGE_H}
+            data={sortedImages}
+            defaultIndex={thumbnailIndex}   // 썸네일부터 시작
+            loop={false}
+            autoPlay={false}
+            pagingEnabled
+            onSnapToItem={idx => setImageIndex(idx)}
+            renderItem={({ item }) => (
+              <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
+                <Image source={{ uri: item.guesthouseImageUrl }} style={styles.mainImage} />
+              </TouchableOpacity>
+            )}
+          />
         ) : (
           <View style={[styles.mainImage, { backgroundColor: COLORS.grayscale_200 }]} />
         )}
@@ -226,7 +253,13 @@ const GuesthouseDetail = ({route}) => {
           {detail.guesthouseAddress} {detail.guesthouseAddressDetail}
         </Text>
 
-        <View style={styles.reviewRow}>
+        {is050Number(detail.guesthousePhone) && (
+          <Text style={[FONTS.fs_14_regular, styles.phone]}>
+            숙소 문의 : {detail.guesthousePhone}
+          </Text>
+        )}
+
+        <View style={[styles.reviewRow, {marginTop: 20}]}>
           <View style={styles.reviewBox}>
             <Star width={14} height={14} />
             <Text style={[FONTS.fs_12_medium, styles.rating]}>
@@ -478,7 +511,7 @@ const GuesthouseDetail = ({route}) => {
         visible={imageModalVisible}
         title={detail.guesthouseName}
         images={modalImages}
-        selectedImageIndex={0}
+        selectedImageIndex={imageIndex}
         onClose={() => setImageModalVisible(false)}
       />
     )}

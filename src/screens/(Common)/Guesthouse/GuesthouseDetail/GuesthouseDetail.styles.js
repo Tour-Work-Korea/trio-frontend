@@ -1,5 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '@constants/colors';
+import Phone from '@components/Certificate/Phone';
 
 const styles = StyleSheet.create({
   container: {
@@ -62,7 +63,10 @@ const styles = StyleSheet.create({
   },
   
   address: {
-    marginBottom: 20,
+    marginBottom: 4,
+  },
+  phone: {
+    
   },
 
   // 리뷰

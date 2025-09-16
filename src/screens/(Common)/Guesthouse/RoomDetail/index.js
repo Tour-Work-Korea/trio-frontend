@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
-import { View, Text, Image, ScrollView, TouchableOpacity, Alert } from 'react-native';
+import { View, Text, Image, ScrollView, TouchableOpacity, Alert, Dimensions } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -35,15 +36,18 @@ const RoomDetail = ({ route }) => {
   };
 
   // 이미지 처리
-  const hasImages = roomImages?.length > 0;
-  const thumbnailImage =
-    roomImages?.find((img) => img.isThumbnail)?.roomImageUrl ||
-    roomImages?.[0]?.roomImageUrl;
+  const images = roomImages ?? [];
+  const sortedImages = [...images].sort((a, b) =>
+    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1
+  );
+  const hasImages = sortedImages.length > 0;
+  const thumbnailIndex = Math.max(sortedImages.findIndex(i => i?.isThumbnail), 0);
+  const modalImages = sortedImages.map(img => ({ id: img.id, imageUrl: img.roomImageUrl }));
 
-  const modalImages = roomImages?.map((img) => ({
-    id: img.id,
-    imageUrl: img.roomImageUrl,
-  })) || [];
+  const { width: SCREEN_W } = Dimensions.get('window');
+  const IMAGE_H = 280;
+  
+  const [imageIndex, setImageIndex] = useState(thumbnailIndex);
 
   const roomTypeMap = {
     MIXED: '혼숙',
@@ -56,13 +60,23 @@ const RoomDetail = ({ route }) => {
         <ScrollView>
             <View style={styles.imageContainer}>
                 {hasImages ? (
-                    <TouchableOpacity onPress={() => setImageModalVisible(true)}>
-                    <Image source={{ uri: thumbnailImage }} style={styles.image} />
-                    </TouchableOpacity>
-                ) : (
-                    <View
-                    style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]}
+                    <Carousel
+                    width={SCREEN_W}
+                    height={IMAGE_H}
+                    data={sortedImages}
+                    defaultIndex={thumbnailIndex}   // 썸네일부터 시작
+                    loop={false}
+                    autoPlay={false}
+                    pagingEnabled
+                    onSnapToItem={idx => setImageIndex(idx)}
+                    renderItem={({ item }) => (
+                        <TouchableOpacity activeOpacity={0.9} onPress={() => setImageModalVisible(true)}>
+                        <Image source={{ uri: item.roomImageUrl }} style={styles.image} />
+                        </TouchableOpacity>
+                    )}
                     />
+                ) : (
+                    <View style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]} />
                 )}
                 <TouchableOpacity 
                     style={styles.backButton} 
@@ -136,7 +150,7 @@ const RoomDetail = ({ route }) => {
                 visible={imageModalVisible}
                 title={roomName}
                 images={modalImages}
-                selectedImageIndex={0}
+                selectedImageIndex={imageIndex}
                 onClose={() => setImageModalVisible(false)}
             />
         )}

@@ -57,6 +57,11 @@ import {
   MyGuesthouseReservation,
   MyRoomDetail,
   ProfileUpdate,
+  UserReservationCheck,
+  UserFavoriteGuesthouse,
+  UserGuesthouseReview,
+  UserMeetReservationCheck,
+  UserFavoriteMeet,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -114,6 +119,9 @@ const RootNavigation = () => (
 
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
+      <Stack.Screen name="UserReservationCheck" component={UserReservationCheck} />
+      <Stack.Screen name="UserFavoriteGuesthouse" component={UserFavoriteGuesthouse} />
+      <Stack.Screen name="UserGuesthouseReview" component={UserGuesthouseReview} />
       <Stack.Screen
         name="UserGuesthouseReviewForm"
         component={UserGuesthouseReviewForm}
@@ -121,6 +129,8 @@ const RootNavigation = () => (
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />
+      <Stack.Screen name="UserFavoriteMeet" component={UserFavoriteMeet} />
+      <Stack.Screen name="UserMeetReservationCheck" component={UserMeetReservationCheck} />
 
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
