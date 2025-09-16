@@ -204,6 +204,7 @@ const styles = StyleSheet.create({
   // 하단 버튼
   button: {
     marginTop: 40,
+    marginBottom: 20,
   },
 });
 

@@ -119,10 +119,13 @@ const MeetReservation = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 필요 시 값 조정
     >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={{ flex: 1 }}>
         <Header title="예약" />
-        <ScrollView contentContainerStyle={styles.scrollContent}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          keyboardDismissMode="on-drag"
+          keyboardShouldPersistTaps="handled"
+        >
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{title}</Text>
           {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
@@ -238,15 +241,15 @@ const MeetReservation = () => {
               </View>
           </View>
 
-        </ScrollView>
-
-        <View style={styles.button}>
+          <View style={styles.button}>
             <ButtonScarlet
               title="요청하기"
               disabled={!isAllRequiredAgreed}
               onPress={() => {navigation.navigate('MeetPaymentSuccess')}}
             />
-        </View>
+          </View>
+
+        </ScrollView>
 
         {/* 약관동의 모달 */}
         <TermsModal
@@ -274,7 +277,6 @@ const MeetReservation = () => {
         />
 
     </View>
-    </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

@@ -51,8 +51,20 @@ export default function UserPastReservations({ data }) {
             />
             <View style={styles.infoContent}>
               <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
-              <Text style={[FONTS.fs_14_medium, styles.roomText]}>{item.roomName}</Text>
-              <Text style={[FONTS.fs_12_medium, styles.adressText]}>{item.guesthouseAddress}</Text>
+              <Text
+                style={[FONTS.fs_14_medium, styles.roomText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.roomName}
+              </Text>
+              <Text
+                style={[FONTS.fs_12_medium, styles.adressText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.guesthouseAddress}
+              </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
@@ -181,6 +193,8 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   infoContent: {
+    flex: 1,
+    minWidth: 0,
     paddingVertical: 4,
     gap: 4,
   },
@@ -189,9 +203,11 @@ const styles = StyleSheet.create({
   },
   roomText: {
     color: COLORS.grayscale_800,
+    flexShrink: 1,
   },
   adressText: {
     color: COLORS.grayscale_500,
+    flexShrink: 1,
   },
 
   // 날짜, 시간

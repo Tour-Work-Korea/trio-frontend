@@ -23,19 +23,11 @@ const EXHomePage = () => {
         {/* 텍스트 크기,볼드 지정한거 사용 예시 */}
         <Text style={FONTS.fs_14_semibold}>14pt Semibold 텍스트</Text>
         <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
+        <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
+        <ButtonWhite title="모임 화면 테스트" to="MeetMain" />
+        {/* 버튼 컴포넌트 사용 */}
       </View>
-      <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
-      <ButtonWhite title="모임 화면 테스트" to="MeetMain" />
-      <ButtonScarlet title="회원가입 페이지로 이동" to="Register" />
-      <ButtonScarlet
-        title="로그아웃"
-        onPress={() => {
-          tryLogout();
-        }}
-      />
-      <ButtonWhite title="예시 로그인 & 저장 페이지로 이동" to="EXLogin" />
-      {/* 버튼 컴포넌트 사용 */}
-      <ButtonWhite title="하단바 있는 페이지로 이동" to="BottomTabs" />
+      
     </View>
   );
 };

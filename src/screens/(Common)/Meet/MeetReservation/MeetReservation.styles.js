@@ -145,7 +145,8 @@ const styles = StyleSheet.create({
     color: COLORS.primary_blue,
   },
   button: {
-    marginHorizontal: 20,
+    marginTop: 40,
+    marginBottom: 20,
   },
 });
 
