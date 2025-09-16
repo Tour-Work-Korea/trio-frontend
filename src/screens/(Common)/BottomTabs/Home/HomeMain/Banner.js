@@ -4,7 +4,7 @@ import Carousel from 'react-native-reanimated-carousel';
 import styles from './Home.styles';
 
 const {width} = Dimensions.get('window');
-export default function Banner({banners}) {
+export default function Banner({banners = []}) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   return (
