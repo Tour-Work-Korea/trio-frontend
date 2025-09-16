@@ -1,19 +1,18 @@
 import React, {useCallback, useState} from 'react';
 import {View, Text, TextInput, ActivityIndicator} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import styles from '../Employ.styles';
+
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
-
-// 아이콘 불러오기
-import SearchIcon from '@assets/images/search_gray.svg';
-import userEmployApi from '@utils/api/userEmployApi';
-import Loading from '@components/Loading';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
+import userEmployApi from '@utils/api/userEmployApi';
+import Loading from '@components/Loading';
+// 아이콘 불러오기
+import styles from './EmploySearchList.styles';
+import SearchIcon from '@assets/images/search_gray.svg';
+import {COLORS} from '@constants/colors';
 
 const EmploySearchList = () => {
   const [searchText, setSearchText] = useState('');
@@ -32,14 +31,15 @@ const EmploySearchList = () => {
     useCallback(() => {
       setRecruitList([]);
       setHasNext(true);
-      fetchRecruitList(0);
-    }, [fetchRecruitList]),
+      tryFetchRecruitList(0);
+    }, [tryFetchRecruitList]),
   );
 
-  //채용 공고 조회
-  const fetchRecruitList = useCallback(
+  const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0) => {
-      if (isEmLoading || !hasNext) return;
+      if (isEmLoading || !hasNext) {
+        return;
+      }
       setIsEmLoading(true);
       try {
         const userRole = useUserStore.getState()?.userRole;
@@ -68,7 +68,6 @@ const EmploySearchList = () => {
       setPage(prev => prev + 1);
     }
   };
-
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
   if (isEmLoading) {
@@ -78,13 +77,7 @@ const EmploySearchList = () => {
     <View style={[styles.container]}>
       {/* 헤더 */}
       <Header title="채용공고" />
-      <View
-        style={{
-          paddingHorizontal: 20,
-          flexDirection: 'column',
-          gap: 16,
-          paddingBottom: 12,
-        }}>
+      <View style={styles.headerBox}>
         {/* 검색창 */}
         <View style={[styles.searchInputContainer]}>
           <SearchIcon width={24} height={24} style={styles.searchIcon} />
@@ -104,14 +97,8 @@ const EmploySearchList = () => {
 
       {/* 뽑고 있는 게스트하우스 */}
       <View style={styles.employContainer}>
-        <View
-          style={[
-            styles.titleSection,
-            {justifyContent: 'center', marginBottom: 4, marginTop: 8},
-          ]}>
-          <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_500}}>
-            채용 중인 게스트하우스
-          </Text>
+        <View style={styles.titleSection}>
+          <Text style={styles.titleText}>채용 중인 게스트하우스</Text>
         </View>
         <RecruitList
           data={recruitList}

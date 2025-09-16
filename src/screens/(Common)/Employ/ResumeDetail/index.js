@@ -1,7 +1,7 @@
 import React, {useEffect, useState} from 'react';
 import {View, ScrollView} from 'react-native';
-import styles from './MyResumeDetail.styles';
-import {useNavigation, useRoute} from '@react-navigation/native';
+
+import {useNavigation} from '@react-navigation/native';
 import {
   ApplicantTitle,
   ApplicantExperienceSection,
@@ -17,11 +17,12 @@ import Loading from '@components/Loading';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import EmptyState from '@components/EmptyState';
+
+import styles from './MyResumeDetail.styles';
 import EmploySuccessIcon from '@assets/images/wa_employ_success';
 
-const ResumeDetail = () => {
+const ResumeDetail = ({route}) => {
   const navigation = useNavigation();
-  const route = useRoute();
   const {
     id = null,
     isEditable = false,
@@ -140,12 +141,7 @@ const ResumeDetail = () => {
           }
         />
       ) : (
-        <ScrollView
-          contentContainerStyle={{
-            paddingHorizontal: 20,
-            flexGrow: 1,
-            gap: 20,
-          }}>
+        <ScrollView contentContainerStyle={styles.scrollContent}>
           {formData ? (
             <>
               {/* 프로필 */}
@@ -183,7 +179,7 @@ const ResumeDetail = () => {
                 }
               />
               {isEditable ? (
-                <View style={{marginBottom: 40}}>
+                <View style={styles.bottomGap}>
                   <ButtonScarlet
                     title={'저장하기'}
                     onPress={() =>
@@ -192,7 +188,7 @@ const ResumeDetail = () => {
                   />
                 </View>
               ) : (
-                <View style={{marginBottom: 40}} />
+                <View style={styles.bottomGap} />
               )}
             </>
           ) : (

@@ -32,7 +32,7 @@ const UserMyPage = () => {
   };
 
   return (
-    <View style={{flex: 1, backgroundColor: COLORS.grayscale_100}}>
+    <View style={styles.view}>
       <Header title={'마이페이지'} isSetting={true} />
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>

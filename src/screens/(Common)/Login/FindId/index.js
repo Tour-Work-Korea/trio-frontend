@@ -1,18 +1,18 @@
 import React, {useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
-import styles from '../Login.styles';
-import ButtonScarlet from '@components/ButtonScarlet';
-import Logo from '@assets/images/logo_orange.svg';
 import {useNavigation} from '@react-navigation/native';
+
 import authApi from '@utils/api/authApi';
 import ErrorModal from '@components/modals/ErrorModal';
-import {COLORS} from '@constants/colors';
-import {FONTS} from '@constants/fonts';
+import ButtonScarlet from '@components/ButtonScarlet';
+
+import styles from '../Login.styles';
+import Logo from '@assets/images/logo_orange.svg';
 
 export default function FindId({route}) {
   const {userRole, phoneNumber} = route.params;
   const navigation = useNavigation();
-  const [email, setEmail] = useState('api배포후수정');
+  const [email, setEmail] = useState('');
   const [errorModal, setErrorModal] = useState({
     visible: false,
     title: '',
@@ -41,7 +41,7 @@ export default function FindId({route}) {
   return (
     <>
       <View style={styles.container}>
-        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
+        <View style={styles.viewFlexBox}>
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
@@ -50,23 +50,8 @@ export default function FindId({route}) {
                 <Text style={[styles.titleText]}>아이디를 찾았어요!</Text>
               </View>
               {email ? (
-                <View
-                  style={{
-                    backgroundColor: COLORS.grayscale_200,
-                    borderRadius: 8,
-                    paddingHorizontal: 20,
-                    paddingVertical: 10,
-                    marginTop: 30,
-                    flexDirection: 'column',
-                    justifyContent: 'center',
-                  }}>
-                  <Text
-                    style={{
-                      ...FONTS.fs_16_semibold,
-                      color: COLORS.grayscale_900,
-                    }}>
-                    {email}
-                  </Text>
+                <View style={styles.findEmailBox}>
+                  <Text style={styles.findEmailText}>{email}</Text>
                 </View>
               ) : (
                 <></>

@@ -1,9 +1,11 @@
 import {View, Text, StyleSheet} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+
 import ButtonScarlet from '@components/ButtonScarlet';
+
 import LogoBlue from '@assets/images/wa_blue_apply.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {useNavigation} from '@react-navigation/native';
 
 const ApplySuccess = () => {
   const navigation = useNavigation();

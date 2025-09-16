@@ -1,16 +1,16 @@
 import {View, TouchableOpacity, Text} from 'react-native';
-import styles from './Intro.styles';
 import {useNavigation} from '@react-navigation/native';
-
 import React, {useState, useEffect} from 'react';
 
+import Loading from '@components/Loading';
+import ErrorModal from '@components/modals/ErrorModal';
+
+import styles from './Intro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
 import NaverLogo from '@assets/images/naver_logo.svg';
 import Mail from '@assets/images/mail_black.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import ButtonWhite from '@components/ButtonWhite';
-import Loading from '@components/Loading';
-import ErrorModal from '@components/modals/ErrorModal';
 
 const RegisterIntro = () => {
   const [loading, setLoading] = useState(true);

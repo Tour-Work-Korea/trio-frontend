@@ -10,6 +10,7 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
+  contentContainer: {paddingHorizontal: 20},
   devide: {
     marginVertical: 28,
     height: 0.4,

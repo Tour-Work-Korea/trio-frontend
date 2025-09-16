@@ -1,4 +1,4 @@
-import {StyleSheet,Platform} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -16,6 +16,7 @@ export default StyleSheet.create({
   keyboardAvoidingView: {
     flex: 1,
   },
+  scrollView: {flexGrow: 1},
   viewFlexBox: {
     gap: 0,
     flex: 1,
@@ -23,7 +24,7 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    // justifyContent: 'space-between',
+    justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
@@ -77,6 +78,7 @@ export default StyleSheet.create({
     borderColor: COLORS.grayscale_200,
     borderWidth: 1,
   },
+  inputRelative: {position: 'relative'},
   textInput: {
     flex: 1,
     height: 44,

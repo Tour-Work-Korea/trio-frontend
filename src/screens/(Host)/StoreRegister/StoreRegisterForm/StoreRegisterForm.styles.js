@@ -3,6 +3,8 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
+  flex: {flex: 1},
+  flexGrow: {flexGrow: 1},
   container: {
     backgroundColor: COLORS.white,
     flex: 1,
@@ -18,7 +20,9 @@ export default StyleSheet.create({
     overflow: 'hidden',
     width: '100%',
     paddingHorizontal: 20,
+    justifyContent: 'space-between',
   },
+  buttonLayout: {alignItems: 'flex-end'},
   groupParent: {
     paddingVertical: 0,
     gap: 12,
@@ -70,6 +74,9 @@ export default StyleSheet.create({
     borderRadius: 20,
     borderColor: COLORS.grayscale_200,
     borderWidth: 1,
+  },
+  inputRelative: {
+    position: 'relative',
   },
   textInput: {
     flex: 1,
@@ -126,6 +133,7 @@ export default StyleSheet.create({
     backgroundColor: COLORS.grayscale_100,
   },
   //약관동의
+  agreeGap: {gap: 12},
   iconPosition: {
     maxWidth: '100%',
     top: '50%',
@@ -188,5 +196,16 @@ export default StyleSheet.create({
     width: 335,
     alignContent: 'center',
     justifyContent: 'center',
+  },
+  //이미지
+  photoBox: {
+    width: '100%',
+    height: '100%',
+  },
+  photoContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 8,
   },
 });

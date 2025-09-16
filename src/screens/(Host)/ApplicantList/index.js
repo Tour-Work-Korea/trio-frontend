@@ -1,14 +1,16 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ApplyLogo from '@assets/images/wa_blue_apply.svg';
-import styles from './ApplicantList.styles';
 import ErrorModal from '@components/modals/ErrorModal';
 import ResultModal from '@components/modals/ResultModal';
-import LogoBlueSmile from '@assets/images/logo_blue_smile.svg';
 import ApplicantItem from '@components/Employ/ApplicantItem';
+
+import ApplyLogo from '@assets/images/wa_blue_apply.svg';
+import styles from './ApplicantList.styles';
+import BlueSmileLogo from '@assets/images/logo_blue_smile.svg';
 
 const ApplicantList = () => {
   const navigation = useNavigation();
@@ -99,7 +101,7 @@ const ApplicantList = () => {
           setResultModalVisible(false);
         }}
         title={'마감요청이 되었어요!'}
-        Icon={LogoBlueSmile}
+        Icon={BlueSmileLogo}
       />
     </View>
   );

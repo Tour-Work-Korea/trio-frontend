@@ -37,6 +37,7 @@ export default StyleSheet.create({
     width: '100%',
     gap: 12,
   },
+  editContainer: {flexDirection: 'row', gap: 8},
   resumeLeftSection: {
     justifyContent: 'center',
   },

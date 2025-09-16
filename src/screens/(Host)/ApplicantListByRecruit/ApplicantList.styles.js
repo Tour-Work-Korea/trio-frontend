@@ -6,31 +6,17 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.light_gray,
   },
-  //공고 없는 경우
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 40,
-  },
-  textContainer: {
-    alignItems: 'center',
-  },
-  emptyTitle: {
-    ...FONTS.fs_18_semibold,
-    color: COLORS.grayscale_500,
-    marginBottom: 12,
-  },
-  emptySubTitle: {
-    ...FONTS.fs_18_regular,
-    color: COLORS.grayscale_500,
-  },
   body: {
     flex: 1,
     paddingHorizontal: 20,
     paddingBottom: 20,
   },
 
+  //본문
+  applyHeaderBox: {marginBottom: 8, marginTop: 20},
+  applyHeaderText: {...FONTS.fs_14_semibold, color: COLORS.grayscale_500},
+  emptyContainer: {flex: 1, justifyContent: 'center', alignItems: 'center'},
+  emptyText: {...FONTS.fs_14_semibold, color: COLORS.grayscale_500},
   //카드
   applicantCard: {
     backgroundColor: COLORS.white,
@@ -43,17 +29,9 @@ export default StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
   },
-  applyText: {
+  applyBox: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_400,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-  },
-  tagContainer: {
-    flexDirection: 'row',
   },
   tag: {
     backgroundColor: COLORS.light_gray,
@@ -69,7 +47,6 @@ export default StyleSheet.create({
     alignItems: 'center',
     marginRight: 16,
   },
-
   profileImage: {
     width: 68,
     height: 68,
@@ -77,16 +54,6 @@ export default StyleSheet.create({
     backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
-  },
-  nameText: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.black,
-    textAlign: 'center',
-  },
-  genderAgeText: {
-    ...FONTS.fs_body,
-    color: COLORS.gray,
-    textAlign: 'center',
   },
   detailsContainer: {
     flex: 1,
@@ -116,13 +83,5 @@ export default StyleSheet.create({
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,
     flex: 1,
-  },
-  careerYears: {
-    ...FONTS.fs_body_bold,
-    color: COLORS.scarlet,
-    marginTop: 8,
-  },
-  separator: {
-    height: 8,
   },
 });
