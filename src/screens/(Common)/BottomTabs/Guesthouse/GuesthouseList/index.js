@@ -205,6 +205,20 @@ const GuesthouseList = () => {
             )
           );
         },
+        onDateGuestChange: ({ checkIn, checkOut, adults, children }) => {
+          // 디테일 화면에서 날짜, 인원 변경 시 반영
+          const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+          const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+          setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
+          setAdultCount(adults);
+          setChildCount(children);
+
+          // 리스트 리로드
+          setSearched(true);
+          setPage(0);
+          setIsLast(false);
+          setGuesthouses([]);
+        },
       })}
     >
       <View style={styles.card}>
