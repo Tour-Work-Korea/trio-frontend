@@ -22,6 +22,7 @@ import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/Guesthouse
 import { guesthouseDetailDeeplink, copyDeeplinkToClipboard } from '@utils/deeplinkGenerator';
 import Loading from '@components/Loading';
 import { genderOptions } from '@data/guesthouseOptions';
+import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -89,6 +90,17 @@ const GuesthouseDetail = ({route}) => {
     setImageIndex(thumbnailIndex);
   }, [thumbnailIndex]);
 
+  // 날짜, 인원 변경
+  const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
+  // 화면 내부 표시/전달용 로컬 상태
+  const [localCheckIn, setLocalCheckIn] = useState(checkIn);
+  const [localCheckOut, setLocalCheckOut] = useState(checkOut);
+  const [localAdults, setLocalAdults] = useState(
+    typeof guestCount === 'number' ? Math.max(1, guestCount) : 1
+  );
+  const [localChildren, setLocalChildren] = useState(0); // 기본 아이 0
+  const [hasChanged, setHasChanged] = useState(false);
+
   // 게하 상세 정보 불러오기
   useEffect(() => {
     const fetchDetail = async () => {
@@ -107,6 +119,20 @@ const GuesthouseDetail = ({route}) => {
     };
     fetchDetail();
   }, [id]);
+
+  const fetchDetailWith = async (ci, co, totalGuests) => {
+    try {
+      const res = await userGuesthouseApi.getGuesthouseDetail({
+        guesthouseId: id,
+        checkIn: dayjs(ci).format('YYYY-MM-DD'),
+        checkOut: dayjs(co).format('YYYY-MM-DD'),
+        guestCount: totalGuests,
+      });
+      setDetail(res.data);
+    } catch (e) {
+      console.warn('게스트하우스 상세 재조회 실패', e);
+    }
+  };
 
   // 게하 좋아요, 좋아요 취소
   const toggleFavorite = async () => {
@@ -207,7 +233,16 @@ const GuesthouseDetail = ({route}) => {
                 ],
               });
             } else {
-              navigation.goBack();  // 일반 뒤로가기
+              // 변경된 값이 있으면 먼저 부모 콜백 호출
+              if (hasChanged && typeof route.params?.onDateGuestChange === 'function') {
+                route.params.onDateGuestChange({
+                  checkIn: localCheckIn,
+                  checkOut: localCheckOut,
+                  adults: localAdults,
+                  children: localChildren,
+                });
+              }
+              navigation.goBack(); // 일반 뒤로가기
             }
           }}
           >
@@ -322,20 +357,23 @@ const GuesthouseDetail = ({route}) => {
 
         <View style={styles.devide}/>
 
-        <View style={styles.displayDateGuestRow}>
+        <TouchableOpacity 
+          style={styles.displayDateGuestRow}
+          onPress={() => setDateGuestModalVisible(true)}
+        >
           <View style={styles.dateInfoContainer}>
             <CalendarIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-              {dayjs(checkIn).format('M.D ddd')} - {dayjs(checkOut).format('M.D ddd')}
+              {dayjs(localCheckIn).format('M.D ddd')} - {dayjs(localCheckOut).format('M.D ddd')}
             </Text>
           </View>
           <View style={styles.guestInfoContainer}>
             <PersonIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-              인원 {guestCount}
+              인원 {localAdults + localChildren}
             </Text>
           </View>
-        </View>
+        </TouchableOpacity>
       </View>
 
       {/* 탭 메뉴 */}
@@ -381,9 +419,9 @@ const GuesthouseDetail = ({route}) => {
                       roomCapacity: room.roomCapacity,
                       roomType: room.roomType,
                       guesthouseName: detail.guesthouseName,
-                      checkIn: `${checkIn}T${detail.checkIn}`,
-                      checkOut: `${checkOut}T${detail.checkOut}`,
-                      guestCount: guestCount,
+                      checkIn: `${localCheckIn}T${detail.checkIn}`,
+                      checkOut: `${localCheckOut}T${detail.checkOut}`,
+                      guestCount: localAdults + localChildren,
                       roomImages: room.roomImages || [],
                     });
                   }
@@ -515,6 +553,26 @@ const GuesthouseDetail = ({route}) => {
         onClose={() => setImageModalVisible(false)}
       />
     )}
+
+    {/* 날짜, 인원 모달 */}
+    <DateGuestModal
+      visible={dateGuestModalVisible}
+      onClose={() => setDateGuestModalVisible(false)}
+      onApply={(newCheckIn, newCheckOut, adults, children) => {
+        setLocalCheckIn(dayjs(newCheckIn).format('YYYY-MM-DD'));
+        setLocalCheckOut(dayjs(newCheckOut).format('YYYY-MM-DD'));
+        setLocalAdults(adults);
+        setLocalChildren(children);
+        setHasChanged(true);
+        setDateGuestModalVisible(false);
+
+        fetchDetailWith(newCheckIn, newCheckOut, adults + children);
+      }}
+      initCheckInDate={dayjs(localCheckIn).format('YYYY-MM-DD')}
+      initCheckOutDate={dayjs(localCheckOut).format('YYYY-MM-DD')}
+      initAdultGuestCount={localAdults}
+      initChildGuestCount={localChildren}
+    />
     </ScrollView>
   );
 };
