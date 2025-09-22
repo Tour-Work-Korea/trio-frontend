@@ -37,7 +37,7 @@ const RegisterIntro = () => {
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>
-            <ButtonWhite
+            {/**<ButtonWhite
               title="카카오로 시작하기"
               // to="SocialLogin"
               onPress={() =>
@@ -60,7 +60,7 @@ const RegisterIntro = () => {
               }
               Icon={NaverLogo}
               backgroundColor="#00de5a"
-            />
+            />**/}
             <ButtonWhite
               title="이메일로 시작하기"
               onPress={() =>
