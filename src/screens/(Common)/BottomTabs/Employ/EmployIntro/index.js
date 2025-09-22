@@ -10,7 +10,6 @@ import {
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
-import WorkAndStay from './WorkAndStay';
 import {RecruitList} from '@components/Employ/RecruitList';
 import useUserStore from '@stores/userStore';
 import {toggleLikeRecruit} from '@utils/handleFavorite';
@@ -23,6 +22,7 @@ import Header from '@components/Header';
 import styles from './EmployIntro.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
 import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
+import {COLORS} from '@constants/colors';
 
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
@@ -106,14 +106,13 @@ const EmployIntro = () => {
           </View>
         </TouchableOpacity>
 
-        {/* Work+Stay를 한 번에 */}
-        <View>
-          <WorkAndStay guesthouses={guesthouseList} />
-        </View>
         {/* 추천 일자리 */}
         <View style={styles.employContainer}>
           <View style={[styles.titleSection]}>
-            <Text style={styles.titleText}>추천 일자리</Text>
+            <Text style={styles.titleText}>
+              <Text style={{color: COLORS.primary_orange}}>Work+Stay</Text>를 한
+              번에
+            </Text>
             <TouchableOpacity
               style={styles.seeMoreButton}
               onPress={() => {

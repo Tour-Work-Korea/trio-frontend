@@ -186,8 +186,8 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   photoItem: {
-    width: 100,
-    height: 100,
+    width: '100%',
+    height: '100%',
   },
   thumbnail: {
     borderColor: COLORS.primary_blue,
