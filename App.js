@@ -12,7 +12,6 @@ import {COLORS} from '@constants/colors';
 import {tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
 import {navigationRef} from '@utils/navigationService';
-import {CommonActions} from '@react-navigation/native';
 
 import crashlytics from '@react-native-firebase/crashlytics';
 import {
@@ -20,6 +19,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
+import LoginErrorModal from '@components/LoginErrorModal';
 
 const toastConfig = {
   success: props => <BasicToast {...props} />,
@@ -41,7 +41,6 @@ function SplashOverlay({onFinish}) {
 }
 
 const wait = ms => new Promise(r => setTimeout(r, ms));
-// 네비 준비 대기 (RootNavigation의 NavigationContainer가 ref에 연결될 때까지)
 const waitForNavReady = async () => {
   let tries = 0;
   while (!navigationRef.isReady() && tries < 100) {
@@ -95,6 +94,8 @@ function AppContent() {
         />
       )}
       <Toast config={toastConfig} />
+
+      <LoginErrorModal />
     </>
   );
 }

@@ -49,20 +49,12 @@ const EmployDetail = ({route}) => {
   };
 
   const toggleFavorite = async isLiked => {
-    if (fromHost) {
-      setErrorModal({
-        visible: true,
-        message: '알바 로그인 후 이용가능해요',
-        buttonText: '확인',
-      });
-    } else {
-      toggleLikeRecruit({
-        id,
-        isLiked,
-        setRecruit,
-        showErrorModal: setErrorModal,
-      });
-    }
+    toggleLikeRecruit({
+      id,
+      isLiked,
+      setRecruit,
+      showErrorModal: setErrorModal,
+    });
   };
 
   if (!recruit) {
