@@ -59,13 +59,7 @@ function AppContent() {
       try {
         await wait(120);
         await waitForNavReady();
-        const ok = await tryAutoLogin();
-        navigationRef.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{name: ok ? 'MainTabs' : 'Login'}],
-          }),
-        );
+        await tryAutoLogin();
       } finally {
         setAppLoaded(true); // 스플래시 제거
       }
