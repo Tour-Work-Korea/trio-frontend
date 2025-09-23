@@ -94,12 +94,12 @@ const MyGuesthouseList = () => {
           >
             <EditIcon width={24} height={24}/>
           </TouchableOpacity>
-          {/* <TouchableOpacity
+          <TouchableOpacity
             style={[styles.deleteButton]}
             onPress={() => handleDelete(item.id)}
           >
             <DeleteIcon width={24} height={24}/>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       </View>
     </View>

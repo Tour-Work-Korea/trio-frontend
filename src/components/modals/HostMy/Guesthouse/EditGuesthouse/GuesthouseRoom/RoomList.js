@@ -34,13 +34,17 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
 
     return (
       <View style={styles.card}>
-        <View style={{flexDirection: 'row'}}>
+        <View style={styles.leftRow}>
           <Image
             source={{ uri: thumbnailUrl }}
             style={styles.image}
           />
           <View style={styles.textContainer}>
-            <Text style={[FONTS.fs_16_semibold, styles.roomName]}>
+            <Text
+              style={[FONTS.fs_16_semibold, styles.roomName]}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
               {item.roomName}
             </Text>
             <Text style={[FONTS.fs_16_regular, styles.roomSub]}>
@@ -55,9 +59,9 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
           <TouchableOpacity onPress={() => onEdit?.(item.id, index)}>
             <EditIcon width={24} height={24}/>
           </TouchableOpacity>
-          {/* <TouchableOpacity onPress={() => onDelete?.(item.id, index)}>
+          <TouchableOpacity onPress={() => onDelete?.(item.id, index)}>
             <DeleteIcon width={24} height={24}/>
-          </TouchableOpacity> */}
+          </TouchableOpacity>
         </View>
       </View>
     );
@@ -96,6 +100,13 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
+  leftRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+  },
+
   // 객실 리스트
   image: {
     width: 80,
@@ -105,9 +116,11 @@ const styles = StyleSheet.create({
   },
   textContainer: {
     justifyContent: 'center',
+    flex: 1,
   },
   roomName: {
     marginBottom: 4,
+    flexShrink: 1,
   },
   roomSub: {
     marginBottom: 4,

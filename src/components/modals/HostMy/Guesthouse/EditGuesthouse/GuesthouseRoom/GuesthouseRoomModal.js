@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,13 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
+  Alert,
+  Animated,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
+import BasicToast from '@components/toasts/BasicToast';
+import ErrorToast from '@components/toasts/ErrorToast';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -138,6 +143,33 @@ const GuesthouseRoomModal = ({
     };
   }, []);
 
+  // 토스트 메세지 따로 설정
+  const insets = useSafeAreaInsets();
+  const [localToast, setLocalToast] = useState(null);
+  const translateY = useRef(new Animated.Value(-100)).current; // 화면 위에서 시작
+  // localToast: { type: 'success' | 'error', text1: string } | null
+
+  const showLocalToast = (type, text1, ms = 2000) => {
+    setLocalToast({ type, text1 });
+
+    // 먼저 내려오기
+    Animated.timing(translateY, {
+      toValue: insets.top + 20, // 노치 고려해서 내려오기
+      duration: 300,
+      useNativeDriver: true,
+    }).start();
+
+    // 일정 시간 후에 올라가기
+    clearTimeout(showLocalToast._t);
+    showLocalToast._t = setTimeout(() => {
+      Animated.timing(translateY, {
+        toValue: -100,
+        duration: 300,
+        useNativeDriver: true,
+      }).start(() => setLocalToast(null));
+    }, ms);
+  };
+
   const [step, setStep] = useState('list'); // 'list' | 'info' | 'type'
   const [rooms, setRooms] = useState([]);
   const [baselineRooms, setBaselineRooms] = useState([]);
@@ -256,12 +288,37 @@ const GuesthouseRoomModal = ({
     setStep('list');
   };
 
+  // 객실 삭제
   const handleDeleteRoom = (id, index) => {
-    if (id != null) {
-      setRooms(prev => prev.filter(r => r.id !== id));
-    } else {
-      setRooms(prev => prev.filter((_, i) => i !== index));
-    }
+    Alert.alert(
+      '객실 삭제',
+      '정말 삭제하시겠습니까?\n삭제 후에는 되돌릴 수 없습니다.',
+      [
+        { text: '취소', style: 'cancel' },
+        {
+          text: '삭제',
+          style: 'destructive',
+          onPress: async () => {
+            if (id != null) {
+              try {
+                await hostGuesthouseApi.deleteRoom(guesthouseId, id);
+                showLocalToast('success', '객실이 삭제되었습니다.');
+
+                setRooms(prev => prev.filter(r => r.id !== id));
+                setBaselineRooms(prev => prev.filter(r => r.id !== id));
+                setAppliedData(prev => (prev ? prev.filter(r => r.id !== id) : prev));
+              } catch (e) {
+                showLocalToast('error', '객실 삭제 중 오류가 발생했어요.');
+              }
+            } else {
+              // 서버에 아직 없는 신규 항목은 그냥 로컬에서만 제거
+              setRooms(prev => prev.filter((_, i) => i !== index));
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   };
 
   // 단순 닫기 시 초기화
@@ -463,9 +520,22 @@ const GuesthouseRoomModal = ({
               </TouchableOpacity>
             </View>
           )}
-          
         </View>
         </TouchableWithoutFeedback>
+        {localToast && (
+          <Animated.View
+            pointerEvents="none"
+            style={[
+              styles.localToastWrap,
+              { transform: [{ translateY }] },
+            ]}
+          >
+            {localToast.type === 'error'
+              ? <ErrorToast text1={localToast.text1} />
+              : <BasicToast text1={localToast.text1} />
+            }
+          </Animated.View>
+        )}
       </View>
       </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
@@ -544,5 +614,13 @@ const styles = StyleSheet.create({
   },
   disabledText: {
     color: COLORS.grayscale_400,
+  },
+
+  localToastWrap: {
+    position: 'absolute',
+    top: 0,
+    alignSelf: 'center',
+    zIndex: 9999,
+    elevation: 9999,
   },
 });
