@@ -28,7 +28,7 @@ export const userRegisterAgrees = [
     id: 'LOCATION_BASED_SERVICE',
     title: '위치기반 서비스 이용약관 동의',
     description: AGREEMENT_CONTENT.USER.LOCATION_BASED_SERVICE.detailHtml,
-    isRequired: true, // ← 너 초안엔 선택이지만, 요구사항에 맞춰 여기서 true/false 조정
+    isRequired: false,
     isAgree: false,
   },
   {

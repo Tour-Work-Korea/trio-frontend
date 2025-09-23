@@ -16,6 +16,8 @@ import MyIcon from '@assets/images/person_black.svg';
 import MyIconFilled from '@assets/images/person_black_filled.svg';
 
 import {Guesthouse, Employ, Home, Meet, My} from '@screens';
+import useUserStore from '@stores/userStore';
+import {showErrorModal} from '@utils/loginModalHub';
 
 const Tab = createBottomTabNavigator();
 
@@ -75,7 +77,25 @@ const BottomTabs = () => {
       <Tab.Screen name="채용" component={Employ} />
       <Tab.Screen name="홈" component={Home} />
       <Tab.Screen name="모임" component={Meet} />
-      <Tab.Screen name="마이" component={My} />
+      <Tab.Screen
+        name="마이"
+        component={My}
+        listeners={({navigation}) => ({
+          tabPress: e => {
+            const role = useUserStore.getState().userRole;
+            if (role !== 'USER' && role !== 'HOST') {
+              e.preventDefault();
+              showErrorModal({
+                message: '마이페이지는\n알바 로그인 후 사용해주세요',
+                buttonText2: '취소',
+                buttonText: '로그인하기',
+                onPress: () => navigation.navigate('Login'),
+                onPress2: () => navigation.navigate('MainTabs', {screen: '홈'}),
+              });
+            }
+          },
+        })}
+      />
     </Tab.Navigator>
   );
 };

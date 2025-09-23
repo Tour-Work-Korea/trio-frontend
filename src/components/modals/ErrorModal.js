@@ -1,12 +1,5 @@
-import React, {useEffect} from 'react';
-import {
-  Modal,
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import React from 'react';
+import {Modal, View, Text, StyleSheet, Image} from 'react-native';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';

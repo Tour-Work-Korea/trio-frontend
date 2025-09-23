@@ -1,8 +1,8 @@
 import React from 'react';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import {navigationRef} from '@utils/navigationService';
 
 // props로
 // 1. 버튼 안에 글씨 - title
@@ -22,13 +22,11 @@ const ButtonWhite = ({
   backgroundColor = COLORS.grayscale_200,
   textColor = COLORS.grayscale_900,
 }) => {
-  const navigation = useNavigation();
-
   const handlePress = () => {
     if (onPress) {
       onPress(); // 함수가 있으면 함수 실행
     } else if (to) {
-      navigation.navigate(to); // 문자열이면 페이지 이동
+      navigationRef.navigate(to); // 문자열이면 페이지 이동
     }
   };
 
@@ -36,8 +34,7 @@ const ButtonWhite = ({
     <TouchableOpacity
       style={[styles.button, (backgroundColor = {backgroundColor}), style]}
       onPress={handlePress}
-      disabled={disabled}
-    >
+      disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}
       <Text
         style={[

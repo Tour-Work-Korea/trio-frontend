@@ -1,22 +1,27 @@
 import useUserStore from '@stores/userStore';
 import userEmployApi from './api/userEmployApi';
 import {Alert} from 'react-native';
+import {navigationRef} from './navigationService';
+import {showErrorModal} from './loginModalHub';
 
 const toggleLikeRecruit = async ({
   id,
   isLiked,
   setRecruitList = null,
   setRecruit = null,
-  showErrorModal = null,
 }) => {
   try {
     const role = useUserStore.getState().userRole;
 
     if (role !== 'USER') {
-      showErrorModal?.({
-        title: '로그인이 필요해요',
-        message: '좋아요 기능은\n로그인 후 사용해주세요',
-        buttonText: '확인',
+      showErrorModal({
+        message: '좋아요 기능은\n알바 로그인 후 사용해주세요',
+        buttonText: '로그인하기',
+        buttonText2: '취소',
+        onPress: () => {
+          if (navigationRef.isReady?.()) navigationRef.navigate('Login');
+        },
+        onPress2: () => {}, // 취소
       });
       return;
     }
