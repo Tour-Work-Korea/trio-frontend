@@ -74,14 +74,11 @@ const RootNavigation = () => (
       <Stack.Screen name="MainTabs" component={BottomTabs} />
       {/* navigation.navigate('MainTabs', { screen: '홈' }); 이런식으로 사용하면 하단탭 보이게 이동됨 */}
       {/* 화면 이름은 bottomtabs에 index파일 안에 있음 */}
-
       {/* <Stack.Screen name="EXHome" component={EXHome} /> */}
       <Stack.Screen name="Login" component={Login} />
       <Stack.Screen name="undefined" component={undefinedStack} />
-
       <Stack.Screen name="Setting" component={Setting} />
       <Stack.Screen name="Terms" component={Terms} />
-
       {/* 게하 하단바 없는 화면 */}
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
       <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
@@ -95,7 +92,6 @@ const RootNavigation = () => (
         component={GuesthousePaymentSuccess}
       />
       <Stack.Screen name="StoreRegisterList" component={StoreRegisterList} />
-
       {/* 공고 하단바 없는 화면 */}
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
       <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
@@ -103,7 +99,6 @@ const RootNavigation = () => (
       <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
       <Stack.Screen name="ProfileUpdate" component={ProfileUpdate} />
-
       {/* 로그인, 회원가입 하단바 없는 화면 */}
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
       <Stack.Screen name="SocialLogin" component={SocialLogin} />
@@ -117,7 +112,6 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
       <Stack.Screen name="Result" component={Result} />
-
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
       <Stack.Screen
@@ -144,7 +138,6 @@ const RootNavigation = () => (
         name="UserMeetReservationCheck"
         component={UserMeetReservationCheck}
       />
-
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
@@ -170,7 +163,6 @@ const RootNavigation = () => (
         name="ApplicantListByRecruit"
         component={ApplicantListByRecruit}
       />
-
       {/* 모임화면 확인을 위해 */}
       <Stack.Screen name="MeetMain" component={MeetMain} />
       <Stack.Screen name="MeetSearch" component={MeetSearch} />

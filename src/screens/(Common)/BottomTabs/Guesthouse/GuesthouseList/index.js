@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,11 @@ import {
   ActivityIndicator,
   ScrollView,
 } from 'react-native';
-import { useNavigation, useFocusEffect, useRoute } from '@react-navigation/native'; 
+import {
+  useNavigation,
+  useFocusEffect,
+  useRoute,
+} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -24,19 +28,22 @@ import MapIcon from '@assets/images/map_black.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
 
 import styles from './GuesthouseList.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import { guesthouseTags } from '@data/guesthouseTags';
+import {guesthouseTags} from '@data/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
-import { COLORS } from '@constants/colors';
+import {COLORS} from '@constants/colors';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
+import useUserStore from '@stores/userStore';
+import {showErrorModal} from '@utils/loginModalHub';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const userRole = useUserStore?.getState().userRole;
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -65,26 +72,26 @@ const GuesthouseList = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
 
   // 태그 선택 데이터 (필터에서 온)
-  const [selectedTags, setSelectedTags] = useState(guesthouseTags);  // 처음엔 전체 선택
+  const [selectedTags, setSelectedTags] = useState(guesthouseTags); // 처음엔 전체 선택
   const [tempSelectedTags, setTempSelectedTags] = useState([]);
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    tags: guesthouseTags,                 // id, hashtag 전체 선택
+    tags: guesthouseTags, // id, hashtag 전체 선택
     minPrice: 10000,
     maxPrice: 10000000,
-    roomType: [],                         // 제외 (아직 API 미사용)
-    facility: [],                         // amenity object { id, name }
+    roomType: [], // 제외 (아직 API 미사용)
+    facility: [], // amenity object { id, name }
     onlyAvailable: false,
   });
   const [filterApplied, setFilterApplied] = useState(false);
 
   // id 값 추출
-  const getHashtagIds = (selectedTags) => selectedTags.map(tag => tag.id);
-  const getAmenityIds = (facilities) => [...facilities];
+  const getHashtagIds = selectedTags => selectedTags.map(tag => tag.id);
+  const getAmenityIds = facilities => [...facilities];
 
   // 정렬 기본 추천순
-  const [selectedSort, setSelectedSort] = useState("RECOMMEND");
+  const [selectedSort, setSelectedSort] = useState('RECOMMEND');
 
   // 상태 - 처음에는 props 값으로 초기화
   const [adultCount, setAdultCount] = useState(routeAdultCount || 1);
@@ -92,15 +99,17 @@ const GuesthouseList = () => {
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
   // api 보낼 날짜 데이터
-  const [start, end] = displayDateState.split(" - ");
+  const [start, end] = displayDateState.split(' - ');
   const startDateOnly = start.split(' ')[0];
   const endDateOnly = end.split(' ')[0];
   const [startMonth, startDay] = startDateOnly.split('.').map(Number);
   const [endMonth, endDay] = endDateOnly.split('.').map(Number);
   const year = dayjs().year();
-  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD');
+  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format(
+    'YYYY-MM-DD',
+  );
   const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
-  const [sortBy, setSortBy] = useState("RECOMMEND");
+  const [sortBy, setSortBy] = useState('RECOMMEND');
 
   // 게하 불러오기
   const fetchGuesthouses = async (pageToFetch = 0) => {
@@ -132,7 +141,8 @@ const GuesthouseList = () => {
 
       // 필터 적용 시 조건 분기
       if (filterApplied) {
-        const allTagsSelected = filterOptions.tags.length === guesthouseTags.length;
+        const allTagsSelected =
+          filterOptions.tags.length === guesthouseTags.length;
         const allFacilitiesSelected = filterOptions.facility.length === 0;
 
         if (!allTagsSelected) {
@@ -146,11 +156,13 @@ const GuesthouseList = () => {
         params.maxPrice = filterOptions.maxPrice;
         params.availableOnly = filterOptions.onlyAvailable;
       }
-      
-      const response = await userGuesthouseApi.getGuesthouseList(params);
-      const { content, last } = response.data;
 
-      setGuesthouses(prev => pageToFetch === 0 ? content : [...prev, ...content]);
+      const response = await userGuesthouseApi.getGuesthouseList(params);
+      const {content, last} = response.data;
+
+      setGuesthouses(prev =>
+        pageToFetch === 0 ? content : [...prev, ...content],
+      );
       setIsLast(last);
     } catch (e) {
       setError(true); // 한번이라도 실패하면 더이상 호출X
@@ -171,8 +183,18 @@ const GuesthouseList = () => {
     setPage(prev => prev + 1);
   };
 
-
   const toggleLike = async (id, liked) => {
+    if (userRole !== 'USER') {
+      showErrorModal({
+        message: '좋아요 기능은\n알바 로그인 후 사용해주세요',
+        buttonText2: '취소',
+        buttonText: '로그인하기',
+        onPress: () => {
+          navigation.navigate('Login');
+        },
+        onPress2: () => {},
+      });
+    }
     try {
       if (liked) {
         await userGuesthouseApi.unfavoriteGuesthouse(id);
@@ -181,56 +203,54 @@ const GuesthouseList = () => {
       }
       setGuesthouses(prev =>
         prev.map(item =>
-          item.id === id
-            ? { ...item, isFavorite: !item.isFavorite }
-            : item
-        )
+          item.id === id ? {...item, isFavorite: !item.isFavorite} : item,
+        ),
       );
     } catch (e) {
       console.warn('찜 실패', e);
     }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity 
-      onPress={() => navigation.navigate('GuesthouseDetail', {
-        id: item.id,
-        checkIn,
-        checkOut,
-        guestCount: adultCount + childCount,
-        onLikeChange: (id, isLiked) => {
-          setGuesthouses(prev =>
-            prev.map(item =>
-              item.id === id ? { ...item, isFavorite: isLiked } : item
-            )
-          );
-        },
-        onDateGuestChange: ({ checkIn, checkOut, adults, children }) => {
-          // 디테일 화면에서 날짜, 인원 변경 시 반영
-          const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
-          const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
-          setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
-          setAdultCount(adults);
-          setChildCount(children);
+  const renderItem = ({item}) => (
+    <TouchableOpacity
+      onPress={() =>
+        navigation.navigate('GuesthouseDetail', {
+          id: item.id,
+          checkIn,
+          checkOut,
+          guestCount: adultCount + childCount,
+          onLikeChange: (id, isLiked) => {
+            setGuesthouses(prev =>
+              prev.map(item =>
+                item.id === id ? {...item, isFavorite: isLiked} : item,
+              ),
+            );
+          },
+          onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
+            // 디테일 화면에서 날짜, 인원 변경 시 반영
+            const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+            const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+            setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
+            setAdultCount(adults);
+            setChildCount(children);
 
-          // 리스트 리로드
-          setSearched(true);
-          setPage(0);
-          setIsLast(false);
-          setGuesthouses([]);
-        },
-      })}
-    >
+            // 리스트 리로드
+            setSearched(true);
+            setPage(0);
+            setIsLast(false);
+            setGuesthouses([]);
+          },
+        })
+      }>
       <View style={styles.card}>
         <View style={styles.imgRatingContainer}>
           {/* 이미지 데이터 없을 때 */}
           {item.thumbnailImgUrl ? (
-            <Image
-              source={{ uri: item.thumbnailImgUrl }}
-              style={styles.image}
-            />
+            <Image source={{uri: item.thumbnailImgUrl}} style={styles.image} />
           ) : (
-            <View style={[styles.image, { backgroundColor: COLORS.grayscale_200 }]} />
+            <View
+              style={[styles.image, {backgroundColor: COLORS.grayscale_200}]}
+            />
           )}
           <View style={styles.rating}>
             <Star width={14} height={14} />
@@ -241,24 +261,30 @@ const GuesthouseList = () => {
         </View>
         <View style={styles.cardContent}>
           <View style={styles.tagRow}>
-            {item.hashtags && item.hashtags.map((tag, index) => (
-              <View style={styles.tagContainer}>
-                <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
-                  {tag}
-                </Text>
-              </View>
-            ))}
+            {item.hashtags &&
+              item.hashtags.map((tag, index) => (
+                <View style={styles.tagContainer}>
+                  <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
             <TouchableOpacity
               style={styles.heartIcon}
-              onPress={() => toggleLike(item.id, item.isFavorite)}
-            >
-              {item.isFavorite ? <FillHeart width={20} height={20}/> : <EmptyHeart width={20} height={20}/>}
+              onPress={() => toggleLike(item.id, item.isFavorite)}>
+              {item.isFavorite ? (
+                <FillHeart width={20} height={20} />
+              ) : (
+                <EmptyHeart width={20} height={20} />
+              )}
             </TouchableOpacity>
           </View>
           <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>
             {item.name}
           </Text>
-          <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
+          <Text style={[FONTS.fs_12_medium, styles.address]}>
+            {item.address}
+          </Text>
           <View style={styles.bottomRow}>
             {item.isReserved ? (
               <Text style={[FONTS.fs_16_semibold, styles.emptyPrice]}>
@@ -278,7 +304,9 @@ const GuesthouseList = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
-        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>게스트 하우스</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
+          게스트 하우스
+        </Text>
         <TouchableOpacity
           style={styles.backButton}
           // onPress={() => {
@@ -301,14 +329,15 @@ const GuesthouseList = () => {
                         name: '게하',
                         state: {
                           routes: [
-                            { name: 'GuesthouseSearch',
+                            {
+                              name: 'GuesthouseSearch',
                               params: {
                                 displayDate: displayDateState,
                                 adultCount,
                                 childCount,
                                 searchText,
-                              }
-                            }
+                              },
+                            },
                           ],
                         },
                       },
@@ -317,41 +346,41 @@ const GuesthouseList = () => {
                 },
               ],
             });
-          }}
-        >
-          <LeftChevron width={24} height={24}/>
+          }}>
+          <LeftChevron width={24} height={24} />
         </TouchableOpacity>
       </View>
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.searchContainer}
         onPress={() => {
-          navigation.navigate("GuesthouseSearch", {
+          navigation.navigate('GuesthouseSearch', {
             displayDate: displayDateState,
             adultCount,
             childCount,
             searchText,
           });
-        }}
-      >
+        }}>
         <View style={styles.searchIconContainer}>
-          <SearchIcon width={24} height={24}/>
-          <Text style={[FONTS.fs_14_regular, styles.searchText]}>{searchText || '찾는 숙소가 있으신가요?'}</Text>
+          <SearchIcon width={24} height={24} />
+          <Text style={[FONTS.fs_14_regular, styles.searchText]}>
+            {searchText || '찾는 숙소가 있으신가요?'}
+          </Text>
         </View>
       </TouchableOpacity>
 
       <View style={styles.selectRow}>
         <TouchableOpacity
           style={styles.dateContainer}
-          onPress={() => setDateGuestModalVisible(true)}
-        >
-          <CalendarIcon width={20} height={20}/>
-          <Text style={[FONTS.fs_14_medium, styles.dateText]}>{displayDateState}</Text>
+          onPress={() => setDateGuestModalVisible(true)}>
+          <CalendarIcon width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.dateText]}>
+            {displayDateState}
+          </Text>
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.personRoomContainer}
-          onPress={() => setDateGuestModalVisible(true)}
-        >
-          <Person width={20} height={20}/>
+          onPress={() => setDateGuestModalVisible(true)}>
+          <Person width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
             {childCount > 0
               ? `성인 ${adultCount}, 아동 ${childCount}`
@@ -363,23 +392,21 @@ const GuesthouseList = () => {
       <View style={styles.guesthouseListContainer}>
         <View style={styles.guesthouseListHeader}>
           <View style={styles.filterContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.filterButtonContainer}
               onPress={() => {
                 // 현재 선택된 태그를 임시 상태로 저장
-                setTempSelectedTags([...selectedTags]);;
+                setTempSelectedTags([...selectedTags]);
                 setFilterModalVisible(true);
-              }}
-            >
-              <FilterIcon width={20} height={20}/>
+              }}>
+              <FilterIcon width={20} height={20} />
               <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
             </TouchableOpacity>
             {/* 필터 선택 내용 */}
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.selectFilterContainer}
-            >
+              contentContainerStyle={styles.selectFilterContainer}>
               {selectedTags.map((tag, index) => (
                 <View key={index} style={styles.selectFilter}>
                   <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
@@ -389,15 +416,12 @@ const GuesthouseList = () => {
               ))}
             </ScrollView>
           </View>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.sortContainer}
-            onPress={() => setSortModalVisible(true)}
-          >
-            <SortIcon width={20} height={20}/>
+            onPress={() => setSortModalVisible(true)}>
+            <SortIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
           </TouchableOpacity>
-          
-
         </View>
 
         {!searched && loading ? (
@@ -405,8 +429,8 @@ const GuesthouseList = () => {
         ) : guesthouses.length === 0 ? (
           <EmptyState
             icon={SearchEmpty}
-            iconSize={{ width: 120, height: 120 }}
-            title='앗, 찾는 결과가 없어요'
+            iconSize={{width: 120, height: 120}}
+            title="앗, 찾는 결과가 없어요"
           />
         ) : (
           <FlatList
@@ -416,7 +440,9 @@ const GuesthouseList = () => {
             contentContainerStyle={styles.listContent}
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.7}
-            ListFooterComponent={loading && <ActivityIndicator size="small" color="gray" />}
+            ListFooterComponent={
+              loading && <ActivityIndicator size="small" color="gray" />
+            }
           />
         )}
       </View>
@@ -432,7 +458,7 @@ const GuesthouseList = () => {
           <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
         </TouchableOpacity>
       </View> */}
-      
+
       {/* 인원, 날짜 선택 모달 */}
       <DateGuestModal
         visible={dateGuestModalVisible}
@@ -453,8 +479,12 @@ const GuesthouseList = () => {
           setIsLast(false);
           setGuesthouses([]);
         }}
-        initCheckInDate={dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD')}
-        initCheckOutDate={dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD')}
+        initCheckInDate={dayjs(`${year}-${startMonth}-${startDay}`).format(
+          'YYYY-MM-DD',
+        )}
+        initCheckOutDate={dayjs(`${year}-${endMonth}-${endDay}`).format(
+          'YYYY-MM-DD',
+        )}
         initAdultGuestCount={adultCount}
         initChildGuestCount={childCount}
       />
@@ -464,7 +494,7 @@ const GuesthouseList = () => {
         visible={sortModalVisible}
         onClose={() => setSortModalVisible(false)}
         selected={selectedSort}
-        onSelect={(option) => {
+        onSelect={option => {
           setSelectedSort(option);
           setSortModalVisible(false);
 
@@ -483,8 +513,8 @@ const GuesthouseList = () => {
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filterOptions}
-        onApply={(filters) => {
-           console.log('[필터 적용됨] 받은 filters:', filters);
+        onApply={filters => {
+          console.log('[필터 적용됨] 받은 filters:', filters);
           setSelectedTags(filters.tags);
           setFilterOptions(filters);
           setFilterApplied(true);

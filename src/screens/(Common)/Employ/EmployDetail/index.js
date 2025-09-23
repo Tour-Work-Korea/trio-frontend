@@ -14,6 +14,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
 import hostEmployApi from '@utils/api/hostEmployApi';
+import {showErrorModal} from '@utils/loginModalHub';
 
 const EmployDetail = ({route}) => {
   const navigation = useNavigation();
@@ -87,12 +88,23 @@ const EmployDetail = ({route}) => {
           <View style={styles.bottomButtonContainer}>
             <ButtonScarlet
               onPress={() => {
-                navigation.navigate('ApplicantForm', {
-                  recruitId: recruit?.recruitId,
-                });
+                if (userRole !== 'USER') {
+                  showErrorModal({
+                    message: '지원하기는\n알바 로그인 후 사용해주세요',
+                    buttonText2: '취소',
+                    buttonText: '로그인하기',
+                    onPress: () => {
+                      navigation.navigate('Login');
+                    },
+                    onPress2: () => {},
+                  });
+                } else {
+                  navigation.navigate('ApplicantForm', {
+                    recruitId: recruit?.recruitId,
+                  });
+                }
               }}
               title="지원하기"
-              disabled={userRole !== 'USER'}
             />
           </View>
         )}

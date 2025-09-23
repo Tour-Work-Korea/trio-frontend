@@ -1,36 +1,37 @@
-import React, {useEffect, useState} from 'react';
-
+import React, {useCallback} from 'react';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
+import {useFocusEffect} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
-import ErrorModal from '@components/modals/ErrorModal';
-import {useNavigation} from '@react-navigation/native';
+import {HostMyPage, UserMyPage} from '@screens';
 
-const My = () => {
+const Stack = createNativeStackNavigator();
+
+function MyGate({navigation}) {
   const userRole = useUserStore(state => state.userRole);
-  const [errorModal, setErrorModal] = useState({visible: false});
-  const navigation = useNavigation();
 
-  useEffect(() => {
-    if (userRole === 'HOST') {
-      navigation.replace('HostMyPage');
-    } else if (userRole === 'USER') {
-      navigation.replace('UserMyPage');
-    } else {
-      setErrorModal({visible: true});
-    }
-  }, [userRole, navigation]);
-
-  return (
-    <>
-      <ErrorModal
-        visible={errorModal.visible}
-        title={'로그인 후 이용할 수 있어요'}
-        buttonText={'로그인하기'}
-        buttonText2={'취소'}
-        onPress={() => navigation.navigate('Login')}
-        onPress2={() => navigation.navigate('MainTabs', {screen: '홈'})}
-      />
-    </>
+  useFocusEffect(
+    useCallback(() => {
+      if (userRole === 'HOST') {
+        navigation.replace('HostMyPage');
+      } else if (userRole === 'USER') {
+        navigation.replace('UserMyPage');
+      } else {
+        navigation.getParent()?.navigate('홈');
+      }
+    }, [userRole, navigation]),
   );
-};
 
-export default My;
+  return null;
+}
+
+export default function My() {
+  return (
+    <Stack.Navigator
+      screenOptions={{headerShown: false}}
+      initialRouteName="MyGate">
+      <Stack.Screen name="MyGate" component={MyGate} />
+      <Stack.Screen name="HostMyPage" component={HostMyPage} />
+      <Stack.Screen name="UserMyPage" component={UserMyPage} />
+    </Stack.Navigator>
+  );
+}

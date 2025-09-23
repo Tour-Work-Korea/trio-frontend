@@ -8,7 +8,6 @@ import {
 } from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
-import {checkUserPermission} from '@utils/auth/verifyPermission';
 import {userApplyAgrees} from '@data/agree';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
@@ -52,13 +51,7 @@ const ApplicantForm = () => {
 
   useFocusEffect(
     useCallback(() => {
-      const init = async () => {
-        const hasPermission = await checkUserPermission(navigation);
-        if (hasPermission) {
-          tryFetchResumeList();
-        }
-      };
-      init();
+      tryFetchResumeList();
     }, [navigation]),
   );
 

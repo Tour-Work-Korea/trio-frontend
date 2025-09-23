@@ -15,7 +15,7 @@ const toggleLikeRecruit = async ({
 
     if (role !== 'USER') {
       showErrorModal({
-        message: '좋아요 기능은\n로그인 후 사용해주세요',
+        message: '좋아요 기능은\n알바 로그인 후 사용해주세요',
         buttonText: '로그인하기',
         buttonText2: '취소',
         onPress: () => {

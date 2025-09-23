@@ -1,6 +1,5 @@
 import React from 'react';
 import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {navigationRef} from '@utils/navigationService';
