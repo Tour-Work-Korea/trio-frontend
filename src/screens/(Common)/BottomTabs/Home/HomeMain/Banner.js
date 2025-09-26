@@ -4,8 +4,11 @@ import Carousel from 'react-native-reanimated-carousel';
 import styles from './Home.styles';
 
 const {width} = Dimensions.get('window');
+
 export default function Banner({banners = []}) {
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  if (!banners.length) return null;
 
   return (
     <View style={styles.bannerContainer}>
@@ -23,11 +26,19 @@ export default function Banner({banners = []}) {
           parallaxScrollingScale: 1,
           parallaxScrollingOffset: 50,
         }}
-        renderItem={({item}) => (
-          <View>
-            <Image source={item.image} style={styles.banner} />
-          </View>
-        )}
+        renderItem={({item, index}) => {
+          const src = getImageSource(item);
+          if (!src) return <View key={index} style={styles.banner} />;
+          return (
+            <View key={index}>
+              <Image
+                source={{ uri: item.url }}
+                style={styles.banner}
+                resizeMode="cover"
+              />
+            </View>
+          );
+        }}
       />
 
       {/* 페이지네이션 인디케이터 */}

@@ -1,9 +1,8 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text, ScrollView} from 'react-native';
-import dayjs from 'dayjs';
+import {useFocusEffect} from '@react-navigation/native';
 
 import styles from './Home.styles';
-import {banners, guesthouses, jobs} from './mockData';
 import Header from '@components/Header';
 import Banner from './Banner';
 import Buttons from './Buttons';
@@ -14,22 +13,39 @@ import Logo from '@assets/images/logo_orange.svg';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
+import commonApi from '@utils/api/commonApi';
 import useUserStore from '@stores/userStore';
-import {useFocusEffect} from '@react-navigation/native';
 
 const HomeMain = () => {
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [employList, setEmployList] = useState([]);
+  const [bannerList, setBannerList] = useState([]);
+
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
+  const [isBannerLoading, setIsBannerLoading] = useState(true);
+
   const userRole = useUserStore.getState()?.userRole;
 
   useFocusEffect(
     useCallback(() => {
       tryFetchEmploys();
       tryFetchGuesthouses();
-    }, [tryFetchEmploys, tryFetchGuesthouses]),
+      tryFetchBanners();
+    }, [tryFetchEmploys, tryFetchGuesthouses, tryFetchBanners]),
   );
+
+  const tryFetchBanners = useCallback(async () => {
+    try {
+      const {data} = await commonApi.getAdminBanners();
+      setBannerList(data || []);
+    } catch (e) {
+      console.warn('배너 조회 실패', e);
+      setBannerList([]);
+    } finally {
+      setIsBannerLoading(false);
+    }
+  }, []);
 
   const tryFetchGuesthouses = useCallback(async () => {
     try {
@@ -67,7 +83,7 @@ const HomeMain = () => {
 
       {/* 배너 */}
       <View style={styles.boxContainer}>
-        <Banner banners={banners} />
+        {isBannerLoading ? <Text>로딩 중</Text> : <Banner banners={bannerList} />}
       </View>
 
       {/* 버튼 */}
