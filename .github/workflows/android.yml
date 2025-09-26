@@ -1,4 +1,4 @@
-name: Build Android Release APK
+name: Build Android Release APK, AAB
 
 on:
   push:
@@ -73,13 +73,28 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
 
+      # APK 빌드
       - name: Build Release APK
         run: |
           ENVFILE=.env.production bundle exec fastlane build_release
         working-directory: android
 
+      # APK 업로드
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
+
+      # AAB 빌드
+      - name: Build Release AAB
+        run: |
+          ENVFILE=.env.production bundle exec fastlane bundle_release
+        working-directory: android
+
+      # AAB 업로드
+      - name: Upload AAB Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-release-aab
+          path: android/app/build/outputs/bundle/release/app-release.aab
