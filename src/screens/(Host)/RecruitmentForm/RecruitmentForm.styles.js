@@ -185,9 +185,15 @@ const styles = StyleSheet.create({
     height: 100,
     marginBottom: 40,
   },
+
   photoItem: {
-    width: '100%',
-    height: '100%',
+    borderRadius: 4,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    backgroundColor: COLORS.grayscale_100,
+    width: 100,
+    height: 100,
+    marginBottom: 16,
   },
   thumbnail: {
     borderColor: COLORS.primary_blue,
@@ -205,8 +211,7 @@ const styles = StyleSheet.create({
   photoGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    justifyContent: 'flex-start',
-    gap: 12,
+    justifyContent: 'space-between',
   },
 });
 

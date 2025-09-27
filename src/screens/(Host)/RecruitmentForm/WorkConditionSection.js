@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -12,7 +12,7 @@ import {
 
 import ButtonScarlet from '@components/ButtonScarlet';
 
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -74,6 +74,24 @@ export default function WorkConditionSection({
   const [workEtcText, setWorkEtcText] = useState('');
   const [welfareEtcText, setWelfareEtcText] = useState('');
 
+  useEffect(() => {
+    if (!visible) return; // 모달 열릴 때 반영
+    if (formData.workDuration) {
+      const found = workDurations.find(d => d.title === formData.workDuration);
+      setSelectedWorkDuration(found ?? {id: -1, title: formData.workDuration});
+    } else {
+      setSelectedWorkDuration(undefined);
+    }
+  }, [visible, formData.workDuration]);
+
+  useEffect(() => {
+    setSelectedWorkParts(normalizeToObjList(formData.workPart));
+  }, [visible, formData.workPart]);
+
+  useEffect(() => {
+    setSelectedWelfares(normalizeToObjList(formData.welfare));
+  }, [visible, formData.welfare]);
+
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView style={recruitStyle.flex} enabled>
@@ -124,7 +142,7 @@ export default function WorkConditionSection({
                 <View style={styles.tagSelectRow}>
                   {workParts?.map(tag => {
                     const isSelected = selectedWorkParts?.some(
-                      t => t.id === tag.id,
+                      t => t.title === tag.title,
                     );
                     return (
                       <TouchableOpacity
@@ -132,7 +150,7 @@ export default function WorkConditionSection({
                         onPress={() => {
                           if (isSelected) {
                             setSelectedWorkParts(prev =>
-                              prev.filter(t => t.id !== tag.id),
+                              prev.filter(t => t.title !== tag.title),
                             );
                           } else {
                             setSelectedWorkParts(prev => [...prev, tag]);
@@ -197,7 +215,7 @@ export default function WorkConditionSection({
                 <View style={styles.tagSelectRow}>
                   {welfares?.map(tag => {
                     const isSelected = selectedWelfares?.some(
-                      t => t.id === tag.id,
+                      t => t.title === tag.title,
                     );
                     return (
                       <TouchableOpacity
@@ -205,7 +223,7 @@ export default function WorkConditionSection({
                         onPress={() => {
                           if (isSelected) {
                             setSelectedWelfares(prev =>
-                              prev.filter(t => t.id !== tag.id),
+                              prev.filter(t => t.title !== tag.title),
                             );
                           } else {
                             setSelectedWelfares(prev => [...prev, tag]);
@@ -249,12 +267,14 @@ export default function WorkConditionSection({
                         ? [welfareEtcText.trim()]
                         : []),
                     ]);
+
                     handleInputChange('workPart', workPartCombined);
                     handleInputChange('welfare', welfareCombined);
                     handleInputChange(
                       'workDuration',
-                      selectedWorkDuration.title,
+                      selectedWorkDuration?.title ?? '',
                     );
+
                     setTimeout(onClose, 0);
                   }}
                 />

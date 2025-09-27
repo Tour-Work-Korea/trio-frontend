@@ -35,12 +35,12 @@ const ErrorModal = ({
 
           {buttonText2 ? (
             <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>
-              <ButtonWhite
+              <ButtonScarlet
                 title={buttonText}
                 onPress={onPress}
                 style={{flex: 1}}
               />
-              <ButtonScarlet
+              <ButtonWhite
                 title={buttonText2}
                 onPress={onPress2}
                 style={{flex: 1}}
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 16,
     padding: 20,
-    width: '80%',
+    width: '90%',
     alignItems: 'center',
   },
   image: {

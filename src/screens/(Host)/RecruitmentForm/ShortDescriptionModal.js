@@ -11,7 +11,7 @@ import {
   ScrollView,
   StyleSheet,
 } from 'react-native';
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostEmployApi from '@utils/api/hostEmployApi';
@@ -32,6 +32,10 @@ const ShortDescriptionModal = ({
   );
   const [tags, setTags] = useState();
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
+
+  useEffect(() => {
+    setShortDescription(formData.recruitShortDescription ?? '');
+  }, [visible, formData.recruitShortDescription]);
 
   useEffect(() => {
     fetchHostHashtags();

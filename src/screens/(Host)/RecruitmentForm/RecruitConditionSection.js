@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import Minus from '@assets/images/minus_gray.svg';
 import Calendar from '@assets/images/calendar_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import DisabledRadioButton from '@assets/images/radio_button_disabled.svg';
 import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 
@@ -46,6 +46,10 @@ export default function RecruitConditionSection({
 
   const isSelectedEtc = selectedTags?.some(t => t.id === 7);
 
+  useEffect(() => {
+    setSelectedTags(formData.recruitCondition ?? []);
+    console.log(formData.recruitCondition);
+  }, [visible, formData.recruitCondition]);
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <KeyboardAvoidingView style={recruitStyle.flex} enabled>
@@ -354,14 +358,16 @@ export default function RecruitConditionSection({
                 <Text style={styles.subsectionTitle}>우대조건</Text>
                 <View style={styles.tagSelectRow}>
                   {tags?.map(tag => {
-                    const isSelected = selectedTags?.some(t => t.id === tag.id);
+                    const isSelected = selectedTags?.some(
+                      t => t.title === tag.title,
+                    );
                     return (
                       <TouchableOpacity
-                        key={tag.id}
+                        key={tag.title}
                         onPress={() => {
                           if (isSelected) {
                             setSelectedTags(prev =>
-                              prev.filter(t => t.id !== tag.id),
+                              prev.filter(t => t.title !== tag.title),
                             );
                           } else {
                             setSelectedTags(prev => [...prev, tag]);
