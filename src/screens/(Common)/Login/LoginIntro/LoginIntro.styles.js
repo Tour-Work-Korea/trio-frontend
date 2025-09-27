@@ -66,6 +66,7 @@ const styles = StyleSheet.create({
     width: '100%',
     gap: 20,
     alignItems: 'center',
+    marginBottom: 30,
   },
   view: {
     paddingVertical: 40,
