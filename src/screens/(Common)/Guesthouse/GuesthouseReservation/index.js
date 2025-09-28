@@ -129,8 +129,7 @@ const GuesthouseReservation = ({ route }) => {
       }
 
     } catch (err) {
-      Alert.alert('예약 실패', '오류가 발생했습니다.');
-      console.log(err);
+      Alert.alert('예약 실패', err.response.data.message);
     }
   };
 
