@@ -14,6 +14,7 @@ import Logo from '@assets/images/logo_orange.svg';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
 import commonApi from '@utils/api/commonApi';
+import adminApi from '@utils/api/adminApi';
 import useUserStore from '@stores/userStore';
 
 const HomeMain = () => {
@@ -37,7 +38,7 @@ const HomeMain = () => {
 
   const tryFetchBanners = useCallback(async () => {
     try {
-      const {data} = await commonApi.getAdminBanners();
+      const {data} = await adminApi.getAdminBanners();
       setBannerList(data || []);
     } catch (e) {
       console.warn('배너 조회 실패', e);

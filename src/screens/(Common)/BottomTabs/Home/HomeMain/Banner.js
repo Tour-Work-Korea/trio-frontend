@@ -1,5 +1,5 @@
-import React, {useState} from 'react';
-import {View, Image, Dimensions} from 'react-native';
+import React, {useState, useCallback} from 'react';
+import {View, Image, Dimensions, TouchableOpacity, Linking} from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import styles from './Home.styles';
 
@@ -9,6 +9,21 @@ export default function Banner({banners = []}) {
   const [currentIndex, setCurrentIndex] = useState(0);
 
   if (!banners.length) return null;
+
+  // 각 배너 연결된 링크 열기
+  const openBannerLink = useCallback(async (url) => {
+    if (!url || typeof url !== 'string') return;
+    const safeUrl = url.trim();
+    // http/https 만 허용
+    if (!/^https?:\/\//i.test(safeUrl)) return;
+    try {
+      const can = await Linking.canOpenURL(safeUrl);
+      if (can) await Linking.openURL(safeUrl);
+    } catch {
+      // 실패하면 무시
+      console.warn('링크 없음');
+    }
+  }, []);
 
   return (
     <View style={styles.bannerContainer}>
@@ -27,16 +42,20 @@ export default function Banner({banners = []}) {
           parallaxScrollingOffset: 50,
         }}
         renderItem={({item, index}) => {
-          const src = getImageSource(item);
+          const src = item.url;
           if (!src) return <View key={index} style={styles.banner} />;
           return (
-            <View key={index}>
+            <TouchableOpacity
+              key={item?.id ?? index}
+              activeOpacity={0.9}
+              onPress={() => openBannerLink(item?.link)}
+            >
               <Image
                 source={{ uri: item.url }}
                 style={styles.banner}
                 resizeMode="cover"
               />
-            </View>
+            </TouchableOpacity>
           );
         }}
       />

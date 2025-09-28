@@ -14,12 +14,7 @@ const commonApi = {
     api.get('/common/region-type', {
       withAuth: false,
     }),
-  
-  // 배너 이미지 3개 조회
-  getAdminBanners: () =>
-    api.get('/admin/adminImage-list', {
-      withAuth: false,
-    }),
+    
 };
 
 export default commonApi;
