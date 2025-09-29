@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TouchableWithoutFeedback } from 'react-native';
+import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TouchableWithoutFeedback, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -15,33 +15,6 @@ import ArrowRight from '@assets/images/arrow_right_white.svg';
 import XBtn from '@assets/images/x_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
-
-// 임시 데이터 예시
-const mockPastReservation = [
-  {
-    reservationId: 1,
-    reservationUserName: '홍길동',
-    reservationUserPhone: '010-3333-3333',
-    reservationAmount: 150000,
-    paymentMethod: '카드결제',
-    paymentStatus: '결제완료',
-    paymentAt: "2025-08-05T06:48:19",
-    guesthouseId: 101,
-    guesthouseName: '서울 한옥 게스트하우스',
-    guesthouseImage: 'https://picsum.photos/200/200?random=1',
-    guesthousePhone: '010-1234-5678',
-    guesthouseAddress: '서울특별시 종로구 한옥마을길 12',
-    roomName: '온돌방',
-    roomCapacity: 2,
-    roomMaxCapacity: 4,
-    reservationStatus: '이용완료',
-    checkIn: '2025-07-10T15:00:00',
-    checkOut: '2025-07-12T11:00:00',
-    reservationRequest: "string",
-    reservationAt: "2025-08-05T06:48:19",
-    amount: 30000,
-  },
-];
 
 export default function ReservationCancelModal({
   visible,
@@ -87,8 +60,12 @@ export default function ReservationCancelModal({
     );
   }
 
-  const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkInDate);
-  const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.checkOutDate);
+  const checkInFormatted  = formatLocalDateTimeToDotAndTimeWithDay(
+    `${reservation.checkInDate}T${reservation.guesthouseCheckInTime ?? '00:00:00'}`
+  );
+  const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+    `${reservation.checkOutDate}T${reservation.guesthouseCheckOutTime ?? '00:00:00'}`
+  );
 
   const cancelDateTime = dayjs().format('YYYY. MM. DD (dd) HH:mm');
 
@@ -179,7 +156,11 @@ export default function ReservationCancelModal({
                 </View>
                 <View style={styles.row}>
                   <Text style={styles.label}>예약 시간</Text>
-                  <Text style={styles.value}>{formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}</Text>
+                  <Text style={styles.value}>
+                    {reservation.reservationAt
+                    ? `${formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} ${formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}`
+                    : '-'}
+                  </Text>
                 </View>
                 <View style={[styles.row, {flexDirection: 'column', gap: 4}]}>
                   <Text style={styles.label}>요청사항</Text>
@@ -244,7 +225,7 @@ export default function ReservationCancelModal({
                   style={[styles.nextButton, { backgroundColor: COLORS.primary_orange }]}
                   onPress={async () => {
                     if (!selectedReason) {
-                      alert('취소 사유를 선택해주세요.');
+                      Alert.alert('안내', '취소 사유를 선택해주세요.');
                       return;
                     }
                     try {
@@ -261,7 +242,7 @@ export default function ReservationCancelModal({
                       });
                       onClose();
                     } catch (error) {
-                      alert('예약 취소에 실패했습니다. 다시 시도해주세요.');
+                      Alert.alert('실패', '예약 취소에 실패했습니다. 다시 시도해주세요.');
                     }
                   }}
                 >
