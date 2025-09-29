@@ -14,6 +14,7 @@ const commonApi = {
     api.get('/common/region-type', {
       withAuth: false,
     }),
+    
 };
 
 export default commonApi;
