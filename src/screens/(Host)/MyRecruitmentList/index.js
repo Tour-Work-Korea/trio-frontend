@@ -7,6 +7,7 @@ import hostEmployApi from '@utils/api/hostEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
 import ResultModal from '@components/modals/ResultModal';
 import ApplicantItem from '@components/Employ/ApplicantItem';
+import PrevRecruitModal from '@components/modals/Employ/PrevRecruitModal';
 
 import ApplyLogo from '@assets/images/wa_blue_apply.svg';
 import styles from './MyRecruitmentList.styles';
@@ -26,6 +27,7 @@ const MyRecruitmentList = () => {
     buttonText2: '',
   });
   const [resultModalVisible, setResultModalVisible] = useState(false);
+  const [prevRecruitModalVisible, setPrevRecruitModalVisible] = useState(false);
   const [loading, setLoading] = useState(true);
 
   useFocusEffect(
@@ -63,14 +65,13 @@ const MyRecruitmentList = () => {
   };
 
   const handleDeletePosting = id => {
-    console.log('recruitId', id);
     setErrorModal({
       visible: true,
       title: '마감 요청은 되돌릴 수 없는 작업이에요\n계속 진행하시겠어요?',
-      onPress2: () => confirmDelete(id),
-      onPress: () => setErrorModal(prev => ({...prev, visible: false})),
-      buttonText2: '요청할래요',
-      buttonText: '보류할게요',
+      onPress: () => confirmDelete(id),
+      onPress2: () => setErrorModal(prev => ({...prev, visible: false})),
+      buttonText: '요청할래요',
+      buttonText2: '보류할게요',
     });
   };
 
@@ -94,6 +95,31 @@ const MyRecruitmentList = () => {
       });
     }
   };
+
+  const handleClickNewRecruit = () => {
+    setErrorModal({
+      visible: true,
+      title:
+        '이전에 작성한 공고를 불러와 등록하시겠어요,\n아니면 새로 작성하시겠어요?',
+      onPress: () => {
+        setPrevRecruitModalVisible(true);
+        setErrorModal(prev => ({...prev, visible: false}));
+      },
+      onPress2: () => {
+        navigation.navigate('RecruitmentForm');
+        setErrorModal(prev => ({...prev, visible: false}));
+      },
+      buttonText: '공고 불러오기',
+      buttonText2: '새로 작성하기',
+    });
+  };
+
+  const handlePickPrevRecruit = id => {
+    navigation.navigate('RecruitmentForm', {
+      recruitId: id,
+    });
+  };
+
   return (
     <View style={styles.container}>
       <Header
@@ -134,7 +160,7 @@ const MyRecruitmentList = () => {
         )}
         <TouchableOpacity
           style={[styles.addButton, styles.addButtonLocation]}
-          onPress={() => navigation.navigate('RecruitmentForm')}>
+          onPress={handleClickNewRecruit}>
           <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
             알바공고 등록하기
           </Text>
@@ -142,12 +168,19 @@ const MyRecruitmentList = () => {
         </TouchableOpacity>
 
         <ErrorModal
-          title={errorModal.title}
+          title={errorModal.title ?? null}
+          message={errorModal.message ?? null}
           buttonText={errorModal.buttonText}
           buttonText2={errorModal.buttonText2}
           onPress={errorModal.onPress}
           onPress2={errorModal.onPress2}
           visible={errorModal.visible}
+        />
+        <PrevRecruitModal
+          visible={prevRecruitModalVisible}
+          items={myRecruits}
+          onClose={() => setPrevRecruitModalVisible(false)}
+          onPick={handlePickPrevRecruit}
         />
       </View>
       <ResultModal

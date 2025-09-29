@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -7,7 +7,7 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
@@ -20,6 +20,10 @@ export default function DetailInfoSection({
   onClose,
 }) {
   const [recruitDetail, setRecruitDetail] = useState(formData.recruitDetail);
+
+  useEffect(() => {
+    setRecruitDetail(formData.recruitDetail ?? '');
+  }, [visible, formData.recruitDetail]);
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>

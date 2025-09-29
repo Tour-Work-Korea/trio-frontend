@@ -4,7 +4,7 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
 
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
