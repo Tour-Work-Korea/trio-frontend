@@ -19,6 +19,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     backgroundColor: COLORS.gray100,
     alignItems: 'center',
+    marginBottom: 16,
   },
   // 이미지
   image: {
