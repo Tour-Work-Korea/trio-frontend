@@ -16,22 +16,47 @@ import EnabledRadio from '@assets/images/radio_button_enabled.svg';
 import ArrowLeft from '@assets/images/arrow_left_black.svg';
 
 const ROOM_SIZES = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const MIN_PRICE = 10000;
 
 const RoomType = ({ data, setData, onBack, onApply }) => {
+  const initialPreset =
+    data?.roomCapacity != null &&
+    ROOM_SIZES.includes(String(data.roomCapacity));
+
+  const initialEtc =
+    data?.roomCapacity != null &&
+    !ROOM_SIZES.includes(String(data.roomCapacity));
+
+  const [capacityMode, setCapacityMode] = React.useState(
+    initialPreset ? 'preset' : initialEtc ? 'etc' : 'none'
+  );
+  const [etcInput, setEtcInput] = React.useState(
+    initialEtc ? String(data.roomCapacity) : ''
+  );
+
+  // 부모가 외부에서 roomCapacity를 바꾸는 경우 동기화
+  React.useEffect(() => {
+    if (data?.roomCapacity == null) {
+      setCapacityMode('none');
+      setEtcInput('');
+      return;
+    }
+    const isPreset = ROOM_SIZES.includes(String(data.roomCapacity));
+    setCapacityMode(isPreset ? 'preset' : 'etc');
+    setEtcInput(isPreset ? '' : String(data.roomCapacity));
+  }, [data?.roomCapacity]);
+
   const isSelectedSize = (val) =>
-    data.roomCapacity !== null &&
-    data.roomCapacity !== undefined &&
-    data.roomCapacity.toString() === val;
-  const isEtc =
-    data.roomCapacity !== null &&
-    data.roomCapacity !== undefined &&
-    !ROOM_SIZES.includes(data.roomCapacity.toString());
+    capacityMode === 'preset' &&
+    data.roomCapacity != null &&
+    String(data.roomCapacity) === val;
+
+  const isEtc = capacityMode === 'etc';
 
   const handleSelectRoomSize = (val) => {
-    setData({
-      ...data,
-      roomCapacity: val,
-    });
+    setCapacityMode('preset');
+    setEtcInput('');
+    setData({ ...data, roomCapacity: Number(val) });
   };
 
   const handleSelectRoomType = (type) => {
@@ -49,18 +74,40 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     });
   };
 
+  // 가격 최소 검증
+  const priceNum = Number(data.roomPrice);
+  const isPriceTooLow =
+    data.roomPrice !== '' && !Number.isNaN(priceNum) && priceNum < MIN_PRICE;
+
   const handleEtcChange = (text) => {
-    setData({
-      ...data,
-      roomCapacity: text,
-    });
+    const onlyNums = text.replace(/[^0-9]/g, '');
+    setCapacityMode('etc');
+    setEtcInput(onlyNums); // 즉시 부모에 반영하지 않음
   };
 
   const isDisabled =
-    !data.roomCapacity ||
+    capacityMode === 'none' ||
+    (capacityMode === 'preset' && !data.roomCapacity) ||
+    (capacityMode === 'etc' && (!etcInput || isNaN(Number(etcInput)))) ||
     !data.roomType ||
     !data.roomPrice ||
-    isNaN(Number(data.roomPrice));
+    isNaN(Number(data.roomPrice)) ||
+    isPriceTooLow;
+
+  const handleApply = () => {
+    if (capacityMode === 'none') return;
+
+    let finalCapacity = data.roomCapacity;
+    if (capacityMode === 'etc') {
+      const n = Number(etcInput);
+      if (!n || Number.isNaN(n)) return;
+      finalCapacity = n;
+    }
+
+    const finalData = { ...data, roomCapacity: finalCapacity };
+    setData(finalData);
+    onApply && onApply(finalData); // GuesthouseRoomModal의 handleApplyRoom과 호환(인자 없이 호출)
+  };
 
   return (
     <>
@@ -86,7 +133,10 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
         {/* 기타 */}
         <View style={[styles.radioRow, { flex: 1 }]}>
           <TouchableOpacity
-            onPress={() => setData({ ...data, roomCapacity: '' })}
+            onPress={() => {
+              setCapacityMode('etc');
+              if (!etcInput) setEtcInput('');
+            }}
             style={styles.radioTextContent}
           >
             {isEtc ? (
@@ -102,7 +152,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
             keyboardType="numeric"
             placeholder="기타 인원을 입력해주세요"
             placeholderTextColor={COLORS.grayscale_400}
-            value={isEtc ? String(data.roomCapacity) : ''}
+            value={isEtc ? etcInput : ''}
             onChangeText={handleEtcChange}
           />
         </View>
@@ -139,6 +189,11 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
       <Text style={[styles.title, FONTS.fs_16_medium, {marginTop: 20}]}>
         객실 가격
       </Text>
+      {isPriceTooLow && (
+        <Text style={[FONTS.fs_12_medium, { color: COLORS.semantic_red, marginBottom: 6 }]}>
+          최소 금액은 10,000원 이상이어야 합니다.
+        </Text>
+      )}
       <View style={styles.priceRow}>
         <TextInput
           style={styles.priceInput}
@@ -165,7 +220,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
           isDisabled && { backgroundColor: COLORS.grayscale_200 },
         ]}
         disabled={isDisabled}
-        onPress={onApply}
+        onPress={handleApply}
       >
         <Text 
           style={[

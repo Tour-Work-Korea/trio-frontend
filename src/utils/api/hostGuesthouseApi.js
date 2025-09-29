@@ -76,6 +76,10 @@ const hostGuesthouseApi = {
   createRoom: (guesthouseId, roomPayload) =>
     api.post(`/host/guesthouses/${guesthouseId}/rooms`, roomPayload),
 
+  // 객실 삭제
+  deleteRoom: (guesthouseId, roomId) =>
+    api.delete(`/host/guesthouses/${guesthouseId}/rooms/${roomId}`),
+
   // 게스트하우스 삭제
   deleteGuesthouse: guesthouseId =>
     api.delete(`/host/guesthouses/${guesthouseId}`),

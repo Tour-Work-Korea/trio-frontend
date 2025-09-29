@@ -20,6 +20,12 @@ platform :android do
   lane :build_release do
     gradle(task: "assembleRelease")
   end
+
+  # AAB 빌드 레인
+  desc "Build release AAB (Play Store용 번들)"
+  lane :bundle_release do
+    gradle(task: "bundleRelease")
+  end
   
   desc "Runs all the tests"
   lane :test do

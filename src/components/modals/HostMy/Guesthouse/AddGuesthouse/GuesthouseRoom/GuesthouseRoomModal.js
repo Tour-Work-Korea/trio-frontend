@@ -68,12 +68,14 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
     setStep('type');
   };
 
-  const handleApplyRoom = () => {
+  const handleApplyRoom = (roomFromChild) => {
     // roomMaxCapacity를 roomCapacity와 동일하게 세팅
+    const src = roomFromChild ?? tempRoomData;
     const normalized = {
-      ...tempRoomData,
-      roomMaxCapacity:
-      tempRoomData.roomMaxCapacity ?? tempRoomData.roomCapacity,
+      ...src,
+      roomCapacity: Number(src.roomCapacity),
+      roomMaxCapacity: src.roomMaxCapacity != null ? Number(src.roomMaxCapacity) : Number(src.roomCapacity),
+      roomPrice: Number(src.roomPrice),
     };
     setRooms(prev => [...prev, normalized]);
     setStep('list'); // 리스트로 돌아감

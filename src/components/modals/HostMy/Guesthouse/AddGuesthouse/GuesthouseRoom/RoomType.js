@@ -18,20 +18,24 @@ import ArrowLeft from '@assets/images/arrow_left_black.svg';
 const ROOM_SIZES = ['1', '2', '3', '4', '5', '6', '7', '8'];
 
 const RoomType = ({ data, setData, onBack, onApply }) => {
+  // 모드와 기타 입력값을 분리해 관리
+  const [capacityMode, setCapacityMode] = React.useState('none');
+  const [etcInput, setEtcInput] = React.useState('');
+
+  // 가격 검증
+  const priceNum = Number(data.roomPrice);
+  const isPriceTooLow = !Number.isNaN(priceNum) && priceNum < 10000;
+
   const isSelectedSize = (val) =>
-    data.roomCapacity !== null &&
-    data.roomCapacity !== undefined &&
-    data.roomCapacity.toString() === val;
-  const isEtc =
-    data.roomCapacity !== null &&
-    data.roomCapacity !== undefined &&
-    !ROOM_SIZES.includes(data.roomCapacity.toString());
+    capacityMode === 'preset' &&
+    data.roomCapacity != null &&
+    String(data.roomCapacity) === val;
+  const isEtc = capacityMode === 'etc';
 
   const handleSelectRoomSize = (val) => {
-    setData({
-      ...data,
-      roomCapacity: val,
-    });
+    setCapacityMode('preset');
+    setEtcInput('');
+    setData({ ...data, roomCapacity: Number(val) });
   };
 
   const handleSelectRoomType = (type) => {
@@ -50,17 +54,19 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
   };
 
   const handleEtcChange = (text) => {
-    setData({
-      ...data,
-      roomCapacity: text,
-    });
+    const onlyNums = text.replace(/[^0-9]/g, '');
+    setCapacityMode('etc');
+    setEtcInput(onlyNums); // 기타는 입력 상태만 유지 (data.roomCapacity는 즉시 바꾸지 않음)
   };
 
   const isDisabled =
-    !data.roomCapacity ||
+    (capacityMode === 'none') ||
+    ((capacityMode === 'preset' && !data.roomCapacity) ||
+    (capacityMode === 'etc' && (!etcInput || isNaN(Number(etcInput))))) ||
     !data.roomType ||
     !data.roomPrice ||
-    isNaN(Number(data.roomPrice));
+    isNaN(Number(data.roomPrice)) ||
+    isPriceTooLow;
 
   return (
     <>
@@ -86,7 +92,10 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
         {/* 기타 */}
         <View style={[styles.radioRow, { flex: 1 }]}>
           <TouchableOpacity
-            onPress={() => setData({ ...data, roomCapacity: '' })}
+            onPress={() => {
+              setCapacityMode('etc');
+              if (!etcInput) setEtcInput('');
+            }}
             style={styles.radioTextContent}
           >
             {isEtc ? (
@@ -102,7 +111,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
             keyboardType="numeric"
             placeholder="기타 인원을 입력해주세요"
             placeholderTextColor={COLORS.grayscale_400}
-            value={isEtc ? String(data.roomCapacity) : ''}
+            value={isEtc ? etcInput : ''}
             onChangeText={handleEtcChange}
           />
         </View>
@@ -139,6 +148,11 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
       <Text style={[styles.title, FONTS.fs_16_medium, {marginTop: 20}]}>
         객실 가격
       </Text>
+      {(!Number.isNaN(priceNum) && isPriceTooLow) && (
+        <Text style={[FONTS.fs_12_medium, styles.errorText]}>
+          최소 금액은 10,000원 이상 입니다.
+        </Text>
+      )}
       <View style={styles.priceRow}>
         <TextInput
           style={styles.priceInput}
@@ -165,7 +179,21 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
           isDisabled && { backgroundColor: COLORS.grayscale_200 },
         ]}
         disabled={isDisabled}
-        onPress={onApply}
+        onPress={() => {
+          // 최종 roomCapacity 확정값 계산
+          let finalCapacity = data.roomCapacity;
+          if (capacityMode === 'etc') {
+            const n = Number(etcInput);
+            if (!n || Number.isNaN(n)) return; // 방어
+            finalCapacity = n;
+          }
+          if (capacityMode === 'none') return; // 아무 것도 선택 안 된 경우 방어
+
+          const finalData = { ...data, roomCapacity: finalCapacity };
+          // 비동기 setState 레이스 방지: 최종 객체를 둘 다에 동일 전달
+          setData(finalData);
+          onApply && onApply(finalData);
+        }}
       >
         <Text 
           style={[
@@ -239,6 +267,11 @@ const styles = StyleSheet.create({
     borderColor: COLORS.grayscale_200,
     borderRadius: 20,
     padding: 12,
+  },
+
+  errorText: {
+    marginBottom: 6,
+    color: COLORS.semantic_red,
   },
 
   // 버튼

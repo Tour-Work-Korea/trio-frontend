@@ -1,5 +1,6 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, TouchableOpacity } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Alert } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
@@ -28,42 +29,31 @@ const ReservationList = ({ guesthouseId }) => {
 
   const [approvingId, setApprovingId] = useState(null); // 예약 확정 중인 아이템 id
 
-  useEffect(() => {
+  // 예약 목록 조회
+  const fetchReservations = useCallback(async () => {
     if (!guesthouseId) return;
-    let cancelled = false;
-
-    const fetchData = async () => {
-      try {
-        setLoading(true);
-        setError(null);
-        const res = await hostGuesthouseApi.getGuesthouseReservations(guesthouseId);
-        if (cancelled) return;
-
-        const raw = Array.isArray(res?.data) ? res.data : [];
-        // 예약상태는 PENDING/CONFIRMED/COMPLETED만 사용
-        const filtered = raw.filter((r) =>
-          ['PENDING', 'CONFIRMED', 'COMPLETED'].includes(r?.reservationStatus)
-        );
-
-        const base = filtered;
-
-        // PENDING/CONFIRMED 먼저 정렬
-        const sorted = [...base].sort((a, b) => statusOrder(a.reservationStatus) - statusOrder(b.reservationStatus));
-
-        setData(sorted);
-      } catch (e) {
-        if (cancelled) return;
-        setError(e);
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    };
-
-    fetchData();
-    return () => { cancelled = true; };
+    try {
+      setLoading(true);
+      setError(null);
+      const res = await hostGuesthouseApi.getGuesthouseReservations(guesthouseId);
+      const raw = Array.isArray(res?.data) ? res.data : [];
+      const filtered = raw.filter((r) =>
+        ['PENDING', 'CONFIRMED', 'COMPLETED'].includes(r?.reservationStatus)
+      );
+      const sorted = [...filtered].sort(
+        (a, b) => statusOrder(a.reservationStatus) - statusOrder(b.reservationStatus)
+      );
+      setData(sorted);
+    } catch (e) {
+      setError(e);
+    } finally {
+      setLoading(false);
+    }
   }, [guesthouseId]);
 
-  if (!guesthouseId) return null;
+  useEffect(() => {
+    fetchReservations();
+  }, [fetchReservations]);
 
   if (loading) {
     return (
@@ -75,16 +65,32 @@ const ReservationList = ({ guesthouseId }) => {
 
   // 예약 확정
   const approveReservation = async (reservationId) => {
-    try {
-      setApprovingId(reservationId);
-      await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
-      // 성공 후 재조회
-      await fetchReservations();
-    } catch (e) {
-      
-    } finally {
-      setApprovingId(null);
-    }
+    const onConfirm = async () => {
+      try {
+        setApprovingId(reservationId);
+        await userGuesthouseApi.approveTempGuesthouseReservation(reservationId);
+        await fetchReservations(); // 성공 후 재조회
+      } catch (e) {
+        Toast.show({
+          type: 'error',
+          text1: '예약 확정 실패 잠시 후 다시 시도해주세요.',
+          position: 'top',
+          visibilityTime: 2000,
+        });
+      } finally {
+        setApprovingId(null);
+      }
+    };
+
+    Alert.alert(
+      '예약 확정',
+      '이 예약을 확정하시겠어요?',
+      [
+        { text: '취소', style: 'cancel' },
+        { text: '확인', onPress: onConfirm },
+      ],
+      { cancelable: true }
+    );
   };
 
   return (
