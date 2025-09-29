@@ -255,10 +255,10 @@ const GuesthouseRoomModal = ({
     setStep('type');
   };
 
-  const handleApplyRoom = () => {
-    // roomMaxCapacity를 roomCapacity와 동일하게 세팅
+  const handleApplyRoom = (nextData) => {
+    const src = nextData ?? tempRoomData;
     const normalized = {
-      ...tempRoomData,
+      ...src,
       roomMaxCapacity:
       tempRoomData.roomMaxCapacity ?? tempRoomData.roomCapacity,
       roomImages: ensureOneThumbnail(tempRoomData.roomImages),
