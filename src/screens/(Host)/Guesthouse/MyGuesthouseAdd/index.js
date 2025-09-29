@@ -145,16 +145,20 @@ const MyGuesthouseAdd = () => {
   };
 
   // 유효성 체크
-  const isNonEmpty = (v) => typeof v === 'string' && v.trim().length > 0;
+  const isNonEmpty = (v) =>
+    (typeof v === 'string' && v.trim().length > 0) ||
+    (typeof v === 'number' && !Number.isNaN(v));
+
+  const hasNumberValue = (v) =>
+    v !== null && v !== undefined && !Number.isNaN(Number(v));
   const hasThumb = (arr = []) => Array.isArray(arr) && arr.some(i => i?.isThumbnail === true);
   const isRoomValid = (room) => {
     return (
       isNonEmpty(room?.roomName) &&
       ['MIXED','MALE_ONLY','FEMALE_ONLY'].includes(room?.roomType ?? '') &&
-      Number.isFinite(Number(room?.roomCapacity)) &&
+      hasNumberValue(room?.roomCapacity) &&
       isNonEmpty(room?.roomDesc) &&
-      // 가격은 숫자 문자열도 허용 -> 서버에서 BigDecimal로 파싱
-      isNonEmpty(room?.roomPrice) && !isNaN(Number(room?.roomPrice)) &&
+      hasNumberValue(room?.roomPrice) &&
       Array.isArray(room?.roomImages) && room.roomImages.length > 0 &&
       hasThumb(room.roomImages)
     );
@@ -217,7 +221,7 @@ const MyGuesthouseAdd = () => {
       }, 1200);
       
     } catch (error) {
-      Alert.alert('등록 실패', '잠시 후 다시 시도해주세요.', [
+      Alert.alert('등록 실패', error?.response?.data?.message ?? '오류가 발생했습니다.', [
         { text: '확인', onPress: () => navigation.goBack() }
       ]);
     }

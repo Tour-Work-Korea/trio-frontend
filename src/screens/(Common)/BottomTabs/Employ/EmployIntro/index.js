@@ -27,7 +27,7 @@ import {COLORS} from '@constants/colors';
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
-  const [guesthouseList, setGuesthouseList] = useState([]);
+  // const [guesthouseList, setGuesthouseList] = useState([]);
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
   const [errorModal, setErrorModal] = useState({
@@ -39,33 +39,39 @@ const EmployIntro = () => {
 
   useFocusEffect(
     useCallback(() => {
-      tryFetchGuesthouses();
       tryFetchRecruitList();
-    }, [tryFetchGuesthouses, tryFetchRecruitList]),
+    }, [tryFetchRecruitList]),
   );
 
-  const tryFetchGuesthouses = useCallback(async () => {
-    const today = dayjs();
-    const tomorrow = today.add(1, 'day');
+  // useFocusEffect(
+  //   useCallback(() => {
+  //     tryFetchGuesthouses();
+  //     tryFetchRecruitList();
+  //   }, [tryFetchGuesthouses, tryFetchRecruitList]),
+  // );
 
-    try {
-      const params = {
-        checkIn: today.format('YYYY-MM-DD'),
-        checkOut: tomorrow.format('YYYY-MM-DD'),
-        guestCount: 1,
-        page: 0,
-        size: 10,
-        sort: 'RECOMMEND',
-        keyword: '외도',
-      };
-      const response = await userGuesthouseApi.getGuesthouseList(params);
-      setGuesthouseList(response.data.content);
-    } catch (error) {
-      console.warn('게스트하우스 조회 실패', error);
-    } finally {
-      setIsGHLoading(false);
-    }
-  }, []);
+  // const tryFetchGuesthouses = useCallback(async () => {
+  //   const today = dayjs();
+  //   const tomorrow = today.add(1, 'day');
+
+  //   try {
+  //     const params = {
+  //       checkIn: today.format('YYYY-MM-DD'),
+  //       checkOut: tomorrow.format('YYYY-MM-DD'),
+  //       guestCount: 1,
+  //       page: 0,
+  //       size: 10,
+  //       sort: 'RECOMMEND',
+  //       keyword: '외도',
+  //     };
+  //     const response = await userGuesthouseApi.getGuesthouseList(params);
+  //     setGuesthouseList(response.data.content);
+  //   } catch (error) {
+  //     console.warn('게스트하우스 조회 실패', error);
+  //   } finally {
+  //     setIsGHLoading(false);
+  //   }
+  // }, []);
 
   const tryFetchRecruitList = useCallback(async () => {
     try {
