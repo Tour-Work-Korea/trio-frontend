@@ -21,14 +21,14 @@ import WorkConditionSection from './WorkConditionSection';
 import WorkInfoSection from './WorkInfoSection';
 import DetailInfoSection from './DetailInfoSection';
 import ErrorModal from '@components/modals/ErrorModal';
+import GuesthouseModal from './GuesthouseModal';
+import ShortDescriptionModal from './ShortDescriptionModal';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import GuesthouseModal from './GuesthouseModal';
-import ShortDescriptionModal from './ShortDescriptionModal';
 
 const sections = [
   {id: 'guesthouse', title: '게스트하우스'},
@@ -49,6 +49,7 @@ const RecruitmentForm = ({route}) => {
     entryEndDate: null,
     recruitNumberMale: 0,
     recruitNumberFemale: 0,
+    recruitNumberNoGender: 0,
     recruitCondition: [],
     recruitMinAge: 0,
     recruitMaxAge: 0,
@@ -131,16 +132,16 @@ const RecruitmentForm = ({route}) => {
 
         recruitNumberFemale: r.recruitNumberFemale ?? 0,
         recruitNumberMale: r.recruitNumberMale ?? 0,
+        recruitNumberNoGender: r.recruitNumberNoGender ?? 0,
         recruitMinAge: r.recruitMinAge ?? 0,
         recruitMaxAge: r.recruitMaxAge ?? 0,
 
-        // 🔧 우대조건/주요업무/복지 정규화
         recruitCondition: toCondObjs(r.recruitCondition),
         workPart: splitTitles(r.workPart),
         welfare: splitTitles(r.welfare),
 
         workType: r.workType ?? '',
-        workDuration: r.workDuration ?? '', // ✅ 더 이상 ''로 덮어쓰지 않음
+        workDuration: r.workDuration ?? '',
 
         recruitImage: r.recruitImages ?? [],
         recruitDetail: r.recruitDetail ?? '',

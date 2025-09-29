@@ -48,7 +48,6 @@ export default function RecruitConditionSection({
 
   useEffect(() => {
     setSelectedTags(formData.recruitCondition ?? []);
-    console.log(formData.recruitCondition);
   }, [visible, formData.recruitCondition]);
   return (
     <Modal visible={visible} animationType="slide" transparent>
@@ -203,6 +202,40 @@ export default function RecruitConditionSection({
                           handleInputChange(
                             'recruitNumberMale',
                             formData.recruitNumberMale + 1,
+                          )
+                        }>
+                        <Plus width={24} style={styles.buttonPlMi} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                  <View style={styles.countRow}>
+                    <Text style={styles.countLabel}>성별무관</Text>
+                    <View style={styles.countInputContainer}>
+                      <TouchableOpacity
+                        style={styles.buttonPlMi}
+                        onPress={() =>
+                          handleInputChange(
+                            'recruitNumberNoGender',
+                            formData.recruitNumberNoGender - 1,
+                          )
+                        }>
+                        <Minus width={24} />
+                      </TouchableOpacity>
+
+                      <TextInput
+                        style={[styles.input, recruitStyle.input]}
+                        value={String(formData.recruitNumberNoGender)}
+                        keyboardType="number-pad"
+                        onChangeText={text =>
+                          handleInputChange('recruitNumberNoGender', text)
+                        }
+                      />
+
+                      <TouchableOpacity
+                        onPress={() =>
+                          handleInputChange(
+                            'recruitNumberNoGender',
+                            formData.recruitNumberNoGender + 1,
                           )
                         }>
                         <Plus width={24} style={styles.buttonPlMi} />

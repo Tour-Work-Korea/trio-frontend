@@ -28,6 +28,7 @@ export const computeValidSections = data => {
     entryEndDate,
     recruitNumberMale,
     recruitNumberFemale,
+    recruitNumberNoGender,
     recruitCondition, // [{id, title}] 배열 가정
     recruitMinAge,
     recruitMaxAge,
@@ -43,6 +44,7 @@ export const computeValidSections = data => {
   // 숫자 강제 파싱 (TextInput에서 온 문자열도 처리)
   const male = toNum(recruitNumberMale);
   const female = toNum(recruitNumberFemale);
+  const noGender = toNum(recruitNumberNoGender);
   const minAge = toNum(recruitMinAge);
   const maxAge = toNum(recruitMaxAge);
 
@@ -57,8 +59,10 @@ export const computeValidSections = data => {
     male >= 0 &&
     isFiniteNum(female) &&
     female >= 0 &&
+    isFiniteNum(noGender) &&
+    noGender >= 0 &&
     // 최소 1명 이상 조건을 원하면 아래 한 줄 추가:
-    male + female > 0;
+    male + female + noGender > 0;
 
   const ageOk =
     isFiniteNum(minAge) &&
