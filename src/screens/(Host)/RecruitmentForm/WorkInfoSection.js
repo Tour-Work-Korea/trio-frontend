@@ -14,7 +14,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import {useState} from 'react';
 
 export default function WorkInfoSection({
@@ -92,11 +92,11 @@ export default function WorkInfoSection({
             </TouchableOpacity>
             <View style={styles.photoGrid}>
               {formData.recruitImage.map((imageObj, index) => (
-                <View key={index} style={[styles.photoItem]}>
+                <View key={index}>
                   <Image
                     source={{uri: imageObj.recruitImageUrl}}
                     style={[
-                      styles.addPhotoButton,
+                      styles.photoItem,
                       imageObj.isThumbnail ? styles.thumbnail : '',
                     ]}
                     resizeMode="cover"

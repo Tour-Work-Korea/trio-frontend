@@ -15,7 +15,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import ResultModal from '@components/modals/ResultModal';
 import ErrorModal from '@components/modals/ErrorModal';
 
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import XBtn from '@assets/images/x_gray.svg';
@@ -32,6 +32,10 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
   useEffect(() => {
     fetchMyGuestHouse();
   }, []);
+
+  useEffect(() => {
+    setSelectedId(formData?.guesthouseId ?? 0);
+  }, [visible, formData.guesthouseId]);
 
   //나의 게스트하우스 리스트 조회
   const fetchMyGuestHouse = async () => {

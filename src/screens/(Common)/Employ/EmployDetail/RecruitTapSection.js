@@ -38,7 +38,8 @@ export default function RecruitTapSection({recruit}) {
               <Text style={styles.infoLabel}>모집인원</Text>
               <Text style={styles.infoValue}>
                 여 {recruit.recruitNumberFemale}명, 남{' '}
-                {recruit.recruitNumberMale}명
+                {recruit.recruitNumberMale}명, 성별무관{' '}
+                {recruit.recruitNumberNoGender}명
               </Text>
             </View>
 

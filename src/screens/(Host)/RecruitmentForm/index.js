@@ -2,7 +2,6 @@ import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
   TouchableWithoutFeedback,
@@ -11,10 +10,10 @@ import {
   TextInput,
   TouchableOpacity,
 } from 'react-native';
-import styles from './RecruitmentForm';
+import styles from './RecruitmentForm.styles';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import {computeValidSections} from '@utils/validation/recruitmentFormValidation';
 
 import RecruitConditionSection from './RecruitConditionSection';
@@ -22,14 +21,14 @@ import WorkConditionSection from './WorkConditionSection';
 import WorkInfoSection from './WorkInfoSection';
 import DetailInfoSection from './DetailInfoSection';
 import ErrorModal from '@components/modals/ErrorModal';
+import GuesthouseModal from './GuesthouseModal';
+import ShortDescriptionModal from './ShortDescriptionModal';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import GuesthouseModal from './GuesthouseModal';
-import ShortDescriptionModal from './ShortDescriptionModal';
 
 const sections = [
   {id: 'guesthouse', title: '게스트하우스'},
@@ -40,7 +39,7 @@ const sections = [
   {id: 'detailInfo', title: '상세 정보'},
 ];
 
-const RecruitmentForm = () => {
+const RecruitmentForm = ({route}) => {
   const [formData, setFormData] = useState({
     recruitTitle: '',
     recruitShortDescription: '',
@@ -50,6 +49,7 @@ const RecruitmentForm = () => {
     entryEndDate: null,
     recruitNumberMale: 0,
     recruitNumberFemale: 0,
+    recruitNumberNoGender: 0,
     recruitCondition: [],
     recruitMinAge: 0,
     recruitMaxAge: 0,
@@ -62,8 +62,7 @@ const RecruitmentForm = () => {
     hashtags: [],
     guesthouseId: 0,
   });
-  const route = useRoute();
-  const recruit = route.params ?? null;
+  const recruitId = route.params?.recruitId ?? null;
   const navigation = useNavigation();
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -102,28 +101,57 @@ const RecruitmentForm = () => {
   }, [formData]);
 
   useEffect(() => {
-    if (recruit) {
-      setFormData({
-        recruitTitle: recruit.recruitTitle,
-        recruitShortDescription: recruit.recruitShortDescription,
-        recruitStart: new Date(recruit.recruitStart),
-        recruitEnd: new Date(recruit.recruitEnd),
-        entryStartDate: new Date(recruit.entryStartDate),
-        entryEndDate: new Date(recruit.entryEndDate),
-        workDuration: '',
-        recruitNumberFemale: recruit.recruitNumberFemale,
-        recruitNumberMale: recruit.recruitNumberMale,
-        recruitMinAge: recruit.recruitMinAge,
-        recruitMaxAge: recruit.recruitMaxAge,
-        recruitCondition: recruit.recruitCondition,
-        workType: recruit.workType,
-        workPart: recruit.workPart,
-        welfare: recruit.welfare,
-        recruitImage: recruit.recruitImages,
-        recruitDetail: recruit.recruitDetail,
-        hashtags: recruit.hashtags?.map(tag => tag.id) || [],
-        guesthouseId: recruit.guesthouseId,
-      });
+    const toDate = v => (v ? new Date(v) : null);
+    const splitTitles = v =>
+      Array.isArray(v)
+        ? v
+        : typeof v === 'string'
+        ? v
+            .split(',')
+            .map(s => s.trim())
+            .filter(Boolean)
+        : [];
+    const toCondObjs = v => {
+      const arr = Array.isArray(v) ? v : splitTitles(v);
+      return arr.map((t, i) =>
+        typeof t === 'string' ? {id: -1000 - i, title: t} : t,
+      );
+    };
+    const getPrevRecruit = async id => {
+      const response = await hostEmployApi.getRecruitDetail(id);
+      const r = response.data;
+
+      setFormData(prev => ({
+        ...prev,
+        recruitTitle: r.recruitTitle ?? '',
+        recruitShortDescription: r.recruitShortDescription ?? '',
+        recruitStart: toDate(r.recruitStart),
+        recruitEnd: toDate(r.recruitEnd),
+        entryStartDate: toDate(r.entryStartDate),
+        entryEndDate: toDate(r.entryEndDate),
+
+        recruitNumberFemale: r.recruitNumberFemale ?? 0,
+        recruitNumberMale: r.recruitNumberMale ?? 0,
+        recruitNumberNoGender: r.recruitNumberNoGender ?? 0,
+        recruitMinAge: r.recruitMinAge ?? 0,
+        recruitMaxAge: r.recruitMaxAge ?? 0,
+
+        recruitCondition: toCondObjs(r.recruitCondition),
+        workPart: splitTitles(r.workPart),
+        welfare: splitTitles(r.welfare),
+
+        workType: r.workType ?? '',
+        workDuration: r.workDuration ?? '',
+
+        recruitImage: r.recruitImages ?? [],
+        recruitDetail: r.recruitDetail ?? '',
+        hashtags: (r.hashtags ?? []).map(t => t.id),
+        guesthouseId: r.guesthouseId ?? 0,
+      }));
+    };
+
+    if (recruitId) {
+      getPrevRecruit(recruitId);
     }
   }, []);
 
@@ -145,14 +173,7 @@ const RecruitmentForm = () => {
       welfare: formData.welfare.join(', '),
     };
 
-    if (recruit?.recruitId != null) {
-      const updatedPayload = {...payload};
-      delete updatedPayload.guesthouseId;
-
-      fetchUpdateRecruit(updatedPayload, recruit.recruitId);
-    } else {
-      fetchNewRecruit(payload);
-    }
+    fetchNewRecruit(payload);
   };
 
   const fetchNewRecruit = async payload => {
@@ -163,28 +184,6 @@ const RecruitmentForm = () => {
         title: '새로운 공고를 등록했습니다',
         buttonText: '확인',
       });
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 1,
-          routes: [
-            {name: 'MainTabs', params: {screen: '마이'}},
-            {name: 'MyRecruitmentList'},
-          ],
-        }),
-      );
-    } catch (error) {
-      const serverMessage =
-        error.response?.data?.message ||
-        error.message ||
-        '알 수 없는 오류가 발생했습니다.';
-      setErrorModal({visible: true, title: serverMessage, buttonText: '확인'});
-    }
-  };
-
-  const fetchUpdateRecruit = async (payload, updatedRecruitId) => {
-    try {
-      await hostEmployApi.updateRecruit(updatedRecruitId, payload);
-      Alert.alert('공고를 성공적으로 수정했습니다.');
       navigation.dispatch(
         CommonActions.reset({
           index: 1,
