@@ -118,6 +118,12 @@ const hostGuesthouseApi = {
   // 게하 예약 현황 조회
   getGuesthouseReservations: (guesthouseId) =>
     api.get(`/order/host/reservation/${guesthouseId}`),
+
+  // 게하 예약 취소
+  cancelGuesthouseReservation: (reservationId) =>
+    api.delete(`/order/reservation/${reservationId}`, {
+      data: { type: "GUESTHOUSE" },
+    }),
 };
 
 export default hostGuesthouseApi;
