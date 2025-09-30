@@ -67,7 +67,7 @@ export default function Guesthouses({guesthouses}) {
             // 예약 마감 노출
             <View style={styles.guesthousePrice}>
               <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
-                예약마감
+                다른 날짜 확인
               </Text>
             </View>
           )}
