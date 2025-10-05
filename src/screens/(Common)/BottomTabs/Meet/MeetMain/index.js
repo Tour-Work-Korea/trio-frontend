@@ -18,7 +18,7 @@ import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-import { meetTags } from '@data/meetOptions';
+import { meetTags, meetScales, stayTypes } from '@data/meetOptions';
 
 // 임시 이미지
 const bannerImages = [
@@ -38,7 +38,20 @@ const MeetMain = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   // 정렬 모달
   const [sortModalVisible, setSortModalVisible] = useState(false);
-  const [sortOption, setSortOption] = useState('recent'); // 기본 정렬: 실시간 인기 순
+  const [sortOption, setSortOption] = useState('RECOMMEND'); // 기본 정렬: 실시간 인기 순
+
+  // 필터
+  const [scaleId, setScaleId] = useState(null);
+  const [stayId, setStayId] = useState(null);
+
+  const isBigById = useMemo(
+    () => Object.fromEntries(meetScales.map(s => [s.id, s.isBigParty])),
+    []
+  );
+  const isGuestById = useMemo(
+    () => Object.fromEntries(stayTypes.map(s => [s.id, s.isGuest])),
+    []
+  );
 
   const [selectedDateKey, setSelectedDateKey] = useState(dayjs().format('YYYY-MM-DD')); // 오늘
 
@@ -70,20 +83,20 @@ const MeetMain = () => {
   const fetchRecent = useCallback(async () => {
     try {
       setLoading(true);
-      // 필요 시 기본값: { searchKeyword:"", page:0, size:10 } 등을 params로 넘길 수 있음
-      const { data } = await userMeetApi.getRecentParties();
-      // 안전 가드 및 정렬(기본: 시작시간 오름차순)
+
+      const params = { sortBy: sortOption };
+      if (scaleId) params.isBigParty = isBigById[scaleId];
+      if (stayId)  params.isGuest    = isGuestById[stayId];
+
+      const { data } = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
-      list.sort((a, b) =>
-        dayjs(a.partyStartDateTime).valueOf() - dayjs(b.partyStartDateTime).valueOf()
-      );
       setMeets(list);
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [sortOption, scaleId, stayId, isBigById, isGuestById]);
 
   useEffect(() => {
     fetchRecent();
@@ -337,7 +350,11 @@ const MeetMain = () => {
       <MeetFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        onApply={() => {}} // 아직 적용 로직 없음
+        onApply={(next) => {
+          setScaleId(next.selectedScale ?? null);
+          setStayId(next.selectedStay ?? null);
+          setFilterModalVisible(false);
+        }}
       />
 
       {/* 정렬 모달 */}
