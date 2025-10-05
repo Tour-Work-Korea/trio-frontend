@@ -56,6 +56,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  titleText: {
+    flex: 1,
+    marginRight: 12,
+  },
   shareHeartContainer: {
     flexDirection: 'row',
   },
@@ -67,6 +71,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addressText: {
+    flex: 1,
+    marginRight: 8,
   },
   capacityText: {
     color: COLORS.grayscale_400,

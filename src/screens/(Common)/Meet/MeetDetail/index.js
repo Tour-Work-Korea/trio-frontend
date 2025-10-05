@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,85 +8,143 @@ import {
   Pressable,
 } from 'react-native';
 import MapView, { Marker } from 'react-native-maps';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './MeetDetail.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
+import userMeetApi from '@utils/api/userMeetApi';
+import { toggleFavorite } from '@utils/toggleFavorite';
+import {
+  partyDetailDeeplink,
+  copyDeeplinkToClipboard,
+} from '@utils/deeplinkGenerator';
 
 import ChevronLeft from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-// 임시 데이터
-const MOCK_MEET_DETAIL = {
-  id: 1,
-  placeName: '김군빌리지 게스트하우스',
-  thumbnail: require('@assets/images/exphoto.jpeg'),
-  title: '오늘 소주한병 무료',
-  address: '제주 제주시 여행길 1-1',
-  capacity: 10,
-  joined: 1,
-  price: {
-    숙박객: { 여자: 10000, 남자: 20000 },
-    비숙박객: { 여자: 20000, 남자: 30000 },
-  },
-  coordinate: {
-    latitude: 33.499621,
-    longitude: 126.531188,
-  },
-  info: `후기로 입소문 난 제주사꼼장어 세 번째 브랜드, 막내네가 따뜻한 쉼과 모임을 엽니다.
-낯선 여행지에서 새로운 사람들과 어울리고 싶은 분들을 위한 자유로운 사교 모임이에요.`,
-  events: [
-    '소주 한 병 무료 제공',
-    '막내네 전용 안주 세트 제공',
-    '제주감귤막걸리 1잔 서비스',
-  ],
-  photos: [
-    require('@assets/images/exphoto.jpeg'),
-    require('@assets/images/exphoto.jpeg'),
-    require('@assets/images/exphoto.jpeg'),
-    require('@assets/images/exphoto.jpeg'),
-    require('@assets/images/exphoto.jpeg'),
-  ],
-};
-
 const TABS = ['모임안내', '이벤트', '모임사진'];
 
 const MeetDetail = () => {
   const navigation = useNavigation();
-  const [selectedTab, setSelectedTab] = useState('모임안내');
+  const route = useRoute();
+  const { partyId } = route.params ?? {};
 
+  const [selectedTab, setSelectedTab] = useState('모임안내');
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
+  const [loading, setLoading] = useState(true);
+
+  // 모임 상세 데이터
+  useEffect(() => {
+    let mounted = true;
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+        const { data } = await userMeetApi.getPartyDetail(partyId);
+        if (!mounted) return;
+        setDetail(data);
+        setLiked(!!data?.isLiked);
+      } catch (e) {
+        console.warn('getPartyDetail error', e?.response?.data || e?.message);
+      } finally {
+        if (mounted) setLoading(false);
+      }
+    };
+    if (partyId != null) fetchDetail();
+    return () => { mounted = false; };
+  }, [partyId]);
 
   const {
-    placeName,
-    thumbnail,
-    title,
-    address,
-    joined,
-    capacity,
-    price,
-    coordinate,
-    info,
-  } = MOCK_MEET_DETAIL;
+    guesthouseName,
+    partyTitle,
+    description,
+    location,
+    partyInfo,
+    partyStartDateTime,
+    numOfAttendance,
+    maxAttendance,
+    amount,             // 숙박객 남자
+    femaleAmount,       // 숙박객 여자
+    maleNonAmount,      // 비숙박객 남자
+    femaleNonAmount,    // 비숙박객 여자
+    partyEvents,
+    partyImages,
+    coordinate,         // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
+  } = detail ?? {};
 
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  // 썸네일/갤러리
+  const thumbnailSource = useMemo(() => {
+    const th = partyImages?.find(i => i.isThumbnail);
+    if (th?.imageUrl) return { uri: th.imageUrl };
+    // 응답에 없다면 첫 이미지
+    if (partyImages?.[0]?.imageUrl) return { uri: partyImages[0].imageUrl };
+  }, [partyImages]);
+
+  const gallery = useMemo(
+    () => (partyImages?.map(p => ({ uri: p.imageUrl })) ?? []),
+    [partyImages]
+  );
+
+  // 가격(라벨 매핑)
+  const priceBox = useMemo(() => ({
+    guest: {
+      female: femaleAmount ?? null,
+      male: amount ?? null,
+    },
+    nonGuest: {
+      female: femaleNonAmount ?? null,
+      male: maleNonAmount ?? null,
+    },
+  }), [amount, femaleAmount, femaleNonAmount, maleNonAmount]);
+
+  // 모임 좋아요 토글
+  const onToggleLike = async () => {
+    try {
+      await toggleFavorite({
+        type: 'party',
+        id: detail?.partyId ?? partyId,
+        isLiked: liked,
+        setList: (updater) => {
+          setLiked(prev => !prev);
+        },
+      });
+    } catch (e) {
+      console.warn('toggle like error', e?.response?.data || e?.message);
+    }
+  };
+
+  //  공유 링크
+  const handleCopyLink = () => {
+    const deepLinkUrl = partyDetailDeeplink(partyId);
+    copyDeeplinkToClipboard(deepLinkUrl);
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* 헤더 */}
       <View style={styles.header}>
         {/* 썸네일 */}
-        <Image source={thumbnail} style={styles.thumbnail} />
+        <Image source={thumbnailSource} style={styles.thumbnail} />
         <View style={styles.headerContainer}>
           <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
           <View style={styles.placePillContainer}>
-            <Text style={[FONTS.fs_14_medium, styles.placePill]}>{placeName}</Text>
+            <Text style={[FONTS.fs_14_medium, styles.placePill]}>{guesthouseName}</Text>
           </View>
         </View>
       </View>
@@ -95,12 +153,18 @@ const MeetDetail = () => {
       <View style={styles.contentContainer}>
         {/* 제목 */}
         <View style={styles.titleRow}>
-          <Text style={[FONTS.fs_20_semibold]}>{title}</Text>
+          <Text
+            style={[FONTS.fs_20_semibold, styles.titleText]}
+            numberOfLines={2}
+            ellipsizeMode="tail"
+          >
+            {partyTitle}
+          </Text>
           <View style={styles.shareHeartContainer}>
-            <TouchableOpacity>
+            <TouchableOpacity onPress={handleCopyLink}>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setLiked(prev => !prev)} style={{ marginLeft: 12 }}>
+            <TouchableOpacity onPress={onToggleLike} style={{ marginLeft: 12 }}>
               {liked ? <HeartFilled width={20} height={20} /> : <HeartEmpty width={20} height={20} />}
             </TouchableOpacity>
           </View>
@@ -108,19 +172,23 @@ const MeetDetail = () => {
 
         <View style={styles.addressCapacityContainer}>
           {/* 주소 */}
-          <Text style={[FONTS.fs_14_regular, styles.addressText]}>
-            {address}
+          <Text 
+            style={[FONTS.fs_14_regular, styles.addressText]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {location}
           </Text>
           {/* 인원수 */}
           <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
-            {joined}/{capacity}명
+            {numOfAttendance}/{maxAttendance}명
           </Text>
         </View>
 
         {/* 설명 */}
         <View style={styles.descriptionContainer}>
           <Text style={[FONTS.fs_14_regular, styles.description]}>
-            {info}
+            {description}
           </Text>
         </View>
 
@@ -136,10 +204,10 @@ const MeetDetail = () => {
               </Text>
               <View style={styles.priceTextRow}>
                 <Text style={[FONTS.fs_14_medium, styles.priceText, { marginBottom: 4} ]}>
-                  여자 {price['숙박객'].여자.toLocaleString()}원
+                  여자 {Number(priceBox.guest.female).toLocaleString()}원
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                  남자 {price['숙박객'].남자.toLocaleString()}원
+                  남자 {Number(priceBox.guest.male).toLocaleString()}원
                 </Text>
               </View>
             </View>
@@ -153,10 +221,10 @@ const MeetDetail = () => {
               </Text>
               <View style={styles.priceTextRow}>
                 <Text style={[FONTS.fs_14_medium, styles.priceText, { marginBottom: 4} ]}>
-                  여자 {price['비숙박객'].여자.toLocaleString()}원
+                  여자 {Number(priceBox.nonGuest.female).toLocaleString()}원
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                  남자 {price['비숙박객'].남자.toLocaleString()}원
+                  남자 {Number(priceBox.nonGuest.male).toLocaleString()}원
                 </Text>
               </View>
             </View>
@@ -164,7 +232,7 @@ const MeetDetail = () => {
         </View>
 
         {/* 지도 */}
-        <MapView
+        {/* <MapView
           style={styles.map}
           initialRegion={{
             latitude: coordinate.latitude,
@@ -174,7 +242,7 @@ const MeetDetail = () => {
           }}
         >
           <Marker coordinate={coordinate} />
-        </MapView>
+        </MapView> */}
 
         <View style={styles.devide}/>
 
@@ -209,11 +277,7 @@ const MeetDetail = () => {
           <View style={styles.tabContent}>
             <View style={styles.infoTextContainer}>
               <Text style={[FONTS.fs_14_regular, styles.infoText]}>
-                후기로 입소문 난 제주사꼼장의 세 번째 브랜드, 막내네가 따뜻한 사교 모임을 엽니다.{"\n"}
-                낯선 여행지에서 새로운 사람들과 어울리고 싶었던 적, 있으시죠?{"\n"}
-                혼자 떠난 여행이 조금은 허전하게 느껴질 때, 가볍게 어울릴 수 있는 자리가 있다면 어떨까요?{"\n"}
-                막내네 사교 모임은 그런 순간을 위해 준비된, 누구에게나 열려 있는 따뜻한 저녁 모임입니다.{"\n"}
-                이번 주, 막내네에서 함께해요.
+                {partyInfo}
               </Text>
             </View>
           </View>
@@ -222,16 +286,19 @@ const MeetDetail = () => {
         {/* 이벤트 */}
         {selectedTab === '이벤트' && (
           <View style={styles.tabContent}>
-            {MOCK_MEET_DETAIL.events.map((event, index) => (
-              <View key={index} style={styles.eventItem}>
+             {(partyEvents?.length ? partyEvents : []).map((ev, idx) => (
+              <View key={ev.id ?? idx} style={styles.eventItem}>
                 <Text style={[FONTS.fs_14_semibold, styles.eventTitle]}>
-                  이벤트 {index + 1}
+                  이벤트 {idx + 1}
                 </Text>
                 <Text style={[FONTS.fs_14_regular, styles.eventDesc]}>
-                  {event}
+                  {ev.eventName}
                 </Text>
               </View>
             ))}
+            {!partyEvents?.length && (
+              <Text style={[FONTS.fs_14_regular]}>등록된 이벤트가 없습니다.</Text>
+            )}
           </View>
         )}
 
@@ -240,7 +307,7 @@ const MeetDetail = () => {
           <View style={styles.tabContent}>
             {/* 확대 이미지 */}
             <Image
-              source={MOCK_MEET_DETAIL.photos[currentImageIndex]}
+              source={gallery[currentImageIndex]}
               style={styles.mainImageContainer}
             />
 
@@ -250,7 +317,7 @@ const MeetDetail = () => {
               showsHorizontalScrollIndicator={false}
               style={styles.imageScroll}
             >
-              {MOCK_MEET_DETAIL.photos.map((photo, index) => (
+              {(gallery.length ? gallery : [PLACEHOLDER]).map((photo, index) => (
                 <TouchableOpacity key={index} onPress={() => setCurrentImageIndex(index)}>
                   <Image
                     source={photo}
@@ -269,14 +336,7 @@ const MeetDetail = () => {
           <ButtonScarlet
             title="참여하기"
             onPress={() => {
-              navigation.navigate('MeetReservation', {
-                title,
-                checkIn: '2025-07-30T18:00:00', // 임의
-                checkOut: '2025-07-30T22:00:00', // 임의
-                isGuest: true, // 숙박객 여부
-                gender: '남자', // 남자/여자
-                meetPrice: price['숙박객']['남자'], // 선택된 성별 기반 가격
-              });
+              navigation.navigate('MeetReservation');
             }}
           />
         </View>
