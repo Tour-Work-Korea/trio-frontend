@@ -15,8 +15,6 @@ import {
   AgreeDetail,
   ApplySuccess,
   StoreRegisterList,
-  MeetMain,
-  MeetSearch,
   MeetDetail,
   MeetReservation,
   MeetPaymentSuccess,
@@ -163,9 +161,8 @@ const RootNavigation = () => (
         name="ApplicantListByRecruit"
         component={ApplicantListByRecruit}
       />
-      {/* 모임화면 확인을 위해 */}
-      <Stack.Screen name="MeetMain" component={MeetMain} />
-      <Stack.Screen name="MeetSearch" component={MeetSearch} />
+
+      {/* 모임화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />

@@ -26,6 +26,7 @@ import {
 import Loading from '@components/Loading';
 import {genderOptions} from '@data/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
+import { toggleFavorite } from '@utils/toggleFavorite';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -44,8 +45,6 @@ import UnLuggageIcon from '@assets/images/luggage_storage_gray.svg';
 import LoungeIcon from '@assets/images/shared_lounge_black.svg';
 import UnLoungeIcon from '@assets/images/shared_lounge_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
-import useUserStore from '@stores/userStore';
-import {showErrorModal} from '@utils/loginModalHub';
 
 const serviceIcons = [
   {
@@ -89,12 +88,10 @@ const is050Number = phone => {
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
-  const userRole = useUserStore.getState()?.userRole;
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
   const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
-  const [isFavorite, setIsFavorite] = useState(false);
 
   const [modalVisible, setModalVisible] = useState(false);
   // 이미지 모달
@@ -148,8 +145,11 @@ const GuesthouseDetail = ({route}) => {
           checkOut,
           guestCount,
         });
-        setDetail(response.data);
-        setIsFavorite(response.data.isFavorite ?? false);
+        const data = response.data;
+        setDetail({
+          ...data,
+          isLiked: typeof data.isLiked === 'boolean' ? data.isLiked : !!data.isFavorite,
+        });
       } catch (e) {
         console.warn('게스트하우스 상세 조회 실패', e);
       }
@@ -165,35 +165,32 @@ const GuesthouseDetail = ({route}) => {
         checkOut: dayjs(co).format('YYYY-MM-DD'),
         guestCount: totalGuests,
       });
-      setDetail(res.data);
+      const data = res.data;
+      setDetail(prev => ({
+        ...data,
+        isLiked: typeof data.isLiked === 'boolean'
+          ? data.isLiked
+          : (typeof prev?.isLiked === 'boolean' ? prev.isLiked : !!data.isFavorite),
+      }));
     } catch (e) {
       console.warn('게스트하우스 상세 재조회 실패', e);
     }
   };
 
   // 게하 좋아요, 좋아요 취소
-  const toggleFavorite = async () => {
-    if (userRole !== 'USER') {
-      showErrorModal({
-        message: '좋아요 기능은\n알바 로그인 후 사용해주세요',
-        buttonText2: '취소',
-        buttonText: '로그인하기',
-        onPress: () => {
-          navigation.navigate('Login');
-        },
-        onPress2: () => {},
-      });
-    }
+  const handleToggleFavorite = async () => {
+    const current = !!detail?.isLiked;
+    const next = !current;
     try {
-      if (isFavorite) {
-        await userGuesthouseApi.unfavoriteGuesthouse(id);
-      } else {
-        await userGuesthouseApi.favoriteGuesthouse(id);
-      }
-      setIsFavorite(prev => !prev); // 상태 토글
-      onLikeChange?.(id, !isFavorite);
-    } catch (error) {
-      console.warn('좋아요 토글 실패', error);
+      await toggleFavorite({
+        type: 'guesthouse',
+        id,
+        isLiked: current,
+        setItem: setDetail,
+      });
+      onLikeChange?.(id, next);
+    } catch (e) {
+      console.warn('좋아요 토글 실패', e?.response?.data || e?.message);
     }
   };
 
@@ -327,8 +324,8 @@ const GuesthouseDetail = ({route}) => {
               <TouchableOpacity onPress={handleCopyLink}>
                 <ShareIcon width={20} height={20} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={toggleFavorite}>
-                {isFavorite ? (
+              <TouchableOpacity onPress={handleToggleFavorite}>
+                {detail?.isLiked ? (
                   <FilledHeart width={20} height={20} />
                 ) : (
                   <EmptyHeart width={20} height={20} />
