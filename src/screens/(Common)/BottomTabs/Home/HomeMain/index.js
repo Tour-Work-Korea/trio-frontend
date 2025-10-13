@@ -1,9 +1,8 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useState} from 'react';
 import {View, Text, ScrollView} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 
 import styles from './Home.styles';
-import Header from '@components/Header';
 import Banner from './Banner';
 import Buttons from './Buttons';
 import Guesthouses from './Guesthouses';
@@ -13,7 +12,6 @@ import Logo from '@assets/images/logo_orange.svg';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
-import commonApi from '@utils/api/commonApi';
 import adminApi from '@utils/api/adminApi';
 import useUserStore from '@stores/userStore';
 
@@ -50,7 +48,7 @@ const HomeMain = () => {
 
   const tryFetchGuesthouses = useCallback(async () => {
     try {
-      const { data } = await userGuesthouseApi.getPopularGuesthouses();
+      const {data} = await userGuesthouseApi.getPopularGuesthouses();
       setGuesthouseList(data);
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);
@@ -84,7 +82,11 @@ const HomeMain = () => {
 
       {/* 배너 */}
       <View style={styles.boxContainer}>
-        {isBannerLoading ? <Text>로딩 중</Text> : <Banner banners={bannerList} />}
+        {isBannerLoading ? (
+          <Text>로딩 중</Text>
+        ) : (
+          <Banner banners={bannerList} />
+        )}
       </View>
 
       {/* 버튼 */}
