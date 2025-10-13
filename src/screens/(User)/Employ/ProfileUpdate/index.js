@@ -31,7 +31,10 @@ const ProfileUpdate = () => {
     phone: userProfile.phone,
     email: userProfile.email,
     mbti: userProfile.mbti,
-    instagramId: userProfile.instagramId,
+    instagramId:
+      userProfile.instagramId === 'ID를 추가해주세요'
+        ? ''
+        : userProfile.instagramId,
     gender: userProfile.gender,
     birthDate: userProfile.birthDate,
   });

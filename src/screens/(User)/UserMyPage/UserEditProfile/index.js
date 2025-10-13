@@ -37,7 +37,10 @@ const UserEditProfile = () => {
     phone: userProfile.phone,
     email: userProfile.email,
     mbti: userProfile.mbti,
-    instagramId: userProfile.instagramId,
+    instagramId:
+      userProfile.instagramId === 'ID를 추가해주세요'
+        ? ''
+        : userProfile.instagramId,
     gender: userProfile.gender,
     birthDate: userProfile.birthDate,
   });
@@ -69,7 +72,15 @@ const UserEditProfile = () => {
 
   const updateMyProfile = async () => {
     try {
-      await userMyApi.updateMyProfile(formData);
+      const parseData = {
+        ...formData,
+        instagramId:
+          formData.instagramId === ''
+            ? 'ID를 추가해주세요'
+            : formData.instagramId,
+      };
+
+      await userMyApi.updateMyProfile(parseData);
       setUserProfile({
         name: formData.name ?? '',
         nickname: formData.nickname ?? '',
@@ -80,7 +91,10 @@ const UserEditProfile = () => {
         phone: formData.phone ?? '',
         email: formData.email ?? '',
         mbti: formData.mbti ?? '',
-        instagramId: formData.instagramId ?? '',
+        instagramId:
+          formData.instagramId === ''
+            ? 'ID를 추가해주세요'
+            : formData.instagramId,
         gender: formData.gender ?? 'F',
         birthDate: formData.birthDate ?? null,
         age: calculateAge(formData.birthDate),
@@ -274,6 +288,7 @@ const UserEditProfile = () => {
                     onChangeText={text =>
                       setFormData({...formData, instagramId: text})
                     }
+                    placeholder="ID를 추가해주세요"
                   />
                 </View>
               </View>

@@ -8,8 +8,6 @@ const styles = StyleSheet.create({
   },
   section: {
     gap: 8,
-    justifyContent: 'center',
-    alignItems: 'center',
     flexDirection: 'column',
   },
   body: {gap: 8},
@@ -27,6 +25,8 @@ const styles = StyleSheet.create({
   },
   privacySection: {marginBottom: 20},
   sectionTitle: {
+    textAlign: 'center',
+    marginBottom: 12,
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_400,
   },
