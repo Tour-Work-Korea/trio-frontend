@@ -42,6 +42,14 @@ export const employDetailDeeplink = employId => {
 };
 
 /**
+ * 모임
+ * @param {string} partyId
+ */
+export const partyDetailDeeplink = partyId => {
+  return generateDeeplink(`party/${partyId}`);
+};
+
+/**
  * 딥링크 복사
  */
 export const copyDeeplinkToClipboard = url => {

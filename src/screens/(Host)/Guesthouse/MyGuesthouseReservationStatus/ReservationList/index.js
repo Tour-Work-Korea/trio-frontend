@@ -7,6 +7,8 @@ import EmptyState from '@components/EmptyState';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateToDotWithDay } from '@utils/formatDate';
+// 예약 취소 모달
+import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
 // 예약 확정 임시
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
@@ -29,6 +31,10 @@ const ReservationList = ({ guesthouseId }) => {
 
   const [approvingId, setApprovingId] = useState(null); // 예약 확정 중인 아이템 id
   const [cancellingId, setCancellingId] = useState(null); // 예약 취소 중인 아이템 id
+
+  // 예약 취소 모달
+  const [cancelVisible, setCancelVisible] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   // 예약 목록 조회
   const fetchReservations = useCallback(async () => {
@@ -95,40 +101,35 @@ const ReservationList = ({ guesthouseId }) => {
   };
 
   // 예약 취소
-  const cancelReservation = async (reservationId) => {
-    const onConfirm = async () => {
-      try {
-        setCancellingId(reservationId);
-        await hostGuesthouseApi.cancelGuesthouseReservation(reservationId);
-        Toast.show({
-          type: 'success',
-          text1: '예약을 취소했어요.',
-          position: 'top',
-          visibilityTime: 2000,
-        });
-        await fetchReservations();
-      } catch (e) {
-        Toast.show({
-          type: 'error',
-          text1: '예약 취소 실패',
-          text2: '잠시 후 다시 시도해주세요.',
-          position: 'top',
-          visibilityTime: 2000,
-        });
-      } finally {
-        setCancellingId(null);
-      }
-    };
+  const openCancelModal = (reservationItem) => {
+    setSelectedReservation(reservationItem);
+    requestAnimationFrame(() => setCancelVisible(true));
+  };
 
-    Alert.alert(
-      '예약 취소',
-      '정말 이 예약을 취소하시겠어요?',
-      [
-        { text: '취소', style: 'cancel' },
-        { text: '확인', onPress: onConfirm },
-      ],
-      { cancelable: true }
-    );
+  const handleCancelSubmit = async (reservationId, reasonText) => {
+    try {
+      setCancellingId(reservationId);
+      // 백엔드가 사유를 받지 않아도 문제 없게, 우선 ID만 전송 (사유 필드가 있으면 여기에 붙여줘)
+      await hostGuesthouseApi.cancelGuesthouseReservation(reservationId);
+      Toast.show({
+        type: 'success',
+        text1: '예약을 취소했어요.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      setCancelVisible(false);
+      setSelectedReservation(null);
+      await fetchReservations();
+    } catch (e) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소를 실패했어요.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } finally {
+      setCancellingId(null);
+    }
   };
 
 
@@ -163,6 +164,10 @@ const ReservationList = ({ guesthouseId }) => {
                 <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>예약자</Text>
                 <Text style={[FONTS.fs_14_medium]}>{item.reservationUserName}</Text>
               </View>
+              <View style={styles.infoRow}>
+                <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>전화번호</Text>
+                <Text style={[FONTS.fs_14_medium]}>{item.reservationUserPhone}</Text>
+              </View>
             </View>
             
             {/* 이용 날짜 */}
@@ -181,7 +186,7 @@ const ReservationList = ({ guesthouseId }) => {
               {(item.reservationStatus === 'PENDING' || item.reservationStatus === 'CONFIRMED') && (
                 <TouchableOpacity
                   style={[styles.btn, styles.cancelButton]}
-                  onPress={() => cancelReservation(item.reservationId)}
+                  onPress={() => openCancelModal(item)}
                   disabled={cancellingId === item.reservationId || approvingId === item.reservationId}
                 >
                   {cancellingId === item.reservationId ? (
@@ -229,6 +234,19 @@ const ReservationList = ({ guesthouseId }) => {
             : { paddingVertical: 8 }
         }
       />
+
+      {/* 예약 취소 모달 */}
+      {cancelVisible && selectedReservation && (
+        <ReservationCancelModal
+          visible={cancelVisible}
+          onClose={() => {
+            setCancelVisible(false);
+            setSelectedReservation(null);
+          }}
+          reservation={selectedReservation}
+          onSubmit={handleCancelSubmit}
+        />
+      )}
     </View>
   );
 };

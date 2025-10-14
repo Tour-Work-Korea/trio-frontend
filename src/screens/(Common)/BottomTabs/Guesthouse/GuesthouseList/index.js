@@ -37,13 +37,11 @@ import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilte
 import {COLORS} from '@constants/colors';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
-import useUserStore from '@stores/userStore';
-import {showErrorModal} from '@utils/loginModalHub';
+import { toggleFavorite } from '@utils/toggleFavorite';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const userRole = useUserStore?.getState().userRole;
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -160,8 +158,14 @@ const GuesthouseList = () => {
       const response = await userGuesthouseApi.getGuesthouseList(params);
       const {content, last} = response.data;
 
+      const normalized = content.map(it => ({
+        ...it,
+        guesthouseId: it.id,
+        isLiked: !!it.isFavorite,
+      }));
+
       setGuesthouses(prev =>
-        pageToFetch === 0 ? content : [...prev, ...content],
+        pageToFetch === 0 ? normalized : [...prev, ...normalized]
       );
       setIsLast(last);
     } catch (e) {
@@ -183,32 +187,14 @@ const GuesthouseList = () => {
     setPage(prev => prev + 1);
   };
 
-  const toggleLike = async (id, liked) => {
-    if (userRole !== 'USER') {
-      showErrorModal({
-        message: '좋아요 기능은\n알바 로그인 후 사용해주세요',
-        buttonText2: '취소',
-        buttonText: '로그인하기',
-        onPress: () => {
-          navigation.navigate('Login');
-        },
-        onPress2: () => {},
-      });
-    }
-    try {
-      if (liked) {
-        await userGuesthouseApi.unfavoriteGuesthouse(id);
-      } else {
-        await userGuesthouseApi.favoriteGuesthouse(id);
-      }
-      setGuesthouses(prev =>
-        prev.map(item =>
-          item.id === id ? {...item, isFavorite: !item.isFavorite} : item,
-        ),
-      );
-    } catch (e) {
-      console.warn('찜 실패', e);
-    }
+  // 게하 즐겨찾기
+  const handleToggleFavorite = (item) => {
+    toggleFavorite({
+      type: 'guesthouse',
+      id: item.guesthouseId,
+      isLiked: item.isLiked,
+      setList: setGuesthouses,
+    });
   };
 
   const renderItem = ({item}) => (
@@ -219,11 +205,13 @@ const GuesthouseList = () => {
           checkIn,
           checkOut,
           guestCount: adultCount + childCount,
-          onLikeChange: (id, isLiked) => {
+          onLikeChange: (id, nextIsLiked) => {
             setGuesthouses(prev =>
-              prev.map(item =>
-                item.id === id ? {...item, isFavorite: isLiked} : item,
-              ),
+              prev.map(g =>
+                g.id === id
+                  ? { ...g, isLiked: nextIsLiked }
+                  : g
+              )
             );
           },
           onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
@@ -271,8 +259,9 @@ const GuesthouseList = () => {
               ))}
             <TouchableOpacity
               style={styles.heartIcon}
-              onPress={() => toggleLike(item.id, item.isFavorite)}>
-              {item.isFavorite ? (
+              onPress={() => handleToggleFavorite(item)}
+            >
+              {item.isLiked ? (
                 <FillHeart width={20} height={20} />
               ) : (
                 <EmptyHeart width={20} height={20} />

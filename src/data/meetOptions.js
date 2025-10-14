@@ -1,11 +1,11 @@
 export const meetScales = [
-  { id: 'small', name: '소규모\n(10명 미만)' },
-  { id: 'large', name: '대규모\n(10명 이상)' },
+  { id: 'small', name: '소규모\n(10명 미만)', isBigParty: false },
+  { id: 'large', name: '대규모\n(10명 이상)', isBigParty: true },
 ];
 
 export const stayTypes = [
-  { id: 'only_guest', name: '숙박객만 참여' },
-  { id: 'with_visitor', name: '비숙박객 참여' },
+  { id: 'only_guest', name: '숙박객만 참여', isGuest: true },
+  { id: 'with_visitor', name: '비숙박객 참여', isGuest: false },
 ];
 
 export const meetTags = [
@@ -19,8 +19,8 @@ export const meetTags = [
 ];
 
 export const meetSortOptions = [
-  { id: 'recent', name: '실시간 인기 순' },
-  { id: 'likes', name: '좋아요 순' },
-  { id: 'low_price', name: '낮은 가격 순' },
-  { id: 'high_price', name: '높은 가격 순' },
+  { id: 'RECOMMEND', name: '실시간 인기 순' },
+  { id: 'LIKE_COUNT', name: '좋아요 순' },
+  { id: 'LOW_PRICE', name: '낮은 가격 순' },
+  { id: 'HIGH_PRICE', name: '높은 가격 순' },
 ];
