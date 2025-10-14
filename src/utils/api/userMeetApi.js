@@ -17,6 +17,10 @@ const userMeetApi = {
   removeFavorite: (partyId) => 
     api.delete(`/user/parties/favorite/${partyId}`),
 
+  // 즐겨찾기 한 모임 조회
+  getFavoriteParties: () =>
+    api.get('/user/my/party'),
+
   // 모임 상세 조회
   getPartyDetail: (partyId) => 
     api.get(`/user/parties/${partyId}`),
