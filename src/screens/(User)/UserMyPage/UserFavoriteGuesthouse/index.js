@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './UserFavoriteGuesthouse.styles';
 import Header from '@components/Header';
@@ -18,6 +19,9 @@ const UserFavoriteGuesthouse = () => {
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [loading, setLoading] = useState(false);
+
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
 
   useEffect(() => {
     fetchFavoriteList();
@@ -45,7 +49,18 @@ const UserFavoriteGuesthouse = () => {
   };
 
   const renderItem = ({ item }) => (
-    <View style={styles.card}>
+    <TouchableOpacity 
+      style={styles.card}
+      onPress={() => {
+        navigation.navigate('GuesthouseDetail', {
+          id: item.id,
+          isFromDeeplink: true,
+          checkIn: today.format('YYYY-MM-DD'),
+          checkOut: tomorrow.format('YYYY-MM-DD'),
+          guestCount: 1,
+        });
+      }}
+    >
       <View>
         <Image
           source={{ uri: item.thumbnailImgUrl }}
@@ -77,7 +92,7 @@ const UserFavoriteGuesthouse = () => {
         <Text style={[FONTS.fs_18_semibold, styles.price]}>{item.minPrice.toLocaleString()}원 ~</Text>
       </View>
       
-    </View>
+    </TouchableOpacity>
   );
 
   return (
