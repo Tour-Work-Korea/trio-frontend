@@ -336,7 +336,7 @@ const MeetDetail = () => {
           <ButtonScarlet
             title="참여하기"
             onPress={() => {
-              navigation.navigate('MeetReservation');
+              navigation.navigate('MeetReservation', { partyId });
             }}
           />
         </View>
