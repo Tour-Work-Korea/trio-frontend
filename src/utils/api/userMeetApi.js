@@ -34,11 +34,8 @@ const userMeetApi = {
     api.post(`/order/reservation/party/${partyId}`, { request }),
 
   // 모임 결제 검증 및 확정
-  verifyPayment: (reservationId, paymentId) =>
-    api.post(`/order/payment/${reservationId}`, {
-      paymentId,
-      reservationType: "PARTY",
-    }),
+  verifyPayment: (reservationId, body) =>
+    api.post(`/order/payment/${reservationId}`, body),
 };
 
 export default userMeetApi;
