@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView, ActivityIndicator } from 'react-native';
+import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
 import { useNavigation } from '@react-navigation/native';
@@ -10,6 +10,7 @@ import styles from './MeetMain.styles';
 import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
+import adminApi from '@utils/api/adminApi';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -33,6 +34,11 @@ const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
   const navigation = useNavigation();
+
+  // 배너
+  const [banners, setBanners] = useState([]);
+  const [bannerLoading, setBannerLoading] = useState(false);
+
   const [activeIndex, setActiveIndex] = useState(0);
   // 필터 모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
@@ -101,6 +107,26 @@ const MeetMain = () => {
   useEffect(() => {
     fetchRecent();
   }, [fetchRecent]);
+
+  // 배너 로드
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setBannerLoading(true);
+        const { data } = await adminApi.getAdminBanners();
+        // 안전 필터링: url이 있는 것만
+        const list = Array.isArray(data) ? data.filter(b => !!b.url) : [];
+        if (mounted) setBanners(list);
+      } catch (e) {
+        console.warn('getAdminBanners error', e?.response?.data || e?.message);
+        if (mounted) setBanners([]);
+      } finally {
+        if (mounted) setBannerLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   // 선택 날짜 기준 필터
   const filteredList = useMemo(() => {
@@ -214,41 +240,67 @@ const MeetMain = () => {
         </TouchableOpacity>
       </View>
       
-      {/* 배너 */}
       <View style={styles.bannerContainer}>
-        <Carousel
-          width={width * 0.9}
-          height={120}
-          style={{ alignItems: 'center', justifyContent:'center' }}
-          autoPlay
-          loop
-          data={bannerImages}
-          scrollAnimationDuration={2000}
-          mode="parallax"
-          modeConfig={{
-            parallaxScrollingScale: 1,
-            parallaxScrollingOffset: 50,
-          }}
-          onSnapToItem={(index) => setActiveIndex(index)}
-          renderItem={({ item }) => (
-            <View style={styles.bannerImageContainer}>
-              <Image source={item} style={styles.bannerImage} />
-            </View>
-          )}
-        />
-
-        {/* 인디케이터 */}
-        <View style={styles.dotsContainer}>
-          {bannerImages.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                activeIndex === index && styles.dotActive,
-              ]}
+        {bannerLoading ? (
+          <ActivityIndicator color={COLORS.grayscale_500} />
+        ) : (
+          <>
+            <Carousel
+              width={width * 0.9}
+              height={120}
+              style={{ alignItems: 'center', justifyContent: 'center' }}
+              autoPlay
+              loop
+              data={banners}
+              scrollAnimationDuration={2000}
+              mode="parallax"
+              modeConfig={{
+                parallaxScrollingScale: 1,
+                parallaxScrollingOffset: 50,
+              }}
+              onSnapToItem={(index) => setActiveIndex(index)}
+              renderItem={({ item }) => {
+                const isHttps = typeof item.link === 'string' && /^https:\/\//i.test(item.link);
+                const onPress = async () => {
+                  if (isHttps) {
+                    try {
+                      const supported = await Linking.canOpenURL(item.link);
+                      if (supported) Linking.openURL(item.link);
+                    } catch (e) {
+                      console.warn('open banner link error', e?.message);
+                    }
+                  }
+                };
+                return (
+                  <TouchableOpacity
+                    activeOpacity={isHttps ? 0.85 : 1}
+                    onPress={onPress}
+                    style={styles.bannerImageContainer}
+                  >
+                    <Image
+                      source={{ uri: item.url }}
+                      defaultSource={PLACEHOLDER /* iOS only; 안드로이드에선 무시됨 */}
+                      style={styles.bannerImage}
+                    />
+                  </TouchableOpacity>
+                );
+              }}
             />
-          ))}
-        </View>
+
+            {/* 인디케이터 */}
+            <View style={styles.dotsContainer}>
+              {banners.map((_, index) => (
+                <View
+                  key={String(index)}
+                  style={[
+                    styles.dot,
+                    activeIndex === index && styles.dotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </View>
 
       {/* 모임 일정 캘린더 */}
