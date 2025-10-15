@@ -55,7 +55,7 @@ const generateMeetReservations = (n = 12) => {
     const reservationId = 1000 + i;
     const guesthouseId = pick(GUESTHOUSE_IDS);
     const partyName = pick(PARTY_NAMES);
-    const partyImage = `https://picsum.photos/seed/party-${reservationId}/600/360`;
+    const partyImage = `https://pixabay.com/ko/photos/%EA%B3%A8%EB%AA%A9-%EB%82%98%EB%AC%B4-%EA%B8%B8-%EC%88%B2-%EC%B9%A8%EC%B0%A9-%ED%95%9C-9723861/`;
 
     return {
       reservationId,                 // Long
