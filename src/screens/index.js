@@ -32,6 +32,7 @@ export {default as MeetSearch} from './(Common)/BottomTabs/Meet/MeetSearch';
 export {default as MeetDetail} from './(Common)/Meet/MeetDetail';
 export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
 export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
+export {default as MeetPayment} from './(Common)/Meet/MeetPayment';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';

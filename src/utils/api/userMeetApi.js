@@ -17,6 +17,10 @@ const userMeetApi = {
   removeFavorite: (partyId) => 
     api.delete(`/user/parties/favorite/${partyId}`),
 
+  // 즐겨찾기 한 모임 조회
+  getFavoriteParties: () =>
+    api.get('/user/my/party'),
+
   // 모임 상세 조회
   getPartyDetail: (partyId) => 
     api.get(`/user/parties/${partyId}`),
@@ -30,11 +34,8 @@ const userMeetApi = {
     api.post(`/order/reservation/party/${partyId}`, { request }),
 
   // 모임 결제 검증 및 확정
-  verifyPayment: (reservationId, paymentId) =>
-    api.post(`/order/payment/${reservationId}`, {
-      paymentId,
-      reservationType: "PARTY",
-    }),
+  verifyPayment: (reservationId, body) =>
+    api.post(`/order/payment/${reservationId}`, body),
 };
 
 export default userMeetApi;

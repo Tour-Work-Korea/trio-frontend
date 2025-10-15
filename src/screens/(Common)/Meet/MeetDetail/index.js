@@ -10,6 +10,9 @@ import {
 import MapView, { Marker } from 'react-native-maps';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -41,6 +44,20 @@ const MeetDetail = () => {
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  const formatTime = (timeStr) => {
+    if (!timeStr) return '시간 없음';
+    const date = dayjs(timeStr);
+    return date.isValid()
+        ? date.format('HH:mm')
+        : timeStr.slice(0, 5);
+  };
+  const formatDateWithDay = (dateStr) => {
+    if (!dateStr) return '-';
+    const date = dayjs(dateStr);
+    if (!date.isValid()) return '-';
+    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
+
   // 모임 상세 데이터
   useEffect(() => {
     let mounted = true;
@@ -68,6 +85,8 @@ const MeetDetail = () => {
     location,
     partyInfo,
     partyStartDateTime,
+    partyStartTime,
+    partyEndTime,
     numOfAttendance,
     maxAttendance,
     amount,             // 숙박객 남자
@@ -78,6 +97,12 @@ const MeetDetail = () => {
     partyImages,
     coordinate,         // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
   } = detail ?? {};
+
+  // 날짜/시간 파생 (끝나는 날짜는 시작 날짜와 동일하다고 가정)
+  const checkInDate  = partyStartDateTime || null;
+  const checkInTime  = partyStartTime || partyStartDateTime || null;
+  const checkOutDate = partyStartDateTime || null;
+  const checkOutTime = partyEndTime || null;
 
   // 썸네일/갤러리
   const thumbnailSource = useMemo(() => {
@@ -190,6 +215,20 @@ const MeetDetail = () => {
           <Text style={[FONTS.fs_14_regular, styles.description]}>
             {description}
           </Text>
+        </View>
+
+        {/* 날짜 */}
+        <View style={styles.dateBoxContainer}>
+            <View style={styles.dateBoxCheckIn}>
+                <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 시작</Text>
+                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkInDate)}</Text>
+                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkInTime)}</Text>
+            </View>
+            <View style={styles.dateBoxCheckOut}>
+                <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 종료</Text>
+                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOutDate)}</Text>
+                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOutTime)}</Text>
+            </View>
         </View>
 
         {/* 모임금액 */}

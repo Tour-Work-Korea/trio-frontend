@@ -61,6 +61,7 @@ import {
   UserFavoriteMeet,
   StoreRegisterForm1,
   StoreRegisterForm2,
+  MeetPayment,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -166,6 +167,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
+      <Stack.Screen name="MeetPayment" component={MeetPayment} />
     </Stack.Navigator>
   </NavigationContainer>
 );

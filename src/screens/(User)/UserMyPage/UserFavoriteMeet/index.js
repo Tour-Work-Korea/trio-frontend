@@ -1,5 +1,5 @@
-import React, { useMemo } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useEffect, useMemo, useState, useCallback } from 'react';
+import { View, Text, Image, FlatList, TouchableOpacity } from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -11,68 +11,75 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
+import userMeetApi from '@utils/api/userMeetApi';
 
 import FillHeart from '@assets/images/heart_filled.svg';
 import SearchEmpty from '@assets/images/search_empty_sprinkle.svg';
 
-// 임시 데이터
-const MOCK = [
-  {
-    id: 1,
-    guesthouseName: '막내네 게스트하우스',
-    title: '남성 스텝 모집',
-    address: '제주시 애월리 20002-7',
-    price: 55000,
-    // 오늘 오전 9시
-    datetime: dayjs().hour(9).minute(0).second(0).toISOString(),
-    liked: 10,
-    limit: 10,
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 2,
-    guesthouseName: '막내네 게스트하우스',
-    title: '남성 스텝 모집',
-    address: '제주시 애월리 20002-7',
-    price: 55000,
-    // 오늘 오후 8시
-    datetime: dayjs().hour(20).minute(0).second(0).toISOString(),
-    liked: 8,
-    limit: 10,
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 3,
-    guesthouseName: '막내네 게스트하우스',
-    title: '남성 스텝 모집',
-    address: '제주시 애월리 20002-7',
-    price: 55000,
-    // 내일 오전 9시
-    datetime: dayjs().add(1, 'day').hour(9).minute(0).second(0).toISOString(),
-    liked: 4,
-    limit: 10,
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 4,
-    guesthouseName: '막내네 게스트하우스',
-    title: '남성 스텝 모집',
-    address: '제주시 애월리 20002-7',
-    price: 55000,
-    // 모레 오전 9시
-    datetime: dayjs().add(2, 'day').hour(9).minute(0).second(0).toISOString(),
-    liked: 2,
-    limit: 10,
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-];
+const mapApiToUI = (it) => ({
+  id: it.partyId,
+  guesthouseName: it.guesthouseName,
+  title: it.partyTitle,
+  address: it.location,
+  // price 없음 → null 처리 (UI에서 감춤)
+  price: null,
+  datetime: it.partyStartDateTime,
+  liked: it.numOfAttendance,       // 현재 참여 인원
+  limit: it.maxAttendance,         // 최대 인원
+  image: require('@assets/images/exphoto.jpeg'), // 응답에 이미지 없으므로 플레이스홀더
+});
 
 const UserFavoriteMeet = () => {
   const navigation = useNavigation();
+  const [loading, setLoading] = useState(true);
+  const [list, setList] = useState([]);
+  const [removingId, setRemovingId] = useState(null);
+
+  const fetchFavorites = useCallback(async () => {
+    try {
+      const res = await userMeetApi.getFavoriteParties();
+      const mapped = (res?.data ?? []).map(mapApiToUI);
+      setList(mapped);
+    } catch (e) {
+      console.log('getFavoriteParties error', e);
+      setList([]);
+    }
+  }, []);
+
+  useEffect(() => {
+    (async () => {
+      try {
+        await fetchFavorites();
+      } finally {
+        setLoading(false);
+      }
+    })();
+  }, [fetchFavorites]);
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    await fetchFavorites();
+    setRefreshing(false);
+  }, [fetchFavorites]);
+
+  const handleUnfavorite = useCallback(async (partyId) => {
+    if (removingId) return;
+    setRemovingId(partyId);
+    try {
+      await userMeetApi.removeFavorite(partyId);
+      await fetchFavorites();                    
+    } catch (e) {
+      console.log('removeFavorite error', e);
+    } finally {
+      setRemovingId(null);
+    }
+  }, [removingId, fetchFavorites]);
 
   const data = useMemo(
-    () => [...MOCK].sort((a, b) => dayjs(a.datetime).valueOf() - dayjs(b.datetime).valueOf()),
-    []
+    () => [...list].sort(
+      (a, b) => dayjs(a.datetime).valueOf() - dayjs(b.datetime).valueOf()
+    ),
+    [list]
   );
 
   const renderItem = ({item}) => {
@@ -98,7 +105,9 @@ const UserFavoriteMeet = () => {
                 >
                   {item.guesthouseName}
                 </Text>
-                <TouchableOpacity>
+                <TouchableOpacity
+                  onPress={() => handleUnfavorite(item.id)}
+                >
                   <FillHeart width={20} height={20} />
                 </TouchableOpacity>
               </View>
@@ -117,9 +126,9 @@ const UserFavoriteMeet = () => {
               </View>
             </View>
 
-            <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
+            {/* <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
               {item.price.toLocaleString()}원
-            </Text>
+            </Text> */}
 
           </View>
         </View>
@@ -151,26 +160,32 @@ const UserFavoriteMeet = () => {
       <Header title='즐겨찾는 모임' />
 
       <View style={styles.body}>
-        <FlatList
-          data={data}
-          keyExtractor={(it) => String(it.id)}
-          renderItem={renderItem}
-          ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-          showsVerticalScrollIndicator={false}
-          ListEmptyComponent={
-            <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-              <EmptyState
-                icon={SearchEmpty}
-                iconSize={{ width: 210, height: 112 }}
-                title="아직 즐겨찾는 모임이 없어요"
-                description="마음에 드는 모임을 빠르게 볼 수 있어요!"
-                buttonText="모임 찾으러 가기"
-                onPressButton={() => navigation.navigate('MainTabs', { screen: '모임' })}
-              />
-            </View>
-          }
-          contentContainerStyle={{flexGrow: 1}}
-        />
+        {loading ? (
+          <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+            <Loading title="내역을 불러오는 중이에요." />
+          </View>
+        ) : (
+          <FlatList
+            data={data}
+            keyExtractor={(it) => String(it.id)}
+            renderItem={renderItem}
+            ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
+            showsVerticalScrollIndicator={false}
+            ListEmptyComponent={
+              <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
+                <EmptyState
+                  icon={SearchEmpty}
+                  iconSize={{ width: 210, height: 112 }}
+                  title="아직 즐겨찾는 모임이 없어요"
+                  description="마음에 드는 모임을 빠르게 볼 수 있어요!"
+                  buttonText="모임 찾으러 가기"
+                  onPressButton={() => navigation.navigate('MainTabs', { screen: '모임' })}
+                />
+              </View>
+            }
+            contentContainerStyle={{flexGrow: 1}}
+          />
+        )}
       </View>
       
     </View>

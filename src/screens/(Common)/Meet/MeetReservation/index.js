@@ -22,7 +22,6 @@ import styles from './MeetReservation.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 
@@ -128,7 +127,6 @@ const MeetReservation = () => {
     });
   };
 
-
   useEffect(() => {
     const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
     if (allChecked !== agreeAll) {
@@ -154,11 +152,41 @@ const MeetReservation = () => {
     setModalVisible(false);
   };
 
+  // 예약 생성
+  const handleCreateReservation = async () => {
+    if (!partyId || !reservationInfo) return;
+
+    try {
+      // 요청사항
+      const requestText = requestMessage?.trim() || '';
+      const { data } = await userMeetApi.createPartyReservation(partyId, requestText);
+
+      const reservationId =
+      typeof data === 'number'
+        ? data
+        : (data?.id ?? data?.reservationId ?? Number.NaN);
+
+      if (!reservationId) {
+        throw new Error('예약 ID가 없습니다.');
+      }
+
+      // 결제로 이동 (amount는 joinParty 응답의 금액 사용)
+      navigation.navigate('MeetPayment', {
+        amount: Number(reservationInfo?.amount ?? 0),
+        reservationId,
+      });
+    } catch (e) {
+      console.log('createPartyReservation error', e);
+      const msg = e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 필요 시 값 조정
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
     >
     <View style={{ flex: 1 }}>
         <Header title="예약" />
@@ -286,7 +314,7 @@ const MeetReservation = () => {
             <ButtonScarlet
               title="요청하기"
               disabled={!isAllRequiredAgreed}
-              onPress={() => {navigation.navigate('MeetPaymentSuccess')}}
+              onPress={handleCreateReservation}
             />
           </View>
 

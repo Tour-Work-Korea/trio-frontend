@@ -8,7 +8,7 @@ import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationCancelDetailModal from '@components/modals/UserMy/Guesthouse/ReservationCancelDetailModal';
+import ReservationCancelDetailModal from '@components/modals/UserMy/Meet/ReservationCancelDetailModal';
 
 export default function UserCancelledReservations({ data }) {
   const navigation = useNavigation();
@@ -34,19 +34,14 @@ export default function UserCancelledReservations({ data }) {
   };
 
   const renderItem = ({ item, index }) => {
-      const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-        toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-      );
-      const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-        toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-      );
+      const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.startDateTime);
   
       return (
         <View style={styles.container}>
           <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
             <View style={styles.guesthouseInfo}>
               <Image
-                source={{ uri: item.guesthouseImage }}
+                source={item.partyImage}
                 style={styles.image}
                 resizeMode="cover"
               />
@@ -57,26 +52,26 @@ export default function UserCancelledReservations({ data }) {
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {item.roomName}
+                  {item.partyName}
                 </Text>
                 <Text
                   style={[FONTS.fs_12_medium, styles.adressText]}
                   numberOfLines={1}
                   ellipsizeMode="tail"
                 >
-                  {item.guesthouseAddress}
+                  주소
                 </Text>
               </View>
             </View>
             <View style={styles.dateContent}>
               <View style={styles.dateContainer}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
               </View>
               <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
               <View style={styles.dateContainer}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
               </View>
             </View>
           </TouchableOpacity>
