@@ -3,7 +3,6 @@ import {View, Text, TextInput, ActivityIndicator} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
@@ -105,7 +104,6 @@ const EmploySearchList = () => {
           loading={isEmLoading}
           onEndReached={handleEndReached}
           onJobPress={handleJobPress}
-          onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruitList}
           showErrorModal={setErrorModal}
           ListFooterComponent={

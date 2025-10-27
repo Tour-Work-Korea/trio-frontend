@@ -4,7 +4,7 @@ import {View, ScrollView} from 'react-native';
 
 import styles from './EmployDetail.styles';
 import userEmployApi from '@utils/api/userEmployApi';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import RecruitDescriptionSection from './RecruitDescriptionSection';
 import RecruitHeaderSection from './RecruitHeaderSection';
 import RecruitProfileSection from './RecruitProfileSection';
@@ -49,12 +49,12 @@ const EmployDetail = ({route}) => {
     }
   };
 
-  const toggleFavorite = async isLiked => {
-    toggleLikeRecruit({
+  const handleFavorite = async isLiked => {
+    toggleFavorite({
+      type: 'recruit',
       id,
       isLiked,
-      setRecruit,
-      showErrorModal: setErrorModal,
+      setItem: setRecruit,
     });
   };
 
@@ -75,7 +75,7 @@ const EmployDetail = ({route}) => {
           {/* 상단 기본 정보(공고 제목, 위치, 요약) */}
           <RecruitProfileSection
             recruit={recruit}
-            toggleFavorite={toggleFavorite}
+            toggleFavorite={handleFavorite}
           />
           <View style={styles.devide} />
           {/* 탭 */}

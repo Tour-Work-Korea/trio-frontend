@@ -20,7 +20,6 @@ import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import ErrorModal from '@components/modals/ErrorModal';
 import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
@@ -178,7 +177,6 @@ const PopularEmployList = () => {
           data={recruits}
           onEndReached={() => {}}
           onJobPress={moveToDetail}
-          onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruits}
           scrollEnabled={false}
           showErrorModal={setErrorModal}

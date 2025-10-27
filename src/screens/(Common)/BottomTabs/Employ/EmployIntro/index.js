@@ -8,13 +8,11 @@ import {
   ScrollView,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import dayjs from 'dayjs';
 
 import {RecruitList} from '@components/Employ/RecruitList';
 import useUserStore from '@stores/userStore';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
@@ -27,7 +25,6 @@ import {COLORS} from '@constants/colors';
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
-  // const [guesthouseList, setGuesthouseList] = useState([]);
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
   const [errorModal, setErrorModal] = useState({
@@ -42,36 +39,6 @@ const EmployIntro = () => {
       tryFetchRecruitList();
     }, [tryFetchRecruitList]),
   );
-
-  // useFocusEffect(
-  //   useCallback(() => {
-  //     tryFetchGuesthouses();
-  //     tryFetchRecruitList();
-  //   }, [tryFetchGuesthouses, tryFetchRecruitList]),
-  // );
-
-  // const tryFetchGuesthouses = useCallback(async () => {
-  //   const today = dayjs();
-  //   const tomorrow = today.add(1, 'day');
-
-  //   try {
-  //     const params = {
-  //       checkIn: today.format('YYYY-MM-DD'),
-  //       checkOut: tomorrow.format('YYYY-MM-DD'),
-  //       guestCount: 1,
-  //       page: 0,
-  //       size: 10,
-  //       sort: 'RECOMMEND',
-  //       keyword: '외도',
-  //     };
-  //     const response = await userGuesthouseApi.getGuesthouseList(params);
-  //     setGuesthouseList(response.data.content);
-  //   } catch (error) {
-  //     console.warn('게스트하우스 조회 실패', error);
-  //   } finally {
-  //     setIsGHLoading(false);
-  //   }
-  // }, []);
 
   const tryFetchRecruitList = useCallback(async () => {
     try {
@@ -132,7 +99,7 @@ const EmployIntro = () => {
             data={recruitList}
             loading={isEmLoading}
             onJobPress={handleJobPress}
-            onToggleFavorite={toggleLikeRecruit}
+            onToggleFavorite={toggleFavorite}
             setRecruitList={setRecruitList}
             ListFooterComponent={
               isEmLoading && <ActivityIndicator size="small" color="gray" />
