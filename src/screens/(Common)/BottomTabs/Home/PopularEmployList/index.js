@@ -7,6 +7,7 @@ import {
   Image,
   TouchableOpacity,
   Dimensions,
+  Linking,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
@@ -20,34 +21,9 @@ import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import ErrorModal from '@components/modals/ErrorModal';
 import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
-
-const dummyReviewData = [
-  {
-    id: 1,
-    title: '비지터 게스트하우스 후기',
-    rate: '4.5',
-    thumbnailUrl:
-      'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1758075021542_214137.jpg',
-  },
-  {
-    id: 2,
-    title: '백패커 게스트하우스 후기',
-    rate: '5.0',
-    thumbnailUrl:
-      'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1758075021542_214137.jpg',
-  },
-  {
-    id: 3,
-    title: '제주누리 게스트하우스 후기',
-    rate: '3.8',
-    thumbnailUrl:
-      'https://workaway-image-bucket.s3.ap-northeast-2.amazonaws.com/uploads/image_1758075021542_214137.jpg',
-  },
-];
 
 const PopularEmployList = () => {
   const navigation = useNavigation();
@@ -58,12 +34,13 @@ const PopularEmployList = () => {
   });
   const userRole = useUserStore.getState()?.userRole;
   const [recruits, setRecruits] = useState([]);
-  const [reviews, setReviews] = useState(dummyReviewData);
+  const [reviews, setReviews] = useState();
 
   useFocusEffect(
     useCallback(() => {
       tryFetchEmploys();
-    }, [tryFetchEmploys]),
+      tryFetchEmployReviews();
+    }, []),
   );
 
   const [currentPage, setCurrentPage] = useState(0);
@@ -73,9 +50,14 @@ const PopularEmployList = () => {
     <TouchableOpacity
       key={item.id}
       style={[styles.trendingCard, {width: SCREEN_WIDTH * 0.9}]}
-      onPress={() => {}}>
-      {item.thumbnailUrl ? (
-        <Image source={{uri: item.thumbnailUrl}} style={styles.trendingImage} />
+      onPress={() => {
+        openReviewLink(item.reviewLink);
+      }}>
+      {item.reviewImageUrl ? (
+        <Image
+          source={{uri: item.reviewImageUrl}}
+          style={styles.trendingImage}
+        />
       ) : (
         <View
           style={[
@@ -88,17 +70,33 @@ const PopularEmployList = () => {
         <View style={styles.ratingRow}>
           <StarIcon width={14} height={14} />
           <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
-            {Number(item.rate ?? 0).toFixed(1)}
+            {Number(item.reviewScore ?? 0).toFixed(1)}
           </Text>
         </View>
       </View>
       <View style={styles.trendingInfo}>
-        <Text style={[FONTS.fs_16_semibold, styles.trendingName]}>
-          {item.title}
+        <Text
+          style={[FONTS.fs_16_semibold, styles.trendingName]}
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {item.reviewTitle}
         </Text>
       </View>
     </TouchableOpacity>
   );
+
+  const tryFetchEmployReviews = async () => {
+    try {
+      const response = await userEmployApi.getEmployReviews();
+      setReviews(response.data);
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        message: '공고 리뷰 조회에 실패했습니다',
+        buttonText: '확인',
+      });
+    }
+  };
 
   const tryFetchEmploys = useCallback(async () => {
     try {
@@ -113,10 +111,24 @@ const PopularEmployList = () => {
         message: '추천 공고 조회에 실패했습니다',
         buttonText: '확인',
       });
-    } finally {
     }
   }, []);
 
+  const openReviewLink = async url => {
+    try {
+      // 스킴이 없으면 http 붙이기(선택)
+      const safe = /^https?:\/\//i.test(url) ? url : `https://${url}`;
+
+      const supported = await Linking.canOpenURL(safe);
+      if (!supported) {
+        console.warn('링크 열기 실패');
+        return;
+      }
+      await Linking.openURL(safe);
+    } catch (e) {
+      console.warn('링크 열기 실패', String(e));
+    }
+  };
   const moveToDetail = id => {
     navigation.navigate('EmployDetail', {id});
   };
@@ -147,7 +159,7 @@ const PopularEmployList = () => {
         <Text style={[FONTS.fs_16_semibold, styles.title]}>게하 스텝 후기</Text>
         <FlatList
           ref={flatListRef}
-          data={reviews.slice(0, 3)}
+          data={reviews?.slice(0, 3)}
           renderItem={({item}) => renderTrendingCard(item)}
           keyExtractor={item => String(item.guesthouseId)}
           horizontal
@@ -162,7 +174,7 @@ const PopularEmployList = () => {
         />
         {/* 인디케이터 */}
         <View style={styles.indicatorContainer}>
-          {reviews.slice(0, 3).map((_, index) => (
+          {reviews?.slice(0, 3).map((_, index) => (
             <View
               key={index}
               style={[
@@ -178,7 +190,6 @@ const PopularEmployList = () => {
           data={recruits}
           onEndReached={() => {}}
           onJobPress={moveToDetail}
-          onToggleFavorite={toggleLikeRecruit}
           setRecruitList={setRecruits}
           scrollEnabled={false}
           showErrorModal={setErrorModal}

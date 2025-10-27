@@ -3,7 +3,7 @@ import {StyleSheet, View} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
@@ -54,11 +54,11 @@ export default function MyLikeRecruitList() {
       recruitEnd: recruit.recruitEnd,
     });
   const handleLikePress = ({id, isLiked, setRecruitList}) => {
-    toggleLikeRecruit({
+    toggleFavorite({
+      type: 'recruit',
       id,
       isLiked,
-      setRecruitList,
-      showErrorModal: setErrorModal,
+      setList: setRecruitList,
     });
 
     setTimeout(() => {

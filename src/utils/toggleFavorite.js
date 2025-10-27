@@ -1,7 +1,7 @@
 import useUserStore from '@stores/userStore';
-import { Alert } from 'react-native';
-import { navigationRef } from './navigationService';
-import { showErrorModal } from './loginModalHub';
+import {Alert} from 'react-native';
+import {navigationRef} from './navigationService';
+import {showErrorModal} from './loginModalHub';
 
 import userEmployApi from './api/userEmployApi';
 import userMeetApi from '@utils/api/userMeetApi';
@@ -55,13 +55,23 @@ export const toggleFavorite = async ({
     setList(prev =>
       prev?.map(item =>
         String(item?.[idKey]) === String(id)
-          ? { ...item, isLiked: !isLiked }
-          : item
-      )
+          ? {...item, isLiked: !isLiked}
+          : item,
+      ),
     );
   }
   if (setItem) {
-    setItem(prev => ({ ...prev, isLiked: !prev?.isLiked }));
+    setItem(prev => {
+      if (!prev) return prev;
+
+      const hasIs = Object.prototype.hasOwnProperty.call(prev, 'isLiked');
+      const hasLd = Object.prototype.hasOwnProperty.call(prev, 'liked');
+
+      // 우선순위: isLiked → liked, 둘 다 없으면 isLiked 새로 생성
+      const key = hasIs ? 'isLiked' : hasLd ? 'liked' : 'isLiked';
+      const curr = Boolean(prev[key]); // 없으면 false로 간주
+      return {...prev, [key]: !curr};
+    });
   }
 
   try {
@@ -74,14 +84,12 @@ export const toggleFavorite = async ({
       const idKey = conf.listIdKey;
       setList(prev =>
         prev?.map(item =>
-          String(item?.[idKey]) === String(id)
-            ? { ...item, isLiked }
-            : item
-        )
+          String(item?.[idKey]) === String(id) ? {...item, isLiked} : item,
+        ),
       );
     }
     if (setItem) {
-      setItem(prev => ({ ...prev, isLiked }));
+      setItem(prev => ({...prev, isLiked}));
     }
 
     // 로그인 유도 (role 확인, 401/403 등)
@@ -99,7 +107,10 @@ export const toggleFavorite = async ({
       return;
     }
 
-    console.warn('toggleFavorite error', error?.response?.data || error?.message);
+    console.warn(
+      'toggleFavorite error',
+      error?.response?.data || error?.message,
+    );
     Alert.alert('좋아요 처리 중 오류가 발생했습니다.');
   }
 };

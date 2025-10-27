@@ -57,6 +57,9 @@ const userEmployApi = {
   //지원현황에서 지원서 상세 조회
   getMyApplicationById: applicationId =>
     api.get(`/user/my/applications/${applicationId}`),
+
+  //공고 리뷰 조회
+  getEmployReviews: () => api.get('/user/recruits/reviews'),
 };
 
 export default userEmployApi;
