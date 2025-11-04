@@ -68,6 +68,13 @@ jobs:
       - name: Install Ruby gems
         working-directory: ios
         run: bundle install
+        
+      - name: Update fastlane to latest
+        working-directory: ios
+        run: |
+          bundle update fastlane
+          bundle install
+          bundle exec fastlane --version
 
       - name: Install CocoaPods 1.15.2
         run: |
