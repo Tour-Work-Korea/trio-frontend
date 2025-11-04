@@ -65,6 +65,9 @@ import {
   MyMeetList,
   MyMeetDetail,
   MyMeetAdd,
+  FindPassword,
+  VerifyPhone,
+  FindIntro,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -114,6 +117,9 @@ const RootNavigation = () => (
       />
       <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
       <Stack.Screen name="Result" component={Result} />
+      <Stack.Screen name="FindIntro" component={FindIntro} />
+      <Stack.Screen name="VerifyPhone" component={VerifyPhone} />
+      <Stack.Screen name="FindPassword" component={FindPassword} />
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
       <Stack.Screen

@@ -48,6 +48,11 @@ export default StyleSheet.create({
   contentContainer: {
     marginBottom: 16,
   },
+  contentRowContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignContent: 'center',
+  },
   label: {
     marginBottom: 8,
   },

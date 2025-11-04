@@ -9,7 +9,11 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
 } from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
 import {validateNewPassword} from '@utils/validation/registerValidation';
@@ -24,8 +28,10 @@ import {COLORS} from '@constants/colors';
 import styles from '../Login.styles';
 
 const FindPassword = ({route}) => {
-  const {phoneNumber, userRole} = route.params;
-
+  const {phoneNumber, userRole, updateProfile} = route.params;
+  const editProfileRoute =
+    userRole === 'HOST' ? 'HostEditProfile' : 'UserEditProfile';
+  const navigation = useNavigation();
   const [formData, setFormData] = useState({
     newPassword: '',
     confirmPassword: '',
@@ -120,6 +126,32 @@ const FindPassword = ({route}) => {
     }
   };
 
+  const handleGoProfile = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 1, // 두 번째 라우트(EditProfile)가 활성화되도록
+        routes: [
+          {
+            name: 'MainTabs',
+            params: {screen: '마이'}, // 탭 네임에 맞게
+          },
+          {
+            name: editProfileRoute,
+          },
+        ],
+      }),
+    );
+  };
+
+  const handleGoLogin = () => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [{name: 'LoginIntro'}],
+      }),
+    );
+  };
+
   if (success) {
     return (
       <View style={styles.signin}>
@@ -128,7 +160,14 @@ const FindPassword = ({route}) => {
             <LogoBlue width={168} />
             <Text style={styles.titleText}>비밀번호 설정이 완료되었어요</Text>
           </View>
-          <ButtonScarlet title="로그인 하러가기" to="LoginIntro" />
+          {updateProfile ? (
+            <ButtonScarlet
+              title="프로필로 돌아가기"
+              onPress={handleGoProfile}
+            />
+          ) : (
+            <ButtonScarlet title="로그인 하러가기" onPress={handleGoLogin} />
+          )}
         </View>
       </View>
     );
