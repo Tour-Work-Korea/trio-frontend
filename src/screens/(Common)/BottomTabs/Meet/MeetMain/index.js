@@ -176,7 +176,7 @@ const MeetMain = () => {
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}
       >
         <View style={styles.meetTopContainer}>
-          <Image source={item.partyImageUrl} style={styles.meetThumb} />
+          <Image source={{ uri: item.partyImageUrl }} style={styles.meetThumb} />
           <View style={styles.meetInfo}>
             {/* 장소명 / 즐겨찾기 */}
             <View style={styles.meetTextRow}>
