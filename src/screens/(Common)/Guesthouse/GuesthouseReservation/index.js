@@ -137,7 +137,8 @@ const GuesthouseReservation = ({ route }) => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
+    >
       <View style={{flex: 1}}>
         <Header title="예약" />
         <ScrollView

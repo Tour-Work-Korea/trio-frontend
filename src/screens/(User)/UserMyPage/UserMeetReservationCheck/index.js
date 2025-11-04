@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native'; 
+import { useFocusEffect } from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './UserMeetReservationCheck.styles';
 import Header from '@components/Header'; 
@@ -17,79 +18,56 @@ const TABS = [
   { key: 'cancelled', label: '예약취소' },
 ];
 
-export const MOCK_RESERVATIONS = [
-  // 다가오는 예약
-  {
-    id: 1,
-    guesthouseName: '제주 바다뷰 게스트하우스',
-    roomName: '4인 도미토리',
-    checkIn: '2025-09-21',
-    checkOut: '2025-09-23',
-    guestCount: 2,
-    amount: 88000,
-    reservationStatus: 'CONFIRMED', // upcoming
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 2,
-    guesthouseName: '한라산 베이스캠프',
-    roomName: '2인 프라이빗룸',
-    checkIn: '2025-09-25',
-    checkOut: '2025-09-26',
-    guestCount: 1,
-    amount: 55000,
-    reservationStatus: 'CONFIRMED',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
+// 랜덤 유틸
+const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
+const pick = (arr) => arr[randInt(0, arr.length - 1)];
 
-  // 지난 예약
-  {
-    id: 3,
-    guesthouseName: '서귀포 힐링하우스',
-    roomName: '6인 도미토리',
-    checkIn: '2025-08-15',
-    checkOut: '2025-08-17',
-    guestCount: 3,
-    amount: 120000,
-    reservationStatus: 'COMPLETED', // past
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 4,
-    guesthouseName: '우도 선셋 게스트하우스',
-    roomName: '트윈룸',
-    checkIn: '2025-08-01',
-    checkOut: '2025-08-02',
-    guestCount: 2,
-    amount: 70000,
-    reservationStatus: 'COMPLETED',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
+// 오늘~7일 뒤 사이의 임의 시간 생성
+const randomDateTimeWithin7Days = () => {
+  const dayOffset = randInt(0, 7);               // 오늘 ~ +7일
+  const hour = randInt(9, 22);                   // 09~22시
+  const minute = pick([0, 10, 20, 30, 40, 50]);  // 10분 단위
+  return dayjs().startOf('day').add(dayOffset, 'day').hour(hour).minute(minute).second(0);
+};
 
-  // 취소된 예약
-  {
-    id: 5,
-    guesthouseName: '제주시 도심 게스트하우스',
-    roomName: '더블룸',
-    checkIn: '2025-09-10',
-    checkOut: '2025-09-12',
-    guestCount: 1,
-    amount: 60000,
-    reservationStatus: 'CANCELLED',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
-  {
-    id: 6,
-    guesthouseName: '애월 바닷가 게스트하우스',
-    roomName: '4인 도미토리',
-    checkIn: '2025-09-05',
-    checkOut: '2025-09-06',
-    guestCount: 2,
-    amount: 50000,
-    reservationStatus: 'CANCELLED',
-    image: require('@assets/images/exphoto.jpeg'),
-  },
+// 모임명 더미
+const PARTY_NAMES = [
+  '제주 선셋 바베큐 파티',
+  '야간 번개 모임',
+  '보드게임 & 맥주',
+  '새벽 바다 산책',
+  '별멍 감성 파티',
+  '함께하는 사진 산책',
 ];
+
+// 게스트하우스 더미
+const GUESTHOUSE_IDS = [101, 102, 103, 104, 105];
+
+// ✅ 요구 스키마로 N개 생성
+const generateMeetReservations = (n = 12) => {
+  const statuses = ['CONFIRMED', 'COMPLETED', 'CANCELLED'];
+
+  return Array.from({ length: n }, (_, i) => {
+    const start = randomDateTimeWithin7Days();
+    const amount = randInt(1, 8) * 10000; // 10,000 ~ 80,000
+    const reservationStatus = pick(statuses);
+
+    const reservationId = 1000 + i;
+    const guesthouseId = pick(GUESTHOUSE_IDS);
+    const partyName = pick(PARTY_NAMES);
+    const partyImage = `https://pixabay.com/ko/photos/%EA%B3%A8%EB%AA%A9-%EB%82%98%EB%AC%B4-%EA%B8%B8-%EC%88%B2-%EC%B9%A8%EC%B0%A9-%ED%95%9C-9723861/`;
+
+    return {
+      reservationId,                 // Long
+      amount,                        // BigDecimal (숫자)
+      guesthouseId,                  // Long
+      partyName,                     // String
+      partyImage,                    // String (URL)
+      reservationStatus,             // String
+      startDateTime: start.toISOString(), // LocalDateTime (ISO)
+    };
+  });
+};
 
 const UserMeetReservationCheck = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
@@ -102,7 +80,7 @@ const UserMeetReservationCheck = () => {
       setLoading(true);
       // 네트워크 호출 대신 모크 데이터 주입
       await new Promise(r => setTimeout(r, 300));
-      setReservations(MOCK_RESERVATIONS);
+      setReservations(generateMeetReservations(12));
     } catch (e) {
       console.log('예약 목록 불러오기 실패', e);
     } finally {

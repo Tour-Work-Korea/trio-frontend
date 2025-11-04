@@ -1,5 +1,5 @@
-import React, { useMemo, useState } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView } from 'react-native';
+import React, { useMemo, useState, useEffect, useCallback } from 'react';
+import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView, ActivityIndicator, Linking } from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
 import { useNavigation } from '@react-navigation/native';
@@ -9,6 +9,9 @@ import { COLORS } from '@constants/colors';
 import styles from './MeetMain.styles';
 import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
+import userMeetApi from '@utils/api/userMeetApi';
+import adminApi from '@utils/api/adminApi';
+import { toggleFavorite } from '@utils/toggleFavorite';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -16,10 +19,7 @@ import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-import { meetTags } from '@data/meetOptions';
-
-// 임시 게하 데이터
-import { MOCK_MEETS } from './mockData';
+import { meetTags, meetScales, stayTypes } from '@data/meetOptions';
 
 // 임시 이미지
 const bannerImages = [
@@ -28,21 +28,44 @@ const bannerImages = [
   require('@assets/images/exphoto.jpeg'),
 ];
 
+const PLACEHOLDER = require('@assets/images/exphoto.jpeg');
+
 const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
   const navigation = useNavigation();
+
+  // 배너
+  const [banners, setBanners] = useState([]);
+  const [bannerLoading, setBannerLoading] = useState(false);
+
   const [activeIndex, setActiveIndex] = useState(0);
   // 필터 모달
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   // 정렬 모달
   const [sortModalVisible, setSortModalVisible] = useState(false);
-  const [sortOption, setSortOption] = useState('recent'); // 기본 정렬: 실시간 인기 순
+  const [sortOption, setSortOption] = useState('RECOMMEND'); // 기본 정렬: 실시간 인기 순
+
+  // 필터
+  const [scaleId, setScaleId] = useState(null);
+  const [stayId, setStayId] = useState(null);
+
+  const isBigById = useMemo(
+    () => Object.fromEntries(meetScales.map(s => [s.id, s.isBigParty])),
+    []
+  );
+  const isGuestById = useMemo(
+    () => Object.fromEntries(stayTypes.map(s => [s.id, s.isGuest])),
+    []
+  );
 
   const [selectedDateKey, setSelectedDateKey] = useState(dayjs().format('YYYY-MM-DD')); // 오늘
-  const [favorites, setFavorites] = useState({}); // { [id]: true }
 
-  /** 7일(오늘 + 6일) */
+  // 모임 7일치 데이터
+  const [meets, setMeets] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  // 7일(오늘 + 6일)
   const dates = useMemo(() => {
     return Array.from({ length: 7 }, (_, i) => {
       const d = dayjs().add(i, 'day');
@@ -62,12 +85,55 @@ const MeetMain = () => {
     return days[d.day()];
   }
 
-  /** 리스트 */
+  // 모임 불러오기
+  const fetchRecent = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const params = { sortBy: sortOption };
+      if (scaleId) params.isBigParty = isBigById[scaleId];
+      if (stayId)  params.isGuest    = isGuestById[stayId];
+
+      const { data } = await userMeetApi.getRecentParties(params);
+      const list = Array.isArray(data) ? data : [];
+      setMeets(list);
+    } catch (e) {
+      console.warn('getRecentParties error', e?.response?.data || e?.message);
+    } finally {
+      setLoading(false);
+    }
+  }, [sortOption, scaleId, stayId, isBigById, isGuestById]);
+
+  useEffect(() => {
+    fetchRecent();
+  }, [fetchRecent]);
+
+  // 배너 로드
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        setBannerLoading(true);
+        const { data } = await adminApi.getAdminBanners();
+        // 안전 필터링: url이 있는 것만
+        const list = Array.isArray(data) ? data.filter(b => !!b.url) : [];
+        if (mounted) setBanners(list);
+      } catch (e) {
+        console.warn('getAdminBanners error', e?.response?.data || e?.message);
+        if (mounted) setBanners([]);
+      } finally {
+        if (mounted) setBannerLoading(false);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
+
+  // 선택 날짜 기준 필터
   const filteredList = useMemo(() => {
-    return MOCK_MEETS.filter(meet =>
-      dayjs(meet.startAt).format('YYYY-MM-DD') === selectedDateKey
+    return meets.filter(m =>
+      dayjs(m.partyStartDateTime).format('YYYY-MM-DD') === selectedDateKey
     );
-  }, [selectedDateKey]);
+  }, [meets, selectedDateKey]);
 
   function formatWhenTime(isoStr) {
     const d = dayjs(isoStr);
@@ -86,54 +152,75 @@ const MeetMain = () => {
     return `${dayStr}, ${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
   }
 
-  const toggleFavorite = (id) => {
-    setFavorites(prev => ({ ...prev, [id]: !prev[id] }));
+  // 모임 즐겨찾기 토글
+  const handleToggleFavorite = async (item) => {
+    try {
+      await toggleFavorite({
+        type: 'party',
+        id: item.partyId,
+        isLiked: item.isLiked,
+        setList: setMeets,
+      });
+    } catch (error) {
+      console.warn('파티 즐겨찾기 토글 실패', error?.response?.data || error?.message);
+    }
   };
 
-  // 게하
+  // 모임
   const renderMeetItem = ({ item }) => {
-    const isFav = !!favorites[item.id];
+    const isFav = !!item.isLiked;
     return (
-      <TouchableOpacity 
-        activeOpacity={0.8} 
+      <TouchableOpacity
+        activeOpacity={0.8}
         style={styles.meetItemContainer}
-        onPress={() => navigation.navigate('MeetDetail')}
+        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}
       >
         <View style={styles.meetTopContainer}>
-          <Image source={item.thumbnail} style={styles.meetThumb} />
+          <Image source={item.partyImageUrl} style={styles.meetThumb} />
           <View style={styles.meetInfo}>
-            {/* 게하 이름, 하트토글 */}
+            {/* 장소명 / 즐겨찾기 */}
             <View style={styles.meetTextRow}>
               <Text style={[FONTS.fs_12_medium, styles.meetPlace]} numberOfLines={1}>
-                {item.placeName}
+                {item.guesthouseName}
               </Text>
-              <TouchableOpacity onPress={() => toggleFavorite(item.id)} >
+              <TouchableOpacity onPress={() => handleToggleFavorite(item)}>
                 {isFav ? <HeartFilled width={20} height={20} /> : <HeartEmpty width={20} height={20} />}
               </TouchableOpacity>
             </View>
-            {/* 글 제목, 인원수 */}
+
+            {/* 제목 / 인원 */}
             <View style={styles.meetTextRow}>
-              <Text style={[FONTS.fs_14_medium, styles.meetTitle]} numberOfLines={1}>
-                {item.title}
+              <Text
+                style={[FONTS.fs_14_medium, styles.meetTitle]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.partyTitle}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
-                {item.joined}/{item.capacity}명
+                {item.numOfAttendance}/{item.maxAttendance}명
               </Text>
             </View>
+
             {/* 가격 */}
             <View style={styles.meetBottomRow}>
               <Text style={[FONTS.fs_18_semibold, styles.price]}>
-                {item.price.toLocaleString()}원
+                {Number(item.amount || 0).toLocaleString()}원
               </Text>
-            </View> 
+            </View>
           </View>
         </View>
+
         <View style={styles.meetBottomContainer}>
-          <Text style={[FONTS.fs_12_medium, styles.meetAddress]} numberOfLines={1}>
-            {item.address}
+          <Text
+            style={[FONTS.fs_12_medium, styles.meetAddress]}
+            numberOfLines={1}
+            ellipsizeMode="tail"
+          >
+            {item.location}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.timeText]}>
-            {formatWhenTime(item.startAt)}
+            {formatWhenTime(item.partyStartDateTime)}
           </Text>
         </View>
       </TouchableOpacity>
@@ -153,41 +240,67 @@ const MeetMain = () => {
         </TouchableOpacity>
       </View>
       
-      {/* 배너 */}
       <View style={styles.bannerContainer}>
-        <Carousel
-          width={width * 0.9}
-          height={120}
-          style={{ alignItems: 'center', justifyContent:'center' }}
-          autoPlay
-          loop
-          data={bannerImages}
-          scrollAnimationDuration={2000}
-          mode="parallax"
-          modeConfig={{
-            parallaxScrollingScale: 1,
-            parallaxScrollingOffset: 50,
-          }}
-          onSnapToItem={(index) => setActiveIndex(index)}
-          renderItem={({ item }) => (
-            <View style={styles.bannerImageContainer}>
-              <Image source={item} style={styles.bannerImage} />
-            </View>
-          )}
-        />
-
-        {/* 인디케이터 */}
-        <View style={styles.dotsContainer}>
-          {bannerImages.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                activeIndex === index && styles.dotActive,
-              ]}
+        {bannerLoading ? (
+          <ActivityIndicator color={COLORS.grayscale_500} />
+        ) : (
+          <>
+            <Carousel
+              width={width * 0.9}
+              height={120}
+              style={{ alignItems: 'center', justifyContent: 'center' }}
+              autoPlay
+              loop
+              data={banners}
+              scrollAnimationDuration={2000}
+              mode="parallax"
+              modeConfig={{
+                parallaxScrollingScale: 1,
+                parallaxScrollingOffset: 50,
+              }}
+              onSnapToItem={(index) => setActiveIndex(index)}
+              renderItem={({ item }) => {
+                const isHttps = typeof item.link === 'string' && /^https:\/\//i.test(item.link);
+                const onPress = async () => {
+                  if (isHttps) {
+                    try {
+                      const supported = await Linking.canOpenURL(item.link);
+                      if (supported) Linking.openURL(item.link);
+                    } catch (e) {
+                      console.warn('open banner link error', e?.message);
+                    }
+                  }
+                };
+                return (
+                  <TouchableOpacity
+                    activeOpacity={isHttps ? 0.85 : 1}
+                    onPress={onPress}
+                    style={styles.bannerImageContainer}
+                  >
+                    <Image
+                      source={{ uri: item.url }}
+                      defaultSource={PLACEHOLDER /* iOS only; 안드로이드에선 무시됨 */}
+                      style={styles.bannerImage}
+                    />
+                  </TouchableOpacity>
+                );
+              }}
             />
-          ))}
-        </View>
+
+            {/* 인디케이터 */}
+            <View style={styles.dotsContainer}>
+              {banners.map((_, index) => (
+                <View
+                  key={String(index)}
+                  style={[
+                    styles.dot,
+                    activeIndex === index && styles.dotActive,
+                  ]}
+                />
+              ))}
+            </View>
+          </>
+        )}
       </View>
 
       {/* 모임 일정 캘린더 */}
@@ -271,7 +384,7 @@ const MeetMain = () => {
         {/* 리스트 */}
         <FlatList
           data={filteredList}
-          keyExtractor={item => String(item.id)}
+          keyExtractor={item => String(item.partyId)}
           renderItem={renderMeetItem}
           showsVerticalScrollIndicator={false}
           contentContainerStyle={styles.listContent}
@@ -289,7 +402,11 @@ const MeetMain = () => {
       <MeetFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        onApply={() => {}} // 아직 적용 로직 없음
+        onApply={(next) => {
+          setScaleId(next.selectedScale ?? null);
+          setStayId(next.selectedStay ?? null);
+          setFilterModalVisible(false);
+        }}
       />
 
       {/* 정렬 모달 */}

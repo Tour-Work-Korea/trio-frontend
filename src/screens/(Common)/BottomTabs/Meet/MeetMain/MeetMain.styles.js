@@ -181,6 +181,9 @@ const styles = StyleSheet.create({
   meetTitle: {
     color: COLORS.grayscale_800,
     marginTop: 4,
+    flex: 1,
+    flexShrink: 1,
+    marginRight: 8,
   },
   // 인원수
   capacityText: {
@@ -204,6 +207,8 @@ const styles = StyleSheet.create({
   },
   meetAddress: {
     color: COLORS.grayscale_500,
+    flexShrink: 1,
+    marginRight: 8,
   },
   timeText: {
     color: COLORS.primary_orange,

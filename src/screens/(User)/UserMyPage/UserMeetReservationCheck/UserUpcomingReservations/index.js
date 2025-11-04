@@ -7,14 +7,11 @@ import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/ReservationDetailModal';
-import ReservationCancelModal from '@components/modals/UserMy/Guesthouse/ReservationCancelModal'; // 추가
+import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
+import ReservationCancelModal from '@components/modals/UserMy/Meet/ReservationCancelModal'; // 추가
 
 export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
-
-  const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
 
   // 상세 모달
   const [selectedReservationId, setSelectedReservationId] = useState(null);
@@ -45,19 +42,14 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   };
 
   const renderItem = ({ item, index }) => {
-    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-    );
-    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-    );
+    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.startDateTime);
 
     return (
       <View style={styles.container}>
         <TouchableOpacity style={styles.card} onPress={() => openDetailModal(item.reservationId)}>
           <View style={styles.guesthouseInfo}>
             <Image
-              source={{ uri: item.guesthouseImage }}
+              source={item.partyImage}
               style={styles.image}
               resizeMode="cover"
             />
@@ -68,33 +60,33 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.roomName}
+                {item.partyName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.adressText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.guesthouseAddress}
+                주소
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
             </View>
             <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
             </View>
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
+        {/* <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
           <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
   
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>

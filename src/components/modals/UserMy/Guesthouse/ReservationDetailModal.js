@@ -87,6 +87,10 @@ export default function ReservationDetailModal({
               <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.guesthouseName}</Text>
             </View>
             <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>게스트하우스 전화번호</Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.guesthousePhone}</Text>
+            </View>
+            <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>방</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.roomName}</Text>
             </View>

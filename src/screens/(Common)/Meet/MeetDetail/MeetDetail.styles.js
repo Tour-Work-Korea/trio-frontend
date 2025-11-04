@@ -56,6 +56,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 4,
   },
+  titleText: {
+    flex: 1,
+    marginRight: 12,
+  },
   shareHeartContainer: {
     flexDirection: 'row',
   },
@@ -67,6 +71,8 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   addressText: {
+    flex: 1,
+    marginRight: 8,
   },
   capacityText: {
     color: COLORS.grayscale_400,
@@ -80,6 +86,33 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   description: {
+    color: COLORS.grayscale_700,
+  },
+  // 날짜
+  dateBoxContainer: {
+    flexDirection: 'row',
+    gap: 8,
+    marginBottom: 20,
+  },
+  dateBoxCheckIn: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
+    flex: 1,
+    gap: 4,
+  },
+  dateBoxCheckOut: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 8,
+    flex: 1,
+    gap: 4,
+  },
+  dateLabel: {
+    marginBottom: 6,
+    color: COLORS.grayscale_400,
+  },
+  dateText: {
     color: COLORS.grayscale_700,
   },
   // 가격

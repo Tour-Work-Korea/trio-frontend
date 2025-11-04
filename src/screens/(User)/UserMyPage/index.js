@@ -160,7 +160,7 @@ const UserMyPage = () => {
             <View style={styles.devide} />
 
             {/* 모임 섹션 */}
-            {/* <View style={[styles.section, {marginBottom: 16}]}>
+            <View style={[styles.section, {marginBottom: 16}]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
                 모임
               </Text>
@@ -176,7 +176,7 @@ const UserMyPage = () => {
                   onPress={() => navigation.navigate('UserMeetReservationCheck')}
                 />
               </View>
-            </View> */}
+            </View>
 
             <ButtonScarlet
               title="로그아웃"

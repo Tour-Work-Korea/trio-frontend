@@ -8,7 +8,7 @@ import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/ReservationDetailModal';
+import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
 
 export default function UserPastReservations({ data }) {
   const navigation = useNavigation();
@@ -33,19 +33,14 @@ export default function UserPastReservations({ data }) {
   };
 
   const renderItem = ({ item, index }) => {
-    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-    );
-    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-    );
+    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.startDateTime);
 
     return (
       <View style={styles.container}>
         <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
           <View style={styles.guesthouseInfo}>
             <Image
-              source={{ uri: item.guesthouseImage }}
+              source={item.partyImage}
               style={styles.image}
               resizeMode="cover"
             />
@@ -56,81 +51,29 @@ export default function UserPastReservations({ data }) {
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.roomName}
+                {item.partyName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.adressText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.guesthouseAddress}
+                주소
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
             </View>
             <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
             </View>
           </View>
         </TouchableOpacity>
-
-        <View style={styles.buttonContent}> 
-          <TouchableOpacity 
-            style={styles.buttonContainer}
-            onPress={() => {
-              navigation.navigate('GuesthouseDetail', {
-                id: item.guesthouseId,
-                isFromDeeplink: true,
-                checkIn: today.format('YYYY-MM-DD'),
-                checkOut: tomorrow.format('YYYY-MM-DD'),
-                guestCount: 1,
-              });
-            }}
-          >
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>다시 예약하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.buttonContainer,
-            ]}
-            disabled={item.reviewed}
-            onPress={() => {
-              if (!item.reviewed) {
-                const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                  toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-                );
-                const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                  toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-                );
-
-                navigation.navigate('UserGuesthouseReviewForm', {
-                  guesthouseId: item.guesthouseId,
-                  guesthouseName: item.guesthouseName,
-                  roomName: item.roomName,
-                  guesthouseAddress: item.guesthouseAddress,
-                  checkInFormatted,
-                  checkOutFormatted,
-                });
-              }
-            }}
-          >
-            <Text
-              style={[
-                FONTS.fs_16_semibold,
-                styles.buttonText,
-                item.reviewed && { color: COLORS.grayscale_400 },
-              ]}
-            >
-              {item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
-            </Text>
-          </TouchableOpacity>
-        </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
     );

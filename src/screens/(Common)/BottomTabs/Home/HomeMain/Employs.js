@@ -3,7 +3,6 @@ import {View, Text, TouchableOpacity} from 'react-native';
 import styles from './Home.styles';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import {useNavigation} from '@react-navigation/native';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import {RecruitList} from '@components/Employ/RecruitList';
 import ErrorModal from '@components/modals/ErrorModal';
 
@@ -26,7 +25,7 @@ export default function Employs({jobs, setEmployList}) {
         <TouchableOpacity
           style={styles.seeMoreButton}
           onPress={() => {
-            navigation.navigate('MainTabs', {screen: '채용'});
+            navigation.navigate('PopularEmployList');
           }}>
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
@@ -36,7 +35,6 @@ export default function Employs({jobs, setEmployList}) {
         data={jobs}
         onEndReached={() => {}}
         onJobPress={moveToDetail}
-        onToggleFavorite={toggleLikeRecruit}
         setRecruitList={setEmployList}
         scrollEnabled={false}
         showErrorModal={setErrorModal}

@@ -12,6 +12,7 @@ import {userApplyAgrees} from '@data/agree';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
+import EmployEmpty from '@components/Employ/EmployEmpty';
 
 import EditIcon from '@assets/images/edit_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
@@ -20,6 +21,7 @@ import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
+import useUserStore from '@stores/userStore';
 
 const ApplicantForm = () => {
   const navigation = useNavigation();
@@ -41,6 +43,10 @@ const ApplicantForm = () => {
     buttonText: '',
   });
   const [footerHeight, setFooterHeight] = useState(0);
+  const userProfile = useUserStore(state => state.userProfile);
+  const noResumeState =
+    userProfile?.mbti === 'DEFAULT' ||
+    userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
 
   useEffect(() => {
     const allRequired = agreements
@@ -120,66 +126,94 @@ const ApplicantForm = () => {
   };
 
   const renderResumeSelection = () => (
-    <View style={styles.section}>
-      <Text style={styles.sectionTitle}>지원할 이력서를 선택해주세요</Text>
-      <View style={styles.body}>
-        {resumes?.map(item => (
-          <TouchableOpacity
-            key={item.resumeId}
-            style={styles.resumeItem}
+    <View style={[styles.section, {width: '100%', height: '100%'}]}>
+      {resumes?.length === 0 ? (
+        noResumeState ? (
+          <EmployEmpty
+            title={'아직 정보가 부족해요'}
+            subTitle={'이력서를 완성하러 가볼까요?'}
+            buttonText={'이력서 작성하러 가기'}
             onPress={() => {
-              setApplicant(prev => ({
-                ...prev,
-                resumeId:
-                  prev.resumeId === item.resumeId ? null : item.resumeId,
-              }));
-            }}>
-            <View style={styles.resumeLeftSection}>
-              {applicant.resumeId === item.resumeId ? (
-                <CheckedCircleIcon
-                  width={24}
-                  height={24}
-                  color={COLORS.scarlet}
-                />
-              ) : (
-                <UncheckedCircleIcon
-                  width={24}
-                  height={24}
-                  color={COLORS.gray}
-                />
-              )}
-            </View>
-
-            <View style={styles.resumeMiddleSection}>
-              <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
-              <View style={styles.tagsContainer}>
-                {item.hashtags.map((tag, index) => (
-                  <Text key={index} style={styles.tagText}>
-                    {tag.hashtag}
-                  </Text>
-                ))}
-              </View>
-              <View style={styles.modifiedContainer}>
-                <View style={styles.modifiedTextBox}>
-                  <Text style={styles.lastModifiedText}>최종수정일</Text>
-                  <Text style={styles.lastModifiedText}>
-                    {item.updatedAt.split('T')[0]}
-                  </Text>
+              navigation.navigate('ProfileUpdate');
+            }}
+          />
+        ) : (
+          <EmployEmpty
+            title={'작성하신 이력서가 없습니다'}
+            buttonText={'이력서 작성하러 가기'}
+            onPress={() => {
+              navigation.navigate('ResumeDetail', {
+                isEditable: true,
+                role: 'USER',
+                isNew: true,
+                headerTitle: '이력서 작성',
+              });
+            }}
+          />
+        )
+      ) : (
+        <View>
+          <Text style={styles.sectionTitle}>지원할 이력서를 선택해주세요</Text>
+          <View style={styles.body}>
+            {resumes?.map(item => (
+              <TouchableOpacity
+                key={item.resumeId}
+                style={styles.resumeItem}
+                onPress={() => {
+                  setApplicant(prev => ({
+                    ...prev,
+                    resumeId:
+                      prev.resumeId === item.resumeId ? null : item.resumeId,
+                  }));
+                }}>
+                <View style={styles.resumeLeftSection}>
+                  {applicant.resumeId === item.resumeId ? (
+                    <CheckedCircleIcon
+                      width={24}
+                      height={24}
+                      color={COLORS.scarlet}
+                    />
+                  ) : (
+                    <UncheckedCircleIcon
+                      width={24}
+                      height={24}
+                      color={COLORS.gray}
+                    />
+                  )}
                 </View>
-                <TouchableOpacity
-                  style={styles.editButton}
-                  onPress={() => handleEditResume(item.resumeId)}>
-                  <EditIcon
-                    width={24}
-                    height={24}
-                    color={COLORS.grayscale_400}
-                  />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </TouchableOpacity>
-        ))}
-      </View>
+
+                <View style={styles.resumeMiddleSection}>
+                  <Text style={styles.resumeTitle}>{item.resumeTitle}</Text>
+                  <View style={styles.tagsContainer}>
+                    {item.hashtags.map((tag, index) => (
+                      <Text key={index} style={styles.tagText}>
+                        {tag.hashtag}
+                      </Text>
+                    ))}
+                  </View>
+                  <View style={styles.modifiedContainer}>
+                    <View style={styles.modifiedTextBox}>
+                      <Text style={styles.lastModifiedText}>최종수정일</Text>
+                      <Text style={styles.lastModifiedText}>
+                        {item.updatedAt.split('T')[0]}
+                      </Text>
+                    </View>
+                    <TouchableOpacity
+                      style={styles.editButton}
+                      onPress={() => handleEditResume(item.resumeId)}>
+                      <EditIcon
+                        width={24}
+                        height={24}
+                        color={COLORS.grayscale_400}
+                      />
+                    </TouchableOpacity>
+                  </View>
+                </View>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      )}
     </View>
   );
 
@@ -236,14 +270,14 @@ const ApplicantForm = () => {
           contentContainerStyle={{
             paddingHorizontal: 20,
             paddingBottom: footerHeight + 16,
+            width: '100%',
+            height: '100%',
           }}>
           {renderResumeSelection()}
         </ScrollView>
 
         {/* 하단 고정 영역 */}
-        <View
-          style={styles.bottomButtonContainer}
-          onLayout={e => setFooterHeight(e.nativeEvent.layout.height)}>
+        <View style={styles.bottomButtonContainer}>
           {renderPrivacyAgreement()}
           <ButtonScarlet
             title="지원하기"

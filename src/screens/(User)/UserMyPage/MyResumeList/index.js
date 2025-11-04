@@ -30,6 +30,9 @@ const MyResumeList = () => {
   });
   const [loading, setLoading] = useState(true);
   const [deleteCompleted, setDeleteCompleted] = useState(false);
+  const noResumeState =
+    userProfile?.mbti === 'DEFAULT' ||
+    userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
 
   useFocusEffect(
     useCallback(() => {
@@ -152,26 +155,29 @@ const MyResumeList = () => {
       {loading ? (
         <></>
       ) : resumes?.length === 0 ? (
-        <EmployEmpty
-          title={'아직 정보가 부족해요'}
-          subTitle={'이력서를 완성하러 가볼까요?'}
-          buttonText={'이력서 작성하러 가기'}
-          onPress={() => {
-            if (
-              userProfile?.mbti === 'DEFAULT' ||
-              userProfile?.instagramId === 'ID를 추가해주세요'
-            ) {
+        noResumeState ? (
+          <EmployEmpty
+            title={'아직 정보가 부족해요'}
+            subTitle={'이력서를 완성하러 가볼까요?'}
+            buttonText={'이력서 작성하러 가기'}
+            onPress={() => {
               navigation.navigate('ProfileUpdate');
-            } else {
+            }}
+          />
+        ) : (
+          <EmployEmpty
+            title={'작성하신 이력서가 없습니다'}
+            buttonText={'이력서 작성하러 가기'}
+            onPress={() => {
               navigation.navigate('ResumeDetail', {
                 isEditable: true,
                 role: 'USER',
                 isNew: true,
                 headerTitle: '이력서 작성',
               });
-            }
-          }}
-        />
+            }}
+          />
+        )
       ) : (
         <View style={styles.body}>
           {renderResumeSelection()}

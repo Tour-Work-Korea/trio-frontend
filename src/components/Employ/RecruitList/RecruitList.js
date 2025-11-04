@@ -2,16 +2,15 @@ import React from 'react';
 import {FlatList, View} from 'react-native';
 import RecruitCard from './RecruitCard';
 import Loading from '@components/Loading';
+import {toggleFavorite} from '@utils/toggleFavorite';
 
 const RecruitList = ({
   data,
   onEndReached = null,
   loading = false,
   onJobPress,
-  onToggleFavorite,
   setRecruitList,
   scrollEnabled = true,
-  showErrorModal,
 }) => {
   if (loading) {
     return (
@@ -35,11 +34,11 @@ const RecruitList = ({
           item={item}
           onPress={() => onJobPress(item.recruitId)}
           onToggleFavorite={() =>
-            onToggleFavorite({
+            toggleFavorite({
+              type: 'recruit',
               id: item.recruitId,
               isLiked: item.isLiked,
-              setRecruitList,
-              showErrorModal,
+              setList: setRecruitList,
             })
           }
         />

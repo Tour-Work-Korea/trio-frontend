@@ -10,7 +10,6 @@ import {
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import {RecruitList} from '@components/Employ/RecruitList';
-import {toggleLikeRecruit} from '@utils/handleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
 import EmploySortModal from '@components/modals/Employ/EmploySortModal';
@@ -200,7 +199,6 @@ const EmploySearchResult = ({route}) => {
           data={recruitList}
           loading={isEmLoading}
           onJobPress={handleJobPress}
-          onToggleFavorite={toggleLikeRecruit}
           onEndReached={handleEndReached}
           setRecruitList={setRecruitList}
           showErrorModal={setErrorModal}

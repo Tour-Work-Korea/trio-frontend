@@ -2,14 +2,16 @@ import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 
-import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateToDotWithDay } from '@utils/formatDate';
+// 예약 취소 모달
+import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
 // 예약 확정 임시
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import EmptyIcon from '@assets/images/search_empty.svg';
 
@@ -28,6 +30,11 @@ const ReservationList = ({ guesthouseId }) => {
   const [error, setError] = useState(null);
 
   const [approvingId, setApprovingId] = useState(null); // 예약 확정 중인 아이템 id
+  const [cancellingId, setCancellingId] = useState(null); // 예약 취소 중인 아이템 id
+
+  // 예약 취소 모달
+  const [cancelVisible, setCancelVisible] = useState(false);
+  const [selectedReservation, setSelectedReservation] = useState(null);
 
   // 예약 목록 조회
   const fetchReservations = useCallback(async () => {
@@ -93,6 +100,39 @@ const ReservationList = ({ guesthouseId }) => {
     );
   };
 
+  // 예약 취소
+  const openCancelModal = (reservationItem) => {
+    setSelectedReservation(reservationItem);
+    requestAnimationFrame(() => setCancelVisible(true));
+  };
+
+  const handleCancelSubmit = async (reservationId, reasonText) => {
+    try {
+      setCancellingId(reservationId);
+      // 백엔드가 사유를 받지 않아도 문제 없게, 우선 ID만 전송 (사유 필드가 있으면 여기에 붙여줘)
+      await hostGuesthouseApi.cancelGuesthouseReservation(reservationId);
+      Toast.show({
+        type: 'success',
+        text1: '예약을 취소했어요.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      setCancelVisible(false);
+      setSelectedReservation(null);
+      await fetchReservations();
+    } catch (e) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소를 실패했어요.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } finally {
+      setCancellingId(null);
+    }
+  };
+
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -124,6 +164,10 @@ const ReservationList = ({ guesthouseId }) => {
                 <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>예약자</Text>
                 <Text style={[FONTS.fs_14_medium]}>{item.reservationUserName}</Text>
               </View>
+              <View style={styles.infoRow}>
+                <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>전화번호</Text>
+                <Text style={[FONTS.fs_14_medium]}>{item.reservationUserPhone}</Text>
+              </View>
             </View>
             
             {/* 이용 날짜 */}
@@ -137,20 +181,39 @@ const ReservationList = ({ guesthouseId }) => {
               </Text>
             </View>
 
-            {/* 예약확정 버튼 */}
-            {item.reservationStatus === 'PENDING' && (
-              <TouchableOpacity
-                style={styles.approveButton}
-                onPress={() => approveReservation(item.reservationId)}
-                disabled={approvingId === item.reservationId}
-              >
-                {approvingId === item.reservationId ? (
-                  <ActivityIndicator />
-                ) : (
-                  <Text style={[FONTS.fs_16_semibold, styles.approveText]}>예약확정 하기</Text>
-                )}
-              </TouchableOpacity>
-            )}
+            <View style={styles.buttonContainer}>
+              {/* 예약 취소 버튼 */}
+              {(item.reservationStatus === 'PENDING' || item.reservationStatus === 'CONFIRMED') && (
+                <TouchableOpacity
+                  style={[styles.btn, styles.cancelButton]}
+                  onPress={() => openCancelModal(item)}
+                  disabled={cancellingId === item.reservationId || approvingId === item.reservationId}
+                >
+                  {cancellingId === item.reservationId ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <Text style={[FONTS.fs_16_semibold, styles.cancelText]}>
+                      예약취소 하기
+                    </Text>
+                  )}
+                </TouchableOpacity>
+              )}
+
+              {/* 예약확정 버튼 */}
+              {item.reservationStatus === 'PENDING' && (
+                <TouchableOpacity
+                  style={styles.approveButton}
+                  onPress={() => approveReservation(item.reservationId)}
+                  disabled={approvingId === item.reservationId}
+                >
+                  {approvingId === item.reservationId ? (
+                    <ActivityIndicator />
+                  ) : (
+                    <Text style={[FONTS.fs_16_semibold, styles.approveText]}>예약확정 하기</Text>
+                  )}
+                </TouchableOpacity>
+              )}
+            </View>
 
             {index !== data.length - 1 && <View style={styles.devide} />}
           </View>
@@ -171,6 +234,19 @@ const ReservationList = ({ guesthouseId }) => {
             : { paddingVertical: 8 }
         }
       />
+
+      {/* 예약 취소 모달 */}
+      {cancelVisible && selectedReservation && (
+        <ReservationCancelModal
+          visible={cancelVisible}
+          onClose={() => {
+            setCancelVisible(false);
+            setSelectedReservation(null);
+          }}
+          reservation={selectedReservation}
+          onSubmit={handleCancelSubmit}
+        />
+      )}
     </View>
   );
 };
@@ -234,16 +310,30 @@ const styles = StyleSheet.create({
     marginVertical: 12,
   },
 
+  // 버튼
+  buttonContainer: {
+    flexDirection: 'row',
+    marginTop: 10,
+    justifyContent: 'space-between',
+  },
   // 예약확정 버튼
   approveButton: {
-    marginTop: 10,
-    alignSelf: 'flex-end',
     paddingHorizontal: 16,
     paddingVertical: 8,
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_800,
   },
   approveText: {
+    color: COLORS.grayscale_0,
+  },
+  // 예약취소 버튼
+  cancelButton: {
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary_orange,
+  },
+  cancelText: {
     color: COLORS.grayscale_0,
   },
 });

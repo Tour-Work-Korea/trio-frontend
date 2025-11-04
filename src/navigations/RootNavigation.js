@@ -15,8 +15,6 @@ import {
   AgreeDetail,
   ApplySuccess,
   StoreRegisterList,
-  MeetMain,
-  MeetSearch,
   MeetDetail,
   MeetReservation,
   MeetPaymentSuccess,
@@ -63,6 +61,10 @@ import {
   UserFavoriteMeet,
   StoreRegisterForm1,
   StoreRegisterForm2,
+  MeetPayment,
+  MyMeetList,
+  MyMeetDetail,
+  MyMeetAdd,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -163,12 +165,15 @@ const RootNavigation = () => (
         name="ApplicantListByRecruit"
         component={ApplicantListByRecruit}
       />
-      {/* 모임화면 확인을 위해 */}
-      <Stack.Screen name="MeetMain" component={MeetMain} />
-      <Stack.Screen name="MeetSearch" component={MeetSearch} />
+      <Stack.Screen name="MyMeetList" component={MyMeetList} />
+      <Stack.Screen name="MyMeetDetail" component={MyMeetDetail} />
+      <Stack.Screen name="MyMeetAdd" component={MyMeetAdd} />
+
+      {/* 모임화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
+      <Stack.Screen name="MeetPayment" component={MeetPayment} />
     </Stack.Navigator>
   </NavigationContainer>
 );

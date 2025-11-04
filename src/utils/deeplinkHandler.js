@@ -91,6 +91,15 @@ const deeplinkHandler = () => {
         const id = parts[1];
         navigate('EXHome');
       }
+      // 모임
+      else if (parts[0] === 'party' && parts[1]) {
+        const partyId = parts[1];
+        navigate('MeetDetail', {
+          partyId: partyId,
+          isFromDeeplink: true,
+        });
+        console.log('모임 디테일 화면으로 이동');
+      }
       // 다른 딥링크 패스 추가
     } catch (e) {
       console.warn('딥링크 파싱 실패', e);

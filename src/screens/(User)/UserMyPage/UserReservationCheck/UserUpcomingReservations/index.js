@@ -92,9 +92,9 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           </View>
         </TouchableOpacity>
 
-        <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
+        {/* <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
           <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
   
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>

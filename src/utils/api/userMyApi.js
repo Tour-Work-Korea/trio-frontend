@@ -11,14 +11,14 @@ const userMyApi = {
   unfavoriteGuesthouse: guesthouseId =>
     api.delete(`/user/guesthouses/favorites/${guesthouseId}`),
 
-  // 유저 예약 리스트
+  // 유저 게하 예약 리스트
   getMyReservations: () => api.get('/order/reservation/room'),
 
-  // 예약 상세 조회
+  // 게하 예약 상세 조회
   getReservationDetail: reservationId =>
     api.get(`/order/reservation/room/${reservationId}`),
 
-  // 예약 임시 취소
+  // 게하 예약 임시 취소
   cancelTempGuesthouseReservation: reservationId =>
     api.delete(`/order/reservation/temp/guesthouse/cancel/${reservationId}`),
 
@@ -41,6 +41,13 @@ const userMyApi = {
   //   return api.put(`/user/my/${config.path}`, body);
   // },
   updateMyProfile: draft => api.put('/user/my', draft),
+
+  // 파티 예약 내역 조회
+  getMyPartyReservations: () => api.get('/order/reservation/party'),
+
+  // 파티 예약 상세 조회
+  getMyPartyReservationDetail: (partyReservationId) =>
+    api.get(`/order/reservation/party/${partyReservationId}`),
 };
 
 export default userMyApi;

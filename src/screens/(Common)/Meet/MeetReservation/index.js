@@ -12,6 +12,7 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -21,8 +22,8 @@ import styles from './MeetReservation.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
+import userMeetApi from '@utils/api/userMeetApi';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
@@ -34,25 +35,54 @@ const formatPhoneNumber = (phone) => {
 };
 
 const MeetReservation = () => {
-  const route = useRoute();
-  const {
-    title,
-    checkIn,
-    checkOut,
-    isGuest,
-    gender,
-    meetPrice,
-  } = route.params;
-
-  const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
-  const [agreements, setAgreements] = useState({
-    terms: false,
-    personalInfo: false,
-    thirdParty: false,
-  });
-  const name = useUserStore(state => state.userProfile.name);
-  const phone = useUserStore(state => state.userProfile.phone);
+  const route = useRoute();
+  const { partyId } = route.params ?? {};
+  const [reservationInfo, setReservationInfo] = useState(null);
+
+  // 예약 정보
+  useEffect(() => {
+    if (!partyId) return;
+    const run = async () => {
+      try {
+        const { data } = await userMeetApi.joinParty(partyId);
+        setReservationInfo(data);
+      } catch (e) {
+        const msg = e?.response?.data?.message || e?.message;
+        const status = e?.response?.status;
+        // 숙박객 전용 접근 제한
+        if (status === 403 || (typeof msg === 'string' && msg.includes('숙박'))) {
+          Toast.show({
+            type: 'error',
+            text1: '숙박객만 참여할 수 있어요',
+            position: 'top',
+            visibilityTime: 3000,
+          });
+          // 디테일 페이지로 이동
+          // navigation.replace('MeetDetail', { partyId });
+          navigation.goBack();
+          return;
+        }
+        Toast.show({
+          type: 'error',
+          text1: '모임 참가 정보를 불러오지 못했어요.',
+          position: 'top',
+        });
+        navigation.goBack();
+      }
+    };
+    run();
+  }, [partyId, navigation]);
+
+  const title = reservationInfo?.partyTitle ?? '';
+  const checkIn = reservationInfo?.partyStartDateTime ?? null;
+  const checkOut = reservationInfo?.partyEndDateTime ?? null;
+  const isGuest = !!reservationInfo?.guest;
+  const gender = reservationInfo?.gender === 'F' ? '여자' : '남자';
+  const meetPrice = reservationInfo?.amount ?? 0;
+  const name = reservationInfo?.name;
+  const phone = reservationInfo?.phoneNumber;
+
   const [requestMessage, setRequestMessage] = useState('');
 
   const formatTime = (timeStr) => {
@@ -63,9 +93,19 @@ const MeetReservation = () => {
         : timeStr.slice(0, 5);
   };
   const formatDateWithDay = (dateStr) => {
+    if (!dateStr) return '-';
     const date = dayjs(dateStr);
+    if (!date.isValid()) return '-';
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
+
+  const [agreeAll, setAgreeAll] = useState(false);
+  
+  const [agreements, setAgreements] = useState({
+    terms: false,
+    personalInfo: false,
+    thirdParty: false,
+  });
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
@@ -86,7 +126,6 @@ const MeetReservation = () => {
       thirdParty: newValue,
     });
   };
-
 
   useEffect(() => {
     const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
@@ -113,11 +152,41 @@ const MeetReservation = () => {
     setModalVisible(false);
   };
 
+  // 예약 생성
+  const handleCreateReservation = async () => {
+    if (!partyId || !reservationInfo) return;
+
+    try {
+      // 요청사항
+      const requestText = requestMessage?.trim() || '';
+      const { data } = await userMeetApi.createPartyReservation(partyId, requestText);
+
+      const reservationId =
+      typeof data === 'number'
+        ? data
+        : (data?.id ?? data?.reservationId ?? Number.NaN);
+
+      if (!reservationId) {
+        throw new Error('예약 ID가 없습니다.');
+      }
+
+      // 결제로 이동 (amount는 joinParty 응답의 금액 사용)
+      navigation.navigate('MeetPayment', {
+        amount: Number(reservationInfo?.amount ?? 0),
+        reservationId,
+      });
+    } catch (e) {
+      console.log('createPartyReservation error', e);
+      const msg = e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
+    }
+  };
+
   return (
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0} // 필요 시 값 조정
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
     >
     <View style={{ flex: 1 }}>
         <Header title="예약" />
@@ -165,7 +234,7 @@ const MeetReservation = () => {
                   <Text style={[FONTS.fs_14_semibold, styles.meetNameText]}>
                     {isGuest ? '숙박객' : '비숙박객'}, {gender}
                   </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>{meetPrice?.toLocaleString()}원</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>{Number(meetPrice || 0).toLocaleString()}원</Text>
               </View>
           </View>
 
@@ -245,7 +314,7 @@ const MeetReservation = () => {
             <ButtonScarlet
               title="요청하기"
               disabled={!isAllRequiredAgreed}
-              onPress={() => {navigation.navigate('MeetPaymentSuccess')}}
+              onPress={handleCreateReservation}
             />
           </View>
 
