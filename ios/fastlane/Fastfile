@@ -31,7 +31,10 @@ platform :ios do
 
   lane :build_ipa do
 
-    # 날짜 기반 빌드 넘버
+    # ✅ TestFlight 업로드 전에 버전 자동 증가
+    increment_version_number(version_number: "1.1")
+
+    # 날짜기반 업로드
     build_number = Time.now.strftime("%Y%m%d%H%M")
     increment_build_number(build_number: build_number)
 
