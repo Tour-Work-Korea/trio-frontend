@@ -8,7 +8,7 @@ import styles from '../Login.styles';
 import Logo from '@assets/images/logo_orange.svg';
 
 export default function FindIntro({route}) {
-  const {userRole, find} = route.params;
+  const {userRole, find, originPhone = null} = route.params;
   const navigation = useNavigation();
 
   return (
@@ -29,7 +29,9 @@ export default function FindIntro({route}) {
           </View>
           <ButtonScarlet
             title={'본인 인증하기'}
-            onPress={() => navigation.navigate('VerifyPhone', {find, userRole})}
+            onPress={() =>
+              navigation.navigate('VerifyPhone', {find, userRole, originPhone})
+            }
           />
         </View>
       </View>
