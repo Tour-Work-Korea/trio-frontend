@@ -1,5 +1,5 @@
 import React, { useMemo, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, ActivityIndicator, Alert } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
@@ -17,7 +17,8 @@ const MyMeetList = () => {
   const navigation = useNavigation();
   const [raw, setRaw] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false); 
+  const [refreshing, setRefreshing] = useState(false);
+  const [deletingId, setDeletingId] = useState(null);
 
   // 날짜 라벨 분리: base("MM.DD ddd")와 suffix("오늘"/"내일")
   const formatDateHeaderParts = (isoDate) => {
@@ -60,6 +61,38 @@ const MyMeetList = () => {
   const onRefresh = useCallback(() => {
     setRefreshing(true);
     fetchMyParties();
+  }, [fetchMyParties]);
+
+  // 모임 삭제
+  const confirmAndDelete = useCallback((partyId) => {
+    Alert.alert(
+      '모임 취소',
+      '이 모임을 정말 취소 하시겠어요?',
+      [
+        { text: '아니오', style: 'cancel' },
+        {
+          text: '취소',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeletingId(partyId);
+              await hostMeetApi.deleteParty(partyId);
+              Toast.show({ type: 'success', text1: '모임이 취소되었어요' });
+              await fetchMyParties();
+            } catch (err) {
+              Toast.show({
+                type: 'error',
+                // text1: '취소에 실패했어요. 잠시 후 다시 시돟',
+                text1: err?.response?.data?.message || err.message,
+              });
+            } finally {
+              setDeletingId(null);
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
   }, [fetchMyParties]);
 
   // FlatList에 넣기 위해 '헤더'와 '아이템'을 한 배열로 평탄화
@@ -148,7 +181,10 @@ const MyMeetList = () => {
               {item.numOfAttendance}/{item.maxAttendance}명
             </Text>
           </View>
-          <TouchableOpacity style={styles.deleteBtn}>
+          <TouchableOpacity 
+            style={styles.deleteBtn}
+            onPress={() => confirmAndDelete(item.partyId)}
+          >
             <Text style={[FONTS.fs_12_medium, styles.deleteText]}>취소</Text>
           </TouchableOpacity>
         </View>
