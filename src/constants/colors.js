@@ -22,6 +22,9 @@ export const COLORS = {
     semantic_green: '#36B37E',
     semantic_yellow: '#FFAB00',
     semantic_red: '#FF5630',
+    semantic_purple: '#6554C0',
+    semantic_pink: '#FF7EB6',
+    semantic_brown: '#8B572A',
 
     grayscale_900: '#000000',
     grayscale_800: '#1C1D1F',

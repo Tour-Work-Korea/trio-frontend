@@ -9,13 +9,13 @@ export const stayTypes = [
 ];
 
 export const meetTags = [
-  { id: 'snack', name: '간식 제공' },
-  { id: 'meal', name: '음식 제공' },
-  { id: 'alcohol', name: '술 제공' },
-  { id: 'no_meal', name: '개별 음식 지참' },
-  { id: 'talk', name: '담소' },
-  { id: 'no_smoke', name: '금연' },
-  { id: 'karaoke', name: '노래방' },
+  { id: 'Snack', name: '간식 제공' },
+  { id: 'Food', name: '음식 제공' },
+  { id: 'Drink', name: '술 제공' },
+  { id: 'SelfFood', name: '개별 음식 지참' },
+  { id: 'SmallTalk', name: '담소' },
+  { id: 'NoSmoke', name: '금연' },
+  { id: 'Karaoke', name: '노래방' },
 ];
 
 export const meetSortOptions = [
