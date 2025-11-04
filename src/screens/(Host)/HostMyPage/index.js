@@ -8,6 +8,8 @@ import GuesthouseReviewIcon from '@assets/images/host-guesthouse-review-icon.svg
 import StoreApplyIcon from '@assets/images/host-store-apply-icon.svg';
 import MyPostIcon from '@assets/images/host-my-post-icon.svg';
 import ApplicationCheckIcon from '@assets/images/host-application-check-icon.svg';
+import MyMeetIcon from '@assets/images/host-my-meet-icon.svg';
+import MeetReservationCheckIcon from '@assets/images/host-meet-reservation-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
@@ -131,6 +133,25 @@ const HostMyPage = () => {
               </View>
             </View>
             <View style={styles.devide} />
+
+            {/* 모임 섹션 */}
+            <View style={[styles.section, {marginBottom: 20}]}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                모임
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={MyMeetIcon}
+                  label="나의 모임"
+                  onPress={() => navigation.navigate('MyMeetList')}
+                />
+                <MenuItem
+                  IconComponent={MeetReservationCheckIcon}
+                  label="모임 예약 조회"
+                  onPress={() => navigation.navigate('ApplicantList')}
+                />
+              </View>
+            </View>
 
             <ButtonScarlet
               title="로그아웃"

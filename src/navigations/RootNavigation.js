@@ -62,6 +62,9 @@ import {
   StoreRegisterForm1,
   StoreRegisterForm2,
   MeetPayment,
+  MyMeetList,
+  MyMeetDetail,
+  MyMeetAdd,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -162,6 +165,9 @@ const RootNavigation = () => (
         name="ApplicantListByRecruit"
         component={ApplicantListByRecruit}
       />
+      <Stack.Screen name="MyMeetList" component={MyMeetList} />
+      <Stack.Screen name="MyMeetDetail" component={MyMeetDetail} />
+      <Stack.Screen name="MyMeetAdd" component={MyMeetAdd} />
 
       {/* 모임화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
