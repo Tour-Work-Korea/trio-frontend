@@ -30,17 +30,17 @@ export default function Banner({banners = []}) {
       <Carousel
         width={width * 0.9}
         height={120}
-        data={banners}
+        style={{ alignItems: 'center', justifyContent: 'center' }}
         autoPlay
         loop
+        data={banners}
         scrollAnimationDuration={3000}
-        pagingEnabled={false}
-        onSnapToItem={index => setCurrentIndex(index)}
         mode="parallax"
         modeConfig={{
           parallaxScrollingScale: 1,
           parallaxScrollingOffset: 50,
         }}
+        onSnapToItem={(index) => setCurrentIndex(index)}
         renderItem={({item, index}) => {
           const src = item.url;
           if (!src) return <View key={index} style={styles.banner} />;

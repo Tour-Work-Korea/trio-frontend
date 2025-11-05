@@ -21,15 +21,6 @@ import HeartFilled from '@assets/images/heart_filled.svg';
 
 import { meetTags, meetScales, stayTypes } from '@data/meetOptions';
 
-// 임시 이미지
-const bannerImages = [
-  require('@assets/images/exphoto.jpeg'),
-  require('@assets/images/exphoto.jpeg'),
-  require('@assets/images/exphoto.jpeg'),
-];
-
-const PLACEHOLDER = require('@assets/images/exphoto.jpeg');
-
 const {width} = Dimensions.get('window');
 
 const MeetMain = () => {
@@ -114,12 +105,12 @@ const MeetMain = () => {
     (async () => {
       try {
         setBannerLoading(true);
-        const { data } = await adminApi.getAdminBanners();
+        const { data } = await adminApi.getMeetAdminBanners();
         // 안전 필터링: url이 있는 것만
         const list = Array.isArray(data) ? data.filter(b => !!b.url) : [];
         if (mounted) setBanners(list);
       } catch (e) {
-        console.warn('getAdminBanners error', e?.response?.data || e?.message);
+        console.warn('getMeetAdminBanners error', e?.response?.data || e?.message);
         if (mounted) setBanners([]);
       } finally {
         if (mounted) setBannerLoading(false);
@@ -252,7 +243,7 @@ const MeetMain = () => {
               autoPlay
               loop
               data={banners}
-              scrollAnimationDuration={2000}
+              scrollAnimationDuration={3000}
               mode="parallax"
               modeConfig={{
                 parallaxScrollingScale: 1,
@@ -279,7 +270,6 @@ const MeetMain = () => {
                   >
                     <Image
                       source={{ uri: item.url }}
-                      defaultSource={PLACEHOLDER /* iOS only; 안드로이드에선 무시됨 */}
                       style={styles.bannerImage}
                     />
                   </TouchableOpacity>

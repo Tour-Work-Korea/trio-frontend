@@ -31,7 +31,7 @@ export default StyleSheet.create({
   },
   banner: {
     alignSelf: 'center',
-    width: '85%',
+    width: '80%',
     height: 120,
     borderRadius: 10,
     marginHorizontal: 4,
