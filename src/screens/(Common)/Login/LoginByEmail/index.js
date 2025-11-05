@@ -8,7 +8,7 @@ import {
   Keyboard,
 } from 'react-native';
 
-import {useNavigation} from '@react-navigation/native';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ErrorModal from '@components/modals/ErrorModal';
@@ -47,7 +47,12 @@ export default function LoginByEmail({route}) {
   const handleLogin = async () => {
     try {
       await tryLogin(email, password, userRole);
-      navigation.navigate('MainTabs');
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{name: 'MainTabs'}],
+        }),
+      );
     } catch (error) {
       console.warn(`${userRole} 로그인 실패:`, error);
       setErrorModal({
