@@ -20,7 +20,7 @@ import {COLORS} from '@constants/colors';
 import Logo from '@assets/images/logo_orange.svg';
 
 const VerifyPhone = ({route}) => {
-  const {userRole, find} = route.params;
+  const {userRole, find, originPhone} = route.params;
   const navigation = useNavigation();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
@@ -84,6 +84,7 @@ const VerifyPhone = ({route}) => {
           navigation.navigate('FindPassword', {
             userRole,
             phoneNumber,
+            updateProfile: originPhone ? true : false,
           });
         }
       }, 850);
@@ -111,6 +112,17 @@ const VerifyPhone = ({route}) => {
 
   //인증번호 발송
   const sendVerificationCode = async () => {
+    if (originPhone) {
+      //로그인 상태에서 비밀번호 변경 시, 프로필의 전화번호와 같아야 함
+      if (originPhone !== phoneNumber) {
+        setErrorModal({
+          visible: true,
+          message: '사용자의 전화번호와 일치하지 않습니다',
+          buttonText: '확인',
+        });
+        return;
+      }
+    }
     try {
       await authApi.verifySelfByPhone(phoneNumber, userRole);
       setHasRequestedCode(true);

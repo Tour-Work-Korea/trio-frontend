@@ -292,6 +292,19 @@ const UserEditProfile = () => {
                   />
                 </View>
               </View>
+              <View style={styles.contentRowContainer}>
+                <Text style={[FONTS.fs_14_medium, styles.label]}>비밀번호</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('FindIntro', {
+                      find: 'password',
+                      userRole: 'USER',
+                      originPhone: formData.phone,
+                    })
+                  }>
+                  <Text>비밀번호 변경하기</Text>
+                </TouchableOpacity>
+              </View>
 
               <View style={styles.saveButton}>
                 <ButtonScarlet

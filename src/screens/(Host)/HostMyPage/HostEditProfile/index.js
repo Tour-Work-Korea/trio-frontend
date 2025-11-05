@@ -1,5 +1,12 @@
 import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, Image, TextInput} from 'react-native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Image,
+  TextInput,
+  Button,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
@@ -130,6 +137,19 @@ const HostEditProfile = () => {
                 <Text style={[FONTS.fs_16_medium, styles.label]}>이메일</Text>
                 <TouchableOpacity onPress={() => setEditEmail(true)}>
                   <Text style={styles.input}>{formData.email}</Text>
+                </TouchableOpacity>
+              </View>
+              <View style={styles.contentRowContainer}>
+                <Text style={[FONTS.fs_16_medium, styles.label]}>비밀번호</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('FindIntro', {
+                      find: 'password',
+                      userRole: 'HOST',
+                      originPhone: formData.phoneNumber,
+                    })
+                  }>
+                  <Text>비밀번호 변경하기</Text>
                 </TouchableOpacity>
               </View>
             </View>
