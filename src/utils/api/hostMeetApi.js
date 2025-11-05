@@ -13,9 +13,13 @@ const hostMeetApi = {
   createParty: (data) =>
     api.post('/host/parties', data),
 
-  // 파티 공고 수정
+  // 파티 공고 단건 수정
   updateParty: (partyId, data) =>
     api.put(`/host/parties/${partyId}`, data),
+
+  // 파티 공고 단건 삭제
+  deleteParty: (partyId) =>
+    api.delete(`/host/parties/${partyId}`),
 
   // 파티 해시태그 (시설/서비스) 리스트 조회
   getPartyFacilities: () =>
