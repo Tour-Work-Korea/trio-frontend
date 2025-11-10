@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useRef } from 'react';
 import {
   View,
   Text,
@@ -9,6 +9,7 @@ import {
   StyleSheet,
   ScrollView,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -19,7 +20,14 @@ import AddImage from '@assets/images/add_image_gray.svg';
 import CheckIcon from '@assets/images/star_filled.svg';
 import ArrowRight from '@assets/images/arrow_right_black.svg';
 
+// 키보드
+const NEXT_BTN_H = 20;
+const NEXT_BTN_GAP = 16;
+
 const RoomInfo = ({ data, setData, onNext }) => {
+  // 키보드
+  const insets = useSafeAreaInsets();
+  const scrollRef = useRef<ScrollView>(null);
 
   const handleSelectThumbnail = (index) => {
     const updated = data.roomImages.map((img, i) => ({
@@ -76,9 +84,19 @@ const RoomInfo = ({ data, setData, onNext }) => {
     !data.roomImages.some((img) => img.isThumbnail) ||
     !data.roomDesc?.trim();
 
+  // 키보드
+  const bottomSpace = NEXT_BTN_H + NEXT_BTN_GAP + insets.bottom + 16;
+
   return (
     <>
-    <ScrollView style={{ flex: 1, marginBottom: 120}}>
+    <ScrollView
+        ref={scrollRef}
+        style={{ flex: 1 }}
+        contentContainerStyle={{ paddingBottom: bottomSpace }}
+        keyboardShouldPersistTaps="handled"
+        automaticallyAdjustKeyboardInsets
+        scrollIndicatorInsets={{ bottom: bottomSpace }}
+      >
       {/* 룸 이름 */}
       <Text style={[FONTS.fs_16_medium, styles.title]}>객실 이름</Text>
       <TextInput
@@ -156,18 +174,23 @@ const RoomInfo = ({ data, setData, onNext }) => {
         <View style={styles.subRow}>
           <Text style={[FONTS.fs_16_medium]}>객실을 간략하게 소개해주세요</Text>
           <Text style={[FONTS.fs_12_light, {color: COLORS.grayscale_400}]}>
-            <Text style={styles.countText}>{data.roomDesc.length}</Text>/200
+            <Text style={styles.countText}>{data.roomDesc.length}</Text>/500
           </Text>
         </View>
       </View>
       <TextInput
         style={[styles.textArea, FONTS.fs_14_regular]}
         multiline
-        maxLength={200}
+        maxLength={500}
         placeholder="객실 소개를 입력해 주세요"
         placeholderTextColor={COLORS.grayscale_400}
         value={data.roomDesc}
         onChangeText={(text) => setData({ ...data, roomDesc: text })}
+        onFocus={() => {
+          setTimeout(() => {
+            scrollRef.current?.scrollToEnd({ animated: true });
+          }, 0);
+        }}
       />
       <TouchableOpacity onPress={handleRewrite} style={styles.rewriteButton}>
         <Text style={styles.rewriteText}>다시쓰기</Text>
@@ -273,6 +296,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 12,
     minHeight: 140,
+    maxHeight: 360,
     textAlignVertical: 'top',
   },
   rewriteButton: {
