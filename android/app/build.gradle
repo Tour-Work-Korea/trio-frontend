@@ -96,8 +96,16 @@ android {
         applicationId "com.triofrontendapp"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 1
-        versionName "1.0"
+
+        // CI에서 주입된 버전값을 읽어 사용
+        def envCodeStr = System.getenv("CI_VERSION_CODE")
+        def envNameStr = System.getenv("CI_VERSION_NAME")
+
+        def ciVersionCode = envCodeStr ? Integer.parseInt(envCodeStr) : null
+        def ciVersionName = envNameStr ?: null
+
+        versionCode (ciVersionCode ?: 1)          // 로컬 기본값 1
+        versionName (ciVersionName ?: "1.0.0")    // 로컬 기본값 1.0.0
 
         resValue "string", "google_maps_api_key", MAPS_API_KEY_LOCAL
     }
