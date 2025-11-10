@@ -67,6 +67,7 @@ const RoomList = ({ rooms, onDelete }) => {
         data={rooms}
         keyExtractor={(_, index) => index.toString()}
         renderItem={renderItem}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={() => (
           <Text style={[FONTS.fs_14_regular, { color: COLORS.grayscale_400, marginTop: 12 }]}>
             객실을 등록해 주세요
@@ -74,6 +75,7 @@ const RoomList = ({ rooms, onDelete }) => {
         )}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
       />
     </View>
   );
