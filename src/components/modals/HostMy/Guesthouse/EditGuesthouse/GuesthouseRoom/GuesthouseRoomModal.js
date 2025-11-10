@@ -13,6 +13,7 @@ import {
   Platform,
   Alert,
   Animated,
+  Pressable,
 } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -442,15 +443,16 @@ const GuesthouseRoomModal = ({
       animationType="slide"
       onRequestClose={handleModalClose}
     >
+      <View style={{ flex: 1 }}>
+      <Pressable style={styles.overlay} onPress={handleOverlayPress} />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.modalWrap}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         keyboardVerticalOffset={Platform.OS === 'ios' ? -240 : 0}
       >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
+        <View
+          style={styles.modalContainer}
+        >
 
           {/* 헤더 */}
           <View style={styles.header}>
@@ -521,7 +523,6 @@ const GuesthouseRoomModal = ({
             </View>
           )}
         </View>
-        </TouchableWithoutFeedback>
         {localToast && (
           <Animated.View
             pointerEvents="none"
@@ -536,9 +537,8 @@ const GuesthouseRoomModal = ({
             }
           </Animated.View>
         )}
-      </View>
-      </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };
@@ -547,10 +547,11 @@ export default GuesthouseRoomModal;
 
 const styles = StyleSheet.create({
   overlay: {
-    flex: 1,
+    position: 'absolute',
+    top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: COLORS.modal_background,
-    justifyContent: 'flex-end',
   },
+  modalWrap: { flex: 1, justifyContent: 'flex-end' },
   modalContainer: {
     height: MODAL_HEIGHT,
     backgroundColor: COLORS.grayscale_0,

@@ -38,6 +38,11 @@ jobs:
       - name: Copy .env.production to .env
         run: cp .env.production .env
 
+      - name: Set CI app version
+        run: |
+          echo "CI_VERSION_CODE=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+
       - name: Generate local.properties
         run: |
           echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties

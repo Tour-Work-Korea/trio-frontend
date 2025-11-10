@@ -5,11 +5,14 @@ import {
   Image,
   ScrollView,
   TouchableOpacity,
+  Dimensions,
 } from 'react-native';
-import {useNavigation, useFocusEffect} from '@react-navigation/native';import dayjs from 'dayjs';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
+import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 import Toast from 'react-native-toast-message';
+import Carousel from 'react-native-reanimated-carousel';
 
 import styles from './MyGuesthouseDetail.styles';
 import { FONTS } from '@constants/fonts';
@@ -79,6 +82,19 @@ const getCategoryByName = (name) => {
 
 const MyGuesthouseDetail = ({ route }) => {
   const navigation = useNavigation();
+  // 사진
+  const { width: SCREEN_W } = Dimensions.get('window');
+  const IMAGE_H = 280;
+  const thumbnailIndex = useMemo(() => {
+    const idx = (detail?.guesthouseImages ?? []).findIndex(i => i?.isThumbnail);
+    return Math.max(idx, 0);
+  }, [detail?.guesthouseImages]);
+
+  const [imageIndex, setImageIndex] = useState(thumbnailIndex);
+  useEffect(() => {
+    setImageIndex(thumbnailIndex);
+  }, [thumbnailIndex]);
+
   const { id, isPreview = false, previewData = null } = route.params || {};
 
   const [activeTab, setActiveTab] = useState('객실');
@@ -211,13 +227,34 @@ const MyGuesthouseDetail = ({ route }) => {
       <View>
         {/* 대표 이미지 */}
         {hasImages ? (
-          <TouchableOpacity
-            onPress={() => setImageModalVisible(true)}
-          >
-            <Image source={{ uri: thumbnailImage }} style={styles.mainImage} />
-          </TouchableOpacity>
+          <Carousel
+            width={SCREEN_W}
+            height={IMAGE_H}
+            data={sortedImages}
+            defaultIndex={thumbnailIndex}
+            loop={false}
+            autoPlay={false}
+            pagingEnabled
+            onSnapToItem={idx => setImageIndex(idx)}
+            renderItem={({ item }) => (
+              <TouchableOpacity
+                activeOpacity={0.9}
+                onPress={() => setImageModalVisible(true)}
+              >
+                <Image
+                  source={{ uri: item.guesthouseImageUrl }}
+                  style={styles.mainImage}
+                />
+              </TouchableOpacity>
+            )}
+          />
         ) : (
-          <View style={[styles.mainImage, { backgroundColor: COLORS.grayscale_200 }]} />
+          <View
+            style={[
+              styles.mainImage,
+              { backgroundColor: COLORS.grayscale_200 },
+            ]}
+          />
         )}
 
         <TouchableOpacity
@@ -495,7 +532,7 @@ const MyGuesthouseDetail = ({ route }) => {
         visible={imageModalVisible}
         title={detail.guesthouseName}
         images={modalImages}
-        selectedImageIndex={0}
+        selectedImageIndex={imageIndex}
         onClose={() => setImageModalVisible(false)}
       />
     )}

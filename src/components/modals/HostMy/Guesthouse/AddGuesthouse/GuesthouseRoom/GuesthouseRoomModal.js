@@ -11,6 +11,7 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
+  Pressable,
 } from 'react-native';
 
 import { FONTS } from '@constants/fonts';
@@ -133,15 +134,15 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
       animationType="slide"
       onRequestClose={handleModalClose}
     >
+      <View style={{ flex: 1 }}>
+      <Pressable style={styles.overlay} onPress={handleOverlayPress} />
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={styles.modalWrap}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -240 : 0}
       >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
+      <View
+        style={styles.modalContainer}
+      >
 
           {/* 헤더 */}
           <View style={styles.header}>
@@ -209,10 +210,8 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
           )}
           
         </View>
-        </TouchableWithoutFeedback>
-      </View>
-      </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
+      </View>
     </Modal>
   );
 };

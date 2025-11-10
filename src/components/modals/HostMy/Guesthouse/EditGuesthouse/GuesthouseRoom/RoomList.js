@@ -79,6 +79,7 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
           item?.id != null ? String(item.id) : `local-${index}`
         }
         renderItem={renderItem}
+        keyboardShouldPersistTaps="handled"
         ListEmptyComponent={() => (
           <Text style={[FONTS.fs_14_regular, { color: COLORS.grayscale_400, marginTop: 12 }]}>
             객실을 등록해 주세요
@@ -86,6 +87,7 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
         )}
         ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
         showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ paddingBottom: 120 }}
       />
     </View>
   );
