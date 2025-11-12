@@ -1,6 +1,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { View, Text, StyleSheet, ScrollView, ActivityIndicator, FlatList, TouchableOpacity, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
@@ -9,11 +10,14 @@ import { FONTS } from '@constants/fonts';
 import { formatLocalDateToDotWithDay } from '@utils/formatDate';
 // 예약 취소 모달
 import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
+// 예약 취소 연락 모달(임시)
+import ErrorModal from '@components/modals/ErrorModal';
 // 예약 확정 임시
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 import EmptyIcon from '@assets/images/search_empty.svg';
+import CancelIcon from '@assets/images/cancel_reservation.svg';
 
 const statusOrder = (s) =>
   s === 'PENDING' ? 0 :
@@ -35,6 +39,9 @@ const ReservationList = ({ guesthouseId }) => {
   // 예약 취소 모달
   const [cancelVisible, setCancelVisible] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+
+  // 예약 취소 메세지 임시 모달
+  const [alermModalVisible, setAlermModalVisible] = useState(false);
 
   // 예약 목록 조회
   const fetchReservations = useCallback(async () => {
@@ -102,36 +109,53 @@ const ReservationList = ({ guesthouseId }) => {
 
   // 예약 취소
   const openCancelModal = (reservationItem) => {
-    setSelectedReservation(reservationItem);
-    requestAnimationFrame(() => setCancelVisible(true));
+    // setSelectedReservation(reservationItem);
+    // requestAnimationFrame(() => setCancelVisible(true));
+
+    // 예약 취소 안내
+    requestAnimationFrame(() => setAlermModalVisible(true));
   };
 
-  const handleCancelSubmit = async (reservationId, reasonText) => {
-    try {
-      setCancellingId(reservationId);
-      // 백엔드가 사유를 받지 않아도 문제 없게, 우선 ID만 전송 (사유 필드가 있으면 여기에 붙여줘)
-      await hostGuesthouseApi.cancelGuesthouseReservation(reservationId);
-      Toast.show({
-        type: 'success',
-        text1: '예약을 취소했어요.',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-      setCancelVisible(false);
-      setSelectedReservation(null);
-      await fetchReservations();
-    } catch (e) {
-      Toast.show({
-        type: 'error',
-        text1: '예약 취소를 실패했어요.',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-    } finally {
-      setCancellingId(null);
-    }
-  };
+  const handleCancelSubmit = async () => {
+  // const handleCancelSubmit = async (reservationId, reasonText) => {
 
+    // 누르면 번호 복사되도록 or 바로 전화 페이지로
+    const companyNumber = '01066272653';
+    Clipboard.setString(companyNumber);
+
+    Toast.show({
+      type: 'success',
+      text1: '연락처를 복사했어요.',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+
+    // setAlermModalVisible(false);
+
+    // try {
+    //   setCancellingId(reservationId);
+    //   // 백엔드가 사유를 받지 않아도 문제 없게, 우선 ID만 전송
+    //   await hostGuesthouseApi.cancelGuesthouseReservation(reservationId);
+    //   Toast.show({
+    //     type: 'success',
+    //     text1: '예약을 취소했어요.',
+    //     position: 'top',
+    //     visibilityTime: 2000,
+    //   });
+    //   setCancelVisible(false);
+    //   setSelectedReservation(null);
+    //   await fetchReservations();
+    // } catch (e) {
+    //   Toast.show({
+    //     type: 'error',
+    //     text1: '예약 취소를 실패했어요.',
+    //     position: 'top',
+    //     visibilityTime: 2000,
+    //   });
+    // } finally {
+    //   setCancellingId(null);
+    // }
+  };
 
   return (
     <View style={styles.container}>
@@ -245,6 +269,23 @@ const ReservationList = ({ guesthouseId }) => {
           }}
           reservation={selectedReservation}
           onSubmit={handleCancelSubmit}
+        />
+      )}
+
+      {/* 예약 취소 안내 모달(임시) */}
+      {alermModalVisible && (
+        <ErrorModal
+          visible={alermModalVisible}
+          onClose={() => {
+            setAlermModalVisible(false);
+          }}
+          onPress={handleCancelSubmit}
+          title={'예약 취소는 운영팀을 통해 진행돼요.\n아래 번호로 연락하셔서 취소 요청을 해주세요.'}
+          message='010-6627-2653'
+          buttonText='번호 복사하기'
+          buttonText2='닫기'
+          iconElement={<CancelIcon width={140} height={140} />} 
+          onPress2={() => setAlermModalVisible(false)}
         />
       )}
     </View>
