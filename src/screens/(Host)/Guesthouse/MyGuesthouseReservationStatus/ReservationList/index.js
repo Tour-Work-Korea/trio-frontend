@@ -200,7 +200,7 @@ const ReservationList = ({ guesthouseId }) => {
               )}
 
               {/* 예약확정 버튼 */}
-              {item.reservationStatus === 'PENDING' && (
+              {/* {item.reservationStatus === 'PENDING' && (
                 <TouchableOpacity
                   style={styles.approveButton}
                   onPress={() => approveReservation(item.reservationId)}
@@ -212,7 +212,7 @@ const ReservationList = ({ guesthouseId }) => {
                     <Text style={[FONTS.fs_16_semibold, styles.approveText]}>예약확정 하기</Text>
                   )}
                 </TouchableOpacity>
-              )}
+              )} */}
             </View>
 
             {index !== data.length - 1 && <View style={styles.devide} />}

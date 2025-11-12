@@ -167,7 +167,7 @@ const RoomDetail = ({route}) => {
           onPress={() => {
             if (userRole !== 'USER') {
               showErrorModal({
-                message: '숙박 예약은\n알바 로그인 후 사용해주세요',
+                message: '숙박 예약은\n 로그인 후 사용해주세요',
                 buttonText2: '취소',
                 buttonText: '로그인하기',
                 onPress: () => {
