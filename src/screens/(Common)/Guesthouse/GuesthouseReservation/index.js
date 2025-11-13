@@ -109,14 +109,14 @@ const GuesthouseReservation = ({ route }) => {
   const handleReservation = async () => {
     try {
       // 예약 임시 주석
-      // const res = await userGuesthouseApi.reserveRoom(roomId, {
-      //   checkIn: checkIn,
-      //   checkOut: checkOut,
-      //   guestCount: guestCount,
-      //   amount: roomPrice,
-      //   request: requestMessage,
-      // });
-      // const reservationId = res.data;
+      const res = await userGuesthouseApi.reserveRoom(roomId, {
+        checkIn: checkIn,
+        checkOut: checkOut,
+        guestCount: guestCount,
+        amount: roomPrice,
+        request: requestMessage,
+      });
+      const reservationId = res.data;
 
       // 예약 pendding 승인, 결제 X
       navigation.navigate('GuesthousePaymentSuccess');

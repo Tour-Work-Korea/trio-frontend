@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   Alert,
   Dimensions,
+  Linking,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
@@ -162,6 +163,8 @@ const RoomDetail = ({route}) => {
       </ScrollView>
 
       <View style={styles.button}>
+        {/* 비지터 게스트하우스 */}
+        {/* 베드라디오 동문점 */}
         <ButtonScarlet
           title="숙박 예약"
           onPress={() => {
@@ -175,6 +178,38 @@ const RoomDetail = ({route}) => {
                 },
                 onPress2: () => {},
               });
+            } else if( guesthouseName==='비지터 게스트하우스' ) {
+              const url =
+                'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
+
+              Linking.canOpenURL(url)
+              .then(supported => {
+                if (supported) {
+                  Linking.openURL(url);
+                } else {
+                  Alert.alert('알림', '링크를 열 수 없어요');
+                }
+              })
+              .catch(() => {
+                Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+              });
+              
+            } else if( guesthouseName==='베드라디오 동문점' ) {
+              const url =
+              'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
+
+            Linking.canOpenURL(url)
+              .then(supported => {
+                if (supported) {
+                  Linking.openURL(url);
+                } else {
+                  Alert.alert('알림', '링크를 열 수 없어요');
+                }
+              })
+              .catch(() => {
+                Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+              });
+              
             } else {
               navigation.navigate('GuesthouseReservation', {
                 roomId,
