@@ -148,7 +148,7 @@ const HostMyPage = () => {
                 <MenuItem
                   IconComponent={MeetReservationCheckIcon}
                   label="모임 예약 조회"
-                  onPress={() => navigation.navigate('ApplicantList')}
+                  // onPress={() => navigation.navigate('ApplicantList')}
                 />
               </View>
             </View>

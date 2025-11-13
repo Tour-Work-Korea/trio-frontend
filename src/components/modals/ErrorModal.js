@@ -20,13 +20,20 @@ const ErrorModal = ({
   onPress,
   onPress2 = null,
   imageUri,
+  imageSource,   // png/jpg 같은 이미지
+  iconElement,   // SVG
 }) => {
   return (
     <Modal transparent={true} animationType="fade" visible={visible}>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {imageUri ? (
-            <Image source={{uri: imageUri}} style={styles.image} />
+          {/* 이미지 주소 or 로컬 이미지 */}
+          {iconElement ? (
+            <View>{iconElement}</View>
+          ) : imageSource ? (
+            <Image source={imageSource} style={styles.image} />
+          ) : imageUri ? (
+            <Image source={{ uri: imageUri }} style={styles.image} />
           ) : null}
           <Text style={[FONTS.fs_18_semibold, styles.title]}>{title}</Text>
           {message ? (

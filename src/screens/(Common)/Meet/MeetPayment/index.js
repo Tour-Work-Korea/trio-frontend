@@ -60,7 +60,8 @@ const MeetPayment = () => {
           payMethod: 'CARD', // 결제 수단 (카드 결제)
         }}
         onError={error => {
-          Alert.alert('결제 실패', error.message);
+          // Alert.alert('결제 실패', error.message);
+          Alert.alert('예약 준비중', '모임 예약은 현재 준비 중 입니다.');
           navigation.goBack();
         }}
         onComplete={async complete => {
@@ -77,7 +78,8 @@ const MeetPayment = () => {
             navigation.replace('MeetPaymentSuccess');
           } catch (err) {
             console.error('결제 검증 실패:', err);
-            Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');
+            // Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');
+            Alert.alert('예약 준비중', '모임 예약은 현재 준비 중 입니다.');
             navigation.goBack();
           }
         }}
