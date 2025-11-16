@@ -108,6 +108,7 @@ const GuesthouseReservation = ({ route }) => {
   // 예약 호출
   const handleReservation = async () => {
     try {
+      // 예약 임시 주석
       const res = await userGuesthouseApi.reserveRoom(roomId, {
         checkIn: checkIn,
         checkOut: checkOut,
@@ -117,16 +118,14 @@ const GuesthouseReservation = ({ route }) => {
       });
       const reservationId = res.data;
 
-      if (Platform.OS === 'ios') {
-        // iOS: 예약 pendding 승인, 결제 X
-        navigation.navigate('GuesthousePaymentSuccess');
-      } else {
-        // Android: 결제 O
-        navigation.navigate('GuesthousePayment', {
-          reservationId,
-          amount: roomPrice,
-        });
-      }
+      // 예약 pendding 승인, 결제 X
+      navigation.navigate('GuesthousePaymentSuccess');
+
+      // 결제 버전
+      // navigation.navigate('GuesthousePayment', {
+      //   reservationId,
+      //   amount: roomPrice,
+      // });
 
     } catch (err) {
       Alert.alert('예약 실패', err.response.data.message);
