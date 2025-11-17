@@ -94,17 +94,14 @@ const EmployIntro = () => {
     [userRole],
   );
 
-  // ✅ 화면에 들어올 때 첫 페이지 로딩
   useFocusEffect(
     useCallback(() => {
       fetchRecruitList(0, false);
     }, [fetchRecruitList]),
   );
 
-  // ✅ 카드 클릭 시 이동
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
-  // ✅ 무한 스크롤 트리거
   const handleEndReached = () => {
     if (isInitialLoading || isMoreLoading || !hasNext) {
       return;
@@ -157,12 +154,12 @@ const EmployIntro = () => {
           </View>
           <RecruitList
             data={recruitList}
-            loading={false} // 전체 풀스크린 로딩은 위에서 처리
+            loading={false}
             onJobPress={handleJobPress}
             onToggleFavorite={toggleFavorite}
             setRecruitList={setRecruitList}
             onEndReached={handleEndReached}
-            scrollEnabled={true} // ✅ 이제 FlatList가 직접 스크롤
+            scrollEnabled={true}
             ListFooterComponent={
               isMoreLoading ? (
                 <ActivityIndicator
