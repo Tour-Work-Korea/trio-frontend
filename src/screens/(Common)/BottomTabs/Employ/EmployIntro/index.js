@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
-  ScrollView,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
@@ -16,54 +15,116 @@ import userEmployApi from '@utils/api/userEmployApi';
 import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
-// 아이콘 불러오기
 import styles from './EmployIntro.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
 import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
 import {COLORS} from '@constants/colors';
 
+const PAGE_SIZE = 10;
+
 const EmployIntro = () => {
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
-  const [isGHLoading, setIsGHLoading] = useState(true);
-  const [isEmLoading, setIsEmLoading] = useState(true);
+
+  const [page, setPage] = useState(0); // 현재 페이지
+  const [hasNext, setHasNext] = useState(true); // 다음 페이지 존재 여부
+
+  const [isInitialLoading, setIsInitialLoading] = useState(true); // 첫 로딩
+  const [isMoreLoading, setIsMoreLoading] = useState(false); // 추가 로딩
+
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
     buttonText: '',
   });
-  const navigation = useNavigation();
 
-  useFocusEffect(
-    useCallback(() => {
-      tryFetchRecruitList();
-    }, [tryFetchRecruitList]),
+  const navigation = useNavigation();
+  const userRole = useUserStore.getState()?.userRole;
+
+  const fetchRecruitList = useCallback(
+    async (pageToLoad = 0, isLoadMore = false) => {
+      try {
+        if (isLoadMore) {
+          setIsMoreLoading(true);
+        } else {
+          setIsInitialLoading(true);
+        }
+
+        const body = {
+          searchKeyword: '', // 검색 기능 붙이면 여기 searchText 사용
+          page: pageToLoad,
+          size: PAGE_SIZE,
+          sortBy: 'string', // 백엔드 정의에 맞게 실제 값으로 변경
+          hashtagIds: [],
+          locationIds: [],
+        };
+
+        const response = await userEmployApi.getRecruits(
+          body,
+          userRole === 'USER',
+        );
+
+        const {content, last, number} = response.data; // Spring Data Page 가정
+
+        if (pageToLoad === 0) {
+          // 첫 페이지
+          setRecruitList(content);
+        } else {
+          // 이어 붙이기
+          setRecruitList(prev => [...prev, ...content]);
+        }
+
+        setPage(number); // 또는 setPage(pageToLoad);
+        setHasNext(!last); // last=true 이면 마지막 페이지
+      } catch (error) {
+        console.warn('공고 조회 실패', error);
+        setErrorModal({
+          visible: true,
+          message: '공고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+          buttonText: '확인',
+        });
+      } finally {
+        if (isLoadMore) {
+          setIsMoreLoading(false);
+        } else {
+          setIsInitialLoading(false);
+        }
+      }
+    },
+    [userRole],
   );
 
-  const tryFetchRecruitList = useCallback(async () => {
-    try {
-      const userRole = useUserStore.getState()?.userRole;
-      const response = await userEmployApi.getRecruits(
-        {page: 0, size: 10},
-        userRole === 'USER',
-      );
-      setRecruitList(response.data.content);
-    } catch (error) {
-      console.warn('공고 조회 실패', error);
-    } finally {
-      setIsEmLoading(false);
-    }
-  }, []);
+  // ✅ 화면에 들어올 때 첫 페이지 로딩
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecruitList(0, false);
+    }, [fetchRecruitList]),
+  );
 
+  // ✅ 카드 클릭 시 이동
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
-  if (isEmLoading || isGHLoading) {
-    <Loading title="채용 정보를 가져오는 중입니다..." />;
+  // ✅ 무한 스크롤 트리거
+  const handleEndReached = () => {
+    if (isInitialLoading || isMoreLoading || !hasNext) {
+      return;
+    }
+    fetchRecruitList(page + 1, true);
+  };
+
+  if (isInitialLoading && page === 0) {
+    return (
+      <View style={styles.container}>
+        <Header title="채용공고" />
+        <Loading title="채용 정보를 가져오는 중입니다..." />
+      </View>
+    );
   }
+
   return (
     <View style={styles.container}>
       <Header title="채용공고" />
-      <ScrollView contentContainerStyle={styles.scrollContent}>
+      <View style={styles.scrollContent}>
         {/* 검색창 */}
         <TouchableOpacity
           onPress={() => navigation.navigate('EmploySearchList')}>
@@ -78,7 +139,6 @@ const EmployIntro = () => {
             />
           </View>
         </TouchableOpacity>
-
         {/* 추천 일자리 */}
         <View style={styles.employContainer}>
           <View style={[styles.titleSection]}>
@@ -97,18 +157,25 @@ const EmployIntro = () => {
           </View>
           <RecruitList
             data={recruitList}
-            loading={isEmLoading}
+            loading={false} // 전체 풀스크린 로딩은 위에서 처리
             onJobPress={handleJobPress}
             onToggleFavorite={toggleFavorite}
             setRecruitList={setRecruitList}
+            onEndReached={handleEndReached}
+            scrollEnabled={true} // ✅ 이제 FlatList가 직접 스크롤
             ListFooterComponent={
-              isEmLoading && <ActivityIndicator size="small" color="gray" />
+              isMoreLoading ? (
+                <ActivityIndicator
+                  size="small"
+                  color="gray"
+                  style={{marginVertical: 16}}
+                />
+              ) : null
             }
-            scrollEnabled={false}
             showErrorModal={setErrorModal}
           />
         </View>
-      </ScrollView>
+      </View>
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}

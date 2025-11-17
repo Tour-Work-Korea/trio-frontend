@@ -11,6 +11,8 @@ const RecruitList = ({
   onJobPress,
   setRecruitList,
   scrollEnabled = true,
+  ListFooterComponent = null,
+  ListHeaderComponent = null,
 }) => {
   if (loading) {
     return (
@@ -46,6 +48,8 @@ const RecruitList = ({
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
       ItemSeparatorComponent={() => <View style={{height: 16}} />}
+      ListFooterComponent={ListFooterComponent}
+      ListHeaderComponent={ListHeaderComponent}
     />
   );
 };
