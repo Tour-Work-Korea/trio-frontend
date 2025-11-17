@@ -147,7 +147,7 @@ const HostRegisterInfo = ({route}) => {
       setIsBussinessNumVerified(false);
       setErrorModal({
         visible: true,
-        message: '유효하지 않은 사업자번호입니다',
+        message: '유효하지 않은 사업자등록번호입니다',
         buttonText: '확인',
         onPress: () => setErrorModal(prev => ({...prev, visible: false})),
       });
@@ -256,11 +256,11 @@ const HostRegisterInfo = ({route}) => {
                     </View>
                   </View>
                   <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>사업자번호</Text>
+                    <Text style={styles.inputLabel}>사업자등록번호</Text>
                     <View style={[styles.inputBox, styles.inputRelative]}>
                       <TextInput
                         style={styles.textInput}
-                        placeholder="사업자번호를 입력해주세요"
+                        placeholder="사업자등록번호를 입력해주세요"
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.bussinessNum}
                         onChangeText={text => {
@@ -302,8 +302,8 @@ const HostRegisterInfo = ({route}) => {
                               : styles.invalidText,
                           ]}>
                           {isBussinessNumbVerified
-                            ? '유효한 사업자번호입니다'
-                            : '유효하지 않은 사업자번호입니다.'}
+                            ? '유효한 사업자등록번호입니다'
+                            : '유효하지 않은 사업자등록번호입니다.'}
                         </Text>
                       </View>
                     ) : (
