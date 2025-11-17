@@ -8,6 +8,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 const {width: SCREEN_WIDTH} = Dimensions.get('window');
@@ -32,19 +33,26 @@ const PopularEmployList = () => {
     message: '',
     buttonText: '',
   });
+
   const userRole = useUserStore.getState()?.userRole;
+
   const [recruits, setRecruits] = useState([]);
   const [reviews, setReviews] = useState();
 
-  useFocusEffect(
-    useCallback(() => {
-      tryFetchEmploys();
-      tryFetchEmployReviews();
-    }, []),
-  );
+  const [page, setPage] = useState(0);
+  const [isRecruitsLast, setIsRecruitsLast] = useState(false);
+  const [isRecruitsLoading, setIsRecruitsLoading] = useState(false);
 
   const [currentPage, setCurrentPage] = useState(0);
   const flatListRef = useRef(null);
+
+  useFocusEffect(
+    useCallback(() => {
+      // 첫 진입 시 0페이지 로딩
+      tryFetchEmploys(0, false);
+      tryFetchEmployReviews();
+    }, [tryFetchEmploys]),
+  );
 
   const renderTrendingCard = item => (
     <TouchableOpacity
@@ -98,27 +106,44 @@ const PopularEmployList = () => {
     }
   };
 
-  const tryFetchEmploys = useCallback(async () => {
-    try {
-      const response = await userEmployApi.getRecruits(
-        {page: 0, size: 10},
-        userRole === 'USER',
-      );
-      setRecruits(response.data.content);
-    } catch (error) {
-      setErrorModal({
-        visible: true,
-        message: '추천 공고 조회에 실패했습니다',
-        buttonText: '확인',
-      });
-    }
-  }, []);
+  const tryFetchEmploys = useCallback(
+    async (pageToFetch = 0, isLoadMore = false) => {
+      // 이미 로딩 중이거나 마지막 페이지면 막기
+      if (isRecruitsLoading || (isRecruitsLast && isLoadMore)) {
+        return;
+      }
+
+      try {
+        setIsRecruitsLoading(true);
+
+        const response = await userEmployApi.getRecruits(
+          {page: pageToFetch, size: 10},
+          userRole === 'USER',
+        );
+
+        const {content, last} = response.data;
+
+        setRecruits(prev =>
+          pageToFetch === 0 ? content : [...prev, ...content],
+        );
+        setPage(pageToFetch);
+        setIsRecruitsLast(last);
+      } catch (error) {
+        setErrorModal({
+          visible: true,
+          message: '추천 공고 조회에 실패했습니다',
+          buttonText: '확인',
+        });
+      } finally {
+        setIsRecruitsLoading(false);
+      }
+    },
+    [userRole, isRecruitsLoading, isRecruitsLast],
+  );
 
   const openReviewLink = async url => {
     try {
-      // 스킴이 없으면 http 붙이기(선택)
       const safe = /^https?:\/\//i.test(url) ? url : `https://${url}`;
-
       const supported = await Linking.canOpenURL(safe);
       if (!supported) {
         console.warn('링크 열기 실패');
@@ -129,12 +154,30 @@ const PopularEmployList = () => {
       console.warn('링크 열기 실패', String(e));
     }
   };
+
   const moveToDetail = id => {
     navigation.navigate('EmployDetail', {id});
   };
 
+  // ✅ ScrollView 바닥 근처 도달 시 다음 페이지 로딩
+  const handleScroll = ({nativeEvent}) => {
+    const {layoutMeasurement, contentOffset, contentSize} = nativeEvent;
+
+    const paddingToBottom = 80; // 바닥에서 80px 남았을 때 호출
+    const isNearBottom =
+      layoutMeasurement.height + contentOffset.y >=
+      contentSize.height - paddingToBottom;
+
+    if (isNearBottom && !isRecruitsLoading && !isRecruitsLast) {
+      tryFetchEmploys(page + 1, true);
+    }
+  };
+
   return (
-    <ScrollView style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      onScroll={handleScroll}
+      scrollEventThrottle={16}>
       <View style={styles.headerContainer}>
         <HeaderImg style={styles.headerImg} />
         <View style={styles.headerTitle}>
@@ -186,14 +229,28 @@ const PopularEmployList = () => {
         </View>
 
         <Text style={[FONTS.fs_16_semibold, styles.title]}>추천 일자리</Text>
+
+        {/* 추천 공고 리스트 */}
         <RecruitList
           data={recruits}
+          // 처음에만 로딩 보여주고 싶으면 아래처럼도 가능:
+          // loading={recruits.length === 0 && isRecruitsLoading}
+          loading={false}
           onEndReached={() => {}}
           onJobPress={moveToDetail}
           setRecruitList={setRecruits}
-          scrollEnabled={false}
+          scrollEnabled={false} // 부모 ScrollView가 스크롤 담당
           showErrorModal={setErrorModal}
         />
+
+        {/* 아래에서 추가 페이지 로딩 중일 때 스피너 */}
+        {isRecruitsLoading && recruits.length > 0 && !isRecruitsLast && (
+          <ActivityIndicator
+            size="small"
+            color="gray"
+            style={{marginVertical: 16}}
+          />
+        )}
       </View>
 
       <ErrorModal
