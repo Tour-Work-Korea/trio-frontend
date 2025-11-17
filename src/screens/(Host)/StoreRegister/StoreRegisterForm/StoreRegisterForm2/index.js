@@ -348,8 +348,8 @@ const StoreRegisterForm2 = ({route}) => {
                               : styles.invalidText,
                           ]}>
                           {isBussinessNumbVerified
-                            ? '유효한 사업자번호입니다'
-                            : '유효하지 않은 사업자번호입니다.'}
+                            ? '유효한 사업자등록번호입니다'
+                            : '유효하지 않은 사업자등록번호입니다.'}
                         </Text>
                       </View>
                     ) : (
