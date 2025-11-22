@@ -25,6 +25,7 @@ const BottomTabs = () => {
   return (
     <Tab.Navigator
       initialRouteName="홈"
+      backBehavior="initialRoute"
       screenOptions={({route}) => ({
         // 1) 아이콘만 반환
         tabBarIcon: ({focused}) => {

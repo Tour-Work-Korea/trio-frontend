@@ -33,6 +33,8 @@ export {default as MeetDetail} from './(Common)/Meet/MeetDetail';
 export {default as MeetReservation} from './(Common)/Meet/MeetReservation';
 export {default as MeetPaymentSuccess} from './(Common)/Meet/MeetPayment/MeetPaymentSuccess';
 export {default as MeetPayment} from './(Common)/Meet/MeetPayment';
+// 게스트하우스 포스트
+export {default as GuesthousePost} from './(Common)/GuesthousePost';
 // 마이페이지
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
@@ -60,8 +62,10 @@ export {default as FindPassword} from './(Common)/Login/FindPassword';
 export {default as HostMyPage} from './(Host)/HostMyPage';
 // 프로필
 export {default as HostEditProfile} from './(Host)/HostMyPage/HostEditProfile';
-//
 export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
+// 게하 포스트 목록 & 수정 & 등록
+export {default as MyGuesthouseIntroList} from './(Host)/MyGuesthouseIntroList';
+export {default as MyGuesthouseIntroForm} from './(Host)/MyGuesthouseIntroForm';
 // 게하 목록 & 수정 & 등록
 export {default as MyGuesthouseDetail} from './(Host)/Guesthouse/MyGuesthouseDetail';
 export {default as MyRoomDetail} from './(Host)/Guesthouse/MyRoomDetail';
