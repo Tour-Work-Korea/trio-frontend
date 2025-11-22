@@ -68,6 +68,9 @@ import {
   FindPassword,
   VerifyPhone,
   FindIntro,
+  GuesthousePost,
+  MyGuesthouseIntroList,
+  MyGuesthouseIntroForm,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -180,6 +183,17 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />
       <Stack.Screen name="MeetPayment" component={MeetPayment} />
+
+      {/* 게하 포스트 화면 */}
+      <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
+      <Stack.Screen
+        name="MyGuesthouseIntroList"
+        component={MyGuesthouseIntroList}
+      />
+      <Stack.Screen
+        name="MyGuesthouseIntroForm"
+        component={MyGuesthouseIntroForm}
+      />
     </Stack.Navigator>
   </NavigationContainer>
 );
