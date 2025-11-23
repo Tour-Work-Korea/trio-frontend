@@ -26,8 +26,8 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_500,
   },
   jobImage: {
-    width: 80,
-    height: 80,
+    width: 90,
+    height: 90,
     borderRadius: 4,
     marginRight: 10,
   },

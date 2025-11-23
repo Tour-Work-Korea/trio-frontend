@@ -75,9 +75,9 @@ const BottomTabs = () => {
           },
         })}
       />
-      <Tab.Screen name="채용" component={Employ} />
-      <Tab.Screen name="홈" component={Home} />
       <Tab.Screen name="모임" component={Meet} />
+      <Tab.Screen name="홈" component={Home} />
+      <Tab.Screen name="채용" component={Employ} />
       <Tab.Screen
         name="마이"
         component={My}
