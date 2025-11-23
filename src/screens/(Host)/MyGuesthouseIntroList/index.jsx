@@ -105,7 +105,7 @@ const MyGuesthouseIntroList = () => {
             <TouchableOpacity
               onPress={() =>
                 navigation.navigate('MyGuesthouseIntroForm', {
-                  id: item.id,
+                  guesthouseId: item.id,
                 })
               }>
               <EditIcon width={24} height={24} />
@@ -145,15 +145,6 @@ const MyGuesthouseIntroList = () => {
             />
           }
         />
-
-        <TouchableOpacity
-          style={styles.addButton}
-          onPress={() => navigation.navigate('MyGuesthouseIntroForm')}>
-          <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-            게스트하우스 소개 등록
-          </Text>
-          <PlusIcon width={24} height={24} />
-        </TouchableOpacity>
         <ErrorModal
           title={errorModal.title ?? null}
           message={errorModal.message ?? null}
