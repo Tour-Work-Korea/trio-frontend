@@ -132,23 +132,12 @@ const GuesthousePost = ({route}) => {
   };
 
   const handleFavorite = async isLiked => {
-    // toggleFavorite 유틸이 intro용으로도 쓰이게 되어있다면 type만 바꿔주면 됨
     toggleFavorite({
       type: 'intro',
       id: guesthouseId,
       isLiked,
       setItem: setPost,
     });
-    // 만약 유틸이 recruit 전용이면
-    // try {
-    //   if (isLiked) await postApi.unlikeIntro(guesthouseId);
-    //   else await postApi.likeIntro(guesthouseId);
-    //   setPost(p => ({
-    //     ...p,
-    //     isLiked: !isLiked,
-    //     likeCount: p.likeCount + (isLiked ? -1 : 1),
-    //   }));
-    // } catch {}
   };
 
   if (!post) {

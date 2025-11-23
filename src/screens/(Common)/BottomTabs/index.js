@@ -32,7 +32,7 @@ const BottomTabs = () => {
           const iconProps = {width: 24, height: 24};
           const map = {
             게하: focused ? GuesthouseIconFilled : GuesthouseIcon,
-            채용: focused ? EmployIconFilled : EmployIcon,
+            스탭: focused ? EmployIconFilled : EmployIcon,
             홈: focused ? HomeIconFilled : HomeIcon,
             모임: focused ? MeetIconFilled : MeetIcon,
             마이: focused ? MyIconFilled : MyIcon,
@@ -77,7 +77,7 @@ const BottomTabs = () => {
       />
       <Tab.Screen name="모임" component={Meet} />
       <Tab.Screen name="홈" component={Home} />
-      <Tab.Screen name="채용" component={Employ} />
+      <Tab.Screen name="스탭" component={Employ} />
       <Tab.Screen
         name="마이"
         component={My}

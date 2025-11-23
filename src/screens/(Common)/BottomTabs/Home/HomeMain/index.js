@@ -16,7 +16,7 @@ import {COLORS} from '@constants/colors';
 
 const TABS = [
   {key: 'STAY', label: '게하'},
-  {key: 'EMPLOY', label: '채용'},
+  {key: 'EMPLOY', label: '스탭'},
   {key: 'MEET', label: '모임'},
   {key: 'TODAY', label: '오늘의 게스트하우스'},
 ];
