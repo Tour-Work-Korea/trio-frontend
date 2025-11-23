@@ -9,8 +9,6 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     gap: 16,
-    paddingHorizontal: 20,
-    paddingBottom: 16,
     flexGrow: 1,
   },
   //검색창
@@ -21,6 +19,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     paddingHorizontal: 8,
     height: 40,
+    marginHorizontal: 20,
   },
   searchIcon: {
     marginRight: 8,
@@ -36,10 +35,9 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'column',
     gap: 16,
-    paddingVertical: 12,
+    paddingTop: 12,
     paddingHorizontal: 20,
     backgroundColor: COLORS.grayscale_0,
-    borderRadius: 12,
   },
   titleSection: {
     flexDirection: 'row',
