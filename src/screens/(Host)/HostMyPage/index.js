@@ -101,7 +101,7 @@ const HostMyPage = () => {
             {/* 숙박 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                숙박
+                게스트하우스
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
@@ -130,7 +130,7 @@ const HostMyPage = () => {
             {/* 공고 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                공고
+                알바
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem

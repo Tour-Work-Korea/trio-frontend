@@ -6,6 +6,7 @@ import {showErrorModal} from './loginModalHub';
 import userEmployApi from './api/userEmployApi';
 import userMeetApi from '@utils/api/userMeetApi';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import postApi from './api/postApi';
 
 /**
  * 통합 즐겨찾기 토글
@@ -39,6 +40,11 @@ export const toggleFavorite = async ({
       like: () => userGuesthouseApi.favoriteGuesthouse(id),
       unlike: () => userGuesthouseApi.unfavoriteGuesthouse(id),
       listIdKey: 'guesthouseId',
+    },
+    post: {
+      like: () => postApi.likeIntro(id),
+      unlike: () => postApi.unlikeIntro(id),
+      listIdKey: 'introId',
     },
   };
   const conf = apiMap[type];

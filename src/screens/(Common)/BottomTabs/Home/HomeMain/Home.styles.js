@@ -10,7 +10,7 @@ export default StyleSheet.create({
     color: COLORS.grayscale_800,
   },
   boxContainer: {
-    marginBottom: 20,
+    marginVertical: 4,
   },
 
   Header: {
@@ -24,20 +24,19 @@ export default StyleSheet.create({
   bannerContainer: {
     alignItems: 'center',
     flexDirection: 'column',
-    paddingVertical: 16,
+    paddingVertical: 12,
     borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
     overflow: 'hidden',
   },
   banner: {
     alignSelf: 'center',
-    width: '80%',
+    width: '85%',
     height: 120,
     borderRadius: 10,
-    marginHorizontal: 4,
   },
   indicatorRow: {
-    marginTop: 12,
+    marginTop: 4,
     flexDirection: 'row',
     justifyContent: 'center',
   },
@@ -71,7 +70,6 @@ export default StyleSheet.create({
     flexDirection: 'column',
     paddingVertical: 12,
     paddingHorizontal: 16,
-    borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
   },
   titleSection: {
@@ -165,7 +163,6 @@ export default StyleSheet.create({
   //구인구직
   jobContainer: {
     flexDirection: 'column',
-    borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 16,
     paddingVertical: 12,

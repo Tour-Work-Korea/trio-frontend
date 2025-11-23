@@ -11,7 +11,7 @@ export default function Banner({banners = []}) {
   if (!banners.length) return null;
 
   // 각 배너 연결된 링크 열기
-  const openBannerLink = useCallback(async (url) => {
+  const openBannerLink = useCallback(async url => {
     if (!url || typeof url !== 'string') return;
     const safeUrl = url.trim();
     // http/https 만 허용
@@ -28,9 +28,9 @@ export default function Banner({banners = []}) {
   return (
     <View style={styles.bannerContainer}>
       <Carousel
-        width={width * 0.9}
+        width={width}
         height={120}
-        style={{ alignItems: 'center', justifyContent: 'center' }}
+        style={{alignItems: 'center', justifyContent: 'center'}}
         autoPlay
         loop
         data={banners}
@@ -40,18 +40,19 @@ export default function Banner({banners = []}) {
           parallaxScrollingScale: 1,
           parallaxScrollingOffset: 50,
         }}
-        onSnapToItem={(index) => setCurrentIndex(index)}
+        onSnapToItem={index => setCurrentIndex(index)}
         renderItem={({item, index}) => {
           const src = item.url;
-          if (!src) return <View key={index} style={styles.banner} />;
+          if (!src) {
+            return <View key={index} style={styles.banner} />;
+          }
           return (
             <TouchableOpacity
               key={item?.id ?? index}
               activeOpacity={0.9}
-              onPress={() => openBannerLink(item?.link)}
-            >
+              onPress={() => openBannerLink(item?.link)}>
               <Image
-                source={{ uri: item.url }}
+                source={{uri: item.url}}
                 style={styles.banner}
                 resizeMode="cover"
               />

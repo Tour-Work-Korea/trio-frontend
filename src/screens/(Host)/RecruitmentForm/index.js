@@ -93,10 +93,6 @@ const RecruitmentForm = ({route}) => {
   );
 
   useEffect(() => {
-    console.log(formData);
-  }, [formData]);
-
-  useEffect(() => {
     setValid(computeValidSections(formData));
   }, [formData]);
 
