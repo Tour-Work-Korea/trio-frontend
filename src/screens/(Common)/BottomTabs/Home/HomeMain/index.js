@@ -1,21 +1,29 @@
-import React, {useCallback, useState} from 'react';
-import {View, Text, ScrollView} from 'react-native';
+import React, {useCallback, useRef, useState} from 'react';
+import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 
 import styles from './Home.styles';
 import Banner from './Banner';
-import Buttons from './Buttons';
 import Guesthouses from './Guesthouses';
 import Employ from './Employs';
-
-import Logo from '@assets/images/logo_orange.svg';
+import TodayGuesthouses from './TodayGuesthouses';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import userEmployApi from '@utils/api/userEmployApi';
 import adminApi from '@utils/api/adminApi';
 import useUserStore from '@stores/userStore';
+import {COLORS} from '@constants/colors';
+
+const TABS = [
+  {key: 'STAY', label: '게하'},
+  {key: 'EMPLOY', label: '스탭'},
+  {key: 'MEET', label: '모임'},
+  {key: 'TODAY', label: '오늘의 게스트하우스'},
+];
 
 const HomeMain = () => {
+  const [activeTab, setActiveTab] = useState('STAY');
+
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [employList, setEmployList] = useState([]);
   const [bannerList, setBannerList] = useState([]);
@@ -26,12 +34,16 @@ const HomeMain = () => {
 
   const userRole = useUserStore.getState()?.userRole;
 
+  const scrollRef = useRef(null);
+  const stayYRef = useRef(0);
+  const employYRef = useRef(0);
+
   useFocusEffect(
     useCallback(() => {
       tryFetchEmploys();
       tryFetchGuesthouses();
       tryFetchBanners();
-    }, [tryFetchEmploys, tryFetchGuesthouses, tryFetchBanners]),
+    }, []),
   );
 
   const tryFetchBanners = useCallback(async () => {
@@ -49,9 +61,10 @@ const HomeMain = () => {
   const tryFetchGuesthouses = useCallback(async () => {
     try {
       const {data} = await userGuesthouseApi.getPopularGuesthouses();
-      setGuesthouseList(data);
+      setGuesthouseList(data || []);
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);
+      setGuesthouseList([]);
     } finally {
       setIsGHLoading(false);
     }
@@ -63,23 +76,38 @@ const HomeMain = () => {
         {page: 0, size: 10},
         userRole === 'USER',
       );
-      setEmployList(response.data.content);
+      setEmployList(response.data.content || []);
     } catch (error) {
       console.warn('공고 조회 실패', error);
+      setEmployList([]);
     } finally {
       setIsEmLoading(false);
     }
   }, []);
 
-  return (
-    <ScrollView
-      style={styles.container}
-      contentContainerStyle={{paddingHorizontal: 20}}>
-      {/* 헤더 */}
-      <View style={styles.Header}>
-        <Logo />
-      </View>
+  const scrollToY = y => {
+    scrollRef.current?.scrollTo({y, animated: true});
+  };
 
+  const handleTabPress = tabKey => {
+    if (tabKey === 'MEET') return; //모임 보류
+
+    if (tabKey === 'TODAY') {
+      setActiveTab('TODAY');
+      requestAnimationFrame(() => scrollToY(0));
+      return;
+    }
+
+    setActiveTab(tabKey);
+
+    requestAnimationFrame(() => {
+      if (tabKey === 'STAY') scrollToY(stayYRef.current);
+      if (tabKey === 'EMPLOY') scrollToY(employYRef.current);
+    });
+  };
+
+  const StickyHeader = (
+    <View style={{backgroundColor: COLORS.grayscale_0}}>
       {/* 배너 */}
       <View style={styles.boxContainer}>
         {isBannerLoading ? (
@@ -89,30 +117,100 @@ const HomeMain = () => {
         )}
       </View>
 
-      {/* 버튼 */}
-      <View style={styles.boxContainer}>
-        <Buttons />
-      </View>
+      {/* 탭바 */}
+      <View style={headerStyles.tabBar}>
+        {TABS.map(t => {
+          const isActive = activeTab === t.key;
 
-      {/* 인기 게스트하우스 */}
-      <View style={styles.boxContainer}>
-        {isGHLoading ? (
-          <Text>로딩 중</Text>
-        ) : (
-          <Guesthouses guesthouses={guesthouseList} />
-        )}
+          return (
+            <TouchableOpacity
+              key={t.key}
+              onPress={() => handleTabPress(t.key)}
+              activeOpacity={0.8}
+              style={headerStyles.tabBtn}>
+              <Text
+                style={[
+                  headerStyles.tabText,
+                  isActive && headerStyles.tabTextActive,
+                ]}>
+                {t.label}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
       </View>
+    </View>
+  );
 
-      {/* 추천 일자리 */}
-      <View style={styles.boxContainer}>
-        {isEmLoading ? (
-          <Text>로딩 중</Text>
+  return (
+    <View style={styles.container}>
+      {StickyHeader}
+      <ScrollView
+        ref={scrollRef}
+        style={styles.container}
+        showsVerticalScrollIndicator={false}>
+        {activeTab === 'TODAY' ? (
+          <View style={styles.boxContainer}>
+            <TodayGuesthouses />
+          </View>
         ) : (
-          <Employ jobs={employList} setEmployList={setEmployList} />
+          <>
+            {/* 숙박 섹션 */}
+            <View
+              onLayout={e => {
+                stayYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              {isGHLoading ? (
+                <Text>로딩 중</Text>
+              ) : (
+                <Guesthouses guesthouses={guesthouseList} />
+              )}
+            </View>
+
+            {/* 채용 섹션 */}
+            <View
+              onLayout={e => {
+                employYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              {isEmLoading ? (
+                <Text>로딩 중</Text>
+              ) : (
+                <Employ jobs={employList} setEmployList={setEmployList} />
+              )}
+            </View>
+          </>
         )}
-      </View>
-    </ScrollView>
+      </ScrollView>
+    </View>
   );
 };
 
 export default HomeMain;
+
+const headerStyles = {
+  tabBar: {
+    flexDirection: 'row',
+    borderBottomWidth: 1,
+    borderBottomColor: '#eee',
+    paddingHorizontal: 20,
+    gap: 20,
+  },
+  tabBtn: {
+    alignItems: 'center',
+    paddingVertical: 12,
+    position: 'relative',
+  },
+  tabText: {
+    fontSize: 14,
+    fontWeight: '600',
+    color: '#777',
+  },
+  tabTextActive: {
+    color: '#111',
+  },
+  tabTextDisabled: {
+    color: '#bbb',
+  },
+};

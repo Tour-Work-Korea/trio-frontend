@@ -1,13 +1,13 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
-  Text,
   TextInput,
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Text,
 } from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 import {RecruitList} from '@components/Employ/RecruitList';
 import userEmployApi from '@utils/api/userEmployApi';
@@ -17,7 +17,7 @@ import useUserStore from '@stores/userStore';
 import ErrorModal from '@components/modals/ErrorModal';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
-// 아이콘 불러오기
+
 import styles from './EmploySearchResult.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -27,19 +27,22 @@ import {COLORS} from '@constants/colors';
 const PAGE_SIZE = 10;
 
 const EmploySearchResult = ({route}) => {
-  const {search} = route.params;
   const navigation = useNavigation();
+  const userRole = useUserStore.getState()?.userRole;
 
-  const [searchText, setSearchText] = useState(search);
-  const [isSearch, setIsSearch] = useState(false);
+  const {search} = route.params ?? {};
+
+  // 인풋에 보여줄 값
+  const [searchText, setSearchText] = useState(search ?? '');
+  // 실제 검색에 쓰는 확정 키워드
+  const [appliedKeyword, setAppliedKeyword] = useState(search ?? '');
 
   const [recruitList, setRecruitList] = useState([]);
-
   const [page, setPage] = useState(0);
   const [isLast, setIsLast] = useState(false);
 
-  const [isInitialLoading, setIsInitialLoading] = useState(true); // 첫 페이지 로딩
-  const [isMoreLoading, setIsMoreLoading] = useState(false); // 추가 페이지 로딩
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isMoreLoading, setIsMoreLoading] = useState(false);
 
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -59,45 +62,55 @@ const EmploySearchResult = ({route}) => {
     value: 'RECOMMEND',
   });
 
-  const userRole = useUserStore.getState()?.userRole;
+  const initializedRef = useRef(false);
 
-  // region/tag -> 상단 필터 키워드 텍스트 배열로 변환
+  // region/tag -> 상단 키워드 텍스트
   useEffect(() => {
     const regionKeywords =
-      filterOptions?.regions?.map(region => region.displayName) || [];
-    const tagKeywords = filterOptions?.tags?.map(tag => tag.hashtag) || [];
+      filterOptions?.regions?.map(r => r.displayName) || [];
+    const tagKeywords = filterOptions?.tags?.map(t => t.hashtag) || [];
     setKeywords([...regionKeywords, ...tagKeywords]);
   }, [filterOptions]);
 
-  // 채용 공고 조회 (첫 로딩 / 추가 로딩 공용)
-  const tryFetchRecruitList = useCallback(
-    async (pageToFetch = 0, isLoadMore = false) => {
+  // ✅ params builder (keyword를 인자로!)
+  const buildParams = useCallback(
+    (pageToFetch, keyword) => {
+      const regionIds =
+        filterOptions.regions?.map(r => r.id).filter(Boolean) ?? [];
+      const tagIds = filterOptions.tags?.map(t => t.id).filter(Boolean) ?? [];
+
+      const kw = (keyword ?? '').trim();
+
+      return {
+        page: pageToFetch,
+        size: PAGE_SIZE,
+        ...(selectedSort?.value ? {sortBy: selectedSort.value} : {}),
+        ...(kw ? {searchKeyword: kw} : {}),
+        ...(regionIds.length ? {locationIds: regionIds} : {}),
+        ...(tagIds.length ? {hashtagIds: tagIds} : {}),
+      };
+    },
+    [filterOptions, selectedSort],
+  );
+
+  // ✅ fetch 함수: appliedKeyword에 "직접" 의존하지 않음
+  const fetchRecruitList = useCallback(
+    async (pageToFetch = 0, isLoadMore = false, keyword) => {
       try {
-        if (isLoadMore) {
-          setIsMoreLoading(true);
-        } else {
-          setIsInitialLoading(true);
-        }
+        if (isLoadMore) setIsMoreLoading(true);
+        else setIsInitialLoading(true);
 
-        const params = {
-          page: pageToFetch,
-          size: PAGE_SIZE,
-          sortBy: selectedSort.value,
-          searchKeyword: searchText,
-          locationIds: filterOptions.regions?.map(region => region.id),
-          hashtagIds: filterOptions.tags?.map(tag => tag.id),
-        };
-
+        const params = buildParams(pageToFetch, keyword);
         const res = await userEmployApi.getRecruits(
           params,
           userRole === 'USER',
         );
+
         const {content, last} = res.data;
 
         setRecruitList(prev =>
           pageToFetch === 0 ? content : [...prev, ...content],
         );
-
         setPage(pageToFetch);
         setIsLast(last);
       } catch (error) {
@@ -109,77 +122,81 @@ const EmploySearchResult = ({route}) => {
           buttonText: '확인',
         });
       } finally {
-        if (isLoadMore) {
-          setIsMoreLoading(false);
-        } else {
-          setIsInitialLoading(false);
-        }
+        if (isLoadMore) setIsMoreLoading(false);
+        else setIsInitialLoading(false);
       }
     },
-    [filterOptions, searchText, selectedSort, userRole],
+    [buildParams, userRole],
   );
 
-  // 1. 검색 버튼(엔터) 눌렀을 때 트리거
+  // ✅ 초기 로드: search param 바뀔 때만 실행 (fetchRecruitList deps 제거!)
   useEffect(() => {
-    if (!isSearch) return;
+    const initKeyword = (search ?? '').trim();
 
-    setIsLast(false);
+    setSearchText(initKeyword);
+    setAppliedKeyword(initKeyword);
     setRecruitList([]);
-    tryFetchRecruitList(0, false);
     setPage(0);
-    setIsSearch(false);
-  }, [isSearch, tryFetchRecruitList]);
+    setIsLast(false);
 
-  // 2. 필터 or 정렬 변경 시 새로 조회
+    fetchRecruitList(0, false, initKeyword).finally(() => {
+      initializedRef.current = true;
+    });
+  }, [search]); // ✅ 여기서 fetchRecruitList 넣지 말기
+
+  // ✅ 필터/정렬 변경 시 appliedKeyword 기준으로 재조회
   useEffect(() => {
-    // 최초 마운트 직후에도 이 effect가 한 번 돌 수 있으므로
-    // 검색어가 없는 경우엔 굳이 호출 안 해도 됨
-    if (!searchText || searchText.trim().length === 0) return;
+    if (!initializedRef.current) return;
 
-    setIsLast(false);
     setRecruitList([]);
-    tryFetchRecruitList(0, false);
     setPage(0);
-  }, [filterOptions, selectedSort, tryFetchRecruitList, searchText]);
+    setIsLast(false);
 
-  // 3. 최초 진입 시 (포커스 시) 초기 한 번 조회
-  useFocusEffect(
-    useCallback(() => {
-      if (search && search.trim().length > 0) {
-        setIsLast(false);
-        setRecruitList([]);
-        tryFetchRecruitList(0, false);
-        setPage(0);
-      }
-    }, [search, tryFetchRecruitList]),
+    const kw = (appliedKeyword ?? '').trim();
+    fetchRecruitList(0, false, kw);
+  }, [filterOptions, selectedSort]); // ✅ appliedKeyword는 그대로 사용
+
+  // ✅ 엔터 눌렀을 때만 appliedKeyword 확정 + 재조회
+  const handleSearchTrigger = useCallback(
+    rawText => {
+      const nextKeyword = (rawText ?? '').trim();
+
+      setSearchText(nextKeyword);
+      setAppliedKeyword(nextKeyword);
+
+      setRecruitList([]);
+      setPage(0);
+      setIsLast(false);
+
+      fetchRecruitList(0, false, nextKeyword);
+    },
+    [fetchRecruitList],
   );
 
-  // 무한 스크롤 끝 도달
+  // 무한 스크롤
   const handleEndReached = () => {
     if (isInitialLoading || isMoreLoading || isLast) return;
-    const nextPage = page + 1;
-    tryFetchRecruitList(nextPage, true);
+    const kw = (appliedKeyword ?? '').trim();
+    fetchRecruitList(page + 1, true, kw);
   };
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
 
-  // 첫 페이지 로딩일 때 전체 화면 로딩
   if (isInitialLoading && page === 0) {
     return (
       <View style={styles.container}>
-        <Header title={'채용공고'} />
+        <Header title="채용공고" />
         <Loading title="채용 정보를 가져오는 중입니다..." />
       </View>
     );
   }
 
   return (
-    <View style={[styles.container]}>
-      {/* 헤더 */}
-      <Header title={'채용공고'} />
+    <View style={styles.container}>
+      <Header title="채용공고" />
 
       {/* 검색창 */}
-      <View style={[styles.searchInputContainer]}>
+      <View style={styles.searchInputContainer}>
         <SearchIcon width={24} height={24} style={styles.searchIcon} />
         <TextInput
           style={styles.searchInput}
@@ -187,15 +204,14 @@ const EmploySearchResult = ({route}) => {
           value={searchText}
           onChangeText={setSearchText}
           returnKeyType="search"
-          onSubmitEditing={() => setIsSearch(true)}
+          onSubmitEditing={e => handleSearchTrigger(e.nativeEvent.text)}
         />
       </View>
 
-      {/* 공고 리스트 + 필터/정렬 영역 */}
+      {/* 리스트 + 필터/정렬 */}
       <View style={styles.recruitListContainer}>
         <View style={styles.recruitListHeader}>
           <View style={styles.filterContainer}>
-            {/* 필터 버튼 */}
             <TouchableOpacity
               style={styles.filterButtonContainer}
               onPress={() => setFilterModalVisible(true)}>
@@ -203,7 +219,6 @@ const EmploySearchResult = ({route}) => {
               <Text style={styles.filterTitleText}>필터</Text>
             </TouchableOpacity>
 
-            {/* 선택된 필터 태그 목록 (가로 스크롤) */}
             <ScrollView
               style={styles.modalContainer}
               horizontal
@@ -217,7 +232,6 @@ const EmploySearchResult = ({route}) => {
             </ScrollView>
           </View>
 
-          {/* 정렬 */}
           <TouchableOpacity
             style={styles.sortContainer}
             onPress={() => setSortModalVisible(true)}>
@@ -226,10 +240,9 @@ const EmploySearchResult = ({route}) => {
           </TouchableOpacity>
         </View>
 
-        {/* 리스트 (FlatList, 무한 스크롤) */}
         <RecruitList
           data={recruitList}
-          loading={false} // 전체 로딩은 위에서 처리
+          loading={false}
           onJobPress={handleJobPress}
           onEndReached={handleEndReached}
           setRecruitList={setRecruitList}
@@ -268,9 +281,6 @@ const EmploySearchResult = ({route}) => {
         onSelect={option => {
           setSelectedSort(option);
           setSortModalVisible(false);
-          setPage(0);
-          setIsLast(false);
-          setRecruitList([]);
         }}
       />
 

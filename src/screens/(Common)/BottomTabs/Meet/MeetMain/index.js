@@ -1,17 +1,27 @@
-import React, { useMemo, useState, useEffect, useCallback } from 'react';
-import { View, Text, TouchableOpacity, Dimensions, Image, FlatList, ScrollView, ActivityIndicator, Linking } from 'react-native';
+import React, {useMemo, useState, useEffect, useCallback} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Dimensions,
+  Image,
+  FlatList,
+  ScrollView,
+  ActivityIndicator,
+  Linking,
+} from 'react-native';
 import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import styles from './MeetMain.styles';
 import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import adminApi from '@utils/api/adminApi';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -19,7 +29,7 @@ import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-import { meetTags, meetScales, stayTypes } from '@data/meetOptions';
+import {meetTags, meetScales, stayTypes} from '@data/meetOptions';
 
 const {width} = Dimensions.get('window');
 
@@ -43,14 +53,16 @@ const MeetMain = () => {
 
   const isBigById = useMemo(
     () => Object.fromEntries(meetScales.map(s => [s.id, s.isBigParty])),
-    []
+    [],
   );
   const isGuestById = useMemo(
     () => Object.fromEntries(stayTypes.map(s => [s.id, s.isGuest])),
-    []
+    [],
   );
 
-  const [selectedDateKey, setSelectedDateKey] = useState(dayjs().format('YYYY-MM-DD')); // 오늘
+  const [selectedDateKey, setSelectedDateKey] = useState(
+    dayjs().format('YYYY-MM-DD'),
+  ); // 오늘
 
   // 모임 7일치 데이터
   const [meets, setMeets] = useState([]);
@@ -58,7 +70,7 @@ const MeetMain = () => {
 
   // 7일(오늘 + 6일)
   const dates = useMemo(() => {
-    return Array.from({ length: 7 }, (_, i) => {
+    return Array.from({length: 7}, (_, i) => {
       const d = dayjs().add(i, 'day');
       return {
         date: d,
@@ -81,11 +93,11 @@ const MeetMain = () => {
     try {
       setLoading(true);
 
-      const params = { sortBy: sortOption };
+      const params = {sortBy: sortOption};
       if (scaleId) params.isBigParty = isBigById[scaleId];
-      if (stayId)  params.isGuest    = isGuestById[stayId];
+      if (stayId) params.isGuest = isGuestById[stayId];
 
-      const { data } = await userMeetApi.getRecentParties(params);
+      const {data} = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
       setMeets(list);
     } catch (e) {
@@ -105,24 +117,29 @@ const MeetMain = () => {
     (async () => {
       try {
         setBannerLoading(true);
-        const { data } = await adminApi.getMeetAdminBanners();
+        const {data} = await adminApi.getMeetAdminBanners();
         // 안전 필터링: url이 있는 것만
         const list = Array.isArray(data) ? data.filter(b => !!b.url) : [];
         if (mounted) setBanners(list);
       } catch (e) {
-        console.warn('getMeetAdminBanners error', e?.response?.data || e?.message);
+        console.warn(
+          'getMeetAdminBanners error',
+          e?.response?.data || e?.message,
+        );
         if (mounted) setBanners([]);
       } finally {
         if (mounted) setBannerLoading(false);
       }
     })();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, []);
 
   // 선택 날짜 기준 필터
   const filteredList = useMemo(() => {
-    return meets.filter(m =>
-      dayjs(m.partyStartDateTime).format('YYYY-MM-DD') === selectedDateKey
+    return meets.filter(
+      m => dayjs(m.partyStartDateTime).format('YYYY-MM-DD') === selectedDateKey,
     );
   }, [meets, selectedDateKey]);
 
@@ -134,7 +151,8 @@ const MeetMain = () => {
 
     let dayStr = '';
     if (dateKey === todayKey) dayStr = '오늘';
-    else if (dateKey === now.add(1, 'day').format('YYYY-MM-DD')) dayStr = '내일';
+    else if (dateKey === now.add(1, 'day').format('YYYY-MM-DD'))
+      dayStr = '내일';
     else {
       const days = ['일', '월', '화', '수', '목', '금', '토'];
       dayStr = days[d.day()];
@@ -144,7 +162,7 @@ const MeetMain = () => {
   }
 
   // 모임 즐겨찾기 토글
-  const handleToggleFavorite = async (item) => {
+  const handleToggleFavorite = async item => {
     try {
       await toggleFavorite({
         type: 'party',
@@ -153,29 +171,39 @@ const MeetMain = () => {
         setList: setMeets,
       });
     } catch (error) {
-      console.warn('파티 즐겨찾기 토글 실패', error?.response?.data || error?.message);
+      console.warn(
+        '파티 즐겨찾기 토글 실패',
+        error?.response?.data || error?.message,
+      );
     }
   };
 
   // 모임
-  const renderMeetItem = ({ item }) => {
+  const renderMeetItem = ({item}) => {
     const isFav = !!item.isLiked;
     return (
       <TouchableOpacity
         activeOpacity={0.8}
         style={styles.meetItemContainer}
-        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}
-      >
+        onPress={() =>
+          navigation.navigate('MeetDetail', {partyId: item.partyId})
+        }>
         <View style={styles.meetTopContainer}>
-          <Image source={{ uri: item.partyImageUrl }} style={styles.meetThumb} />
+          <Image source={{uri: item.partyImageUrl}} style={styles.meetThumb} />
           <View style={styles.meetInfo}>
             {/* 장소명 / 즐겨찾기 */}
             <View style={styles.meetTextRow}>
-              <Text style={[FONTS.fs_12_medium, styles.meetPlace]} numberOfLines={1}>
+              <Text
+                style={[FONTS.fs_12_medium, styles.meetPlace]}
+                numberOfLines={1}>
                 {item.guesthouseName}
               </Text>
               <TouchableOpacity onPress={() => handleToggleFavorite(item)}>
-                {isFav ? <HeartFilled width={20} height={20} /> : <HeartEmpty width={20} height={20} />}
+                {isFav ? (
+                  <HeartFilled width={20} height={20} />
+                ) : (
+                  <HeartEmpty width={20} height={20} />
+                )}
               </TouchableOpacity>
             </View>
 
@@ -184,8 +212,7 @@ const MeetMain = () => {
               <Text
                 style={[FONTS.fs_14_medium, styles.meetTitle]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.partyTitle}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
@@ -206,8 +233,7 @@ const MeetMain = () => {
           <Text
             style={[FONTS.fs_12_medium, styles.meetAddress]}
             numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+            ellipsizeMode="tail">
             {item.location}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.timeText]}>
@@ -222,24 +248,22 @@ const MeetMain = () => {
     <View style={styles.container}>
       {/* 헤더 */}
       <View style={styles.header}>
+        <View width={24} style={{backgroundColor: COLORS.grayscale_400}} />
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>모임</Text>
-        <TouchableOpacity 
-          style={styles.searchIcon}
-          onPress={() => navigation.navigate('MeetSearch')}
-        >
-          <SearchIcon width={24} height={24}/>
+        <TouchableOpacity onPress={() => navigation.navigate('MeetSearch')}>
+          <SearchIcon width={24} height={24} />
         </TouchableOpacity>
       </View>
-      
+
       <View style={styles.bannerContainer}>
         {bannerLoading ? (
           <ActivityIndicator color={COLORS.grayscale_500} />
         ) : (
           <>
             <Carousel
-              width={width * 0.9}
+              width={width}
               height={120}
-              style={{ alignItems: 'center', justifyContent: 'center' }}
+              style={{alignItems: 'center', justifyContent: 'center'}}
               autoPlay
               loop
               data={banners}
@@ -249,9 +273,11 @@ const MeetMain = () => {
                 parallaxScrollingScale: 1,
                 parallaxScrollingOffset: 50,
               }}
-              onSnapToItem={(index) => setActiveIndex(index)}
-              renderItem={({ item }) => {
-                const isHttps = typeof item.link === 'string' && /^https:\/\//i.test(item.link);
+              onSnapToItem={index => setActiveIndex(index)}
+              renderItem={({item}) => {
+                const isHttps =
+                  typeof item.link === 'string' &&
+                  /^https:\/\//i.test(item.link);
                 const onPress = async () => {
                   if (isHttps) {
                     try {
@@ -266,10 +292,9 @@ const MeetMain = () => {
                   <TouchableOpacity
                     activeOpacity={isHttps ? 0.85 : 1}
                     onPress={onPress}
-                    style={styles.bannerImageContainer}
-                  >
+                    style={styles.bannerImageContainer}>
                     <Image
-                      source={{ uri: item.url }}
+                      source={{uri: item.url}}
                       style={styles.bannerImage}
                     />
                   </TouchableOpacity>
@@ -295,7 +320,9 @@ const MeetMain = () => {
 
       {/* 모임 일정 캘린더 */}
       <View style={styles.meetListContainer}>
-        <Text style={[FONTS.fs_16_semibold, styles.headerText]}>모임 일정 캘린더</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.headerText]}>
+          모임 일정 캘린더
+        </Text>
         {/* 날짜 칸 */}
         <View style={styles.dateTabsRow}>
           {dates.map(d => {
@@ -305,15 +332,13 @@ const MeetMain = () => {
                 key={d.key}
                 style={[styles.dateTab, selected && styles.dateTabSelected]}
                 onPress={() => setSelectedDateKey(d.key)}
-                activeOpacity={0.8}
-              >
+                activeOpacity={0.8}>
                 <Text
                   style={[
                     FONTS.fs_12_medium,
                     styles.dateTabTop,
                     selected && styles.dateTabTopSelected,
-                  ]}
-                >
+                  ]}>
                   {d.labelTop}
                 </Text>
                 <Text
@@ -322,8 +347,7 @@ const MeetMain = () => {
                     styles.dateTabDayNum,
                     selected && styles.dateTabDayNumSelected,
                     selected && FONTS.fs_16_semibold,
-                  ]}
-                >
+                  ]}>
                   {d.dayNum}
                 </Text>
               </TouchableOpacity>
@@ -331,14 +355,13 @@ const MeetMain = () => {
           })}
         </View>
 
-        <View style={styles.devide}/>
+        <View style={styles.devide} />
 
         {/* 필터/정렬 바 */}
         <View style={styles.filterBar}>
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.filterLeft}
-            onPress={() => setFilterModalVisible(true)}
-          >
+            onPress={() => setFilterModalVisible(true)}>
             <FilterIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
           </TouchableOpacity>
@@ -346,14 +369,12 @@ const MeetMain = () => {
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
-            contentContainerStyle={styles.tagChipsContainer}
-          >
+            contentContainerStyle={styles.tagChipsContainer}>
             {meetTags.map(tag => (
               <TouchableOpacity
                 key={tag.id}
                 style={styles.tagChip}
-                activeOpacity={0.8}
-              >
+                activeOpacity={0.8}>
                 <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>
                   {tag.name}
                 </Text>
@@ -361,14 +382,12 @@ const MeetMain = () => {
             ))}
           </ScrollView>
 
-          <TouchableOpacity 
+          <TouchableOpacity
             style={styles.sortRight}
-            onPress={() => setSortModalVisible(true)}
-          >
+            onPress={() => setSortModalVisible(true)}>
             <SortIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
           </TouchableOpacity>
-
         </View>
 
         {/* 리스트 */}
@@ -392,7 +411,7 @@ const MeetMain = () => {
       <MeetFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
-        onApply={(next) => {
+        onApply={next => {
           setScaleId(next.selectedScale ?? null);
           setStayId(next.selectedStay ?? null);
           setFilterModalVisible(false);
@@ -404,7 +423,7 @@ const MeetMain = () => {
         visible={sortModalVisible}
         onClose={() => setSortModalVisible(false)}
         selected={sortOption}
-        onSelect={(value) => {
+        onSelect={value => {
           setSortOption(value);
           setSortModalVisible(false);
         }}

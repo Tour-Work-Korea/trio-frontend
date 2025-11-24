@@ -19,7 +19,6 @@ import useUserStore from '@stores/userStore';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {tryLogout} from '@utils/auth/login';
 import Header from '@components/Header';
-import {COLORS} from '@constants/colors';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
@@ -85,10 +84,24 @@ const HostMyPage = () => {
           </View>
 
           <View style={styles.bottomSection}>
+            {/* 오늘의 게스트하우스 섹션 */}
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                오늘의 게스트하우스
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={MyGuesthouseIcon}
+                  label="나의 게스트하우스 소개"
+                  onPress={() => navigation.navigate('MyGuesthouseIntroList')}
+                />
+              </View>
+            </View>
+            <View style={styles.devide} />
             {/* 숙박 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                숙박
+                게스트하우스
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
@@ -117,7 +130,7 @@ const HostMyPage = () => {
             {/* 공고 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                공고
+                알바
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
