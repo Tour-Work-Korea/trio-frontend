@@ -324,7 +324,7 @@ const GuesthouseList = () => {
                                 displayDate: displayDateState,
                                 adultCount,
                                 childCount,
-                                searchText,
+                                // searchText,
                               },
                             },
                           ],
