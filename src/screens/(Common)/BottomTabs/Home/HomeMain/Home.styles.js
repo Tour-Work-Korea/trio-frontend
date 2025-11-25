@@ -166,7 +166,6 @@ export default StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 16,
     paddingVertical: 12,
-    height: 432,
   },
   jobCard: {
     minWidth: '100%',

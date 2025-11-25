@@ -102,7 +102,7 @@ export default function TodayGuesthouses() {
           android_ripple={{color: COLORS.grayscale_100}}
           onPress={() =>
             navigation.navigate('GuesthousePost', {
-              guesthouseId: item.guesthouseId, // ✅ items 말고 item!
+              guesthouseId: item.guesthouseId,
             })
           }>
           <Image source={{uri: item.thumbnailUrl}} style={styles.thumb} />
@@ -118,6 +118,10 @@ export default function TodayGuesthouses() {
 
             {/* 게하이름 + 좋아요(고정) */}
             <View style={styles.bottomRow}>
+              <Image
+                source={{uri: item.hostProfileImageUrl}}
+                style={styles.profileThumb}
+              />
               <Text
                 style={styles.cardGhName}
                 numberOfLines={1}
@@ -126,10 +130,9 @@ export default function TodayGuesthouses() {
               </Text>
 
               <View style={styles.likeBox}>
-                {/* ✅ 하트 누르면 부모 클릭 막기 */}
                 <Pressable
                   onPress={e => {
-                    e.stopPropagation(); // ✅ 부모 onPress 전파 차단
+                    e.stopPropagation();
                     handleToggleFavorite(item);
                   }}
                   hitSlop={8}
@@ -223,6 +226,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_200,
     borderRadius: 12,
   },
+  profileThumb: {
+    width: 30,
+    height: 30,
+    borderRadius: 100,
+  },
   cardBody: {
     paddingHorizontal: 8,
     paddingTop: 8,
@@ -231,7 +239,7 @@ const styles = StyleSheet.create({
   },
 
   cardTitle: {
-    ...FONTS.fs_14_semibold,
+    ...FONTS.fs_14_medium,
     color: COLORS.grayscale_900,
   },
 
@@ -239,7 +247,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 4,
   },
 
   cardGhName: {
@@ -254,7 +262,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     flexShrink: 0, // ✅ 오른쪽은 절대 안 줄어듦
-    minWidth: 48, // ✅ 최소 폭 확보해서 안 밀림
     justifyContent: 'flex-end',
   },
 
