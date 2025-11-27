@@ -18,7 +18,10 @@ import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
 import ErrorModal from '@components/modals/ErrorModal';
+
+// ✅ postApi 파일 사용
 import postApi from '@utils/api/postApi';
+
 import {CommonActions, useNavigation} from '@react-navigation/native';
 import IntroSectionModal from './IntroSectionModal';
 import TitleSectionModal from './TitleSectionModal';
@@ -44,7 +47,7 @@ const computeValidSections = formData => {
     const t = (b.title ?? '').trim();
     const c = (b.content ?? '').trim();
     const i = (b.imgUrl ?? '').trim();
-    return !!(t || c || i); // ✅ 셋 중 하나라도 있으면 OK
+    return !!(t || c || i); // 셋 중 하나라도 있으면 OK
   };
 
   const typeOk = type => {
@@ -73,7 +76,7 @@ const deriveImagesFromBlocks = introSections => {
 
 export default function MyGuesthouseIntroForm({route}) {
   const navigation = useNavigation();
-  const guesthouseId = route.params?.guesthouseId; // ✅ 항상 존재
+  const guesthouseId = route.params?.guesthouseId; // 항상 존재한다고 가정
 
   const [mode, setMode] = useState('loading'); // 'loading' | 'create' | 'edit'
 
@@ -132,6 +135,7 @@ export default function MyGuesthouseIntroForm({route}) {
         const status = e.response?.status;
 
         if (status === 404) {
+          // 아직 소개글 없음 → create 모드
           setMode('create');
           setFormData(prev => ({
             ...prev,
@@ -161,16 +165,24 @@ export default function MyGuesthouseIntroForm({route}) {
   };
 
   const handleSubmit = async () => {
-    const finalImages =
+    // ✅ sectionId 제거
+    const sanitizedSections = (formData.introSections ?? []).map(
+      ({sectionId, ...rest}) => rest,
+    );
+
+    // ✅ imageId 제거
+    const rawImages =
       formData.introImages?.length > 0
         ? formData.introImages
         : deriveImagesFromBlocks(formData.introSections);
 
+    const sanitizedImages = (rawImages ?? []).map(({imageId, ...rest}) => rest);
+
     const payload = {
       title: formData.title.trim(),
       tags: formData.tags.trim(),
-      sections: formData.introSections,
-      images: finalImages,
+      sections: sanitizedSections,
+      images: sanitizedImages,
     };
 
     if (!payload.images.length) {
@@ -184,6 +196,7 @@ export default function MyGuesthouseIntroForm({route}) {
 
     try {
       if (mode === 'create') {
+        // ✅ POST 시에도 sectionId 없이 전송
         await postApi.createIntro(guesthouseId, payload);
 
         setErrorModal({
@@ -201,14 +214,18 @@ export default function MyGuesthouseIntroForm({route}) {
         return;
       }
 
-      // edit
+      // ✅ edit 모드
+
+      // (1) 제목/태그
       await postApi.updateIntroBasic(guesthouseId, {
         title: payload.title,
         tags: payload.tags,
       });
 
+      // (2) 섹션 - sectionId 제거된 배열 사용
       await postApi.updateIntroSections(guesthouseId, payload.sections);
 
+      // (3) 이미지
       await postApi.updateIntroImages(guesthouseId, payload.images);
 
       setErrorModal({
@@ -349,10 +366,10 @@ export default function MyGuesthouseIntroForm({route}) {
                 onPress={handleSubmit}
                 accessibilityState={{disabled: !isAllValid}}>
                 <Text
-                  style={
-                    (styles.addButtonText,
-                    isAllValid && {color: COLORS.grayscale_0})
-                  }>
+                  style={[
+                    styles.addButtonText,
+                    isAllValid && {color: COLORS.grayscale_0},
+                  ]}>
                   {mode === 'edit' ? '수정하기' : '등록하기'}
                 </Text>
                 {!isAllValid ? (
@@ -363,13 +380,15 @@ export default function MyGuesthouseIntroForm({route}) {
               </TouchableOpacity>
             </View>
 
-            {/* ✅ 섹션 모달 */}
+            {/* 제목/태그 모달 */}
             <TitleSectionModal
               visible={modalVisible.title}
               onClose={() => setModalVisible(prev => ({...prev, title: false}))}
               formData={formData}
               handleInputChange={handleInputChange}
             />
+
+            {/* GREETING 섹션 모달 */}
             <IntroSectionModal
               visible={modalVisible.selfIntroduce}
               onClose={() =>
@@ -382,6 +401,7 @@ export default function MyGuesthouseIntroForm({route}) {
               handleInputChange={handleInputChange}
             />
 
+            {/* SPACE 섹션 모달 */}
             <IntroSectionModal
               visible={modalVisible.spaceIntroduce}
               onClose={() =>
@@ -394,6 +414,7 @@ export default function MyGuesthouseIntroForm({route}) {
               handleInputChange={handleInputChange}
             />
 
+            {/* LIFE 섹션 모달 */}
             <IntroSectionModal
               visible={modalVisible.life}
               onClose={() => setModalVisible(prev => ({...prev, life: false}))}

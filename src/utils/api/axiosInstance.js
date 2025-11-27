@@ -82,8 +82,16 @@ api.interceptors.response.use(
     const original = err.config;
     const id = original?._reqId || rid();
     const status = err.response?.status;
+    const msg = err.response?.data?.message;
 
-    log.info(`🛑 [${id}] error status=`, status, 'url=', original?.url);
+    log.info(
+      `🛑 [${id}] error status=`,
+      status,
+      'url=',
+      original?.url,
+      'msg=',
+      msg,
+    );
     log.timeEnd(`⏱️ ${id}`);
 
     if (original?.url?.includes('/auth/refresh')) {

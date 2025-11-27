@@ -10,7 +10,6 @@ import EmptyState from '@components/EmptyState';
 
 import EditIcon from '@assets/images/edit_gray.svg';
 import DeleteIcon from '@assets/images/delete_gray.svg';
-import PlusIcon from '@assets/images/plus_white.svg';
 import EmptyIcon from '@assets/images/wlogo_blue_left.svg';
 import postApi from '@utils/api/postApi';
 import ErrorModal from '@components/modals/ErrorModal';
@@ -27,7 +26,7 @@ const MyGuesthouseIntroList = () => {
     buttonText2: '',
   });
 
-  // 게스트 하우스 포스트 전체 목록 불러오기
+  // 게스트 하우스 전체 목록 불러오기
   const fetchMyPosts = async () => {
     try {
       const response = await hostGuesthouseApi.getMyGuesthouses();
@@ -66,8 +65,8 @@ const MyGuesthouseIntroList = () => {
       title: '삭제 요청은 되돌릴 수 없는 작업이에요\n계속 진행하시겠어요?',
       onPress: async () => {
         try {
-          await postApi.deletePost(postId);
-          fetchMyPosts(); // 목록 새로고침
+          await postApi.deleteIntro(postId);
+          setErrorModal(prev => ({...prev, visible: false}));
         } catch (error) {
           setErrorModal({
             visible: true,
@@ -90,7 +89,11 @@ const MyGuesthouseIntroList = () => {
     <>
       <TouchableOpacity
         style={styles.card}
-        onPress={() => navigation.navigate('GuesthousePost', {id: item.id})}>
+        onPress={() =>
+          navigation.navigate('GuesthousePost', {
+            guesthouseId: item.id,
+          })
+        }>
         <Image source={{uri: item.thumbnailImg}} style={styles.image} />
         <View style={styles.cardContent}>
           <View style={styles.infoContent}>

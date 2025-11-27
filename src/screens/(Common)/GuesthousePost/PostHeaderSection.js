@@ -10,14 +10,15 @@ export default function PostHeaderSection({tags, title, images}) {
   const navigation = useNavigation();
   const [thumbnailUrl, setThumbnailUrl] = useState('');
 
-  // tags: "#제주시,#뚜벅이 ..." → ["#제주시", "#뚜벅이"...]
+  // tags: "#제주시,#뚜벅이" 또는 "#제주시  #뚜벅이" → ["#제주시", "#뚜벅이"]
   const tagList = useMemo(() => {
-    if (Array.isArray(tags)) return tags; // 혹시 배열로 올 때 대비
     if (typeof tags !== 'string') return [];
+
     return tags
-      .split(',')
+      .replace(/,/g, ' ') // 콤마를 공백으로 통일
+      .split(/\s+/) // 연속 공백 포함해서 공백 기준으로 split
       .map(s => s.trim())
-      .filter(Boolean);
+      .filter(Boolean); // 빈 문자열 제거
   }, [tags]);
 
   useEffect(() => {
