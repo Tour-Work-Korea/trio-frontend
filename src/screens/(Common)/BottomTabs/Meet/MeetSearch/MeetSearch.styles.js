@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
   },
 
-  // 모임 리스트
+  // 이벤트 리스트
   meetListContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 16,

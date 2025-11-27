@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -12,14 +12,14 @@ import {
   KeyboardAvoidingView,
   Keyboard,
   Platform,
-  Pressable
+  Pressable,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostMeetApi from '@utils/api/hostMeetApi';
-import { meetTags } from '@data/meetOptions';
+import {meetTags} from '@data/meetOptions';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import MinusIcon from '@assets/images/minus_gray.svg';
@@ -27,25 +27,29 @@ import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const [minAttendees, setMinAttendees] = useState(1);
   const [maxAttendees, setMaxAttendees] = useState(1);
   const [guestOnly, setGuestOnly] = useState(true); // true = 숙박객만 참여가능
-  const [femaleAmount, setFemaleAmount] = useState('');     // 숙박 여
-  const [amount, setAmount] = useState('');                 // 숙박 남
+  const [femaleAmount, setFemaleAmount] = useState(''); // 숙박 여
+  const [amount, setAmount] = useState(''); // 숙박 남
   const [femaleNonAmount, setFemaleNonAmount] = useState(''); // 비숙 여
-  const [maleNonAmount, setMaleNonAmount] = useState('');     // 비숙 남
-  const [facilityOptions, setFacilityOptions] = useState([]);     // [{id, facilityType}]
+  const [maleNonAmount, setMaleNonAmount] = useState(''); // 비숙 남
+  const [facilityOptions, setFacilityOptions] = useState([]); // [{id, facilityType}]
   const [selectedFacilities, setSelectedFacilities] = useState([]); // [id]
 
   // 마지막 적용값 저장/복원
   const [appliedData, setAppliedData] = useState(null);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
 
     return () => {
       showSub.remove();
@@ -53,9 +57,8 @@ const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
     };
   }, []);
 
-
   // 모달 열릴 때 마지막 적용 값 복원
-   useEffect(() => {
+  useEffect(() => {
     if (!visible) return;
     // 시설/서비스 옵션 가져오기
     fetchFacilities();
@@ -81,7 +84,7 @@ const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
       setFacilityOptions([]);
     }
   };
-  
+
   // 단순 닫기일 때만 초기화
   const handleModalClose = () => {
     if (shouldResetOnClose) {
@@ -111,7 +114,7 @@ const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   };
 
   const step = (setter, dir, min = 1, max = 99) => {
-    setter((prev) => {
+    setter(prev => {
       const n = Number(prev) || 0;
       const next = dir === 'minus' ? n - 1 : n + 1;
       return Math.min(max, Math.max(min, next));
@@ -119,15 +122,16 @@ const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   };
 
   // 시설 토글
-  const toggleFacility = (id) => {
-    setSelectedFacilities((prev) =>
-      prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]
+  const toggleFacility = id => {
+    setSelectedFacilities(prev =>
+      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
     );
   };
 
   // 버튼 활성화 조건
   const minOk = Number.isFinite(+minAttendees) && +minAttendees > 0;
-  const maxOk = Number.isFinite(+maxAttendees) && +maxAttendees >= +minAttendees;
+  const maxOk =
+    Number.isFinite(+maxAttendees) && +maxAttendees >= +minAttendees;
 
   const moneyOkGuest =
     femaleAmount !== '' &&
@@ -172,199 +176,233 @@ const MeetPriceModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
       femaleAmount: Number(femaleAmount ?? 0),
       maleNonAmount: guestOnly ? 0 : Number(maleNonAmount ?? 0),
       femaleNonAmount: guestOnly ? 0 : Number(femaleNonAmount ?? 0),
-      partyFacilities: selectedFacilities.map((id) => ({ id })), // [{id}]
+      partyFacilities: selectedFacilities.map(id => ({id})), // [{id}]
     });
 
     onClose();
   };
 
   // facilityType → 한글 라벨
-  const facilityName = (facilityType) =>
-    meetTags.find((t) => t.id === facilityType)?.name ?? facilityType;
+  const facilityName = facilityType =>
+    meetTags.find(t => t.id === facilityType)?.name ?? facilityType;
 
   return (
     <Modal
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <View style={styles.overlay}>
-      <Pressable
-        style={StyleSheet.absoluteFill}
-        onPress={handleModalClose}
-      />
-        <KeyboardAvoidingView style={{ width: '100%' }}>
-        <View style={styles.modalContainer}>
+        <Pressable style={StyleSheet.absoluteFill} onPress={handleModalClose} />
+        <KeyboardAvoidingView style={{width: '100%'}}>
+          <View style={styles.modalContainer}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                이벤트 인원 및 금액
+              </Text>
+              <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+            </View>
 
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-              모임 인원 및 금액
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
+            {/* 게하 정보 */}
+            <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
+              {/* 이벤트 인원 */}
+              <Text style={FONTS.fs_16_medium}>이벤트 인원</Text>
+              <View style={styles.section}>
+                <View style={styles.rowBetween}>
+                  {/* 최소 */}
+                  <View style={styles.counterBlock}>
+                    <Text style={[FONTS.fs_14_medium, styles.gray]}>최소</Text>
+                    <View style={styles.counterRow}>
+                      <TouchableOpacity
+                        style={styles.circleBtn}
+                        onPress={() => step(setMinAttendees, 'minus', 1, 99)}>
+                        <MinusIcon width={20} height={20} />
+                      </TouchableOpacity>
+                      <Text style={[FONTS.fs_16_semibold, styles.counterNum]}>
+                        {minAttendees}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.circleBtn}
+                        onPress={() => step(setMinAttendees, 'plus', 1, 99)}>
+                        <PlusIcon width={20} height={20} />
+                      </TouchableOpacity>
+                    </View>
+                  </View>
 
-          {/* 게하 정보 */}
-          <ScrollView 
-            style={styles.body}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* 모임 인원 */}
-            <Text style={FONTS.fs_16_medium}>모임 인원</Text>
-            <View style={styles.section}>
-              <View style={styles.rowBetween}>
-                {/* 최소 */}
-                <View style={styles.counterBlock}>
-                  <Text style={[FONTS.fs_14_medium, styles.gray]}>최소</Text>
-                  <View style={styles.counterRow}>
-                    <TouchableOpacity style={styles.circleBtn} onPress={() => step(setMinAttendees, 'minus', 1, 99)}>
-                      <MinusIcon width={20} height={20} />
-                    </TouchableOpacity>
-                    <Text style={[FONTS.fs_16_semibold, styles.counterNum]}>{minAttendees}</Text>
-                    <TouchableOpacity style={styles.circleBtn} onPress={() => step(setMinAttendees, 'plus', 1, 99)}>
-                      <PlusIcon width={20} height={20} />
-                    </TouchableOpacity>
+                  {/* 최대 */}
+                  <View style={styles.counterBlock}>
+                    <Text style={[FONTS.fs_14_medium, styles.gray]}>최대</Text>
+                    <View style={styles.counterRow}>
+                      <TouchableOpacity
+                        style={styles.circleBtn}
+                        onPress={() => step(setMaxAttendees, 'minus', 1, 99)}>
+                        <MinusIcon width={20} height={20} />
+                      </TouchableOpacity>
+                      <Text style={[FONTS.fs_16_semibold, styles.counterNum]}>
+                        {maxAttendees}
+                      </Text>
+                      <TouchableOpacity
+                        style={styles.circleBtn}
+                        onPress={() => step(setMaxAttendees, 'plus', 1, 99)}>
+                        <PlusIcon width={20} height={20} />
+                      </TouchableOpacity>
+                    </View>
                   </View>
                 </View>
-
-                {/* 최대 */}
-                <View style={styles.counterBlock}>
-                  <Text style={[FONTS.fs_14_medium, styles.gray]}>최대</Text>
-                  <View style={styles.counterRow}>
-                    <TouchableOpacity style={styles.circleBtn} onPress={() => step(setMaxAttendees, 'minus', 1, 99)}>
-                      <MinusIcon width={20} height={20} />
-                    </TouchableOpacity>
-                    <Text style={[FONTS.fs_16_semibold, styles.counterNum]}>{maxAttendees}</Text>
-                    <TouchableOpacity style={styles.circleBtn} onPress={() => step(setMaxAttendees, 'plus', 1, 99)}>
-                      <PlusIcon width={20} height={20} />
-                    </TouchableOpacity>
-                  </View>
-                </View>
               </View>
-            </View>
-            
 
-            {/* 숙박 여부 */}
-            <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>숙박 여부</Text>
-            <View style={styles.section}>
-              <View style={styles.segment}>
-                <Pressable
-                  style={[styles.segmentItem, guestOnly && styles.segmentActive]}
-                  onPress={() => setGuestOnly(true)}
-                >
-                  <Text 
+              {/* 숙박 여부 */}
+              <Text style={[FONTS.fs_16_medium, {marginTop: 20}]}>
+                숙박 여부
+              </Text>
+              <View style={styles.section}>
+                <View style={styles.segment}>
+                  <Pressable
                     style={[
-                      guestOnly ? FONTS.fs_14_semibold : FONTS.fs_14_medium, 
-                      guestOnly ? styles.segmentTextActive : styles.segmentText]}
-                  >
-                    숙박객만 참여가능
-                  </Text>
-                </Pressable>
-                <Pressable
-                  style={[styles.segmentItem, !guestOnly && styles.segmentActive]}
-                  onPress={() => setGuestOnly(false)}
-                >
-                  <Text 
-                    style={[
-                      !guestOnly ? FONTS.fs_14_semibold : FONTS.fs_14_medium, 
-                      !guestOnly ? styles.segmentTextActive : styles.segmentText]}
-                  >
-                    비숙박객 참여가능
-                  </Text>
-                </Pressable>
-              </View>
-            </View>
-
-            {/* 모임 금액 */}
-            <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>모임 금액</Text>
-            <View style={styles.section}>
-              <View style={styles.inputRow}>
-                <Text style={[FONTS.fs_14_medium, styles.grayText]}>숙박객 여자</Text>
-                <TextInput
-                  value={femaleAmount}
-                  onChangeText={(t) => setFemaleAmount(t.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  placeholder="모임 금액을 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  style={[FONTS.fs_14_regular, styles.input]}
-                />
-              </View>
-              <View style={styles.inputRow}>
-                <Text style={[FONTS.fs_14_medium, styles.grayText]}>숙박객 남자</Text>
-                <TextInput
-                  value={amount}
-                  onChangeText={(t) => setAmount(t.replace(/[^0-9]/g, ''))}
-                  keyboardType="number-pad"
-                  placeholder="모임 금액을 입력해주세요"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  style={[FONTS.fs_14_regular, styles.input]}
-                />
-              </View>
-
-              {/* 비숙박 금액 (옵션) */}
-              {!guestOnly && (
-                <>
-                  <View style={[styles.inputRow]}>
-                    <Text style={[FONTS.fs_14_medium, styles.grayText]}>비숙박객 여자</Text>
-                    <TextInput
-                      value={femaleNonAmount}
-                      onChangeText={(t) => setFemaleNonAmount(t.replace(/[^0-9]/g, ''))}
-                      keyboardType="number-pad"
-                      placeholder="모임 금액을 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      style={[FONTS.fs_14_regular, styles.input]}
-                    />
-                  </View>
-                  <View style={[styles.inputRow, { marginBottom: 0 }]}>
-                    <Text style={[FONTS.fs_14_medium, styles.grayText]}>비숙박객 남자</Text>
-                    <TextInput
-                      value={maleNonAmount}
-                      onChangeText={(t) => setMaleNonAmount(t.replace(/[^0-9]/g, ''))}
-                      keyboardType="number-pad"
-                      placeholder="모임 금액을 입력해주세요"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      style={[FONTS.fs_14_regular, styles.input]}
-                    />
-                  </View>
-                </>
-              )}
-            </View>
-
-            {/* 시설/서비스 */}
-            <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>
-              시설/서비스
-            </Text>
-            <Text style={[FONTS.fs_12_medium, styles.subText]}>해당하는 태그를 전부 선택해 주세요!</Text>
-            <View style={styles.tagsContainer}>
-              {facilityOptions.map((opt) => {
-                const isSelected = selectedFacilities.includes(opt.id);
-                return (
-                  <TouchableOpacity
-                    key={opt.id}
-                    onPress={() => toggleFacility(opt.id)}
-                    style={styles.tagBtn}
-                  >
-                    <Text style={[FONTS.fs_14_medium, styles.tagText, isSelected && styles.tagSelected]}>
-                      {facilityName(opt.facilityType)}
+                      styles.segmentItem,
+                      guestOnly && styles.segmentActive,
+                    ]}
+                    onPress={() => setGuestOnly(true)}>
+                    <Text
+                      style={[
+                        guestOnly ? FONTS.fs_14_semibold : FONTS.fs_14_medium,
+                        guestOnly
+                          ? styles.segmentTextActive
+                          : styles.segmentText,
+                      ]}>
+                      숙박객만 참여가능
                     </Text>
-                  </TouchableOpacity>
-                );
-              })}
-            </View>
-          </ScrollView>
+                  </Pressable>
+                  <Pressable
+                    style={[
+                      styles.segmentItem,
+                      !guestOnly && styles.segmentActive,
+                    ]}
+                    onPress={() => setGuestOnly(false)}>
+                    <Text
+                      style={[
+                        !guestOnly ? FONTS.fs_14_semibold : FONTS.fs_14_medium,
+                        !guestOnly
+                          ? styles.segmentTextActive
+                          : styles.segmentText,
+                      ]}>
+                      비숙박객 참여가능
+                    </Text>
+                  </Pressable>
+                </View>
+              </View>
 
-          {/* 적용하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={isDisabled}
-            style={{ marginBottom: 16 }}
-          />
+              {/* 이벤트 금액 */}
+              <Text style={[FONTS.fs_16_medium, {marginTop: 20}]}>
+                이벤트 금액
+              </Text>
+              <View style={styles.section}>
+                <View style={styles.inputRow}>
+                  <Text style={[FONTS.fs_14_medium, styles.grayText]}>
+                    숙박객 여자
+                  </Text>
+                  <TextInput
+                    value={femaleAmount}
+                    onChangeText={t =>
+                      setFemaleAmount(t.replace(/[^0-9]/g, ''))
+                    }
+                    keyboardType="number-pad"
+                    placeholder="이벤트 금액을 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    style={[FONTS.fs_14_regular, styles.input]}
+                  />
+                </View>
+                <View style={styles.inputRow}>
+                  <Text style={[FONTS.fs_14_medium, styles.grayText]}>
+                    숙박객 남자
+                  </Text>
+                  <TextInput
+                    value={amount}
+                    onChangeText={t => setAmount(t.replace(/[^0-9]/g, ''))}
+                    keyboardType="number-pad"
+                    placeholder="이벤트 금액을 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    style={[FONTS.fs_14_regular, styles.input]}
+                  />
+                </View>
 
-        </View>
+                {/* 비숙박 금액 (옵션) */}
+                {!guestOnly && (
+                  <>
+                    <View style={[styles.inputRow]}>
+                      <Text style={[FONTS.fs_14_medium, styles.grayText]}>
+                        비숙박객 여자
+                      </Text>
+                      <TextInput
+                        value={femaleNonAmount}
+                        onChangeText={t =>
+                          setFemaleNonAmount(t.replace(/[^0-9]/g, ''))
+                        }
+                        keyboardType="number-pad"
+                        placeholder="이벤트 금액을 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        style={[FONTS.fs_14_regular, styles.input]}
+                      />
+                    </View>
+                    <View style={[styles.inputRow, {marginBottom: 0}]}>
+                      <Text style={[FONTS.fs_14_medium, styles.grayText]}>
+                        비숙박객 남자
+                      </Text>
+                      <TextInput
+                        value={maleNonAmount}
+                        onChangeText={t =>
+                          setMaleNonAmount(t.replace(/[^0-9]/g, ''))
+                        }
+                        keyboardType="number-pad"
+                        placeholder="이벤트 금액을 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        style={[FONTS.fs_14_regular, styles.input]}
+                      />
+                    </View>
+                  </>
+                )}
+              </View>
+
+              {/* 시설/서비스 */}
+              <Text style={[FONTS.fs_16_medium, {marginTop: 20}]}>
+                시설/서비스
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.subText]}>
+                해당하는 태그를 전부 선택해 주세요!
+              </Text>
+              <View style={styles.tagsContainer}>
+                {facilityOptions.map(opt => {
+                  const isSelected = selectedFacilities.includes(opt.id);
+                  return (
+                    <TouchableOpacity
+                      key={opt.id}
+                      onPress={() => toggleFacility(opt.id)}
+                      style={styles.tagBtn}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          styles.tagText,
+                          isSelected && styles.tagSelected,
+                        ]}>
+                        {facilityName(opt.facilityType)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </View>
+            </ScrollView>
+
+            {/* 적용하기 버튼 */}
+            <ButtonScarlet
+              title={'적용하기'}
+              onPress={handleConfirm}
+              disabled={isDisabled}
+              style={{marginBottom: 16}}
+            />
+          </View>
         </KeyboardAvoidingView>
       </View>
     </Modal>
@@ -429,8 +467,8 @@ const styles = StyleSheet.create({
   tagBtn: {
     padding: 10,
     width: '48%',
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tagText: {
     color: COLORS.grayscale_400,
@@ -439,7 +477,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary_orange,
   },
 
-  // 모임 인원
+  // 이벤트 인원
   rowBetween: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -486,8 +524,8 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: COLORS.primary_orange,
   },
-  segmentText: { color: COLORS.grayscale_400 },
-  segmentTextActive: { color: COLORS.primary_orange },
+  segmentText: {color: COLORS.grayscale_400},
+  segmentTextActive: {color: COLORS.primary_orange},
 
   // 금액 입력
   inputRow: {

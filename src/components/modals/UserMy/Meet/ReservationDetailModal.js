@@ -1,15 +1,21 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal } from 'react-native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableWithoutFeedback,
+  Modal,
+} from 'react-native';
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import ButtonScarlet from '@components/ButtonScarlet';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 
 // 가짜 데이터 생성 함수
-const generateFakeReservation = (id) => {
+const generateFakeReservation = id => {
   return {
     reservationId: id,
     reservationUserName: '김00',
@@ -47,7 +53,7 @@ export default function ReservationDetailModal({
     try {
       setLoading(true);
       // API 대신 0.5초 후 가짜 데이터 생성
-      await new Promise((r) => setTimeout(r, 500));
+      await new Promise(r => setTimeout(r, 500));
       setReservation(generateFakeReservation(reservationId));
     } catch (error) {
       console.log('예약 상세 불러오기 실패', error);
@@ -58,106 +64,148 @@ export default function ReservationDetailModal({
 
   if (loading || !reservation) {
     return (
-      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}>
         <View style={styles.overlay}>
           <View style={styles.modalContainer}>
-            <Loading
-              title={'내용을 불러오는 중 이에요'}
-            />
+            <Loading title={'내용을 불러오는 중 이에요'} />
           </View>
         </View>
       </Modal>
     );
   }
 
-  const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(reservation.startDateTime);
+  const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+    reservation.startDateTime,
+  );
 
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_18_semibold]}>상세내역</Text>
-          </View>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContainer}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_18_semibold]}>상세내역</Text>
+              </View>
 
-          {/* 예약자 정보 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>이름</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationUserName}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>전화번호</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>000</Text>
-            </View>
-          </View>
+              {/* 예약자 정보 */}
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  예약자 정보
+                </Text>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>이름</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.reservationUserName}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    전화번호
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>000</Text>
+                </View>
+              </View>
 
-          <View style={styles.devide}/>
+              <View style={styles.devide} />
 
-          {/* 예약 정보 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 정보</Text>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>게스트하우스</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.guesthouseName}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>게스트하우스 전화번호</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.guesthousePhone}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>참여 모임</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.partyTitle}</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>참여 장소</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.partyLocation}</Text>
-            </View>
-          </View>
+              {/* 예약 정보 */}
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  예약 정보
+                </Text>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    게스트하우스
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.guesthouseName}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    게스트하우스 전화번호
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.guesthousePhone}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    참여 이벤트
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.partyTitle}
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    참여 장소
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.partyLocation}
+                  </Text>
+                </View>
+              </View>
 
-          <View style={styles.devide}/>
+              <View style={styles.devide} />
 
-          {/* 결제 정보 */}
-          <View style={styles.section}>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>결제 정보</Text>
-              {/* <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
+              {/* 결제 정보 */}
+              <View style={styles.section}>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                    결제 정보
+                  </Text>
+                  {/* <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>
                 {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).date} {formatLocalDateTimeToDotAndTimeWithDay(reservation.paymentAt).time}
               </Text> */}
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>결제가격</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationAmount.toLocaleString()}원</Text>
-            </View>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>결제 수단</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.paymentMethod}</Text>
-            </View>
-            <View style={[styles.row, {flexDirection: 'column', gap: 4, marginBottom: 12,}]}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>요청 사항</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>{reservation.reservationRequest}</Text>
-            </View>
-          </View>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    결제가격
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.reservationAmount.toLocaleString()}원
+                  </Text>
+                </View>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    결제 수단
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.paymentMethod}
+                  </Text>
+                </View>
+                <View
+                  style={[
+                    styles.row,
+                    {flexDirection: 'column', gap: 4, marginBottom: 12},
+                  ]}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    요청 사항
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.value]}>
+                    {reservation.reservationRequest}
+                  </Text>
+                </View>
+              </View>
 
-          {/* 닫기 버튼 */}
-          <View style={styles.closeButton}>
-            <ButtonScarlet
-              title={'닫기'}
-              onPress={onClose}
-            />
-          </View>
+              {/* 닫기 버튼 */}
+              <View style={styles.closeButton}>
+                <ButtonScarlet title={'닫기'} onPress={onClose} />
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -188,8 +236,7 @@ const styles = StyleSheet.create({
     right: 0,
   },
 
-  section: {
-  },
+  section: {},
   sectionTitle: {
     color: COLORS.grayscale_400,
     marginBottom: 8,
@@ -202,12 +249,11 @@ const styles = StyleSheet.create({
   label: {
     color: COLORS.grayscale_500,
   },
-  value: {
-  },
+  value: {},
   reservationTimeText: {
     color: COLORS.grayscale_400,
   },
-  
+
   devide: {
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,

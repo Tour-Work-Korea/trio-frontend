@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,8 +11,8 @@ import {
   TouchableWithoutFeedback,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import EmptyState from '@components/EmptyState';
@@ -24,7 +24,12 @@ import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.8);
 
-const MeetLocationModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const MeetLocationModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+}) => {
   // 게하 리스트 상태
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
@@ -55,7 +60,9 @@ const MeetLocationModal = ({ visible, onClose, onSelect, shouldResetOnClose }) =
     };
 
     fetchMyGuesthouses();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [visible, appliedId]);
 
   // 단순 닫기
@@ -70,7 +77,7 @@ const MeetLocationModal = ({ visible, onClose, onSelect, shouldResetOnClose }) =
   // 등록 버튼 (적용)
   const handleConfirm = () => {
     if (!selectedId) return;
-    onSelect({ guesthouseId: selectedId });
+    onSelect({guesthouseId: selectedId});
 
     // 적용값 저장 후 닫기
     setAppliedId(selectedId);
@@ -78,22 +85,20 @@ const MeetLocationModal = ({ visible, onClose, onSelect, shouldResetOnClose }) =
   };
 
   // 게하 리스트
-  const renderItem = ({ item }) => (
+  const renderItem = ({item}) => (
     <TouchableOpacity
       style={styles.itemContainer}
-      onPress={() => setSelectedId(item.id)}
-    >
+      onPress={() => setSelectedId(item.id)}>
       {selectedId === item.id ? (
         <EnabledRadioButton width={28} height={28} />
       ) : (
         <DisabledRadioButton width={28} height={28} />
       )}
-      <Image
-        source={{ uri: item.thumbnailImg }}
-        style={styles.itemImage}
-      />
+      <Image source={{uri: item.thumbnailImg}} style={styles.itemImage} />
       <View style={styles.itemTextContainer}>
-        <Text style={[FONTS.fs_16_semibold, styles.itemName]}>{item.guesthouseName}</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.itemName]}>
+          {item.guesthouseName}
+        </Text>
         <Text style={[FONTS.fs_12_medium, styles.itemAddress]}>
           {item.guesthouseAddress} {item.guesthouseDetailAddress}
         </Text>
@@ -108,58 +113,60 @@ const MeetLocationModal = ({ visible, onClose, onSelect, shouldResetOnClose }) =
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <TouchableWithoutFeedback onPress={handleModalClose}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold]}>
-              모임 장소
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContainer}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_20_semibold]}>이벤트 장소</Text>
+                <TouchableOpacity
+                  style={styles.XBtn}
+                  onPress={handleModalClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
+              </View>
 
-          {/* 설명 문구 */}
-          <Text style={[FONTS.fs_16_medium, styles.modalTitle]}>
-            모임 장소를 선택해 주세요
-          </Text>
+              {/* 설명 문구 */}
+              <Text style={[FONTS.fs_16_medium, styles.modalTitle]}>
+                이벤트 장소를 선택해 주세요
+              </Text>
 
-          {/* 리스트 */}
-          <FlatList
-            data={guesthouseList}
-            keyExtractor={(item) => String(item.id)}
-            renderItem={renderItem}
-            ItemSeparatorComponent={() => <View style={{ height: 16 }} />}
-            contentContainerStyle={
-              listEmpty
-                ? [styles.listContainer, { flex: 1, justifyContent: 'center' }]
-                : styles.listContainer
-            }
-            ListEmptyComponent={
-              <EmptyState
-                icon={EmptyIcon}
-                iconSize={{ width: 188, height: 84 }}
-                title="입점된 게스트하우스가 없어요"
-                description="게스트하우스를 등록해주세요!"
+              {/* 리스트 */}
+              <FlatList
+                data={guesthouseList}
+                keyExtractor={item => String(item.id)}
+                renderItem={renderItem}
+                ItemSeparatorComponent={() => <View style={{height: 16}} />}
+                contentContainerStyle={
+                  listEmpty
+                    ? [
+                        styles.listContainer,
+                        {flex: 1, justifyContent: 'center'},
+                      ]
+                    : styles.listContainer
+                }
+                ListEmptyComponent={
+                  <EmptyState
+                    icon={EmptyIcon}
+                    iconSize={{width: 188, height: 84}}
+                    title="입점된 게스트하우스가 없어요"
+                    description="게스트하우스를 등록해주세요!"
+                  />
+                }
               />
-            }
-          />
 
-          {/* 등록하기 버튼 */}
-          <ButtonScarlet
-            title={'등록하기'}
-            onPress={handleConfirm}
-            disabled={!selectedId}
-            style={{ marginBottom: 16 }}
-          />
+              {/* 등록하기 버튼 */}
+              <ButtonScarlet
+                title={'등록하기'}
+                onPress={handleConfirm}
+                disabled={!selectedId}
+                style={{marginBottom: 16}}
+              />
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -200,9 +207,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_600,
   },
 
-  listContainer: {
-
-  },
+  listContainer: {},
   // 리스트
   itemContainer: {
     flexDirection: 'row',
@@ -225,5 +230,4 @@ const styles = StyleSheet.create({
   itemAddress: {
     color: COLORS.grayscale_500,
   },
-  
 });

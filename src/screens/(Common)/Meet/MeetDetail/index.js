@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -7,19 +7,19 @@ import {
   ScrollView,
   Pressable,
 } from 'react-native';
-import MapView, { Marker } from 'react-native-maps';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import MapView, {Marker} from 'react-native-maps';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userMeetApi from '@utils/api/userMeetApi';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import {
   partyDetailDeeplink,
   copyDeeplinkToClipboard,
@@ -30,41 +30,39 @@ import ShareIcon from '@assets/images/share_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-const TABS = ['모임안내', '이벤트', '모임사진'];
+const TABS = ['이벤트안내', '이벤트', '이벤트사진'];
 
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { partyId } = route.params ?? {};
+  const {partyId} = route.params ?? {};
 
-  const [selectedTab, setSelectedTab] = useState('모임안내');
+  const [selectedTab, setSelectedTab] = useState('이벤트안내');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
 
-  const formatTime = (timeStr) => {
+  const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
-    return date.isValid()
-        ? date.format('HH:mm')
-        : timeStr.slice(0, 5);
+    return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
-  const formatDateWithDay = (dateStr) => {
+  const formatDateWithDay = dateStr => {
     if (!dateStr) return '-';
     const date = dayjs(dateStr);
     if (!date.isValid()) return '-';
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
 
-  // 모임 상세 데이터
+  // 이벤트 상세 데이터
   useEffect(() => {
     let mounted = true;
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const { data } = await userMeetApi.getPartyDetail(partyId);
+        const {data} = await userMeetApi.getPartyDetail(partyId);
         if (!mounted) return;
         setDetail(data);
         setLiked(!!data?.isLiked);
@@ -75,7 +73,9 @@ const MeetDetail = () => {
       }
     };
     if (partyId != null) fetchDetail();
-    return () => { mounted = false; };
+    return () => {
+      mounted = false;
+    };
   }, [partyId]);
 
   const {
@@ -89,54 +89,57 @@ const MeetDetail = () => {
     partyEndTime,
     numOfAttendance,
     maxAttendance,
-    amount,             // 숙박객 남자
-    femaleAmount,       // 숙박객 여자
-    maleNonAmount,      // 비숙박객 남자
-    femaleNonAmount,    // 비숙박객 여자
+    amount, // 숙박객 남자
+    femaleAmount, // 숙박객 여자
+    maleNonAmount, // 비숙박객 남자
+    femaleNonAmount, // 비숙박객 여자
     partyEvents,
     partyImages,
-    coordinate,         // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
+    coordinate, // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
   } = detail ?? {};
 
   // 날짜/시간 파생 (끝나는 날짜는 시작 날짜와 동일하다고 가정)
-  const checkInDate  = partyStartDateTime || null;
-  const checkInTime  = partyStartTime || partyStartDateTime || null;
+  const checkInDate = partyStartDateTime || null;
+  const checkInTime = partyStartTime || partyStartDateTime || null;
   const checkOutDate = partyStartDateTime || null;
   const checkOutTime = partyEndTime || null;
 
   // 썸네일/갤러리
   const thumbnailSource = useMemo(() => {
     const th = partyImages?.find(i => i.isThumbnail);
-    if (th?.imageUrl) return { uri: th.imageUrl };
+    if (th?.imageUrl) return {uri: th.imageUrl};
     // 응답에 없다면 첫 이미지
-    if (partyImages?.[0]?.imageUrl) return { uri: partyImages[0].imageUrl };
+    if (partyImages?.[0]?.imageUrl) return {uri: partyImages[0].imageUrl};
   }, [partyImages]);
 
   const gallery = useMemo(
-    () => (partyImages?.map(p => ({ uri: p.imageUrl })) ?? []),
-    [partyImages]
+    () => partyImages?.map(p => ({uri: p.imageUrl})) ?? [],
+    [partyImages],
   );
 
   // 가격(라벨 매핑)
-  const priceBox = useMemo(() => ({
-    guest: {
-      female: femaleAmount ?? null,
-      male: amount ?? null,
-    },
-    nonGuest: {
-      female: femaleNonAmount ?? null,
-      male: maleNonAmount ?? null,
-    },
-  }), [amount, femaleAmount, femaleNonAmount, maleNonAmount]);
+  const priceBox = useMemo(
+    () => ({
+      guest: {
+        female: femaleAmount ?? null,
+        male: amount ?? null,
+      },
+      nonGuest: {
+        female: femaleNonAmount ?? null,
+        male: maleNonAmount ?? null,
+      },
+    }),
+    [amount, femaleAmount, femaleNonAmount, maleNonAmount],
+  );
 
-  // 모임 좋아요 토글
+  // 이벤트 좋아요 토글
   const onToggleLike = async () => {
     try {
       await toggleFavorite({
         type: 'party',
         id: detail?.partyId ?? partyId,
         isLiked: liked,
-        setList: (updater) => {
+        setList: updater => {
           setLiked(prev => !prev);
         },
       });
@@ -165,11 +168,15 @@ const MeetDetail = () => {
         {/* 썸네일 */}
         <Image source={thumbnailSource} style={styles.thumbnail} />
         <View style={styles.headerContainer}>
-          <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+          <TouchableOpacity
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
           <View style={styles.placePillContainer}>
-            <Text style={[FONTS.fs_14_medium, styles.placePill]}>{guesthouseName}</Text>
+            <Text style={[FONTS.fs_14_medium, styles.placePill]}>
+              {guesthouseName}
+            </Text>
           </View>
         </View>
       </View>
@@ -181,27 +188,29 @@ const MeetDetail = () => {
           <Text
             style={[FONTS.fs_20_semibold, styles.titleText]}
             numberOfLines={2}
-            ellipsizeMode="tail"
-          >
+            ellipsizeMode="tail">
             {partyTitle}
           </Text>
           <View style={styles.shareHeartContainer}>
             <TouchableOpacity onPress={handleCopyLink}>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
-            <TouchableOpacity onPress={onToggleLike} style={{ marginLeft: 12 }}>
-              {liked ? <HeartFilled width={20} height={20} /> : <HeartEmpty width={20} height={20} />}
+            <TouchableOpacity onPress={onToggleLike} style={{marginLeft: 12}}>
+              {liked ? (
+                <HeartFilled width={20} height={20} />
+              ) : (
+                <HeartEmpty width={20} height={20} />
+              )}
             </TouchableOpacity>
           </View>
         </View>
 
         <View style={styles.addressCapacityContainer}>
           {/* 주소 */}
-          <Text 
+          <Text
             style={[FONTS.fs_14_regular, styles.addressText]}
             numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+            ellipsizeMode="tail">
             {location}
           </Text>
           {/* 인원수 */}
@@ -219,30 +228,54 @@ const MeetDetail = () => {
 
         {/* 날짜 */}
         <View style={styles.dateBoxContainer}>
-            <View style={styles.dateBoxCheckIn}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 시작</Text>
-                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkInDate)}</Text>
-                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkInTime)}</Text>
-            </View>
-            <View style={styles.dateBoxCheckOut}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 종료</Text>
-                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOutDate)}</Text>
-                <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOutTime)}</Text>
-            </View>
+          <View style={styles.dateBoxCheckIn}>
+            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+              이벤트 시작
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatDateWithDay(checkInDate)}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatTime(checkInTime)}
+            </Text>
+          </View>
+          <View style={styles.dateBoxCheckOut}>
+            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+              이벤트 종료
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatDateWithDay(checkOutDate)}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatTime(checkOutTime)}
+            </Text>
+          </View>
         </View>
 
-        {/* 모임금액 */}
+        {/* 이벤트금액 */}
         <View style={styles.priceBox}>
-          <Text style={[FONTS.fs_14_semibold, styles.priceTitle]}>모임금액</Text>
+          <Text style={[FONTS.fs_14_semibold, styles.priceTitle]}>
+            이벤트금액
+          </Text>
 
           <View style={styles.priceRow}>
             {/* 숙박객 */}
             <View style={styles.priceSection}>
-              <Text style={[FONTS.fs_14_regular, styles.priceSectionTitle, { color: COLORS.primary_orange }]}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.priceSectionTitle,
+                  {color: COLORS.primary_orange},
+                ]}>
                 숙박객
               </Text>
               <View style={styles.priceTextRow}>
-                <Text style={[FONTS.fs_14_medium, styles.priceText, { marginBottom: 4} ]}>
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.priceText,
+                    {marginBottom: 4},
+                  ]}>
                   여자 {Number(priceBox.guest.female).toLocaleString()}원
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.priceText]}>
@@ -251,15 +284,25 @@ const MeetDetail = () => {
               </View>
             </View>
 
-            <View style={styles.devide}/>
+            <View style={styles.devide} />
 
             {/* 비숙박객 */}
             <View style={styles.priceSection}>
-              <Text style={[FONTS.fs_14_regular, styles.priceSectionTitle, { color: COLORS.primary_blue }]}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.priceSectionTitle,
+                  {color: COLORS.primary_blue},
+                ]}>
                 비숙박객
               </Text>
               <View style={styles.priceTextRow}>
-                <Text style={[FONTS.fs_14_medium, styles.priceText, { marginBottom: 4} ]}>
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.priceText,
+                    {marginBottom: 4},
+                  ]}>
                   여자 {Number(priceBox.nonGuest.female).toLocaleString()}원
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.priceText]}>
@@ -283,27 +326,25 @@ const MeetDetail = () => {
           <Marker coordinate={coordinate} />
         </MapView> */}
 
-        <View style={styles.devide}/>
+        <View style={styles.devide} />
 
         {/* 하단 탭 */}
         <View style={styles.tabContainer}>
-          {TABS.map((tab) => (
+          {TABS.map(tab => (
             <Pressable
               key={tab}
               style={[
                 styles.tabButton,
                 selectedTab === tab && styles.tabButtonActive,
               ]}
-              onPress={() => setSelectedTab(tab)}
-            >
+              onPress={() => setSelectedTab(tab)}>
               <Text
                 style={[
                   FONTS.fs_14_medium,
                   styles.tabText,
                   selectedTab === tab && styles.tabTextActive,
                   selectedTab === tab && FONTS.fs_14_semibold,
-                ]}
-              >
+                ]}>
                 {tab}
               </Text>
             </Pressable>
@@ -311,8 +352,8 @@ const MeetDetail = () => {
         </View>
 
         {/* 탭 콘텐츠 */}
-        {/* 모임 안내 */}
-        {selectedTab === '모임안내' && (
+        {/* 이벤트 안내 */}
+        {selectedTab === '이벤트안내' && (
           <View style={styles.tabContent}>
             <View style={styles.infoTextContainer}>
               <Text style={[FONTS.fs_14_regular, styles.infoText]}>
@@ -325,7 +366,7 @@ const MeetDetail = () => {
         {/* 이벤트 */}
         {selectedTab === '이벤트' && (
           <View style={styles.tabContent}>
-             {(partyEvents?.length ? partyEvents : []).map((ev, idx) => (
+            {(partyEvents?.length ? partyEvents : []).map((ev, idx) => (
               <View key={ev.id ?? idx} style={styles.eventItem}>
                 <Text style={[FONTS.fs_14_semibold, styles.eventTitle]}>
                   이벤트 {idx + 1}
@@ -336,13 +377,15 @@ const MeetDetail = () => {
               </View>
             ))}
             {!partyEvents?.length && (
-              <Text style={[FONTS.fs_14_regular]}>등록된 이벤트가 없습니다.</Text>
+              <Text style={[FONTS.fs_14_regular]}>
+                등록된 이벤트가 없습니다.
+              </Text>
             )}
           </View>
         )}
 
-        {/* 모임 사진 */}
-        {selectedTab === '모임사진' && (
+        {/* 이벤트 사진 */}
+        {selectedTab === '이벤트사진' && (
           <View style={styles.tabContent}>
             {/* 확대 이미지 */}
             <Image
@@ -354,19 +397,22 @@ const MeetDetail = () => {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.imageScroll}
-            >
-              {(gallery.length ? gallery : [PLACEHOLDER]).map((photo, index) => (
-                <TouchableOpacity key={index} onPress={() => setCurrentImageIndex(index)}>
-                  <Image
-                    source={photo}
-                    style={[
-                      styles.image,
-                      index === currentImageIndex && styles.selectedImage,
-                    ]}
-                  />
-                </TouchableOpacity>
-              ))}
+              style={styles.imageScroll}>
+              {(gallery.length ? gallery : [PLACEHOLDER]).map(
+                (photo, index) => (
+                  <TouchableOpacity
+                    key={index}
+                    onPress={() => setCurrentImageIndex(index)}>
+                    <Image
+                      source={photo}
+                      style={[
+                        styles.image,
+                        index === currentImageIndex && styles.selectedImage,
+                      ]}
+                    />
+                  </TouchableOpacity>
+                ),
+              )}
             </ScrollView>
           </View>
         )}
@@ -375,11 +421,10 @@ const MeetDetail = () => {
           <ButtonScarlet
             title="참여하기"
             onPress={() => {
-              navigation.navigate('MeetReservation', { partyId });
+              navigation.navigate('MeetReservation', {partyId});
             }}
           />
         </View>
-
       </View>
     </ScrollView>
   );

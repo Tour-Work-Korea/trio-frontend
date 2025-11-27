@@ -24,10 +24,9 @@ const EXHomePage = () => {
         <Text style={FONTS.fs_14_semibold}>14pt Semibold 텍스트</Text>
         <Text style={FONTS.fs_18_regular}>18pt regular 텍스트</Text>
         <ButtonWhite title="딥링크 테스트" to="EXDeeplink" />
-        <ButtonWhite title="모임 화면 테스트" to="MeetMain" />
+        <ButtonWhite title="이벤트 화면 테스트" to="MeetMain" />
         {/* 버튼 컴포넌트 사용 */}
       </View>
-      
     </View>
   );
 };

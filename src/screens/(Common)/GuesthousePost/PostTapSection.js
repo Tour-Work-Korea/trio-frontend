@@ -75,14 +75,15 @@ export default function PostTapSection({intro}) {
                     resizeMode="cover"
                   />
                 )}
+                <View style={styles.textBox}>
+                  {/* 제목 */}
+                  {hasTitle && <Text style={styles.blockTitle}>{b.title}</Text>}
 
-                {/* 제목 */}
-                {hasTitle && <Text style={styles.blockTitle}>{b.title}</Text>}
-
-                {/* 내용 */}
-                {hasContent && (
-                  <Text style={styles.blockContent}>{b.content}</Text>
-                )}
+                  {/* 내용 */}
+                  {hasContent && (
+                    <Text style={styles.blockContent}>{b.content}</Text>
+                  )}
+                </View>
               </View>
             );
           })
@@ -96,7 +97,6 @@ const styles = StyleSheet.create({
   tabContainer: {
     flexDirection: 'row',
     marginTop: 8,
-    marginBottom: 16,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
   },
@@ -119,9 +119,8 @@ const styles = StyleSheet.create({
 
   tabContent: {
     flexDirection: 'column',
-    gap: 18,
-    paddingBottom: 40,
-    backgroundColor: COLORS.grayscale_100,
+    gap: 2,
+    backgroundColor: COLORS.grayscale_200,
   },
 
   emptyText: {
@@ -140,18 +139,19 @@ const styles = StyleSheet.create({
     height: 350,
     backgroundColor: COLORS.grayscale_200,
   },
+  textBox: {
+    paddingVertical: 20,
+    flexDirection: 'column',
+    gap: 8,
+    paddingHorizontal: 12,
+  },
   blockTitle: {
     ...FONTS.fs_16_semibold,
     color: COLORS.grayscale_900,
-    marginTop: 12,
-    paddingHorizontal: 12,
   },
   blockContent: {
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_700,
-    marginTop: 8,
-    paddingHorizontal: 12,
-    paddingBottom: 14,
-    lineHeight: 20,
+    lineHeight: 22,
   },
 });
