@@ -1,14 +1,11 @@
 // axiosInstance.js
 import qs from 'qs';
 import axios from 'axios';
-import EncryptedStorage from 'react-native-encrypted-storage';
 import useUserStore from '@stores/userStore';
 import {API_BASE_URL} from '@env';
-import authApi from './authApi';
 import {log, mask} from '@utils/logger';
 import {tryRefresh} from '@utils/auth/login';
 
-const REFRESH_KEY = 'refresh-token';
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
@@ -82,16 +79,8 @@ api.interceptors.response.use(
     const original = err.config;
     const id = original?._reqId || rid();
     const status = err.response?.status;
-    const msg = err.response?.data?.message;
 
-    log.info(
-      `🛑 [${id}] error status=`,
-      status,
-      'url=',
-      original?.url,
-      'msg=',
-      msg,
-    );
+    log.error(`🛑 [${id}] error status=`, status, 'url=', original?.url, err);
     log.timeEnd(`⏱️ ${id}`);
 
     if (original?.url?.includes('/auth/refresh')) {

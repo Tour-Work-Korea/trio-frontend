@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from 'react';
-import { Linking, Alert } from 'react-native';
-import { navigate } from './navigationService';
+import React, {useEffect, useRef} from 'react';
+import {Linking, Alert} from 'react-native';
+import {navigate} from './navigationService';
 import useUserStore from '@stores/userStore';
 
 const deeplinkHandler = () => {
@@ -19,7 +19,7 @@ const deeplinkHandler = () => {
     checkInitialUrl();
 
     // 앱이 켜져있는 상태에서 새로 딥링크 들어올 때
-    const subscription = Linking.addEventListener('url', ({ url }) => {
+    const subscription = Linking.addEventListener('url', ({url}) => {
       handleUrl(url);
     });
 
@@ -28,7 +28,7 @@ const deeplinkHandler = () => {
     };
   }, [accessToken]);
 
-  const handleUrl = (url) => {
+  const handleUrl = url => {
     console.log('딥링크 URL 받음:', url);
 
     // 로그인 여부 확인
@@ -53,14 +53,14 @@ const deeplinkHandler = () => {
             // 뒤로가기/외부 터치로 닫힌 경우도 가드 해제
             promptingRef.current = false;
           },
-        }
+        },
       );
       return;
     }
-    
+
     try {
       const path = url.replace('workaway://', '');
-      const parts = path.split('/'); 
+      const parts = path.split('/');
 
       // 게하 디테일 화면
       if (parts[0] === 'guesthouse' && parts[1]) {
@@ -69,7 +69,7 @@ const deeplinkHandler = () => {
         const tomorrow = new Date(today);
         tomorrow.setDate(today.getDate() + 1);
 
-        const formatDate = (date) => {
+        const formatDate = date => {
           return date.toISOString().split('T')[0];
         };
 
@@ -85,20 +85,20 @@ const deeplinkHandler = () => {
           isFromDeeplink: true,
         });
         console.log('게하 디테일 화면으로 이동');
-      } 
+      }
       // 홈 화면 (예시)
       else if (parts[0] === 'exDeeplink' && parts[1]) {
         const id = parts[1];
         navigate('EXHome');
       }
-      // 모임
+      // 이벤트
       else if (parts[0] === 'party' && parts[1]) {
         const partyId = parts[1];
         navigate('MeetDetail', {
           partyId: partyId,
           isFromDeeplink: true,
         });
-        console.log('모임 디테일 화면으로 이동');
+        console.log('이벤트 디테일 화면으로 이동');
       }
       // 다른 딥링크 패스 추가
     } catch (e) {

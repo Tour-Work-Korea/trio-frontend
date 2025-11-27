@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -11,21 +11,21 @@ import {
   Image,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import { uploadMultiImage } from '@utils/imageUploadHandler';
+import {uploadMultiImage} from '@utils/imageUploadHandler';
 
 import XBtn from '@assets/images/x_gray.svg';
 import AddImage from '@assets/images/add_image_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const SIZE = 100;          // 고정 100x100
-const GAP = 8;             // 카드 간격
+const SIZE = 100; // 고정 100x100
+const GAP = 8; // 카드 간격
 const MAX_IMAGES = 30;
 
-const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const MeetPhotoModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   const [meetImages, setMeetImages] = useState([]);
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
@@ -34,7 +34,7 @@ const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   useEffect(() => {
     if (!visible) return;
     if (appliedData && Array.isArray(appliedData)) {
-      setMeetImages(appliedData.map(url => ({ meetImageUrl: url })));
+      setMeetImages(appliedData.map(url => ({meetImageUrl: url})));
     } else {
       // 최초 오픈 시 초기화
       setMeetImages([]);
@@ -43,12 +43,12 @@ const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
 
   // 버튼 활성화 조건
   const isDisabled = meetImages >= 1;
-    
+
   // 단순 닫기 시 초기화
   const handleModalClose = () => {
     if (shouldResetOnClose) {
       if (appliedData && Array.isArray(appliedData)) {
-        setMeetImages(appliedData.map(url => ({ meetImageUrl: url })));
+        setMeetImages(appliedData.map(url => ({meetImageUrl: url})));
       } else {
         setMeetImages([]);
       }
@@ -69,12 +69,12 @@ const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
 
     setMeetImages(prev => [
       ...prev,
-      ...uploadedUrls.map(url => ({ meetImageUrl: url })),
+      ...uploadedUrls.map(url => ({meetImageUrl: url})),
     ]);
   };
 
   // 이미지 삭제
-  const handleDeleteImage = (index) => {
+  const handleDeleteImage = index => {
     setMeetImages(prev => prev.filter((_, idx) => idx !== index));
   };
 
@@ -82,7 +82,7 @@ const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   const handleConfirm = () => {
     const urls = meetImages.map(i => i.meetImageUrl).filter(Boolean);
     setAppliedData(urls);
-    onSelect({ imageUrls: urls });
+    onSelect({imageUrls: urls});
     onClose();
   };
 
@@ -91,72 +91,79 @@ const MeetPhotoModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContainer}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                  이벤트 사진
+                </Text>
+                <TouchableOpacity
+                  style={styles.XBtn}
+                  onPress={handleModalClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
+              </View>
 
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-              모임 사진
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
-
-          {/* 게하 정보 */}
-          <ScrollView style={styles.body} showsVerticalScrollIndicator={false}>
-            {/* 사진 */}
-            <View style={styles.titleContainer}>
-              <Text style={FONTS.fs_16_medium}>모임 사진을 추가해주세요</Text>
-              <Text style={[FONTS.fs_12_light, styles.countText]}>
-                <Text style={[{ color: COLORS.primary_orange }]}>{meetImages.length}</Text>/30
-              </Text>
-            </View>
-            <View style={styles.grid}>
-              {/* 추가 버튼 (항상 첫 칸) */}
-              <TouchableOpacity
-                style={styles.card}
-                onPress={handleAddImage}
-                disabled={meetImages.length >= MAX_IMAGES}
-                activeOpacity={0.7}
-              >
-                <View style={styles.addImageBox}>
-                  <AddImage width={30} height={30} />
+              {/* 게하 정보 */}
+              <ScrollView
+                style={styles.body}
+                showsVerticalScrollIndicator={false}>
+                {/* 사진 */}
+                <View style={styles.titleContainer}>
+                  <Text style={FONTS.fs_16_medium}>
+                    이벤트 사진을 추가해주세요
+                  </Text>
+                  <Text style={[FONTS.fs_12_light, styles.countText]}>
+                    <Text style={[{color: COLORS.primary_orange}]}>
+                      {meetImages.length}
+                    </Text>
+                    /30
+                  </Text>
                 </View>
-              </TouchableOpacity>
-
-              {/* 업로드된 이미지들 */}
-              {meetImages.map((item, idx) => (
-                <View key={idx} style={styles.card}>
-                  <Image source={{ uri: item.meetImageUrl }} style={styles.uploadedImage} />
+                <View style={styles.grid}>
+                  {/* 추가 버튼 (항상 첫 칸) */}
                   <TouchableOpacity
-                    style={styles.deleteBtn}
-                    onPress={() => handleDeleteImage(idx)}
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-                  >
-                    <XBtn width={14} height={14} />
+                    style={styles.card}
+                    onPress={handleAddImage}
+                    disabled={meetImages.length >= MAX_IMAGES}
+                    activeOpacity={0.7}>
+                    <View style={styles.addImageBox}>
+                      <AddImage width={30} height={30} />
+                    </View>
                   </TouchableOpacity>
+
+                  {/* 업로드된 이미지들 */}
+                  {meetImages.map((item, idx) => (
+                    <View key={idx} style={styles.card}>
+                      <Image
+                        source={{uri: item.meetImageUrl}}
+                        style={styles.uploadedImage}
+                      />
+                      <TouchableOpacity
+                        style={styles.deleteBtn}
+                        onPress={() => handleDeleteImage(idx)}
+                        hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+                        <XBtn width={14} height={14} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
                 </View>
-              ))}
+              </ScrollView>
+
+              {/* 적용하기 버튼 */}
+              <ButtonScarlet
+                title={'적용하기'}
+                onPress={handleConfirm}
+                disabled={isDisabled}
+                style={{marginBottom: 16}}
+              />
             </View>
-          </ScrollView>
-
-          {/* 적용하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={isDisabled}
-            style={{ marginBottom: 16 }}
-          />
-
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -249,5 +256,4 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-
 });

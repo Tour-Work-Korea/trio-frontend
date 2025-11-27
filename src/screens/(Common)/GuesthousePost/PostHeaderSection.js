@@ -1,13 +1,9 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-
-import LeftArrow from '@assets/images/chevron_left_black.svg';
+import {View, Text, StyleSheet, Image} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-export default function PostHeaderSection({tags, title, images}) {
-  const navigation = useNavigation();
+export default function PostHeaderSection({tags, images}) {
   const [thumbnailUrl, setThumbnailUrl] = useState('');
 
   // tags: "#제주시,#뚜벅이" 또는 "#제주시  #뚜벅이" → ["#제주시", "#뚜벅이"]

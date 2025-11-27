@@ -7,12 +7,10 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import PostHeaderSection from './PostHeaderSection';
 import PostProfileSection from './PostProfileSection';
 import PostTapSection from './PostTapSection';
-import Loading from '@components/Loading';
 import ErrorModal from '@components/modals/ErrorModal';
 
 const GuesthousePost = ({route}) => {
   const {guesthouseId} = route.params ?? {};
-
   const [post, setPost] = useState();
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -53,20 +51,16 @@ const GuesthousePost = ({route}) => {
     <View style={styles.container}>
       <ScrollView style={styles.scrollView}>
         {/* 헤더(썸네일, 태그) */}
-        <PostHeaderSection
-          tags={post?.tags}
-          title={post?.title}
-          images={post?.images}
-        />
+        <PostHeaderSection tags={post?.tags} images={post?.images} />
 
         <View style={styles.contentContainer}>
           {/* 상단 기본 정보(제목, 좋아요) */}
           <PostProfileSection
-            title={post.title}
-            guesthouseName={post.guesthouseName}
-            guesthouseImgUrl={post.hostProfileImageUrl}
+            title={post?.title}
+            guesthouseName={post?.guesthouseName}
+            guesthouseImgUrl={post?.hostProfileImageUrl}
             toggleFavorite={handleFavorite}
-            isLiked={post.isLiked}
+            isLiked={post?.isLiked}
           />
         </View>
         {/* 탭 */}

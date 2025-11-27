@@ -178,7 +178,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MyMeetDetail" component={MyMeetDetail} />
       <Stack.Screen name="MyMeetAdd" component={MyMeetAdd} />
 
-      {/* 모임화면 */}
+      {/* 이벤트화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
       <Stack.Screen name="MeetReservation" component={MeetReservation} />
       <Stack.Screen name="MeetPaymentSuccess" component={MeetPaymentSuccess} />

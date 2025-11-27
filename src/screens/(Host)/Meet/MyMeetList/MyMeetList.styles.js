@@ -1,5 +1,5 @@
-import { StyleSheet, Platform } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet, Platform} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     borderRadius: 8,
   },
 
-  // 모임 카드
+  // 이벤트 카드
   card: {
     backgroundColor: COLORS.grayscale_100,
     borderRadius: 4,
@@ -45,7 +45,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
   },
 
-  // 모임 정보
+  // 이벤트 정보
   cardInfo: {
     flexDirection: 'column',
     marginBottom: 6,
@@ -55,7 +55,7 @@ const styles = StyleSheet.create({
   ghName: {
     color: COLORS.grayscale_600,
   },
-  // 모임 이름
+  // 이벤트 이름
   title: {
     color: COLORS.grayscale_800,
   },
@@ -96,7 +96,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
 
-  // 모임 추가하기 버튼
+  // 이벤트 추가하기 버튼
   fab: {
     position: 'absolute',
     right: 20,
@@ -112,8 +112,6 @@ const styles = StyleSheet.create({
   fabText: {
     color: COLORS.white,
   },
-
-  
 });
 
 export default styles;

@@ -1,9 +1,9 @@
 import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import Logo from '@assets/images/meet_reservation_success.svg';
@@ -12,7 +12,7 @@ const MeetPaymentSuccess = () => {
   const navigation = useNavigation();
 
   const handleGoHome = () => {
-    navigation.navigate('MainTabs', { screen: '홈' });
+    navigation.navigate('MainTabs', {screen: '홈'});
   };
 
   return (
@@ -20,11 +20,11 @@ const MeetPaymentSuccess = () => {
       <Logo />
       <Text style={[FONTS.fs_20_semibold, styles.text]}>
         예약 완료되었어요! {'\n'}
-        이제 모임을 즐기러 가볼까요?
+        이제 이벤트을 즐기러 가볼까요?
       </Text>
 
       <View style={styles.button}>
-        <ButtonScarlet title={'홈으로'} onPress={handleGoHome}/>
+        <ButtonScarlet title={'홈으로'} onPress={handleGoHome} />
       </View>
     </View>
   );

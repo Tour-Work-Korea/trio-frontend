@@ -20,7 +20,7 @@ import {FONTS} from '@constants/fonts';
 const TABS = [
   {key: 'STAY', label: '게하'},
   {key: 'EMPLOY', label: '스탭'},
-  {key: 'MEET', label: '모임'},
+  {key: 'MEET', label: '이벤트'},
   {key: 'TODAY', label: '오늘의 게스트하우스'},
 ];
 
@@ -91,7 +91,7 @@ const HomeMain = () => {
     }
   }, []);
 
-  //인기 모임(이벤트) 조회
+  //인기 이벤트(이벤트) 조회
   const tryFetchMeets = useCallback(async () => {
     try {
       const response = await userMeetApi.getRecentParties({
@@ -201,7 +201,7 @@ const HomeMain = () => {
               )}
             </View>
 
-            {/* 모임(이벤트) 섹션 */}
+            {/* 이벤트(이벤트) 섹션 */}
             <View
               onLayout={e => {
                 meetYRef.current = e.nativeEvent.layout.y;

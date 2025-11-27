@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -34,7 +34,7 @@ const styles = StyleSheet.create({
     height: 28,
     borderRadius: 14,
   },
-  placePillContainer: { 
+  placePillContainer: {
     backgroundColor: COLORS.grayscale_900,
     paddingHorizontal: 12,
     paddingVertical: 8,
@@ -69,8 +69,8 @@ const styles = StyleSheet.create({
   showReservationText: {
     color: COLORS.grayscale_0,
   },
- 
-  // 본문 
+
+  // 본문
   contentContainer: {
     padding: 20,
     paddingBottom: 40,
@@ -161,10 +161,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  priceSectionTitle: { 
-  },
-  priceTextRow: {
-  },
+  priceSectionTitle: {},
+  priceTextRow: {},
   priceText: {
     color: COLORS.grayscale_800,
   },
@@ -212,7 +210,7 @@ const styles = StyleSheet.create({
     marginTop: 20,
     gap: 20,
   },
-  // 모임 안내
+  // 이벤트 안내
   infoTextContainer: {
     backgroundColor: COLORS.grayscale_100,
     paddingVertical: 8,
@@ -235,10 +233,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
     marginRight: 40,
   },
-  eventDesc: {
-  },
+  eventDesc: {},
 
-  // 모임 사진
+  // 이벤트 사진
   mainImageContainer: {
     width: 280,
     height: 280,
@@ -259,7 +256,6 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.primary_orange,
   },
-
 });
 
 export default styles;

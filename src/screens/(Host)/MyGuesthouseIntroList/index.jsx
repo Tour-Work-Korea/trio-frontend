@@ -85,15 +85,32 @@ const MyGuesthouseIntroList = () => {
     });
   };
 
+  const handleMoveGuesthousePost = async guesthouseId => {
+    try {
+      const response = await postApi.getIntroDetailPublic(guesthouseId);
+      navigation.navigate('GuesthousePost', {
+        guesthouseId: guesthouseId,
+      });
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        title: '해당 게스트하우스의 소개가 없습니다.\n소개를 작성해보세요',
+        onPress: () =>
+          navigation.navigate('MyGuesthouseIntroForm', {
+            guesthouseId: guesthouseId,
+          }),
+        onPress2: () => setErrorModal(prev => ({...prev, visible: false})),
+        buttonText: '작성하기',
+        buttonText2: '취소',
+      });
+    }
+  };
+
   const renderItem = ({item, index}) => (
     <>
       <TouchableOpacity
         style={styles.card}
-        onPress={() =>
-          navigation.navigate('GuesthousePost', {
-            guesthouseId: item.id,
-          })
-        }>
+        onPress={() => handleMoveGuesthousePost(item.id)}>
         <Image source={{uri: item.thumbnailImg}} style={styles.image} />
         <View style={styles.cardContent}>
           <View style={styles.infoContent}>

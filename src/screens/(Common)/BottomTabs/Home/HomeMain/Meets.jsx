@@ -58,7 +58,7 @@ export default function Meets({events = [], setEventList}) {
     } catch (error) {
       console.warn(
         '홈 인기 이벤트 즐겨찾기 토글 실패',
-        error?.response?.data || error?.message,
+        error?.response?.data?.message,
       );
     }
   };

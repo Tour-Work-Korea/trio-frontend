@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -19,8 +19,8 @@ dayjs.locale('ko');
 
 import Header from '@components/Header';
 import styles from './MeetReservation.styles';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
@@ -29,7 +29,7 @@ import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
 
 // 번화번호 사이에 '-' 집어넣기
-const formatPhoneNumber = (phone) => {
+const formatPhoneNumber = phone => {
   if (!phone || phone.length !== 11) return phone; // 예외 처리
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
 };
@@ -37,7 +37,7 @@ const formatPhoneNumber = (phone) => {
 const MeetReservation = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { partyId } = route.params ?? {};
+  const {partyId} = route.params ?? {};
   const [reservationInfo, setReservationInfo] = useState(null);
 
   // 예약 정보
@@ -45,13 +45,16 @@ const MeetReservation = () => {
     if (!partyId) return;
     const run = async () => {
       try {
-        const { data } = await userMeetApi.joinParty(partyId);
+        const {data} = await userMeetApi.joinParty(partyId);
         setReservationInfo(data);
       } catch (e) {
         const msg = e?.response?.data?.message || e?.message;
         const status = e?.response?.status;
         // 숙박객 전용 접근 제한
-        if (status === 403 || (typeof msg === 'string' && msg.includes('숙박'))) {
+        if (
+          status === 403 ||
+          (typeof msg === 'string' && msg.includes('숙박'))
+        ) {
           Toast.show({
             type: 'error',
             text1: '숙박객만 참여할 수 있어요',
@@ -65,7 +68,7 @@ const MeetReservation = () => {
         }
         Toast.show({
           type: 'error',
-          text1: '모임 참가 정보를 불러오지 못했어요.',
+          text1: '이벤트 참가 정보를 불러오지 못했어요.',
           position: 'top',
         });
         navigation.goBack();
@@ -85,14 +88,12 @@ const MeetReservation = () => {
 
   const [requestMessage, setRequestMessage] = useState('');
 
-  const formatTime = (timeStr) => {
+  const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
-    return date.isValid()
-        ? date.format('HH:mm')
-        : timeStr.slice(0, 5);
+    return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
-  const formatDateWithDay = (dateStr) => {
+  const formatDateWithDay = dateStr => {
     if (!dateStr) return '-';
     const date = dayjs(dateStr);
     if (!date.isValid()) return '-';
@@ -100,7 +101,7 @@ const MeetReservation = () => {
   };
 
   const [agreeAll, setAgreeAll] = useState(false);
-  
+
   const [agreements, setAgreements] = useState({
     terms: false,
     personalInfo: false,
@@ -108,10 +109,11 @@ const MeetReservation = () => {
   });
 
   // 유효성 검사
-  const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+  const isAllRequiredAgreed =
+    agreements.terms && agreements.personalInfo && agreements.thirdParty;
 
-  const toggleAgreement = (key) => {
-    setAgreements((prev) => ({
+  const toggleAgreement = key => {
+    setAgreements(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
@@ -128,7 +130,8 @@ const MeetReservation = () => {
   };
 
   useEffect(() => {
-    const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+    const allChecked =
+      agreements.terms && agreements.personalInfo && agreements.thirdParty;
     if (allChecked !== agreeAll) {
       setAgreeAll(allChecked);
     }
@@ -137,7 +140,7 @@ const MeetReservation = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
-  const openTermModal = (key) => {
+  const openTermModal = key => {
     setSelectedTerm(key);
     setModalVisible(true);
   };
@@ -159,12 +162,15 @@ const MeetReservation = () => {
     try {
       // 요청사항
       const requestText = requestMessage?.trim() || '';
-      const { data } = await userMeetApi.createPartyReservation(partyId, requestText);
+      const {data} = await userMeetApi.createPartyReservation(
+        partyId,
+        requestText,
+      );
 
       const reservationId =
-      typeof data === 'number'
-        ? data
-        : (data?.id ?? data?.reservationId ?? Number.NaN);
+        typeof data === 'number'
+          ? data
+          : data?.id ?? data?.reservationId ?? Number.NaN;
 
       if (!reservationId) {
         throw new Error('예약 ID가 없습니다.');
@@ -177,8 +183,9 @@ const MeetReservation = () => {
       });
     } catch (e) {
       console.log('createPartyReservation error', e);
-      const msg = e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
-      Toast.show({ type: 'error', text1: msg, position: 'top' });
+      const msg =
+        e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
+      Toast.show({type: 'error', text1: msg, position: 'top'});
     }
   };
 
@@ -186,63 +193,85 @@ const MeetReservation = () => {
     <KeyboardAvoidingView
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-    >
-    <View style={{ flex: 1 }}>
+      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
+      <View style={{flex: 1}}>
         <Header title="예약" />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
           keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-        >
+          keyboardShouldPersistTaps="handled">
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{title}</Text>
           {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
-              <View style={styles.dateBoxCheckIn}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 시작</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
-              </View>
-              <View style={styles.dateBoxCheckOut}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>모임 종료</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOut)}</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
-              </View>
+            <View style={styles.dateBoxCheckIn}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+                이벤트 시작
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatDateWithDay(checkIn)}
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatTime(checkIn)}
+              </Text>
+            </View>
+            <View style={styles.dateBoxCheckOut}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+                이벤트 종료
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatDateWithDay(checkOut)}
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatTime(checkOut)}
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           {/* 예약자 정보 */}
           <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>이름</Text>
-                  <Text style={FONTS.fs_14_medium}>{name}</Text>
-              </View>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
-                  <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
-              </View>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+              예약자 정보
+            </Text>
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                이름
+              </Text>
+              <Text style={FONTS.fs_14_medium}>{name}</Text>
+            </View>
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                전화번호
+              </Text>
+              <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
+            </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           {/* 예약 정보, 가격 */}
           <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 정보</Text>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_semibold, styles.meetNameText]}>
-                    {isGuest ? '숙박객' : '비숙박객'}, {gender}
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>{Number(meetPrice || 0).toLocaleString()}원</Text>
-              </View>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+              예약 정보
+            </Text>
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_semibold, styles.meetNameText]}>
+                {isGuest ? '숙박객' : '비숙박객'}, {gender}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>
+                {Number(meetPrice || 0).toLocaleString()}원
+              </Text>
+            </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           {/* 요청사항 */}
           <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>요청 사항 (선택)</Text>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+              요청 사항 (선택)
+            </Text>
             <View style={styles.inputWrapper}>
               <TextInput
                 style={[FONTS.fs_14_regular, styles.requestInput]}
@@ -254,60 +283,117 @@ const MeetReservation = () => {
             </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide} />
 
           {/* 약관 동의 */}
           <View style={styles.agreeRowContainer}>
-              <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
-              {agreeAll ?
-              <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-              <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  <Text style={FONTS.fs_14_semibold}>전체 동의</Text>
-              </TouchableOpacity>
-
-              <View style={styles.agreeRowConent}>
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('terms')}>
-                  {agreements.terms ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 모임 취소/환불 규정에 동의합니다.
-                  </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('terms')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
+            <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
+              {agreeAll ? (
+                <View style={styles.checkedBox}>
+                  {' '}
+                  <Checked width={24} height={24} />{' '}
                 </View>
-
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
-                  {agreements.personalInfo ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
-                  </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
+              ) : (
+                <View style={styles.uncheckedBox}>
+                  {' '}
+                  <Unchecked width={24} height={24} />{' '}
                 </View>
+              )}
+              <Text style={FONTS.fs_14_semibold}>전체 동의</Text>
+            </TouchableOpacity>
 
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
-                  {agreements.thirdParty ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
+            <View style={styles.agreeRowConent}>
+              <View style={styles.agreeRow}>
+                <TouchableOpacity onPress={() => toggleAgreement('terms')}>
+                  {agreements.terms ? (
+                    <View style={styles.checkedBox}>
+                      {' '}
+                      <Checked width={24} height={24} />{' '}
+                    </View>
+                  ) : (
+                    <View style={styles.uncheckedBox}>
+                      {' '}
+                      <Unchecked width={24} height={24} />{' '}
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                    [필수]
+                  </Text>{' '}
+                  이벤트 취소/환불 규정에 동의합니다.
+                </Text>
+                <TouchableOpacity
+                  style={styles.seeMore}
+                  onPress={() => openTermModal('terms')}>
+                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                    보기
                   </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
-                </View>
+                </TouchableOpacity>
               </View>
+
+              <View style={styles.agreeRow}>
+                <TouchableOpacity
+                  onPress={() => toggleAgreement('personalInfo')}
+                  style={styles.agreeRow}>
+                  {agreements.personalInfo ? (
+                    <View style={styles.checkedBox}>
+                      {' '}
+                      <Checked width={24} height={24} />{' '}
+                    </View>
+                  ) : (
+                    <View style={styles.uncheckedBox}>
+                      {' '}
+                      <Unchecked width={24} height={24} />{' '}
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                    [필수]
+                  </Text>{' '}
+                  개인정보 수집 및 이용에 동의합니다.
+                </Text>
+                <TouchableOpacity
+                  style={styles.seeMore}
+                  onPress={() => openTermModal('personalInfo')}>
+                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                    보기
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.agreeRow}>
+                <TouchableOpacity
+                  onPress={() => toggleAgreement('thirdParty')}
+                  style={styles.agreeRow}>
+                  {agreements.thirdParty ? (
+                    <View style={styles.checkedBox}>
+                      {' '}
+                      <Checked width={24} height={24} />{' '}
+                    </View>
+                  ) : (
+                    <View style={styles.uncheckedBox}>
+                      {' '}
+                      <Unchecked width={24} height={24} />{' '}
+                    </View>
+                  )}
+                </TouchableOpacity>
+                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                    [필수]
+                  </Text>{' '}
+                  개인정보 제3자 제공에 동의합니다.
+                </Text>
+                <TouchableOpacity
+                  style={styles.seeMore}
+                  onPress={() => openTermModal('thirdParty')}>
+                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                    보기
+                  </Text>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
 
           <View style={styles.button}>
@@ -317,7 +403,6 @@ const MeetReservation = () => {
               onPress={handleCreateReservation}
             />
           </View>
-
         </ScrollView>
 
         {/* 약관동의 모달 */}
@@ -326,7 +411,7 @@ const MeetReservation = () => {
           onClose={() => setModalVisible(false)}
           title={
             selectedTerm === 'terms'
-              ? '모임 취소/환불 규정'
+              ? '이벤트 취소/환불 규정'
               : selectedTerm === 'personalInfo'
               ? '개인정보 수집 및 이용'
               : selectedTerm === 'thirdParty'
@@ -344,8 +429,7 @@ const MeetReservation = () => {
           }
           onAgree={handleAgreeModal}
         />
-
-    </View>
+      </View>
     </KeyboardAvoidingView>
   );
 };
