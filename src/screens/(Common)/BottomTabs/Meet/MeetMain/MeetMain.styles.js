@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_400,
   },
 
-  // 모임 일정 캘린더
+  // 이벤트 일정 캘린더
   meetListContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 16,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
     color: COLORS.primary_orange,
   },
 
-  // 모임 없을 때
+  // 이벤트 없을 때
   emptyWrap: {
     alignItems: 'center',
     paddingVertical: 40,

@@ -1,7 +1,7 @@
-import React, { createRef, useEffect, useState } from 'react';
-import { Alert, BackHandler, SafeAreaView } from 'react-native';
-import { Payment } from '@portone/react-native-sdk';
-import { useRoute, useNavigation } from '@react-navigation/native';
+import React, {createRef, useEffect, useState} from 'react';
+import {Alert, BackHandler, SafeAreaView} from 'react-native';
+import {Payment} from '@portone/react-native-sdk';
+import {useRoute, useNavigation} from '@react-navigation/native';
 import Config from 'react-native-config';
 
 import userMeetApi from '@utils/api/userMeetApi';
@@ -15,7 +15,7 @@ const MeetPayment = () => {
 
   const route = useRoute();
   const navigation = useNavigation();
-  const { amount, reservationId } = route.params;
+  const {amount, reservationId} = route.params;
 
   // 고유한 paymentId 생성
   const uid = `meet_${Date.now()}`;
@@ -44,47 +44,47 @@ const MeetPayment = () => {
   }, []);
 
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <SafeAreaView style={{flex: 1}}>
       {!isReady ? (
-      <Loading title="결제 화면으로 가고있어요" />
-    ) : (
-      <Payment
-        ref={controller} // 결제 컨트롤러 연결
-        request={{
-          storeId: Config.PORTONE_STORE_ID,
-          channelKey: Config.PORTONE_CHANNEL_KEY,
-          paymentId: uid,
-          orderName: '모임 예약', // 결제 내역 이름
-          totalAmount: amount,
-          currency: 'CURRENCY_KRW', // 통화 단위 (원화)
-          payMethod: 'CARD', // 결제 수단 (카드 결제)
-        }}
-        onError={error => {
-          // Alert.alert('결제 실패', error.message);
-          Alert.alert('예약 준비중', '모임 예약은 현재 준비 중 입니다.');
-          navigation.goBack();
-        }}
-        onComplete={async complete => {
-          try {
-            console.log('결제 성공:', complete); // 응답 객체 출력
-            console.log('reservationId:', reservationId);
-
-            // 백엔드에 결제 검증 요청
-            await userMeetApi.verifyPayment(reservationId, {
-              paymentId: complete.paymentId,
-              reservationType: 'PARTY',
-            });
-
-            navigation.replace('MeetPaymentSuccess');
-          } catch (err) {
-            console.error('결제 검증 실패:', err);
-            // Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');
-            Alert.alert('예약 준비중', '모임 예약은 현재 준비 중 입니다.');
+        <Loading title="결제 화면으로 가고있어요" />
+      ) : (
+        <Payment
+          ref={controller} // 결제 컨트롤러 연결
+          request={{
+            storeId: Config.PORTONE_STORE_ID,
+            channelKey: Config.PORTONE_CHANNEL_KEY,
+            paymentId: uid,
+            orderName: '이벤트 예약', // 결제 내역 이름
+            totalAmount: amount,
+            currency: 'CURRENCY_KRW', // 통화 단위 (원화)
+            payMethod: 'CARD', // 결제 수단 (카드 결제)
+          }}
+          onError={error => {
+            // Alert.alert('결제 실패', error.message);
+            Alert.alert('예약 준비중', '이벤트 예약은 현재 준비 중 입니다.');
             navigation.goBack();
-          }
-        }}
-      />
-    )}
+          }}
+          onComplete={async complete => {
+            try {
+              console.log('결제 성공:', complete); // 응답 객체 출력
+              console.log('reservationId:', reservationId);
+
+              // 백엔드에 결제 검증 요청
+              await userMeetApi.verifyPayment(reservationId, {
+                paymentId: complete.paymentId,
+                reservationType: 'PARTY',
+              });
+
+              navigation.replace('MeetPaymentSuccess');
+            } catch (err) {
+              console.error('결제 검증 실패:', err);
+              // Alert.alert('검증 실패', '결제 검증 중 오류가 발생했습니다.');
+              Alert.alert('예약 준비중', '이벤트 예약은 현재 준비 중 입니다.');
+              navigation.goBack();
+            }
+          }}
+        />
+      )}
     </SafeAreaView>
   );
 };

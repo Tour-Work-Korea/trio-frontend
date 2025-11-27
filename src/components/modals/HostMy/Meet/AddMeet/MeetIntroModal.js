@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -15,17 +15,17 @@ import {
   Platform,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import { uploadSingleImage } from '@utils/imageUploadHandler';
+import {uploadSingleImage} from '@utils/imageUploadHandler';
 
 import XBtn from '@assets/images/x_gray.svg';
 import AddImage from '@assets/images/add_image_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetIntroModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const MeetIntroModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [thumbnailUrl, setThumbnailUrl] = useState(null); // 대표 사진 1장
   const [description, setDescription] = useState(''); // 간략 소개글
@@ -34,8 +34,12 @@ const MeetIntroModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   const [appliedData, setAppliedData] = useState(null);
 
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
 
     return () => {
       showSub.remove();
@@ -109,89 +113,109 @@ const MeetIntroModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : 0}
-      >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
-
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-              모임 배너사진 및 소개요약
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
-
-          {/* 게하 정보 */}
-          <ScrollView style={styles.body}>
-            {/* 사진 */}
-            <View style={styles.titleContainer}>
-              <Text style={FONTS.fs_16_medium}>배너 사진</Text>
-              <Text style={[FONTS.fs_12_light, styles.countText]}>
-                <Text style={[{color: COLORS.primary_orange}]}>{thumbnailUrl ? 1 : 0}</Text>/1
-              </Text>
-            </View>
-            <View style={[styles.infoRow, { flexDirection: 'row' }]}>
-              {!thumbnailUrl ? (
-                <TouchableOpacity style={styles.addImageBox} onPress={handleAddImage}>
-                  <AddImage width={30} height={30} />
-                </TouchableOpacity>
-              ) : (
-                <View style={{ position: 'relative' }}>
-                  <Image source={{ uri: thumbnailUrl }} style={styles.uploadedImage} />
-                  <TouchableOpacity style={styles.deleteBtn} onPress={handleDeleteImage}>
-                    <XBtn width={14} height={14} />
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : 0}>
+        <TouchableWithoutFeedback onPress={handleOverlayPress}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContainer}>
+                {/* 헤더 */}
+                <View style={styles.header}>
+                  <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                    이벤트 배너사진 및 소개요약
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.XBtn}
+                    onPress={handleModalClose}>
+                    <XBtn width={24} height={24} />
                   </TouchableOpacity>
                 </View>
-              )}
-            </View>
 
-            {/* 간략 소개 */}
-            <View style={styles.titleContainer}>
-              <Text style={[FONTS.fs_16_medium, { marginTop: 20 }]}>
-                모임 소개
-              </Text>
-              <Text style={[FONTS.fs_12_light, styles.countText, { marginTop: 20 }]}>
-                <Text style={[{color: COLORS.primary_orange}]}>{description.length}</Text>/500
-              </Text>
-            </View>
-            <View style={styles.infoRow}>
-              <TextInput
-                style={[styles.textArea, FONTS.fs_14_regular]}
-                value={description}
-                onChangeText={setDescription}
-                multiline
-                maxLength={500}
-                placeholder="간략하게 들어갈 모임 소개를 작성해주세요"
-                placeholderTextColor={COLORS.grayscale_400}
-              />
-              <TouchableOpacity style={styles.rewriteButton} onPress={() => setDescription('')}>
-                <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
+                {/* 게하 정보 */}
+                <ScrollView style={styles.body}>
+                  {/* 사진 */}
+                  <View style={styles.titleContainer}>
+                    <Text style={FONTS.fs_16_medium}>배너 사진</Text>
+                    <Text style={[FONTS.fs_12_light, styles.countText]}>
+                      <Text style={[{color: COLORS.primary_orange}]}>
+                        {thumbnailUrl ? 1 : 0}
+                      </Text>
+                      /1
+                    </Text>
+                  </View>
+                  <View style={[styles.infoRow, {flexDirection: 'row'}]}>
+                    {!thumbnailUrl ? (
+                      <TouchableOpacity
+                        style={styles.addImageBox}
+                        onPress={handleAddImage}>
+                        <AddImage width={30} height={30} />
+                      </TouchableOpacity>
+                    ) : (
+                      <View style={{position: 'relative'}}>
+                        <Image
+                          source={{uri: thumbnailUrl}}
+                          style={styles.uploadedImage}
+                        />
+                        <TouchableOpacity
+                          style={styles.deleteBtn}
+                          onPress={handleDeleteImage}>
+                          <XBtn width={14} height={14} />
+                        </TouchableOpacity>
+                      </View>
+                    )}
+                  </View>
 
-          {/* 적용하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={isDisabled}
-            style={{ marginBottom: 16 }}
-          />
+                  {/* 간략 소개 */}
+                  <View style={styles.titleContainer}>
+                    <Text style={[FONTS.fs_16_medium, {marginTop: 20}]}>
+                      이벤트 소개
+                    </Text>
+                    <Text
+                      style={[
+                        FONTS.fs_12_light,
+                        styles.countText,
+                        {marginTop: 20},
+                      ]}>
+                      <Text style={[{color: COLORS.primary_orange}]}>
+                        {description.length}
+                      </Text>
+                      /500
+                    </Text>
+                  </View>
+                  <View style={styles.infoRow}>
+                    <TextInput
+                      style={[styles.textArea, FONTS.fs_14_regular]}
+                      value={description}
+                      onChangeText={setDescription}
+                      multiline
+                      maxLength={500}
+                      placeholder="간략하게 들어갈 이벤트 소개를 작성해주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                    />
+                    <TouchableOpacity
+                      style={styles.rewriteButton}
+                      onPress={() => setDescription('')}>
+                      <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>
+                        다시쓰기
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
 
-        </View>
+                {/* 적용하기 버튼 */}
+                <ButtonScarlet
+                  title={'적용하기'}
+                  onPress={handleConfirm}
+                  disabled={isDisabled}
+                  style={{marginBottom: 16}}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
         </TouchableWithoutFeedback>
-      </View>
-      </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
   );

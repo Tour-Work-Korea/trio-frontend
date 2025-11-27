@@ -1,11 +1,18 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import React, {useEffect, useState, useCallback} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  Image,
+  Alert,
+} from 'react-native';
+import {useFocusEffect} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import styles from './UserMeetReservationCheck.styles';
-import Header from '@components/Header'; 
-import {FONTS} from '@constants/fonts'; 
+import Header from '@components/Header';
+import {FONTS} from '@constants/fonts';
 
 import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
@@ -13,27 +20,32 @@ import UserCancelledReservations from './UserCancelledReservations';
 import Loading from '@components/Loading';
 
 const TABS = [
-  { key: 'upcoming', label: '다가오는 예약' },
-  { key: 'past', label: '지난 예약' },
-  { key: 'cancelled', label: '예약취소' },
+  {key: 'upcoming', label: '다가오는 예약'},
+  {key: 'past', label: '지난 예약'},
+  {key: 'cancelled', label: '예약취소'},
 ];
 
 // 랜덤 유틸
 const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-const pick = (arr) => arr[randInt(0, arr.length - 1)];
+const pick = arr => arr[randInt(0, arr.length - 1)];
 
 // 오늘~7일 뒤 사이의 임의 시간 생성
 const randomDateTimeWithin7Days = () => {
-  const dayOffset = randInt(0, 7);               // 오늘 ~ +7일
-  const hour = randInt(9, 22);                   // 09~22시
-  const minute = pick([0, 10, 20, 30, 40, 50]);  // 10분 단위
-  return dayjs().startOf('day').add(dayOffset, 'day').hour(hour).minute(minute).second(0);
+  const dayOffset = randInt(0, 7); // 오늘 ~ +7일
+  const hour = randInt(9, 22); // 09~22시
+  const minute = pick([0, 10, 20, 30, 40, 50]); // 10분 단위
+  return dayjs()
+    .startOf('day')
+    .add(dayOffset, 'day')
+    .hour(hour)
+    .minute(minute)
+    .second(0);
 };
 
-// 모임명 더미
+// 이벤트명 더미
 const PARTY_NAMES = [
   '제주 선셋 바베큐 파티',
-  '야간 번개 모임',
+  '야간 번개 이벤트',
   '보드게임 & 맥주',
   '새벽 바다 산책',
   '별멍 감성 파티',
@@ -47,7 +59,7 @@ const GUESTHOUSE_IDS = [101, 102, 103, 104, 105];
 const generateMeetReservations = (n = 12) => {
   const statuses = ['CONFIRMED', 'COMPLETED', 'CANCELLED'];
 
-  return Array.from({ length: n }, (_, i) => {
+  return Array.from({length: n}, (_, i) => {
     const start = randomDateTimeWithin7Days();
     const amount = randInt(1, 8) * 10000; // 10,000 ~ 80,000
     const reservationStatus = pick(statuses);
@@ -58,12 +70,12 @@ const generateMeetReservations = (n = 12) => {
     const partyImage = `https://pixabay.com/ko/photos/%EA%B3%A8%EB%AA%A9-%EB%82%98%EB%AC%B4-%EA%B8%B8-%EC%88%B2-%EC%B9%A8%EC%B0%A9-%ED%95%9C-9723861/`;
 
     return {
-      reservationId,                 // Long
-      amount,                        // BigDecimal (숫자)
-      guesthouseId,                  // Long
-      partyName,                     // String
-      partyImage,                    // String (URL)
-      reservationStatus,             // String
+      reservationId, // Long
+      amount, // BigDecimal (숫자)
+      guesthouseId, // Long
+      partyName, // String
+      partyImage, // String (URL)
+      reservationStatus, // String
       startDateTime: start.toISOString(), // LocalDateTime (ISO)
     };
   });
@@ -111,7 +123,9 @@ const UserMeetReservationCheck = () => {
       case 'past':
         return <UserPastReservations data={filteredReservations.past} />;
       case 'cancelled':
-        return <UserCancelledReservations data={filteredReservations.cancelled} />;
+        return (
+          <UserCancelledReservations data={filteredReservations.cancelled} />
+        );
       default:
         return null;
     }
@@ -119,7 +133,7 @@ const UserMeetReservationCheck = () => {
 
   return (
     <View style={styles.container}>
-      <Header title='모임 예약내역' />
+      <Header title="이벤트 예약내역" />
 
       {/* 탭 버튼 */}
       <View style={styles.tabContainer}>
@@ -127,16 +141,14 @@ const UserMeetReservationCheck = () => {
           <TouchableOpacity
             key={tab.key}
             style={styles.tabButton}
-            onPress={() => setActiveTab(tab.key)}
-          >
+            onPress={() => setActiveTab(tab.key)}>
             <Text
               style={[
                 styles.tabText,
                 FONTS.fs_14_regular,
                 activeTab === tab.key && styles.activeTabText,
                 activeTab === tab.key && FONTS.fs_14_semibold,
-              ]}
-            >
+              ]}>
               {tab.label}
             </Text>
           </TouchableOpacity>
@@ -151,7 +163,6 @@ const UserMeetReservationCheck = () => {
           renderTabContent()
         )}
       </View>
-      
     </View>
   );
 };

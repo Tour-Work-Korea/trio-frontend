@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from "react";
+import React, {useRef, useState, useEffect} from 'react';
 import {
   Modal,
   View,
@@ -7,31 +7,31 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
-} from "react-native";
+} from 'react-native';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
-import { COLORS } from "@constants/colors";
-import { FONTS } from "@constants/fonts";
-import { meetScales, stayTypes, meetTags } from '@data/meetOptions';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {meetScales, stayTypes, meetTags} from '@data/meetOptions';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
 import XBtn from '@assets/images/x_gray.svg';
 
-const { height } = Dimensions.get("window");
+const {height} = Dimensions.get('window');
 
 const tabList = [
-  { key: "price", label: "가격 범위" },
-  { key: "scale", label: "규모" },
-  { key: "stay", label: "숙박 여부" },
-  { key: "tags", label: "시설/서비스" },
+  {key: 'price', label: '가격 범위'},
+  {key: 'scale', label: '규모'},
+  {key: 'stay', label: '숙박 여부'},
+  {key: 'tags', label: '시설/서비스'},
 ];
 
-const MeetFilterModal = ({ visible, onClose, onApply }) => {
+const MeetFilterModal = ({visible, onClose, onApply}) => {
   const scrollViewRef = useRef();
 
   const [sectionPositions, setSectionPositions] = useState({});
-  const [activeTab, setActiveTab] = useState("price");
+  const [activeTab, setActiveTab] = useState('price');
   const [priceRange, setPriceRange] = useState([0, 1000000]);
   const [selectedScale, setSelectedScale] = useState(null);
   const [selectedStay, setSelectedStay] = useState(null);
@@ -44,17 +44,16 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
     tags: meetTags.map(tag => tag.id),
   });
 
-  const isDirty = (
+  const isDirty =
     priceRange[0] !== initialState.priceRange[0] ||
     priceRange[1] !== initialState.priceRange[1] ||
     selectedScale !== initialState.scale ||
     selectedStay !== initialState.stay ||
     selectedTags.length !== initialState.tags.length ||
-    !selectedTags.every(t => initialState.tags.includes(t))
-  );
+    !selectedTags.every(t => initialState.tags.includes(t));
 
   // 현재 영역 감지
-  const handleScroll = (e) => {
+  const handleScroll = e => {
     const y = e.nativeEvent.contentOffset.y;
 
     const entries = Object.entries(sectionPositions);
@@ -76,10 +75,10 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
   };
 
   // 탭 클릭 → 스크롤 이동
-  const handleTabPress = (key) => {
+  const handleTabPress = key => {
     const y = sectionPositions[key];
     if (y !== undefined) {
-      scrollViewRef.current?.scrollTo({ y, animated: true });
+      scrollViewRef.current?.scrollTo({y, animated: true});
     }
   };
 
@@ -98,9 +97,9 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
     });
   };
 
-  const toggleTag = (id) => {
+  const toggleTag = id => {
     setSelectedTags(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id]
+      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id],
     );
   };
 
@@ -112,25 +111,23 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold]}>필터</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24}/>
+              <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
 
           {/* 탭 */}
           <View style={styles.tabRow}>
-            {tabList.map((tab) => (
+            {tabList.map(tab => (
               <TouchableOpacity
                 key={tab.key}
-                onPress={() => handleTabPress(tab.key)}
-              >
+                onPress={() => handleTabPress(tab.key)}>
                 <Text
                   style={[
                     FONTS.fs_16_regular,
                     styles.tabText,
                     activeTab === tab.key && styles.tabTextActive,
                     activeTab === tab.key && FONTS.fs_16_semibold,
-                  ]}
-                >
+                  ]}>
                   {tab.label}
                 </Text>
               </TouchableOpacity>
@@ -141,18 +138,19 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
           <ScrollView
             ref={scrollViewRef}
             onScroll={handleScroll}
-            contentContainerStyle={{ paddingBottom: 120 }}
-          >
+            contentContainerStyle={{paddingBottom: 120}}>
             {/* 가격 범위 */}
-            <View 
-              onLayout={(e) => {
+            <View
+              onLayout={e => {
                 const y = e.nativeEvent.layout?.y;
-                if (y != null) setSectionPositions(prev => ({ ...prev, price: y }));
+                if (y != null)
+                  setSectionPositions(prev => ({...prev, price: y}));
               }}
-              style={styles.section}
-            >
+              style={styles.section}>
               <View style={styles.priceSectionHeader}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>가격 범위</Text>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  가격 범위
+                </Text>
               </View>
               <View style={styles.priceMultislider}>
                 <MultiSlider
@@ -161,7 +159,7 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
                   max={1000000}
                   step={10000}
                   sliderLength={300}
-                  onValuesChange={(values) => {
+                  onValuesChange={values => {
                     setPriceRange(values);
                   }}
                   selectedStyle={styles.sliderSelected}
@@ -171,15 +169,23 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
               </View>
               <View style={styles.priceRangeTextContainer}>
                 <View style={styles.priceTextContainer}>
-                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최소 금액</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
+                    최소 금액
+                  </Text>
                   <View style={styles.priceContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>{priceRange[0].toLocaleString()}</Text>
+                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>
+                      {priceRange[0].toLocaleString()}
+                    </Text>
                   </View>
                 </View>
                 <View style={styles.priceTextContainer}>
-                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최대 금액</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
+                    최대 금액
+                  </Text>
                   <View style={styles.priceContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>{priceRange[1].toLocaleString()}</Text>
+                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>
+                      {priceRange[1].toLocaleString()}
+                    </Text>
                   </View>
                 </View>
               </View>
@@ -191,19 +197,30 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
             <View
               onLayout={e => {
                 const y = e.nativeEvent.layout?.y;
-                if (y != null) setSectionPositions(prev => ({ ...prev, scale: y }));
+                if (y != null)
+                  setSectionPositions(prev => ({...prev, scale: y}));
               }}
-              style={styles.section}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>규모</Text>
+              style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                규모
+              </Text>
               <View style={styles.optionRow}>
                 {meetScales.map(opt => (
                   <TouchableOpacity
                     key={opt.id}
-                    style={[styles.optionBox, selectedScale === opt.id && styles.optionBoxSelected]}
-                    onPress={() => setSelectedScale(opt.id)}
-                  >
-                    <Text style={[FONTS.fs_14_semibold, styles.optionText, selectedScale === opt.id && styles.optionTextSelected]}>{opt.name}</Text>
+                    style={[
+                      styles.optionBox,
+                      selectedScale === opt.id && styles.optionBoxSelected,
+                    ]}
+                    onPress={() => setSelectedScale(opt.id)}>
+                    <Text
+                      style={[
+                        FONTS.fs_14_semibold,
+                        styles.optionText,
+                        selectedScale === opt.id && styles.optionTextSelected,
+                      ]}>
+                      {opt.name}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -215,19 +232,27 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
             <View
               onLayout={e => {
                 const y = e.nativeEvent.layout?.y;
-                if (y != null) setSectionPositions(prev => ({ ...prev, stay: y }));
+                if (y != null)
+                  setSectionPositions(prev => ({...prev, stay: y}));
               }}
-              style={styles.section}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>숙박 여부</Text>
+              style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                숙박 여부
+              </Text>
               <View style={styles.optionRow}>
                 {stayTypes.map(opt => (
                   <TouchableOpacity
                     key={opt.id}
                     style={styles.optionBox}
-                    onPress={() => setSelectedStay(opt.id)}
-                  >
-                    <Text style={[FONTS.fs_14_medium, styles.optionText, selectedStay === opt.id && styles.optionTextSelected]}>{opt.name}</Text>
+                    onPress={() => setSelectedStay(opt.id)}>
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.optionText,
+                        selectedStay === opt.id && styles.optionTextSelected,
+                      ]}>
+                      {opt.name}
+                    </Text>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -239,11 +264,13 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
             <View
               onLayout={e => {
                 const y = e.nativeEvent.layout?.y;
-                if (y != null) setSectionPositions(prev => ({ ...prev, tags: y }));
+                if (y != null)
+                  setSectionPositions(prev => ({...prev, tags: y}));
               }}
-              style={styles.section}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>시설/서비스</Text>
+              style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                시설/서비스
+              </Text>
               <View style={styles.optionRow}>
                 {meetTags.map(tag => {
                   const isSelected = selectedTags.includes(tag.id);
@@ -251,9 +278,15 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
                     <TouchableOpacity
                       key={tag.id}
                       style={styles.optionBox}
-                      onPress={() => toggleTag(tag.id)}
-                    >
-                      <Text style={[FONTS.fs_14_medium, styles.optionText, isSelected && styles.optionTextSelected]}>{tag.name}</Text>
+                      onPress={() => toggleTag(tag.id)}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          styles.optionText,
+                          isSelected && styles.optionTextSelected,
+                        ]}>
+                        {tag.name}
+                      </Text>
                     </TouchableOpacity>
                   );
                 })}
@@ -261,7 +294,6 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
             </View>
 
             <View style={styles.devide} />
-
           </ScrollView>
 
           {/* 하단 버튼 */}
@@ -274,10 +306,15 @@ const MeetFilterModal = ({ visible, onClose, onApply }) => {
               />
             </View>
             <View style={styles.confirmButton}>
-              <ButtonScarlet 
-                title="모임 보기"
+              <ButtonScarlet
+                title="이벤트 보기"
                 onPress={() => {
-                  const next = { priceRange, selectedScale, selectedStay, selectedTags };
+                  const next = {
+                    priceRange,
+                    selectedScale,
+                    selectedStay,
+                    selectedTags,
+                  };
                   onApply(next);
                   setInitialState({
                     priceRange,
@@ -302,7 +339,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   container: {
     height: height * 0.9,
@@ -323,8 +360,8 @@ const styles = StyleSheet.create({
 
   // 탭
   tabRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-around',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_300,
     marginTop: 20,
@@ -341,8 +378,7 @@ const styles = StyleSheet.create({
   section: {
     paddingVertical: 20,
   },
-  sectionTitle: {
-  },
+  sectionTitle: {},
   devide: {
     height: 0.8,
     backgroundColor: COLORS.grayscale_200,
@@ -350,7 +386,7 @@ const styles = StyleSheet.create({
 
   // 가격
   priceSectionHeader: {
-    flexDirection: "row",
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
@@ -384,7 +420,7 @@ const styles = StyleSheet.create({
   priceRangeTextContainer: {
     alignItems: 'center',
     justifyContent: 'space-between',
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: 4,
   },
   priceTextContainer: {
@@ -399,13 +435,12 @@ const styles = StyleSheet.create({
     padding: 12,
     borderRadius: 20,
   },
-  priceText:{
-  },
+  priceText: {},
 
   // 규모, 숙박여부, 태그
   optionRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
+    flexDirection: 'row',
+    flexWrap: 'wrap',
     marginTop: 12,
     backgroundColor: COLORS.grayscale_100,
     borderRadius: 8,
@@ -413,8 +448,8 @@ const styles = StyleSheet.create({
   },
   optionBox: {
     padding: 10,
-    alignItems: "center",
-    justifyContent: "center",
+    alignItems: 'center',
+    justifyContent: 'center',
     width: '48%',
   },
   optionText: {
@@ -427,12 +462,12 @@ const styles = StyleSheet.create({
 
   // 하단 버튼
   sticky: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: "row",
-    backgroundColor: "white",
+    flexDirection: 'row',
+    backgroundColor: 'white',
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,

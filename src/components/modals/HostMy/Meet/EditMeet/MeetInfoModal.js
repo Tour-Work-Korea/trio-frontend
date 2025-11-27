@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,22 +14,32 @@ import {
   TextInput,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetInfoModal = ({ visible, onClose, onSelect, shouldResetOnClose, initialInfo = '' }) => {
+const MeetInfoModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+  initialInfo = '',
+}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [text, setText] = useState('');
   const [appliedData, setAppliedData] = useState(null);
-  
+
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
 
     return () => {
       showSub.remove();
@@ -63,7 +73,7 @@ const MeetInfoModal = ({ visible, onClose, onSelect, shouldResetOnClose, initial
   const handleConfirm = () => {
     const trimmed = text.trim();
     setAppliedData(trimmed);
-    onSelect({ partyInfo: trimmed });
+    onSelect({partyInfo: trimmed});
     onClose();
   };
 
@@ -80,73 +90,77 @@ const MeetInfoModal = ({ visible, onClose, onSelect, shouldResetOnClose, initial
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <KeyboardAvoidingView
-        style={{ flex: 1 }}
+        style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -220 : 0}
-      >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -220 : 0}>
+        <TouchableWithoutFeedback onPress={handleOverlayPress}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContainer}>
+                {/* 헤더 */}
+                <View style={styles.header}>
+                  <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                    이벤트 상세 정보
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.XBtn}
+                    onPress={handleModalClose}>
+                    <XBtn width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
 
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-              모임 상세 정보
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
+                <ScrollView
+                  style={{flex: 1}}
+                  keyboardShouldPersistTaps="handled">
+                  {/* 상세 정보 */}
+                  <View style={styles.body}>
+                    <View style={styles.title}>
+                      <Text style={[FONTS.fs_16_medium]}>
+                        이벤트에 대해 자유롭게 적어주세요
+                      </Text>
+                      <Text style={[FONTS.fs_12_light, styles.countText]}>
+                        <Text style={{color: COLORS.primary_orange}}>
+                          {text.length}
+                        </Text>
+                        /5,000
+                      </Text>
+                    </View>
 
-          <ScrollView
-            style={{ flex: 1 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* 상세 정보 */}
-            <View style={styles.body}>
-              <View style={styles.title}>
-                <Text style={[FONTS.fs_16_medium]}>
-                  모임에 대해 자유롭게 적어주세요
-                </Text>
-                <Text style={[FONTS.fs_12_light, styles.countText]}>
-                  <Text style={{color: COLORS.primary_orange}}>{text.length}</Text>/5,000
-                </Text>
+                    <TextInput
+                      style={[styles.textArea, FONTS.fs_14_regular]}
+                      multiline
+                      maxLength={5000}
+                      placeholder="이벤트에 대해 자세히 적어주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={text}
+                      onChangeText={setText}
+                      scrollEnabled={true}
+                      textAlignVertical="top"
+                    />
+
+                    <TouchableOpacity
+                      style={{alignSelf: 'flex-end'}}
+                      onPress={() => setText('')}>
+                      <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>
+                        다시쓰기
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+
+                {/* 등록하기 버튼 */}
+                <ButtonScarlet
+                  title={'적용하기'}
+                  onPress={handleConfirm}
+                  disabled={text.trim() === ''}
+                  style={{marginBottom: 16}}
+                />
               </View>
-            
-              <TextInput
-                style={[styles.textArea, FONTS.fs_14_regular]}
-                multiline
-                maxLength={5000}
-                placeholder="모임에 대해 자세히 적어주세요"
-                placeholderTextColor={COLORS.grayscale_400}
-                value={text}
-                onChangeText={setText}
-                scrollEnabled={true}
-                textAlignVertical="top"
-              />
-
-              <TouchableOpacity style={{alignSelf: 'flex-end'}} onPress={() => setText('')}>
-                <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
-              </TouchableOpacity>
-            </View>
-          </ScrollView>
-
-          {/* 등록하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={text.trim() === ''}
-            style={{ marginBottom: 16 }}
-          />
-          
-        </View>
+            </TouchableWithoutFeedback>
+          </View>
         </TouchableWithoutFeedback>
-      </View>
-      </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
   );

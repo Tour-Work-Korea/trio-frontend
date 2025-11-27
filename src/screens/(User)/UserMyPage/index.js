@@ -159,21 +159,23 @@ const UserMyPage = () => {
 
             <View style={styles.devide} />
 
-            {/* 모임 섹션 */}
+            {/* 이벤트 섹션 */}
             <View style={[styles.section, {marginBottom: 16}]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                모임
+                이벤트
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={FavoriteMeetIcon}
-                  label="즐겨찾는 모임"
+                  label="즐겨찾는 이벤트"
                   onPress={() => navigation.navigate('UserFavoriteMeet')}
                 />
                 <MenuItem
                   IconComponent={MeetReservationCheckIcon}
-                  label="모임 예약내역"
-                  onPress={() => navigation.navigate('UserMeetReservationCheck')}
+                  label="이벤트 예약내역"
+                  onPress={() =>
+                    navigation.navigate('UserMeetReservationCheck')
+                  }
                 />
               </View>
             </View>

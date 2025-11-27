@@ -1,18 +1,16 @@
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+
 import styles from './Home.styles';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
-import {useNavigation} from '@react-navigation/native';
-import {RecruitList} from '@components/Employ/RecruitList';
-import ErrorModal from '@components/modals/ErrorModal';
 
-export default function Employs({jobs, setEmployList}) {
+import ErrorModal from '@components/modals/ErrorModal';
+import RecruitCard from '@components/Employ/RecruitList/RecruitCard';
+import {toggleFavorite} from '@utils/toggleFavorite';
+
+export default function Employs({jobs = [], setEmployList}) {
   const navigation = useNavigation();
-  const [errorModal, setErrorModal] = useState({
-    visible: false,
-    message: '',
-    buttonText: '',
-  });
 
   const moveToDetail = id => {
     navigation.navigate('EmployDetail', {id});
@@ -31,20 +29,24 @@ export default function Employs({jobs, setEmployList}) {
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
       </View>
-      <RecruitList
-        data={jobs}
-        onEndReached={() => {}}
-        onJobPress={moveToDetail}
-        setRecruitList={setEmployList}
-        scrollEnabled={false}
-        showErrorModal={setErrorModal}
-      />
-      <ErrorModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
-      />
+
+      <View style={{gap: 16}}>
+        {jobs.map(item => (
+          <RecruitCard
+            key={item.recruitId}
+            item={item}
+            onPress={() => moveToDetail(item.recruitId)}
+            onToggleFavorite={() =>
+              toggleFavorite({
+                type: 'recruit',
+                id: item.recruitId,
+                isLiked: item.isLiked,
+                setList: setEmployList,
+              })
+            }
+          />
+        ))}
+      </View>
     </View>
   );
 }
