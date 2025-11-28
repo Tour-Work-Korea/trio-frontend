@@ -20,7 +20,7 @@ export default function Loading({title}) {
         autoPlay
         loop
       />
-      <Text style={styles.text}>{title}</Text>
+      <Text style={styles.text}>{title ? title : '로딩 중...'}</Text>
     </View>
   );
 }

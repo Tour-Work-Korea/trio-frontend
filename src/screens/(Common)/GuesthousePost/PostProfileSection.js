@@ -1,6 +1,6 @@
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import React from 'react';
+import React, {useMemo} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
 
 import HeartIcon from '@assets/images/heart_empty.svg';
@@ -8,11 +8,21 @@ import FilledHeartIcon from '@assets/images/heart_filled.svg';
 
 export default function PostProfileSection({
   title,
+  tags,
   guesthouseName,
   guesthouseImgUrl,
   toggleFavorite,
   isLiked,
 }) {
+  const tagList = useMemo(() => {
+    if (typeof tags !== 'string') return [];
+
+    return tags
+      .replace(/,/g, ' ') // 콤마를 공백으로 통일
+      .split(/\s+/) // 연속 공백 포함해서 공백 기준으로 split
+      .map(s => s.trim())
+      .filter(Boolean); // 빈 문자열 제거
+  }, [tags]);
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
@@ -44,7 +54,18 @@ export default function PostProfileSection({
           style={styles.profileImg}
           resizeMode="cover"
         />
-        <Text style={{...FONTS.fs_14_semibold}}>{guesthouseName}</Text>
+        <View>
+          <Text style={{...FONTS.fs_14_semibold}}>{guesthouseName}</Text>
+          <View style={{flexDirection: 'row', gap: 4}}>
+            {tagList.map((el, id) => (
+              <Text
+                key={id}
+                style={{...FONTS.fs_12_medium, color: COLORS.grayscale_400}}>
+                {el}
+              </Text>
+            ))}
+          </View>
+        </View>
       </View>
     </View>
   );

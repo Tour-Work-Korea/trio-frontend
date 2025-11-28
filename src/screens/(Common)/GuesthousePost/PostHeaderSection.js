@@ -3,19 +3,8 @@ import {View, Text, StyleSheet, Image} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-export default function PostHeaderSection({tags, images}) {
+export default function PostHeaderSection({images}) {
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-
-  // tags: "#제주시,#뚜벅이" 또는 "#제주시  #뚜벅이" → ["#제주시", "#뚜벅이"]
-  const tagList = useMemo(() => {
-    if (typeof tags !== 'string') return [];
-
-    return tags
-      .replace(/,/g, ' ') // 콤마를 공백으로 통일
-      .split(/\s+/) // 연속 공백 포함해서 공백 기준으로 split
-      .map(s => s.trim())
-      .filter(Boolean); // 빈 문자열 제거
-  }, [tags]);
 
   useEffect(() => {
     const thumb = images?.find(i => i.isThumbnail)?.imgUrl;
@@ -29,14 +18,6 @@ export default function PostHeaderSection({tags, images}) {
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
         resizeMode="cover"
       />
-
-      <View style={styles.tagContainer}>
-        {tagList.map((tag, index) => (
-          <View key={`${tag}-${index}`} style={styles.tagBox}>
-            <Text style={[FONTS.fs_12_medium, styles.tagText]}>{tag}</Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -73,21 +54,5 @@ const styles = StyleSheet.create({
   guesthouseText: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_0,
-  },
-  tagContainer: {
-    position: 'absolute',
-    flexDirection: 'row',
-    right: 20,
-    bottom: 14,
-    gap: 8,
-  },
-  tagBox: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  tagText: {
-    color: COLORS.primary_blue,
   },
 });
