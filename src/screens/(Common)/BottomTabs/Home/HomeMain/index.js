@@ -16,16 +16,17 @@ import {COLORS} from '@constants/colors';
 import Meets from './Meets';
 import userMeetApi from '@utils/api/userMeetApi';
 import {FONTS} from '@constants/fonts';
+import Loading from '@components/Loading';
 
 const TABS = [
   {key: 'STAY', label: '게하'},
-  {key: 'EMPLOY', label: '스탭'},
   {key: 'MEET', label: '이벤트'},
+  {key: 'EMPLOY', label: '스탭'},
   {key: 'TODAY', label: '오늘의 게스트하우스'},
 ];
 
 const HomeMain = () => {
-  const [activeTab, setActiveTab] = useState('STAY');
+  const [activeTab, setActiveTab] = useState('TODAY');
 
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [employList, setEmployList] = useState([]);
@@ -35,6 +36,7 @@ const HomeMain = () => {
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isEmLoading, setIsEmLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
+  const [isMeetLoading, setIsMeetLoading] = useState(true);
 
   const userRole = useUserStore.getState()?.userRole;
 
@@ -91,18 +93,19 @@ const HomeMain = () => {
     }
   }, []);
 
-  //인기 이벤트(이벤트) 조회
   const tryFetchMeets = useCallback(async () => {
     try {
-      const response = await userMeetApi.getRecentParties({
+      const response = await userMeetApi.searchParties({
         page: 0,
         size: 3,
         sortBy: 'RECOMMEND',
       });
-      setEventList(response.data || []);
+      setEventList(response.data.content || []);
     } catch (error) {
       console.warn('이벤트 조회 실패', error);
       setEventList([]);
+    } finally {
+      setIsMeetLoading(false);
     }
   }, []);
 
@@ -130,11 +133,7 @@ const HomeMain = () => {
     <View style={{backgroundColor: COLORS.grayscale_0}}>
       {/* 배너 */}
       <View style={styles.boxContainer}>
-        {isBannerLoading ? (
-          <Text>로딩 중</Text>
-        ) : (
-          <Banner banners={bannerList} />
-        )}
+        <Banner banners={bannerList} />
       </View>
 
       {/* 탭바 */}
@@ -162,18 +161,21 @@ const HomeMain = () => {
     </View>
   );
 
+  if (isBannerLoading || isEmLoading || isMeetLoading || isGHLoading) {
+    return <Loading />;
+  }
   return (
     <View style={styles.container}>
-      {StickyHeader}
-      <ScrollView
-        ref={scrollRef}
-        style={styles.container}
-        showsVerticalScrollIndicator={false}>
-        {activeTab === 'TODAY' ? (
-          <View style={styles.boxContainer}>
-            <TodayGuesthouses />
-          </View>
-        ) : (
+      {StickyHeader}{' '}
+      {activeTab === 'TODAY' ? (
+        <View style={styles.boxContainer}>
+          <TodayGuesthouses />
+        </View>
+      ) : (
+        <ScrollView
+          ref={scrollRef}
+          style={styles.container}
+          showsVerticalScrollIndicator={false}>
           <>
             {/* 숙박 섹션 */}
             <View
@@ -181,11 +183,7 @@ const HomeMain = () => {
                 stayYRef.current = e.nativeEvent.layout.y;
               }}
               style={styles.boxContainer}>
-              {isGHLoading ? (
-                <Text>로딩 중</Text>
-              ) : (
-                <Guesthouses guesthouses={guesthouseList} />
-              )}
+              <Guesthouses guesthouses={guesthouseList} />
             </View>
 
             {/* 채용 섹션 */}
@@ -194,11 +192,7 @@ const HomeMain = () => {
                 employYRef.current = e.nativeEvent.layout.y;
               }}
               style={styles.boxContainer}>
-              {isEmLoading ? (
-                <Text>로딩 중</Text>
-              ) : (
-                <Employ jobs={employList} setEmployList={setEmployList} />
-              )}
+              <Employ jobs={employList} setEmployList={setEmployList} />
             </View>
 
             {/* 이벤트(이벤트) 섹션 */}
@@ -210,8 +204,8 @@ const HomeMain = () => {
               <Meets events={eventList} setEventList={setEventList} />
             </View>
           </>
-        )}
-      </ScrollView>
+        </ScrollView>
+      )}
     </View>
   );
 };

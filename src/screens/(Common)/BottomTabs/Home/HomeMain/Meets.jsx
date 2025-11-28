@@ -16,12 +16,9 @@ import HeartFilled from '@assets/images/heart_filled.svg';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import ErrorModal from '@components/modals/ErrorModal';
 import {toggleFavorite} from '@utils/toggleFavorite';
 
 export default function Meets({events = [], setEventList}) {
-  const navigation = useNavigation();
-
   const moveToDetail = partyId => {
     console.log('★ Meet item press', partyId);
   };

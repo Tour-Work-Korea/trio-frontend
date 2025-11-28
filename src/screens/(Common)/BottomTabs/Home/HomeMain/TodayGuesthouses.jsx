@@ -10,6 +10,7 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
+import Loading from '@components/Loading';
 
 const PAGE_SIZE = 6;
 
@@ -164,16 +165,13 @@ export default function TodayGuesthouses() {
   );
 
   const ListFooter = useMemo(() => {
-    if (!loading) return <View style={{height: 24}} />;
-    return (
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>불러오는 중...</Text>
-      </View>
-    );
+    if (loading) {
+      return <Loading title="로딩 중..." />;
+    }
   }, [loading]);
 
   return (
-    <View style={{flex: 1}}>
+    <View>
       <FlatList
         data={items}
         keyExtractor={keyExtractor}

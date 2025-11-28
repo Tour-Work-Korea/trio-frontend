@@ -3,6 +3,7 @@ import {View, Image, Text, TouchableOpacity} from 'react-native';
 import styles from './ApplicantList.styles';
 import {formatLocalDateToDot} from '@utils/formatDate';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import {openWebLink} from '@utils/openWebLink';
 
 export default function ApplicantCard({item, handleApplicantPress}) {
   return (
@@ -40,10 +41,14 @@ export default function ApplicantCard({item, handleApplicantPress}) {
               <Text style={styles.infoValue}>{item.mbti}</Text>
             </View>
 
-            <View style={styles.infoRow}>
+            <TouchableOpacity
+              style={styles.infoRow}
+              onPress={() =>
+                openWebLink(`https://www.instagram.com/${item?.instagram}`)
+              }>
               <Text style={styles.infoLabel}>insta</Text>
               <Text style={styles.infoValue}>{item.instagram}</Text>
-            </View>
+            </TouchableOpacity>
           </View>
         </View>
         <Text style={styles.introductionText}>{item.resumeTitle}</Text>

@@ -1,8 +1,9 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet} from 'react-native';
+import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
 import ProfileIcon from '@assets/images/wlogo_gray_up.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import {openWebLink} from '@utils/openWebLink';
 
 const ApplicantProfileHeader = ({data}) => {
   return (
@@ -11,7 +12,7 @@ const ApplicantProfileHeader = ({data}) => {
         <View style={styles.basicInfoContainer}>
           <Text style={styles.profileName}>{data?.nickname}</Text>
           <Text style={styles.basicInfoText}>
-            {data?.gender === 'F' ? '여자' : '남자'} • {data?.age}세 (
+            {data?.gender === 'F' ? '여자!!!' : '남자'} • {data?.age}세 (
             {data?.birthDate.split('-')[0]}년생)
           </Text>
         </View>
@@ -31,19 +32,24 @@ const ApplicantProfileHeader = ({data}) => {
             <InfoRow label="연락처" value={data?.phone} />
             <InfoRow label="이메일" value={data?.email} />
             <InfoRow label="MBTI" value={data?.mbti ?? data?.resumeMbti} />
-            <InfoRow label="insta" value={data?.instagramId} />
+            <InfoRow
+              label="insta"
+              value={data?.instagramId}
+              onPress={() => {
+                openWebLink(`https://www.instagram.com/${data?.instagramId}`);
+              }}
+            />
           </View>
         </View>
       </View>
     </View>
   );
 };
-
-const InfoRow = ({label, value}) => (
-  <View style={styles.infoRow}>
+const InfoRow = ({label, value, onPress = null}) => (
+  <TouchableOpacity style={styles.infoRow} onPress={onPress}>
     <Text style={styles.infoLabel}>{label}</Text>
     <Text style={styles.infoValue}>{value}</Text>
-  </View>
+  </TouchableOpacity>
 );
 
 export default ApplicantProfileHeader;

@@ -18,8 +18,6 @@ import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
 import ErrorModal from '@components/modals/ErrorModal';
-
-// ✅ postApi 파일 사용
 import postApi from '@utils/api/postApi';
 
 import {CommonActions, useNavigation} from '@react-navigation/native';
@@ -205,12 +203,7 @@ export default function MyGuesthouseIntroForm({route}) {
           buttonText: '확인',
         });
 
-        navigation.dispatch(
-          CommonActions.reset({
-            index: 0,
-            routes: [{name: 'MyGuesthouseIntroList'}],
-          }),
-        );
+        navigation.replace('MyGuesthouseIntroList');
         return;
       }
 
@@ -234,12 +227,7 @@ export default function MyGuesthouseIntroForm({route}) {
         buttonText: '확인',
       });
 
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: 'MainTabs', params: {screen: '마이'}}],
-        }),
-      );
+      navigation.replace('MyGuesthouseIntroList');
     } catch (error) {
       const serverMessage =
         error.response?.data?.message ||
