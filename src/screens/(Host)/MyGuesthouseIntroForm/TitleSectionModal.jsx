@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
@@ -68,114 +69,118 @@ export default function TitleSectionModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View />
-            <Text style={local.headerText}>소개 글 제목</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24} />
-            </TouchableOpacity>
+      <KeyboardAvoidingView style={{flex: 1}} enabled>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <View />
+              <Text style={local.headerText}>소개 글 제목</Text>
+              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+            </View>
+
+            <ScrollView contentContainerStyle={{paddingBottom: 24}}>
+              {/* ✅ 소개 이미지 추가 */}
+              <View>
+                <View style={styles.dateRow}>
+                  <Text style={styles.subsectionTitle}>
+                    소개 사진을 추가해주세요
+                  </Text>
+                  <Text style={local.lengthTextAll}>
+                    <Text style={local.lengthText}>
+                      {limitImage - (formData?.introImages?.length ?? 0)}
+                    </Text>
+                    /{limitImage}
+                  </Text>
+                </View>
+
+                <TouchableOpacity
+                  style={styles.addPhotoButton}
+                  onPress={pickImage}
+                  disabled={
+                    (formData?.introImages?.length ?? 0) === limitImage
+                  }>
+                  <Gray_ImageAdd width={30} height={30} />
+                </TouchableOpacity>
+
+                <View style={styles.photoGrid}>
+                  {(formData?.introImages ?? []).map((imageObj, index) => (
+                    <View key={index}>
+                      <Image
+                        source={{uri: imageObj.imgUrl}}
+                        style={[
+                          styles.photoItem,
+                          imageObj.isThumbnail ? styles.thumbnail : null,
+                        ]}
+                        resizeMode="cover"
+                      />
+                      <TouchableOpacity
+                        style={styles.removePhotoButton}
+                        onPress={() => removePhoto(index)}>
+                        <XBtn width={14} height={14} />
+                      </TouchableOpacity>
+                    </View>
+                  ))}
+                </View>
+              </View>
+
+              {/* ✅ 제목/태그 입력 영역 (네가 준 코드 그대로) */}
+              <View style={{marginTop: 16}}>
+                <View>
+                  <View style={styles.inputHeader}>
+                    <Text style={styles.label}>제목</Text>
+                    <Text style={styles.lengthTextAll}>
+                      <Text style={styles.lengthText}>
+                        {formData.title?.length?.toLocaleString()}
+                      </Text>
+                      /50
+                    </Text>
+                  </View>
+                  <TextInput
+                    style={styles.input}
+                    placeholder="ex) 아늑하고 따뜻한 분위기의 제주 게스트하우스"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={formData.title}
+                    maxLength={50}
+                    onChangeText={text => handleInputChange('title', text)}
+                  />
+                </View>
+
+                <View style={{marginTop: 12}}>
+                  <View style={styles.inputHeader}>
+                    <Text style={styles.label}>
+                      #태그로 게스트하우스의 특징을 보여주세요
+                    </Text>
+                    <Text style={styles.lengthTextAll}>
+                      <Text style={styles.lengthText}>
+                        {formData.tags?.length?.toLocaleString()}
+                      </Text>
+                      /100
+                    </Text>
+                  </View>
+                  <TextInput
+                    style={[styles.input, {marginTop: 6}]}
+                    placeholder="#제주시 #뚜벅이 #포틀럭"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={formData.tags}
+                    maxLength={100}
+                    onChangeText={text => handleInputChange('tags', text)}
+                  />
+                </View>
+              </View>
+            </ScrollView>
           </View>
 
-          <ScrollView contentContainerStyle={{paddingBottom: 24}}>
-            {/* ✅ 소개 이미지 추가 */}
-            <View>
-              <View style={styles.dateRow}>
-                <Text style={styles.subsectionTitle}>
-                  소개 사진을 추가해주세요
-                </Text>
-                <Text style={local.lengthTextAll}>
-                  <Text style={local.lengthText}>
-                    {limitImage - (formData?.introImages?.length ?? 0)}
-                  </Text>
-                  /{limitImage}
-                </Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.addPhotoButton}
-                onPress={pickImage}
-                disabled={(formData?.introImages?.length ?? 0) === limitImage}>
-                <Gray_ImageAdd width={30} height={30} />
-              </TouchableOpacity>
-
-              <View style={styles.photoGrid}>
-                {(formData?.introImages ?? []).map((imageObj, index) => (
-                  <View key={index}>
-                    <Image
-                      source={{uri: imageObj.imgUrl}}
-                      style={[
-                        styles.photoItem,
-                        imageObj.isThumbnail ? styles.thumbnail : null,
-                      ]}
-                      resizeMode="cover"
-                    />
-                    <TouchableOpacity
-                      style={styles.removePhotoButton}
-                      onPress={() => removePhoto(index)}>
-                      <XBtn width={14} height={14} />
-                    </TouchableOpacity>
-                  </View>
-                ))}
-              </View>
-            </View>
-
-            {/* ✅ 제목/태그 입력 영역 (네가 준 코드 그대로) */}
-            <View style={{marginTop: 16}}>
-              <View>
-                <View style={styles.inputHeader}>
-                  <Text style={styles.label}>제목</Text>
-                  <Text style={styles.lengthTextAll}>
-                    <Text style={styles.lengthText}>
-                      {formData.title?.length?.toLocaleString()}
-                    </Text>
-                    /50
-                  </Text>
-                </View>
-                <TextInput
-                  style={styles.input}
-                  placeholder="ex) 아늑하고 따뜻한 분위기의 제주 게스트하우스"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={formData.title}
-                  maxLength={50}
-                  onChangeText={text => handleInputChange('title', text)}
-                />
-              </View>
-
-              <View style={{marginTop: 12}}>
-                <View style={styles.inputHeader}>
-                  <Text style={styles.label}>
-                    #태그로 게스트하우스의 특징을 보여주세요
-                  </Text>
-                  <Text style={styles.lengthTextAll}>
-                    <Text style={styles.lengthText}>
-                      {formData.tags?.length?.toLocaleString()}
-                    </Text>
-                    /100
-                  </Text>
-                </View>
-                <TextInput
-                  style={[styles.input, {marginTop: 6}]}
-                  placeholder="#제주시 #뚜벅이 #포틀럭"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={formData.tags}
-                  maxLength={100}
-                  onChangeText={text => handleInputChange('tags', text)}
-                />
-              </View>
-            </View>
-          </ScrollView>
+          <ErrorModal
+            visible={errorModal.visible}
+            title={errorModal.title}
+            buttonText={'확인'}
+            onPress={() => setErrorModal({visible: false, title: ''})}
+          />
         </View>
-
-        <ErrorModal
-          visible={errorModal.visible}
-          title={errorModal.title}
-          buttonText={'확인'}
-          onPress={() => setErrorModal({visible: false, title: ''})}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }

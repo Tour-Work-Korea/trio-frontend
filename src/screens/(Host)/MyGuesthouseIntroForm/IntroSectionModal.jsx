@@ -8,6 +8,7 @@ import {
   StyleSheet,
   TextInput,
   ScrollView,
+  KeyboardAvoidingView,
 } from 'react-native';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
@@ -140,96 +141,98 @@ export default function IntroSectionModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <View />
-            <Text style={local.headerText}>{headerTitle}</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24} />
-            </TouchableOpacity>
-          </View>
+      <KeyboardAvoidingView style={{flex: 1}} enabled>
+        <View style={styles.overlay}>
+          <View style={styles.container}>
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <View />
+              <Text style={local.headerText}>{headerTitle}</Text>
+              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+            </View>
 
-          <ScrollView contentContainerStyle={{paddingBottom: 24}}>
-            {!!headerSubtitle && (
-              <Text style={local.subtitle}>{headerSubtitle}</Text>
-            )}
+            <ScrollView contentContainerStyle={{paddingBottom: 24}}>
+              {!!headerSubtitle && (
+                <Text style={local.subtitle}>{headerSubtitle}</Text>
+              )}
 
-            {blocks.map((block, idx) => (
-              <View key={idx} style={local.blockCard}>
-                <View style={local.blockHeader}>
-                  <Text style={local.blockTitle}>단락 {idx + 1}</Text>
-                  <TouchableOpacity onPress={() => removeBlock(idx)}>
-                    <Text style={local.removeText}>삭제</Text>
-                  </TouchableOpacity>
-                </View>
-
-                {/* 이미지 */}
-                {block.imgUrl ? (
-                  <View style={{position: 'relative', marginBottom: 8}}>
-                    <Image
-                      source={{uri: block.imgUrl}}
-                      style={local.blockImage}
-                      resizeMode="cover"
-                    />
-                    <TouchableOpacity
-                      style={local.removeImageBtn}
-                      onPress={() => removeImage(idx)}>
-                      <XBtn width={14} height={14} />
+              {blocks.map((block, idx) => (
+                <View key={idx} style={local.blockCard}>
+                  <View style={local.blockHeader}>
+                    <Text style={local.blockTitle}>단락 {idx + 1}</Text>
+                    <TouchableOpacity onPress={() => removeBlock(idx)}>
+                      <Text style={local.removeText}>삭제</Text>
                     </TouchableOpacity>
                   </View>
-                ) : (
-                  <TouchableOpacity
-                    style={local.addPhotoButton}
-                    onPress={() => pickImage(idx)}>
-                    <Gray_ImageAdd width={28} height={28} />
-                    <Text style={local.addPhotoText}>이미지 추가</Text>
-                  </TouchableOpacity>
-                )}
 
-                {/* 제목 */}
-                <TextInput
-                  style={local.input}
-                  placeholder="단락 제목 (선택)"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={block.title}
-                  maxLength={100}
-                  onChangeText={text => updateBlock(idx, 'title', text)}
-                />
+                  {/* 이미지 */}
+                  {block.imgUrl ? (
+                    <View style={{position: 'relative', marginBottom: 8}}>
+                      <Image
+                        source={{uri: block.imgUrl}}
+                        style={local.blockImage}
+                        resizeMode="cover"
+                      />
+                      <TouchableOpacity
+                        style={local.removeImageBtn}
+                        onPress={() => removeImage(idx)}>
+                        <XBtn width={14} height={14} />
+                      </TouchableOpacity>
+                    </View>
+                  ) : (
+                    <TouchableOpacity
+                      style={local.addPhotoButton}
+                      onPress={() => pickImage(idx)}>
+                      <Gray_ImageAdd width={28} height={28} />
+                      <Text style={local.addPhotoText}>이미지 추가</Text>
+                    </TouchableOpacity>
+                  )}
 
-                {/* 내용 */}
-                <TextInput
-                  style={[local.input, local.textarea]}
-                  placeholder="단락 내용 (선택)"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  value={block.content}
-                  multiline
-                  maxLength={5000}
-                  onChangeText={text => updateBlock(idx, 'content', text)}
-                />
-              </View>
-            ))}
+                  {/* 제목 */}
+                  <TextInput
+                    style={local.input}
+                    placeholder="단락 제목 (선택)"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={block.title}
+                    maxLength={100}
+                    onChangeText={text => updateBlock(idx, 'title', text)}
+                  />
 
-            {/* 단락 추가 */}
-            <TouchableOpacity style={local.addBlockBtn} onPress={addBlock}>
-              <Text style={local.addBlockText}>+ 단락 추가</Text>
-            </TouchableOpacity>
+                  {/* 내용 */}
+                  <TextInput
+                    style={[local.input, local.textarea]}
+                    placeholder="단락 내용 (선택)"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={block.content}
+                    multiline
+                    maxLength={5000}
+                    onChangeText={text => updateBlock(idx, 'content', text)}
+                  />
+                </View>
+              ))}
 
-            {/* 저장 */}
-            <TouchableOpacity style={local.saveBtn} onPress={handleSave}>
-              <Text style={local.saveText}>저장하기</Text>
-            </TouchableOpacity>
-          </ScrollView>
+              {/* 단락 추가 */}
+              <TouchableOpacity style={local.addBlockBtn} onPress={addBlock}>
+                <Text style={local.addBlockText}>+ 단락 추가</Text>
+              </TouchableOpacity>
+
+              {/* 저장 */}
+              <TouchableOpacity style={local.saveBtn} onPress={handleSave}>
+                <Text style={local.saveText}>저장하기</Text>
+              </TouchableOpacity>
+            </ScrollView>
+          </View>
+
+          <ErrorModal
+            visible={errorModal.visible}
+            title={errorModal.title}
+            buttonText={'확인'}
+            onPress={() => setErrorModal({visible: false, title: ''})}
+          />
         </View>
-
-        <ErrorModal
-          visible={errorModal.visible}
-          title={errorModal.title}
-          buttonText={'확인'}
-          onPress={() => setErrorModal({visible: false, title: ''})}
-        />
-      </View>
+      </KeyboardAvoidingView>
     </Modal>
   );
 }
