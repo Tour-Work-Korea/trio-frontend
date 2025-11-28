@@ -201,7 +201,7 @@ const MenuItem = ({IconComponent, label, onPress}) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
-        <IconComponent width={24} height={24} />
+        <IconComponent width={20} height={20} />
       </View>
       <Text style={[FONTS.fs_14_medium, styles.menuLabel]}>{label}</Text>
     </View>

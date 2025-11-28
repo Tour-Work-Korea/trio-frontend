@@ -57,6 +57,7 @@ const GuesthousePost = ({route}) => {
           {/* 상단 기본 정보(제목, 좋아요) */}
           <PostProfileSection
             title={post?.title}
+            tags={post?.tags}
             guesthouseName={post?.guesthouseName}
             guesthouseImgUrl={post?.hostProfileImageUrl}
             toggleFavorite={handleFavorite}
