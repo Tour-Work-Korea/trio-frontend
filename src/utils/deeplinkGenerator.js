@@ -42,7 +42,7 @@ export const employDetailDeeplink = employId => {
 };
 
 /**
- * 모임
+ * 이벤트
  * @param {string} partyId
  */
 export const partyDetailDeeplink = partyId => {

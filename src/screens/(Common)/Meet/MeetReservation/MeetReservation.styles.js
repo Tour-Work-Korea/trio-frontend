@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
 
-  // 모임 제목
+  // 이벤트 제목
   title: {
     marginTop: 20,
   },
@@ -74,9 +74,7 @@ const styles = StyleSheet.create({
   },
 
   // 방 이름, 가격
-  meetNameText: {
-
-  },
+  meetNameText: {},
   meetPriceText: {
     color: COLORS.grayscale_600,
   },
@@ -88,9 +86,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 12,
   },
-  requestInput: {
-
-  },
+  requestInput: {},
 
   // 약관 동의
   agreeRowContainer: {

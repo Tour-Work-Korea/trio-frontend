@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -13,8 +13,8 @@ import {
 } from 'react-native';
 import DateTimePicker from '@react-native-community/datetimepicker';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
@@ -26,38 +26,40 @@ import EnabledRadioButton from '@assets/images/radio_button_enabled.svg';
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
 const KOR_DAYS = [
-  { key: 'MONDAY', label: '월요일' },
-  { key: 'TUESDAY', label: '화요일' },
-  { key: 'WEDNESDAY', label: '수요일' },
-  { key: 'THURSDAY', label: '목요일' },
-  { key: 'FRIDAY', label: '금요일' },
-  { key: 'SATURDAY', label: '토요일' },
-  { key: 'SUNDAY', label: '일요일' },
+  {key: 'MONDAY', label: '월요일'},
+  {key: 'TUESDAY', label: '화요일'},
+  {key: 'WEDNESDAY', label: '수요일'},
+  {key: 'THURSDAY', label: '목요일'},
+  {key: 'FRIDAY', label: '금요일'},
+  {key: 'SATURDAY', label: '토요일'},
+  {key: 'SUNDAY', label: '일요일'},
 ];
 
-const toYMD = (d) => {
+const toYMD = d => {
   const y = d.getFullYear();
   const m = String(d.getMonth() + 1).padStart(2, '0');
   const day = String(d.getDate()).padStart(2, '0');
   return `${y}-${m}-${day}`;
 };
-const toHMS = (d) => {
+const toHMS = d => {
   const hh = String(d.getHours()).padStart(2, '0');
   const mm = String(d.getMinutes()).padStart(2, '0');
   const ss = String(d.getSeconds()).padStart(2, '0');
   return `${hh}:${mm}:${ss}`;
 };
-const fmtTimeKOR = (d) => {
+const fmtTimeKOR = d => {
   const h = d.getHours();
   const m = String(d.getMinutes()).padStart(2, '0');
   const ap = h < 12 ? '오전' : '오후';
   const hh12 = ((h + 11) % 12) + 1;
   return `${ap} ${hh12}:${m}`;
 };
-const fmtYMD = (d) =>
-  `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(d.getDate()).padStart(2, '0')}`;
+const fmtYMD = d =>
+  `${d.getFullYear()}. ${String(d.getMonth() + 1).padStart(2, '0')}. ${String(
+    d.getDate(),
+  ).padStart(2, '0')}`;
 
-const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
+const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   const [startTime, setStartTime] = useState(() => {
     const d = new Date();
     d.setHours(17, 0, 0, 0);
@@ -97,8 +99,10 @@ const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   }, [visible]);
 
   const resetToInitial = () => {
-    const t1 = new Date(); t1.setHours(17, 0, 0, 0);
-    const t2 = new Date(); t2.setHours(22, 0, 0, 0);
+    const t1 = new Date();
+    t1.setHours(17, 0, 0, 0);
+    const t2 = new Date();
+    t2.setHours(22, 0, 0, 0);
     setStartTime(t1);
     setEndTime(t2);
     const today = new Date();
@@ -133,9 +137,9 @@ const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   };
 
   // 요일 멀티 토글
-  const toggleDay = (key) => {
-    setRepeatDays((prev) =>
-      prev.includes(key) ? prev.filter((k) => k !== key) : [...prev, key]
+  const toggleDay = key => {
+    setRepeatDays(prev =>
+      prev.includes(key) ? prev.filter(k => k !== key) : [...prev, key],
     );
   };
 
@@ -149,7 +153,12 @@ const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   const handleConfirm = () => {
     if (isDisabled) return;
     setAppliedData({
-      startTime, endTime, startDate, endDate, isRecurring, repeatDays,
+      startTime,
+      endTime,
+      startDate,
+      endDate,
+      isRecurring,
+      repeatDays,
     });
     onSelect({
       isRecurring,
@@ -169,7 +178,9 @@ const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
   const durationMin = Math.max(0, Math.round((endTime - startTime) / 60000));
   const durationText =
     durationMin >= 60
-      ? `${Math.floor(durationMin / 60)}시간${durationMin % 60 ? ` ${durationMin % 60}분` : ''}`
+      ? `${Math.floor(durationMin / 60)}시간${
+          durationMin % 60 ? ` ${durationMin % 60}분` : ''
+        }`
       : `${durationMin}분`;
 
   return (
@@ -177,195 +188,222 @@ const MeetDateModal = ({ visible, onClose, onSelect, shouldResetOnClose }) => {
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
+      onRequestClose={handleModalClose}>
       <TouchableWithoutFeedback onPress={handleModalClose}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
-
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
-              모임 날짜
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
-
-          {/* 게하 정보 */}
-          <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
-            {/* 시간 */}
-            <View style={styles.titleRow}>
-              <Text style={FONTS.fs_16_medium}>모임 시간</Text>
-              <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                {timesValid ? durationText : '시간을 올바르게 선택해 주세요'}
-              </Text>
-            </View>
-
-            <View style={[styles.capsuleRow]}>
-              {/* 시작 시간 캡슐 */}
-              <TouchableOpacity
-                style={styles.capsule}
-                onPress={() => {
-                  setShowStartTime((v) => !v);
-                  setShowEndTime(false);
-                }}
-              >
-                <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>{fmtTimeKOR(startTime)}</Text>
-                <ClockIcon width={24} height={24} />
-              </TouchableOpacity>
-
-              {/* 종료 시간 캡슐 */}
-              <TouchableOpacity
-                style={styles.capsule}
-                onPress={() => {
-                  setShowEndTime((v) => !v);
-                  setShowStartTime(false);
-                }}
-              >
-                <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>{fmtTimeKOR(endTime)}</Text>
-                <ClockIcon width={24} height={24} />
-              </TouchableOpacity>
-            </View>
-
-            {/* 인라인 타임 피커들 (토글) */}
-            {showStartTime && (
-              <View style={styles.inlinePicker}>
-                <DateTimePicker
-                  value={startTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={(_, d) => d && setStartTime(d)}
-                  minuteInterval={Platform.OS === 'ios' ? 10 : undefined}
-                  themeVariant="light"
-                />
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContainer}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+                  이벤트 날짜
+                </Text>
+                <TouchableOpacity
+                  style={styles.XBtn}
+                  onPress={handleModalClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
               </View>
-            )}
-            {showEndTime && (
-              <View style={styles.inlinePicker}>
-                <DateTimePicker
-                  value={endTime}
-                  mode="time"
-                  display="spinner"
-                  onChange={(_, d) => d && setEndTime(d)}
-                  minuteInterval={Platform.OS === 'ios' ? 10 : undefined}
-                  themeVariant="light"
-                />
-              </View>
-            )}
 
-            {/* 기간 */}
-            <View style={[styles.titleRow, { marginTop: 20 }]}>
-              <Text style={FONTS.fs_16_medium}>모임 공고 기간</Text>
-            </View>
-            <Text style={[FONTS.fs_12_medium, styles.grayText, {marginTop: 8,}]}>
-              반복이 아니면 두 날짜를 동일하게 설정해 주세요
-            </Text>
+              {/* 게하 정보 */}
+              <ScrollView
+                style={styles.body}
+                keyboardShouldPersistTaps="handled">
+                {/* 시간 */}
+                <View style={styles.titleRow}>
+                  <Text style={FONTS.fs_16_medium}>이벤트 시간</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.grayText]}>
+                    {timesValid
+                      ? durationText
+                      : '시간을 올바르게 선택해 주세요'}
+                  </Text>
+                </View>
 
-            <View style={[styles.capsuleRow]}>
-              {/* 시작일 캡슐 */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.capsule}
-                onPress={() => {
-                  setShowStartDate((v) => !v);
-                  setShowEndDate(false);
-                }}
-              >
-                <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>{fmtYMD(startDate)}</Text>
-                <CalendarIcon width={24} height={24} />
-              </TouchableOpacity>
+                <View style={[styles.capsuleRow]}>
+                  {/* 시작 시간 캡슐 */}
+                  <TouchableOpacity
+                    style={styles.capsule}
+                    onPress={() => {
+                      setShowStartTime(v => !v);
+                      setShowEndTime(false);
+                    }}>
+                    <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
+                      {fmtTimeKOR(startTime)}
+                    </Text>
+                    <ClockIcon width={24} height={24} />
+                  </TouchableOpacity>
 
-              {/* 종료일 캡슐 */}
-              <TouchableOpacity
-                activeOpacity={0.8}
-                style={styles.capsule}
-                onPress={() => {
-                  setShowEndDate((v) => !v);
-                  setShowStartDate(false);
-                }}
-              >
-                <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>{fmtYMD(endDate)}</Text>
-                <CalendarIcon width={24} height={24} />
-              </TouchableOpacity>
-            </View>
+                  {/* 종료 시간 캡슐 */}
+                  <TouchableOpacity
+                    style={styles.capsule}
+                    onPress={() => {
+                      setShowEndTime(v => !v);
+                      setShowStartTime(false);
+                    }}>
+                    <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
+                      {fmtTimeKOR(endTime)}
+                    </Text>
+                    <ClockIcon width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
 
-            {/* 인라인 데이트 피커들 (토글) */}
-            {showStartDate && (
-              <View style={styles.inlinePicker}>
-                <DateTimePicker
-                  value={startDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={(_, d) => d && setStartDate(d)}
-                  themeVariant="light"
-                />
-              </View>
-            )}
-            {showEndDate && (
-              <View style={styles.inlinePicker}>
-                <DateTimePicker
-                  value={endDate}
-                  mode="date"
-                  display="spinner"
-                  onChange={(_, d) => d && setEndDate(d)}
-                  minimumDate={startDate}
-                  themeVariant="light"
-                />
-              </View>
-            )}
+                {/* 인라인 타임 피커들 (토글) */}
+                {showStartTime && (
+                  <View style={styles.inlinePicker}>
+                    <DateTimePicker
+                      value={startTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(_, d) => d && setStartTime(d)}
+                      minuteInterval={Platform.OS === 'ios' ? 10 : undefined}
+                      themeVariant="light"
+                    />
+                  </View>
+                )}
+                {showEndTime && (
+                  <View style={styles.inlinePicker}>
+                    <DateTimePicker
+                      value={endTime}
+                      mode="time"
+                      display="spinner"
+                      onChange={(_, d) => d && setEndTime(d)}
+                      minuteInterval={Platform.OS === 'ios' ? 10 : undefined}
+                      themeVariant="light"
+                    />
+                  </View>
+                )}
 
-            {/* 반복 여부 */}
-            <View style={[styles.titleRow, { marginTop: 20, paddingRight: 12 }]}>
-              <Text style={FONTS.fs_16_medium}>반복 여부</Text>
-              <Switch
-                value={isRecurring}
-                onValueChange={setIsRecurring}
-                trackColor={{ false: COLORS.grayscale_300, true: COLORS.primary_orange }}
-                thumbColor={COLORS.grayscale_0}
+                {/* 기간 */}
+                <View style={[styles.titleRow, {marginTop: 20}]}>
+                  <Text style={FONTS.fs_16_medium}>이벤트 공고 기간</Text>
+                </View>
+                <Text
+                  style={[FONTS.fs_12_medium, styles.grayText, {marginTop: 8}]}>
+                  반복이 아니면 두 날짜를 동일하게 설정해 주세요
+                </Text>
+
+                <View style={[styles.capsuleRow]}>
+                  {/* 시작일 캡슐 */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.capsule}
+                    onPress={() => {
+                      setShowStartDate(v => !v);
+                      setShowEndDate(false);
+                    }}>
+                    <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
+                      {fmtYMD(startDate)}
+                    </Text>
+                    <CalendarIcon width={24} height={24} />
+                  </TouchableOpacity>
+
+                  {/* 종료일 캡슐 */}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.capsule}
+                    onPress={() => {
+                      setShowEndDate(v => !v);
+                      setShowStartDate(false);
+                    }}>
+                    <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
+                      {fmtYMD(endDate)}
+                    </Text>
+                    <CalendarIcon width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
+
+                {/* 인라인 데이트 피커들 (토글) */}
+                {showStartDate && (
+                  <View style={styles.inlinePicker}>
+                    <DateTimePicker
+                      value={startDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(_, d) => d && setStartDate(d)}
+                      themeVariant="light"
+                    />
+                  </View>
+                )}
+                {showEndDate && (
+                  <View style={styles.inlinePicker}>
+                    <DateTimePicker
+                      value={endDate}
+                      mode="date"
+                      display="spinner"
+                      onChange={(_, d) => d && setEndDate(d)}
+                      minimumDate={startDate}
+                      themeVariant="light"
+                    />
+                  </View>
+                )}
+
+                {/* 반복 여부 */}
+                <View
+                  style={[styles.titleRow, {marginTop: 20, paddingRight: 12}]}>
+                  <Text style={FONTS.fs_16_medium}>반복 여부</Text>
+                  <Switch
+                    value={isRecurring}
+                    onValueChange={setIsRecurring}
+                    trackColor={{
+                      false: COLORS.grayscale_300,
+                      true: COLORS.primary_orange,
+                    }}
+                    thumbColor={COLORS.grayscale_0}
+                  />
+                </View>
+                <Text
+                  style={[FONTS.fs_12_medium, styles.grayText, {marginTop: 4}]}>
+                  반복설정을 통해 이벤트을 자동으로 등록할 수 있어요!
+                </Text>
+                {/* 요일 선택 (반복 on일 때만 표시) */}
+                {isRecurring && (
+                  <View style={[styles.daysCard]}>
+                    {KOR_DAYS.map(({key, label}) => {
+                      const selected = repeatDays.includes(key);
+                      return (
+                        <TouchableOpacity
+                          key={key}
+                          style={styles.dayRow}
+                          onPress={() => toggleDay(key)}>
+                          <Text
+                            style={[
+                              FONTS.fs_14_medium,
+                              {color: COLORS.grayscale_800},
+                            ]}>
+                            {label}
+                          </Text>
+                          {selected ? (
+                            <EnabledRadioButton width={28} height={28} />
+                          ) : (
+                            <DisabledRadioButton width={28} height={28} />
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                    {repeatDays.length === 0 && (
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          styles.grayText,
+                          {alignSelf: 'center', marginTop: 8},
+                        ]}>
+                        반복 요일을 하나 이상 선택해 주세요
+                      </Text>
+                    )}
+                  </View>
+                )}
+              </ScrollView>
+
+              {/* 적용하기 버튼 */}
+              <ButtonScarlet
+                title={'적용하기'}
+                onPress={handleConfirm}
+                disabled={isDisabled}
+                style={{marginBottom: 16}}
               />
             </View>
-            <Text style={[FONTS.fs_12_medium, styles.grayText, { marginTop: 4 }]}>
-              반복설정을 통해 모임을 자동으로 등록할 수 있어요!
-            </Text>
-            {/* 요일 선택 (반복 on일 때만 표시) */}
-            {isRecurring && (
-              <View style={[styles.daysCard]}>
-                {KOR_DAYS.map(({ key, label }) => {
-                  const selected = repeatDays.includes(key);
-                  return (
-                    <TouchableOpacity key={key} style={styles.dayRow} onPress={() => toggleDay(key)}>
-                      <Text style={[FONTS.fs_14_medium, { color: COLORS.grayscale_800 }]}>{label}</Text>
-                      {selected ? (
-                        <EnabledRadioButton width={28} height={28} />
-                      ) : (
-                        <DisabledRadioButton width={28} height={28} />
-                      )}
-                    </TouchableOpacity>
-                  );
-                })}
-                {repeatDays.length === 0 && (
-                  <Text style={[FONTS.fs_12_medium, styles.grayText, { alignSelf: 'center', marginTop: 8 }]}>
-                    반복 요일을 하나 이상 선택해 주세요
-                  </Text>
-                )}
-              </View>
-            )}
-          </ScrollView>
-
-          {/* 적용하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={isDisabled}
-            style={{ marginBottom: 16 }}
-          />
-
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -387,19 +425,19 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
 
-  header: { 
-    alignItems: 'center', 
-    marginBottom: 40 
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
   },
-  headerTitle: { 
-    color: COLORS.grayscale_900 
+  headerTitle: {
+    color: COLORS.grayscale_900,
   },
-  XBtn: { 
-    position: 'absolute', 
-    right: 0 
+  XBtn: {
+    position: 'absolute',
+    right: 0,
   },
 
-  body: { flex: 1 },
+  body: {flex: 1},
 
   titleRow: {
     flexDirection: 'row',
@@ -407,11 +445,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
 
-  inlineRow: { 
-    flexDirection: 'row', 
+  inlineRow: {
+    flexDirection: 'row',
     alignItems: 'center',
   },
-  grayText: { 
+  grayText: {
     color: COLORS.grayscale_500,
   },
 

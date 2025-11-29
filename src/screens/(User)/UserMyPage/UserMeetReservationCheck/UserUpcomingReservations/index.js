@@ -1,16 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  Image,
+  StyleSheet,
+  TouchableOpacity,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
 import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
 import ReservationCancelModal from '@components/modals/UserMy/Meet/ReservationCancelModal'; // 추가
 
-export default function UserUpcomingReservations({ data, onRefresh }) {
+export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
 
   // 상세 모달
@@ -21,7 +28,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [cancelReservationId, setCancelReservationId] = useState(null);
 
-  const openDetailModal = (reservationId) => {
+  const openDetailModal = reservationId => {
     setSelectedReservationId(reservationId);
     setModalVisible(true);
   };
@@ -31,7 +38,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
     setSelectedReservationId(null);
   };
 
-  const openCancelModal = (reservationId) => {
+  const openCancelModal = reservationId => {
     setCancelReservationId(reservationId);
     setCancelModalVisible(true);
   };
@@ -41,12 +48,16 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
     setCancelReservationId(null);
   };
 
-  const renderItem = ({ item, index }) => {
-    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.startDateTime);
+  const renderItem = ({item, index}) => {
+    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      item.startDateTime,
+    );
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.card} onPress={() => openDetailModal(item.reservationId)}>
+        <TouchableOpacity
+          style={styles.card}
+          onPress={() => openDetailModal(item.reservationId)}>
           <View style={styles.guesthouseInfo}>
             <Image
               source={item.partyImage}
@@ -54,32 +65,44 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
               resizeMode="cover"
             />
             <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
+              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
+                {item.guesthouseName}
+              </Text>
               <Text
                 style={[FONTS.fs_14_medium, styles.roomText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.partyName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.adressText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 주소
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {startFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {startFormatted.time}{' '}
+              </Text>
             </View>
             <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {startFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {startFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {startFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {startFormatted.time}{' '}
+              </Text>
             </View>
           </View>
         </TouchableOpacity>
@@ -87,7 +110,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
         {/* <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
           <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
         </TouchableOpacity> */}
-  
+
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
     );
@@ -107,11 +130,13 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
         ListEmptyComponent={
           <EmptyState
             icon={SearchEmpty}
-            iconSize={{ width: 120, height: 120 }}
+            iconSize={{width: 120, height: 120}}
             title="예약내역이 없어요"
-            description="모임 예약하러 가볼까요?"
-            buttonText="모임 찾아보기"
-            onPressButton={() => navigation.navigate('MainTabs', { screen: '모임' })}
+            description="이벤트 예약하러 가볼까요?"
+            buttonText="이벤트 찾아보기"
+            onPressButton={() =>
+              navigation.navigate('MainTabs', {screen: '이벤트'})
+            }
           />
         }
       />
@@ -149,11 +174,10 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,
-  },  
+  },
 
   // 리스트
-  card: {
-  },
+  card: {},
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
@@ -170,9 +194,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 4,
   },
-  nameText: {
-
-  },
+  nameText: {},
   roomText: {
     color: COLORS.grayscale_800,
     flexShrink: 1,

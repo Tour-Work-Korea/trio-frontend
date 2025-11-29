@@ -1,12 +1,11 @@
 import api from './axiosInstance';
 
 const userGuesthouseApi = {
-
   // 게하 키워드 검색
   searchGuesthouseByKeyword: keyword =>
     api.get('/guesthouse/keyword', {
-      params: { keyword }
-  }),
+      params: {keyword},
+    }),
 
   // 유저 게스트하우스 검색 조회
   getGuesthouseList: ({
@@ -25,24 +24,24 @@ const userGuesthouseApi = {
     amenityIds,
     availableOnly,
   }) =>
-  api.get('/user/guesthouses', {
-    params: {
-      checkIn,
-      checkOut,
-      guestCount,
-      keyword,
-      keywordId,
-      regionIds,
-      page,
-      size,
-      sortBy,
-      minPrice,
-      maxPrice,
-      hashtagIds,
-      amenityIds,
-      availableOnly,
-    }
-  }),
+    api.get('/user/guesthouses', {
+      params: {
+        checkIn,
+        checkOut,
+        guestCount,
+        keyword,
+        keywordId,
+        regionIds,
+        page,
+        size,
+        sortBy,
+        minPrice,
+        maxPrice,
+        hashtagIds,
+        amenityIds,
+        availableOnly,
+      },
+    }),
 
   // 유저 게스트하우스 상세 조회
   getGuesthouseDetail: ({guesthouseId, checkIn, checkOut, guestCount}) =>
@@ -67,7 +66,7 @@ const userGuesthouseApi = {
     api.post(`/order/reservation/room/${roomId}`, body),
 
   // 예약 임시 승인
-  approveTempGuesthouseReservation: (reservationId) =>
+  approveTempGuesthouseReservation: reservationId =>
     api.put(`/order/reservation/temp/guesthouse/approve/${reservationId}`),
 
   // 결제 검증 및 확정
@@ -86,7 +85,7 @@ const userGuesthouseApi = {
 
   // 인기 게스트하우스 조회
   getPopularGuesthouses: () =>
-    api.get('/user/guesthouses/popular'),
+    api.get('/user/guesthouses/popular', {withAuth: false}),
 };
 
 export default userGuesthouseApi;

@@ -1,27 +1,16 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  Image,
-  TouchableOpacity,
-  StyleSheet,
-  Pressable,
-} from 'react-native';
+import {View, Text, FlatList, Image, StyleSheet, Pressable} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-// 더미 fetch
-import {mockFetchIntroPage} from './dummyIntroList';
-
-// 좋아요 토글 유틸
+import postApi from '@utils/api/postApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 
-// 하트 아이콘
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
-import {useNavigation} from '@react-navigation/native';
+import Loading from '@components/Loading';
 
 const PAGE_SIZE = 6;
 
@@ -36,46 +25,58 @@ export default function TodayGuesthouses() {
 
   const fetchPage = useCallback(
     async (nextPage, isRefresh = false) => {
+      // 이미 로딩 중이면 추가 요청 방지
       if (loading) return;
-      if (!hasNext && !isRefresh) return;
 
       setLoading(true);
       try {
-        const data = await mockFetchIntroPage({
-          page: nextPage,
-          size: PAGE_SIZE,
-        });
+        const {data} = await postApi.getIntroListPublic(nextPage, PAGE_SIZE);
+        // data: { content, last, empty, ... } 형태 가정
 
-        setHasNext(!data.last);
+        const noMore =
+          data.last === true ||
+          data.empty === true ||
+          !Array.isArray(data.content) ||
+          data.content.length === 0;
+
+        setHasNext(!noMore);
         setPage(nextPage);
 
         setItems(prev =>
-          isRefresh ? data.content : [...prev, ...data.content],
+          isRefresh ? data.content ?? [] : [...prev, ...(data.content ?? [])],
         );
       } catch (e) {
-        console.warn('today intros fetch fail', e);
+        console.warn(
+          'today intros fetch fail',
+          e?.response?.data || e?.message,
+        );
       } finally {
         setLoading(false);
         if (isRefresh) setRefreshing(false);
       }
     },
-    [loading, hasNext],
+    [loading],
   );
 
+  // 최초 1회 로드
   useEffect(() => {
     fetchPage(0, true);
-  }, [fetchPage]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const onRefresh = useCallback(() => {
+    // 로딩 중이면 새로고침도 막기
+    if (loading) return;
     setRefreshing(true);
     setHasNext(true);
     fetchPage(0, true);
-  }, [fetchPage]);
+  }, [fetchPage, loading]);
 
   const onEndReached = useCallback(() => {
-    if (loading || !hasNext) return;
+    // 더 이상 없거나, 데이터가 아예 없거나, 로딩 중이면 추가 요청 X
+    if (loading || !hasNext || items.length === 0) return;
     fetchPage(page + 1);
-  }, [fetchPage, page, loading, hasNext]);
+  }, [fetchPage, page, loading, hasNext, items.length]);
 
   const keyExtractor = useCallback(item => String(item.introId), []);
 
@@ -87,9 +88,7 @@ export default function TodayGuesthouses() {
         isLiked: item.isLiked,
         setList: setItems,
       });
-    } catch (e) {
-      console.warn('intro favorite toggle fail', e);
-    }
+    } catch (e) {}
   }, []);
 
   const renderItem = useCallback(
@@ -102,7 +101,7 @@ export default function TodayGuesthouses() {
           android_ripple={{color: COLORS.grayscale_100}}
           onPress={() =>
             navigation.navigate('GuesthousePost', {
-              guesthouseId: item.guesthouseId, // ✅ items 말고 item!
+              guesthouseId: item.guesthouseId,
             })
           }>
           <Image source={{uri: item.thumbnailUrl}} style={styles.thumb} />
@@ -116,8 +115,12 @@ export default function TodayGuesthouses() {
               {item.title}
             </Text>
 
-            {/* 게하이름 + 좋아요(고정) */}
+            {/* 게하이름 + 좋아요 */}
             <View style={styles.bottomRow}>
+              <Image
+                source={{uri: item.hostProfileImageUrl}}
+                style={styles.profileThumb}
+              />
               <Text
                 style={styles.cardGhName}
                 numberOfLines={1}
@@ -126,10 +129,9 @@ export default function TodayGuesthouses() {
               </Text>
 
               <View style={styles.likeBox}>
-                {/* ✅ 하트 누르면 부모 클릭 막기 */}
                 <Pressable
                   onPress={e => {
-                    e.stopPropagation(); // ✅ 부모 onPress 전파 차단
+                    e.stopPropagation();
                     handleToggleFavorite(item);
                   }}
                   hitSlop={8}
@@ -163,16 +165,13 @@ export default function TodayGuesthouses() {
   );
 
   const ListFooter = useMemo(() => {
-    if (!loading) return <View style={{height: 24}} />;
-    return (
-      <View style={styles.footer}>
-        <Text style={styles.footerText}>불러오는 중...</Text>
-      </View>
-    );
+    if (loading) {
+      return <Loading title="로딩 중..." />;
+    }
   }, [loading]);
 
   return (
-    <View style={{flex: 1}}>
+    <View>
       <FlatList
         data={items}
         keyExtractor={keyExtractor}
@@ -223,6 +222,11 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_200,
     borderRadius: 12,
   },
+  profileThumb: {
+    width: 30,
+    height: 30,
+    borderRadius: 100,
+  },
   cardBody: {
     paddingHorizontal: 8,
     paddingTop: 8,
@@ -231,7 +235,7 @@ const styles = StyleSheet.create({
   },
 
   cardTitle: {
-    ...FONTS.fs_14_semibold,
+    ...FONTS.fs_14_medium,
     color: COLORS.grayscale_900,
   },
 
@@ -239,22 +243,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 8,
+    gap: 4,
   },
 
   cardGhName: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_600,
-    flex: 1, // ✅ 왼쪽이 남은 공간 다 먹고
-    flexShrink: 1, // ✅ 길면 줄어들며 ... 처리
+    flex: 1,
+    flexShrink: 1,
   },
 
   likeBox: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 2,
-    flexShrink: 0, // ✅ 오른쪽은 절대 안 줄어듦
-    minWidth: 48, // ✅ 최소 폭 확보해서 안 밀림
+    flexShrink: 0,
     justifyContent: 'flex-end',
   },
 
@@ -262,5 +265,14 @@ const styles = StyleSheet.create({
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_400,
     marginLeft: 2,
+  },
+
+  footer: {
+    paddingVertical: 12,
+    alignItems: 'center',
+  },
+  footerText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_400,
   },
 });

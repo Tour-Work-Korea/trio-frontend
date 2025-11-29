@@ -1,24 +1,10 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-
-import LeftArrow from '@assets/images/chevron_left_black.svg';
+import {View, Text, StyleSheet, Image} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-export default function PostHeaderSection({tags, title, images}) {
-  const navigation = useNavigation();
+export default function PostHeaderSection({images}) {
   const [thumbnailUrl, setThumbnailUrl] = useState('');
-
-  // tags: "#제주시,#뚜벅이 ..." → ["#제주시", "#뚜벅이"...]
-  const tagList = useMemo(() => {
-    if (Array.isArray(tags)) return tags; // 혹시 배열로 올 때 대비
-    if (typeof tags !== 'string') return [];
-    return tags
-      .split(',')
-      .map(s => s.trim())
-      .filter(Boolean);
-  }, [tags]);
 
   useEffect(() => {
     const thumb = images?.find(i => i.isThumbnail)?.imgUrl;
@@ -32,14 +18,6 @@ export default function PostHeaderSection({tags, title, images}) {
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
         resizeMode="cover"
       />
-
-      <View style={styles.tagContainer}>
-        {tagList.map((tag, index) => (
-          <View key={`${tag}-${index}`} style={styles.tagBox}>
-            <Text style={[FONTS.fs_12_medium, styles.tagText]}>{tag}</Text>
-          </View>
-        ))}
-      </View>
     </View>
   );
 }
@@ -76,21 +54,5 @@ const styles = StyleSheet.create({
   guesthouseText: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_0,
-  },
-  tagContainer: {
-    position: 'absolute',
-    flexDirection: 'row',
-    right: 20,
-    bottom: 14,
-    gap: 8,
-  },
-  tagBox: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-  },
-  tagText: {
-    color: COLORS.primary_blue,
   },
 });

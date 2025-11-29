@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, {useState, useEffect} from 'react';
 import {
   View,
   Text,
@@ -14,8 +14,8 @@ import {
   TextInput,
 } from 'react-native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
@@ -24,17 +24,27 @@ import MinusIcon from '@assets/images/minus_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetEventModal = ({ visible, onClose, onSelect, shouldResetOnClose, initialEvents = [] }) => {
+const MeetEventModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+  initialEvents = [],
+}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
-  
+
   // 문자열 배열 상태 (각 이벤트 내용)
   const [events, setEvents] = useState([]);
   // 마지막 적용값
   const [appliedData, setAppliedData] = useState(null);
-  
+
   useEffect(() => {
-    const showSub = Keyboard.addListener('keyboardDidShow', () => setIsKeyboardVisible(true));
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => setIsKeyboardVisible(false));
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
 
     return () => {
       showSub.remove();
@@ -55,7 +65,7 @@ const MeetEventModal = ({ visible, onClose, onSelect, shouldResetOnClose, initia
     // 부모에서 초기값을 넘겨줬다면 정규화하여 반영
     if (Array.isArray(initialEvents) && initialEvents.length > 0) {
       const normalized = initialEvents.map(e =>
-        typeof e === 'string' ? e : (e?.eventName ?? '')
+        typeof e === 'string' ? e : e?.eventName ?? '',
       );
       setEvents(prev => {
         const same =
@@ -79,7 +89,8 @@ const MeetEventModal = ({ visible, onClose, onSelect, shouldResetOnClose, initia
 
   // 추가 / 삭제 / 수정
   const addEvent = () => setEvents(prev => [...prev, '']);
-  const removeEvent = (idx) => setEvents(prev => prev.filter((_, i) => i !== idx));
+  const removeEvent = idx =>
+    setEvents(prev => prev.filter((_, i) => i !== idx));
   const changeEvent = (idx, text) =>
     setEvents(prev => prev.map((v, i) => (i === idx ? text : v)));
 
@@ -91,8 +102,8 @@ const MeetEventModal = ({ visible, onClose, onSelect, shouldResetOnClose, initia
   const handleConfirm = () => {
     if (disabled) return;
     setAppliedData(trimmedList); // 문자열 배열로 저장
-    const payload = trimmedList.map(e => ({ eventName: e }));
-    onSelect({ partyEvents: payload });
+    const payload = trimmedList.map(e => ({eventName: e}));
+    onSelect({partyEvents: payload});
     onClose();
   };
 
@@ -109,81 +120,81 @@ const MeetEventModal = ({ visible, onClose, onSelect, shouldResetOnClose, initia
       visible={visible}
       transparent
       animationType="slide"
-      onRequestClose={handleModalClose}
-    >
-      <KeyboardAvoidingView
-        style={{ flex: 1 }}
-      >
-      <TouchableWithoutFeedback onPress={handleOverlayPress}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
+      onRequestClose={handleModalClose}>
+      <KeyboardAvoidingView style={{flex: 1}}>
+        <TouchableWithoutFeedback onPress={handleOverlayPress}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContainer}>
+                {/* 헤더 */}
+                <View style={styles.header}>
+                  <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                    이벤트 이벤트
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.XBtn}
+                    onPress={handleModalClose}>
+                    <XBtn width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
 
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-              모임 이벤트
-            </Text>
-            <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
+                <ScrollView
+                  style={{flex: 1}}
+                  keyboardShouldPersistTaps="handled">
+                  {/* 상세 정보 */}
+                  <View style={styles.body}>
+                    <View style={styles.title}>
+                      <Text style={[FONTS.fs_16_medium]}>
+                        다양한 이벤트를 추가해주세요
+                      </Text>
 
-          <ScrollView
-            style={{ flex: 1 }}
-            keyboardShouldPersistTaps="handled"
-          >
-            {/* 상세 정보 */}
-            <View style={styles.body}>
-              <View style={styles.title}>
-                <Text style={[FONTS.fs_16_medium]}>
-                  다양한 이벤트를 추가해주세요
-                </Text>
-                
-                <TouchableOpacity onPress={addEvent} style={styles.circleBtn}>
-                  <PlusIcon width={20} height={20}/>
-                </TouchableOpacity>
-              </View>
-
-              <View style={[{paddingBottom: 200}]}>
-                {events.map((val, idx) => (
-                  <View key={`${idx}`} style={styles.eventRow}>
-                    <Text style={[FONTS.fs_14_medium, styles.eventLabel]}>
-                      이벤트 {idx + 1}
-                    </Text>
-
-                    <View style={styles.inputWithMinus}>
-                      <TextInput
-                        value={val}
-                        onChangeText={(t) => changeEvent(idx, t)}
-                        placeholder="이벤트 내용을 입력해 주세요"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        style={[FONTS.fs_14_regular, styles.eventInput]}
-                        maxLength={100}
-                        returnKeyType="done"
-                      />
-                      <TouchableOpacity onPress={() => removeEvent(idx)} style={styles.circleBtnSmall}>
-                        <MinusIcon width={20} height={20}/>
+                      <TouchableOpacity
+                        onPress={addEvent}
+                        style={styles.circleBtn}>
+                        <PlusIcon width={20} height={20} />
                       </TouchableOpacity>
                     </View>
-                  </View>
-                ))}
-              </View>
-            </View>
-          </ScrollView>
 
-          {/* 등록하기 버튼 */}
-          <ButtonScarlet
-            title={'적용하기'}
-            onPress={handleConfirm}
-            disabled={disabled}
-            style={{ marginBottom: 16 }}
-          />
-          
-        </View>
+                    <View style={[{paddingBottom: 200}]}>
+                      {events.map((val, idx) => (
+                        <View key={`${idx}`} style={styles.eventRow}>
+                          <Text style={[FONTS.fs_14_medium, styles.eventLabel]}>
+                            이벤트 {idx + 1}
+                          </Text>
+
+                          <View style={styles.inputWithMinus}>
+                            <TextInput
+                              value={val}
+                              onChangeText={t => changeEvent(idx, t)}
+                              placeholder="이벤트 내용을 입력해 주세요"
+                              placeholderTextColor={COLORS.grayscale_400}
+                              style={[FONTS.fs_14_regular, styles.eventInput]}
+                              maxLength={100}
+                              returnKeyType="done"
+                            />
+                            <TouchableOpacity
+                              onPress={() => removeEvent(idx)}
+                              style={styles.circleBtnSmall}>
+                              <MinusIcon width={20} height={20} />
+                            </TouchableOpacity>
+                          </View>
+                        </View>
+                      ))}
+                    </View>
+                  </View>
+                </ScrollView>
+
+                {/* 등록하기 버튼 */}
+                <ButtonScarlet
+                  title={'적용하기'}
+                  onPress={handleConfirm}
+                  disabled={disabled}
+                  style={{marginBottom: 16}}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
         </TouchableWithoutFeedback>
-      </View>
-      </TouchableWithoutFeedback>
       </KeyboardAvoidingView>
     </Modal>
   );
@@ -230,7 +241,6 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
 
-
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -242,7 +252,7 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 100,
     backgroundColor: COLORS.grayscale_100,
-    alignItems: 'center', 
+    alignItems: 'center',
     justifyContent: 'center',
   },
   // 삭제 버튼
@@ -250,17 +260,18 @@ const styles = StyleSheet.create({
     padding: 4,
     borderRadius: 100,
     backgroundColor: COLORS.grayscale_100,
-    alignItems: 'center', justifyContent: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
     marginLeft: 8,
   },
 
-  eventRow: { 
+  eventRow: {
     marginTop: 12,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
-  eventLabel: { 
+  eventLabel: {
     color: COLORS.grayscale_600,
     marginRight: 12,
   },

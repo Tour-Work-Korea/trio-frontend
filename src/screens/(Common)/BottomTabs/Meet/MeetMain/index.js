@@ -64,7 +64,7 @@ const MeetMain = () => {
     dayjs().format('YYYY-MM-DD'),
   ); // 오늘
 
-  // 모임 7일치 데이터
+  // 이벤트 7일치 데이터
   const [meets, setMeets] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -88,7 +88,7 @@ const MeetMain = () => {
     return days[d.day()];
   }
 
-  // 모임 불러오기
+  // 이벤트 불러오기
   const fetchRecent = useCallback(async () => {
     try {
       setLoading(true);
@@ -161,7 +161,7 @@ const MeetMain = () => {
     return `${dayStr}, ${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
   }
 
-  // 모임 즐겨찾기 토글
+  // 이벤트 즐겨찾기 토글
   const handleToggleFavorite = async item => {
     try {
       await toggleFavorite({
@@ -171,14 +171,11 @@ const MeetMain = () => {
         setList: setMeets,
       });
     } catch (error) {
-      console.warn(
-        '파티 즐겨찾기 토글 실패',
-        error?.response?.data || error?.message,
-      );
+      console.warn('파티 즐겨찾기 토글 실패', error?.response?.data?.message);
     }
   };
 
-  // 모임
+  // 이벤트
   const renderMeetItem = ({item}) => {
     const isFav = !!item.isLiked;
     return (
@@ -249,7 +246,7 @@ const MeetMain = () => {
       {/* 헤더 */}
       <View style={styles.header}>
         <View width={24} style={{backgroundColor: COLORS.grayscale_400}} />
-        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>모임</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>이벤트</Text>
         <TouchableOpacity onPress={() => navigation.navigate('MeetSearch')}>
           <SearchIcon width={24} height={24} />
         </TouchableOpacity>
@@ -318,10 +315,10 @@ const MeetMain = () => {
         )}
       </View>
 
-      {/* 모임 일정 캘린더 */}
+      {/* 이벤트 일정 캘린더 */}
       <View style={styles.meetListContainer}>
         <Text style={[FONTS.fs_16_semibold, styles.headerText]}>
-          모임 일정 캘린더
+          이벤트 일정 캘린더
         </Text>
         {/* 날짜 칸 */}
         <View style={styles.dateTabsRow}>
@@ -400,7 +397,7 @@ const MeetMain = () => {
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
               <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-                선택한 날짜에 모임이 없어요.
+                선택한 날짜에 이벤트이 없어요.
               </Text>
             </View>
           }

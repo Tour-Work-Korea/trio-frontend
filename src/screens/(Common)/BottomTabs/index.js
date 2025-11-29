@@ -10,8 +10,8 @@ import EmployIcon from '@assets/images/work_black.svg';
 import EmployIconFilled from '@assets/images/work_black_filled.svg';
 import HomeIcon from '@assets/images/wa_home_gray.svg';
 import HomeIconFilled from '@assets/images/wa_home_orange.svg';
-import MeetIcon from '@assets/images/meet_black.svg';
-import MeetIconFilled from '@assets/images/meet_black_filled.svg';
+import MeetIcon from '@assets/images/event_black.svg';
+import MeetIconFilled from '@assets/images/event_black_filled.svg';
 import MyIcon from '@assets/images/person_black.svg';
 import MyIconFilled from '@assets/images/person_black_filled.svg';
 
@@ -34,7 +34,7 @@ const BottomTabs = () => {
             게하: focused ? GuesthouseIconFilled : GuesthouseIcon,
             스탭: focused ? EmployIconFilled : EmployIcon,
             홈: focused ? HomeIconFilled : HomeIcon,
-            모임: focused ? MeetIconFilled : MeetIcon,
+            이벤트: focused ? MeetIconFilled : MeetIcon,
             마이: focused ? MyIconFilled : MyIcon,
           };
           const Icon = map[route.name];
@@ -75,7 +75,7 @@ const BottomTabs = () => {
           },
         })}
       />
-      <Tab.Screen name="모임" component={Meet} />
+      <Tab.Screen name="이벤트" component={Meet} />
       <Tab.Screen name="홈" component={Home} />
       <Tab.Screen name="스탭" component={Employ} />
       <Tab.Screen

@@ -87,7 +87,7 @@ export {default as ApplicantListByRecruit} from './(Host)/ApplicantListByRecruit
 export {default as StoreRegisterForm1} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm1';
 export {default as StoreRegisterForm2} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm2';
 export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
-// 모임
+// 이벤트
 export {default as MyMeetList} from './(Host)/Meet/MyMeetList';
 export {default as MyMeetDetail} from './(Host)/Meet/MyMeetDetail';
 export {default as MyMeetAdd} from './(Host)/Meet/MyMeetAdd';
@@ -115,9 +115,9 @@ export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
 export {default as UserRegisterInfo} from './(User)/UserRegister/UserRegisterInfo';
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
-// 좋아하는 모임
+// 좋아하는 이벤트
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';
-// 모임 예약내역
+// 이벤트 예약내역
 export {default as UserMeetReservationCheck} from './(User)/UserMyPage/UserMeetReservationCheck';
 
 // 예시 화면들

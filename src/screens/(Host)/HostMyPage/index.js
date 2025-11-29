@@ -147,20 +147,20 @@ const HostMyPage = () => {
             </View>
             <View style={styles.devide} />
 
-            {/* 모임 섹션 */}
+            {/* 이벤트 섹션 */}
             <View style={[styles.section, {marginBottom: 20}]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                모임
+                이벤트
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={MyMeetIcon}
-                  label="나의 모임"
+                  label="나의 이벤트"
                   onPress={() => navigation.navigate('MyMeetList')}
                 />
                 <MenuItem
                   IconComponent={MeetReservationCheckIcon}
-                  label="모임 예약 조회"
+                  label="이벤트 예약 조회"
                   // onPress={() => navigation.navigate('ApplicantList')}
                 />
               </View>
@@ -187,7 +187,7 @@ const MenuItem = ({IconComponent, label, onPress}) => (
   <TouchableOpacity style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
-        <IconComponent width={28} height={28} />
+        <IconComponent width={20} height={20} />
       </View>
       <Text style={[styles.menuLabel]}>{label}</Text>
     </View>

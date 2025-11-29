@@ -1,5 +1,5 @@
-import { StyleSheet } from 'react-native';
-import { COLORS } from '@constants/colors';
+import {StyleSheet} from 'react-native';
+import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
   container: {
@@ -72,8 +72,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
   },
 
-
-  // 모임 제목
+  // 이벤트 제목
   sectionHeaderRow: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -9,7 +9,7 @@
 //   return (
 //     <View style={styles.container}>
 //       <ComingSoonImg />
-//       <Text style={[FONTS.fs_18_bold, styles.headerText]}>모임 서비스는 ver.2 런칭 예정 ⚙️</Text>
+//       <Text style={[FONTS.fs_18_bold, styles.headerText]}>이벤트 서비스는 ver.2 런칭 예정 ⚙️</Text>
 //       <Text style={[FONTS.fs_18_regular, styles.text]}>
 //         지금은 수리 중이에요{'\n'}
 //         조금만 기다려주세요!
@@ -38,15 +38,15 @@
 // export default Meet;
 
 import React from 'react';
-import { createNativeStackNavigator } from '@react-navigation/native-stack';
+import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import { MeetMain, MeetSearch } from '@screens';
+import {MeetMain, MeetSearch} from '@screens';
 
 const Stack = createNativeStackNavigator();
 
 const Meet = () => {
   return (
-    <Stack.Navigator screenOptions={{ headerShown: false }}>
+    <Stack.Navigator screenOptions={{headerShown: false}}>
       <Stack.Screen name="MeetMain" component={MeetMain} />
       <Stack.Screen name="MeetSearch" component={MeetSearch} />
     </Stack.Navigator>
@@ -54,4 +54,3 @@ const Meet = () => {
 };
 
 export default Meet;
-
