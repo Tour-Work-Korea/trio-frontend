@@ -6,6 +6,7 @@ import {
   employDetailDeeplink,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 import Share from '@assets/images/share_gray.svg';
 import HeartIcon from '@assets/images/heart_empty.svg';
@@ -38,7 +39,7 @@ export default function RecruitProfileSection({recruit, toggleFavorite}) {
             </TouchableOpacity>
           </View>
         </View>
-        <Text style={styles.location}>{recruit?.location}</Text>
+        <Text style={styles.location}>{trimJejuPrefix(recruit?.location)}</Text>
         <View style={styles.descriptionContainer}>
           <Text style={styles.description}>
             {recruit?.recruitShortDescription}

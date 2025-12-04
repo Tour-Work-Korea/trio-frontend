@@ -165,7 +165,15 @@ const ReservationList = ({ guesthouseId }) => {
         renderItem={({ item, index }) => (
           <View style={styles.card}>
             <View style={styles.statusContainer}>
-               <Text style={[FONTS.fs_16_semibold, styles.name]}>
+              <Text 
+                style={[
+                  FONTS.fs_16_semibold,
+                  styles.name,
+                  { flex: 1, marginRight: 8 },
+                ]}
+                numberOfLines={1}
+                ellipsizeMode="tail" 
+              >
                 {item.roomName} ({item.roomCapacity}인실)
               </Text>
               <Text
@@ -191,6 +199,14 @@ const ReservationList = ({ guesthouseId }) => {
               <View style={styles.infoRow}>
                 <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>전화번호</Text>
                 <Text style={[FONTS.fs_14_medium]}>{item.reservationUserPhone}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>인원수</Text>
+                <Text style={[FONTS.fs_14_medium]}>{item.guestCount}</Text>
+              </View>
+              <View style={styles.infoRow}>
+                <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_500}]}>요청사항</Text>
+                <Text style={[FONTS.fs_14_medium]}>{item.requests}</Text>
               </View>
             </View>
             
