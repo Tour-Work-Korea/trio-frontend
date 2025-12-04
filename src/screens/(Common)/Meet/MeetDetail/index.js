@@ -24,26 +24,59 @@ import {
   partyDetailDeeplink,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
+import { trimJejuPrefix } from '@utils/formatAddress';
+import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
 
 import ChevronLeft from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
-const TABS = ['이벤트안내', '이벤트', '이벤트사진'];
+// 임시 이미지
+import PlaceholderImg from '@assets/images/exphoto.jpeg';
+
+const TABS = ['이벤트 소개', '상세 안내', '오시는 길'];
 
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {partyId} = route.params ?? {};
 
-  const [selectedTab, setSelectedTab] = useState('이벤트안내');
+  const [selectedTab, setSelectedTab] = useState('이벤트 소개');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
 
+  // 모달
+  const [infoModalVisible, setInfoModalVisible] = useState(false);
+  const [infoModalType, setInfoModalType] = useState("tag"); // "tag" | "section"
+  const [infoModalTitle, setInfoModalTitle] = useState("");
+  const [infoModalTags, setInfoModalTags] = useState([]);
+  const [infoModalContent, setInfoModalContent] = useState("");
+  const [infoModalSections, setInfoModalSections] = useState([]);
+
+  const openTagModal = (title, tags, content) => {
+    setInfoModalTitle(title);
+    setInfoModalType("tag");
+    setInfoModalTags(tags);
+    setInfoModalContent(content);
+    setInfoModalSections([]);
+    setInfoModalVisible(true);
+  };
+
+  const openSectionModal = (title, sections) => {
+    setInfoModalTitle(title);
+    setInfoModalType("section");
+    setInfoModalSections(sections);
+    setInfoModalTags([]);
+    setInfoModalContent("");
+    setInfoModalVisible(true);
+  };
+
+  // 날짜 처리
   const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
@@ -161,7 +194,27 @@ const MeetDetail = () => {
     });
   };
 
+  // 가격 설정
+  const renderPrice = (value) => {
+    // 0, null, undefined → 무료
+    if (!value || Number(value) === 0) {
+      return (
+        <Text style={[FONTS.fs_14_semibold, { color: COLORS.primary_orange }]}>
+          무료
+        </Text>
+      );
+    }
+
+    // 정상 가격
+    return (
+      <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
+        {Number(value).toLocaleString()}원
+      </Text>
+    );
+  };
+
   return (
+    <View style={{flex: 1}}>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* 헤더 */}
       <View style={styles.header}>
@@ -173,11 +226,6 @@ const MeetDetail = () => {
             onPress={() => navigation.goBack()}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
-          <View style={styles.placePillContainer}>
-            <Text style={[FONTS.fs_14_medium, styles.placePill]}>
-              {guesthouseName}
-            </Text>
-          </View>
         </View>
       </View>
 
@@ -211,12 +259,64 @@ const MeetDetail = () => {
             style={[FONTS.fs_14_regular, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {location}
+            {trimJejuPrefix(location)}
           </Text>
           {/* 인원수 */}
           <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
             {numOfAttendance}/{maxAttendance}명
           </Text>
+        </View>
+
+
+        {/* 이벤트금액 */}
+        <View style={styles.priceBox}>
+          <View style={styles.priceRow}>
+            {/* 숙박객 */}
+            <View style={[styles.priceSection, {marginBottom: 8}]}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.priceSectionTitle,
+                ]}>
+                숙박객
+              </Text>
+              <View style={styles.priceTextRow}>
+                <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
+                  {renderPrice(priceBox.guest.male)}
+                </Text>
+              </View>
+            </View>
+
+            {/* 비숙박객 */}
+            <View style={styles.priceSection}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.priceSectionTitle,
+                ]}>
+                비숙박객
+              </Text>
+              <View style={styles.priceTextRow}>
+                <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
+                  {renderPrice(priceBox.nonGuest.male)}
+                </Text>
+              </View>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.devide}/>
+
+        {/* 사장님 계정 */}
+        <View style={styles.profileBox}>
+          <Image 
+            style={styles.profileImage} 
+            source={PlaceholderImg}  // 임시 이미지 추가
+          />
+          <View style={styles.profileTextBox}>
+            <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
+            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>게하 주소</Text>
+          </View>
         </View>
 
         {/* 설명 */}
@@ -225,108 +325,6 @@ const MeetDetail = () => {
             {description}
           </Text>
         </View>
-
-        {/* 날짜 */}
-        <View style={styles.dateBoxContainer}>
-          <View style={styles.dateBoxCheckIn}>
-            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-              이벤트 시작
-            </Text>
-            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-              {formatDateWithDay(checkInDate)}
-            </Text>
-            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-              {formatTime(checkInTime)}
-            </Text>
-          </View>
-          <View style={styles.dateBoxCheckOut}>
-            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-              이벤트 종료
-            </Text>
-            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-              {formatDateWithDay(checkOutDate)}
-            </Text>
-            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-              {formatTime(checkOutTime)}
-            </Text>
-          </View>
-        </View>
-
-        {/* 이벤트금액 */}
-        <View style={styles.priceBox}>
-          <Text style={[FONTS.fs_14_semibold, styles.priceTitle]}>
-            이벤트금액
-          </Text>
-
-          <View style={styles.priceRow}>
-            {/* 숙박객 */}
-            <View style={styles.priceSection}>
-              <Text
-                style={[
-                  FONTS.fs_14_regular,
-                  styles.priceSectionTitle,
-                  {color: COLORS.primary_orange},
-                ]}>
-                숙박객
-              </Text>
-              <View style={styles.priceTextRow}>
-                <Text
-                  style={[
-                    FONTS.fs_14_medium,
-                    styles.priceText,
-                    {marginBottom: 4},
-                  ]}>
-                  여자 {Number(priceBox.guest.female).toLocaleString()}원
-                </Text>
-                <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                  남자 {Number(priceBox.guest.male).toLocaleString()}원
-                </Text>
-              </View>
-            </View>
-
-            <View style={styles.devide} />
-
-            {/* 비숙박객 */}
-            <View style={styles.priceSection}>
-              <Text
-                style={[
-                  FONTS.fs_14_regular,
-                  styles.priceSectionTitle,
-                  {color: COLORS.primary_blue},
-                ]}>
-                비숙박객
-              </Text>
-              <View style={styles.priceTextRow}>
-                <Text
-                  style={[
-                    FONTS.fs_14_medium,
-                    styles.priceText,
-                    {marginBottom: 4},
-                  ]}>
-                  여자 {Number(priceBox.nonGuest.female).toLocaleString()}원
-                </Text>
-                <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                  남자 {Number(priceBox.nonGuest.male).toLocaleString()}원
-                </Text>
-              </View>
-            </View>
-          </View>
-        </View>
-
-        {/* 지도 */}
-        {/* <MapView
-          style={styles.map}
-          initialRegion={{
-            latitude: coordinate.latitude,
-            longitude: coordinate.longitude,
-            latitudeDelta: 0.05,
-            longitudeDelta: 0.05,
-          }}
-        >
-          <Marker coordinate={coordinate} />
-        </MapView> */}
-
-        <View style={styles.devide} />
 
         {/* 하단 탭 */}
         <View style={styles.tabContainer}>
@@ -352,81 +350,179 @@ const MeetDetail = () => {
         </View>
 
         {/* 탭 콘텐츠 */}
-        {/* 이벤트 안내 */}
-        {selectedTab === '이벤트안내' && (
+        {/* 이벤트 소개 */}
+        {selectedTab === '이벤트 소개' && (
           <View style={styles.tabContent}>
+            <View style={styles.infoTextContainer}>
+              <Text>이벤트 소개 글 그대로 출력</Text>
+            </View>
+          </View>
+        )}
+
+        {/* 상세 안내 */}
+        {selectedTab === '상세 안내' && (
+          <View style={styles.tabContent}>
+            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
             <View style={styles.infoTextContainer}>
               <Text style={[FONTS.fs_14_regular, styles.infoText]}>
                 {partyInfo}
               </Text>
             </View>
-          </View>
-        )}
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
+              <View style={styles.detailInfoText}>
+                <Text style={[FONTS.fs_14_medium, styles.tagText]}>태그들</Text>
+                <TouchableOpacity 
+                  style={styles.detailInfoBtn}
+                  onPress={() =>
+                    openTagModal(
+                      "음식 · 음료",
+                      ["#각자준비", "#다함께주문"],
+                      `✔ 7시20분까지 본인드실 음료랑 주류를 준비해주세요~
+                      ✔ 주류 제한 없음
+                      (파티 시간 내에 드실 수 있는 만큼만 구매해주세요.)
 
-        {/* 이벤트 */}
-        {selectedTab === '이벤트' && (
-          <View style={styles.tabContent}>
-            {(partyEvents?.length ? partyEvents : []).map((ev, idx) => (
-              <View key={ev.id ?? idx} style={styles.eventItem}>
-                <Text style={[FONTS.fs_14_semibold, styles.eventTitle]}>
-                  이벤트 {idx + 1}
-                </Text>
-                <Text style={[FONTS.fs_14_regular, styles.eventDesc]}>
-                  {ev.eventName}
-                </Text>
+                      ⭐ 배달 포장 가능하며 함께 사는 것 추천 ⭐`
+                    )
+                  }
+                >
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
               </View>
-            ))}
-            {!partyEvents?.length && (
-              <Text style={[FONTS.fs_14_regular]}>
-                등록된 이벤트가 없습니다.
-              </Text>
-            )}
+            </View>
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
+              <View style={styles.detailInfoText}>
+                <Text style={[FONTS.fs_14_medium, styles.tagText]}>이름들</Text>
+                <TouchableOpacity 
+                  style={styles.detailInfoBtn}
+                  onPress={() =>
+                    openSectionModal("이용규칙", [
+                      {
+                        subtitle: "소등 안내",
+                        body: `✔ 객실 내부 콘텐츠 종료 후 소등
+                              ✔ 외부 출입 자유롭게 가능!
+                              ✔ 소등 이후 거실의 등은 켤 수 없어요.`
+                      },
+                      {
+                        subtitle: "소음 안내",
+                        body: `(불이 켜져있으면 자연스럽게 거실에 모여 소리가 커져 다른 게스트들에게 방해가 될 수 있어요!)`
+                      }
+                    ])
+                  }
+                >
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>기타 정보</Text>
+              <View style={styles.detailInfoText}>
+                <Text style={[FONTS.fs_14_medium, styles.tagText]}>이름들</Text>
+                <TouchableOpacity 
+                  style={styles.detailInfoBtn}
+                  onPress={() =>
+                    openSectionModal("기타 정보", [
+                      {
+                        subtitle: "포틀럭 정리",
+                        body: `✔ 포틀럭 후 먹은 것 함께 정리
+                        ✔ 마무리 청소는 저희가 담당합니다`
+                      }
+                    ])
+                  }
+                >
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
 
-        {/* 이벤트 사진 */}
-        {selectedTab === '이벤트사진' && (
+        {/* 오시는 길 */}
+        {selectedTab === '오시는 길' && (
           <View style={styles.tabContent}>
-            {/* 확대 이미지 */}
-            <Image
-              source={gallery[currentImageIndex]}
-              style={styles.mainImageContainer}
-            />
-
-            {/* 이미지 리스트 */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              style={styles.imageScroll}>
-              {(gallery.length ? gallery : [PLACEHOLDER]).map(
-                (photo, index) => (
-                  <TouchableOpacity
-                    key={index}
-                    onPress={() => setCurrentImageIndex(index)}>
-                    <Image
-                      source={photo}
-                      style={[
-                        styles.image,
-                        index === currentImageIndex && styles.selectedImage,
-                      ]}
-                    />
-                  </TouchableOpacity>
-                ),
-              )}
-            </ScrollView>
+            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
+            {/* 지도 */}
+            {/* <MapView
+              style={styles.map}
+              initialRegion={{
+                latitude: coordinate.latitude,
+                longitude: coordinate.longitude,
+                latitudeDelta: 0.05,
+                longitudeDelta: 0.05,
+              }}
+            >
+              <Marker coordinate={coordinate} />
+            </MapView> */}
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
+              <View style={styles.detailInfoText}>
+                <Text style={[FONTS.fs_14_medium, styles.tagText]}>이름들</Text>
+                <TouchableOpacity style={styles.detailInfoBtn}>
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
+              <View style={styles.detailInfoText}>
+                <Text style={[FONTS.fs_14_medium, styles.tagText]}>태그들</Text>
+                <TouchableOpacity style={styles.detailInfoBtn}>
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
         )}
-
-        <View style={styles.button}>
-          <ButtonScarlet
-            title="참여하기"
-            onPress={() => {
-              navigation.navigate('MeetReservation', {partyId});
-            }}
-          />
-        </View>
       </View>
+
     </ScrollView>
+
+    {/* 하단 고정 영역 */}
+    <View style={styles.fixedBottomBar}>
+      <View style={styles.bottomLeft}>
+        <Text style={[FONTS.fs_16_semibold, styles.bottomPrice]}>
+          {Number(priceBox.guest.male || 0).toLocaleString()} ~ {Number(priceBox.nonGuest.male || 0).toLocaleString()}원
+        </Text>
+        <Text style={[FONTS.fs_14_regular, styles.bottomDate]}>
+          {formatDateWithDay(checkInDate)}   {formatTime(checkInTime)}~{formatTime(checkOutTime)}
+        </Text>
+      </View>
+
+      <TouchableOpacity
+        style={styles.bottomButton}
+        onPress={() => navigation.navigate('MeetReservation', {partyId})}
+      >
+        <Text style={[FONTS.fs_16_semibold, {color: 'white'}]}>참여하기</Text>
+      </TouchableOpacity>
+    </View>
+
+      {/* 모달 */}
+      <MeetDetailInfoModal
+        visible={infoModalVisible}
+        onClose={() => setInfoModalVisible(false)}
+        title={infoModalTitle}
+        type={infoModalType}
+        tags={infoModalTags}
+        content={infoModalContent}
+        sections={infoModalSections}
+      />
+    </View>
   );
 };
 

@@ -51,7 +51,7 @@ const PopularGuesthouseList = () => {
     return { hasRating: valid, text: valid ? num.toFixed(1) : '0.0' };
   };
 
-  // 📌 ScrollView용 무한스크롤 로딩
+  // ScrollView용 무한스크롤 로딩
   const loadMore = async () => {
     if (!hasNext || loading || loadingMoreRef.current) return;
 
@@ -112,7 +112,6 @@ const PopularGuesthouseList = () => {
         onPress={() =>
           navigation.navigate('GuesthouseDetail', {
             id: item.guesthouseId,
-            isFromDeeplink: true,
             checkIn: today.format('YYYY-MM-DD'),
             checkOut: tomorrow.format('YYYY-MM-DD'),
             guestCount: 1,
@@ -175,7 +174,6 @@ const PopularGuesthouseList = () => {
         onPress={() =>
           navigation.navigate('GuesthouseDetail', {
             id: item.guesthouseId,
-            isFromDeeplink: true,
             checkIn: today.format('YYYY-MM-DD'),
             checkOut: tomorrow.format('YYYY-MM-DD'),
             guestCount: 1,

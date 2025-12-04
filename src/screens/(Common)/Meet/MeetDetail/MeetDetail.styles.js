@@ -48,6 +48,7 @@ const styles = StyleSheet.create({
   // 본문
   contentContainer: {
     padding: 20,
+    paddingBottom: 120,
   },
   // 제목
   titleRow: {
@@ -117,16 +118,8 @@ const styles = StyleSheet.create({
   },
   // 가격
   priceBox: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
-    borderRadius: 8,
-    marginBottom: 20,
     flexDirection: 'row',
-  },
-  priceTitle: {
-    color: COLORS.grayscale_400,
-    marginRight: 40,
+    width: '50%',
   },
   priceRow: {
     flex: 1,
@@ -145,7 +138,7 @@ const styles = StyleSheet.create({
   devide: {
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,
-    marginVertical: 8,
+    marginVertical: 16,
   },
 
   // 지도
@@ -182,17 +175,42 @@ const styles = StyleSheet.create({
 
   tabContent: {
     marginTop: 20,
-    gap: 20,
+    gap: 12,
   },
-  // 이벤트 안내
+  // 상세 안내
   infoTextContainer: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
     borderRadius: 8,
+    marginBottom: 20,
+  },
+  infoMainTitleText: {
   },
   infoText: {
     lineHeight: 22,
+  },
+  // 상세 안내 밑부분
+  detailInfoContainer: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+  },
+  infoTitleText: {
+    marginBottom: 8,
+  },
+  detailInfoText: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+  },
+  tagText: {
+    color: COLORS.primary_blue,
+  },
+  detailInfoBtn: {
+    alignItems: 'center',
+    flexDirection: 'row',
+    gap: 4,
+  },
+  detailInfoBtnText: {
+    color: COLORS.grayscale_400,
   },
 
   // 이벤트
@@ -231,11 +249,56 @@ const styles = StyleSheet.create({
     borderColor: COLORS.primary_orange,
   },
 
-  // 하단 버튼
-  button: {
-    marginTop: 40,
-    marginBottom: 20,
+  // 사장님 계정
+  profileBox: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+    marginBottom: 16,
   },
+  profileImage: {
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+  },
+  profileAddr: {
+    color: COLORS.grayscale_500,
+  },
+  profileTextBox: {
+    gap: 4,
+  },
+
+  // 하단 고정영역
+  fixedBottomBar: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    paddingHorizontal: 20,
+    paddingBottom: 36,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    backgroundColor: COLORS.grayscale_0,
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_100,
+  },
+  bottomLeft: {
+    flexDirection: 'column',
+  },
+  bottomPrice: {
+    marginBottom: 4,
+  },
+  bottomDate: {
+  },
+  bottomButton: {
+    backgroundColor: COLORS.primary_orange,
+    paddingHorizontal: 28,
+    paddingVertical: 12,
+    borderRadius: 20,
+  },
+
 });
 
 export default styles;

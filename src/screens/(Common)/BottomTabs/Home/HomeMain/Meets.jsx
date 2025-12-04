@@ -19,8 +19,10 @@ import {COLORS} from '@constants/colors';
 import {toggleFavorite} from '@utils/toggleFavorite';
 
 export default function Meets({events = [], setEventList}) {
+  const navigation = useNavigation();
+
   const moveToDetail = partyId => {
-    console.log('★ Meet item press', partyId);
+    navigation.navigate("MeetDetail", { partyId });
   };
 
   const formatDateTime = isoStr => {
