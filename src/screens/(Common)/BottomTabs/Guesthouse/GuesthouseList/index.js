@@ -38,6 +38,7 @@ import {COLORS} from '@constants/colors';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { toggleFavorite } from '@utils/toggleFavorite';
+import { trimJejuPrefix } from '@utils/formatAddress';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -197,98 +198,108 @@ const GuesthouseList = () => {
     });
   };
 
-  const renderItem = ({item}) => (
-    <TouchableOpacity
-      onPress={() =>
-        navigation.navigate('GuesthouseDetail', {
-          id: item.id,
-          checkIn,
-          checkOut,
-          guestCount: adultCount + childCount,
-          onLikeChange: (id, nextIsLiked) => {
-            setGuesthouses(prev =>
-              prev.map(g =>
-                g.id === id
-                  ? { ...g, isLiked: nextIsLiked }
-                  : g
-              )
-            );
-          },
-          onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
-            // 디테일 화면에서 날짜, 인원 변경 시 반영
-            const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
-            const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
-            setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
-            setAdultCount(adults);
-            setChildCount(children);
+  const renderItem = ({item}) => {
+    // 별점 0 이거나 이상한 값 오면 안보이게 처리
+    const ratingNumber = Number(item.averageRating);
+    const hasValidRating =
+      Number.isFinite(ratingNumber) && ratingNumber > 0;
+    const displayRating = hasValidRating ? ratingNumber.toFixed(1) : null;
 
-            // 리스트 리로드
-            setSearched(true);
-            setPage(0);
-            setIsLast(false);
-            setGuesthouses([]);
-          },
-        })
-      }>
-      <View style={styles.card}>
-        <View style={styles.imgRatingContainer}>
-          {/* 이미지 데이터 없을 때 */}
-          {item.thumbnailImgUrl ? (
-            <Image source={{uri: item.thumbnailImgUrl}} style={styles.image} />
-          ) : (
-            <View
-              style={[styles.image, {backgroundColor: COLORS.grayscale_200}]}
-            />
-          )}
-          <View style={styles.rating}>
-            <Star width={14} height={14} />
-            <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
-              {item.averageRating?.toFixed(1) ?? '0.0'}
-            </Text>
-          </View>
-        </View>
-        <View style={styles.cardContent}>
-          <View style={styles.tagRow}>
-            {item.hashtags &&
-              item.hashtags.map((tag, index) => (
-                <View style={styles.tagContainer}>
-                  <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
-                    {tag}
-                  </Text>
-                </View>
-              ))}
-            <TouchableOpacity
-              style={styles.heartIcon}
-              onPress={() => handleToggleFavorite(item)}
-            >
-              {item.isLiked ? (
-                <FillHeart width={20} height={20} />
-              ) : (
-                <EmptyHeart width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          </View>
-          <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>
-            {item.name}
-          </Text>
-          <Text style={[FONTS.fs_12_medium, styles.address]}>
-            {item.address}
-          </Text>
-          <View style={styles.bottomRow}>
-            {item.isReserved ? (
-              <Text style={[FONTS.fs_16_semibold, styles.emptyPrice]}>
-                예약마감
-              </Text>
+    return (
+      <TouchableOpacity
+        onPress={() =>
+          navigation.navigate('GuesthouseDetail', {
+            id: item.id,
+            checkIn,
+            checkOut,
+            guestCount: adultCount + childCount,
+            onLikeChange: (id, nextIsLiked) => {
+              setGuesthouses(prev =>
+                prev.map(g =>
+                  g.id === id
+                    ? { ...g, isLiked: nextIsLiked }
+                    : g
+                )
+              );
+            },
+            onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
+              // 디테일 화면에서 날짜, 인원 변경 시 반영
+              const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+              const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+              setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
+              setAdultCount(adults);
+              setChildCount(children);
+
+              // 리스트 리로드
+              setSearched(true);
+              setPage(0);
+              setIsLast(false);
+              setGuesthouses([]);
+            },
+          })
+        }>
+        <View style={styles.card}>
+          <View style={styles.imgRatingContainer}>
+            {/* 이미지 데이터 없을 때 */}
+            {item.thumbnailImgUrl ? (
+              <Image source={{uri: item.thumbnailImgUrl}} style={styles.image} />
             ) : (
-              <Text style={[FONTS.fs_18_semibold, styles.price]}>
-                {item.minPrice.toLocaleString()}원 ~
-              </Text>
+              <View
+                style={[styles.image, {backgroundColor: COLORS.grayscale_200}]}
+              />
+            )}
+            {hasValidRating && (
+              <View style={styles.rating}>
+                <Star width={14} height={14} />
+                <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
+                  {displayRating}
+                </Text>
+              </View>
             )}
           </View>
+          <View style={styles.cardContent}>
+            <View style={styles.tagRow}>
+              {item.hashtags &&
+                item.hashtags.map((tag, index) => (
+                  <View style={styles.tagContainer}>
+                    <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
+                      {tag}
+                    </Text>
+                  </View>
+                ))}
+              <TouchableOpacity
+                style={styles.heartIcon}
+                onPress={() => handleToggleFavorite(item)}
+              >
+                {item.isLiked ? (
+                  <FillHeart width={20} height={20} />
+                ) : (
+                  <EmptyHeart width={20} height={20} />
+                )}
+              </TouchableOpacity>
+            </View>
+            <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>
+              {item.name}
+            </Text>
+            <Text style={[FONTS.fs_12_medium, styles.address]}>
+              {trimJejuPrefix(item.address)}
+            </Text>
+            <View style={styles.bottomRow}>
+              {item.isReserved ? (
+                <Text style={[FONTS.fs_16_semibold, styles.emptyPrice]}>
+                  예약마감
+                </Text>
+              ) : (
+                <Text style={[FONTS.fs_18_semibold, styles.price]}>
+                  {item.minPrice.toLocaleString()}원 ~
+                </Text>
+              )}
+            </View>
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>
