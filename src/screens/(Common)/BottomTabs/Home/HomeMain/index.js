@@ -166,7 +166,7 @@ const HomeMain = () => {
   }
   return (
     <View style={styles.container}>
-      {StickyHeader}{' '}
+      {StickyHeader}
       {activeTab === 'TODAY' ? (
         <View style={styles.boxContainer}>
           <TodayGuesthouses />
