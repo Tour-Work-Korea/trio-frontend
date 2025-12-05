@@ -4,11 +4,11 @@ import api from './axiosInstance';
 const postApi = {
   // (공개) 소개글 상세 조회 - 수정 폼 진입 시 기존 값 불러올 때 사용
   getIntroDetailPublic: guesthouseId =>
-    api.get(`/guesthouses/${guesthouseId}/intro`, {isAuth: false}),
+    api.get(`/guesthouses/${guesthouseId}/intro`, {withAuth: false}),
 
   // (공개) 소개글 목록 조회
   getIntroListPublic: (page = 0, size = 20) =>
-    api.get(`/guesthouses/intro?page=${page}&size=${size}`, {isAuth: false}),
+    api.get(`/guesthouses/intro?page=${page}&size=${size}`, {withAuth: false}),
 
   // (호스트) 소개글 작성(등록)
   createIntro: (guesthouseId, body) =>

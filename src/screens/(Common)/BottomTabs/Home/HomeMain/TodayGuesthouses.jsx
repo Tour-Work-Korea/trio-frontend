@@ -31,7 +31,6 @@ export default function TodayGuesthouses() {
       setLoading(true);
       try {
         const {data} = await postApi.getIntroListPublic(nextPage, PAGE_SIZE);
-        // data: { content, last, empty, ... } 형태 가정
 
         const noMore =
           data.last === true ||
