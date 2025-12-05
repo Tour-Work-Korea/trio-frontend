@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, FlatList, Image, StyleSheet, Pressable} from 'react-native';
+import {View, Text, FlatList, Image, StyleSheet, Pressable, Platform} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {COLORS} from '@constants/colors';
@@ -170,7 +170,7 @@ export default function TodayGuesthouses() {
   }, [loading]);
 
   return (
-    <View>
+    <View style={({paddingBottom: Platform.OS === 'ios' ? 200 : 0})}>
       <FlatList
         data={items}
         keyExtractor={keyExtractor}

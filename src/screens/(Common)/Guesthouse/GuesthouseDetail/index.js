@@ -27,6 +27,7 @@ import Loading from '@components/Loading';
 import {genderOptions} from '@data/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
+import { trimJejuPrefix } from '@utils/formatAddress';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -335,7 +336,7 @@ const GuesthouseDetail = ({route}) => {
           </View>
 
           <Text style={[FONTS.fs_14_regular, styles.address]}>
-            {detail.guesthouseAddress} {detail.guesthouseAddressDetail}
+            {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
           </Text>
 
           {is050Number(detail.guesthousePhone) && (

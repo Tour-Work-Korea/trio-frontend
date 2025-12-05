@@ -84,8 +84,11 @@ const userGuesthouseApi = {
     }),
 
   // 인기 게스트하우스 조회
-  getPopularGuesthouses: () =>
-    api.get('/user/guesthouses/popular', {withAuth: false}),
+  getPopularGuesthouses: ({ page, size = 10 } = {}) =>
+    api.get('/user/guesthouses/popular', {
+      params: { page, size },
+      withAuth: false,
+    }),
 };
 
 export default userGuesthouseApi;
