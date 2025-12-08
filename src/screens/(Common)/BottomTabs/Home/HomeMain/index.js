@@ -22,11 +22,10 @@ const TABS = [
   {key: 'STAY', label: '게하'},
   {key: 'MEET', label: '이벤트'},
   {key: 'EMPLOY', label: '스탭'},
-  {key: 'TODAY', label: '오늘의 게스트하우스'},
 ];
-
+const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
 const HomeMain = () => {
-  const [activeTab, setActiveTab] = useState('TODAY');
+  const [activeTab, setActiveTab] = useState('STAY');
 
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [employList, setEmployList] = useState([]);
@@ -138,25 +137,40 @@ const HomeMain = () => {
 
       {/* 탭바 */}
       <View style={headerStyles.tabBar}>
-        {TABS.map(t => {
-          const isActive = activeTab === t.key;
+        <View style={headerStyles.tabBarLeft}>
+          {TABS.map(t => {
+            const isActive = activeTab === t.key;
 
-          return (
-            <TouchableOpacity
-              key={t.key}
-              onPress={() => handleTabPress(t.key)}
-              activeOpacity={0.8}
-              style={headerStyles.tabBtn}>
-              <Text
-                style={[
-                  headerStyles.tabText,
-                  isActive && headerStyles.tabTextActive,
-                ]}>
-                {t.label}
-              </Text>
-            </TouchableOpacity>
-          );
-        })}
+            return (
+              <TouchableOpacity
+                key={t.key}
+                onPress={() => handleTabPress(t.key)}
+                activeOpacity={0.8}
+                style={headerStyles.tabBtn}>
+                <Text
+                  style={[
+                    headerStyles.tabText,
+                    isActive && headerStyles.tabTextActive,
+                  ]}>
+                  {t.label}
+                </Text>
+              </TouchableOpacity>
+            );
+          })}
+        </View>
+        <TouchableOpacity
+          key={today.key}
+          onPress={() => handleTabPress(today.key)}
+          activeOpacity={0.8}
+          style={headerStyles.tabBtn}>
+          <Text
+            style={[
+              headerStyles.tabText,
+              activeTab === today.key && headerStyles.tabTextActive,
+            ]}>
+            {today.label}
+          </Text>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -186,15 +200,6 @@ const HomeMain = () => {
               <Guesthouses guesthouses={guesthouseList} />
             </View>
 
-            {/* 채용 섹션 */}
-            <View
-              onLayout={e => {
-                employYRef.current = e.nativeEvent.layout.y;
-              }}
-              style={styles.boxContainer}>
-              <Employ jobs={employList} setEmployList={setEmployList} />
-            </View>
-
             {/* 이벤트(이벤트) 섹션 */}
             <View
               onLayout={e => {
@@ -202,6 +207,15 @@ const HomeMain = () => {
               }}
               style={styles.boxContainer}>
               <Meets events={eventList} setEventList={setEventList} />
+            </View>
+
+            {/* 채용 섹션 */}
+            <View
+              onLayout={e => {
+                employYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              <Employ jobs={employList} setEmployList={setEmployList} />
             </View>
           </>
         </ScrollView>
@@ -218,6 +232,11 @@ const headerStyles = {
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
     paddingHorizontal: 20,
+    gap: 20,
+    justifyContent: 'space-between',
+  },
+  tabBarLeft: {
+    flexDirection: 'row',
     gap: 20,
   },
   tabBtn: {
