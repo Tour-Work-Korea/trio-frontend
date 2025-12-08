@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 
 const styles = StyleSheet.create({
@@ -40,7 +40,10 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_0,
     marginTop: 8,
   },
-  bodyContainer: {marginHorizontal: 20},
+  bodyContainer: {
+    marginHorizontal: 20,     
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
+  },
 
   // 섹션 공통
   // 섹션 제목
