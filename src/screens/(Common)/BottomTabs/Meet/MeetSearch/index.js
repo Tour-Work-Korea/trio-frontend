@@ -16,6 +16,7 @@ import {COLORS} from '@constants/colors';
 import styles from './MeetSearch.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import EmptyState from '@components/EmptyState';
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
@@ -139,7 +140,7 @@ const MeetSearch = () => {
         style={styles.itemWrap}
         onPress={() => navigation.navigate('MeetDetail', {partyId: item.id})}>
         <View style={styles.itemTopWrap}>
-          <Image source={item.thumbnailUri} style={styles.thumbnail} />
+          <Image source={{ uri: item.thumbnailUri }} style={styles.thumbnail} />
           <View style={styles.infoWrap}>
             <View style={styles.nameHeartWrap}>
               <Text
@@ -173,7 +174,7 @@ const MeetSearch = () => {
 
         <View style={styles.itemBottomWrap}>
           <Text style={[FONTS.fs_12_medium, styles.addressText]}>
-            {item.address}
+            {trimJejuPrefix(item.address)}
           </Text>
           <Text
             style={[

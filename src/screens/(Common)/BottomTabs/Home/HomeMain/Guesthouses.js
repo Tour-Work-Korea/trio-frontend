@@ -23,7 +23,6 @@ export default function Guesthouses({guesthouses}) {
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
           id: item.guesthouseId,
-          isFromDeeplink: true,
           checkIn: today.format('YYYY-MM-DD'),
           checkOut: tomorrow.format('YYYY-MM-DD'),
           guestCount: 1,
