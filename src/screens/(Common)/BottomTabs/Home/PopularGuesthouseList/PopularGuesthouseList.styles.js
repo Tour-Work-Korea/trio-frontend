@@ -78,11 +78,9 @@ const styles = StyleSheet.create({
 
   // 상단 3개용
   trendingList: {
-    paddingLeft: 24,
     marginBottom: 4,
   },
   trendingCard: {
-    marginRight: 24,
   },
   trendingImage: {
     width: '100%',

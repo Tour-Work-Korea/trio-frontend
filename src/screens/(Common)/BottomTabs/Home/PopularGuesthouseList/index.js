@@ -25,6 +25,9 @@ import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 
 const PAGE_SIZE = 10;
+const TRENDING_CARD_WIDTH = SCREEN_WIDTH * 0.9;
+const TRENDING_CARD_GAP = 16;
+const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 
 const PopularGuesthouseList = () => {
   const navigation = useNavigation();
@@ -51,7 +54,7 @@ const PopularGuesthouseList = () => {
     return { hasRating: valid, text: valid ? num.toFixed(1) : '0.0' };
   };
 
-  // 📌 ScrollView용 무한스크롤 로딩
+  // ScrollView용 무한스크롤 로딩
   const loadMore = async () => {
     if (!hasNext || loading || loadingMoreRef.current) return;
 
@@ -104,15 +107,18 @@ const PopularGuesthouseList = () => {
   const restList = guesthouses.slice(3);
 
   // --- 카드 UI들 (FlatList 제거, 컴포넌트만 재사용) ---
-  const TrendingCard = ({ item }) => {
+  const TrendingCard = ({ item, style }) => {
     const { hasRating, text } = getRatingInfo(item.avgRating);
     return (
       <TouchableOpacity
-        style={[styles.trendingCard, { width: SCREEN_WIDTH * 0.9 }]}
+        style={[
+          styles.trendingCard,
+          { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
+          style,
+        ]}
         onPress={() =>
           navigation.navigate('GuesthouseDetail', {
             id: item.guesthouseId,
-            isFromDeeplink: true,
             checkIn: today.format('YYYY-MM-DD'),
             checkOut: tomorrow.format('YYYY-MM-DD'),
             guestCount: 1,
@@ -175,7 +181,6 @@ const PopularGuesthouseList = () => {
         onPress={() =>
           navigation.navigate('GuesthouseDetail', {
             id: item.guesthouseId,
-            isFromDeeplink: true,
             checkIn: today.format('YYYY-MM-DD'),
             checkOut: tomorrow.format('YYYY-MM-DD'),
             guestCount: 1,
@@ -275,19 +280,37 @@ const PopularGuesthouseList = () => {
 
           <ScrollView
             horizontal
-            pagingEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.trendingList}
             onScroll={(e) => {
+              if (!trendingList.length) return;
+
               const offsetX = e.nativeEvent.contentOffset.x;
-              const page = Math.round(offsetX / SCREEN_WIDTH);
-              setCurrentPage(page);
+              const page = Math.round(offsetX / TRENDING_SNAP_INTERVAL);
+              const clamped = Math.max(
+                0,
+                Math.min(page, trendingList.length - 1),
+              );
+              setCurrentPage(clamped);
             }}
             scrollEventThrottle={16}
+            contentContainerStyle={{
+              paddingHorizontal: (SCREEN_WIDTH - TRENDING_CARD_WIDTH) / 2,
+            }}
+            decelerationRate="fast"
+            snapToInterval={TRENDING_SNAP_INTERVAL}
+            snapToAlignment="start"
           >
-            {trendingList.map((item) => (
-              <TrendingCard key={item.guesthouseId} item={item} />
-            ))}
+            {trendingList.map((item, index) => {
+              const isLast = index === trendingList.length - 1;
+              return (
+                <TrendingCard
+                  key={item.guesthouseId}
+                  item={item}
+                  style={isLast && { marginRight: 0 }}
+                />
+              );
+            })}
           </ScrollView>
 
           {/* 인디케이터 */}

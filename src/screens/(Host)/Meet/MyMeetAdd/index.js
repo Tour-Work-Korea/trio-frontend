@@ -505,9 +505,9 @@ const MyMeetAdd = () => {
           모든 항목을 입력하셔야 등록이 완료됩니다.
         </Text>
 
-        <TouchableOpacity onPress={logPayload}>
+        {/* <TouchableOpacity onPress={logPayload}>
           <Text>데이터 보기</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
 
       <View style={styles.bottomContainer}>

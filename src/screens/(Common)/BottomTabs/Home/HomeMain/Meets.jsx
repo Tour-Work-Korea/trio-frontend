@@ -17,10 +17,13 @@ import HeartFilled from '@assets/images/heart_filled.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {toggleFavorite} from '@utils/toggleFavorite';
+import { trimJejuPrefix } from '@utils/formatAddress';
 
 export default function Meets({events = [], setEventList}) {
+  const navigation = useNavigation();
+
   const moveToDetail = partyId => {
-    console.log('★ Meet item press', partyId);
+    navigation.navigate("MeetDetail", { partyId });
   };
 
   const formatDateTime = isoStr => {
@@ -103,7 +106,7 @@ export default function Meets({events = [], setEventList}) {
                 style={[FONTS.fs_12_medium, localStyles.subText]}
                 numberOfLines={1}
                 ellipsizeMode="tail">
-                {formatDateTime(item.partyStartDateTime)} · {item.location}
+                {formatDateTime(item.partyStartDateTime)} · {trimJejuPrefix(item.location)}
               </Text>
 
               {/* 가격 + 인원 */}

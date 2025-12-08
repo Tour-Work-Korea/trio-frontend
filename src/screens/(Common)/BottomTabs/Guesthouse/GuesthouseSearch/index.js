@@ -219,7 +219,8 @@ const GuesthouseSearch = () => {
           <SearchIcon width={24} height={24} />
           <TextInput
             style={styles.searchInput}
-            placeholder="찾는 숙소가 있으신가요?"
+            // placeholder="찾는 숙소가 있으신가요?"
+            placeholder="찾는 지역이 있으신가요?"
             placeholderTextColor={COLORS.grayscale_600}
             value={searchTerm}
             onChangeText={setSearchTerm}

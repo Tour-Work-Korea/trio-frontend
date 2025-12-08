@@ -1,9 +1,14 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native'; 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
+import LeftArrow from '@assets/images/chevron_left_white.svg';
+
 export default function PostHeaderSection({images}) {
+  const navigation = useNavigation();
+
   const [thumbnailUrl, setThumbnailUrl] = useState('');
 
   useEffect(() => {
@@ -18,6 +23,12 @@ export default function PostHeaderSection({images}) {
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
         resizeMode="cover"
       />
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <LeftArrow width={28} height={28} />
+      </TouchableOpacity>
     </View>
   );
 }
@@ -43,6 +54,9 @@ const styles = StyleSheet.create({
     width: 28,
     height: 28,
     borderRadius: 14,
+    position: 'absolute',
+    left: 20,
+    top: 16,
   },
   guesthouseButton: {
     maxWidth: '70%',

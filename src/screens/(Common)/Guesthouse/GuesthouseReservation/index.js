@@ -119,13 +119,13 @@ const GuesthouseReservation = ({ route }) => {
       const reservationId = res.data;
 
       // 예약 pendding 승인, 결제 X
-      // navigation.navigate('GuesthousePaymentSuccess');
+      navigation.navigate('GuesthousePaymentSuccess');
 
       // 결제 버전
-      navigation.navigate('GuesthousePayment', {
-        reservationId,
-        amount: roomPrice,
-      });
+      // navigation.navigate('GuesthousePayment', {
+      //   reservationId,
+      //   amount: roomPrice,
+      // });
 
     } catch (err) {
       Alert.alert('예약 실패', err.response.data.message);

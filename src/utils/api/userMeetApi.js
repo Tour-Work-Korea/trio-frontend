@@ -2,11 +2,10 @@ import api from './axiosInstance';
 
 const userMeetApi = {
   // 이벤트 공고 7일치 조회
-  getRecentParties: (params = {}) => api.get('/user/parties', {params}),
+  getRecentParties: (params = {}) => api.get('/user/parties', {params, withAuth: false}),
 
   // 이벤트 공고 전체 조회 및 검색
-  searchParties: (params = {}) =>
-    api.get('/user/parties/search', {params, withAuth: false}),
+  searchParties: (params = {}) => api.get('/user/parties/search', {params, withAuth: false}),
 
   // 이벤트 즐겨찾기 등록
   addFavorite: partyId => api.post(`/user/parties/favorite/${partyId}`),

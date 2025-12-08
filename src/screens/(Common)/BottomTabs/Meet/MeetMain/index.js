@@ -22,6 +22,7 @@ import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import adminApi from '@utils/api/adminApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -231,7 +232,7 @@ const MeetMain = () => {
             style={[FONTS.fs_12_medium, styles.meetAddress]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {item.location}
+            {trimJejuPrefix(item.location)}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.timeText]}>
             {formatWhenTime(item.partyStartDateTime)}
