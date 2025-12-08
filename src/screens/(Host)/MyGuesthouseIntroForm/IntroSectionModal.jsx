@@ -7,9 +7,13 @@ import {
   Modal,
   StyleSheet,
   TextInput,
-  ScrollView,
   KeyboardAvoidingView,
+  Platform,
+  ScrollView,
 } from 'react-native';
+
+import DraggableFlatList from 'react-native-draggable-flatlist';
+import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
 import ErrorModal from '@components/modals/ErrorModal';
@@ -18,7 +22,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
-import styles from './RecruitmentForm.styles'; // modal 공통 스타일 재사용
+import styles from './RecruitmentForm.styles';
 
 export default function IntroSectionModal({
   visible,
@@ -33,6 +37,10 @@ export default function IntroSectionModal({
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
   const [blocks, setBlocks] = useState([]);
 
+  // ⭐ 랜덤 id 생성 함수 (내부용)
+  const genId = () =>
+    `${sectionType}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+
   useEffect(() => {
     if (!visible) return;
 
@@ -45,7 +53,11 @@ export default function IntroSectionModal({
 
     setBlocks(
       sorted.length
-        ? sorted
+        ? sorted.map((b, idx) => ({
+            ...b,
+            // 이미 localId가 있으면 유지, 없으면 새로 부여
+            localId: b.localId ?? genId() + `-${idx}`,
+          }))
         : [
             {
               sectionType,
@@ -53,6 +65,7 @@ export default function IntroSectionModal({
               content: '',
               imgUrl: '',
               blockOrder: 1,
+              localId: genId(),
             },
           ],
     );
@@ -74,11 +87,13 @@ export default function IntroSectionModal({
         content: '',
         imgUrl: '',
         blockOrder: prev.length + 1,
+        localId: genId(),
       },
     ]);
   };
 
-  const removeBlock = idx => {
+  // ⭐ index 대신 localId로 삭제
+  const removeBlock = localId => {
     if (blocks.length === 1) {
       setErrorModal({
         visible: true,
@@ -86,37 +101,38 @@ export default function IntroSectionModal({
       });
       return;
     }
-    const next = blocks.filter((_, i) => i !== idx);
+    const next = blocks.filter(b => b.localId !== localId);
     const reordered = next.map((b, i) => ({...b, blockOrder: i + 1}));
     setBlocks(reordered);
   };
 
-  const updateBlock = (idx, field, value) => {
+  // ⭐ index 대신 localId로 업데이트
+  const updateBlock = (localId, field, value) => {
     setBlocks(prev =>
-      prev.map((b, i) => (i === idx ? {...b, [field]: value} : b)),
+      prev.map(b => (b.localId === localId ? {...b, [field]: value} : b)),
     );
   };
 
-  const pickImage = async idx => {
+  const pickImage = async localId => {
     const uploadedUrls = await uploadMultiImage(1);
     if (!uploadedUrls?.length) return;
-    updateBlock(idx, 'imgUrl', uploadedUrls[0]);
+    updateBlock(localId, 'imgUrl', uploadedUrls[0]);
   };
 
-  const removeImage = idx => {
-    updateBlock(idx, 'imgUrl', '');
+  const removeImage = localId => {
+    updateBlock(localId, 'imgUrl', '');
   };
 
   const handleSave = () => {
-    // ✅ 완전 빈 단락 제거 (title/content/imgUrl 모두 비면 제거)
+    // 내부용 localId는 그대로 두고, 마지막에만 제거해서 formData에 넣기
     const cleaned = blocks
       .map(b => ({
-        sectionType,
+        ...b,
         title: (b.title ?? '').trim(),
         content: (b.content ?? '').trim(),
         imgUrl: (b.imgUrl ?? '').trim(),
       }))
-      .filter(b => b.title || b.content || b.imgUrl); // 하나라도 있으면 저장
+      .filter(b => b.title || b.content || b.imgUrl);
 
     if (cleaned.length === 0) {
       setErrorModal({
@@ -127,9 +143,12 @@ export default function IntroSectionModal({
     }
 
     const reordered = cleaned.map((b, i) => ({
-      ...b,
+      sectionType,
+      title: b.title,
+      content: b.content,
       imgUrl: b.imgUrl || null,
       blockOrder: i + 1,
+      // localId는 formData로 안 보냄
     }));
 
     const others =
@@ -139,100 +158,141 @@ export default function IntroSectionModal({
     onClose();
   };
 
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
-        <View style={styles.overlay}>
-          <View style={styles.container}>
-            {/* 헤더 */}
-            <View style={styles.header}>
-              <View />
-              <Text style={local.headerText}>{headerTitle}</Text>
-              <TouchableOpacity style={styles.xBtn} onPress={onClose}>
-                <XBtn width={24} height={24} />
-              </TouchableOpacity>
-            </View>
+  // ⭐ DraggableFlatList용 렌더 함수 (index 대신 localId 사용)
+  const renderBlockItem = ({item, drag, isActive}) => {
+    // 현재 순서 계산 (단락 번호 표시용)
+    const idx = blocks.findIndex(b => b.localId === item.localId);
+    const displayIndex = idx === -1 ? 0 : idx;
 
-            <ScrollView contentContainerStyle={{paddingBottom: 24}}>
-              {!!headerSubtitle && (
-                <Text style={local.subtitle}>{headerSubtitle}</Text>
-              )}
-
-              {blocks.map((block, idx) => (
-                <View key={idx} style={local.blockCard}>
-                  <View style={local.blockHeader}>
-                    <Text style={local.blockTitle}>단락 {idx + 1}</Text>
-                    <TouchableOpacity onPress={() => removeBlock(idx)}>
-                      <Text style={local.removeText}>삭제</Text>
-                    </TouchableOpacity>
-                  </View>
-
-                  {/* 이미지 */}
-                  {block.imgUrl ? (
-                    <View style={{position: 'relative', marginBottom: 8}}>
-                      <Image
-                        source={{uri: block.imgUrl}}
-                        style={local.blockImage}
-                        resizeMode="cover"
-                      />
-                      <TouchableOpacity
-                        style={local.removeImageBtn}
-                        onPress={() => removeImage(idx)}>
-                        <XBtn width={14} height={14} />
-                      </TouchableOpacity>
-                    </View>
-                  ) : (
-                    <TouchableOpacity
-                      style={local.addPhotoButton}
-                      onPress={() => pickImage(idx)}>
-                      <Gray_ImageAdd width={28} height={28} />
-                      <Text style={local.addPhotoText}>이미지 추가</Text>
-                    </TouchableOpacity>
-                  )}
-
-                  {/* 제목 */}
-                  <TextInput
-                    style={local.input}
-                    placeholder="단락 제목 (선택)"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={block.title}
-                    maxLength={100}
-                    onChangeText={text => updateBlock(idx, 'title', text)}
-                  />
-
-                  {/* 내용 */}
-                  <TextInput
-                    style={[local.input, local.textarea]}
-                    placeholder="단락 내용 (선택)"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={block.content}
-                    multiline
-                    maxLength={5000}
-                    onChangeText={text => updateBlock(idx, 'content', text)}
-                  />
-                </View>
-              ))}
-
-              {/* 단락 추가 */}
-              <TouchableOpacity style={local.addBlockBtn} onPress={addBlock}>
-                <Text style={local.addBlockText}>+ 단락 추가</Text>
-              </TouchableOpacity>
-
-              {/* 저장 */}
-              <TouchableOpacity style={local.saveBtn} onPress={handleSave}>
-                <Text style={local.saveText}>저장하기</Text>
-              </TouchableOpacity>
-            </ScrollView>
+    return (
+      <View
+        style={[
+          local.blockCard,
+          isActive && {shadowOpacity: 0.2, transform: [{scale: 0.99}]},
+        ]}>
+        <View style={local.blockHeader}>
+          <View style={local.blockHeaderLeft}>
+            {/* 드래그 핸들 */}
+            <TouchableOpacity
+              onLongPress={drag}
+              delayLongPress={150}
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+              style={local.dragHandle}>
+              <Text style={local.dragHandleText}>≡</Text>
+            </TouchableOpacity>
+            <Text style={local.blockTitle}>단락 {displayIndex + 1}</Text>
           </View>
 
-          <ErrorModal
-            visible={errorModal.visible}
-            title={errorModal.title}
-            buttonText={'확인'}
-            onPress={() => setErrorModal({visible: false, title: ''})}
-          />
+          <TouchableOpacity onPress={() => removeBlock(item.localId)}>
+            <Text style={local.removeText}>삭제</Text>
+          </TouchableOpacity>
         </View>
-      </KeyboardAvoidingView>
+
+        {/* 이미지 */}
+        {item.imgUrl ? (
+          <View style={{position: 'relative', marginBottom: 8}}>
+            <Image
+              source={{uri: item.imgUrl}}
+              style={local.blockImage}
+              resizeMode="cover"
+            />
+            <TouchableOpacity
+              style={local.removeImageBtn}
+              onPress={() => removeImage(item.localId)}>
+              <XBtn width={14} height={14} />
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <TouchableOpacity
+            style={local.addPhotoButton}
+            onPress={() => pickImage(item.localId)}>
+            <Gray_ImageAdd width={28} height={28} />
+            <Text style={local.addPhotoText}>이미지 추가</Text>
+          </TouchableOpacity>
+        )}
+
+        {/* 제목 */}
+        <TextInput
+          style={local.input}
+          placeholder="단락 제목 (선택)"
+          placeholderTextColor={COLORS.grayscale_400}
+          value={item.title}
+          maxLength={100}
+          onChangeText={text => updateBlock(item.localId, 'title', text)}
+        />
+
+        {/* 내용 */}
+        <TextInput
+          style={[local.input, local.textarea]}
+          placeholder="단락 내용 (선택)"
+          placeholderTextColor={COLORS.grayscale_400}
+          value={item.content}
+          multiline
+          maxLength={5000}
+          onChangeText={text => updateBlock(item.localId, 'content', text)}
+        />
+      </View>
+    );
+  };
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent>
+      <GestureHandlerRootView style={{flex: 1}}>
+        <KeyboardAvoidingView
+          style={{flex: 1}}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+          <View style={styles.overlay}>
+            <ScrollView style={styles.container}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <View />
+                <Text style={local.headerText}>{headerTitle}</Text>
+                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                  <XBtn width={24} height={24} />
+                </TouchableOpacity>
+              </View>
+
+              <DraggableFlatList
+                data={blocks}
+                keyExtractor={item => item.localId}
+                renderItem={renderBlockItem}
+                onDragEnd={({data}) => {
+                  // 드래그 결과 그대로 반영
+                  setBlocks(data);
+                }}
+                contentContainerStyle={{paddingBottom: 24}}
+                ListHeaderComponent={
+                  !!headerSubtitle && (
+                    <Text style={local.subtitle}>{headerSubtitle}</Text>
+                  )
+                }
+                ListFooterComponent={
+                  <View>
+                    <TouchableOpacity
+                      style={local.addBlockBtn}
+                      onPress={addBlock}>
+                      <Text style={local.addBlockText}>+ 단락 추가</Text>
+                    </TouchableOpacity>
+
+                    <TouchableOpacity
+                      style={local.saveBtn}
+                      onPress={handleSave}>
+                      <Text style={local.saveText}>저장하기</Text>
+                    </TouchableOpacity>
+                  </View>
+                }
+              />
+            </ScrollView>
+
+            <ErrorModal
+              visible={errorModal.visible}
+              title={errorModal.title}
+              buttonText={'확인'}
+              onPress={() => setErrorModal({visible: false, title: ''})}
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </GestureHandlerRootView>
     </Modal>
   );
 }
@@ -258,6 +318,19 @@ const local = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 8,
+  },
+  blockHeaderLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  dragHandle: {
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    marginRight: 6,
+  },
+  dragHandleText: {
+    ...FONTS.fs_14_semibold,
+    color: COLORS.grayscale_500,
   },
   blockTitle: {...FONTS.fs_14_semibold, color: COLORS.grayscale_900},
   removeText: {...FONTS.fs_12_medium, color: COLORS.grayscale_500},
