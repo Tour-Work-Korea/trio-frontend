@@ -63,7 +63,11 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
       }
       setPage(pageToLoad);
     } catch (e) {
-      // 오류 처리 (알림 등)
+      setLastPage(true);
+      if (pageToLoad === 0) {
+      setReviews([]);
+    }
+
     } finally {
       setLoading(false);
       setRefreshing(false);

@@ -59,7 +59,7 @@ const userEmployApi = {
     api.get(`/user/my/applications/${applicationId}`),
 
   //공고 리뷰 조회
-  getEmployReviews: () => api.get('/user/recruits/reviews'),
+  getEmployReviews: () => api.get('/user/recruits/reviews', {withAuth: false}),
 };
 
 export default userEmployApi;

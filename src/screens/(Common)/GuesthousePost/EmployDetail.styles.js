@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -10,7 +10,9 @@ const styles = StyleSheet.create({
   scrollView: {
     flex: 1,
   },
-  contentContainer: {paddingHorizontal: 20},
+  contentContainer: {
+    paddingHorizontal: 20,
+  },
   devide: {
     marginVertical: 28,
     height: 0.4,

@@ -133,6 +133,7 @@ const styles = StyleSheet.create({
   blockBox: {
     backgroundColor: COLORS.grayscale_0,
     overflow: 'hidden',
+    paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   blockImage: {
     width: '100%',

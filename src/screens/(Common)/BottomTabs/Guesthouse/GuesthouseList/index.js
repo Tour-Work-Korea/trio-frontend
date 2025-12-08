@@ -49,7 +49,6 @@ const GuesthouseList = () => {
   const [isLast, setIsLast] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
-  const [searched, setSearched] = useState(false);
 
   const {
     displayDate: routeDisplayDate,
@@ -84,6 +83,8 @@ const GuesthouseList = () => {
     onlyAvailable: false,
   });
   const [filterApplied, setFilterApplied] = useState(false);
+
+  const isInitialLoading = loading && guesthouses.length === 0;
 
   // id 값 추출
   const getHashtagIds = selectedTags => selectedTags.map(tag => tag.id);
@@ -231,7 +232,6 @@ const GuesthouseList = () => {
               setChildCount(children);
 
               // 리스트 리로드
-              setSearched(true);
               setPage(0);
               setIsLast(false);
               setGuesthouses([]);
@@ -424,7 +424,7 @@ const GuesthouseList = () => {
           </TouchableOpacity>
         </View>
 
-        {!searched && loading ? (
+        {isInitialLoading ? (
           <Loading title="숙소를 불러오는 중이에요" />
         ) : guesthouses.length === 0 ? (
           <EmptyState
@@ -441,8 +441,12 @@ const GuesthouseList = () => {
             onEndReached={handleEndReached}
             onEndReachedThreshold={0.7}
             ListFooterComponent={
-              loading && <ActivityIndicator size="small" color="gray" />
+              loading ? <ActivityIndicator size="small" color="gray" /> : null
             }
+            maintainVisibleContentPosition={{
+              minIndexForVisible: 0,
+            }}
+            removeClippedSubviews={false}
           />
         )}
       </View>
@@ -474,7 +478,6 @@ const GuesthouseList = () => {
           setDateGuestModalVisible(false);
 
           // 검색 다시 실행
-          setSearched(true);
           setPage(0);
           setIsLast(false);
           setGuesthouses([]);
@@ -520,7 +523,6 @@ const GuesthouseList = () => {
           setFilterApplied(true);
           setFilterModalVisible(false);
 
-          setSearched(true);
           setPage(0);
           setIsLast(false);
           setGuesthouses([]);

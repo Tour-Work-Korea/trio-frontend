@@ -5,7 +5,7 @@ const hostMyApi = {
   getMyProfile: () => api.get('/host/my'),
 
   //사장님 프로필 정보 수정
-  updateMyProfile: async formData => api.put(`/host/my`, formData),
+  updateMyProfile: async formData => api.put('/host/my', formData),
 
   //사장님 사업자 번호 등록
   updateBusinessNum: businessNum =>

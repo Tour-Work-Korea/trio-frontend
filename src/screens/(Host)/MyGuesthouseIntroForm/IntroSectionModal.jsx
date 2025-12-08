@@ -237,12 +237,12 @@ export default function IntroSectionModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <GestureHandlerRootView style={{flex: 1}}>
+      <GestureHandlerRootView style={local.flex}>
         <KeyboardAvoidingView
-          style={{flex: 1}}
+          style={local.flex}
           behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
           <View style={styles.overlay}>
-            <ScrollView style={styles.container}>
+            <View style={styles.container}>
               {/* 헤더 */}
               <View style={styles.header}>
                 <View />
@@ -251,39 +251,42 @@ export default function IntroSectionModal({
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
+              <ScrollView
+                style={local.flex}
+                showsVerticalScrollIndicator={false}
+                keyboardDismissMode="on-drag"
+                keyboardShouldPersistTaps="handled">
+                <DraggableFlatList
+                  data={blocks}
+                  keyExtractor={item => item.localId}
+                  renderItem={renderBlockItem}
+                  onDragEnd={({data}) => {
+                    setBlocks(data);
+                  }}
+                  contentContainerStyle={{paddingBottom: 24}}
+                  ListHeaderComponent={
+                    !!headerSubtitle && (
+                      <Text style={local.subtitle}>{headerSubtitle}</Text>
+                    )
+                  }
+                  ListFooterComponent={
+                    <View>
+                      <TouchableOpacity
+                        style={local.addBlockBtn}
+                        onPress={addBlock}>
+                        <Text style={local.addBlockText}>+ 단락 추가</Text>
+                      </TouchableOpacity>
 
-              <DraggableFlatList
-                data={blocks}
-                keyExtractor={item => item.localId}
-                renderItem={renderBlockItem}
-                onDragEnd={({data}) => {
-                  // 드래그 결과 그대로 반영
-                  setBlocks(data);
-                }}
-                contentContainerStyle={{paddingBottom: 24}}
-                ListHeaderComponent={
-                  !!headerSubtitle && (
-                    <Text style={local.subtitle}>{headerSubtitle}</Text>
-                  )
-                }
-                ListFooterComponent={
-                  <View>
-                    <TouchableOpacity
-                      style={local.addBlockBtn}
-                      onPress={addBlock}>
-                      <Text style={local.addBlockText}>+ 단락 추가</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                      style={local.saveBtn}
-                      onPress={handleSave}>
-                      <Text style={local.saveText}>저장하기</Text>
-                    </TouchableOpacity>
-                  </View>
-                }
-              />
-            </ScrollView>
-
+                      <TouchableOpacity
+                        style={local.saveBtn}
+                        onPress={handleSave}>
+                        <Text style={local.saveText}>저장하기</Text>
+                      </TouchableOpacity>
+                    </View>
+                  }
+                />
+              </ScrollView>
+            </View>
             <ErrorModal
               visible={errorModal.visible}
               title={errorModal.title}
@@ -298,6 +301,7 @@ export default function IntroSectionModal({
 }
 
 const local = StyleSheet.create({
+  flex: {flex: 1},
   headerText: {...FONTS.fs_20_semibold},
   subtitle: {
     ...FONTS.fs_14_regular,

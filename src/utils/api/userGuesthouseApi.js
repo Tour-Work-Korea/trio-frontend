@@ -5,6 +5,7 @@ const userGuesthouseApi = {
   searchGuesthouseByKeyword: keyword =>
     api.get('/guesthouse/keyword', {
       params: {keyword},
+      withAuth: false,
     }),
 
   // 유저 게스트하우스 검색 조회
@@ -41,6 +42,7 @@ const userGuesthouseApi = {
         amenityIds,
         availableOnly,
       },
+      withAuth: false,
     }),
 
   // 유저 게스트하우스 상세 조회
@@ -51,6 +53,7 @@ const userGuesthouseApi = {
         checkOut,
         guestCount,
       },
+      withAuth: false,
     }),
 
   // 게스트하우스 좋아요
@@ -81,6 +84,7 @@ const userGuesthouseApi = {
         size,
         sort,
       },
+      withAuth: false,
     }),
 
   // 인기 게스트하우스 조회

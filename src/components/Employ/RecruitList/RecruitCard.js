@@ -4,6 +4,7 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import styles from './RecruitList.styles';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 const RecruitCard = ({item, onPress, onToggleFavorite}) => {
   return (
@@ -46,7 +47,7 @@ const RecruitCard = ({item, onPress, onToggleFavorite}) => {
 
             <View style={styles.jobHeader}>
               <Text style={styles.jobSmall}>
-                {item.address ?? item.recruitAddress}
+                {trimJejuPrefix(item.address ?? item.recruitAddress)}
               </Text>
               <Text style={styles.jobSmall}>
                 {item.workDate ?? item.workPeriod}
