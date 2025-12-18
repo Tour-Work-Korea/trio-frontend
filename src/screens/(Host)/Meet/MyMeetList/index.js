@@ -75,7 +75,7 @@ const MyMeetList = () => {
     partyId => {
       Alert.alert(
         '이벤트 취소',
-        '이 이벤트을 정말 취소 하시겠어요?',
+        '이 이벤트를 정말 취소 하시겠어요?',
         [
           {text: '아니오', style: 'cancel'},
           {
