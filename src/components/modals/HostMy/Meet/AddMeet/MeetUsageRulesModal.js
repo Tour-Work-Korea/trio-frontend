@@ -12,52 +12,45 @@ import {
   Keyboard,
   Platform,
   TextInput,
-  Image,
 } from 'react-native';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import {uploadMultiImage} from '@utils/imageUploadHandler';
 
 import XBtn from '@assets/images/x_gray.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
 import MinusIcon from '@assets/images/minus_gray.svg';
-import ImageAddIcon from '@assets/images/add_image_gray.svg';
 import PreviewIcon from '@assets/images/show_password.svg';
 import BackIcon from '@assets/images/chevron_left_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
-const MAX_SECTIONS = 10;
 const TITLE_MAX = 100;
 const DESC_MAX = 5000;
+const MAX_SECTIONS = 10;
 
-const normalizeInitialEvents = (arr = []) =>
-  (Array.isArray(arr) ? arr : []).map((e) => ({
-    eventName: (typeof e?.eventName === 'string' ? e.eventName : (typeof e === 'string' ? e : '')) || '',
-    eventDescription: typeof e?.eventDescription === 'string' ? e.eventDescription : '',
-    // 단락당 1장만 쓰지만 API는 배열 요구 → 첫 번째만 사용
-    imageUrl: Array.isArray(e?.partyEventImageUrls) && e.partyEventImageUrls.length ? e.partyEventImageUrls[0] : '',
+const normalizeInitialRules = (arr = []) =>
+  (Array.isArray(arr) ? arr : []).map(r => ({
+    title: typeof r?.title === 'string' ? r.title : '',
+    content: typeof r?.content === 'string' ? r.content : '',
   }));
 
 const denormalizeForPayload = (sections = []) =>
-  sections.map((s) => ({
-    eventName: (s.eventName || '').trim(),
-    eventDescription: (s.eventDescription || '').trim(),
-    partyEventImageUrls: s.imageUrl ? [s.imageUrl] : [], // 1장 배열
+  sections.map(s => ({
+    title: (s.title || '').trim(),
+    content: (s.content || '').trim(),
   }));
 
-const MeetEventModal = ({
+const MeetUsageRulesModal = ({
   visible,
   onClose,
   onSelect,
   shouldResetOnClose,
-  initialEvents = [],
+  initialRules = [],
 }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [preview, setPreview] = useState(false);
 
-  // [{eventName, eventDescription, imageUrl}]
   const [sections, setSections] = useState([]);
   // 마지막 적용값
   const [applied, setApplied] = useState(null);
@@ -81,79 +74,86 @@ const MeetEventModal = ({
 
     setPreview(false);
 
-    if (applied) {
+    if (applied !== null) {
       setSections(applied);
       return;
     }
+    const normalized = normalizeInitialRules(initialRules);
+    const next = normalized.length ? normalized : [{title: '', content: ''}];
 
-    const normalized = normalizeInitialEvents(initialEvents);
-    setSections((prev) => {
-      const sameLen = prev.length === normalized.length;
+    setSections(prev => {
+      const sameLen = prev.length === next.length;
       const same =
         sameLen &&
         prev.every(
-          (p, i) =>
-            p.eventName === normalized[i].eventName &&
-            p.eventDescription === normalized[i].eventDescription &&
-            p.imageUrl === normalized[i].imageUrl,
+          (p, i) => p.title === next[i].title && p.content === next[i].content,
         );
-      return same ? prev : normalized;
+      return same ? prev : next;
     });
-  }, [visible]);
+  }, [visible, initialRules, applied]);
+
+  const resetToInitial = () => {
+    const normalized = normalizeInitialRules(initialRules);
+    setSections(normalized.length ? normalized : [{title: '', content: ''}]);
+    setPreview(false);
+  };
 
   const handleModalClose = () => {
     if (shouldResetOnClose) {
-      if (applied) setSections(applied);
-      else setSections([]);
+      if (applied !== null) setSections(applied);
+      else resetToInitial();
       setPreview(false);
     }
-    onClose();
+    onClose?.();
   };
 
   // 섹션 조작
   const addSection = () => {
     if (sections.length >= MAX_SECTIONS) return;
-    setSections((prev) => [...prev, {eventName: '', eventDescription: '', imageUrl: ''}]);
+    setSections(prev => [...prev, {title: '', content: ''}]);
   };
 
-  const removeSection = (idx) => {
-    setSections((prev) => prev.filter((_, i) => i !== idx));
+  const removeSection = idx => {
+    setSections(prev => {
+      const next = prev.filter((_, i) => i !== idx);
+      return next.length ? next : [{title: '', content: ''}];
+    });
   };
 
   const setField = (idx, key, value) => {
-    setSections((prev) => prev.map((s, i) => (i === idx ? {...s, [key]: value} : s)));
+    setSections(prev =>
+      prev.map((s, i) => (i === idx ? {...s, [key]: value} : s)),
+    );
   };
 
-  const pickImage = async (idx) => {
-    const urls = await uploadMultiImage(1);
-    if (urls?.length) {
-      setField(idx, 'imageUrl', urls[0]);
-    }
-  };
+  const allValid = sections.every(s => {
+    const t = (s.title || '').trim();
+    const c = (s.content || '').trim();
+    if (!t && !c) return true;      // 둘 다 비면 괜찮음
+    return !!t && !!c;              // 하나만 있으면 안됨
+  });
+
+  const buildPayloadRules = (sections = []) =>
+  denormalizeForPayload(sections)
+    .filter(r => r.title.length > 0 || r.content.length > 0) // 완전 빈 단락 제거
+    .filter(r => r.title.length > 0 && r.content.length > 0); 
 
   // 유효성 검사
-  const allValid =
-    sections.length > 0 &&
-    sections.length <= MAX_SECTIONS &&
-    sections.every(
-      (s) =>
-        s.imageUrl &&
-        s.eventName.trim().length > 0 &&
-        s.eventName.trim().length <= TITLE_MAX &&
-        s.eventDescription.trim().length <= DESC_MAX,
-    );
-
   const handleConfirm = () => {
-    if (!allValid) return;
+    const payloadRules = buildPayloadRules(sections);
+
     setApplied(sections);
-    onSelect?.({partyEvents: denormalizeForPayload(sections)});
-    onClose();
+    onSelect?.({
+      rules: payloadRules.length ? payloadRules : undefined,
+    });
+
+    onClose?.();
   };
 
   const HeaderBar = () => (
     <View style={styles.header}>
       <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-        이벤트 소개글
+        이용 규칙
       </Text>
       <View style={{position: 'absolute', right: 0, flexDirection: 'row', alignItems: 'center'}}>
         {!preview ? (
@@ -185,7 +185,7 @@ const MeetEventModal = ({
       <KeyboardAvoidingView
         style={{flex: 1}}
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={Platform.OS === 'ios' ? -120 : 0}>
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -200 : 0}>
         <TouchableWithoutFeedback onPress={() => (isKeyboardVisible ? Keyboard.dismiss() : handleModalClose())}>
           <View style={styles.overlay}>
             <TouchableWithoutFeedback onPress={() => {}}>
@@ -196,8 +196,8 @@ const MeetEventModal = ({
                   <ScrollView style={styles.body} keyboardShouldPersistTaps="handled">
                     {/* 상단 설명 + 추가 버튼 */}
                     <View style={styles.topRow}>
-                      <Text style={[FONTS.fs_16_medium, {color: COLORS.grayscale_800}]}>
-                        사진과 함께 자유롭게 작성해 보세요
+                      <Text style={[FONTS.fs_14_semibold, {color: COLORS.grayscale_800}]}>
+                        소등안내 등 이용 규칙에 대해 자유롭게 작성해 주세요
                       </Text>
                       <View style={{flexDirection: 'row', alignItems: 'center'}}>
                         <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_400, marginRight: 8}]}>
@@ -213,8 +213,8 @@ const MeetEventModal = ({
                     <View style={{paddingBottom: 120}}>
                       {sections.map((s, idx) => {
                         const order = idx + 1;
-                        const titleLen = s.eventName.length;
-                        const descLen = s.eventDescription.length;
+                        const titleLen = (s.title || '').length;
+                        const descLen = (s.content || '').length;
                         return (
                           <View key={`sec-${idx}`} style={styles.sectionCard}>
                             {/* 섹션 헤더 */}
@@ -227,23 +227,6 @@ const MeetEventModal = ({
                               </TouchableOpacity>
                             </View>
 
-                            {/* 이미지 (1장 필수) */}
-                            <TouchableOpacity
-                              onPress={() => pickImage(idx)}
-                              activeOpacity={0.8}
-                              style={styles.imageInputBox}>
-                              {s.imageUrl ? (
-                                <Image source={{uri: s.imageUrl}} style={styles.imagePreview} />
-                              ) : (
-                                <View style={styles.imagePlaceholder}>
-                                  <ImageAddIcon width={28} height={28} />
-                                  <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_400, marginTop: 6}]}>
-                                    대표 사진 추가
-                                  </Text>
-                                </View>
-                              )}
-                            </TouchableOpacity>
-
                             {/* 제목 */}
                             <View style={styles.rowBetween}>
                               <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_600}]}>
@@ -254,9 +237,9 @@ const MeetEventModal = ({
                               </Text>
                             </View>
                             <TextInput
-                              value={s.eventName}
-                              onChangeText={(t) => setField(idx, 'eventName', t.slice(0, TITLE_MAX))}
-                              placeholder="예) 포틀럭 & 불멍"
+                              value={s.title}
+                              onChangeText={(t) => setField(idx, 'title', t.slice(0, TITLE_MAX))}
+                              placeholder="예) 퇴장 시간 엄수"
                               placeholderTextColor={COLORS.grayscale_400}
                               style={[FONTS.fs_14_regular, styles.textInput]}
                               maxLength={TITLE_MAX}
@@ -273,9 +256,9 @@ const MeetEventModal = ({
                               </Text>
                             </View>
                             <TextInput
-                              value={s.eventDescription}
-                              onChangeText={(t) => setField(idx, 'eventDescription', t.slice(0, DESC_MAX))}
-                              placeholder="예) 본격적인 포틀럭과 불멍 타임입니다."
+                              value={s.content}
+                              onChangeText={(t) => setField(idx, 'content', t.slice(0, DESC_MAX))}
+                              placeholder="예) 공용 공간은 밤 11시 30분에 정리됩니다..."
                               placeholderTextColor={COLORS.grayscale_400}
                               style={[FONTS.fs_14_regular, styles.textArea]}
                               multiline
@@ -288,27 +271,28 @@ const MeetEventModal = ({
                     </View>
                   </ScrollView>
                 ) : (
-                  // 미리보기 (블로그 스타일): 이미지 → 제목 → 내용
+                  // 미리보기
                   <ScrollView style={styles.previewBody}>
                     <View style={{paddingBottom: 120}}>
                       {sections.map((s, idx) => (
                         <View key={`pv-${idx}`} style={styles.previewCard}>
                           <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_500, marginBottom: 8}]}>
-                            단락 {idx + 1}
+                            규칙 {idx + 1}
                           </Text>
-                          {s.imageUrl ? (
-                            <Image source={{uri: s.imageUrl}} style={styles.previewImage} />
-                          ) : (
-                            <View style={[styles.previewImage, {backgroundColor: COLORS.grayscale_100}]} />
-                          )}
-                          {!!s.eventName && (
-                            <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_900, marginTop: 12}]}>
-                              {s.eventName}
+
+                          {!!(s.title || '').trim() && (
+                            <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_900}]}>
+                              {(s.title || '').trim()}
                             </Text>
                           )}
-                          {!!s.eventDescription && (
-                            <Text style={[FONTS.fs_14_regular, {color: COLORS.grayscale_700, marginTop: 8, lineHeight: 22}]}>
-                              {s.eventDescription}
+
+                          {!!(s.content || '').trim() && (
+                            <Text
+                              style={[
+                                FONTS.fs_14_regular,
+                                {color: COLORS.grayscale_700, marginTop: 8, lineHeight: 22},
+                              ]}>
+                              {(s.content || '').trim()}
                             </Text>
                           )}
                         </View>
@@ -333,7 +317,7 @@ const MeetEventModal = ({
   );
 };
 
-export default MeetEventModal;
+export default MeetUsageRulesModal;
 
 const styles = StyleSheet.create({
   overlay: {
@@ -349,7 +333,6 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
 
-  // 헤더
   header: {
     alignItems: 'center',
     marginBottom: 24,
@@ -357,21 +340,26 @@ const styles = StyleSheet.create({
   modalTitle: {
     color: COLORS.grayscale_900,
   },
+  headerRight: {
+    position: 'absolute',
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   iconBtn: {
     padding: 6,
     borderRadius: 999,
     backgroundColor: COLORS.grayscale_100,
   },
-  XBtn: { position: 'absolute', right: 0 },
 
-  // 편집 본문
-  body: { flex: 1 },
+  body: {flex: 1},
   topRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 8,
   },
+
   sectionCard: {
     marginTop: 16,
     padding: 12,
@@ -387,21 +375,12 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
 
-  imageInputBox: {
-    height: 160,
-    borderRadius: 8,
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_200,
-    backgroundColor: COLORS.grayscale_100,
-    overflow: 'hidden',
-    marginBottom: 12,
+  rowBetween: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    justifyContent: 'center',
   },
-  imagePlaceholder: { alignItems: 'center', justifyContent: 'center' },
-  imagePreview: { width: '100%', height: '100%' },
 
-  rowBetween: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   textInput: {
     marginTop: 6,
     padding: 12,
@@ -422,15 +401,14 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
   },
 
-  // 미리보기
-  previewBody: { flex: 1 },
+  previewBody: {flex: 1},
   previewCard: {
     marginTop: 12,
     paddingBottom: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.grayscale_200,
   },
-  previewImage: { width: '100%', height: 200 },
 
-  // 작은 버튼들
   circleBtn: {
     padding: 6,
     borderRadius: 100,

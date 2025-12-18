@@ -29,6 +29,7 @@ const MeetLocationModal = ({
   onClose,
   onSelect,
   shouldResetOnClose,
+  initialGuesthouseId = null,
 }) => {
   // 게하 리스트 상태
   const [guesthouseList, setGuesthouseList] = useState([]);
@@ -47,15 +48,20 @@ const MeetLocationModal = ({
         if (!mounted) return;
         setGuesthouseList(list);
 
+        const targetId = appliedId ?? initialGuesthouseId ?? null;
+
         // 적용값이 있으면 선택 복원
-        if (appliedId) {
-          setSelectedId(appliedId);
+        if (targetId) {
+          const exists = list.some(g => String(g.id) === String(targetId));
+          setSelectedId(exists ? targetId : null);
         } else if (list.length > 0) {
           // 기본은 미선택 상태
+          setSelectedId(null);
         }
       } catch (e) {
         if (!mounted) return;
         setGuesthouseList([]);
+        setSelectedId(null);
       }
     };
 

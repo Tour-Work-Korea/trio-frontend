@@ -1,0 +1,235 @@
+import React, {useEffect, useMemo, useState} from 'react';
+import {
+  View,
+  Text,
+  Modal,
+  TouchableOpacity,
+  StyleSheet,
+  Dimensions,
+  TouchableWithoutFeedback,
+  ScrollView,
+  KeyboardAvoidingView,
+  Keyboard,
+  Platform,
+  TextInput,
+} from 'react-native';
+
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import ButtonScarlet from '@components/ButtonScarlet';
+
+import XBtn from '@assets/images/x_gray.svg';
+
+const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
+
+const MeetDetailScheduleModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
+  initialDetailSchedule = '',
+}) => {
+  const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
+  const [text, setText] = useState('');
+  const [appliedData, setAppliedData] = useState(null);
+
+  useEffect(() => {
+    const showSub = Keyboard.addListener('keyboardDidShow', () =>
+      setIsKeyboardVisible(true),
+    );
+    const hideSub = Keyboard.addListener('keyboardDidHide', () =>
+      setIsKeyboardVisible(false),
+    );
+
+    return () => {
+      showSub.remove();
+      hideSub.remove();
+    };
+  }, []);
+
+  // 모달 열릴 때 마지막 적용 값 복원
+  useEffect(() => {
+    if (!visible) return;
+
+    const next =
+      appliedData !== null
+        ? appliedData
+        : typeof initialDetailSchedule === 'string'
+          ? initialDetailSchedule
+          : '';
+
+    setText(next);
+  }, [visible, appliedData, initialDetailSchedule]);
+
+  const disabled = useMemo(() => text.trim().length === 0, [text]);
+
+  // 단순 닫기 시 초기화
+  const handleModalClose = () => {
+    if (shouldResetOnClose) {
+      const rollback =
+        appliedData !== null
+          ? appliedData
+          : typeof initialDetailSchedule === 'string'
+            ? initialDetailSchedule
+            : '';
+      setText(rollback);
+    }
+    onClose?.();
+  };
+
+  // 적용 버튼 눌렀을 때
+  const handleConfirm = () => {
+    const trimmed = text.trim();
+    if (!trimmed) return;
+
+    setAppliedData(trimmed); // 다음에 열 때 복원용
+    onSelect?.({detailSchedule: trimmed});
+    onClose?.();
+  };
+
+  const handleOverlayPress = () => {
+    if (isKeyboardVisible) {
+      Keyboard.dismiss(); // 키보드만 닫기
+    } else {
+      handleModalClose(); // 모달 닫기
+    }
+  };
+
+  return (
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={handleModalClose}>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={Platform.OS === 'ios' ? -220 : 0}>
+        <TouchableWithoutFeedback onPress={handleOverlayPress}>
+          <View style={styles.overlay}>
+            <TouchableWithoutFeedback onPress={() => {}}>
+              <View style={styles.modalContainer}>
+                {/* 헤더 */}
+                <View style={styles.header}>
+                  <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
+                    세부 일정
+                  </Text>
+                  <TouchableOpacity
+                    style={styles.XBtn}
+                    onPress={handleModalClose}>
+                    <XBtn width={24} height={24} />
+                  </TouchableOpacity>
+                </View>
+
+                <ScrollView
+                  style={{flex: 1}}
+                  keyboardShouldPersistTaps="handled">
+                  {/* 상세 정보 */}
+                  <View style={styles.body}>
+                    <View style={styles.title}>
+                      <Text style={[FONTS.fs_16_medium]}>
+                        이벤트 세부 일정에 대해 작성해 주세요
+                      </Text>
+                      <Text style={[FONTS.fs_12_light, styles.countText]}>
+                        <Text style={{color: COLORS.primary_orange}}>
+                          {text.length}
+                        </Text>
+                        /5,000
+                      </Text>
+                    </View>
+
+                    <TextInput
+                      style={[styles.textArea, FONTS.fs_14_regular]}
+                      multiline
+                      maxLength={5000}
+                      placeholder="예) 19:30 ~ 20:00 : 아이스브레이킹 및 세팅 ..."
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={text}
+                      onChangeText={setText}
+                      scrollEnabled={true}
+                      textAlignVertical="top"
+                    />
+
+                    <TouchableOpacity
+                      style={{alignSelf: 'flex-end'}}
+                      onPress={() => setText('')}>
+                      <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>
+                        다시쓰기
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                </ScrollView>
+
+                {/* 등록하기 버튼 */}
+                <ButtonScarlet
+                  title={'적용하기'}
+                  onPress={handleConfirm}
+                  disabled={text.trim() === ''}
+                  style={{marginBottom: 16}}
+                />
+              </View>
+            </TouchableWithoutFeedback>
+          </View>
+        </TouchableWithoutFeedback>
+      </KeyboardAvoidingView>
+    </Modal>
+  );
+};
+
+export default MeetDetailScheduleModal;
+
+const styles = StyleSheet.create({
+  overlay: {
+    flex: 1,
+    backgroundColor: COLORS.modal_background,
+    justifyContent: 'flex-end',
+  },
+  modalContainer: {
+    height: MODAL_HEIGHT,
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    paddingHorizontal: 20,
+    paddingVertical: 24,
+  },
+
+  // 헤더
+  header: {
+    alignItems: 'center',
+    marginBottom: 40,
+  },
+  modalTitle: {
+    color: COLORS.grayscale_900,
+  },
+  XBtn: {
+    position: 'absolute',
+    right: 0,
+  },
+
+  // 내용
+  body: {
+    flex: 1,
+    marginBottom: 100,
+  },
+  title: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  countText: {
+    color: COLORS.grayscale_400,
+  },
+
+  textArea: {
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    height: 400,
+  },
+
+  rewriteText: {
+    color: COLORS.grayscale_500,
+    marginTop: 4,
+  },
+});

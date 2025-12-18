@@ -18,8 +18,6 @@ import {
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import hostMeetApi from '@utils/api/hostMeetApi';
-import {meetTags} from '@data/meetOptions';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import MinusIcon from '@assets/images/minus_gray.svg';
@@ -27,18 +25,24 @@ import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
+const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose,
+  initialMinAttendees = 1,
+  initialMaxAttendees = 10,
+  initialIsGuest = true,
+  initialAmount = '',
+  initialFemaleAmount = '',
+  initialMaleNonAmount = '',
+  initialFemaleNonAmount = '',
+}) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
 
   const [minAttendees, setMinAttendees] = useState(1);
-  const [maxAttendees, setMaxAttendees] = useState(1);
+  const [maxAttendees, setMaxAttendees] = useState(10);
   const [guestOnly, setGuestOnly] = useState(true); // true = 숙박객만 참여가능
   const [femaleAmount, setFemaleAmount] = useState(''); // 숙박 여
   const [amount, setAmount] = useState(''); // 숙박 남
   const [femaleNonAmount, setFemaleNonAmount] = useState(''); // 비숙 여
   const [maleNonAmount, setMaleNonAmount] = useState(''); // 비숙 남
-  const [facilityOptions, setFacilityOptions] = useState([]); // [{id, facilityType}]
-  const [selectedFacilities, setSelectedFacilities] = useState([]); // [id]
 
   // 마지막 적용값 저장/복원
   const [appliedData, setAppliedData] = useState(null);
@@ -60,30 +64,20 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
     if (!visible) return;
-    // 시설/서비스 옵션 가져오기
-    fetchFacilities();
+    if (appliedData) return;
 
-    if (appliedData) {
-      setMinAttendees(appliedData.minAttendees);
-      setMaxAttendees(appliedData.maxAttendees);
-      setGuestOnly(appliedData.guestOnly);
-      setFemaleAmount(appliedData.femaleAmount);
-      setAmount(appliedData.amount);
-      setFemaleNonAmount(appliedData.femaleNonAmount);
-      setMaleNonAmount(appliedData.maleNonAmount);
-      setSelectedFacilities(appliedData.selectedFacilities);
-    }
-  }, [visible]);
-
-  const fetchFacilities = async () => {
-    try {
-      const res = await hostMeetApi.getPartyFacilities();
-      const list = Array.isArray(res?.data) ? res.data : [];
-      setFacilityOptions(list);
-    } catch (e) {
-      setFacilityOptions([]);
-    }
-  };
+    setMinAttendees(initialMinAttendees ?? 1);
+    setMaxAttendees(initialMaxAttendees ?? 10);
+    setGuestOnly(!!initialIsGuest);
+    setAmount(String(initialAmount ?? ''));
+    setFemaleAmount(String(initialFemaleAmount ?? ''));
+    setMaleNonAmount(String(initialMaleNonAmount ?? ''));
+    setFemaleNonAmount(String(initialFemaleNonAmount ?? ''));
+  }, [
+    visible,
+    initialMinAttendees, initialMaxAttendees, initialIsGuest,
+    initialAmount, initialFemaleAmount, initialMaleNonAmount, initialFemaleNonAmount
+  ]);
 
   // 단순 닫기일 때만 초기화
   const handleModalClose = () => {
@@ -97,7 +91,6 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
         setAmount(appliedData.amount);
         setFemaleNonAmount(appliedData.femaleNonAmount);
         setMaleNonAmount(appliedData.maleNonAmount);
-        setSelectedFacilities(appliedData.selectedFacilities);
       } else {
         // 초기화
         setMinAttendees(10);
@@ -107,7 +100,6 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
         setAmount('');
         setFemaleNonAmount('');
         setMaleNonAmount('');
-        setSelectedFacilities([]);
       }
     }
     onClose();
@@ -119,13 +111,6 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
       const next = dir === 'minus' ? n - 1 : n + 1;
       return Math.min(max, Math.max(min, next));
     });
-  };
-
-  // 시설 토글
-  const toggleFacility = id => {
-    setSelectedFacilities(prev =>
-      prev.includes(id) ? prev.filter(x => x !== id) : [...prev, id],
-    );
   };
 
   // 버튼 활성화 조건
@@ -164,7 +149,6 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
       amount,
       femaleNonAmount,
       maleNonAmount,
-      selectedFacilities,
     };
     setAppliedData(snapshot);
 
@@ -176,15 +160,13 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
       femaleAmount: Number(femaleAmount ?? 0),
       maleNonAmount: guestOnly ? 0 : Number(maleNonAmount ?? 0),
       femaleNonAmount: guestOnly ? 0 : Number(femaleNonAmount ?? 0),
-      partyFacilities: selectedFacilities.map(id => ({id})), // [{id}]
     });
 
     onClose();
   };
 
-  // facilityType → 한글 라벨
-  const facilityName = facilityType =>
-    meetTags.find(t => t.id === facilityType)?.name ?? facilityType;
+  // 숫자만 남기는 공통 헬퍼
+  const onlyNum = (t) => t.replace(/[^0-9]/g, '');
 
   return (
     <Modal
@@ -302,26 +284,15 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
               <View style={styles.section}>
                 <View style={styles.inputRow}>
                   <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                    숙박객 여자
-                  </Text>
-                  <TextInput
-                    value={femaleAmount}
-                    onChangeText={t =>
-                      setFemaleAmount(t.replace(/[^0-9]/g, ''))
-                    }
-                    keyboardType="number-pad"
-                    placeholder="이벤트 금액을 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    style={[FONTS.fs_14_regular, styles.input]}
-                  />
-                </View>
-                <View style={styles.inputRow}>
-                  <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                    숙박객 남자
+                    숙박객
                   </Text>
                   <TextInput
                     value={amount}
-                    onChangeText={t => setAmount(t.replace(/[^0-9]/g, ''))}
+                    onChangeText={(t) => {
+                      const v = onlyNum(t);
+                      setAmount(v);
+                      setFemaleAmount(v);
+                    }}
                     keyboardType="number-pad"
                     placeholder="이벤트 금액을 입력해주세요"
                     placeholderTextColor={COLORS.grayscale_400}
@@ -334,28 +305,15 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
                   <>
                     <View style={[styles.inputRow]}>
                       <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                        비숙박객 여자
+                        비숙박객
                       </Text>
                       <TextInput
                         value={femaleNonAmount}
-                        onChangeText={t =>
-                          setFemaleNonAmount(t.replace(/[^0-9]/g, ''))
-                        }
-                        keyboardType="number-pad"
-                        placeholder="이벤트 금액을 입력해주세요"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        style={[FONTS.fs_14_regular, styles.input]}
-                      />
-                    </View>
-                    <View style={[styles.inputRow, {marginBottom: 0}]}>
-                      <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                        비숙박객 남자
-                      </Text>
-                      <TextInput
-                        value={maleNonAmount}
-                        onChangeText={t =>
-                          setMaleNonAmount(t.replace(/[^0-9]/g, ''))
-                        }
+                        onChangeText={(t) => {
+                          const v = onlyNum(t);
+                          setFemaleNonAmount(v);
+                          setMaleNonAmount(v);
+                        }}
                         keyboardType="number-pad"
                         placeholder="이벤트 금액을 입력해주세요"
                         placeholderTextColor={COLORS.grayscale_400}
@@ -366,33 +324,6 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
                 )}
               </View>
 
-              {/* 시설/서비스 */}
-              <Text style={[FONTS.fs_16_medium, {marginTop: 20}]}>
-                시설/서비스
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.subText]}>
-                해당하는 태그를 전부 선택해 주세요!
-              </Text>
-              <View style={styles.tagsContainer}>
-                {facilityOptions.map(opt => {
-                  const isSelected = selectedFacilities.includes(opt.id);
-                  return (
-                    <TouchableOpacity
-                      key={opt.id}
-                      onPress={() => toggleFacility(opt.id)}
-                      style={styles.tagBtn}>
-                      <Text
-                        style={[
-                          FONTS.fs_14_medium,
-                          styles.tagText,
-                          isSelected && styles.tagSelected,
-                        ]}>
-                        {facilityName(opt.facilityType)}
-                      </Text>
-                    </TouchableOpacity>
-                  );
-                })}
-              </View>
             </ScrollView>
 
             {/* 적용하기 버튼 */}
