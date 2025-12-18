@@ -71,6 +71,9 @@ import {
   GuesthousePost,
   MyGuesthouseIntroList,
   MyGuesthouseIntroForm,
+  MeetBasics,
+  MeetDetails,
+  MeetDirections,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -177,6 +180,9 @@ const RootNavigation = () => (
       <Stack.Screen name="MyMeetList" component={MyMeetList} />
       <Stack.Screen name="MyMeetDetail" component={MyMeetDetail} />
       <Stack.Screen name="MyMeetAdd" component={MyMeetAdd} />
+      <Stack.Screen name="MeetBasics" component={MeetBasics} />
+      <Stack.Screen name="MeetDetails" component={MeetDetails} />
+      <Stack.Screen name="MeetDirections" component={MeetDirections} />
 
       {/* 이벤트화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />
