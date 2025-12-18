@@ -398,7 +398,7 @@ const MeetMain = () => {
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
               <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-                선택한 날짜에 이벤트이 없어요.
+                선택한 날짜에 이벤트가 없어요.
               </Text>
             </View>
           }

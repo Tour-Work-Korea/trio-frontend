@@ -75,7 +75,7 @@ const MyMeetList = () => {
     partyId => {
       Alert.alert(
         '이벤트 취소',
-        '이 이벤트을 정말 취소 하시겠어요?',
+        '이 이벤트를 정말 취소 하시겠어요?',
         [
           {text: '아니오', style: 'cancel'},
           {
@@ -85,7 +85,7 @@ const MyMeetList = () => {
               try {
                 setDeletingId(partyId);
                 await hostMeetApi.deleteParty(partyId);
-                Toast.show({type: 'success', text1: '이벤트이 취소되었어요'});
+                Toast.show({type: 'success', text1: '이벤트가 취소되었어요'});
                 await fetchMyParties();
               } catch (err) {
                 Toast.show({
@@ -231,7 +231,7 @@ const MyMeetList = () => {
             <EmptyState
               icon={EmptyIcon}
               iconSize={{width: 100, height: 100}}
-              title="아직 등록된 이벤트이 없어요"
+              title="아직 등록된 이벤트가 없어요"
               description="하단에 추가하기 버튼을 통해 등록해주세요!"
             />
           }

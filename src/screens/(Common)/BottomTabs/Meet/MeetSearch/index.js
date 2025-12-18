@@ -205,7 +205,7 @@ const MeetSearch = () => {
       <View style={styles.searchBox}>
         <SearchIcon width={24} height={24} />
         <TextInput
-          placeholder="찾는 이벤트이 있으신가요?"
+          placeholder="찾는 이벤트가 있으신가요?"
           style={[FONTS.fs_14_regular, styles.input]}
           placeholderTextColor={COLORS.grayscale_600}
           value={keyword}
@@ -243,8 +243,8 @@ const MeetSearch = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="조건에 맞는 이벤트이 없어요"
-                  description="마음에 드는 이벤트을 찾으러 가볼까요?"
+                  title="조건에 맞는 이벤트가 없어요"
+                  description="마음에 드는 이벤트를 찾으러 가볼까요?"
                 />
               </View>
             ) : null

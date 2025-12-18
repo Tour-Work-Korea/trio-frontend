@@ -59,7 +59,14 @@ const fmtYMD = d =>
     d.getDate(),
   ).padStart(2, '0')}`;
 
-const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
+const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
+  initialRecruitStartDate = '',
+  initialRecruitEndDate = '',
+  initialPartyStartTime = '19:00:00',
+  initialPartyEndTime = '22:00:00',
+  initialIsRecurring = false,
+  initialRepeatDays = [],
+}) => {
   const [startTime, setStartTime] = useState(() => {
     const d = new Date();
     d.setHours(17, 0, 0, 0);
@@ -86,17 +93,35 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
 
+  const parseDate = (ymd) => {
+    if (!ymd) return new Date();
+    const [y,m,d] = ymd.split('-').map(Number);
+    return new Date(y, (m-1)||0, d||1);
+  };
+  const parseTime = (hms) => {
+    const d = new Date();
+    const [h,m,s] = (hms||'00:00:00').split(':').map(Number);
+    d.setHours(h||0, m||0, s||0, 0);
+    return d;
+  };
+
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
-    if (visible && appliedData) {
-      setStartTime(new Date(appliedData.startTime));
-      setEndTime(new Date(appliedData.endTime));
-      setStartDate(new Date(appliedData.startDate));
-      setEndDate(new Date(appliedData.endDate));
-      setIsRecurring(appliedData.isRecurring);
-      setRepeatDays(appliedData.repeatDays);
-    }
-  }, [visible]);
+    if (!visible) return;
+    if (appliedData) return;
+
+    setStartDate(parseDate(initialRecruitStartDate));
+    setEndDate(parseDate(initialRecruitEndDate));
+    setStartTime(parseTime(initialPartyStartTime));
+    setEndTime(parseTime(initialPartyEndTime));
+    setIsRecurring(!!initialIsRecurring);
+    setRepeatDays(Array.isArray(initialRepeatDays) ? initialRepeatDays : []);
+  }, [
+    visible,
+    initialRecruitStartDate, initialRecruitEndDate,
+    initialPartyStartTime, initialPartyEndTime,
+    initialIsRecurring, initialRepeatDays
+  ]);
 
   const resetToInitial = () => {
     const t1 = new Date();

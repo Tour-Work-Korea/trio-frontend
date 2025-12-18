@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -22,12 +22,12 @@ import XBtn from '@assets/images/x_gray.svg';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
-const MeetInfoModal = ({
+const MeetMeetingPlaceModal = ({
   visible,
   onClose,
   onSelect,
   shouldResetOnClose,
-  initialInfo = '',
+  initialMeetingPlace = '',
 }) => {
   const [isKeyboardVisible, setIsKeyboardVisible] = useState(false);
   const [text, setText] = useState('');
@@ -50,31 +50,41 @@ const MeetInfoModal = ({
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
     if (!visible) return;
-    if (appliedData != null) {
-      setText(appliedData);
-    } else {
-      setText(initialInfo ?? ''); // 부모에서 넘어온 초기값
-    }
-  }, [visible]);
+
+    const next =
+      appliedData !== null
+        ? appliedData
+        : typeof initialMeetingPlace === 'string'
+          ? initialMeetingPlace
+          : '';
+
+    setText(next);
+  }, [visible, appliedData, initialMeetingPlace]);
+
+  const disabled = useMemo(() => text.trim().length === 0, [text]);
 
   // 단순 닫기 시 초기화
   const handleModalClose = () => {
     if (shouldResetOnClose) {
-      if (appliedData != null) {
-        setText(appliedData);
-      } else {
-        setText(initialInfo ?? '');
-      }
+      const rollback =
+        appliedData !== null
+          ? appliedData
+          : typeof initialMeetingPlace === 'string'
+            ? initialMeetingPlace
+            : '';
+      setText(rollback);
     }
-    onClose();
+    onClose?.();
   };
 
   // 적용 버튼 눌렀을 때
   const handleConfirm = () => {
     const trimmed = text.trim();
+    if (!trimmed) return;
+
     setAppliedData(trimmed);
-    onSelect({partyInfo: trimmed});
-    onClose();
+    onSelect?.({meetingPlace: trimmed});
+    onClose?.();
   };
 
   const handleOverlayPress = () => {
@@ -102,7 +112,7 @@ const MeetInfoModal = ({
                 {/* 헤더 */}
                 <View style={styles.header}>
                   <Text style={[FONTS.fs_20_semibold, styles.modalTitle]}>
-                    이벤트 상세 정보
+                    집합 장소
                   </Text>
                   <TouchableOpacity
                     style={styles.XBtn}
@@ -118,21 +128,21 @@ const MeetInfoModal = ({
                   <View style={styles.body}>
                     <View style={styles.title}>
                       <Text style={[FONTS.fs_16_medium]}>
-                        이벤트에 대해 자유롭게 적어주세요
+                        참여자들이 모일 장소를 기재해 주세요
                       </Text>
                       <Text style={[FONTS.fs_12_light, styles.countText]}>
                         <Text style={{color: COLORS.primary_orange}}>
                           {text.length}
                         </Text>
-                        /5,000
+                        /500
                       </Text>
                     </View>
 
                     <TextInput
                       style={[styles.textArea, FONTS.fs_14_regular]}
                       multiline
-                      maxLength={5000}
-                      placeholder="이벤트에 대해 자세히 적어주세요"
+                      maxLength={500}
+                      placeholder="예) 1층 라운지에서 만나요~ ..."
                       placeholderTextColor={COLORS.grayscale_400}
                       value={text}
                       onChangeText={setText}
@@ -166,7 +176,7 @@ const MeetInfoModal = ({
   );
 };
 
-export default MeetInfoModal;
+export default MeetMeetingPlaceModal;
 
 const styles = StyleSheet.create({
   overlay: {
