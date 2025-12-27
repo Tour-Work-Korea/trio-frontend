@@ -52,7 +52,7 @@ const GuesthousePayment = () => {
         ref={controller} // 결제 컨트롤러 연결
         request={{
           storeId: Config.PORTONE_STORE_ID,
-          channelKey: Config.PORTONE_CHANNEL_KEY,
+          // channelKey: Config.PORTONE_CHANNEL_KEY,
           paymentId: uid,
           orderName: '게스트하우스 예약', // 결제 내역 이름
           totalAmount: amount,
