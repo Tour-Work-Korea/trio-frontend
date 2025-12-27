@@ -104,6 +104,10 @@
 	<true/>
 	<key>NSAppTransportSecurity</key>
 	<dict>
+		<key>NSAllowsArbitraryLoads</key>
+		<true/>
+	</dict>
+	<!-- <dict>
 		<key>NSExceptionDomains</key>
 		<dict>
 			<key>workaway.kr</key>
@@ -116,7 +120,7 @@
 				<string>TLSv1.2</string>
 			</dict>
 		</dict>
-	</dict>
+	</dict> -->
 	<key>NSCameraUsageDescription</key>
 	<string>workaway에서 사진 촬영 및 업로드를 위해 카메라 접근 권한이 필요합니다.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
