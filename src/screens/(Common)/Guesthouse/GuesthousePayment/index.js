@@ -53,6 +53,7 @@ const GuesthousePayment = () => {
         request={{
           storeId: Config.PORTONE_STORE_ID,
           // channelKey: Config.PORTONE_CHANNEL_KEY,
+          pgProvider: 'TOSSPAYMENTS',
           paymentId: uid,
           orderName: '게스트하우스 예약', // 결제 내역 이름
           totalAmount: amount,
