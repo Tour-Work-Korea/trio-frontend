@@ -245,6 +245,8 @@ const styles = StyleSheet.create({
   cardTitle: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_900,
+    lineHeight: 20,
+    height: 40,
   },
 
   bottomRow: {
