@@ -22,7 +22,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
-import styles from './RecruitmentForm.styles';
+import styles from './MyGuesthouseIntroForm.styles';
 
 export default function IntroSectionModal({
   visible,
@@ -251,11 +251,12 @@ export default function IntroSectionModal({
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              <ScrollView
+              {/* <ScrollView
                 style={local.flex}
                 showsVerticalScrollIndicator={false}
                 keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled">
+                keyboardShouldPersistTaps="handled"> */}
+              <View style={{flex: 1}}>
                 <DraggableFlatList
                   data={blocks}
                   keyExtractor={item => item.localId}
@@ -263,6 +264,8 @@ export default function IntroSectionModal({
                   onDragEnd={({data}) => {
                     setBlocks(data);
                   }}
+                  keyboardDismissMode="on-drag"
+                  keyboardShouldPersistTaps="handled"
                   contentContainerStyle={{paddingBottom: 24}}
                   ListHeaderComponent={
                     !!headerSubtitle && (
@@ -285,7 +288,8 @@ export default function IntroSectionModal({
                     </View>
                   }
                 />
-              </ScrollView>
+              </View>
+              {/* </ScrollView> */}
             </View>
             <ErrorModal
               visible={errorModal.visible}
