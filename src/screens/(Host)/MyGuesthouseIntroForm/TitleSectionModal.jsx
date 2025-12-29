@@ -18,7 +18,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
-import styles from './RecruitmentForm.styles';
+import styles from './MyGuesthouseIntroForm.styles';
 
 export default function TitleSectionModal({
   formData,

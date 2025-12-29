@@ -7,7 +7,7 @@ import hostMyApi from '@utils/api/hostMyApi';
 import {log, mask} from '@utils/logger';
 import {navigate} from '@utils/navigationService';
 
-const REFRESH_KEY = 'refresh-token'; // 👈 refreshToken만 저장
+const REFRESH_KEY = 'refresh-token';
 
 export const tryAutoLogin = async () => {
   log.info('🚪 tryAutoLogin: start');
