@@ -9,7 +9,7 @@ import {
   TouchableWithoutFeedback,
   View,
 } from 'react-native';
-import styles from './RecruitmentForm.styles';
+import styles from './MyGuesthouseIntroForm.styles';
 import Header from '@components/Header';
 
 import CheckOrange from '@assets/images/check_orange.svg';
