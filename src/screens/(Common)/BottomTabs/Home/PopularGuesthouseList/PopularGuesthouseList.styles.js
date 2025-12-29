@@ -143,35 +143,73 @@ const styles = StyleSheet.create({
   popularCard: {
     flexDirection: 'row',
     paddingHorizontal: 20,
-    marginBottom: 20.
+    marginBottom: 20,
+    gap: 12,
+  },
+  imgRatingContainer: {
+    position: 'relative',
   },
   popularImage: {
-    width: 80,
-    height: 80,
+    width: 112,
+    height: 112,
     borderRadius: 4,
-    marginRight: 10,
+  },
+  rating: {
+    position:'absolute',
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.grayscale_800,
+    justifyContent: 'center',
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 2,
+    gap: 4,
+    top: 4,
+    left: 4,
   },
   popularInfo: {
     flex: 1,
-    justifyContent: 'space-between',
+    justifyContent: 'space-evenly',
   },
-  // 제목 별점
-  popularTitleRow: {
+  tagRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginBottom: 8,
+    gap: 4,
+    paddingRight: 28,
   },
+  tagContainer: {
+    backgroundColor: COLORS.grayscale_100,
+    paddingVertical: 4,
+    paddingHorizontal: 10,
+    borderRadius: 100,
+  },
+  tagText: {
+    color: COLORS.primary_blue,
+  },
+  // 제목
   popularName: {
     color: COLORS.grayscale_800,
+    marginBottom: 4,
   },
-  // 태그 가격
+  popularAddress: {
+    color: COLORS.grayscale_500,
+    marginBottom: 10,
+  },
+  // 가격
   popularBottomRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   popularPrice: {
     color: COLORS.grayscale_800,
+  },
+  popularEmptyPrice: {
+    color: COLORS.grayscale_300,
+  },
+  heartIcon: {
+    position: 'absolute',
+    right: 0,
   },
 
 });

@@ -17,7 +17,7 @@ const userMeetApi = {
   getFavoriteParties: () => api.get('/user/my/party'),
 
   // 이벤트 상세 조회
-  getPartyDetail: partyId => api.get(`/user/parties/${partyId}`),
+  getPartyDetail: partyId => api.get(`/user/parties/${partyId}`, {withAuth: false}),
 
   // 이벤트 참가 정보 조회 (요금 계산 포함)
   joinParty: partyId => api.get(`/user/parties/join/${partyId}`),

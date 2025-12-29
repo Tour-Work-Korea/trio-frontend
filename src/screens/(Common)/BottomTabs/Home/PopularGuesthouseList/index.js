@@ -18,11 +18,15 @@ import { COLORS } from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
 import { guesthouseTags } from '@data/guesthouseTags';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import { trimJejuPrefix } from '@utils/formatAddress';
+import { toggleFavorite } from '@utils/toggleFavorite';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
 import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
+import FillHeart from '@assets/images/heart_filled.svg';
+import EmptyHeart from '@assets/images/heart_empty.svg';
 
 const PAGE_SIZE = 10;
 const TRENDING_CARD_WIDTH = SCREEN_WIDTH * 0.9;
@@ -54,6 +58,15 @@ const PopularGuesthouseList = () => {
     return { hasRating: valid, text: valid ? num.toFixed(1) : '0.0' };
   };
 
+  const normalizeGuesthouses = useCallback(
+    (list = []) =>
+      list.map((it) => ({
+        ...it,
+        isLiked: Boolean(it?.isLiked ?? it?.isFavorite ?? it?.favorite),
+      })),
+    [],
+  );
+
   // ScrollView용 무한스크롤 로딩
   const loadMore = async () => {
     if (!hasNext || loading || loadingMoreRef.current) return;
@@ -67,7 +80,8 @@ const PopularGuesthouseList = () => {
         size: PAGE_SIZE,
       });
 
-      setGuesthouses(prev => [...prev, ...(data?.content ?? [])]);
+      const normalized = normalizeGuesthouses(data?.content ?? []);
+      setGuesthouses(prev => [...prev, ...normalized]);
       setPage(page + 1);
       setHasNext(!data?.last);
     } catch (e) {
@@ -88,7 +102,9 @@ const PopularGuesthouseList = () => {
         size: PAGE_SIZE,
       });
 
-      setGuesthouses(data?.content ?? []);
+      const normalized = normalizeGuesthouses(data?.content ?? []);
+
+      setGuesthouses(normalized);
       setPage(0);
       setHasNext(!data?.last);
     } catch (e) {
@@ -97,7 +113,7 @@ const PopularGuesthouseList = () => {
     } finally {
       setInitialLoading(false);
     }
-  }, []);
+  }, [normalizeGuesthouses]);
 
   useEffect(() => {
     fetchInitial();
@@ -175,6 +191,15 @@ const PopularGuesthouseList = () => {
 
   const PopularCard = ({ item }) => {
     const { hasRating, text } = getRatingInfo(item.avgRating);
+    const handleToggleFavorite = () => {
+      toggleFavorite({
+        type: 'guesthouse',
+        id: item.guesthouseId,
+        isLiked: item.isLiked,
+        setList: setGuesthouses,
+      });
+    };
+
     return (
       <TouchableOpacity
         style={styles.popularCard}
@@ -187,45 +212,54 @@ const PopularGuesthouseList = () => {
           })
         }>
 
-        {item.thumbnailUrl ? (
-          <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
-        ) : (
-          <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
-        )}
+        <View style={styles.imgRatingContainer}>
+          {item.thumbnailUrl ? (
+            <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
+          ) : (
+            <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
+          )}
+          {hasRating && (
+            <View style={styles.rating}>
+              <StarIcon width={14} height={14} />
+              <Text style={[FONTS.fs_12_medium, styles.ratingText]}>{text}</Text>
+            </View>
+          )}
+        </View>
 
         <View style={styles.popularInfo}>
-          <View style={styles.popularTitleRow}>
-            <Text style={[FONTS.fs_16_semibold, styles.popularName]}>
-              {item.guesthouseName}
-            </Text>
-            {hasRating && (
-              <View style={styles.ratingRow}>
-                <StarIcon width={14} height={14} />
-                <Text style={styles.ratingText}>{text}</Text>
-              </View>
-            )}
-          </View>
-
-          <View style={styles.popularBottomRow}>
-            <View style={styles.tags}>
-              {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-                <Text key={id} style={styles.tag}>
+          <View style={styles.tagRow}>
+            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
+              <View key={id} style={styles.tagContainer}>
+                <Text style={[FONTS.fs_body, styles.tagText]}>
                   {tagNameById[id] ?? `#${id}`}
                 </Text>
-              ))}
-            </View>
+              </View>
+            ))}
+            <TouchableOpacity style={styles.heartIcon} onPress={handleToggleFavorite}>
+              {item.isLiked ? (
+                <FillHeart width={20} height={20} />
+              ) : (
+                <EmptyHeart width={20} height={20} />
+              )}
+            </TouchableOpacity>
+          </View>
 
+          <Text style={[FONTS.fs_16_medium, styles.popularName]} numberOfLines={1}>
+            {item.guesthouseName}
+          </Text>
+          {item.address ? (
+            <Text style={[FONTS.fs_12_medium, styles.popularAddress]} numberOfLines={1}>
+              {trimJejuPrefix(item.address)}
+            </Text>
+          ) : null}
+
+          <View style={styles.popularBottomRow}>
             {Number(item.minAmount) > 0 ? (
               <Text style={[FONTS.fs_18_semibold, styles.popularPrice]}>
                 {item.minAmount?.toLocaleString()}원 ~
               </Text>
             ) : (
-              <Text
-                style={[
-                  FONTS.fs_18_semibold,
-                  styles.popularPrice,
-                  { color: COLORS.grayscale_300 },
-                ]}>
+              <Text style={[FONTS.fs_16_semibold, styles.popularEmptyPrice]}>
                 예약마감
               </Text>
             )}

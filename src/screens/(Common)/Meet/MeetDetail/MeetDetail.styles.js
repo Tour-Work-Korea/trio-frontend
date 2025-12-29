@@ -325,6 +325,34 @@ const styles = StyleSheet.create({
     borderRadius: 20,
   },
 
+  // 탭 내용 비었을 때
+  emptyContainer: {
+    paddingTop: 40,
+    paddingBottom: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    marginBottom: 16,
+    resizeMode: 'contain',
+  },
+
+  emptyText: {
+    textAlign: 'center',
+    color: COLORS.grayscale_600,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+
+  emptySubText: {
+    textAlign: 'center',
+    color: COLORS.grayscale_800,
+    lineHeight: 20,
+  },
+
 });
 
 export default styles;
