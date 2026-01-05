@@ -113,8 +113,12 @@ export default function Meets({events = [], setEventList}) {
               {/* 가격 + 인원 */}
               <View style={localStyles.bottomRow}>
                 <Text style={[FONTS.fs_12_medium, localStyles.priceText]}>
-                  숙박객: {formatPrice(item.amount)} | 비숙박객:{' '}
-                  {formatPrice(item.nonGuestAmount)}
+                  숙박객: {formatPrice(item.amount)}
+                  {!item.isGuest && (
+                    <>
+                      {' '}| 비숙박객: {formatPrice(item.nonGuestAmount)}
+                    </>
+                  )}
                 </Text>
                 <Text style={[FONTS.fs_12_medium, localStyles.capacityText]}>
                   {item.numOfAttendance}/{item.maxAttendance}명
@@ -135,7 +139,10 @@ export default function Meets({events = [], setEventList}) {
         <Text style={styles.sectionTitle}>인기 이벤트</Text>
         <TouchableOpacity
           style={styles.seeMoreButton}
-          onPress={() => console.log('★ Meet 더보기 press')}>
+          onPress={() => {
+            navigation.navigate('PopularMeetList');
+          }}
+        >
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
