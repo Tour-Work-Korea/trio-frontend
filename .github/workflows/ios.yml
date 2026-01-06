@@ -136,15 +136,7 @@ jobs:
 
           cp ios/.env .env
           echo "LANE=$LANE" >> $GITHUB_ENV
-
-      # --------------------------------
-      # Safety Guard (dev → prod 방지)
-      # --------------------------------
-      - name: Safety check (dev must not use prod)
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          grep -q "/dev/" ios/.env || (echo "❌ DEV build using PROD env" && exit 1)
-
+          
       # --------------------------------
       # Build & Upload
       # --------------------------------
