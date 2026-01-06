@@ -3,7 +3,7 @@ name: iOS CI/CD
 on:
   push:
     branches:
-      - dev     # TestFlight (DEV)
+      - develop    # TestFlight (DEV)
       - main    # App Store (PROD)
 
 env:
@@ -111,7 +111,7 @@ jobs:
         run: |
           BRANCH="${GITHUB_REF##*/}"
 
-          if [ "$BRANCH" = "dev" ]; then
+          if [ "$BRANCH" = "develop" ]; then
             ENV=dev
             LANE=beta        # TestFlight
           else
@@ -141,7 +141,7 @@ jobs:
       # Safety Guard (dev → prod 방지)
       # --------------------------------
       - name: Safety check (dev must not use prod)
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/develop'
         run: |
           grep -q "/dev/" ios/.env || (echo "❌ DEV build using PROD env" && exit 1)
 
