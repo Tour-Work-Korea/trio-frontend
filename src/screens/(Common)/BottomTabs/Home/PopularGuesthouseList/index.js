@@ -247,9 +247,9 @@ const PopularGuesthouseList = () => {
           <Text style={[FONTS.fs_16_medium, styles.popularName]} numberOfLines={1}>
             {item.guesthouseName}
           </Text>
-          {item.address ? (
+          {item.guesthouseAddress ? (
             <Text style={[FONTS.fs_12_medium, styles.popularAddress]} numberOfLines={1}>
-              {trimJejuPrefix(item.address)}
+              {trimJejuPrefix(item.guesthouseAddress)}
             </Text>
           ) : null}
 

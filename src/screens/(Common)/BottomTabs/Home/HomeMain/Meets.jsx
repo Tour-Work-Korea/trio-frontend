@@ -139,9 +139,9 @@ export default function Meets({events = [], setEventList}) {
         <Text style={styles.sectionTitle}>인기 이벤트</Text>
         <TouchableOpacity
           style={styles.seeMoreButton}
-          onPress={() => {
-            navigation.navigate('PopularMeetList');
-          }}
+          // onPress={() => {
+          //   navigation.navigate('PopularMeetList');
+          // }}
         >
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
