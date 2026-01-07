@@ -54,7 +54,9 @@ platform :ios do
     )
 
     sh <<-SHELL
-      export ENVFILE=.env
+      echo "📦 Using ENVFILE: #{File.expand_path("../.env")}"
+
+      export ENVFILE=#{File.expand_path("../.env")}
       cd ..
       yarn react-native bundle \
         --platform ios \
