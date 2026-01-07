@@ -43,7 +43,7 @@ jobs:
       # --------------------------------
       # DEV 브랜치용
       - name: Configure AWS credentials (DEV)
-        if: github.ref == 'refs/heads/dev'
+        if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-dev
@@ -136,7 +136,7 @@ jobs:
 
           cp ios/.env .env
           echo "LANE=$LANE" >> $GITHUB_ENV
-          
+
       # --------------------------------
       # Build & Upload
       # --------------------------------
