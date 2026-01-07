@@ -6,6 +6,12 @@ on:
       - develop    # TestFlight (DEV)
       - main    # App Store (PROD)
 
+# 👇 바로 여기에 추가
+permissions:
+  id-token: write   # OIDC 필수
+  contents: read
+
+
 env:
   # Match (인증서)
   MATCH_GIT_URL:  ${{ secrets.MATCH_GIT_URL }}
