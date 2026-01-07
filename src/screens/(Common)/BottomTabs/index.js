@@ -87,7 +87,7 @@ const BottomTabs = () => {
             if (role !== 'USER' && role !== 'HOST') {
               e.preventDefault();
               showErrorModal({
-                message: '마이페이지는\n알바 로그인 후 사용해주세요',
+                message: '마이페이지는\n 로그인 후 사용해주세요',
                 buttonText2: '취소',
                 buttonText: '로그인하기',
                 onPress: () => navigation.navigate('Login'),

@@ -74,6 +74,7 @@ import {
   MeetBasics,
   MeetDetails,
   MeetDirections,
+  HostProfilePage,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -183,6 +184,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetBasics" component={MeetBasics} />
       <Stack.Screen name="MeetDetails" component={MeetDetails} />
       <Stack.Screen name="MeetDirections" component={MeetDirections} />
+      <Stack.Screen name="HostProfilePage" component={HostProfilePage} />
 
       {/* 이벤트화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />

@@ -36,7 +36,10 @@ const HostMyPage = () => {
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>
           {/* 사장 프로필 */}
-          <View style={styles.userInfoContainer}>
+          <TouchableOpacity 
+            style={styles.userInfoContainer}
+            onPress={() => navigation.navigate('HostProfilePage')}
+          >
             <View style={styles.profileHeader}>
               <Text style={[FONTS.fs_16_semibold, styles.name]}>
                 {host.name}
@@ -81,7 +84,7 @@ const HostMyPage = () => {
                 </View>
               </View>
             </View>
-          </View>
+          </TouchableOpacity>
 
           <View style={styles.bottomSection}>
             {/* 오늘의 게스트하우스 섹션 */}
