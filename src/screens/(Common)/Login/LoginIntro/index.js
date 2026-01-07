@@ -8,8 +8,10 @@ import ErrorModal from '@components/modals/ErrorModal';
 import styles from './LoginIntro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
 import NaverLogo from '@assets/images/naver_logo.svg';
-import Mail from '@assets/images/mail_black.svg';
+import MailBlue from '@assets/images/mail_fill_blue.svg';
+import MailGray from '@assets/images/mail_fill_gray.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
+import { COLORS } from '@constants/colors';
 
 const LoginIntro = () => {
   const navigation = useNavigation();
@@ -27,7 +29,7 @@ const LoginIntro = () => {
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>
-            {/**<ButtonWhite
+            {/* <ButtonWhite
               title="카카오로 시작하기"
               // to="SocialLogin"
               onPress={() =>
@@ -38,8 +40,8 @@ const LoginIntro = () => {
               }
               Icon={KakaoLogo}
               backgroundColor="#fee500"
-            />
-            <ButtonWhite
+            /> */}
+            {/* <ButtonWhite
               title="네이버로 시작하기"
               onPress={() =>
                 setErrorModal({
@@ -49,21 +51,28 @@ const LoginIntro = () => {
               }
               Icon={NaverLogo}
               backgroundColor="#00de5a"
-            />**/}
+            /> */}
             <ButtonWhite
               title="이메일로 시작하기"
               onPress={() =>
                 navigation.navigate('LoginByEmail', {userRole: 'USER'})
               }
-              Icon={Mail}
+              Icon={MailGray}
+              outlined={true}
+              textColor={COLORS.grayscale_400}
+              borderColor={COLORS.grayscale_400}
+            />
+            <ButtonWhite
+              title="비즈니스 회원으로 시작하기"
+              onPress={() =>
+                navigation.navigate('LoginByEmail', {userRole: 'HOST'})
+              }
+              Icon={MailBlue}
+              outlined={true}
+              textColor={COLORS.primary_blue}
+              borderColor={COLORS.primary_blue}
             />
           </View>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('LoginByEmail', {userRole: 'HOST'})
-            }>
-            <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
-          </TouchableOpacity>
         </View>
         <ErrorModal
           visible={errorModal.visible}

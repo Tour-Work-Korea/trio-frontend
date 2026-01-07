@@ -27,6 +27,15 @@ export default StyleSheet.create({
     alignSelf: 'stretch',
     marginBottom: 28,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  subTitleText: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_700,
+  },
   titleText: {
     ...FONTS.fs_20_bold,
     color: COLORS.grayscale_900,

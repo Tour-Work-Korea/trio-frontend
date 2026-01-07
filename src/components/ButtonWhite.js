@@ -7,10 +7,10 @@ import {navigationRef} from '@utils/navigationService';
 // props로
 // 1. 버튼 안에 글씨 - title
 // 2. 어디 페이지로 이동 할건지 - to
-// 3. marginHorizontal 기본으로 15 적용해놓음(필요시 값 넘기면 됩니다) -> 지웠어요
-// 4. backgroundColor: 노랑색이나 초록색(회원가입시 sns회원가입) 때문에 추가했고, 기본적으로 회색입니다.
-// 5. disabled true하면 버튼 내에 글자가 회색으로 나오게 설정했어요
-// 6. 왼쪽에 아이콘이 있는 경우 Icon으로 아이콘 컴포넌트 넘거주면 됩니다.
+// 3. backgroundColor: 노랑색이나 초록색(회원가입시 sns회원가입) 때문에 추가했고, 기본적으로 회색입니다.
+// 4. disabled true하면 버튼 내에 글자가 회색으로 나오게 설정했어요
+// 5. 왼쪽에 아이콘이 있는 경우 Icon으로 아이콘 컴포넌트 넘거주면 됩니다.
+// 6. 기본적으로 배경색 있음 없앨경우 outlined true하고 색상 넘기기
 // 사용 예시 UserRegisterIntro에 있음
 const ButtonWhite = ({
   title,
@@ -21,6 +21,8 @@ const ButtonWhite = ({
   style,
   backgroundColor = COLORS.grayscale_200,
   textColor = COLORS.grayscale_900,
+  outlined = false,
+  borderColor = COLORS.grayscale_400,
 }) => {
   const handlePress = () => {
     if (onPress) {
@@ -32,7 +34,20 @@ const ButtonWhite = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, (backgroundColor = {backgroundColor}), style]}
+      style={[
+        styles.button,
+        outlined
+          ? {
+              backgroundColor: 'transparent',
+              borderWidth: 1,
+              borderColor,
+            }
+          : {
+              backgroundColor,
+              borderWidth: 0,
+            },
+        style,
+      ]}
       onPress={handlePress}
       disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}

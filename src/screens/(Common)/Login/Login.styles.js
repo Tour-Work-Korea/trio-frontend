@@ -36,6 +36,10 @@ export default StyleSheet.create({
     ...FONTS.fs_20_bold,
     color: COLORS.grayscale_900,
   },
+  subTitleText: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_700,
+  },
   inputGroup: {
     marginTop: 40,
     gap: 20,

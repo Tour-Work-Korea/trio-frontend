@@ -8,7 +8,8 @@ import {
   Keyboard,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import Logo from '@assets/images/logo_orange.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
@@ -146,6 +147,13 @@ const Phone = ({user, onPress}) => {
     return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // 사장님 분기
+  const isHost = user === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -153,7 +161,13 @@ const Phone = ({user, onPress}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                )}
+                <View widwidth={60} height={29}/>
+              </View>
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
@@ -238,9 +252,18 @@ const Phone = ({user, onPress}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet title="인증 성공!" />
+                <ButtonWhite 
+                  title="인증 성공!"
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : isCodeValid ? (
-                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+                <ButtonWhite 
+                  title="인증하기" 
+                  onPress={verifyCode} 
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
