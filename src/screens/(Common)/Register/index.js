@@ -2,7 +2,6 @@ import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {
   RegisterAgree,
-  UserRegisterInfo,
   RegisterIntro,
   SocialLogin,
   EmailCertificate,
@@ -24,7 +23,6 @@ export default function Register() {
       <Stack.Screen name="AgreeDetail" component={AgreeDetail} />
       <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
       <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
-      <Stack.Screen name="UserRegisterInfo" component={UserRegisterInfo} />
       <Stack.Screen
         name="UserRegisterProfile"
         component={UserRegisterProfile}

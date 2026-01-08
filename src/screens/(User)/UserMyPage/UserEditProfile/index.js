@@ -20,7 +20,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import ErrorModal from '@components/modals/ErrorModal';
 import {calculateAge} from '@utils/auth/login';
 import {Email} from '@components/Certificate/Email';
-import Phone from '@components/Certificate/Phone';
+import Phone from '@components/Certificate/UserPhone';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';

@@ -402,7 +402,7 @@ const MeetDetail = () => {
           />
           <View style={styles.profileTextBox}>
             <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
-            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{guesthouseAddress}</Text>
+            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{trimJejuPrefix(guesthouseAddress)}</Text>
           </View>
         </View>
 
@@ -528,13 +528,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {ruleTitleLine}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {ruleTitleLine}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>
@@ -611,13 +613,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {trafficTitleLine}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {trafficTitleLine}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>
@@ -643,13 +647,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {parkingTagTexts?.map(t => `#${t}`).join('  ')}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {parkingTagTexts?.map(t => `#${t}`).join('  ')}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>

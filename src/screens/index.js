@@ -117,7 +117,6 @@ export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuest
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
-export {default as UserRegisterInfo} from './(User)/UserRegister/UserRegisterInfo';
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
 // 좋아하는 이벤트
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';

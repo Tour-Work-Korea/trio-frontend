@@ -88,6 +88,11 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    if (original?.withAuth === false) {
+      log.warn(`🧷 [${id}] withAuth=false → skip refresh flow`);
+      return Promise.reject(err);
+    }
+
     if (status === 403 && !original._retry) {
       log.info(`🔁 [${id}] accessToken expired → refresh flow`);
       original._retry = true;

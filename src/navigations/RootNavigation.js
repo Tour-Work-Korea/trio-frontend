@@ -29,7 +29,6 @@ import {
   SocialLogin,
   PhoneCertificate,
   EmailCertificate,
-  UserRegisterInfo,
   UserRegisterProfile,
   HostRegisterInfo,
   Result,
@@ -116,7 +115,6 @@ const RootNavigation = () => (
       <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
       <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
       <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
-      <Stack.Screen name="UserRegisterInfo" component={UserRegisterInfo} />
       <Stack.Screen
         name="UserRegisterProfile"
         component={UserRegisterProfile}

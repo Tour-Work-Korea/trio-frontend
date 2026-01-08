@@ -25,6 +25,7 @@ const ButtonWhite = ({
   borderColor = COLORS.grayscale_400,
 }) => {
   const handlePress = () => {
+    if (disabled) return;
     if (onPress) {
       onPress(); // 함수가 있으면 함수 실행
     } else if (to) {
@@ -32,22 +33,26 @@ const ButtonWhite = ({
     }
   };
 
+  // 배경
+  const buttonStyle = disabled
+    ? {
+        backgroundColor: COLORS.grayscale_200,
+        borderWidth: 0,
+      }
+    : outlined
+    ? {
+        backgroundColor: 'transparent',
+        borderWidth: 1,
+        borderColor,
+      }
+    : {
+        backgroundColor,
+        borderWidth: 0,
+      };
+
   return (
     <TouchableOpacity
-      style={[
-        styles.button,
-        outlined
-          ? {
-              backgroundColor: 'transparent',
-              borderWidth: 1,
-              borderColor,
-            }
-          : {
-              backgroundColor,
-              borderWidth: 0,
-            },
-        style,
-      ]}
+      style={[styles.button, buttonStyle, style]}
       onPress={handlePress}
       disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}

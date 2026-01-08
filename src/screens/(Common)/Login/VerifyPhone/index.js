@@ -10,14 +10,14 @@ import {
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
 import ErrorModal from '@components/modals/ErrorModal';
 
 import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
-import Logo from '@assets/images/logo_orange.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 
 const VerifyPhone = ({route}) => {
   const {userRole, find, originPhone} = route.params;
@@ -129,6 +129,13 @@ const VerifyPhone = ({route}) => {
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
+
+      setErrorModal({
+        visible: true,
+        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
+        buttonText: '확인',
+      });
+
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
@@ -173,6 +180,13 @@ const VerifyPhone = ({route}) => {
     return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
+  // 사장님 분기
+    const isHost = userRole === 'HOST';
+    const MainLogo = isHost ? LogoBlue : LogoOrange;
+    const mainColor = isHost
+      ? COLORS.primary_blue
+      : COLORS.primary_orange;
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -180,7 +194,12 @@ const VerifyPhone = ({route}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                )}
+              </View>
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
@@ -265,9 +284,18 @@ const VerifyPhone = ({route}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet title="인증 성공!" />
+                <ButtonWhite 
+                  title="인증 성공!"
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : isCodeValid ? (
-                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+                <ButtonWhite 
+                  title="인증하기" 
+                  onPress={verifyCode}
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}

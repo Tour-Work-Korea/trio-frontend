@@ -19,7 +19,6 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    // justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
@@ -47,6 +46,12 @@ export default StyleSheet.create({
   inputContainer: {
     flexDirection: 'column',
     gap: 8,
+  },
+  inputContainerText: {
+    ...FONTS.fs_18_bold,
+    alignSelf: 'center',
+    textAlign: 'center',
+    marginBottom: 40,
   },
   rowBox: {
     flexDirection: 'row',

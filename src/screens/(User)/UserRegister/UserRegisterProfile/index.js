@@ -140,7 +140,16 @@ const UserRegisterProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      await authApi.userSignUp(formData);
+      const payload = {
+        niceAuthToken: formData.niceAuthToken,
+        email: formData.email,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm,
+        nickname: formData.nickname,
+        userRole: formData.userRole,
+        agreements: formData.agreements,
+      };
+      await authApi.userSignUpComplete(payload);
       afterSuccessRegister();
     } catch (error) {
       setErrorModal({
@@ -169,7 +178,7 @@ const UserRegisterProfile = () => {
             {
               name: 'Result',
               params: {
-                nickname: formData.name,
+                nickname: formData.nickname,
                 role: formData.userRole,
                 onPress: () =>
                   navigation.dispatch(

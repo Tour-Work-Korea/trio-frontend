@@ -2,14 +2,23 @@ import React from 'react';
 import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import ButtonScarlet from '@components/ButtonScarlet';
+import ButtonWhite from '@components/ButtonWhite';
 
 import styles from '../Login.styles';
-import Logo from '@assets/images/logo_orange.svg';
+import {COLORS} from '@constants/colors';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 
 export default function FindIntro({route}) {
   const {userRole, find, originPhone = null} = route.params;
   const navigation = useNavigation();
+
+  // 사장님 분기
+  const isHost = userRole === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   return (
     <>
@@ -18,7 +27,12 @@ export default function FindIntro({route}) {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                )}
+              </View>
               <View>
                 <Text style={[styles.titleText]}>
                   {find === 'email' ? '아이디' : '비밀번호'}를 찾으려면
@@ -27,11 +41,13 @@ export default function FindIntro({route}) {
               </View>
             </View>
           </View>
-          <ButtonScarlet
+          <ButtonWhite
             title={'본인 인증하기'}
             onPress={() =>
               navigation.navigate('VerifyPhone', {find, userRole, originPhone})
             }
+            backgroundColor={mainColor}
+            textColor={COLORS.grayscale_0}
           />
         </View>
       </View>

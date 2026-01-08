@@ -74,6 +74,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 100,
     gap: 10,
+    alignItems: 'center'
   },
   addButtonText: {
     color: COLORS.grayscale_800,

@@ -22,6 +22,26 @@ const authApi = {
       params: {businessNumber},
       withAuth: false,
     }),
+
+  // NICE 본인인증 init (encData 등 받기)
+  niceInit: () =>
+    api.post('/auth/nice/init', null, {
+      withAuth: false,
+    }),
+
+  // 본인인증 후 계정 상태 확인 (NEW_USER / ALREADY_LOCAL / SOCIAL_INTEGRATION)
+  checkSignUpStatus: niceAuthToken =>
+    api.post('/auth/user/check-status', null, {
+      params: {niceAuthToken},
+      withAuth: false,
+    }),
+
+  // 최종 회원가입/연동 완료
+  completeUserSignUp: body =>
+    api.post('/auth/user/signup/complete', body, {
+      withAuth: false,
+    }),
+  
   //휴대폰 인증
   sendSms: (phoneNum, userRole) =>
     api.post('/auth/sms/send', null, {

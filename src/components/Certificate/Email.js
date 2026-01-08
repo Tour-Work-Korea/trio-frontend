@@ -109,6 +109,12 @@ export const Email = ({user, onPress}) => {
       setTimeLeft(300);
       setIsTimerActive(true);
 
+      setErrorModal({
+        visible: true,
+        message: `${email}으로\n인증 번호가 발송 되었습니다`,
+        buttonText: '확인',
+      });
+
       // 재전송은 30초 이후에만 활성화
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
@@ -172,7 +178,7 @@ export const Email = ({user, onPress}) => {
                 {isHost && (
                   <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
                 )}
-                <View widwidth={60} height={29}/>
+                <View style={{width: 60, height: 29}} />
               </View>
               <Text style={[styles.titleText]}>이메일 인증</Text>
             </View>
@@ -276,6 +282,23 @@ export const Email = ({user, onPress}) => {
               )}
             </View>
           </View>
+          {/* <View style={styles.frameGroup}> */}
+  {/* ✅ 임시: 무조건 다음으로 이동 (본인인증 플로우 확인용)
+  <ButtonWhite
+    title="다음"
+    onPress={() => {
+      // email이 비어있을 때도 넘어가야 하면 아래 줄 그대로 두면 됨
+      // email이 비어있으면 임시 더미값 넣고 싶으면 아래처럼:
+      const safeEmail = email?.trim() || 'test@example.com';
+
+      // const safeEmail = email?.trim() || '';
+      onPress(safeEmail);
+    }}
+    backgroundColor={mainColor}
+    textColor={COLORS.grayscale_0}
+  /> */}
+{/* </View> */}
+
         </View>
         <ErrorModal
           visible={errorModal.visible}

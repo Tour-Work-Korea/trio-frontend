@@ -61,7 +61,7 @@ const computeValidSections = formData => {
   };
 };
 
-// ✅ images 없으면 섹션 이미지에서 자동 생성
+// images 없으면 섹션 이미지에서 자동 생성
 const deriveImagesFromBlocks = introSections => {
   const urls = (introSections ?? []).map(b => b.imgUrl).filter(Boolean);
   const unique = Array.from(new Set(urls));
@@ -114,7 +114,7 @@ export default function MyGuesthouseIntroForm({route}) {
     setValid(computeValidSections(formData));
   }, [formData]);
 
-  // ✅ Upsert 모드 결정 + 기존 데이터 로드
+  // Upsert 모드 결정 + 기존 데이터 로드
   useEffect(() => {
     const checkAndLoad = async () => {
       try {

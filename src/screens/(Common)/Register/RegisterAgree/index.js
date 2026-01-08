@@ -68,7 +68,7 @@ const RegisterAgree = ({route}) => {
 
   const handleMoveNext = () => {
     const agreementPayload = getAgreementPayload();
-    navigation.navigate('PhoneCertificate', {
+    navigation.navigate('EmailCertificate', {
       user,
       agreements: agreementPayload,
     });
