@@ -38,6 +38,7 @@ export default StyleSheet.create({
     overflow: 'hidden',
     alignContent: 'center',
     justifyContent: 'center',
+    paddingLeft: 1,
   },
   checked: {
     borderColor: COLORS.scarlet,

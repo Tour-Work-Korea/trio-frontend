@@ -6,10 +6,12 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import {userRegisterAgrees, hostRegisterAgrees} from '@data/agree';
 import ButtonWhite from '@components/ButtonWhite';
 
-import Logo from '@assets/images/logo_orange.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
+import { COLORS } from '@constants/colors';
 
 const RegisterAgree = ({route}) => {
   const {user} = route.params;
@@ -19,6 +21,13 @@ const RegisterAgree = ({route}) => {
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
   const navigation = useNavigation();
+
+  // 사장님 분기
+  const isHost = user === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   useEffect(() => {
     const allRequired = agreements
@@ -59,7 +68,7 @@ const RegisterAgree = ({route}) => {
 
   const handleMoveNext = () => {
     const agreementPayload = getAgreementPayload();
-    navigation.navigate('PhoneCertificate', {
+    navigation.navigate('EmailCertificate', {
       user,
       agreements: agreementPayload,
     });
@@ -86,7 +95,7 @@ const RegisterAgree = ({route}) => {
       <View style={[styles.viewFlexBox]}>
         {/* 로고 및 문구 */}
         <View style={styles.groupParent}>
-          <Logo style={styles.frameChild} width={60} height={29} />
+          <MainLogo style={styles.frameChild} width={60} height={29} />
           <View>
             <Text style={[styles.titleText]}>서비스 이용을 위한</Text>
             <Text style={[styles.titleText]}>약관 동의가 필요해요</Text>
@@ -134,7 +143,12 @@ const RegisterAgree = ({route}) => {
             ))}
           </View>
           {isRequiredAgreed ? (
-            <ButtonScarlet title="다음" onPress={handleMoveNext} />
+            <ButtonWhite 
+              title="다음" 
+              onPress={handleMoveNext} 
+              backgroundColor={mainColor}
+              textColor={COLORS.grayscale_0}
+            />
           ) : (
             <ButtonWhite title="다음" disabled={true} />
           )}

@@ -9,6 +9,7 @@ import {
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
@@ -20,6 +21,8 @@ import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
 import styles from './MyGuesthouseIntroForm.styles';
 
+import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
+
 export default function TitleSectionModal({
   formData,
   visible,
@@ -28,6 +31,17 @@ export default function TitleSectionModal({
 }) {
   const limitImage = 6;
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
+
+  const {scrollRef, contentContainerStyle, registerInput} =
+    useKeyboardAwareScrollView({
+      basePaddingBottom: 24,
+      extraScrollOffset: 16,
+      scrollDelay: 80,
+      iosOnly: true,
+    });
+
+  const titleField = registerInput('title');
+  const tagsField = registerInput('tags');
 
   const pickImage = async () => {
     const currentLen = formData?.introImages?.length ?? 0;
@@ -69,7 +83,7 @@ export default function TitleSectionModal({
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
+      <KeyboardAvoidingView style={{flex: 1}} enabled behavior={Platform.OS === 'ios' ? 'padding' : undefined}> 
         <View style={styles.overlay}>
           <View style={styles.container}>
             {/* 헤더 */}
@@ -81,7 +95,12 @@ export default function TitleSectionModal({
               </TouchableOpacity>
             </View>
 
-            <ScrollView contentContainerStyle={{paddingBottom: 24}}>
+            <ScrollView
+              ref={scrollRef}
+              contentContainerStyle={contentContainerStyle}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+            >
               {/* ✅ 소개 이미지 추가 */}
               <View>
                 <View style={styles.dateRow}>
@@ -128,7 +147,7 @@ export default function TitleSectionModal({
 
               {/* ✅ 제목/태그 입력 영역 (네가 준 코드 그대로) */}
               <View style={{marginTop: 16}}>
-                <View>
+                <View onLayout={titleField.onLayout}>
                   <View style={styles.inputHeader}>
                     <Text style={styles.label}>제목</Text>
                     <Text style={styles.lengthTextAll}>
@@ -145,10 +164,11 @@ export default function TitleSectionModal({
                     value={formData.title}
                     maxLength={50}
                     onChangeText={text => handleInputChange('title', text)}
+                    onFocus={titleField.onFocus}
                   />
                 </View>
 
-                <View style={{marginTop: 12}}>
+                <View style={{marginTop: 12}} onLayout={tagsField.onLayout}>
                   <View style={styles.inputHeader}>
                     <Text style={styles.label}>
                       #태그로 게스트하우스의 특징을 보여주세요
@@ -167,6 +187,7 @@ export default function TitleSectionModal({
                     value={formData.tags}
                     maxLength={100}
                     onChangeText={text => handleInputChange('tags', text)}
+                    onFocus={tagsField.onFocus}
                   />
                 </View>
               </View>

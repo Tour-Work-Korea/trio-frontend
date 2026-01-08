@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   tabContent: {
     flexDirection: 'column',
     gap: 2,
-    backgroundColor: COLORS.grayscale_200,
+    paddingTop: 20,
   },
 
   emptyText: {
@@ -136,9 +136,9 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   blockImage: {
+    paddingHorizontal: 10,
     width: '100%',
     height: 350,
-    backgroundColor: COLORS.grayscale_200,
   },
   textBox: {
     paddingVertical: 20,
@@ -147,12 +147,12 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   blockTitle: {
-    ...FONTS.fs_16_semibold,
+    ...FONTS.fs_18_semibold,
     color: COLORS.grayscale_900,
   },
   blockContent: {
-    ...FONTS.fs_14_regular,
+    ...FONTS.fs_16_regular,
     color: COLORS.grayscale_700,
-    lineHeight: 22,
+    lineHeight: 26,
   },
 });

@@ -1,6 +1,6 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '@constants/colors';
-import Phone from '@components/Certificate/Phone';
+import Phone from '@components/Certificate/UserPhone';
 
 const styles = StyleSheet.create({
   container: {

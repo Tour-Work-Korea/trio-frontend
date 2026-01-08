@@ -8,16 +8,15 @@ import {
   Keyboard,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import Logo from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import authApi from '@utils/api/authApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
 import ErrorModal from '@components/modals/ErrorModal';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
 
-const Phone = ({user, onPress}) => {
+const HostPhone = ({user, onPress}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const [code, setCode] = useState('');
@@ -153,7 +152,7 @@ const Phone = ({user, onPress}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <LogoBlue width={60} height={29} />
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
@@ -238,9 +237,18 @@ const Phone = ({user, onPress}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet title="인증 성공!" />
+                <ButtonWhite 
+                  title="인증 성공!"
+                  backgroundColor={COLORS.primary_blue}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : isCodeValid ? (
-                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+                <ButtonWhite 
+                  title="인증하기" 
+                  onPress={verifyCode} 
+                  backgroundColor={COLORS.primary_blue}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
@@ -258,4 +266,4 @@ const Phone = ({user, onPress}) => {
   );
 };
 
-export default Phone;
+export default HostPhone;
