@@ -66,39 +66,6 @@ const UserPhone = ({user, onPress}) => {
     }, []),
   );
 
-  // 임시!!!!!!!    에러 디버그 문자열 만들기 (배포에서 콘솔 대신 모달에 표시용)
-  const buildDebugText = error => {
-    const status = error?.response?.status;
-    const server = error?.response?.headers?.server;
-    const contentType =
-      error?.response?.headers?.['content-type'] ||
-      error?.response?.headers?.['Content-Type'];
-
-    const headers = error?.response?.headers;
-    const data = error?.response?.data;
-
-    const safeStringify = v => {
-      if (!v) return '';
-      try {
-        return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
-      } catch (e) {
-        return String(v);
-      }
-    };
-
-    const headersText = safeStringify(headers);
-    const dataText = safeStringify(data);
-
-    return (
-      `\n\n[DEBUG]\n` +
-      `status: ${status ?? 'N/A'}\n` +
-      `server: ${server ?? 'N/A'}\n` +
-      `content-type: ${contentType ?? 'N/A'}\n` +
-      `data: ${dataText || 'N/A'}\n` +
-      `headers: ${headersText || 'N/A'}`
-    );
-  };
-
   // 본인인증 버튼 클릭
   const startNiceAuth = async () => {
     try {
@@ -121,25 +88,10 @@ const UserPhone = ({user, onPress}) => {
       setFormHtml(html);
       setShowWebView(true); // 모달 열기
     } catch (error) {
-      // setErrorModal({
-      //   visible: true,
-      //   message:
-      //     error?.response?.data?.message || '본인 인증에 실패했습니다.',
-      //   buttonText: '확인',
-      // });
-
-      // console.log('status', error?.response?.status);
-      // console.log('server', error?.response?.headers?.server);
-      // console.log('content-type', error?.response?.headers?.['content-type']);
-      // console.log('data', error?.response?.data);
-      // console.log('headers', error?.response?.headers);
-      const baseMsg =
-        error?.response?.data?.message || '본인 인증에 실패했습니다.';
-
-      // 모달에 디버그 정보까지 표시
       setErrorModal({
         visible: true,
-        message: `${baseMsg}${buildDebugText(error)}`,
+        message:
+          error?.response?.data?.message || '본인 인증에 실패했습니다.',
         buttonText: '확인',
       });
     } finally {
@@ -158,18 +110,7 @@ const UserPhone = ({user, onPress}) => {
      */
     try {
       const raw = event?.nativeEvent?.data;
-      // if (!raw) return;
-
-      // 임시!!!!!!!     raw 자체가 없을 때도 모달로 보여주기(배포 디버깅)
-      if (!raw) {
-        setErrorModal({
-          visible: true,
-          message: `[DEBUG]\nWebView onMessage data가 비어있음\n(raw: empty)`,
-          buttonText: '확인',
-        });
-        return;
-      }
-      //
+      if (!raw) return;
 
       const data = JSON.parse(raw);
 
@@ -184,37 +125,7 @@ const UserPhone = ({user, onPress}) => {
         return;
       }
 
-      // 임시!!!!!!! JSON은 맞는데 우리가 기대한 형태가 아닐 때도 모달로 띄우기
-      setErrorModal({
-        visible: true,
-        message:
-          `[DEBUG]\nWebView 메시지 형식이 기대값이 아님\n\n` +
-          `parsed: ${JSON.stringify(data, null, 2)}`,
-        buttonText: '확인',
-      });
-      //
-
     } catch (e) {
-      // 임시!!!!!!!!
-      const raw = event?.nativeEvent?.data;
-      const rawPreview =
-        typeof raw === 'string'
-          ? raw.length > 1200
-            ? `${raw.slice(0, 1200)}\n... (truncated)`
-            : raw
-          : String(raw);
-
-      setErrorModal({
-        visible: true,
-        message:
-          `[DEBUG]\nNICE WebView message parse error\n\n` +
-          `error: ${e?.message || String(e)}\n\n` +
-          `raw: ${rawPreview}`,
-        buttonText: '확인',
-      });
-      //
-
-      // JSON 파싱 실패면 그냥 무시(디버깅 필요하면 warn)
       console.warn('NICE WebView message parse error:', e);
     }
   };

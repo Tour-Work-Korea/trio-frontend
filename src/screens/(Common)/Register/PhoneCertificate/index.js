@@ -1,6 +1,5 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
-import {Alert} from 'react-native';
 import Toast from 'react-native-toast-message';
 
 import UserPhone from '@components/Certificate/UserPhone';
@@ -19,57 +18,25 @@ const PhoneCertificate = ({route}) => {
   const navigation = useNavigation();
   const [checking, setChecking] = useState(false); // 중복 호출 방지
 
-  // 임시!!!!!! 배포에서 에러 메시지 노출용 모달 상태
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
     buttonText: '확인',
+    onPress: null,
   });
-  //
 
-  // 임시!!!!!!!  배포용 디버그 문자열 만들기
-  const buildDebugText = err => {
-    const status = err?.response?.status;
-    const server = err?.response?.headers?.server;
-    const contentType =
-      err?.response?.headers?.['content-type'] ||
-      err?.response?.headers?.['Content-Type'];
-    const headers = err?.response?.headers;
-    const data = err?.response?.data;
-
-    const safeStringify = v => {
-      if (!v) return '';
-      try {
-        return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
-      } catch (e) {
-        return String(v);
-      }
-    };
-
-    const headersText = safeStringify(headers);
-    const dataText = safeStringify(data);
-
-    return (
-      `\n\n[DEBUG]\n` +
-      `status: ${status ?? 'N/A'}\n` +
-      `server: ${server ?? 'N/A'}\n` +
-      `content-type: ${contentType ?? 'N/A'}\n` +
-      `data: ${dataText || 'N/A'}\n` +
-      `headers: ${headersText || 'N/A'}`
-    );
-  };
-  //
-
-  // 임시!!!!!!!! ErrorModal 띄우는 헬퍼
-  const showErrorModal = (title, err) => {
-    const debug = err ? buildDebugText(err) : '';
+  const openModal = ({message, buttonText = '확인', onPress = null}) => {
     setErrorModal({
       visible: true,
-      message: `${title}${debug}`,
-      buttonText: '확인',
+      message,
+      buttonText,
+      onPress,
     });
   };
-  //
+
+  const closeModal = () => {
+    setErrorModal(prev => ({...prev, visible: false}));
+  };
 
   /**
    * NICE 인증 완료 토큰을 받았을 때 실행되는 콜백
@@ -77,14 +44,7 @@ const PhoneCertificate = ({route}) => {
    */
   const handleNiceVerifiedSuccess = async niceAuthToken => {
     // 토큰이 없으면 아무 것도 안함
-    // if (!niceAuthToken) return;
-
-    // 임시!!!!!!   토큰 자체가 없을 때 (예: WebView에서 이상한 메시지)
-    if (!niceAuthToken) {
-      showErrorModal('[TOKEN EMPTY] niceAuthToken이 비어있음', null);
-      return;
-    }
-    //
+    if (!niceAuthToken) return;
 
     // 중복 방지
     if (checking) return;
@@ -96,16 +56,12 @@ const PhoneCertificate = ({route}) => {
       const res = await authApi.checkSignUpStatus(niceAuthToken);
       const {status, socialTypes, message} = res.data;
 
-      // 임시!!!!!!!  status가 비어있거나 예상과 다를 때
       if (!status) {
-        showErrorModal(
-          '[INVALID RESPONSE] check-status 응답에 status가 없음',
-          {response: {data: res.data}},
-        );
-        Alert.alert('오류', '계정 확인 중 문제가 발생했습니다.');
+        openModal({
+          message: '계정 상태 확인 중 문제가 발생했어요.',
+        });
         return;
       }
-      //
 
       // NEW_USER: 신규 회원 → 가입폼으로 이동
       if (status === 'NEW_USER') {
@@ -132,49 +88,52 @@ const PhoneCertificate = ({route}) => {
 
       // ALREADY_LOCAL: 이미 로컬 계정 존재 → 로그인 유도
       if (status === 'ALREADY_LOCAL') {
-        Alert.alert(
-          '알림',
-          message || '해당 명의로 이미 가입된 계정이 있습니다.',
-          [{text: '로그인', onPress: () => navigation.navigate('LoginIntro')}],
-        );
+        openModal({
+          message:
+            message || '해당 명의로 이미 가입된 계정이 있어요.',
+          buttonText: '로그인으로 이동',
+          onPress: () => {
+            closeModal();
+            navigation.navigate('LoginIntro');
+          },
+        });
         return;
       }
 
-      // SOCIAL_INTEGRATION: 소셜 계정 존재 → 연동 안내 후 가입폼 이동
+      // SOCIAL_INTEGRATION: 소셜 계정 존재 → 연동 내역 + 가입폼 이동
       if (status === 'SOCIAL_INTEGRATION') {
-        Alert.alert(
-          '계정 연동',
-          `이미 존재하는 계정과 회원 정보를 연동합니다.\n연동 계정 플랫폼 : ${(socialTypes || []).join(
-            ', ',
-          )}`,
-          [
-            {
-              text: '확인',
-              onPress: () => {
-                navigation.navigate('UserRegisterProfile', {
-                  prevData: {
-                    userRole: 'USER',
-                    agreements: agreements || [],
-                    email: email || '',
-                    niceAuthToken,
-                    isIntegration: true,
-                    socialTypes: socialTypes || [],
-                    nickname: '',
-                    password: '',
-                    passwordConfirm: '',
-                  },
-                });
-              },
-            },
-          ],
-        );
+        Toast.show({
+          type: 'success',
+          text1: '인증이 완료되었어요!',
+          position: 'top',
+          visibilityTime: 2000,
+        });
+
+        navigation.navigate('UserRegisterProfile', {
+          prevData: {
+            userRole: 'USER',
+            agreements: agreements || [],
+            email: email || '',
+            niceAuthToken,
+            isIntegration: true,
+            socialTypes: socialTypes || [],
+            nickname: '',
+            password: '',
+            passwordConfirm: '',
+          },
+        });
+
         return;
       }
 
-      // 예외 status 처리
-      Alert.alert('오류', '알 수 없는 상태입니다. 다시 시도해주세요.');
+      // 알 수 없는 status
+      openModal({
+        message: '계정 상태 확인 중 문제가 발생했어요.',
+      });
     } catch (e) {
-      Alert.alert('오류', '계정 확인 중 문제가 발생했습니다.');
+      openModal({
+        message: '계정 상태 확인 중 문제가 발생했어요.',
+      });
     } finally {
       setChecking(false);
     }
@@ -199,14 +158,18 @@ const PhoneCertificate = ({route}) => {
         <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
       )}
 
-      {/* 임시!!!!!! 배포 디버깅용 모달 (USER/HOST 공통) */}
       <ErrorModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        onPress={() => {
+          if (typeof errorModal.onPress === 'function') {
+            errorModal.onPress();
+            return;
+          }
+          closeModal();
+        }}
       />
-      {/*  */}
     </>
   );
 };
