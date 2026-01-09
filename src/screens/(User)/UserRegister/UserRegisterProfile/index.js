@@ -183,19 +183,23 @@ const UserRegisterProfile = () => {
         userRole: formData.userRole,
         agreements: formData.agreements,
       };
-      await authApi.userSignUpComplete(payload);
+      await authApi.completeUserSignUp(payload);
       afterSuccessRegister();
     } catch (error) {
+      const isAxios = !!error?.isAxiosError;
 
       const serverMsg =
-      error?.response?.data?.message ||
-      error?.response?.data?.error ||
-      error?.message || // 네트워크 에러면 여기로
-      '오류가 발생했습니다\n다시 시도해주세요';
+        error?.response?.data?.message ||
+        error?.response?.data?.error ||
+        error?.message ||
+        '오류가 발생했습니다\n다시 시도해주세요';
 
       setErrorModal({
         visible: true,
-        message: `${serverMsg}${buildDebugText(error)}`,
+        message:
+          `${serverMsg}` +
+          `\n\nisAxiosError: ${isAxios ? 'YES' : 'NO'}` +
+          buildDebugText(error),
         buttonText: '확인',
         onPress: '',
       });
@@ -443,7 +447,7 @@ const UserRegisterProfile = () => {
             </View>
             <View>
               <ButtonScarlet
-                title="가입하기"
+                title="다음"
                 onPress={handleSubmit}
                 disabled={!isFormValid()}
               />

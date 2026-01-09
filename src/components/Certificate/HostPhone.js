@@ -102,6 +102,13 @@ const HostPhone = ({user, onPress}) => {
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
+
+      setErrorModal({
+        visible: true,
+        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
+        buttonText: '확인',
+      });
+
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
