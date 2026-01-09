@@ -1,13 +1,13 @@
-// axiosInstance.js
 import qs from 'qs';
 import axios from 'axios';
 import useUserStore from '@stores/userStore';
-import {API_BASE_URL} from '@env';
+import {API_BASE_URL, API_DEV_URL} from '@env';
 import {log, mask} from '@utils/logger';
 import {tryRefresh} from '@utils/auth/login';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
+  // baseURL: API_DEV_URL,
   withCredentials: true,
   timeout: 5000,
   headers: {'Content-Type': 'application/json'},

@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
+import {Alert} from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import UserPhone from '@components/Certificate/UserPhone';
 import HostPhone from '@components/Certificate/HostPhone';
 import authApi from '@utils/api/authApi';
-import {Alert} from 'react-native';
 
 import ErrorModal from '@components/modals/ErrorModal';
 
@@ -108,6 +109,13 @@ const PhoneCertificate = ({route}) => {
 
       // NEW_USER: 신규 회원 → 가입폼으로 이동
       if (status === 'NEW_USER') {
+        Toast.show({
+          type: 'success',
+          text1: '인증이 완료되었어요!',
+          position: 'top',
+          visibilityTime: 2000,
+        });
+
         navigation.navigate('UserRegisterProfile', {
           prevData: {
             userRole: 'USER',

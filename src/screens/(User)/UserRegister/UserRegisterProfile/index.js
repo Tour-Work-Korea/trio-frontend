@@ -50,6 +50,40 @@ const UserRegisterProfile = () => {
     onPress: '',
   });
 
+  // 임시!!!!!!!
+  const buildDebugText = err => {
+  const status = err?.response?.status;
+  const url = err?.config?.url;
+  const method = err?.config?.method;
+  const timeout = err?.config?.timeout;
+
+  const reqHeaders = err?.config?.headers;
+  const resHeaders = err?.response?.headers;
+  const data = err?.response?.data;
+
+  const safeStringify = v => {
+    if (v == null) return '';
+    try {
+      return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
+    } catch (e) {
+      return String(v);
+    }
+  };
+
+  return (
+    `\n\n[DEBUG]` +
+    `\nmethod: ${method ?? 'N/A'}` +
+    `\nurl: ${url ?? 'N/A'}` +
+    `\nstatus: ${status ?? 'N/A'}` +
+    `\ntimeout: ${timeout ?? 'N/A'}` +
+    `\n\nresponse.data:\n${safeStringify(data) || 'N/A'}` +
+    `\n\nresponse.headers:\n${safeStringify(resHeaders) || 'N/A'}` +
+    `\n\nrequest.headers:\n${safeStringify(reqHeaders) || 'N/A'}`
+  );
+};
+//
+
+
   useFocusEffect(
     useCallback(() => {
       console.log(prevData);
@@ -152,14 +186,28 @@ const UserRegisterProfile = () => {
       await authApi.userSignUpComplete(payload);
       afterSuccessRegister();
     } catch (error) {
+
+      const serverMsg =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message || // 네트워크 에러면 여기로
+      '오류가 발생했습니다\n다시 시도해주세요';
+
       setErrorModal({
         visible: true,
-        message:
-          error.response?.data?.message ||
-          '오류가 발생했습니다\n다시 시도해주세요',
+        message: `${serverMsg}${buildDebugText(error)}`,
         buttonText: '확인',
         onPress: '',
       });
+
+      // setErrorModal({
+      //   visible: true,
+      //   message:
+      //     error.response?.data?.message ||
+      //     '오류가 발생했습니다\n다시 시도해주세요',
+      //   buttonText: '확인',
+      //   onPress: '',
+      // });
     }
   };
 
@@ -395,7 +443,7 @@ const UserRegisterProfile = () => {
             </View>
             <View>
               <ButtonScarlet
-                title="다음"
+                title="가입하기"
                 onPress={handleSubmit}
                 disabled={!isFormValid()}
               />
