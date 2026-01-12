@@ -3,7 +3,7 @@ import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ButtonWhite from '@components/ButtonWhite';
 
 import styles from '../Login.styles';
@@ -81,7 +81,7 @@ export default function FindId({route}) {
             textColor={COLORS.grayscale_0}
           />
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={errorModal.buttonText}

@@ -5,7 +5,7 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import {RecruitList} from '@components/Employ/RecruitList';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
 
@@ -94,7 +94,7 @@ export default function MyLikeRecruitList() {
         )}
       </View>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
         buttonText={errorModal.buttonText}

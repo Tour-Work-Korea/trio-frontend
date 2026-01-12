@@ -2,7 +2,7 @@ import React, {useState, useEffect} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from './RecruitmentForm.styles';
 import {FONTS} from '@constants/fonts';
@@ -82,7 +82,7 @@ const HashTagSection = ({handleInputChange, formData}) => {
         })}
       </View>
 
-      <ErrorModal
+      <AlertModal
         title={errorModal.title}
         visible={errorModal.visible}
         buttonText={'확인'}

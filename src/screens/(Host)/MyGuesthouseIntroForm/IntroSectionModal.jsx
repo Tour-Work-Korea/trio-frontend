@@ -15,7 +15,7 @@ import DraggableFlatList from 'react-native-draggable-flatlist';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -301,7 +301,7 @@ export default function IntroSectionModal({
               </View>
             </View>
 
-            <ErrorModal
+            <AlertModal
               visible={errorModal.visible}
               title={errorModal.title}
               buttonText={'확인'}

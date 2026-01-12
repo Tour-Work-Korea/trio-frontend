@@ -12,7 +12,7 @@ import LogoBlue from '@assets/images/logo_blue.svg';
 import authApi from '@utils/api/authApi';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
 
@@ -29,6 +29,7 @@ const HostPhone = ({user, onPress}) => {
     visible: false,
     message: '',
     buttonText: '',
+    color: COLORS.primary_blue,
   });
   const [loading, setLoading] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
@@ -44,7 +45,12 @@ const HostPhone = ({user, onPress}) => {
       setIsCodeVerified(false);
       setTimeLeft(300);
       setIsTimerActive(false);
-      setErrorModal({visible: false, message: '', buttonText: ''});
+      setErrorModal({
+        visible: false,
+        message: '',
+        buttonText: '',
+        color: COLORS.primary_blue,
+      });
       setLoading(false);
     }, []),
   );
@@ -103,12 +109,6 @@ const HostPhone = ({user, onPress}) => {
       setTimeLeft(300);
       setIsTimerActive(true);
 
-      setErrorModal({
-        visible: true,
-        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
-        buttonText: '확인',
-      });
-
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
@@ -159,7 +159,13 @@ const HostPhone = ({user, onPress}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <LogoBlue width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <LogoBlue width={60} height={29} />
+                <View style={styles.subTitleContainer}>
+                  <Text style={styles.subTitleText}>워커웨이 파트너스</Text>
+                </View>
+                <View style={{width: 60, height: 29}} />
+              </View>
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
@@ -262,10 +268,11 @@ const HostPhone = ({user, onPress}) => {
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
+          color={COLORS.primary_blue}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>

@@ -10,7 +10,7 @@ import {
 
 import {CommonActions, useNavigation} from '@react-navigation/native';
 import ButtonWhite from '@components/ButtonWhite';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {tryLogin} from '@utils/auth/login';
 
 import styles from '../Login.styles';
@@ -30,6 +30,7 @@ export default function LoginByEmail({route}) {
     visible: false,
     message: '',
     buttonText: '',
+    color: mainColor,
   });
 
   // 호스트 분기
@@ -150,10 +151,11 @@ export default function LoginByEmail({route}) {
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
+          color={mainColor}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>

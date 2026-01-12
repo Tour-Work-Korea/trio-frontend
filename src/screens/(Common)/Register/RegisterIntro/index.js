@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useState, useEffect} from 'react';
 
 import Loading from '@components/Loading';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from './Intro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
@@ -76,7 +76,7 @@ const RegisterIntro = () => {
             <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
           </TouchableOpacity>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={'확인'}

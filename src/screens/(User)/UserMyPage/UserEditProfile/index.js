@@ -17,7 +17,7 @@ import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
 import ButtonScarlet from '@components/ButtonScarlet';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {calculateAge} from '@utils/auth/login';
 import {Email} from '@components/Certificate/Email';
 import Phone from '@components/Certificate/UserPhone';
@@ -320,7 +320,7 @@ const UserEditProfile = () => {
       )}
       {editEmail ? <Email onPress={handleEditEmail} user="USER" /> : <></>}
       {editPhone ? <Phone onPress={handleEditPhone} user="USER" /> : <></>}
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
         buttonText={'확인'}

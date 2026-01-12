@@ -13,7 +13,7 @@ import useUserStore from '@stores/userStore';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
 import Loading from '@components/Loading';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import styles from './EmployIntro.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -173,7 +173,7 @@ const EmployIntro = () => {
           />
         </View>
       </View>
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}
