@@ -20,7 +20,7 @@ import RecruitConditionSection from './RecruitConditionSection';
 import WorkConditionSection from './WorkConditionSection';
 import WorkInfoSection from './WorkInfoSection';
 import DetailInfoSection from './DetailInfoSection';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import GuesthouseModal from './GuesthouseModal';
 import ShortDescriptionModal from './ShortDescriptionModal';
 
@@ -283,7 +283,7 @@ const RecruitmentForm = ({route}) => {
                 )}
               </TouchableOpacity>
             </View>
-            <ErrorModal
+            <AlertModal
               title={errorModal.title}
               visible={errorModal.visible}
               buttonText={errorModal.buttonText}

@@ -8,11 +8,11 @@ import {
   Keyboard,
 } from 'react-native';
 import styles from './Certificate.styles';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
-import ErrorModal from '@components/modals/ErrorModal';
-import Logo from '@assets/images/logo_orange.svg';
+import AlertModal from '@components/modals/AlertModal';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import {COLORS} from '@constants/colors';
 import {useFocusEffect} from '@react-navigation/native';
 import authApi from '@utils/api/authApi';
@@ -30,10 +30,19 @@ export const Email = ({user, onPress}) => {
     visible: false,
     message: '',
     buttonText: '',
+    highlightText: '',
+    color: mainColor,
   });
   const [loading, setLoading] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
   const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
+
+   // 사장님 분기
+  const isHost = user === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   useFocusEffect(
     useCallback(() => {
@@ -49,6 +58,8 @@ export const Email = ({user, onPress}) => {
         visible: false,
         message: '',
         buttonText: '',
+        highlightText: '',
+        color: mainColor,
       });
       setLoading(false);
     }, []),
@@ -109,6 +120,13 @@ export const Email = ({user, onPress}) => {
       setTimeLeft(300);
       setIsTimerActive(true);
 
+      setErrorModal({
+        visible: true,
+        message: `${email}으로\n인증 번호가 발송 되었습니다`,
+        highlightText: `${email}`,
+        buttonText: '확인',
+      });
+
       // 재전송은 30초 이후에만 활성화
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
@@ -160,7 +178,15 @@ export const Email = ({user, onPress}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <View style={styles.subTitleContainer}>
+                    <Text style={styles.subTitleText}>워커웨이 파트너스</Text>
+                  </View>
+                )}
+                <View style={{width: 60, height: 29}} />
+              </View>
               <Text style={[styles.titleText]}>이메일 인증</Text>
             </View>
 
@@ -225,7 +251,8 @@ export const Email = ({user, onPress}) => {
                 <View style={styles.resendContainer}>
                   <TouchableOpacity
                     onPress={resendVerificationCode}
-                    disabled={!hasRequestedCode || !isResendEnabled}>
+                    disabled={!hasRequestedCode || !isResendEnabled}
+                  >
                     <Text
                       style={[
                         styles.resendText,
@@ -246,19 +273,31 @@ export const Email = ({user, onPress}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet title="인증 성공!" />
+                <ButtonWhite 
+                  title="인증 성공!"
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : isCodeValid ? (
-                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+                <ButtonWhite 
+                  title="인증하기" 
+                  onPress={verifyCode} 
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
             </View>
           </View>
+
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
-          title={errorModal.message}
+          message={errorModal.message}
           buttonText={errorModal.buttonText}
+          highlightText={errorModal.highlightText}
+          color={mainColor}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>

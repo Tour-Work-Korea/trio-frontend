@@ -12,7 +12,7 @@ import EditIcon from '@assets/images/edit_gray.svg';
 import DeleteIcon from '@assets/images/delete_gray.svg';
 import EmptyIcon from '@assets/images/wlogo_blue_left.svg';
 import postApi from '@utils/api/postApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 const MyGuesthouseIntroList = () => {
   const navigation = useNavigation();
@@ -165,7 +165,7 @@ const MyGuesthouseIntroList = () => {
             />
           }
         />
-        <ErrorModal
+        <AlertModal
           title={errorModal.title ?? null}
           message={errorModal.message ?? null}
           buttonText={errorModal.buttonText}

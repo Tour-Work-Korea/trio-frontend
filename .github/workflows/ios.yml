@@ -1,20 +1,26 @@
-name: iOS CI/CD to TestFlight
+name: iOS CI/CD
 
 on:
   push:
     branches:
-      - main
+      - develop    # TestFlight (DEV)
+      - main    # App Store (PROD)
+
+# 👇 바로 여기에 추가
+permissions:
+  id-token: write   # OIDC 필수
+  contents: read
 
 
 env:
-  # Match (인증서 저장소) 설정
+  # Match (인증서)
   MATCH_GIT_URL:  ${{ secrets.MATCH_GIT_URL }}
   MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
   APPLE_ID:       ${{ secrets.APPLE_ID }}
   TEAM_ID:        ${{ secrets.TEAM_ID }}
   CI_KEYCHAIN_PASSWORD:  ${{ secrets.CI_KEYCHAIN_PASSWORD }}
-  # Fastlane upload_to_testflight 에 쓸 시크릿
-  API_BASE_URL:                   ${{ secrets.API_BASE_URL }}
+
+  # App Store Connect
   APP_STORE_CONNECT_KEY_ID:       ${{ secrets.APP_STORE_CONNECT_KEY_ID }}
   APP_STORE_CONNECT_ISSUER_ID:    ${{ secrets.APP_STORE_CONNECT_ISSUER_ID }}
   APP_STORE_CONNECT_PRIVATE_KEY:  ${{ secrets.APP_STORE_CONNECT_PRIVATE_KEY }}
@@ -24,14 +30,42 @@ jobs:
     runs-on: macos-14
 
     steps:
+      # --------------------------------
+      # Checkout
+      # --------------------------------
       - name: Checkout code
         uses: actions/checkout@v3
         with:
           fetch-depth: 0
 
+      # --------------------------------
+      # Xcode
+      # --------------------------------
       - name: Use Xcode 16.2
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
+      # --------------------------------
+      # AWS OIDC (SSM 접근)
+      # --------------------------------
+      # DEV 브랜치용
+      - name: Configure AWS credentials (DEV)
+        if: github.ref == 'refs/heads/develop'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-dev
+          aws-region: ap-northeast-2
+
+      # PROD 브랜치용
+      - name: Configure AWS credentials (PROD)
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-prod
+          aws-region: ap-northeast-2
+
+      # --------------------------------
+      # SSH (match repo)
+      # --------------------------------
       - name: Start ssh-agent & add deploy key
         uses: webfactory/ssh-agent@v0.5.4
         with:
@@ -42,17 +76,9 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan github.com >> ~/.ssh/known_hosts
 
-      - name: Check Xcode version
-        run: xcodebuild -version
-
-      - name: Write .env.production from Secret
-        run: echo "$ENV_PRODUCTION_CONTENT" | sed 's/\r//' > ios/.env.production
-        env:
-          ENV_PRODUCTION_CONTENT: ${{ secrets.ENV_PRODUCTION_CONTENT }}
-
-      - name: Copy clean .env.production to .env
-        run: cat ios/.env.production | sed 's/ *= */=/' > .env
-
+      # --------------------------------
+      # Node
+      # --------------------------------
       - name: Set up Node.js
         uses: actions/setup-node@v3
         with:
@@ -61,6 +87,9 @@ jobs:
       - name: Install Node dependencies
         run: yarn install
 
+      # --------------------------------
+      # Ruby / Fastlane
+      # --------------------------------
       - name: Set up Ruby & Bundler
         uses: ruby/setup-ruby@v1
         with:
@@ -70,57 +99,57 @@ jobs:
       - name: Install Ruby gems
         working-directory: ios
         run: bundle install
-        
-      - name: Update fastlane to latest
-        working-directory: ios
-        run: |
-          bundle update fastlane
-          bundle install
-          bundle exec fastlane --version
 
+      # --------------------------------
+      # CocoaPods
+      # --------------------------------
       - name: Install CocoaPods 1.15.2
-        run: |
-          gem install cocoapods -v 1.15.2
-          pod --version
-
-      - name: Cache CocoaPods
-        uses: actions/cache@v3
-        with:
-          path: ios/Pods
-          key: ${{ runner.os }}-pods-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-pods-
+        run: gem install cocoapods -v 1.15.2
 
       - name: Install CocoaPods dependencies
         working-directory: ios
         run: pod _1.15.2_ install --repo-update
 
-      - name: Clean Xcode DerivedData
-        run: rm -rf ~/Library/Developer/Xcode/DerivedData
-
-      - name: Cache Xcode DerivedData
-        uses: actions/cache@v3
-        with:
-          path: ~/Library/Developer/Xcode/DerivedData
-          key: ${{ runner.os }}-derivedata-${{ hashFiles('ios/Podfile.lock') }}
-          restore-keys: |
-            ${{ runner.os }}-derivedata-
-
-      - name: Fix Embed Pods Frameworks script permissions
-        run: chmod +x ios/Pods/Target\ Support\ Files/*/*-frameworks.sh || true
-
-      - name: Print environment variables (for debugging)
+      # --------------------------------
+      # ENV 분기 + SSM 로딩 (⭐ 핵심)
+      # --------------------------------
+      - name: Load iOS env from AWS SSM
         run: |
-          echo "🔧 API_BASE_URL = $API_BASE_URL"
+          BRANCH="${GITHUB_REF##*/}"
 
+          if [ "$BRANCH" = "develop" ]; then
+            ENV=dev
+            LANE=beta        # TestFlight
+          else
+            ENV=prod
+            LANE=release     # App Store
+          fi
 
-      - name: Test API reachability
-        run: |
-          echo "Curl to check API"
-          curl -v -X POST "$API_BASE_URL/api/v1/auth/email/send?email=leesky0075@naver.com" || echo "❌ API not reachable"
+          BASE_PATH="/workaway/$ENV/ios"
 
-      - name: Build & Deploy to TestFlight
+          echo "📦 Loading env from $BASE_PATH"
+
+          cat <<EOF > ios/.env
+          API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
+          PORTONE_STORE_ID=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_STORE_ID --with-decryption --query Parameter.Value --output text)
+          PORTONE_REDIRECT_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_REDIRECT_URL --with-decryption --query Parameter.Value --output text)
+          PORTONE_NOTICE_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_NOTICE_URL --with-decryption --query Parameter.Value --output text)
+          PORTONE_CHANNEL_KEY=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_CHANNEL_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_NATIVEAPP_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_NATIVEAPP_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
+          EOF
+
+          cp ios/.env .env
+          echo "LANE=$LANE" >> $GITHUB_ENV
+
+      # --------------------------------
+      # Build & Upload
+      # --------------------------------
+      - name: Build & Deploy iOS
         working-directory: ios
         env:
           CI: "true"
-        run: bundle exec fastlane build_ipa && bundle exec fastlane upload_ipa
+        run: |
+          echo "🚀 Fastlane lane: $LANE"
+          bundle exec fastlane $LANE

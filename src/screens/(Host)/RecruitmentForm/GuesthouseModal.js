@@ -13,7 +13,7 @@ import {useNavigation} from '@react-navigation/native';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ResultModal from '@components/modals/ResultModal';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from './RecruitmentForm.styles';
 import {FONTS} from '@constants/fonts';
@@ -133,7 +133,7 @@ const GuesthouseModal = ({handleInputChange, formData, visible, onClose}) => {
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           title={errorModal.title}
           visible={errorModal.visible}
           buttonText={'확인'}

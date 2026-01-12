@@ -13,7 +13,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
 import userEmployApi from '@utils/api/userEmployApi';
-import ErrorModal from '../ErrorModal';
+import AlertModal from '../AlertModal';
 
 const {height} = Dimensions.get('window');
 
@@ -103,7 +103,7 @@ export default function EmployTagModal({
           </View>
         </View>
       </View>
-      <ErrorModal
+      <AlertModal
         visible={errorModalVisible}
         title={'태그는 3개까지만 선택 가능합니다'}
         buttonText={'확인'}

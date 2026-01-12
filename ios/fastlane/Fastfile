@@ -1,68 +1,62 @@
 default_platform(:ios)
 
 platform :ios do
-  desc "빌드 전에 인증서/프로파일 받아오고 IPA 생성"
-
+  # --------------------------------------------------
+  # 공통 설정
+  # --------------------------------------------------
   before_all do
+    puts "📁 Fastlane dir: #{Dir.pwd}"
 
-      #현재 디렉토리 출력
-      puts "현재 디렉토리 : #{Dir.pwd}"
-      puts "ENV path: #{File.expand_path('../.env.production')}"
+    env_path = File.expand_path("../.env")
+    UI.user_error!("❌ .env not found") unless File.exist?(env_path)
 
-      # ✅ .env.production 수동 로딩
-      File.foreach("../.env.production") do |line|
-        key, value = line.strip.split('=', 2)
-        ENV[key] = value if key && value
-      end
+    puts "📦 Loading env from #{env_path}"
 
-      # ① CI 전용 키체인 만들기 (unlock, default 설정)
-      create_keychain(
-        name:              "ci-build.keychain",
-        password:          ENV["CI_KEYCHAIN_PASSWORD"],
-        default_keychain:  true,
-        unlock:            true,
-        timeout:           3600,  # 초 단위
-        lock_when_sleeps:  false
-      )
-      # ② 인증서 복사: 기본 로그인 키체인에서 가져오지 않고, 이 키체인에만 설치
-      ENV["MATCH_KEYCHAIN_NAME"]     = "ci-build.keychain"
-      ENV["MATCH_KEYCHAIN_PASSWORD"] = ENV["CI_KEYCHAIN_PASSWORD"]
+    File.foreach(env_path) do |line|
+      key, value = line.strip.split("=", 2)
+      ENV[key] = value if key && value
     end
 
-  lane :build_ipa do
+    # CI 전용 키체인
+    create_keychain(
+      name: "ci-build.keychain",
+      password: ENV["CI_KEYCHAIN_PASSWORD"],
+      default_keychain: true,
+      unlock: true,
+      timeout: 3600,
+      lock_when_sleeps: false
+    )
 
-    # ✅ TestFlight 업로드 전에 버전 자동 증가
+    ENV["MATCH_KEYCHAIN_NAME"]     = "ci-build.keychain"
+    ENV["MATCH_KEYCHAIN_PASSWORD"] = ENV["CI_KEYCHAIN_PASSWORD"]
+  end
+
+  # --------------------------------------------------
+  # 공통 빌드 로직
+  # --------------------------------------------------
+  private_lane :build_common do |options|
+    scheme_name = options[:scheme]
+
+    UI.message("🚀 Build scheme: #{scheme_name}")
+    UI.message("🌐 API_BASE_URL: #{ENV['API_BASE_URL']}")
+
     increment_version_number(version_number: "1.9")
+    increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
-    # 날짜기반 업로드
-    build_number = Time.now.strftime("%Y%m%d%H%M")
-    increment_build_number(build_number: build_number)
-
-    # ① match 로 App Store 프로비전 가져오기
     match(
-        type:       "development",
-        readonly:   ENV["CI"] == "true",
-        git_url:    ENV["MATCH_GIT_URL"],
-        username:   ENV["APPLE_ID"],
-        team_id:    ENV["TEAM_ID"],
-        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
-        keychain_password: ENV["KEYCHAIN_PASSWORD"]
-      )
+      type: "appstore",
+      readonly: ENV["CI"] == "true",
+      git_url: ENV["MATCH_GIT_URL"],
+      username: ENV["APPLE_ID"],
+      team_id: ENV["TEAM_ID"],
+      keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
+      keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
+    )
 
-      # ② 배포용 프로파일
-      match(
-        type:       "appstore",
-        readonly:   ENV["CI"] == "true",
-        git_url:    ENV["MATCH_GIT_URL"],
-        username:   ENV["APPLE_ID"],
-        team_id:    ENV["TEAM_ID"],
-        keychain_name:    ENV["MATCH_KEYCHAIN_NAME"],
-        keychain_password: ENV["KEYCHAIN_PASSWORD"]
-      )
-
-    # ② JS 번들링
     sh <<-SHELL
-      export ENVFILE=.env
+      echo "📦 Using ENVFILE: #{File.expand_path("../.env")}"
+
+      export ENVFILE=#{File.expand_path("../.env")}
       cd ..
       yarn react-native bundle \
         --platform ios \
@@ -72,37 +66,56 @@ platform :ios do
         --assets-dest ios/trioFrontendApp
     SHELL
 
-
-
-    # ③ 빌드 & export
     build_app(
-      workspace:       "trioFrontendApp.xcworkspace",
-      scheme:          "trioFrontendApp",
-      configuration:   "Release",
-      clean:           true,
-      export_method:   "app-store",
-      # CI 에서 프로파일 자동 갱신 허용
+      workspace: "trioFrontendApp.xcworkspace",
+      scheme: scheme_name,
+      configuration: "Release",
+      clean: true,
+      export_method: "app-store",
       xcargs: "-allowProvisioningUpdates",
       export_xcargs: "-allowProvisioningUpdates",
-
       output_directory: "../output",
-      output_name:      "trioFrontendApp.ipa"
+      output_name: "trioFrontendApp.ipa"
     )
   end
 
-  desc "TestFlight 업로드"
-  lane :upload_ipa do
-    api_key = app_store_connect_api_key(
-      key_id:     ENV["APP_STORE_CONNECT_KEY_ID"],
-      issuer_id:  ENV["APP_STORE_CONNECT_ISSUER_ID"],
-      key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"],
-      duration:   1200,
-      in_house:   false
+  # --------------------------------------------------
+  # TestFlight (DEV)
+  # --------------------------------------------------
+  desc "TestFlight build (DEV)"
+  lane :beta do
+    build_common(
+      scheme: "WorkAway-Dev"
     )
+
     upload_to_testflight(
-      api_key: api_key,
-      ipa:      "../output/trioFrontendApp.ipa",
+      api_key: app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"]
+      ),
+      ipa: "../output/trioFrontendApp.ipa",
       skip_waiting_for_build_processing: true
+    )
+  end
+
+  # --------------------------------------------------
+  # App Store (PROD)
+  # --------------------------------------------------
+  desc "App Store release (PROD)"
+  lane :release do
+    build_common(
+      scheme: "WorkAway-Prod"
+    )
+
+    upload_to_app_store(
+      api_key: app_store_connect_api_key(
+        key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
+        issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
+        key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"]
+      ),
+      ipa: "../output/trioFrontendApp.ipa",
+      submit_for_review: false
     )
   end
 end

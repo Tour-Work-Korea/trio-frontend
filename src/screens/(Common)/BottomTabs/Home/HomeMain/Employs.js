@@ -5,7 +5,7 @@ import {useNavigation} from '@react-navigation/native';
 import styles from './Home.styles';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import RecruitCard from '@components/Employ/RecruitList/RecruitCard';
 import {toggleFavorite} from '@utils/toggleFavorite';
 

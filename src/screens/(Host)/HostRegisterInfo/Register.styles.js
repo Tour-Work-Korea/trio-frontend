@@ -10,6 +10,7 @@ export default StyleSheet.create({
     ...Platform.select({
       ios: {
         paddingBottom: 40,
+        paddingTop: 20,
       },
     }),
   },

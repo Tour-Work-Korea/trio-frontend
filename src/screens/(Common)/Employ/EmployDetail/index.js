@@ -12,7 +12,7 @@ import RecruitTapSection from './RecruitTapSection';
 import Loading from '@components/Loading';
 import ButtonScarlet from '@components/ButtonScarlet';
 import useUserStore from '@stores/userStore';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import hostEmployApi from '@utils/api/hostEmployApi';
 import {showErrorModal} from '@utils/loginModalHub';
 
@@ -109,7 +109,7 @@ const EmployDetail = ({route}) => {
           </View>
         )}
       </ScrollView>
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

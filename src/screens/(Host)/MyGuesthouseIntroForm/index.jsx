@@ -17,7 +17,7 @@ import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import postApi from '@utils/api/postApi';
 
 import {CommonActions, useNavigation} from '@react-navigation/native';
@@ -61,7 +61,7 @@ const computeValidSections = formData => {
   };
 };
 
-// ✅ images 없으면 섹션 이미지에서 자동 생성
+// images 없으면 섹션 이미지에서 자동 생성
 const deriveImagesFromBlocks = introSections => {
   const urls = (introSections ?? []).map(b => b.imgUrl).filter(Boolean);
   const unique = Array.from(new Set(urls));
@@ -114,7 +114,7 @@ export default function MyGuesthouseIntroForm({route}) {
     setValid(computeValidSections(formData));
   }, [formData]);
 
-  // ✅ Upsert 모드 결정 + 기존 데이터 로드
+  // Upsert 모드 결정 + 기존 데이터 로드
   useEffect(() => {
     const checkAndLoad = async () => {
       try {
@@ -413,7 +413,7 @@ export default function MyGuesthouseIntroForm({route}) {
               handleInputChange={handleInputChange}
             />
 
-            <ErrorModal
+            <AlertModal
               title={errorModal.title}
               visible={errorModal.visible}
               buttonText={errorModal.buttonText}

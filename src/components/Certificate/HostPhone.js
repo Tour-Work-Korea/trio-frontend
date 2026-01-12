@@ -8,16 +8,15 @@ import {
   Keyboard,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
-import Logo from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import authApi from '@utils/api/authApi';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
 
-const Phone = ({user, onPress}) => {
+const HostPhone = ({user, onPress}) => {
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const [code, setCode] = useState('');
@@ -30,6 +29,7 @@ const Phone = ({user, onPress}) => {
     visible: false,
     message: '',
     buttonText: '',
+    color: COLORS.primary_blue,
   });
   const [loading, setLoading] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
@@ -45,7 +45,12 @@ const Phone = ({user, onPress}) => {
       setIsCodeVerified(false);
       setTimeLeft(300);
       setIsTimerActive(false);
-      setErrorModal({visible: false, message: '', buttonText: ''});
+      setErrorModal({
+        visible: false,
+        message: '',
+        buttonText: '',
+        color: COLORS.primary_blue,
+      });
       setLoading(false);
     }, []),
   );
@@ -103,6 +108,7 @@ const Phone = ({user, onPress}) => {
       setIsCodeSent(true);
       setTimeLeft(300);
       setIsTimerActive(true);
+
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
@@ -153,7 +159,13 @@ const Phone = ({user, onPress}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <LogoBlue width={60} height={29} />
+                <View style={styles.subTitleContainer}>
+                  <Text style={styles.subTitleText}>워커웨이 파트너스</Text>
+                </View>
+                <View style={{width: 60, height: 29}} />
+              </View>
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>
 
@@ -238,19 +250,29 @@ const Phone = ({user, onPress}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonScarlet title="인증 성공!" />
+                <ButtonWhite 
+                  title="인증 성공!"
+                  backgroundColor={COLORS.primary_blue}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : isCodeValid ? (
-                <ButtonScarlet title="인증하기" onPress={verifyCode} />
+                <ButtonWhite 
+                  title="인증하기" 
+                  onPress={verifyCode} 
+                  backgroundColor={COLORS.primary_blue}
+                  textColor={COLORS.grayscale_0}
+                />
               ) : (
                 <ButtonWhite title="인증하기" disabled={true} />
               )}
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
+          color={COLORS.primary_blue}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>
@@ -258,4 +280,4 @@ const Phone = ({user, onPress}) => {
   );
 };
 
-export default Phone;
+export default HostPhone;
