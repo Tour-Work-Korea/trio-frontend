@@ -15,7 +15,7 @@ import styles from './RecruitmentForm.styles';
 
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
@@ -156,7 +156,7 @@ const ShortDescriptionModal = ({
                 />
               </View>
             </View>
-            <ErrorModal
+            <AlertModal
               visible={errorModal.visible}
               title={errorModal.title}
               buttonText={'확인'}

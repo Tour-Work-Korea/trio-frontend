@@ -30,6 +30,17 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
+    position: 'relative',
+    width: '100%',
+  },
+  subTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subTitleText: {
     ...FONTS.fs_16_semibold,

@@ -12,7 +12,7 @@ import {useNavigation, useFocusEffect} from '@react-navigation/native';
 import authApi from '@utils/api/authApi';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
@@ -302,7 +302,7 @@ const VerifyPhone = ({route}) => {
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

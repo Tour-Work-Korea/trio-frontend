@@ -10,7 +10,7 @@ import {
 import styles from './Certificate.styles';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import LogoOrange from '@assets/images/logo_orange.svg';
 import LogoBlue from '@assets/images/logo_blue.svg';
 import {COLORS} from '@constants/colors';
@@ -30,10 +30,19 @@ export const Email = ({user, onPress}) => {
     visible: false,
     message: '',
     buttonText: '',
+    highlightText: '',
+    color: mainColor,
   });
   const [loading, setLoading] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
   const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
+
+   // 사장님 분기
+  const isHost = user === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   useFocusEffect(
     useCallback(() => {
@@ -49,6 +58,8 @@ export const Email = ({user, onPress}) => {
         visible: false,
         message: '',
         buttonText: '',
+        highlightText: '',
+        color: mainColor,
       });
       setLoading(false);
     }, []),
@@ -112,6 +123,7 @@ export const Email = ({user, onPress}) => {
       setErrorModal({
         visible: true,
         message: `${email}으로\n인증 번호가 발송 되었습니다`,
+        highlightText: `${email}`,
         buttonText: '확인',
       });
 
@@ -159,13 +171,6 @@ export const Email = ({user, onPress}) => {
     return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // 사장님 분기
-  const isHost = user === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
-
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
@@ -176,7 +181,9 @@ export const Email = ({user, onPress}) => {
               <View  style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
                 {isHost && (
-                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                  <View style={styles.subTitleContainer}>
+                    <Text style={styles.subTitleText}>워커웨이 파트너스</Text>
+                  </View>
                 )}
                 <View style={{width: 60, height: 29}} />
               </View>
@@ -244,7 +251,8 @@ export const Email = ({user, onPress}) => {
                 <View style={styles.resendContainer}>
                   <TouchableOpacity
                     onPress={resendVerificationCode}
-                    disabled={!hasRequestedCode || !isResendEnabled}>
+                    disabled={!hasRequestedCode || !isResendEnabled}
+                  >
                     <Text
                       style={[
                         styles.resendText,
@@ -282,28 +290,14 @@ export const Email = ({user, onPress}) => {
               )}
             </View>
           </View>
-          {/* <View style={styles.frameGroup}> */}
-  {/* ✅ 임시: 무조건 다음으로 이동 (본인인증 플로우 확인용)
-  <ButtonWhite
-    title="다음"
-    onPress={() => {
-      // email이 비어있을 때도 넘어가야 하면 아래 줄 그대로 두면 됨
-      // email이 비어있으면 임시 더미값 넣고 싶으면 아래처럼:
-      const safeEmail = email?.trim() || 'test@example.com';
-
-      // const safeEmail = email?.trim() || '';
-      onPress(safeEmail);
-    }}
-    backgroundColor={mainColor}
-    textColor={COLORS.grayscale_0}
-  /> */}
-{/* </View> */}
 
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
-          title={errorModal.message}
+          message={errorModal.message}
           buttonText={errorModal.buttonText}
+          highlightText={errorModal.highlightText}
+          color={mainColor}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>

@@ -10,7 +10,7 @@ import {
 import userEmployApi from '@utils/api/userEmployApi';
 import {userApplyAgrees} from '@data/agree';
 import ButtonScarlet from '@components/ButtonScarlet';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
 
@@ -287,7 +287,7 @@ const ApplicantForm = () => {
         </View>
       </View>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

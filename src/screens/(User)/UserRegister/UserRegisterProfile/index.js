@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import {
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {validateRegisterProfile} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {tryLogin} from '@utils/auth/login';
 
 import styles from './UserRegisterProfile.styles';
@@ -50,39 +50,15 @@ const UserRegisterProfile = () => {
     onPress: '',
   });
 
-  // 임시!!!!!!!
-  const buildDebugText = err => {
-  const status = err?.response?.status;
-  const url = err?.config?.url;
-  const method = err?.config?.method;
-  const timeout = err?.config?.timeout;
+  const [pendingAfterLogin, setPendingAfterLogin] = useState(false);
+  const [isIntegrationNoticeShown, setIsIntegrationNoticeShown] = useState(false);
 
-  const reqHeaders = err?.config?.headers;
-  const resHeaders = err?.response?.headers;
-  const data = err?.response?.data;
-
-  const safeStringify = v => {
-    if (v == null) return '';
-    try {
-      return typeof v === 'string' ? v : JSON.stringify(v, null, 2);
-    } catch (e) {
-      return String(v);
+  useEffect(() => {
+    if (pendingAfterLogin) {
+      afterSuccessRegister();
     }
-  };
-
-  return (
-    `\n\n[DEBUG]` +
-    `\nmethod: ${method ?? 'N/A'}` +
-    `\nurl: ${url ?? 'N/A'}` +
-    `\nstatus: ${status ?? 'N/A'}` +
-    `\ntimeout: ${timeout ?? 'N/A'}` +
-    `\n\nresponse.data:\n${safeStringify(data) || 'N/A'}` +
-    `\n\nresponse.headers:\n${safeStringify(resHeaders) || 'N/A'}` +
-    `\n\nrequest.headers:\n${safeStringify(reqHeaders) || 'N/A'}`
-  );
-};
-//
-
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAfterLogin]);
 
   useFocusEffect(
     useCallback(() => {
@@ -103,6 +79,8 @@ const UserRegisterProfile = () => {
         buttonText: '',
         onPress: '',
       });
+      setPendingAfterLogin(false);
+      setIsIntegrationNoticeShown(false);
     }, [prevData]),
   );
 
@@ -186,41 +164,41 @@ const UserRegisterProfile = () => {
       await authApi.completeUserSignUp(payload);
       afterSuccessRegister();
     } catch (error) {
-      const isAxios = !!error?.isAxiosError;
-
-      const serverMsg =
-        error?.response?.data?.message ||
-        error?.response?.data?.error ||
-        error?.message ||
-        '오류가 발생했습니다\n다시 시도해주세요';
-
       setErrorModal({
         visible: true,
         message:
-          `${serverMsg}` +
-          `\n\nisAxiosError: ${isAxios ? 'YES' : 'NO'}` +
-          buildDebugText(error),
+          error.response?.data?.message ||
+          '오류가 발생했습니다\n다시 시도해주세요',
         buttonText: '확인',
         onPress: '',
       });
-
-      // setErrorModal({
-      //   visible: true,
-      //   message:
-      //     error.response?.data?.message ||
-      //     '오류가 발생했습니다\n다시 시도해주세요',
-      //   buttonText: '확인',
-      //   onPress: '',
-      // });
     }
   };
 
   const afterSuccessRegister = async () => {
+    // 소셜 로그인 연동 안내
+    if (formData?.isIntegration && !isIntegrationNoticeShown) {
+      setIsIntegrationNoticeShown(true);
+
+      const platforms = (formData?.socialTypes || []).join(', ') || '소셜';
+      setErrorModal({
+        visible: true,
+        message: `이미 존재하는 계정과 회원 정보를 연동합니다.\n연동 플랫폼 : ${platforms}`,
+        buttonText: '확인',
+        onPress: 'integrationConfirm',
+      });
+
+      return;
+    }
+    if (formData?.isIntegration && !pendingAfterLogin) return;
+
+    // 자동 로그인
     const isSuccessLogin = await tryLogin(
       formData.email,
       formData.password,
       'USER',
     );
+
     if (isSuccessLogin) {
       navigation.dispatch(
         CommonActions.reset({
@@ -249,7 +227,7 @@ const UserRegisterProfile = () => {
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: () => navigation.navigate('Login'),
+        onPress: 'moveToLogin',
       });
     }
   };
@@ -454,13 +432,19 @@ const UserRegisterProfile = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
           onPress={() => {
-            if (errorModal.onPress === 'moveToLogin') {
-              navigation.navigate('EXLogin');
+            if (errorModal.onPress === 'integrationConfirm') {
+              setErrorModal(prev => ({...prev, visible: false}));
+              setPendingAfterLogin(true);
+              return;
+            } if (errorModal.onPress === 'moveToLogin') {
+              setErrorModal(prev => ({...prev, visible: false}));
+              navigation.navigate('LoginIntro');
+              return;
             } else {
               setErrorModal(prev => ({...prev, visible: false}));
             }

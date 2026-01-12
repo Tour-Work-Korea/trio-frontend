@@ -16,7 +16,7 @@ import hostMyApi from '@utils/api/hostMyApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {Email} from '@components/Certificate/Email';
 import Phone from '@components/Certificate/UserPhone';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from './HostEditProfile.styles';
 import {FONTS} from '@constants/fonts';
@@ -164,7 +164,7 @@ const HostEditProfile = () => {
 
       {editEmail ? <Email onPress={handleEditEmail} user="HOST" /> : <></>}
       {editPhone ? <Phone onPress={handleEditPhone} user="HOST" /> : <></>}
-      <ErrorModal
+      <AlertModal
         title={errorModal.title}
         buttonText={errorModal.buttonText}
         onPress={errorModal.onPress}

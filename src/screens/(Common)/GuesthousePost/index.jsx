@@ -7,7 +7,7 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import PostHeaderSection from './PostHeaderSection';
 import PostProfileSection from './PostProfileSection';
 import PostTapSection from './PostTapSection';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 const GuesthousePost = ({route}) => {
   const {guesthouseId} = route.params ?? {};
@@ -68,7 +68,7 @@ const GuesthousePost = ({route}) => {
         <PostTapSection intro={post} />
       </ScrollView>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

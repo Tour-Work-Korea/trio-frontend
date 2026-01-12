@@ -14,7 +14,7 @@ import userEmployApi from '@utils/api/userEmployApi';
 import EmployFilterModal from '@components/modals/Employ/EmployFilterModal';
 import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 import useUserStore from '@stores/userStore';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
 
@@ -284,7 +284,7 @@ const EmploySearchResult = ({route}) => {
         }}
       />
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

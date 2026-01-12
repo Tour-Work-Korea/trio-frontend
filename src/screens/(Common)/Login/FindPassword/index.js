@@ -17,7 +17,7 @@ import {
 
 import authApi from '@utils/api/authApi';
 import {validateNewPassword} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
@@ -308,7 +308,7 @@ const FindPassword = ({route}) => {
           </View>
         </KeyboardAvoidingView>
 
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

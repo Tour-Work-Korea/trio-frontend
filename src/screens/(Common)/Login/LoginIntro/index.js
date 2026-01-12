@@ -3,7 +3,7 @@ import {useNavigation} from '@react-navigation/native';
 import React, {useState} from 'react';
 
 import ButtonWhite from '@components/ButtonWhite';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from './LoginIntro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
@@ -74,7 +74,7 @@ const LoginIntro = () => {
             />
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={'확인'}

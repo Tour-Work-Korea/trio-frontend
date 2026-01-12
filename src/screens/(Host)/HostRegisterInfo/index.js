@@ -18,7 +18,7 @@ import {
 
 import authApi from '@utils/api/authApi';
 import {validateHostRegister} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ButtonWhite from '@components/ButtonWhite';
 import {tryLogin} from '@utils/auth/login';
 
@@ -417,7 +417,7 @@ const HostRegisterInfo = ({route}) => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

@@ -6,7 +6,7 @@ import UserPhone from '@components/Certificate/UserPhone';
 import HostPhone from '@components/Certificate/HostPhone';
 import authApi from '@utils/api/authApi';
 
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 /**
  * PhoneCertificate 역할
@@ -158,7 +158,7 @@ const PhoneCertificate = ({route}) => {
         <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
       )}
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

@@ -13,7 +13,7 @@ import {useMemo, useState} from 'react';
 
 import {validateStoreForm1} from '@utils/validation/storeRegisterValidation';
 import {useNavigation} from '@react-navigation/native';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import styles from '../StoreRegisterForm.styles';
 import {FONTS} from '@constants/fonts';
@@ -201,7 +201,7 @@ const StoreRegisterForm1 = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={'확인'}

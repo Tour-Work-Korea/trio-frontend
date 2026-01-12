@@ -13,7 +13,7 @@ import {WebView} from 'react-native-webview';
 
 import LogoOrange from '@assets/images/logo_orange.svg';
 import ButtonWhite from '@components/ButtonWhite';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import authApi from '@utils/api/authApi';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
@@ -209,7 +209,7 @@ const UserPhone = ({user, onPress}) => {
         </Modal>
 
         {/* 에러 모달 */}
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

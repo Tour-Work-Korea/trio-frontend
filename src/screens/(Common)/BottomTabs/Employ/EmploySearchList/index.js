@@ -4,7 +4,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import {RecruitList} from '@components/Employ/RecruitList';
 import useUserStore from '@stores/userStore';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
 import Loading from '@components/Loading';
@@ -157,7 +157,7 @@ const EmploySearchList = () => {
         />
       </View>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

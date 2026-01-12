@@ -17,7 +17,7 @@ import CheckBlack from '@assets/images/check_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';
 import ChevronBlack from '@assets/images/chevron_right_black.svg';
 import {COLORS} from '@constants/colors';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import postApi from '@utils/api/postApi';
 
 import {CommonActions, useNavigation} from '@react-navigation/native';
@@ -413,7 +413,7 @@ export default function MyGuesthouseIntroForm({route}) {
               handleInputChange={handleInputChange}
             />
 
-            <ErrorModal
+            <AlertModal
               title={errorModal.title}
               visible={errorModal.visible}
               buttonText={errorModal.buttonText}

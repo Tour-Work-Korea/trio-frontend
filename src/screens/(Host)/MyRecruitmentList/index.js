@@ -4,7 +4,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ResultModal from '@components/modals/ResultModal';
 import ApplicantItem from '@components/Employ/ApplicantItem';
 import PrevRecruitModal from '@components/modals/Employ/PrevRecruitModal';
@@ -167,7 +167,7 @@ const MyRecruitmentList = () => {
           <PlusIcon width={24} height={24} />
         </TouchableOpacity>
 
-        <ErrorModal
+        <AlertModal
           title={errorModal.title ?? null}
           message={errorModal.message ?? null}
           buttonText={errorModal.buttonText}

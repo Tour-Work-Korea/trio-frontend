@@ -14,7 +14,7 @@ import Header from '@components/Header';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import ButtonScarlet from '@components/ButtonScarlet';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {calculateAge} from '@utils/auth/login';
 
 import styles from './ProfileUpdate.styles';
@@ -184,7 +184,7 @@ const ProfileUpdate = () => {
         </View>
       </KeyboardAvoidingView>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
         buttonText={'확인'}
