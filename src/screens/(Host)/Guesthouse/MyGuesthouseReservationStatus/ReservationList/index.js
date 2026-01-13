@@ -11,7 +11,7 @@ import { formatLocalDateToDotWithDay } from '@utils/formatDate';
 // 예약 취소 모달
 import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
 // 예약 취소 연락 모달(임시)
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 // 예약 확정 임시
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
@@ -290,7 +290,7 @@ const ReservationList = ({ guesthouseId }) => {
 
       {/* 예약 취소 안내 모달(임시) */}
       {alermModalVisible && (
-        <ErrorModal
+        <AlertModal
           visible={alermModalVisible}
           onClose={() => {
             setAlermModalVisible(false);

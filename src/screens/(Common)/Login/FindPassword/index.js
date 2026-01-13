@@ -17,11 +17,14 @@ import {
 
 import authApi from '@utils/api/authApi';
 import {validateNewPassword} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ButtonWhite from '@components/ButtonWhite';
 
-import LogoBlue from '@assets/images/logo_blue_smile.svg';
+import LogoSmile from '@assets/images/logo_blue_smile.svg';
 import Logo from '@assets/images/logo_orange.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
 import {COLORS} from '@constants/colors';
@@ -48,6 +51,13 @@ const FindPassword = ({route}) => {
       isMatched: false,
     },
   });
+
+  // 사장님 분기
+  const isHost = userRole === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isPasswordCheckVisible, setIsPasswordCheckVisible] = useState(false);
@@ -157,7 +167,7 @@ const FindPassword = ({route}) => {
       <View style={styles.signin}>
         <View style={styles.view}>
           <View style={styles.logoParent}>
-            <LogoBlue width={168} />
+            <LogoSmile width={168} />
             <Text style={styles.titleText}>비밀번호 설정이 완료되었어요</Text>
           </View>
           {updateProfile ? (
@@ -183,7 +193,12 @@ const FindPassword = ({route}) => {
           <View style={styles.viewFlexBox} keyboardShouldPersistTaps="handled">
             {/* 헤더 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                )}
+              </View>
               <Text style={styles.titleText}>비밀번호를 재설정 해주세요!</Text>
               {/* 비밀번호 입력 */}
               <View style={styles.inputGroup}>
@@ -282,16 +297,18 @@ const FindPassword = ({route}) => {
 
             {/* 제출 버튼 */}
             <View>
-              <ButtonScarlet
+              <ButtonWhite
                 title="다음"
                 onPress={handleSubmit}
                 disabled={!isFormValid()}
+                backgroundColor={mainColor}
+                textColor={COLORS.grayscale_0}
               />
             </View>
           </View>
         </KeyboardAvoidingView>
 
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

@@ -25,6 +25,7 @@ export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
 export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/PopularGuesthouseList';
 export {default as PopularEmployList} from './(Common)/BottomTabs/Home/PopularEmployList';
+export {default as PopularMeetList} from './(Common)/BottomTabs/Home/PopularMeetList';
 // 동행
 export {default as Meet} from './(Common)/BottomTabs/Meet';
 export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
@@ -116,7 +117,6 @@ export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuest
 //
 export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
-export {default as UserRegisterInfo} from './(User)/UserRegister/UserRegisterInfo';
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
 // 좋아하는 이벤트
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';

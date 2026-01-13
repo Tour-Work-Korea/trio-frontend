@@ -19,7 +19,7 @@ import {
 } from '@utils/validation/storeRegisterValidation';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import {CommonActions, useNavigation} from '@react-navigation/native';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import {hostStorRegisterAgrees} from '@data/agree';
 import authApi from '@utils/api/authApi';
@@ -477,7 +477,7 @@ const StoreRegisterForm2 = ({route}) => {
           }
         />
 
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={'확인'}

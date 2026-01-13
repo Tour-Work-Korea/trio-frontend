@@ -200,13 +200,16 @@ const styles = StyleSheet.create({
   detailInfoText: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   tagWrapper: {
     flex: 1,
     marginRight: 8,
+    minWidth: 0,
   },
   tagText: {
     color: COLORS.primary_blue,
+    flexShrink: 1,
   },
   detailInfoBtn: {
     alignItems: 'center',
@@ -236,11 +239,14 @@ const styles = StyleSheet.create({
   },
   eventImageRow: {
     paddingBottom: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexGrow: 1,
   },
   eventImageBlog: {
-    width: 300,
-    height: 240,
-    marginRight: 10,
+    width: 340,
+    height: 300,
+    // marginRight: 10,
     backgroundColor: COLORS.grayscale_100,
   },
   eventTitle: {
@@ -323,6 +329,34 @@ const styles = StyleSheet.create({
     paddingHorizontal: 28,
     paddingVertical: 12,
     borderRadius: 20,
+  },
+
+  // 탭 내용 비었을 때
+  emptyContainer: {
+    paddingTop: 40,
+    paddingBottom: 60,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+
+  emptyIcon: {
+    width: 64,
+    height: 64,
+    marginBottom: 16,
+    resizeMode: 'contain',
+  },
+
+  emptyText: {
+    textAlign: 'center',
+    color: COLORS.grayscale_600,
+    lineHeight: 20,
+    marginBottom: 8,
+  },
+
+  emptySubText: {
+    textAlign: 'center',
+    color: COLORS.grayscale_800,
+    lineHeight: 20,
   },
 
 });

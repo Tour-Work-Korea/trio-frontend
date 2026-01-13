@@ -433,9 +433,10 @@ const MyMeetAdd = () => {
           }
         >
           <View style={styles.titleSection}>
-            <Text style={[FONTS.fs_16_semibold, styles.title]}>
-              상세 안내
-            </Text>
+            <View style={styles.titleRow}>
+              <Text style={[FONTS.fs_16_semibold, styles.title]}>상세 안내</Text>
+              <Text style={[FONTS.fs_12_medium, styles.explainText]}>*필수</Text>
+            </View>
             <Text style={[FONTS.fs_14_medium, styles.subTitle]}>
               상세 일정·음식 제공 여부·이용 규칙
             </Text>

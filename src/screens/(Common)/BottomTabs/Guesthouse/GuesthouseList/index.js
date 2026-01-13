@@ -99,16 +99,26 @@ const GuesthouseList = () => {
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
   // api 보낼 날짜 데이터
-  const [start, end] = displayDateState.split(' - ');
-  const startDateOnly = start.split(' ')[0];
-  const endDateOnly = end.split(' ')[0];
-  const [startMonth, startDay] = startDateOnly.split('.').map(Number);
-  const [endMonth, endDay] = endDateOnly.split('.').map(Number);
   const year = dayjs().year();
-  const checkIn = dayjs(`${year}-${startMonth}-${startDay}`).format(
-    'YYYY-MM-DD',
+  const [startInit, endInit] = routeDisplayDate.split(' - ');
+  const startDateOnlyInit = startInit.split(' ')[0];
+  const endDateOnlyInit = endInit.split(' ')[0];
+  const [startMonthInit, startDayInit] = startDateOnlyInit.split('.').map(Number);
+  const [endMonthInit, endDayInit] = endDateOnlyInit.split('.').map(Number);
+  const [checkIn, setCheckIn] = useState(
+    dayjs(`${year}-${startMonthInit}-${startDayInit}`).format('YYYY-MM-DD'),
   );
-  const checkOut = dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD');
+  const [checkOut, setCheckOut] = useState(
+    dayjs(`${year}-${endMonthInit}-${endDayInit}`).format('YYYY-MM-DD'),
+  );
+
+  // 모달 열기 전 값 저장(닫을 때 변경 감지용)
+  const [tempDateGuest, setTempDateGuest] = useState({
+    checkIn,
+    checkOut,
+    adultCount,
+    childCount,
+  });
   const [sortBy, setSortBy] = useState('RECOMMEND');
 
   // 게하 불러오기
@@ -181,7 +191,17 @@ const GuesthouseList = () => {
 
   useEffect(() => {
     fetchGuesthouses(page);
-  }, [page, keyword, sortBy, filterOptions, filterApplied]);
+  }, [
+    page,
+    keyword,
+    sortBy,
+    filterOptions,
+    filterApplied,
+    checkIn,
+    checkOut,
+    adultCount,
+    childCount,
+  ]);
 
   const handleEndReached = () => {
     if (loading) return;
@@ -231,10 +251,15 @@ const GuesthouseList = () => {
               setAdultCount(adults);
               setChildCount(children);
 
+              // API용 날짜 state도 같이 업데이트
+              setCheckIn(dayjs(checkIn).format('YYYY-MM-DD'));
+              setCheckOut(dayjs(checkOut).format('YYYY-MM-DD'));
+
               // 리스트 리로드
               setPage(0);
               setIsLast(false);
               setGuesthouses([]);
+              setError(false);
             },
           })
         }>
@@ -371,7 +396,10 @@ const GuesthouseList = () => {
       <View style={styles.selectRow}>
         <TouchableOpacity
           style={styles.dateContainer}
-          onPress={() => setDateGuestModalVisible(true)}>
+          onPress={() => {
+            setTempDateGuest({checkIn, checkOut, adultCount, childCount});
+            setDateGuestModalVisible(true);
+          }}>
           <CalendarIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.dateText]}>
             {displayDateState}
@@ -379,7 +407,10 @@ const GuesthouseList = () => {
         </TouchableOpacity>
         <TouchableOpacity
           style={styles.personRoomContainer}
-          onPress={() => setDateGuestModalVisible(true)}>
+          onPress={() => {
+            setTempDateGuest({checkIn, checkOut, adultCount, childCount});
+            setDateGuestModalVisible(true);
+          }}>
           <Person width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
             {childCount > 0
@@ -466,28 +497,25 @@ const GuesthouseList = () => {
       {/* 인원, 날짜 선택 모달 */}
       <DateGuestModal
         visible={dateGuestModalVisible}
-        onClose={() => setDateGuestModalVisible(false)}
-        onApply={(checkIn, checkOut, adults, children) => {
+        // 모달 닫힐 때 변경 감지 → 변경 있으면 API 재호출
+        onClose={() => {
+          setDateGuestModalVisible(false);
+        }}
+        onApply={(nextCheckIn, nextCheckOut, adults, children) => {
           setAdultCount(adults);
           setChildCount(children);
 
-          const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
-          const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+          setCheckIn(dayjs(nextCheckIn).format('YYYY-MM-DD'));
+          setCheckOut(dayjs(nextCheckOut).format('YYYY-MM-DD'));
+
+          const formattedCheckIn = dayjs(nextCheckIn).format('M.D ddd');
+          const formattedCheckOut = dayjs(nextCheckOut).format('M.D ddd');
           setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
 
           setDateGuestModalVisible(false);
-
-          // 검색 다시 실행
-          setPage(0);
-          setIsLast(false);
-          setGuesthouses([]);
         }}
-        initCheckInDate={dayjs(`${year}-${startMonth}-${startDay}`).format(
-          'YYYY-MM-DD',
-        )}
-        initCheckOutDate={dayjs(`${year}-${endMonth}-${endDay}`).format(
-          'YYYY-MM-DD',
-        )}
+        initCheckInDate={checkIn}
+        initCheckOutDate={checkOut}
         initAdultGuestCount={adultCount}
         initChildGuestCount={childCount}
       />
@@ -508,6 +536,7 @@ const GuesthouseList = () => {
           setPage(0);
           setIsLast(false);
           setGuesthouses([]);
+          setError(false);
         }}
       />
 
@@ -526,6 +555,7 @@ const GuesthouseList = () => {
           setPage(0);
           setIsLast(false);
           setGuesthouses([]);
+          setError(false);
         }}
       />
     </View>

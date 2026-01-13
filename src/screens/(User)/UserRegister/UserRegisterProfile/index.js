@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import {
   View,
   Text,
@@ -19,7 +19,7 @@ import {
 import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {validateRegisterProfile} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {tryLogin} from '@utils/auth/login';
 
 import styles from './UserRegisterProfile.styles';
@@ -50,6 +50,16 @@ const UserRegisterProfile = () => {
     onPress: '',
   });
 
+  const [pendingAfterLogin, setPendingAfterLogin] = useState(false);
+  const [isIntegrationNoticeShown, setIsIntegrationNoticeShown] = useState(false);
+
+  useEffect(() => {
+    if (pendingAfterLogin) {
+      afterSuccessRegister();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingAfterLogin]);
+
   useFocusEffect(
     useCallback(() => {
       console.log(prevData);
@@ -69,6 +79,8 @@ const UserRegisterProfile = () => {
         buttonText: '',
         onPress: '',
       });
+      setPendingAfterLogin(false);
+      setIsIntegrationNoticeShown(false);
     }, [prevData]),
   );
 
@@ -140,7 +152,16 @@ const UserRegisterProfile = () => {
 
   const handleSubmit = async () => {
     try {
-      await authApi.userSignUp(formData);
+      const payload = {
+        niceAuthToken: formData.niceAuthToken,
+        email: formData.email,
+        password: formData.password,
+        passwordConfirm: formData.passwordConfirm,
+        nickname: formData.nickname,
+        userRole: formData.userRole,
+        agreements: formData.agreements,
+      };
+      await authApi.completeUserSignUp(payload);
       afterSuccessRegister();
     } catch (error) {
       setErrorModal({
@@ -155,11 +176,29 @@ const UserRegisterProfile = () => {
   };
 
   const afterSuccessRegister = async () => {
+    // 소셜 로그인 연동 안내
+    if (formData?.isIntegration && !isIntegrationNoticeShown) {
+      setIsIntegrationNoticeShown(true);
+
+      const platforms = (formData?.socialTypes || []).join(', ') || '소셜';
+      setErrorModal({
+        visible: true,
+        message: `이미 존재하는 계정과 회원 정보를 연동합니다.\n연동 플랫폼 : ${platforms}`,
+        buttonText: '확인',
+        onPress: 'integrationConfirm',
+      });
+
+      return;
+    }
+    if (formData?.isIntegration && !pendingAfterLogin) return;
+
+    // 자동 로그인
     const isSuccessLogin = await tryLogin(
       formData.email,
       formData.password,
       'USER',
     );
+
     if (isSuccessLogin) {
       navigation.dispatch(
         CommonActions.reset({
@@ -169,7 +208,7 @@ const UserRegisterProfile = () => {
             {
               name: 'Result',
               params: {
-                nickname: formData.name,
+                nickname: formData.nickname,
                 role: formData.userRole,
                 onPress: () =>
                   navigation.dispatch(
@@ -188,7 +227,7 @@ const UserRegisterProfile = () => {
         visible: true,
         message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
         buttonText: '확인',
-        onPress: () => navigation.navigate('Login'),
+        onPress: 'moveToLogin',
       });
     }
   };
@@ -393,13 +432,19 @@ const UserRegisterProfile = () => {
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
           onPress={() => {
-            if (errorModal.onPress === 'moveToLogin') {
-              navigation.navigate('EXLogin');
+            if (errorModal.onPress === 'integrationConfirm') {
+              setErrorModal(prev => ({...prev, visible: false}));
+              setPendingAfterLogin(true);
+              return;
+            } if (errorModal.onPress === 'moveToLogin') {
+              setErrorModal(prev => ({...prev, visible: false}));
+              navigation.navigate('LoginIntro');
+              return;
             } else {
               setErrorModal(prev => ({...prev, visible: false}));
             }

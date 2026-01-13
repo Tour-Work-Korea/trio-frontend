@@ -9,15 +9,15 @@ import {
 } from 'react-native';
 
 import {CommonActions, useNavigation} from '@react-navigation/native';
-import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import {tryLogin} from '@utils/auth/login';
 
 import styles from '../Login.styles';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
-import Logo from '@assets/images/logo_orange.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 import {COLORS} from '@constants/colors';
 
 export default function LoginByEmail({route}) {
@@ -30,7 +30,15 @@ export default function LoginByEmail({route}) {
     visible: false,
     message: '',
     buttonText: '',
+    color: mainColor,
   });
+
+  // 호스트 분기
+  const isHost = userRole === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
 
   const handleMoveToRegister = () => {
     navigation.navigate('RegisterAgree', {user: userRole});
@@ -71,8 +79,11 @@ export default function LoginByEmail({route}) {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <MainLogo width={60} height={29} />
               <Text style={[styles.titleText]}>이메일로 로그인해주세요</Text>
+              {isHost && (
+                <Text style={styles.subTitleText}>비즈니스 로그인</Text>
+              )}
             </View>
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
@@ -118,7 +129,12 @@ export default function LoginByEmail({route}) {
           <View style={styles.bottomSection}>
             <View>
               <View style={styles.buttonSection}>
-                <ButtonScarlet title={'로그인하기'} onPress={handleLogin} />
+                <ButtonWhite 
+                  title={'로그인하기'} 
+                  onPress={handleLogin} 
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
                 <ButtonWhite
                   title={'이메일로 가입하기'}
                   onPress={handleMoveToRegister}
@@ -135,10 +151,11 @@ export default function LoginByEmail({route}) {
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}
+          color={mainColor}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>

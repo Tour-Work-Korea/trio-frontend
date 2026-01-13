@@ -1,4 +1,4 @@
-import React, {useState, useEffect} from 'react';
+import React, {useState, useEffect, useMemo, useRef, useCallback} from 'react';
 import {
   View,
   Text,
@@ -59,7 +59,11 @@ const fmtYMD = d =>
     d.getDate(),
   ).padStart(2, '0')}`;
 
-const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
+const MeetDateModal = ({
+  visible,
+  onClose,
+  onSelect,
+  shouldResetOnClose,
   initialRecruitStartDate = '',
   initialRecruitEndDate = '',
   initialPartyStartTime = '19:00:00',
@@ -93,22 +97,45 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
   // 마지막 적용된 값 저장
   const [appliedData, setAppliedData] = useState(null);
 
-  const parseDate = (ymd) => {
+  // ✅ 추가: 피커 영역 터치인지 판별하기 위해 measureInWindow 저장
+  const startTimePickerRef = useRef(null);
+  const endTimePickerRef = useRef(null);
+  const startDatePickerRef = useRef(null);
+  const endDatePickerRef = useRef(null);
+  const pickerRectsRef = useRef({
+    startTime: null,
+    endTime: null,
+    startDate: null,
+    endDate: null,
+  });
+
+  const parseDate = ymd => {
     if (!ymd) return new Date();
-    const [y,m,d] = ymd.split('-').map(Number);
-    return new Date(y, (m-1)||0, d||1);
+    const [y, m, d] = ymd.split('-').map(Number);
+    return new Date(y, (m - 1) || 0, d || 1);
   };
-  const parseTime = (hms) => {
+  const parseTime = hms => {
     const d = new Date();
-    const [h,m,s] = (hms||'00:00:00').split(':').map(Number);
-    d.setHours(h||0, m||0, s||0, 0);
+    const [h, m, s] = (hms || '00:00:00').split(':').map(Number);
+    d.setHours(h || 0, m || 0, s || 0, 0);
     return d;
   };
 
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
     if (!visible) return;
-    if (appliedData) return;
+
+    // ✅ 수정: 모달이 다시 열릴 때는 "마지막 적용값(appliedData)"을 우선 보여주고,
+    // 없으면 initial 값으로 세팅
+    if (appliedData) {
+      setStartTime(new Date(appliedData.startTime));
+      setEndTime(new Date(appliedData.endTime));
+      setStartDate(new Date(appliedData.startDate));
+      setEndDate(new Date(appliedData.endDate));
+      setIsRecurring(appliedData.isRecurring);
+      setRepeatDays(appliedData.repeatDays);
+      return;
+    }
 
     setStartDate(parseDate(initialRecruitStartDate));
     setEndDate(parseDate(initialRecruitEndDate));
@@ -118,9 +145,13 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
     setRepeatDays(Array.isArray(initialRepeatDays) ? initialRepeatDays : []);
   }, [
     visible,
-    initialRecruitStartDate, initialRecruitEndDate,
-    initialPartyStartTime, initialPartyEndTime,
-    initialIsRecurring, initialRepeatDays
+    initialRecruitStartDate,
+    initialRecruitEndDate,
+    initialPartyStartTime,
+    initialPartyEndTime,
+    initialIsRecurring,
+    initialRepeatDays,
+    appliedData,
   ]);
 
   const resetToInitial = () => {
@@ -137,8 +168,104 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
     setRepeatDays([]);
   };
 
+  const closeAllPickers = () => {
+    setShowStartTime(false);
+    setShowEndTime(false);
+    setShowStartDate(false);
+    setShowEndDate(false);
+  };
+
+  const anyPickerOpen = useMemo(
+    () => showStartTime || showEndTime || showStartDate || showEndDate,
+    [showStartTime, showEndTime, showStartDate, showEndDate],
+  );
+
+  // 버튼 활성화 조건
+  const timesValid = endTime.getTime() > startTime.getTime();
+  const datesValid = endDate.getTime() >= startDate.getTime();
+  const repeatValid = !isRecurring || (isRecurring && repeatDays.length > 0);
+  const isDisabled = !(timesValid && datesValid && repeatValid);
+
+  // ✅ 수정: applyNow는 "적용하기" 버튼에서만 호출되도록 유지
+  const applyNow = useCallback(() => {
+    if (isDisabled) return false;
+
+    const payload = {
+      isRecurring,
+      repeatDays,
+      recruitStartDate: toYMD(startDate),
+      recruitEndDate: toYMD(endDate),
+      partyStartTime: toHMS(startTime),
+      partyEndTime: toHMS(endTime),
+    };
+
+    setAppliedData({
+      startTime: new Date(startTime),
+      endTime: new Date(endTime),
+      startDate: new Date(startDate),
+      endDate: new Date(endDate),
+      isRecurring,
+      repeatDays: [...repeatDays],
+    });
+
+    onSelect(payload);
+    return true;
+  }, [isDisabled, isRecurring, repeatDays, startDate, endDate, startTime, endTime, onSelect]);
+
+  // ✅ 추가: 피커가 열렸을 때 실제 picker 영역을 measureInWindow로 저장
+  const measurePicker = useCallback((key, ref) => {
+    if (!ref?.current?.measureInWindow) return;
+    ref.current.measureInWindow((x, y, width, height) => {
+      pickerRectsRef.current[key] = {x, y, width, height};
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!visible) return;
+
+    const t = setTimeout(() => {
+      if (showStartTime) measurePicker('startTime', startTimePickerRef);
+      if (showEndTime) measurePicker('endTime', endTimePickerRef);
+      if (showStartDate) measurePicker('startDate', startDatePickerRef);
+      if (showEndDate) measurePicker('endDate', endDatePickerRef);
+    }, 0);
+
+    return () => clearTimeout(t);
+  }, [visible, showStartTime, showEndTime, showStartDate, showEndDate, measurePicker]);
+
+  // ✅ 추가: 현재 열려있는 피커 영역 안을 눌렀는지 체크
+  const isPressInsideAnyPicker = useCallback(
+    (pageX, pageY) => {
+      const rects = pickerRectsRef.current;
+
+      const hit = r =>
+        !!r &&
+        pageX >= r.x &&
+        pageX <= r.x + r.width &&
+        pageY >= r.y &&
+        pageY <= r.y + r.height;
+
+      // 열려있는 피커만 체크
+      if (showStartTime && hit(rects.startTime)) return true;
+      if (showEndTime && hit(rects.endTime)) return true;
+      if (showStartDate && hit(rects.startDate)) return true;
+      if (showEndDate && hit(rects.endDate)) return true;
+
+      return false;
+    },
+    [showStartTime, showEndTime, showStartDate, showEndDate],
+  );
+
   // 단순 닫기 시 초기화
   const handleModalClose = () => {
+    // ✅ 수정: 피커가 열려있으면 모달 닫지 말고 피커만 닫기 (적용 X)
+    if (anyPickerOpen) {
+      closeAllPickers();
+      return;
+    }
+
+    // ✅ 수정: 모달 자체를 적용 안 누르고 닫으면 적용 안됨
+    // shouldResetOnClose가 true면 마지막 적용값(or 초기값)으로 원복
     if (shouldResetOnClose) {
       if (appliedData) {
         // 마지막 적용값 복원
@@ -153,6 +280,7 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
         resetToInitial();
       }
     }
+
     // 열려있는 피커 접기
     setShowStartTime(false);
     setShowEndTime(false);
@@ -161,6 +289,22 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
     onClose();
   };
 
+  // ✅ 추가: 피커 바깥 아무 곳 눌렀을 때 (피커만 닫기 / 적용 X)
+  const handleContainerTouchCapture = useCallback(
+    e => {
+      if (!anyPickerOpen) return false;
+
+      const {pageX, pageY} = e.nativeEvent || {};
+      // 피커 영역 터치면 그대로 두기(닫지 않기)
+      if (isPressInsideAnyPicker(pageX, pageY)) return false;
+
+      // 피커 바깥 터치면: 피커만 닫기
+      closeAllPickers();
+      return true; // 첫 탭은 "닫기 전용"으로 먹기
+    },
+    [anyPickerOpen, isPressInsideAnyPicker],
+  );
+
   // 요일 멀티 토글
   const toggleDay = key => {
     setRepeatDays(prev =>
@@ -168,31 +312,10 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
     );
   };
 
-  // 버튼 활성화 조건
-  const timesValid = endTime.getTime() > startTime.getTime();
-  const datesValid = endDate.getTime() >= startDate.getTime();
-  const repeatValid = !isRecurring || (isRecurring && repeatDays.length > 0);
-  const isDisabled = !(timesValid && datesValid && repeatValid);
-
   // 적용 버튼 눌렀을 때
   const handleConfirm = () => {
-    if (isDisabled) return;
-    setAppliedData({
-      startTime,
-      endTime,
-      startDate,
-      endDate,
-      isRecurring,
-      repeatDays,
-    });
-    onSelect({
-      isRecurring,
-      repeatDays,
-      recruitStartDate: toYMD(startDate),
-      recruitEndDate: toYMD(endDate),
-      partyStartTime: toHMS(startTime),
-      partyEndTime: toHMS(endTime),
-    });
+    if (!applyNow()) return;
+
     setShowStartTime(false);
     setShowEndTime(false);
     setShowStartDate(false);
@@ -217,15 +340,18 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
       <TouchableWithoutFeedback onPress={handleModalClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback onPress={() => {}}>
-            <View style={styles.modalContainer}>
+            <View
+              style={styles.modalContainer}
+              // ✅ 추가: 피커가 열려있을 때, 터치를 캡처해서 "바깥 터치"면 피커만 닫기
+              onStartShouldSetResponderCapture={e => handleContainerTouchCapture(e)}
+              onResponderRelease={() => {}}
+            >
               {/* 헤더 */}
               <View style={styles.header}>
                 <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
                   이벤트 날짜
                 </Text>
-                <TouchableOpacity
-                  style={styles.XBtn}
-                  onPress={handleModalClose}>
+                <TouchableOpacity style={styles.XBtn} onPress={handleModalClose}>
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -238,9 +364,7 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                 <View style={styles.titleRow}>
                   <Text style={FONTS.fs_16_medium}>이벤트 시간</Text>
                   <Text style={[FONTS.fs_14_medium, styles.grayText]}>
-                    {timesValid
-                      ? durationText
-                      : '시간을 올바르게 선택해 주세요'}
+                    {timesValid ? durationText : '시간을 올바르게 선택해 주세요'}
                   </Text>
                 </View>
 
@@ -251,6 +375,8 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                     onPress={() => {
                       setShowStartTime(v => !v);
                       setShowEndTime(false);
+                      setShowStartDate(false);
+                      setShowEndDate(false);
                     }}>
                     <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
                       {fmtTimeKOR(startTime)}
@@ -264,6 +390,8 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                     onPress={() => {
                       setShowEndTime(v => !v);
                       setShowStartTime(false);
+                      setShowStartDate(false);
+                      setShowEndDate(false);
                     }}>
                     <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
                       {fmtTimeKOR(endTime)}
@@ -274,7 +402,11 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
 
                 {/* 인라인 타임 피커들 (토글) */}
                 {showStartTime && (
-                  <View style={styles.inlinePicker}>
+                  <View
+                    style={styles.inlinePicker}
+                    ref={startTimePickerRef} // ✅ 추가
+                    onLayout={() => measurePicker('startTime', startTimePickerRef)} // ✅ 추가
+                  >
                     <DateTimePicker
                       value={startTime}
                       mode="time"
@@ -286,7 +418,11 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                   </View>
                 )}
                 {showEndTime && (
-                  <View style={styles.inlinePicker}>
+                  <View
+                    style={styles.inlinePicker}
+                    ref={endTimePickerRef} // ✅ 추가
+                    onLayout={() => measurePicker('endTime', endTimePickerRef)} // ✅ 추가
+                  >
                     <DateTimePicker
                       value={endTime}
                       mode="time"
@@ -315,6 +451,8 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                     onPress={() => {
                       setShowStartDate(v => !v);
                       setShowEndDate(false);
+                      setShowStartTime(false);
+                      setShowEndTime(false);
                     }}>
                     <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
                       {fmtYMD(startDate)}
@@ -329,6 +467,8 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                     onPress={() => {
                       setShowEndDate(v => !v);
                       setShowStartDate(false);
+                      setShowStartTime(false);
+                      setShowEndTime(false);
                     }}>
                     <Text style={[FONTS.fs_14_regular, styles.capsuleText]}>
                       {fmtYMD(endDate)}
@@ -339,7 +479,11 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
 
                 {/* 인라인 데이트 피커들 (토글) */}
                 {showStartDate && (
-                  <View style={styles.inlinePicker}>
+                  <View
+                    style={styles.inlinePicker}
+                    ref={startDatePickerRef} // ✅ 추가
+                    onLayout={() => measurePicker('startDate', startDatePickerRef)} // ✅ 추가
+                  >
                     <DateTimePicker
                       value={startDate}
                       mode="date"
@@ -350,7 +494,11 @@ const MeetDateModal = ({visible, onClose, onSelect, shouldResetOnClose,
                   </View>
                 )}
                 {showEndDate && (
-                  <View style={styles.inlinePicker}>
+                  <View
+                    style={styles.inlinePicker}
+                    ref={endDatePickerRef} // ✅ 추가
+                    onLayout={() => measurePicker('endDate', endDatePickerRef)} // ✅ 추가
+                  >
                     <DateTimePicker
                       value={endDate}
                       mode="date"

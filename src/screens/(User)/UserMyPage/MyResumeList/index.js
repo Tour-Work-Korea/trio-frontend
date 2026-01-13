@@ -3,7 +3,7 @@ import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
 import ResultModal from '@components/modals/ResultModal';
@@ -198,7 +198,7 @@ const MyResumeList = () => {
           </TouchableOpacity>
         </View>
       )}
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         buttonText={errorModal.buttonText}
         buttonText2={errorModal.buttonText2}

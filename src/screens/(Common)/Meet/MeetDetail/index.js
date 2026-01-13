@@ -32,6 +32,7 @@ import ShareIcon from '@assets/images/share_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import EmptyIcon from '@assets/images/meet_reservation_success.svg';
 
 const TABS = ['이벤트 소개', '상세 안내', '오시는 길'];
 
@@ -155,6 +156,7 @@ const MeetDetail = () => {
     // partyEvents,
     partyImages,
     coordinate, // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
+    isGuest,
   } = detail ?? {};
 
   // 날짜/시간 파생 (끝나는 날짜는 시작 날짜와 동일하다고 가정)
@@ -270,6 +272,28 @@ const MeetDetail = () => {
       ?.filter(Boolean);
   }, [parkingTag]);
 
+  // 빈 값일때
+  const renderEmptyInfo = () => (
+    <View style={styles.emptyContainer}>
+      <Image source={EmptyIcon} style={styles.emptyIcon} />
+      <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
+        더 궁금하신 점은 업체로 문의해 주세요
+      </Text>
+      {/* 전화번호 */}
+      {/* {!!guesthouseAddress && (
+        <Text style={[FONTS.fs_14_medium, styles.emptySubText]}>
+          {guesthouseAddress}
+        </Text>
+      )} */}
+    </View>
+  );
+
+  // 오시는길 값 유무
+  const isEmptyWayInfo =
+    !meetingPlace &&
+    !(trafficInfo?.length > 0) &&
+    !parkingContentText;
+
   return (
     <View style={{flex: 1}}>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -353,11 +377,17 @@ const MeetDetail = () => {
                 ]}>
                 비숙박객
               </Text>
-              <View style={styles.priceTextRow}>
+              {isGuest ? (
                 <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
-                  {renderPrice(priceBox.nonGuest.male)}
+                  참여 불가
                 </Text>
-              </View>
+              ) : (
+                <View style={styles.priceTextRow}>
+                  <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
+                    {renderPrice(priceBox.nonGuest.male)}
+                  </Text>
+                </View>
+              )}
             </View>
           </View>
         </View>
@@ -372,7 +402,7 @@ const MeetDetail = () => {
           />
           <View style={styles.profileTextBox}>
             <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
-            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{guesthouseAddress}</Text>
+            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{trimJejuPrefix(guesthouseAddress)}</Text>
           </View>
         </View>
 
@@ -410,11 +440,14 @@ const MeetDetail = () => {
         {/* 이벤트 소개 */}
         {selectedTab === '이벤트 소개' && (
           <View style={styles.tabContent}>
-            {events?.map(ev => {
+            {(!events || events.length === 0) ? (
+              renderEmptyInfo()
+            ) : (
+            events?.map(ev => {
               const images = ev.partyEventImageUrls ?? [];
 
               return (
-              <View key={ev.id} style={{ marginBottom: 60 }}>
+              <View key={ev.id} style={{ marginBottom: 20 }}>
                 {/* 이미지(들) */}
                 {images.length > 0 && (
                   <ScrollView
@@ -444,7 +477,8 @@ const MeetDetail = () => {
                 )}
               </View>
               );
-            })}
+            })
+          )}
           </View>
         )}
 
@@ -494,13 +528,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {ruleTitleLine}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {ruleTitleLine}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>
@@ -550,6 +586,10 @@ const MeetDetail = () => {
         {/* 오시는 길 */}
         {selectedTab === '오시는 길' && (
           <View style={styles.tabContent}>
+            {isEmptyWayInfo ? (
+              renderEmptyInfo()
+            ) : (
+            <>
             <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
             {/* 지도 */}
             {/* <MapView
@@ -573,13 +613,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {trafficTitleLine}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {trafficTitleLine}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>
@@ -605,13 +647,15 @@ const MeetDetail = () => {
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
               <View style={styles.detailInfoText}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.tagText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {parkingTagTexts?.map(t => `#${t}`).join('  ')}
-                </Text>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {parkingTagTexts?.map(t => `#${t}`).join('  ')}
+                  </Text>
+                </View>
                 <TouchableOpacity
                   style={styles.detailInfoBtn}
                   onPress={() =>
@@ -630,6 +674,8 @@ const MeetDetail = () => {
               </View>
             </View>
             )}
+            </>
+          )}
           </View>
         )}
       </View>

@@ -3,7 +3,7 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -50,7 +50,7 @@ const Settings = () => {
           <Text style={styles.detailText}>대표자 : 이하늘, 정재원</Text>
         </View>
       </View>
-      <ErrorModal
+      <AlertModal
         visible={modalVisible}
         title={'정말 탈퇴하시겠어요?'}
         buttonText={'취소'}

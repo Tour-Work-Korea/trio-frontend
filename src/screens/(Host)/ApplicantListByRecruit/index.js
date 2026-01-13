@@ -4,7 +4,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import ApplicantItem from '@components/Employ/ApplicantItem';
 import ApplicantCard from './ApplicantCard';
 
@@ -86,7 +86,7 @@ const ApplicantListByRecruit = ({route}) => {
           />
         )}
 
-        <ErrorModal
+        <AlertModal
           title={errorModal.title}
           buttonText={errorModal.buttonText}
           buttonText2={errorModal.buttonText2}

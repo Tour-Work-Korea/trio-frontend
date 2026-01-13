@@ -19,13 +19,32 @@ export default StyleSheet.create({
     width: '100%',
     minHeightL: '100%',
     paddingHorizontal: 20,
-    // justifyContent: 'space-between',
   },
   groupParent: {
     paddingVertical: 0,
     gap: 12,
     alignSelf: 'stretch',
     marginBottom: 28,
+  },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    position: 'relative',
+    width: '100%',
+  },
+  subTitleContainer: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  subTitleText: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_700,
   },
   titleText: {
     ...FONTS.fs_20_bold,
@@ -38,6 +57,12 @@ export default StyleSheet.create({
   inputContainer: {
     flexDirection: 'column',
     gap: 8,
+  },
+  inputContainerText: {
+    ...FONTS.fs_18_bold,
+    alignSelf: 'center',
+    textAlign: 'center',
+    marginBottom: 40,
   },
   rowBox: {
     flexDirection: 'row',

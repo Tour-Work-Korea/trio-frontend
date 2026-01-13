@@ -32,9 +32,18 @@ export default StyleSheet.create({
     alignSelf: 'stretch',
     marginBottom: 28,
   },
+  titleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   titleText: {
     ...FONTS.fs_20_bold,
     color: COLORS.grayscale_900,
+  },
+  subTitleText: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_700,
   },
   inputGroup: {
     marginTop: 40,

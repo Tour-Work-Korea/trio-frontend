@@ -9,20 +9,21 @@ import {
   TextInput,
   KeyboardAvoidingView,
   Platform,
-  ScrollView,
 } from 'react-native';
 
 import DraggableFlatList from 'react-native-draggable-flatlist';
 import {GestureHandlerRootView} from 'react-native-gesture-handler';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Gray_ImageAdd from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
 import styles from './MyGuesthouseIntroForm.styles';
+
+import useKeyboardAwareList from '@hooks/useKeyboardAwareList';
 
 export default function IntroSectionModal({
   visible,
@@ -36,6 +37,17 @@ export default function IntroSectionModal({
 }) {
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
   const [blocks, setBlocks] = useState([]);
+
+  const {
+    listRef,
+    contentContainerStyle,
+    getFocusHandler,
+    onScrollToIndexFailed,
+  } = useKeyboardAwareList({
+    basePaddingBottom: 24,
+    viewPosition: 0.2,
+    iosOnly: true,
+  });
 
   // ⭐ 랜덤 id 생성 함수 (내부용)
   const genId = () =>
@@ -219,6 +231,7 @@ export default function IntroSectionModal({
           value={item.title}
           maxLength={100}
           onChangeText={text => updateBlock(item.localId, 'title', text)}
+          onFocus={getFocusHandler(displayIndex)}
         />
 
         {/* 내용 */}
@@ -230,6 +243,7 @@ export default function IntroSectionModal({
           multiline
           maxLength={5000}
           onChangeText={text => updateBlock(item.localId, 'content', text)}
+          onFocus={getFocusHandler(displayIndex)}
         />
       </View>
     );
@@ -251,13 +265,10 @@ export default function IntroSectionModal({
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
-              {/* <ScrollView
-                style={local.flex}
-                showsVerticalScrollIndicator={false}
-                keyboardDismissMode="on-drag"
-                keyboardShouldPersistTaps="handled"> */}
+
               <View style={{flex: 1}}>
                 <DraggableFlatList
+                  ref={listRef}
                   data={blocks}
                   keyExtractor={item => item.localId}
                   renderItem={renderBlockItem}
@@ -266,7 +277,8 @@ export default function IntroSectionModal({
                   }}
                   keyboardDismissMode="on-drag"
                   keyboardShouldPersistTaps="handled"
-                  contentContainerStyle={{paddingBottom: 24}}
+                  contentContainerStyle={contentContainerStyle}
+                  onScrollToIndexFailed={onScrollToIndexFailed}
                   ListHeaderComponent={
                     !!headerSubtitle && (
                       <Text style={local.subtitle}>{headerSubtitle}</Text>
@@ -280,18 +292,16 @@ export default function IntroSectionModal({
                         <Text style={local.addBlockText}>+ 단락 추가</Text>
                       </TouchableOpacity>
 
-                      <TouchableOpacity
-                        style={local.saveBtn}
-                        onPress={handleSave}>
+                      <TouchableOpacity style={local.saveBtn} onPress={handleSave}>
                         <Text style={local.saveText}>저장하기</Text>
                       </TouchableOpacity>
                     </View>
                   }
                 />
               </View>
-              {/* </ScrollView> */}
             </View>
-            <ErrorModal
+
+            <AlertModal
               visible={errorModal.visible}
               title={errorModal.title}
               buttonText={'확인'}
@@ -402,6 +412,7 @@ const local = StyleSheet.create({
     borderRadius: 12,
     paddingVertical: 14,
     alignItems: 'center',
+    justifyContent: 'center',
   },
   saveText: {...FONTS.fs_16_semibold, color: COLORS.grayscale_0},
 });

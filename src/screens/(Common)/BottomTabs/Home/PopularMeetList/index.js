@@ -15,13 +15,13 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
-import styles from './PopularGuesthouseList.styles';
+import styles from './PopularMeetList.styles';
 import { guesthouseTags } from '@data/guesthouseTags';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
-import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
+import HeaderImg from '@assets/images/meet_popular_header.svg';
 import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
@@ -33,7 +33,7 @@ const TRENDING_CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const TRENDING_CARD_GAP = 16;
 const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 
-const PopularGuesthouseList = () => {
+const PopularMeetList = () => {
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -247,9 +247,9 @@ const PopularGuesthouseList = () => {
           <Text style={[FONTS.fs_16_medium, styles.popularName]} numberOfLines={1}>
             {item.guesthouseName}
           </Text>
-          {item.guesthouseAddress ? (
+          {item.address ? (
             <Text style={[FONTS.fs_12_medium, styles.popularAddress]} numberOfLines={1}>
-              {trimJejuPrefix(item.guesthouseAddress)}
+              {trimJejuPrefix(item.address)}
             </Text>
           ) : null}
 
@@ -297,20 +297,20 @@ const PopularGuesthouseList = () => {
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>
-                인기 게스트하우스
+                인기 이벤트
               </Text>
             </View>
 
             <View style={styles.headerSubtitle}>
               <Workaways />
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
-                가장 인기 있는 게스트하우스들만 모아봤어요
+                가장 인기 있는 이벤트들만 모아봤어요
               </Text>
             </View>
           </View>
 
-          {/* 지금 뜨는 게하 */}
-          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 게하</Text>
+          {/* 지금 뜨는 이벤트 */}
+          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 이벤트</Text>
 
           <ScrollView
             horizontal
@@ -360,9 +360,9 @@ const PopularGuesthouseList = () => {
             ))}
           </View>
 
-          {/* 믿고 가는 인기 게하 */}
+          {/* 추천 이벤트 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
-            믿고 가는 인기 게하
+            추천 이벤트
           </Text>
 
           {restList.map((item) => (
@@ -381,4 +381,4 @@ const PopularGuesthouseList = () => {
   );
 };
 
-export default PopularGuesthouseList;
+export default PopularMeetList;

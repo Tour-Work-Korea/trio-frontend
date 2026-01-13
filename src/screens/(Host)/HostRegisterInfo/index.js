@@ -18,14 +18,14 @@ import {
 
 import authApi from '@utils/api/authApi';
 import {validateHostRegister} from '@utils/validation/registerValidation';
-import ErrorModal from '@components/modals/ErrorModal';
-import ButtonScarlet from '@components/ButtonScarlet';
+import AlertModal from '@components/modals/AlertModal';
+import ButtonWhite from '@components/ButtonWhite';
 import {tryLogin} from '@utils/auth/login';
 
 import styles from './Register.styles';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import Logo from '@assets/images/logo_orange.svg';
+import Logo from '@assets/images/logo_blue.svg';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
 
@@ -276,7 +276,7 @@ const HostRegisterInfo = ({route}) => {
                           styles.inputButtonAbsolute,
                           {
                             backgroundColor: formValid.bussinessNum
-                              ? COLORS.primary_orange
+                              ? COLORS.primary_blue
                               : COLORS.grayscale_200,
                           },
                         ]}
@@ -407,12 +407,17 @@ const HostRegisterInfo = ({route}) => {
               </View>
 
               <View>
-                <ButtonScarlet title="다음" onPress={handleSubmit} />
+                <ButtonWhite 
+                  title="다음" 
+                  onPress={handleSubmit} 
+                  backgroundColor={COLORS.primary_blue}
+                  textColor={COLORS.grayscale_0}
+                />
               </View>
             </View>
           </ScrollView>
         </KeyboardAvoidingView>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
           buttonText={errorModal.buttonText}

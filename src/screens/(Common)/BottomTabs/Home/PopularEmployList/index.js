@@ -22,7 +22,7 @@ import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
 
@@ -253,7 +253,7 @@ const PopularEmployList = () => {
         )}
       </View>
 
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

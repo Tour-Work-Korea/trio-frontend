@@ -12,7 +12,7 @@ import {
 import userEmployApi from '@utils/api/userEmployApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
 import hostEmployApi from '@utils/api/hostEmployApi';
@@ -196,7 +196,7 @@ const ResumeDetail = ({route}) => {
           )}
         </ScrollView>
       )}
-      <ErrorModal
+      <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}

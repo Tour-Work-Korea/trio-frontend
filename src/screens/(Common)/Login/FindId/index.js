@@ -3,11 +3,13 @@ import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import authApi from '@utils/api/authApi';
-import ErrorModal from '@components/modals/ErrorModal';
-import ButtonScarlet from '@components/ButtonScarlet';
+import AlertModal from '@components/modals/AlertModal';
+import ButtonWhite from '@components/ButtonWhite';
 
 import styles from '../Login.styles';
-import Logo from '@assets/images/logo_orange.svg';
+import {COLORS} from '@constants/colors';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import LogoBlue from '@assets/images/logo_blue.svg';
 
 export default function FindId({route}) {
   const {userRole, phoneNumber} = route.params;
@@ -38,6 +40,13 @@ export default function FindId({route}) {
     }
   };
 
+  // 사장님 분기
+  const isHost = userRole === 'HOST';
+  const MainLogo = isHost ? LogoBlue : LogoOrange;
+  const mainColor = isHost
+    ? COLORS.primary_blue
+    : COLORS.primary_orange;
+
   return (
     <>
       <View style={styles.container}>
@@ -45,7 +54,12 @@ export default function FindId({route}) {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <Logo width={60} height={29} />
+              <View  style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+                {isHost && (
+                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
+                )}
+              </View>
               <View>
                 <Text style={[styles.titleText]}>아이디를 찾았어요!</Text>
               </View>
@@ -58,14 +72,16 @@ export default function FindId({route}) {
               )}
             </View>
           </View>
-          <ButtonScarlet
+          <ButtonWhite
             title={'로그인하러 가기'}
             onPress={() => {
               navigation.navigate('LoginIntro');
             }}
+            backgroundColor={mainColor}
+            textColor={COLORS.grayscale_0}
           />
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={errorModal.buttonText}

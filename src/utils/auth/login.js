@@ -1,5 +1,6 @@
 // authFlow.js
 import EncryptedStorage from 'react-native-encrypted-storage';
+import {Platform} from 'react-native';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
@@ -62,7 +63,16 @@ export const tryLogin = async (email, password, userRole) => {
     return true;
   } catch (err) {
     log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
-    await EncryptedStorage.removeItem(REFRESH_KEY);
+
+    if (Platform.OS === 'ios') {
+      try {
+        await EncryptedStorage.removeItem(REFRESH_KEY);
+      } catch (storageErr) {
+        log.warn('🧹 iOS remove refresh failed:', storageErr?.message);
+      }
+    } else {
+      await EncryptedStorage.removeItem(REFRESH_KEY);
+    }
     const check = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🧹 removed refresh?', !check);
 

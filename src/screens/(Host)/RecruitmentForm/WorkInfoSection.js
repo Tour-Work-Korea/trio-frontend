@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 
 import {uploadMultiImage} from '@utils/imageUploadHandler';
-import ErrorModal from '@components/modals/ErrorModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -111,7 +111,7 @@ export default function WorkInfoSection({
             </View>
           </View>
         </View>
-        <ErrorModal
+        <AlertModal
           visible={errorModal.visible}
           title={errorModal.title}
           buttonText={'확인'}
