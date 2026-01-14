@@ -115,7 +115,7 @@ platform :ios do
         key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"]
       ),
       ipa: "../output/trioFrontendApp.ipa",
-      submit_for_review: false
+      skip_waiting_for_build_processing: true
     )
   end
 end
