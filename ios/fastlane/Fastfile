@@ -52,6 +52,18 @@ platform :ios do
       keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
     )
+    # 이전 JS bundle 완전 삭제
+    sh <<-SHELL
+      echo "🧹 Cleaning old JS bundle"
+      rm -rf ios/trioFrontendApp/main.jsbundle
+      rm -rf ios/trioFrontendApp/assets
+    SHELL
+
+    # 번들 시점 환경변수 검증
+    sh <<-SHELL
+      echo "🔥 API_BASE_URL during bundle: $API_BASE_URL"
+    SHELL
+
 
     sh <<-SHELL
       echo "📦 Using ENVFILE: #{File.expand_path("../.env")}"
