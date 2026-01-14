@@ -21,7 +21,6 @@ import {
 } from 'react-native-safe-area-context';
 import LoginErrorModal from '@components/LoginErrorModal';
 
-import Config from 'react-native-config';
 
 
 const toastConfig = {
@@ -57,7 +56,7 @@ function AppContent() {
   const insets = useSafeAreaInsets();
 
   useEffect(() => {
-    console.log('🚨 API_BASE_URL (runtime):', Config.API_BASE_URL);
+    console.log('🚨 API_BASE_URL (runtime):', process.env.API_BASE_URL);
     const bootstrap = async () => {
       try {
         await wait(120);
