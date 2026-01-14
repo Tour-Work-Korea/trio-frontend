@@ -12,7 +12,7 @@ import SettingIcon from '@assets/images/settings_gray.svg';
 //왼쪽 화살표 누르면 뒤로가기가 되도록 해놓았음
 //예시는 EXHome에 있습니다
 
-const Header = ({title, onPress = null, isSetting = false}) => {
+const Header = ({title, onPress = null, isSetting = false, role}) => {
   const navigation = useNavigation();
   const handleOnPress = () => {
     if (onPress) {
@@ -35,7 +35,9 @@ const Header = ({title, onPress = null, isSetting = false}) => {
           {isSetting ? (
             <TouchableOpacity
               style={styles.rightContainer}
-              onPress={() => navigation.navigate('Setting')}>
+              onPress={() =>
+                navigation.navigate(role === 'HOST' ? 'HostSetting' : 'Setting')
+              }>
               <SettingIcon width={28} height={28} />
             </TouchableOpacity>
           ) : (

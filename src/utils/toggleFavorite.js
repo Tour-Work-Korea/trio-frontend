@@ -117,6 +117,10 @@ export const toggleFavorite = async ({
       'toggleFavorite error',
       error?.response?.data || error?.message,
     );
-    Alert.alert('좋아요 처리 중 오류가 발생했습니다.');
+    const serverMessage =
+      error?.response?.data?.message ||
+      error?.response?.data?.error ||
+      error?.message;
+    Alert.alert(serverMessage || '좋아요 처리 중 오류가 발생했습니다.');
   }
 };

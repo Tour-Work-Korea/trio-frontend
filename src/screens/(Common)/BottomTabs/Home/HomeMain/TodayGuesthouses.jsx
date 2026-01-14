@@ -8,6 +8,7 @@ import {
   Pressable,
   Platform,
   ScrollView,
+  TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -92,7 +93,7 @@ export default function TodayGuesthouses() {
     try {
       await toggleFavorite({
         type: 'post',
-        id: item.introId,
+        id: item.guesthouseId,
         isLiked: item.isLiked,
         setList: setItems,
       });
@@ -125,16 +126,21 @@ export default function TodayGuesthouses() {
 
             {/* 게하이름 + 좋아요 */}
             <View style={styles.bottomRow}>
-              <Image
-                source={{uri: item.hostProfileImageUrl}}
-                style={styles.profileThumb}
-              />
-              <Text
-                style={styles.cardGhName}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {item.guesthouseName}
-              </Text>
+              <TouchableOpacity
+                onPress={() => navigation.navigate('HostProfilePage')}
+                style={styles.bottomLeft}
+              >
+                <Image
+                  source={{uri: item.hostProfileImageUrl}}
+                  style={styles.profileThumb}
+                />
+                <Text
+                  style={styles.cardGhName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {item.guesthouseName}
+                </Text>
+              </TouchableOpacity>
 
               <View style={styles.likeBox}>
                 <Pressable
@@ -253,14 +259,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 4,
+  },
+  bottomLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    marginRight: 4,
   },
 
   cardGhName: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_600,
-    flex: 1,
     flexShrink: 1,
+    marginLeft: 4,
   },
 
   likeBox: {
@@ -268,7 +280,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     flexShrink: 0,
-    justifyContent: 'flex-end',
   },
 
   likeCountText: {

@@ -193,6 +193,19 @@ const MeetDetail = () => {
     [amount, femaleAmount, femaleNonAmount, maleNonAmount],
   );
 
+  const bottomPriceRangeText = useMemo(() => {
+    const guestPrice = Number(priceBox.guest.male || 0);
+    const nonGuestPrice = Number(priceBox.nonGuest.male || 0);
+
+    if (isGuest) {
+      return `${guestPrice.toLocaleString()} ~ ${guestPrice.toLocaleString()}원`;
+    }
+
+    const minPrice = Math.min(guestPrice, nonGuestPrice);
+    const maxPrice = Math.max(guestPrice, nonGuestPrice);
+    return `${minPrice.toLocaleString()} ~ ${maxPrice.toLocaleString()}원`;
+  }, [isGuest, priceBox]);
+
   // 이벤트 좋아요 토글
   const onToggleLike = async () => {
     try {
@@ -395,7 +408,10 @@ const MeetDetail = () => {
         <View style={styles.devide}/>
 
         {/* 사장님 계정 */}
-        <View style={styles.profileBox}>
+        <TouchableOpacity 
+          style={styles.profileBox}
+          onPress={() => navigation.navigate('HostProfilePage')}
+        >
           <Image 
             style={styles.profileImage} 
             source={{uri: hostProfileImage}}
@@ -404,7 +420,7 @@ const MeetDetail = () => {
             <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
             <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{trimJejuPrefix(guesthouseAddress)}</Text>
           </View>
-        </View>
+        </TouchableOpacity>
 
         {/* 설명 */}
         <View style={styles.descriptionContainer}>
@@ -686,7 +702,7 @@ const MeetDetail = () => {
     <View style={styles.fixedBottomBar}>
       <View style={styles.bottomLeft}>
         <Text style={[FONTS.fs_16_semibold, styles.bottomPrice]}>
-          {Number(priceBox.guest.male || 0).toLocaleString()} ~ {Number(priceBox.nonGuest.male || 0).toLocaleString()}원
+          {bottomPriceRangeText}
         </Text>
         <Text style={[FONTS.fs_14_regular, styles.bottomDate]}>
           {formatDateWithDay(checkInDate)}   {formatTime(checkInTime)}~{formatTime(checkOutTime)}

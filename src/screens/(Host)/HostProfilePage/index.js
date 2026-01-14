@@ -13,6 +13,7 @@ import styles from './HostProfilePage.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
+import Header from '@components/Header';
 
 import HostProfileEvents from './HostProfileEvents';
 import HostProfileStaff from './HostProfileStaff';
@@ -20,6 +21,7 @@ import HostProfileReviews from './HostProfileReviews';
 
 import MapIcon from '@assets/images/map_blue';
 import BackBtn from '@assets/images/chevron_left_white';
+import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 
 const TAB = {
   EVENTS: '이벤트 목록',
@@ -39,14 +41,52 @@ const HostProfilePage = () => {
       intro:
         '잔잔하고 따뜻한 소규모 게스트하우스 ‘이상한밤’ 입니다.\n처음 만난 사람들과도 나눌 수 있는 또 다른 즐거움,\n이야깃거리가 되는 소소한 이벤트들을 통해 서로가 조금 더 편해지는 새로운 공간을 만들어가고 있습니다.',
       address: '제주시 흥운길 25-7 1층',
+      photoUrl: null,
     }),
     [],
   );
+  const hasHeaderImage = Boolean(host?.photoUrl);
+
+  const renderHeaderContent = () => (
+    <>
+      {hasHeaderImage && <View style={styles.headerOverlay} />}
+
+      <TouchableOpacity 
+        style={styles.backButton}
+        onPress={() => navigation.goBack()}
+      >
+        <BackBtn width={28} height={28}/>
+      </TouchableOpacity>
+
+      {/* 프로필 영역 */}
+      <View style={styles.profileWrap}>
+        <Text style={[FONTS.fs_20_bold, styles.guesthouseNameText]}>
+          이상한밤 게스트하우스
+        </Text>
+
+        <View style={styles.profileImageWrap}>
+          {host.photoUrl ? (
+            <Image
+              source={{uri: host.photoUrl}}
+              style={styles.profileImage}
+            />
+          ) : (
+            <View style={styles.profileImage}>
+              <EmptyImage width={32} height={32} />
+            </View>
+          )}
+        </View>
+
+        <Text style={[FONTS.fs_16_semibold, styles.hostNameText]}>
+          호스트 이름
+        </Text>
+      </View>
+    </>
+  );
 
   const handlePressReservation = () => {
-    // ✅ 여기 네 앱 흐름에 맞게 연결하면 됨
     // 예: navigation.navigate('GuesthouseReservation', { guesthouseId: ... })
-    navigation.navigate('GuesthouseReservation');
+    // navigation.navigate('GuesthouseReservation');
   };
 
   const renderTabContent = () => {
@@ -66,31 +106,18 @@ const HostProfilePage = () => {
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
         {/* 상단 배경 */}
-        <ImageBackground
-          source={require('@assets/images/exphoto.jpeg')}
-          style={styles.headerBg}
-          resizeMode="cover">
-          {/* 어두운 오버레이(가독성) */}
-          <View style={styles.headerOverlay} />
-
-          {/* 프로필 영역 */}
-          <View style={styles.profileWrap}>
-            <Text style={[FONTS.fs_20_bold, styles.guesthouseNameText]}>
-              이상한밤 게스트하우스
-            </Text>
-
-            <View style={styles.profileImageWrap}>
-              <Image
-                source={require('@assets/images/exphoto.jpeg')}
-                style={styles.profileImage}
-              />
-            </View>
-
-            <Text style={[FONTS.fs_16_semibold, styles.hostNameText]}>
-              호스트 이름
-            </Text>
+        {hasHeaderImage ? (
+          <ImageBackground
+            source={{uri: host.photoUrl}}
+            style={styles.headerBg}
+            resizeMode="cover">
+            {renderHeaderContent()}
+          </ImageBackground>
+        ) : (
+          <View style={[styles.headerBg, styles.headerBgFallback]}>
+            {renderHeaderContent()}
           </View>
-        </ImageBackground>
+        )}
 
         {/* 소개/주소 */}
         <View style={styles.contentContainer}>

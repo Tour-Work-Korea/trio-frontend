@@ -97,6 +97,7 @@ const authApi = {
       {provider: 'KAKAO', accessCode},
       {withAuth: false},
     ),
+
   //닉네임 중복 확인
   checkNickname: nickname =>
     api.get('/auth/user/nickname/check', {
@@ -124,6 +125,7 @@ const authApi = {
   //비밀번호 찾기
   findPassword: body =>
     api.post('/auth/find/password', body, {withAuth: false}),
+  
   //로그아웃
   logout: refreshToken => api.post('/auth/logout', {refreshToken}),
 };

@@ -9,11 +9,12 @@ const PROFILE_SIZE = 80;
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_100,
+    
   },
 
   scroll: {
     flex: 1,
+    backgroundColor: COLORS.grayscale_100,
   },
   scrollContent: {
     paddingBottom: 24,
@@ -25,6 +26,7 @@ const styles = StyleSheet.create({
     height: HEADER_HEIGHT,
     position: 'relative',
     alignItems: 'center',
+    justifyContent: 'center',
   },
   headerBgFallback: {
     backgroundColor: COLORS.grayscale_700,
@@ -33,24 +35,24 @@ const styles = StyleSheet.create({
     ...StyleSheet.absoluteFillObject,
     backgroundColor: 'rgba(0,0,0,0.35)',
   },
-  backButton: {
+
+  // 배경사진 변경 버튼
+  bgEditBtn: {
     position: 'absolute',
-    left: 20,
-    top: 16,
-    backgroundColor: COLORS.modal_background,
-    alignItems: 'center',
-    justifyContent: 'center',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+    right: 12,
+    top: 12,
+    backgroundColor: COLORS.grayscale_600,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 4,
+  },
+  bgEditBtnText: {
+    color: COLORS.grayscale_0,
   },
 
   // 프로필 영역
   profileWrap: {
     alignItems: 'center',
-    height: '100%',
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   guesthouseNameText: {
     color: COLORS.grayscale_0,
@@ -62,19 +64,37 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     borderWidth: 1,
     borderColor: COLORS.grayscale_0,
-    backgroundColor: COLORS.grayscale_0,
+    backgroundColor: COLORS.grayscale_200,
     marginTop: 24,
   },
   profileImage: {
     width: '100%',
     height: '100%',
-    alignItems: 'center',
+    alignItems:'center',
     justifyContent: 'center',
   },
-  hostNameText: {
+  // 이름
+  hostNameInputBox: {
     marginTop: 16,
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderColor: COLORS.grayscale_0,
+    borderWidth: 1,
+    borderRadius: 4,
+  },
+  hostNameText: {
     color: COLORS.grayscale_0,
     textAlign: 'center',
+  },
+
+  // 프로필 이미지 변경 버튼
+  profiImgEditBtn: {
+    position: 'absolute',
+    bottom: -4,
+    right: -4,
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 100,
+    padding: 4,
   },
 
   // 소개/주소 영역
@@ -84,63 +104,30 @@ const styles = StyleSheet.create({
     paddingVertical: 24,
   },
   section: {
+    marginBottom: 40,
   },
   sectionTitle: {
     marginBottom: 8,
+  },
+  introInputBox: {
+    borderRadius: 20,
+    padding: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    height: 200,
   },
   introText: {
     color: COLORS.grayscale_700,
     lineHeight: 24,
   },
 
-  addressRow: {
+  // 하단 버튼
+  bottomBtnRow: {
     flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
-    marginBottom: 24,
-  },
-  addressText: {
-    color: COLORS.grayscale_700,
+    width: '100%',
+    gap: 10,
   },
 
-  // 탭 바
-  tabBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.grayscale_0,
-    marginTop: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.grayscale_200,
-    paddingVertical: 12,
-    position: 'relative',
-  },
-  tabItem: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    position: 'relative',
-  },
-  tabItemActive: {},
-  tabText: {
-    color: COLORS.grayscale_500,
-  },
-  tabTextActive: {
-    color: COLORS.primary_blue,
-  },
-  tabIndicator: {
-    position: 'absolute',
-    bottom: -12,
-    width: '70%',
-    height: 2,
-    borderRadius: 2,
-    backgroundColor: COLORS.primary_blue,
-  },
-
-  // 탭 내용
-  tabContentWrapper: {
-    backgroundColor: COLORS.grayscale_0,
-  },
 });
 
 export default styles;

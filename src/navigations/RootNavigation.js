@@ -43,7 +43,7 @@ import {
   MyApplicantList,
   MyResumeList,
   UserEditProfile,
-  HostEditProfile,
+  HostEditInfo,
   ApplicantList,
   ApplicantListByRecruit,
   Setting,
@@ -74,6 +74,8 @@ import {
   MeetDetails,
   MeetDirections,
   HostProfilePage,
+  HostSetting,
+  HostEditProfile,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -152,7 +154,9 @@ const RootNavigation = () => (
         component={UserMeetReservationCheck}
       />
       {/* 사장님 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="HostEditInfo" component={HostEditInfo} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
+      <Stack.Screen name="HostSetting" component={HostSetting} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
       <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />

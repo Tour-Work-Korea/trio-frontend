@@ -2,6 +2,7 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React, {useMemo} from 'react';
 import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 
 import HeartIcon from '@assets/images/heart_empty.svg';
 import FilledHeartIcon from '@assets/images/heart_filled.svg';
@@ -14,6 +15,7 @@ export default function PostProfileSection({
   toggleFavorite,
   isLiked,
 }) {
+  const navigation = useNavigation();
   const tagList = useMemo(() => {
     if (typeof tags !== 'string') return [];
 
@@ -40,13 +42,15 @@ export default function PostProfileSection({
           </TouchableOpacity>
         </View>
       </View>
-      <View
+      <TouchableOpacity
         style={{
           flexDirection: 'row',
           alignItems: 'center',
           gap: 12,
           marginTop: 12,
-        }}>
+        }}
+        onPress={() => navigation.navigate('HostProfilePage')}
+      >
         <Image
           source={{uri: guesthouseImgUrl}}
           width={30}
@@ -66,7 +70,7 @@ export default function PostProfileSection({
             ))}
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     </View>
   );
 }
