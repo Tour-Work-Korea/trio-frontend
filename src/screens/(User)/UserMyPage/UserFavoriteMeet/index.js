@@ -21,12 +21,11 @@ const mapApiToUI = it => ({
   guesthouseName: it.guesthouseName,
   title: it.partyTitle,
   address: it.location,
-  // price 없음 → null 처리 (UI에서 감춤)
-  price: null,
+  price: it.amount,
   datetime: it.partyStartDateTime,
   liked: it.numOfAttendance, // 현재 참여 인원
   limit: it.maxAttendance, // 최대 인원
-  image: require('@assets/images/exphoto.jpeg'), // 응답에 이미지 없으므로 플레이스홀더
+  image: it.partyImageUrl ? {uri: it.partyImageUrl} : null,
 });
 
 const UserFavoriteMeet = () => {
@@ -95,7 +94,10 @@ const UserFavoriteMeet = () => {
       : `${dt.format('D일, A h:mm')}`; // 예: 13일, 오전 9:00
 
     return (
-      <View style={styles.row}>
+      <TouchableOpacity 
+        style={styles.row}
+        onPress={() => navigation.navigate('MeetDetail', { partyId: item.id })}
+      >
         <View style={{flexDirection: 'row'}}>
           <Image source={item.image} style={styles.thumbnail} />
 
@@ -126,9 +128,9 @@ const UserFavoriteMeet = () => {
               </View>
             </View>
 
-            {/* <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
+            <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
               {item.price.toLocaleString()}원
-            </Text> */}
+            </Text>
           </View>
         </View>
 
@@ -150,7 +152,7 @@ const UserFavoriteMeet = () => {
             {dateLabel}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 

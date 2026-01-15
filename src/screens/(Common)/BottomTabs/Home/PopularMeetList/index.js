@@ -16,14 +16,12 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './PopularMeetList.styles';
-import { guesthouseTags } from '@data/guesthouseTags';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import userMeetApi from '@utils/api/userMeetApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
 import HeaderImg from '@assets/images/meet_popular_header.svg';
 import Workaways from '@assets/images/workaways_text_white.svg';
-import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
@@ -35,7 +33,7 @@ const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 
 const PopularMeetList = () => {
   const navigation = useNavigation();
-  const [guesthouses, setGuesthouses] = useState([]);
+  const [parties, setParties] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -45,20 +43,31 @@ const PopularMeetList = () => {
   const scrollViewRef = useRef(null);
   const loadingMoreRef = useRef(false);
 
-  const tagNameById = Object.fromEntries(
-    guesthouseTags.map(t => [t.id, t.hashtag]),
-  );
-
-  const today = dayjs();
-  const tomorrow = today.add(1, 'day');
-
-  const getRatingInfo = (avgRating) => {
-    const num = Number(avgRating);
-    const valid = Number.isFinite(num) && num > 0;
-    return { hasRating: valid, text: valid ? num.toFixed(1) : '0.0' };
+  const formatPrice = (price) => {
+    const num = Number(price || 0);
+    if (num === 0) return '무료';
+    return `${num.toLocaleString('ko-KR')}원`;
   };
 
-  const normalizeGuesthouses = useCallback(
+  const formatWhenTime = (isoStr) => {
+    const d = dayjs(isoStr);
+    const now = dayjs();
+    const todayKey = now.format('YYYY-MM-DD');
+    const dateKey = d.format('YYYY-MM-DD');
+
+    let dayStr = '';
+    if (dateKey === todayKey) dayStr = '오늘';
+    else if (dateKey === now.add(1, 'day').format('YYYY-MM-DD'))
+      dayStr = '내일';
+    else {
+      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      dayStr = days[d.day()];
+    }
+
+    return `${dayStr}, ${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+  };
+
+  const normalizeParties = useCallback(
     (list = []) =>
       list.map((it) => ({
         ...it,
@@ -75,13 +84,14 @@ const PopularMeetList = () => {
     setLoading(true);
 
     try {
-      const { data } = await userGuesthouseApi.getPopularGuesthouses({
+      const { data } = await userMeetApi.searchParties({
         page: page + 1,
         size: PAGE_SIZE,
+        // isGuest: false,
       });
 
-      const normalized = normalizeGuesthouses(data?.content ?? []);
-      setGuesthouses(prev => [...prev, ...normalized]);
+      const normalized = normalizeParties(data?.content ?? []);
+      setParties(prev => [...prev, ...normalized]);
       setPage(page + 1);
       setHasNext(!data?.last);
     } catch (e) {
@@ -97,34 +107,45 @@ const PopularMeetList = () => {
     setInitialLoading(true);
 
     try {
-      const { data } = await userGuesthouseApi.getPopularGuesthouses({
+      const { data } = await userMeetApi.searchParties({
         page: 0,
         size: PAGE_SIZE,
+        // isGuest: false,
       });
 
-      const normalized = normalizeGuesthouses(data?.content ?? []);
+      const normalized = normalizeParties(data?.content ?? []);
 
-      setGuesthouses(normalized);
+      setParties(normalized);
       setPage(0);
       setHasNext(!data?.last);
     } catch (e) {
       console.warn('초기 로딩 실패', e);
-      setGuesthouses([]);
+      setParties([]);
     } finally {
       setInitialLoading(false);
     }
-  }, [normalizeGuesthouses]);
+  }, [normalizeParties]);
 
   useEffect(() => {
     fetchInitial();
   }, [fetchInitial]);
 
-  const trendingList = guesthouses.slice(0, 3);
-  const restList = guesthouses.slice(3);
+  const { trendingList, restList } = parties.reduce(
+    (acc, item) => {
+      const key = item?.partyId;
+      if (acc.trendingList.length < 3 && !acc.seen.has(key)) {
+        acc.seen.add(key);
+        acc.trendingList.push(item);
+      } else {
+        acc.restList.push(item);
+      }
+      return acc;
+    },
+    { trendingList: [], restList: [], seen: new Set() },
+  );
 
   // --- 카드 UI들 (FlatList 제거, 컴포넌트만 재사용) ---
   const TrendingCard = ({ item, style }) => {
-    const { hasRating, text } = getRatingInfo(item.avgRating);
     return (
       <TouchableOpacity
         style={[
@@ -132,57 +153,37 @@ const PopularMeetList = () => {
           { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
           style,
         ]}
-        onPress={() =>
-          navigation.navigate('GuesthouseDetail', {
-            id: item.guesthouseId,
-            checkIn: today.format('YYYY-MM-DD'),
-            checkOut: tomorrow.format('YYYY-MM-DD'),
-            guestCount: 1,
-          })
-        }>
-        {item.thumbnailUrl ? (
-          <Image source={{ uri: item.thumbnailUrl }} style={styles.trendingImage} />
+        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
+        {item.partyImageUrl ? (
+          <Image source={{ uri: item.partyImageUrl }} style={styles.trendingImage} />
         ) : (
           <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
         )}
 
-        {hasRating && (
-          <View style={styles.trendingRating}>
-            <View style={styles.ratingRow}>
-              <StarIcon width={14} height={14} />
-              <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{text}</Text>
-            </View>
-          </View>
-        )}
-
         <View style={styles.trendingInfo}>
-          <Text style={[FONTS.fs_16_semibold, styles.trendingName]}>
-            {item.guesthouseName}
-          </Text>
-
-          {Number(item.minAmount) > 0 ? (
-            <View style={styles.trendingPriceContainer}>
-              <Text style={[FONTS.fs_12_medium, styles.trendingPrice]}>최저가</Text>
-              <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText]}>
-                {item.minAmount?.toLocaleString()}원 ~
-              </Text>
-            </View>
-          ) : (
-            <View style={styles.trendingPriceContainer}>
-              <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText, { color: COLORS.grayscale_300 }]}>
-                예약마감
-              </Text>
-            </View>
-          )}
-        </View>
-
-        <View style={styles.trendingTag}>
-          <View style={styles.tags}>
-            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-              <Text key={id} style={styles.tag}>
-                {tagNameById[id] ?? `#${id}`}
-              </Text>
-            ))}
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+            <Text
+              style={[FONTS.fs_16_semibold, styles.trendingTitle]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {item.partyTitle}
+            </Text>
+            <Text
+              style={[FONTS.fs_16_semibold, styles.trendingPriceText]}
+            >
+              {formatPrice(item.amount)}
+            </Text>
+          </View>
+          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+            <Text
+              style={[FONTS.fs_12_medium, styles.meetPlace]}
+              numberOfLines={1}
+            >
+              {item.guesthouseName}
+            </Text>
+            <Text style={[FONTS.fs_14_regular, styles.timeText]}>
+              {formatWhenTime(item.partyStartDateTime)}
+            </Text>
           </View>
         </View>
       </TouchableOpacity>
@@ -190,80 +191,74 @@ const PopularMeetList = () => {
   };
 
   const PopularCard = ({ item }) => {
-    const { hasRating, text } = getRatingInfo(item.avgRating);
     const handleToggleFavorite = () => {
       toggleFavorite({
-        type: 'guesthouse',
-        id: item.guesthouseId,
+        type: 'party',
+        id: item.partyId,
         isLiked: item.isLiked,
-        setList: setGuesthouses,
+        setList: setParties,
       });
     };
 
     return (
       <TouchableOpacity
-        style={styles.popularCard}
-        onPress={() =>
-          navigation.navigate('GuesthouseDetail', {
-            id: item.guesthouseId,
-            checkIn: today.format('YYYY-MM-DD'),
-            checkOut: tomorrow.format('YYYY-MM-DD'),
-            guestCount: 1,
-          })
-        }>
-
-        <View style={styles.imgRatingContainer}>
-          {item.thumbnailUrl ? (
-            <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
+        activeOpacity={0.8}
+        style={styles.meetItemContainer}
+        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
+        <View style={styles.meetTopContainer}>
+          {item.partyImageUrl ? (
+            <Image source={{ uri: item.partyImageUrl }} style={styles.meetThumb} />
           ) : (
-            <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
+            <View style={[styles.meetThumb, { backgroundColor: COLORS.grayscale_200 }]} />
           )}
-          {hasRating && (
-            <View style={styles.rating}>
-              <StarIcon width={14} height={14} />
-              <Text style={[FONTS.fs_12_medium, styles.ratingText]}>{text}</Text>
+
+          <View style={styles.meetInfo}>
+            <View style={styles.meetTextRow}>
+              <Text
+                style={[FONTS.fs_12_medium, styles.meetPlace]}
+                numberOfLines={1}
+              >
+                {item.guesthouseName}
+              </Text>
+              <View style={styles.meetPlaceSpacer} />
+              <TouchableOpacity onPress={handleToggleFavorite}>
+                {item.isLiked ? (
+                  <FillHeart width={20} height={20} />
+                ) : (
+                  <EmptyHeart width={20} height={20} />
+                )}
+              </TouchableOpacity>
             </View>
-          )}
+
+            <View style={styles.meetTextRow}>
+              <Text
+                style={[FONTS.fs_14_medium, styles.meetTitle]}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {item.partyTitle}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
+                {item.numOfAttendance}/{item.maxAttendance}명
+              </Text>
+            </View>
+
+            <View style={styles.meetBottomRow}>
+              <Text style={[FONTS.fs_18_semibold, styles.price]}>
+                {Number(item.amount || 0).toLocaleString()}원
+              </Text>
+            </View>
+          </View>
         </View>
-
-        <View style={styles.popularInfo}>
-          <View style={styles.tagRow}>
-            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-              <View key={id} style={styles.tagContainer}>
-                <Text style={[FONTS.fs_body, styles.tagText]}>
-                  {tagNameById[id] ?? `#${id}`}
-                </Text>
-              </View>
-            ))}
-            <TouchableOpacity style={styles.heartIcon} onPress={handleToggleFavorite}>
-              {item.isLiked ? (
-                <FillHeart width={20} height={20} />
-              ) : (
-                <EmptyHeart width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          </View>
-
-          <Text style={[FONTS.fs_16_medium, styles.popularName]} numberOfLines={1}>
-            {item.guesthouseName}
+        <View style={styles.meetBottomContainer}>
+          <Text
+            style={[FONTS.fs_12_medium, styles.meetAddress]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {trimJejuPrefix(item.location)}
           </Text>
-          {item.address ? (
-            <Text style={[FONTS.fs_12_medium, styles.popularAddress]} numberOfLines={1}>
-              {trimJejuPrefix(item.address)}
-            </Text>
-          ) : null}
-
-          <View style={styles.popularBottomRow}>
-            {Number(item.minAmount) > 0 ? (
-              <Text style={[FONTS.fs_18_semibold, styles.popularPrice]}>
-                {item.minAmount?.toLocaleString()}원 ~
-              </Text>
-            ) : (
-              <Text style={[FONTS.fs_16_semibold, styles.popularEmptyPrice]}>
-                예약마감
-              </Text>
-            )}
-          </View>
+          <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+            {formatWhenTime(item.partyStartDateTime)}
+          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -339,7 +334,7 @@ const PopularMeetList = () => {
               const isLast = index === trendingList.length - 1;
               return (
                 <TrendingCard
-                  key={item.guesthouseId}
+                  key={item.partyId}
                   item={item}
                   style={isLast && { marginRight: 0 }}
                 />
@@ -366,7 +361,7 @@ const PopularMeetList = () => {
           </Text>
 
           {restList.map((item) => (
-            <PopularCard key={item.guesthouseId} item={item} />
+            <PopularCard key={item.partyId} item={item} />
           ))}
 
           {/* --- 하단 로딩 --- */}
