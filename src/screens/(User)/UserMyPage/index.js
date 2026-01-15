@@ -91,7 +91,7 @@ const UserMyPage = () => {
                     MBTI
                   </Text>
                   <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
-                    {user.mbti}
+                    {user.mbti === 'DEFAULT' ? 'MBTI를 추가해주세요' : user.mbti}
                   </Text>
                 </View>
                 <View style={styles.profileText}>

@@ -49,33 +49,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
     marginHorizontal: 20,
   },
-  // 별점
-  ratingRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.grayscale_800,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    borderRadius: 100,
-  },
-  ratingText: {
-    marginLeft: 4,
-    color: COLORS.grayscale_0,
-  },
-  //태그
-  tags: {
-    flexDirection: 'row',
-    gap: 4,
-  },
-  tag: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    borderRadius: 100,
-    color: COLORS.primary_blue,
-  },
-
+  
   // 상단 3개용
   trendingList: {
     marginBottom: 4,
@@ -87,35 +61,23 @@ const styles = StyleSheet.create({
     height: 160,
     borderRadius: 12,
   },
-  trendingRating: {
-    position: 'absolute',
-    top: 10,
-    left: 10,
-  },
-  // 제목, 가격
   trendingInfo: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginTop: 8,
+    marginTop: 10,
   },
-  trendingName: {
-    color: COLORS.grayscale_600,
+  trendingTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+    flex: 1,
+    flexShrink: 1,
+    marginRight: 4,
   },
-  trendingPriceContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  trendingPrice: {
-    color: COLORS.semantic_red,
+  trendingDate: {
+    color: COLORS.grayscale_500,
+    marginBottom: 6,
   },
   trendingPriceText: {
     color: COLORS.grayscale_800,
-    marginLeft: 4,
-  },
-  // 태그
-  trendingTag: {
-    marginTop: 8,
+    flexShrink: 0,
   },
 
   // 인디케이터
@@ -139,77 +101,62 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 
-  // 하단 인기 게하용
-  popularCard: {
-    flexDirection: 'row',
+  // 하단 인기 이벤트용
+  meetItemContainer: {
     paddingHorizontal: 20,
-    marginBottom: 20,
-    gap: 12,
+    marginBottom: 16,
   },
-  imgRatingContainer: {
-    position: 'relative',
+  meetTopContainer: {
+    flexDirection: 'row',
   },
-  popularImage: {
-    width: 112,
-    height: 112,
+  meetThumb: {
+    width: 90,
+    height: 90,
     borderRadius: 4,
+    marginRight: 10,
   },
-  rating: {
-    position:'absolute',
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: COLORS.grayscale_800,
-    justifyContent: 'center',
-    borderRadius: 100,
-    paddingHorizontal: 10,
-    paddingVertical: 2,
-    gap: 4,
-    top: 4,
-    left: 4,
-  },
-  popularInfo: {
+  meetInfo: {
     flex: 1,
-    justifyContent: 'space-evenly',
   },
-  tagRow: {
+  meetTextRow: {
     flexDirection: 'row',
-    marginBottom: 8,
-    gap: 4,
-    paddingRight: 28,
-  },
-  tagContainer: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingVertical: 4,
-    paddingHorizontal: 10,
-    borderRadius: 100,
-  },
-  tagText: {
-    color: COLORS.primary_blue,
-  },
-  // 제목
-  popularName: {
-    color: COLORS.grayscale_800,
-    marginBottom: 4,
-  },
-  popularAddress: {
-    color: COLORS.grayscale_500,
-    marginBottom: 10,
-  },
-  // 가격
-  popularBottomRow: {
-    flexDirection: 'row',
-    justifyContent: 'flex-end',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
-  popularPrice: {
+  // 게하 이름
+  meetPlace: {
+    color: COLORS.grayscale_600,
+  },
+  meetTitle: {
+    color: COLORS.grayscale_800,
+    flex: 1,
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  capacityText: {
+    color: COLORS.grayscale_400,
+  },
+  meetBottomRow: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+  },
+  price: {
     color: COLORS.grayscale_800,
   },
-  popularEmptyPrice: {
-    color: COLORS.grayscale_300,
+  meetBottomContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 10,
   },
-  heartIcon: {
-    position: 'absolute',
-    right: 0,
+  meetAddress: {
+    color: COLORS.grayscale_500,
+    flexShrink: 1,
+    marginRight: 8,
+  },
+  timeText: {
+    color: COLORS.primary_orange,
   },
 
 });
