@@ -44,6 +44,7 @@ const RoomDetail = ({route}) => {
     roomImages,
     roomCapacity,
     roomType,
+    totalPrice,
   } = route.params;
   const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
@@ -219,6 +220,7 @@ const RoomDetail = ({route}) => {
                 checkIn,
                 checkOut,
                 guestCount,
+                totalPrice,
               });
             }
           }}

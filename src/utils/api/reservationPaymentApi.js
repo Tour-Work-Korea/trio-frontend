@@ -1,0 +1,25 @@
+import api from './axiosInstance';
+
+const reservationPaymentApi = {
+
+  // 객실 예약 생성
+  createRoomReservation: (roomId, data) =>
+    api.post(
+      `/payments/toss/reservation/room/${roomId}`,
+      data,
+    ),
+
+  // 예약 ID 기반 결제 페이지 진입
+  requestPayment: reservationId =>
+    api.get('/payments/toss/request/reservation', {
+      params: {reservationId},
+    }),
+
+  // 토스 결제 성공 콜백
+  confirmPaymentSuccess: ({paymentKey, orderId, amount}) =>
+    api.get('/payments/toss/success', {
+      params: {paymentKey, orderId, amount},
+    }),
+};
+
+export default reservationPaymentApi;

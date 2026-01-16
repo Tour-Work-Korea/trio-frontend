@@ -20,12 +20,13 @@ const GuesthousePaymentSuccess = () => {
       <Logo />
       <View>
         <Text style={[FONTS.fs_20_semibold, styles.text]}>
-          예약 요청이 접수되었습니다! {'\n'}
+          예약 완료되었어요!
+          {'\n'} 이제 떠날 일만 남았어요 
         </Text>
-        <Text style={[FONTS.fs_16_medium, styles.subText]}>
+        {/* <Text style={[FONTS.fs_16_medium, styles.subText]}>
           예약 확인이 완료되면 문자로 입금 안내를 드릴게요. {'\n'}
           입금이 완료되면 예약이 확정됩니다. 🌿
-        </Text>
+        </Text> */}
       </View>
 
       <View style={styles.button}>

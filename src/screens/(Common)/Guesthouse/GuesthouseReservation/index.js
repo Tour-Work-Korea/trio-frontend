@@ -22,6 +22,7 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 
@@ -35,7 +36,7 @@ const formatPhoneNumber = (phone) => {
 };
 
 const GuesthouseReservation = ({ route }) => {
-  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut, guestCount } = route.params || {};
+  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut, guestCount, totalPrice } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
   const [agreements, setAgreements] = useState({
@@ -107,24 +108,25 @@ const GuesthouseReservation = ({ route }) => {
 
   // 예약 호출
   const handleReservation = async () => {
+    if (!isAllRequiredAgreed) return;
+
     try {
-      // 예약 임시 주석
-      const res = await userGuesthouseApi.reserveRoom(roomId, {
-        checkIn: checkIn,
-        checkOut: checkOut,
-        guestCount: guestCount,
-        amount: roomPrice,
+      const body = {
+        checkIn,
+        checkOut,
+        guestCount,
+        amount: totalPrice,
         request: requestMessage,
-      });
-      const reservationId = res.data;
+      };
 
-      // 예약 pendding 승인, 결제 X
-      navigation.navigate('GuesthousePaymentSuccess');
+      const res = await reservationPaymentApi.createRoomReservation(roomId, body);
 
-      // 결제 버전
+      const reservationId = res?.data;
+
+      // 결제
       navigation.navigate('GuesthousePayment', {
         reservationId,
-        amount: roomPrice,
+        amount: totalPrice,
       });
 
     } catch (err) {
@@ -183,6 +185,12 @@ const GuesthouseReservation = ({ route }) => {
               <View style={styles.userInfo}>
                   <Text style={[FONTS.fs_14_semibold, styles.roomNameText]}>{roomName}</Text>
                   <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>{roomPrice?.toLocaleString()}원</Text>
+              </View>
+              <View style={styles.userInfo}>
+                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>총 가격</Text>
+                <Text style={FONTS.fs_14_medium}>
+                  {totalPrice?.toLocaleString()}원
+                </Text>
               </View>
           </View>
 
