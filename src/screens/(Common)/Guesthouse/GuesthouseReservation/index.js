@@ -21,7 +21,6 @@ import styles from './GuesthouseReservation.styles';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
@@ -36,7 +35,21 @@ const formatPhoneNumber = (phone) => {
 };
 
 const GuesthouseReservation = ({ route }) => {
-  const { roomId, roomName, roomPrice, guesthouseName, checkIn, checkOut, guestCount, totalPrice } = route.params || {};
+  const {
+    roomId,
+    roomName,
+    roomPrice,
+    guesthouseName,
+    checkIn,
+    checkOut,
+    guestCount,
+    totalPrice,
+    roomType,
+    dormitoryGenderType,
+    roomCapacity,
+    roomMaxCapacity,
+    femaleOnly,
+  } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
   const [agreements, setAgreements] = useState({
@@ -59,6 +72,14 @@ const GuesthouseReservation = ({ route }) => {
     const date = dayjs(dateStr);
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
+  const nights = Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day'))+1;
+  const roomTypeMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
+  const isDormitory = roomType === 'DORMITORY';
+  const genderText = roomTypeMap[dormitoryGenderType] || '';
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
@@ -107,31 +128,36 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   // 예약 호출
-  const handleReservation = async () => {
-    if (!isAllRequiredAgreed) return;
+  // const handleReservation = async () => {
+  //   if (!isAllRequiredAgreed) return;
 
-    try {
-      const body = {
-        checkIn,
-        checkOut,
-        guestCount,
-        amount: totalPrice,
-        request: requestMessage,
-      };
+  //   try {
+  //     const body = {
+  //       checkIn,
+  //       checkOut,
+  //       guestCount,
+  //       amount: totalPrice,
+  //       request: requestMessage,
+  //     };
 
-      const res = await reservationPaymentApi.createRoomReservation(roomId, body);
+  //     const res = await reservationPaymentApi.createRoomReservation(roomId, body);
 
-      const reservationId = res?.data;
+  //     const reservationId = res?.data;
 
-      // 결제
-      navigation.navigate('GuesthousePayment', {
-        reservationId,
-        amount: totalPrice,
-      });
+  //     // 결제
+  //     navigation.navigate('GuesthousePayment', {
+  //       reservationId,
+  //       amount: totalPrice,
+  //     });
 
-    } catch (err) {
-      Alert.alert('예약 실패', err.response.data.message);
-    }
+  //   } catch (err) {
+  //     Alert.alert('예약 실패', err.response.data.message);
+  //   }
+  // };
+
+  // 임시
+  const handleReservation = () => {
+    navigation.navigate('GuesthousePaymentSuccess');
   };
 
   return (
@@ -148,12 +174,46 @@ const GuesthouseReservation = ({ route }) => {
           keyboardShouldPersistTaps="handled"
         >
           <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
+          {/* 방 정보 */}
+          <Text style={[FONTS.fs_16_regular, styles.roomName]}>{roomName}</Text>
+          {isDormitory ? (
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+              <Text
+                style={[
+                  FONTS.fs_16_regular,
+                  {color: COLORS.grayscale_500},
+                ]}>
+                [{roomCapacity}인 도미토리]
+              </Text>
+              {dormitoryGenderType !== 'MIXED' && !!genderText && (
+                <Text
+                  style={[
+                    FONTS.fs_16_regular,
+                    {color: COLORS.grayscale_500},
+                  ]}>
+                  {genderText}
+                </Text>
+              )}
+            </View>
+          ) : (
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+              <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                {roomCapacity}인 기준(최대 {roomMaxCapacity}인)
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                {femaleOnly ? ', 여성전용' : ''}
+              </Text>
+            </View>
+          )}
           {/* 날짜 */}
           <View style={styles.dateBoxContainer}>
               <View style={styles.dateBoxCheckIn}>
                   <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
                   <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
+              </View>
+              <View style={styles.nightsBox}>
+                <Text style={[FONTS.fs_14_regular]}>{nights}박</Text>
               </View>
               <View style={styles.dateBoxCheckOut}>
                   <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
@@ -181,13 +241,19 @@ const GuesthouseReservation = ({ route }) => {
 
           {/* 룸이름, 가격 */}
           <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약 정보</Text>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>결제 정보</Text>
               <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_semibold, styles.roomNameText]}>{roomName}</Text>
-                  <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>{roomPrice?.toLocaleString()}원</Text>
+                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                  객실 가격 ({isDormitory ? '1베드 당' : '1객실 당'})
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
+                  {roomPrice?.toLocaleString()}원
+                </Text>
               </View>
               <View style={styles.userInfo}>
-                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>총 가격</Text>
+                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                  {`총 가격 (${isDormitory ? `베드 ${guestCount}개 X ` : ''}${nights}박)`}
+                </Text>
                 <Text style={FONTS.fs_14_medium}>
                   {totalPrice?.toLocaleString()}원
                 </Text>
@@ -269,11 +335,11 @@ const GuesthouseReservation = ({ route }) => {
         </ScrollView>
 
         <View style={styles.button}>
-            <ButtonScarlet
-              title="요청하기"
-              onPress={handleReservation}
-              disabled={!isAllRequiredAgreed}
-            />
+          <ButtonScarlet
+            title={`${totalPrice?.toLocaleString()}원 결제하기`}
+            onPress={handleReservation}
+            disabled={!isAllRequiredAgreed}
+          />
         </View>
 
         {/* 약관동의 모달 */}

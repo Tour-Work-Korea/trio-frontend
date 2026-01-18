@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, Image, TouchableOpacity, Alert, Linking} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -19,8 +19,6 @@ const RoomList = ({
   const navigation = useNavigation();
   const userRole = useUserStore(state => state.userRole);
   const formatTime = timeStr => (timeStr ? timeStr.slice(0, 5) : '');
-  const [openRoomId, setOpenRoomId] = useState(null);
-  const [selectedCounts, setSelectedCounts] = useState({});
   const totalGuestCount = localAdults + localChildren;
   const dormitoryGenderMap = {
     MIXED: '혼숙',
@@ -40,6 +38,9 @@ const RoomList = ({
       roomDesc: room.roomDesc,
       roomCapacity: room.roomCapacity,
       roomType: room.roomType,
+      dormitoryGenderType: room.dormitoryGenderType,
+      roomMaxCapacity: room.roomMaxCapacity,
+      femaleOnly: room.femaleOnly,
       guesthouseName: detail.guesthouseName,
       checkIn: `${localCheckIn}T${detail.checkIn}`,
       checkOut: `${localCheckOut}T${detail.checkOut}`,
@@ -105,7 +106,12 @@ const RoomList = ({
       checkIn: `${localCheckIn}T${detail.checkIn}`,
       checkOut: `${localCheckOut}T${detail.checkOut}`,
       guestCount,
-      totalPrice: room.totalPrice,
+      totalPrice: room.totalPrice ?? detail.totalPrice,
+      roomType: room.roomType,
+      dormitoryGenderType: room.dormitoryGenderType,
+      roomCapacity: room.roomCapacity,
+      roomMaxCapacity: room.roomMaxCapacity,
+      femaleOnly: room.femaleOnly,
     });
   };
 
@@ -113,11 +119,7 @@ const RoomList = ({
     const thumbnailImage = getThumbnailImage(room);
     
     return (
-      <TouchableOpacity
-        disabled={reserved}
-        onPress={() => {
-          if (!reserved) goRoomDetail(room, guestCount);
-        }}>
+      <View>
         <View style={styles.roomCard}>
           {thumbnailImage ? (
             <Image source={{uri: thumbnailImage}} style={styles.roomImage} />
@@ -129,13 +131,16 @@ const RoomList = ({
 
           <View style={styles.roomInfo}>
             <View style={styles.roomNameDescContainer}>
-              <View style={styles.roomInfoRow}>
-                <Text
-                  style={[FONTS.fs_16_semibold, styles.roomType]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail">
-                  {room.roomName}
-                </Text>
+              <View style={[styles.roomInfoRow, {gap: 4}]}>
+                <View style={styles.roomNameTextWrapper}>
+                  <Text
+                    style={[FONTS.fs_16_semibold, styles.roomType]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
+                  >
+                    {room.roomName}
+                  </Text>
+                </View>
                 <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
                   {room.roomPrice?.toLocaleString()}원
                 </Text>
@@ -146,7 +151,7 @@ const RoomList = ({
             </View>
           </View>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -154,16 +159,7 @@ const RoomList = ({
   const renderDormitoryRoom = (room, reserved) => {
     const genderText = dormitoryGenderMap[room.dormitoryGenderType] || '';
     const remaining = typeof room.remaining === 'number' ? room.remaining : 0;
-    const maxSelectable = Math.max(
-      1,
-      Math.min(totalGuestCount, remaining),
-    );
-    const selectedCount = Math.min(
-      selectedCounts[room.id] ?? maxSelectable,
-      maxSelectable,
-    );
-    const isGuestCountOverRemaining =
-      totalGuestCount > remaining && remaining >= 1;
+    const isGuestCountOverRemaining = totalGuestCount > remaining;
     const dormitoryInfo = (
       <>
         <View style={styles.roomInfoRow}>
@@ -174,16 +170,18 @@ const RoomList = ({
                 styles.roomType,
                 {color: COLORS.grayscale_500},
               ]}>
-              [{room.roomCapacity}인]
+              [{room.roomCapacity}인 도미토리]
             </Text>
-            <Text
-              style={[
-                FONTS.fs_14_medium,
-                styles.roomType,
-                {color: COLORS.grayscale_500},
-              ]}>
-              {genderText}
-            </Text>
+            {room.dormitoryGenderType !== 'MIXED' && !!genderText && (
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.roomType,
+                  {color: COLORS.grayscale_500},
+                ]}>
+                , {genderText}
+              </Text>
+            )}
           </View>
           <Text
             style={[
@@ -207,7 +205,7 @@ const RoomList = ({
         <TouchableOpacity 
           style={styles.roomDetailBtn}
           onPress={() => {
-            goRoomDetail(room, selectedCount);
+            goRoomDetail(room, totalGuestCount);
           }}
         >
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
@@ -216,18 +214,13 @@ const RoomList = ({
         </TouchableOpacity>
 
         <View style={styles.roomInfoBottomRow}>
-          <TouchableOpacity
-            style={styles.remainingRow}
-            disabled={reserved}
-            onPress={() => {
-              setOpenRoomId(prev => (prev === room.id ? null : room.id));
-            }}>
+          <View style={styles.remainingRow}>
             <Text style={[FONTS.fs_14_medium, styles.remainingText]}>베드 수</Text>
             <Text style={[FONTS.fs_14_medium, styles.remainingText]}>
-              {selectedCount}
+              {totalGuestCount}
             </Text>
-          </TouchableOpacity>
-          <View style={{gap: 4}}>
+          </View>
+          <View style={{gap: 4, width: 128, alignItems: 'center'}}>
             <Text
               style={[
                 FONTS.fs_14_medium,
@@ -245,72 +238,43 @@ const RoomList = ({
             ) : (
               <ButtonWhite
                 title='예약하기'
-                backgroundColor={
-                  isGuestCountOverRemaining
-                    ? COLORS.grayscale_200
-                    : COLORS.primary_orange
-                }
-                textColor={
-                  isGuestCountOverRemaining
-                    ? COLORS.grayscale_900
-                    : COLORS.grayscale_0
-                }
-                onPress={() => handleReservationPress(room, selectedCount)}
+                backgroundColor={COLORS.primary_orange}
+                textColor={COLORS.grayscale_0}
+                disabled={isGuestCountOverRemaining}
+                onPress={() => handleReservationPress(room, totalGuestCount)}
               />
             )}
           </View>
         </View>
-        {openRoomId === room.id && !reserved && (
-          <View style={styles.countOptionsRow}>
-            {Array.from({length: maxSelectable}, (_, idx) => idx + 1).map(
-              count => {
-                const isActive = selectedCount === count;
-                return (
-                  <TouchableOpacity
-                    key={`${room.id}-${count}`}
-                    style={[
-                      styles.countOptionChip,
-                      isActive && styles.countOptionChipActive,
-                    ]}
-                    onPress={() => {
-                      setSelectedCounts(prev => ({
-                        ...prev,
-                        [room.id]: count,
-                      }));
-                      setOpenRoomId(null);
-                    }}>
-                    <Text
-                      style={[
-                        FONTS.fs_14_medium,
-                        styles.countOptionText,
-                        isActive && styles.countOptionTextActive,
-                      ]}>
-                      {count}
-                    </Text>
-                  </TouchableOpacity>
-                );
-              },
-            )}
-          </View>
-        )}
       </>
     );
 
-    return renderCommonCardShell(room, dormitoryInfo, reserved, selectedCount);
+    return renderCommonCardShell(room, dormitoryInfo, reserved, totalGuestCount);
   };
 
   // 일반객실 카드
   const renderNormalRoom = (room, reserved) => {
+    const isOverCapacity = totalGuestCount > room.roomMaxCapacity;
+
     const normalInfo = (
       <>
-        <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+        <View style={styles.roomInfoRow}>
           <Text
             style={[
               FONTS.fs_14_medium,
               styles.roomType,
               {color: COLORS.grayscale_500},
             ]}>
-            일반객실 · {room.roomCapacity}인실
+            [일반객실]
+          </Text>
+          <Text
+            style={[
+              FONTS.fs_14_medium,
+              styles.roomType,
+              {color: COLORS.grayscale_500},
+            ]}
+          >
+            1객실 당
           </Text>
         </View>
         <View style={styles.checkTimeContainer}>
@@ -320,6 +284,46 @@ const RoomList = ({
           <Text style={[FONTS.fs_12_medium, styles.checkin]}>
             퇴실 {formatTime(detail.checkOut)}
           </Text>
+        </View>
+
+        <TouchableOpacity 
+          style={styles.roomDetailBtn}
+          onPress={() => {
+            goRoomDetail(room, totalGuestCount);
+          }}
+        >
+          <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
+            상세보기
+          </Text>
+        </TouchableOpacity>
+
+        <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <Text
+              style={[FONTS.fs_14_medium, styles.roomType]}
+            >
+              {room.roomCapacity}인 기준(최대 {room.roomMaxCapacity}인)
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+              {room.femaleOnly ? ', 여성전용' : ''}
+            </Text>
+          </View>
+          <View style={{width: 128, alignItems: 'center'}}>
+            {reserved ? (
+              <Text
+                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}]}>
+                예약 마감
+              </Text>
+            ) : (
+              <ButtonWhite
+                title='예약하기'
+                backgroundColor={COLORS.primary_orange}
+                textColor={COLORS.grayscale_0}
+                disabled={isOverCapacity}
+                onPress={() => handleReservationPress(room, totalGuestCount)}
+              />
+            )}
+          </View>
         </View>
       </>
     );

@@ -253,6 +253,10 @@ const styles = StyleSheet.create({
     minWidth: 0,   // 텍스트가 ellipsis 되도록 필요한 트릭
     // paddingRight: 8,
   },
+  roomNameTextWrapper: {
+    flex: 1,
+    minWidth: 0,
+  },
   roomType: {
     color: COLORS.grayscale_800,
   },
@@ -299,30 +303,6 @@ const styles = StyleSheet.create({
   },
   remainingText: {
 
-  },
-  countOptionsRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginTop: 12,
-  },
-  countOptionChip: {
-    paddingHorizontal: 10,
-    paddingVertical: 6,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_300,
-    backgroundColor: COLORS.grayscale_0,
-  },
-  countOptionChipActive: {
-    borderColor: COLORS.primary_orange,
-    backgroundColor: COLORS.grayscale_0,
-  },
-  countOptionText: {
-    color: COLORS.grayscale_700,
-  },
-  countOptionTextActive: {
-    color: COLORS.primary_orange,
   },
   
   // 긴 소개
