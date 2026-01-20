@@ -20,6 +20,12 @@ const reservationPaymentApi = {
     api.get('/payments/toss/success', {
       params: {paymentKey, orderId, amount},
     }),
+
+  // 게하 예약 완료 상세
+  getReservationPaymentDetail: reservationId =>
+    api.get(
+      `/payments/toss/reservation/detail/${reservationId}`,
+    ),
 };
 
 export default reservationPaymentApi;

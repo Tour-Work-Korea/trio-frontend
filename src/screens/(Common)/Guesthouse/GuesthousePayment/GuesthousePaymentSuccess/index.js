@@ -1,6 +1,6 @@
 import React, {useEffect} from 'react';
 import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -10,11 +10,16 @@ import Logo from '@assets/images/guesthouse_reservation_success.svg';
 
 const GuesthousePaymentSuccess = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { reservationId, receiptContext } = route.params || {};
 
   // 2초뒤 예약 획정 화면
   // useEffect(() => {
   //   const timer = setTimeout(() => {
-  //     navigation.replace('GuesthousePaymentReceipt');
+  //     navigation.replace('GuesthousePaymentReceipt', {
+  //       reservationId,
+  //       receiptContext,
+  //     });
   //   }, 2000);
 
   //   return () => clearTimeout(timer);

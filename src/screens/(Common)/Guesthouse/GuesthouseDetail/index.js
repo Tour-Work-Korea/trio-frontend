@@ -24,7 +24,7 @@ import {
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
 import Loading from '@components/Loading';
-import {genderOptions} from '@data/guesthouseOptions';
+import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';

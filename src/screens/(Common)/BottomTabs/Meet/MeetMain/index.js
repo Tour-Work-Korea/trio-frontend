@@ -30,7 +30,7 @@ import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 
-import {meetTags, meetScales, stayTypes} from '@data/meetOptions';
+import {meetTags, meetScales, stayTypes} from '@constants/meetOptions';
 
 const {width} = Dimensions.get('window');
 

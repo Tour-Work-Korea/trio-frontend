@@ -19,7 +19,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostMeetApi from '@utils/api/hostMeetApi';
-import {meetTags} from '@data/meetOptions';
+import {meetTags} from '@constants/meetOptions';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import MinusIcon from '@assets/images/minus_gray.svg';

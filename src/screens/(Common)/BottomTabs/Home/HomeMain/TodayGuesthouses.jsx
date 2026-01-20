@@ -92,7 +92,7 @@ export default function TodayGuesthouses() {
     try {
       await toggleFavorite({
         type: 'post',
-        id: item.introId,
+        id: item.guesthouseId,
         isLiked: item.isLiked,
         setList: setItems,
       });
