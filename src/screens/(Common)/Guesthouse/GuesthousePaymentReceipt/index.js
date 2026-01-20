@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -6,23 +6,185 @@ import {
   TouchableOpacity,
   Alert,
   Linking,
+  ActivityIndicator,
 } from 'react-native';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
 import Clipboard from '@react-native-clipboard/clipboard';
+import {useRoute, useNavigation} from '@react-navigation/native';
 
 import styles from './GuesthousePaymentReceipt.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
-import {mockPaymentReceipt} from './mockPaymentReceipt';
+import {PAYMENT_TYPE_LABEL} from '@constants/payment';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+
+import XBtn from '@assets/images/x_gray.svg';
+
+dayjs.locale('ko');
 
 const formatPrice = n => {
   if (typeof n !== 'number') return '';
   return `${n.toLocaleString()}원`;
 };
 
+const formatTime = timeStr => {
+  if (!timeStr) return '';
+  const date = dayjs(timeStr);
+  if (date.isValid()) return date.format('HH:mm');
+  return typeof timeStr === 'string' ? timeStr.slice(0, 5) : '';
+};
+
+const formatDateWithDay = dateStr => {
+  if (!dateStr) return '';
+  const date = dayjs(dateStr);
+  return date.isValid() ? date.format('YYYY. MM. DD (dd)') : dateStr;
+};
+
+const buildPurchaseSubtitle = ctx => {
+  if (!ctx) return '';
+  const isDormitory = ctx.roomType === 'DORMITORY';
+  const genderMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
+
+  if (isDormitory) {
+    const parts = [];
+    if (ctx.roomCapacity) parts.push(`${ctx.roomCapacity}인 도미토리`);
+    const genderText = genderMap[ctx.dormitoryGenderType];
+    if (genderText) parts.push(genderText);
+    return parts.length ? `[${parts.join(', ')}]` : '';
+  }
+
+  const parts = [];
+  if (ctx.roomCapacity) {
+    const maxText = ctx.roomMaxCapacity
+      ? ` (최대 ${ctx.roomMaxCapacity}인)`
+      : '';
+    parts.push(`${ctx.roomCapacity}인 기준${maxText}`);
+  }
+  if (ctx.femaleOnly) parts.push('여성전용');
+  return parts.length ? `[${parts.join(', ')}]` : '';
+};
+
+const buildPurchaseTitle = ctx => {
+  if (!ctx?.roomName) return '';
+  if (!ctx.checkIn || !ctx.checkOut) return ctx.roomName;
+
+  const nights = Math.max(
+    0,
+    dayjs(ctx.checkOut).diff(dayjs(ctx.checkIn), 'day'),
+  );
+  return nights > 0 ? `${ctx.roomName} / ${nights}박` : ctx.roomName;
+};
+
+const mapDtoToViewData = (dto, fallback, reservationId) => {
+  if (!dto) return null;
+
+  const fallbackAddress = [fallback?.guesthouseAddress, fallback?.guesthouseAddressDetail]
+    .filter(Boolean)
+    .join(' ');
+
+  return {
+    guesthouse: {
+      name: dto.guesthouse ?? fallback?.guesthouseName ?? '',
+      address: dto.address ?? fallbackAddress ?? '',
+      phone: fallback?.guesthousePhone ?? '',
+    },
+
+    stay: {
+      checkIn: dto.checkIn ?? formatDateWithDay(fallback?.checkIn),
+      checkInTime: formatTime(fallback?.checkInTime ?? fallback?.checkIn),
+      checkOut: dto.checkOut ?? formatDateWithDay(fallback?.checkOut),
+      checkOutTime: formatTime(fallback?.checkOutTime ?? fallback?.checkOut),
+    },
+
+    purchase: {
+      title: dto.roomName ?? buildPurchaseTitle(fallback),
+      subTitle: buildPurchaseSubtitle(fallback),
+    },
+
+    reservation: {
+      number:
+        dto.reservationId !== undefined && dto.reservationId !== null
+          ? String(dto.reservationId)
+          : reservationId
+            ? String(reservationId)
+            : '',
+      name: dto.userName ?? fallback?.userName ?? '',
+      phone: dto.phoneNum ?? fallback?.userPhone ?? '',
+    },
+
+    payment: {
+      paidAt: dto.approvedAt ?? '',
+
+      unitPriceLabel: '결제 금액',
+      totalLabel: '총 결제 금액',
+      finalLabel: '최종 결제 금액',
+
+      unitPrice:
+        typeof dto.amount === 'number'
+          ? dto.amount
+          : typeof fallback?.roomPrice === 'number'
+            ? fallback.roomPrice
+            : 0,
+      totalPrice:
+        typeof dto.totalAmount === 'number'
+          ? dto.totalAmount
+          : typeof fallback?.totalPrice === 'number'
+            ? fallback.totalPrice
+            : 0,
+      finalPrice:
+        typeof dto.totalAmount === 'number'
+          ? dto.totalAmount
+          : typeof fallback?.totalPrice === 'number'
+            ? fallback.totalPrice
+            : 0,
+
+      method: (dto.paymentType && PAYMENT_TYPE_LABEL[dto.paymentType]) ?? '',
+    },
+
+    cancelPolicy: {
+      notice: '취소/환불 규정은 숙소 정책에 따라 달라요.',
+    },
+  };
+};
+
 const GuesthousePaymentReceipt = () => {
-  // ✅ 나중에 api 붙으면 여기만 교체하면 됨
-  const data = useMemo(() => mockPaymentReceipt, []);
+  const route = useRoute();
+  const navigation = useNavigation();
+  const reservationId = route?.params?.reservationId ?? 0;
+  const receiptContext = route?.params?.receiptContext ?? null;
+  // const reservationId = route?.params?.reservationId;
+
+  const [dto, setDto] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  const data = useMemo(
+    () => mapDtoToViewData(dto, receiptContext, reservationId),
+    [dto, receiptContext, reservationId],
+  );
+
+  useEffect(() => {
+    const fetchDetail = async () => {
+      try {
+        setLoading(true);
+        const res = await reservationPaymentApi.getReservationPaymentDetail(
+          reservationId,
+        );
+        setDto(res?.data);
+      } catch (e) {
+        // Alert.alert('알림', '예약 상세를 불러오지 못했어');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchDetail();
+  }, [reservationId]);
 
   const handleCopy = (text, label = '복사했어') => {
     Clipboard.setString(text ?? '');
@@ -46,7 +208,6 @@ const GuesthousePaymentReceipt = () => {
   };
 
   const handleOpenMap = async () => {
-    // ✅ 간단하게 네이버 지도 검색으로 연결 (원하면 카카오맵/구글맵 분기 가능)
     const q = encodeURIComponent(
       `${data?.guesthouse?.name || ''} ${data?.guesthouse?.address || ''}`,
     );
@@ -57,7 +218,6 @@ const GuesthousePaymentReceipt = () => {
   };
 
   const handleFindWay = async () => {
-    // ✅ 길찾기: 일단 네이버 지도 검색으로 동일 연결
     handleOpenMap();
   };
 
@@ -67,10 +227,33 @@ const GuesthousePaymentReceipt = () => {
       {
         text: '취소할래',
         style: 'destructive',
-        onPress: () => Alert.alert('알림', '(mock) 예약취소 처리됐어'),
+        onPress: () => Alert.alert('알림', '예약취소 기능은 준비중이야'),
       },
     ]);
   };
+
+  // 로딩
+  if (loading) {
+    return (
+      <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+        <ActivityIndicator />
+        <Text style={[FONTS.fs_14_medium, {marginTop: 10, color: COLORS.grayscale_500}]}>
+          불러오는 중...
+        </Text>
+      </View>
+    );
+  }
+
+  // 데이터 없음
+  if (!data) {
+    return (
+      <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+        <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_600}]}>
+          예약 정보를 찾을 수 없어
+        </Text>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.container}>

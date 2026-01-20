@@ -44,7 +44,7 @@ export const toggleFavorite = async ({
     post: {
       like: () => postApi.likeIntro(id),
       unlike: () => postApi.unlikeIntro(id),
-      listIdKey: 'introId',
+      listIdKey: 'guesthouseId',
     },
   };
   const conf = apiMap[type];
@@ -117,6 +117,7 @@ export const toggleFavorite = async ({
       'toggleFavorite error',
       error?.response?.data || error?.message,
     );
-    Alert.alert('좋아요 처리 중 오류가 발생했습니다.');
+    const backendMessage = error?.response?.data?.message;
+    Alert.alert(backendMessage || '좋아요 처리 중 오류가 발생했습니다.');
   }
 };

@@ -40,8 +40,13 @@ const GuesthouseReservation = ({ route }) => {
     roomName,
     roomPrice,
     guesthouseName,
+    guesthouseAddress,
+    guesthouseAddressDetail,
+    guesthousePhone,
     checkIn,
     checkOut,
+    checkInTime,
+    checkOutTime,
     guestCount,
     totalPrice,
     roomType,
@@ -128,37 +133,58 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   // 예약 호출
-  // const handleReservation = async () => {
-  //   if (!isAllRequiredAgreed) return;
+  const handleReservation = async () => {
+    if (!isAllRequiredAgreed) return;
 
-  //   try {
-  //     const body = {
-  //       checkIn,
-  //       checkOut,
-  //       guestCount,
-  //       amount: totalPrice,
-  //       request: requestMessage,
-  //     };
+    try {
+      const body = {
+        checkIn,
+        checkOut,
+        guestCount,
+        amount: totalPrice,
+        request: requestMessage,
+      };
 
-  //     const res = await reservationPaymentApi.createRoomReservation(roomId, body);
+      const res = await reservationPaymentApi.createRoomReservation(roomId, body);
 
-  //     const reservationId = res?.data;
+      const reservationId = res?.data;
 
-  //     // 결제
-  //     navigation.navigate('GuesthousePayment', {
-  //       reservationId,
-  //       amount: totalPrice,
-  //     });
+      // 결제
+      navigation.navigate('GuesthousePayment', {
+        reservationId,
+        amount: totalPrice,
+        receiptContext: {
+          guesthouseName,
+          guesthouseAddress,
+          guesthouseAddressDetail,
+          guesthousePhone,
+          checkIn,
+          checkOut,
+          checkInTime,
+          checkOutTime,
+          roomName,
+          roomType,
+          dormitoryGenderType,
+          roomCapacity,
+          roomMaxCapacity,
+          femaleOnly,
+          guestCount,
+          roomPrice,
+          totalPrice,
+          userName: name,
+          userPhone: formatPhoneNumber(phone),
+        },
+      });
 
-  //   } catch (err) {
-  //     Alert.alert('예약 실패', err.response.data.message);
-  //   }
-  // };
+    } catch (err) {
+      Alert.alert('예약 실패', err.response.data.message);
+    }
+  };
 
   // 임시
-  const handleReservation = () => {
-    navigation.navigate('GuesthousePaymentSuccess');
-  };
+  // const handleReservation = () => {
+  //   navigation.navigate('GuesthousePaymentSuccess');
+  // };
 
   return (
     <KeyboardAvoidingView
