@@ -24,6 +24,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
+import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
@@ -40,6 +41,7 @@ const GuesthouseReservation = ({ route }) => {
     roomName,
     roomPrice,
     guesthouseName,
+    guesthouseId,
     guesthouseAddress,
     guesthouseAddressDetail,
     guesthousePhone,
@@ -66,6 +68,8 @@ const GuesthouseReservation = ({ route }) => {
   const phone = useUserStore(state => state.userProfile.phone);
   const [requestMessage, setRequestMessage] = useState('');
 
+  const [isConfirmVisible, setConfirmVisible] = useState(false);
+
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
     const date = dayjs(timeStr);
@@ -76,6 +80,11 @@ const GuesthouseReservation = ({ route }) => {
   const formatDateWithDay = (dateStr) => {
     const date = dayjs(dateStr);
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
+  const formatDateTime = (dateStr, timeStr) => {
+    const dateLabel = formatDateWithDay(dateStr);
+    const timeLabel = formatTime(timeStr || dateStr);
+    return `${dateLabel} ${timeLabel}`;
   };
   const nights = Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day'))+1;
   const roomTypeMap = {
@@ -155,6 +164,7 @@ const GuesthouseReservation = ({ route }) => {
         amount: totalPrice,
         receiptContext: {
           guesthouseName,
+          guesthouseId,
           guesthouseAddress,
           guesthouseAddressDetail,
           guesthousePhone,
@@ -180,11 +190,6 @@ const GuesthouseReservation = ({ route }) => {
       Alert.alert('예약 실패', err.response.data.message);
     }
   };
-
-  // 임시
-  // const handleReservation = () => {
-  //   navigation.navigate('GuesthousePaymentSuccess');
-  // };
 
   return (
     <KeyboardAvoidingView
@@ -363,7 +368,7 @@ const GuesthouseReservation = ({ route }) => {
         <View style={styles.button}>
           <ButtonScarlet
             title={`${totalPrice?.toLocaleString()}원 결제하기`}
-            onPress={handleReservation}
+            onPress={() => setConfirmVisible(true)}
             disabled={!isAllRequiredAgreed}
           />
         </View>
@@ -393,6 +398,24 @@ const GuesthouseReservation = ({ route }) => {
           onAgree={handleAgreeModal}
         />
 
+        {/* 예약 확인 모달 */}
+        <ReservationConfirmModal
+          visible={isConfirmVisible}
+          onClose={() => setConfirmVisible(false)}
+          onConfirm={() => {
+            setConfirmVisible(false);
+            handleReservation();
+          }}
+          guesthouseName={guesthouseName}
+          roomSummary={`${isDormitory ? `${roomName}(${guestCount}베드)` : `${roomName}`} / ${nights}박`}
+          roomSubSummary={
+            isDormitory
+              ? `[${roomCapacity}인 도미토리]${genderText && dormitoryGenderType !== 'MIXED' ? `, ${genderText}` : ''}`
+              : `[${roomCapacity}인 기준(최대 ${roomMaxCapacity}인)]${femaleOnly ? ', 여성전용' : ''}`
+          }
+          checkInLabel={formatDateTime(checkIn, checkInTime)}
+          checkOutLabel={formatDateTime(checkOut, checkOutTime)}
+        />
     </View>
     </KeyboardAvoidingView>
   );

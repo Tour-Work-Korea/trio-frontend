@@ -26,6 +26,13 @@ const reservationPaymentApi = {
     api.get(
       `/payments/toss/reservation/detail/${reservationId}`,
     ),
+
+  // 게스트하우스/모임 예약 취소
+  // type: GUESTHOUSE, PARTY
+  cancelReservation: (reservationId, type = 'GUESTHOUSE') =>
+    api.delete(`/payments/toss/reservation/${reservationId}`, {
+      data: {type},
+    }),
 };
 
 export default reservationPaymentApi;

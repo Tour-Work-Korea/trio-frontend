@@ -11,6 +11,7 @@ import {showErrorModal} from '@utils/loginModalHub';
 
 const RoomList = ({
   detail,
+  guesthouseId,
   localCheckIn,
   localCheckOut,
   localAdults,
@@ -42,6 +43,7 @@ const RoomList = ({
       roomMaxCapacity: room.roomMaxCapacity,
       femaleOnly: room.femaleOnly,
       guesthouseName: detail.guesthouseName,
+      guesthouseId,
       guesthouseAddress: detail.guesthouseAddress,
       guesthouseAddressDetail: detail.guesthouseAddressDetail,
       guesthousePhone: detail.guesthousePhone,
@@ -108,6 +110,7 @@ const RoomList = ({
       roomName: room.roomName,
       roomPrice: room.roomPrice,
       guesthouseName: detail.guesthouseName,
+      guesthouseId,
       guesthouseAddress: detail.guesthouseAddress,
       guesthouseAddressDetail: detail.guesthouseAddressDetail,
       guesthousePhone: detail.guesthousePhone,
@@ -242,7 +245,7 @@ const RoomList = ({
             </Text>
             {reserved ? (
               <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}]}>
+                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}>
                 예약 마감
               </Text>
             ) : (
@@ -321,7 +324,8 @@ const RoomList = ({
           <View style={{width: 128, alignItems: 'center'}}>
             {reserved ? (
               <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}]}>
+                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}
+              >
                 예약 마감
               </Text>
             ) : (

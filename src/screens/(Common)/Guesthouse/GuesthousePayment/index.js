@@ -3,7 +3,6 @@ import {Alert} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
-import Toast from 'react-native-toast-message';
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
@@ -12,7 +11,7 @@ const GuesthousePayment = ({route}) => {
   const accessToken = useUserStore(state => state.accessToken);
 
   if (!reservationId) {
-    Alert.alert('결제 오류', 'reservationId가 없어 결제를 진행할 수 없습니다.');
+    Alert.alert('결제 오류', '결제를 진행할 수 없습니다.');
     navigation.goBack();
     return null;
   }
@@ -22,12 +21,6 @@ const GuesthousePayment = ({route}) => {
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'PAYMENT_SUCCESS') {
-        Toast.show({
-          type: 'success',
-          text1: '결제가 완료되었어요!',
-          position: 'top',
-          visibilityTime: 2000,
-        });
         navigation.replace('GuesthousePaymentSuccess', {
           reservationId,
           amount,

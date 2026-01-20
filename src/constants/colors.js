@@ -39,4 +39,7 @@ export const COLORS = {
 
     // 모달창 뒷 배경
     modal_background: 'rgba(0,0,0,0.1)',
+
+    // 취소버튼 배경색
+    cancel_btn_bg: '#FEE9E8'
 };
