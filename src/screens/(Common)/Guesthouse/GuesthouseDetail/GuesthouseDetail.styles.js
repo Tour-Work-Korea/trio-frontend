@@ -275,6 +275,7 @@ const styles = StyleSheet.create({
   // 룸 디테일 버튼
   roomDetailBtn: {
     marginTop: 12,
+    alignSelf: 'flex-start',
   },
   roomDetailBtnText: {
     color: COLORS.semantic_blue,
@@ -303,6 +304,13 @@ const styles = StyleSheet.create({
   },
   remainingText: {
 
+  },
+  fullBooked: {
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   
   // 긴 소개

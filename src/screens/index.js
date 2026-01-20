@@ -20,7 +20,6 @@ export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
 export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
 export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
 export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
-export {default as GuesthousePaymentReceipt} from './(Common)/Guesthouse/GuesthousePaymentReceipt';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
@@ -104,6 +103,7 @@ export {default as MyLikeRecruitList} from './(User)/UserMyPage/MyLikeRecruitLis
 export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ProfileUpdate} from './(User)/Employ/ProfileUpdate';
+export {default as GuesthousePaymentReceipt} from './(User)/Guesthouse/GuesthousePaymentReceipt';
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필
