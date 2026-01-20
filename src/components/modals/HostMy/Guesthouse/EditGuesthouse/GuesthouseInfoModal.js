@@ -18,7 +18,7 @@ import Toast from 'react-native-toast-message';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
-import { guesthouseTags } from '@data/guesthouseTags';
+import { guesthouseTags } from '@constants/guesthouseTags';
 import AddressSearchModal from '@components/modals/AddressSearchModal';
 import TimePickerModal from '@components/modals/TimePickerModal';
 import { formatLocalTimeToKorean12Hour } from '@utils/formatDate';

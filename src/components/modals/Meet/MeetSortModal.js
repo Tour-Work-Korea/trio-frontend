@@ -14,7 +14,7 @@ import CheckIcon from '@assets/images/check20_orange.svg';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import { meetSortOptions } from '@data/meetOptions';
+import { meetSortOptions } from '@constants/meetOptions';
 
 const {height} = Dimensions.get('window');
 

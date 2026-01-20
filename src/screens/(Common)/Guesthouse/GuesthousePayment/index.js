@@ -7,7 +7,7 @@ import Toast from 'react-native-toast-message';
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
-  const {reservationId, amount} = route.params || {};
+  const {reservationId, amount, receiptContext} = route.params || {};
 
   const accessToken = useUserStore(state => state.accessToken);
 
@@ -28,7 +28,11 @@ const GuesthousePayment = ({route}) => {
           position: 'top',
           visibilityTime: 2000,
         });
-        navigation.replace('GuesthousePaymentSuccess', {reservationId, amount});
+        navigation.replace('GuesthousePaymentSuccess', {
+          reservationId,
+          amount,
+          receiptContext,
+        });
         return;
       }
 

@@ -9,7 +9,7 @@ import {
 } from 'react-native';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
-import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
+import { publicFacilities, roomFacilities, services } from '@constants/guesthouseOptions';
 
 import XBtn from '@assets/images/x_gray.svg';
 
