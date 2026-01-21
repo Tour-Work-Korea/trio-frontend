@@ -111,7 +111,7 @@ const buildPaymentTotalSuffix = (ctx, nights) => {
   return nights > 0 ? ` (${nights}박)` : '';
 };
 
-const mapDtoToViewData = (dto, fallback, reservationCode) => {
+const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
   if (!dto) return null;
 
   const fallbackAddress = [fallback?.guesthouseAddress, fallback?.guesthouseAddressDetail]
@@ -122,14 +122,34 @@ const mapDtoToViewData = (dto, fallback, reservationCode) => {
     guesthouse: {
       name: dto.guesthouse ?? fallback?.guesthouseName ?? '',
       address: dto.address ?? fallbackAddress ?? '',
-      phone: fallback?.guesthousePhone ?? '',
+      phone: dto.guesthousePhoneNum ?? fallback?.guesthousePhone ?? '',
     },
 
     stay: {
-      checkIn: dto.checkIn ?? formatDateWithDay(fallback?.checkIn),
-      checkInTime: formatTime(fallback?.checkInTime ?? fallback?.checkIn),
-      checkOut: dto.checkOut ?? formatDateWithDay(fallback?.checkOut),
-      checkOutTime: formatTime(fallback?.checkOutTime ?? fallback?.checkOut),
+      checkIn:
+        dto.checkIn ??
+        formatDateWithDay(stayOverride?.checkIn) ??
+        formatDateWithDay(fallback?.checkIn),
+      checkInTime: formatTime(
+        dto.checkInTime ??
+          stayOverride?.checkInTime ??
+          fallback?.checkInTime ??
+          dto.checkIn ??
+          stayOverride?.checkIn ??
+          fallback?.checkIn
+      ),
+      checkOut:
+        dto.checkOut ??
+        formatDateWithDay(stayOverride?.checkOut) ??
+        formatDateWithDay(fallback?.checkOut),
+      checkOutTime: formatTime(
+        dto.checkOutTime ??
+          stayOverride?.checkOutTime ??
+          fallback?.checkOutTime ??
+          dto.checkOut ??
+          stayOverride?.checkOut ??
+          fallback?.checkOut
+      ),
     },
 
     purchase: {
@@ -189,28 +209,49 @@ const GuesthousePaymentReceipt = () => {
   const receiptContext = route?.params?.receiptContext ?? null;
   const reservationId = route?.params?.reservationId ?? null;
   const reservationCode = route?.params?.reservationCode ?? null;
-  const isFromPaymentFlow = Boolean(receiptContext);
+  const checkIn = route?.params?.checkIn ?? null;
+  const checkOut = route?.params?.checkOut ?? null;
+  const checkInTime = route?.params?.checkInTime ?? null;
+  const checkOutTime = route?.params?.checkOutTime ?? null;
+  const isFromPaymentFlow = route?.params?.isFromPaymentFlow ?? Boolean(receiptContext);
 
   const [dto, setDto] = useState(null);
   const [loading, setLoading] = useState(true);
 
+  const stayOverride = useMemo(
+    () => ({
+      checkIn,
+      checkOut,
+      checkInTime,
+      checkOutTime,
+    }),
+    [checkIn, checkOut, checkInTime, checkOutTime],
+  );
+  const mergedContext = useMemo(
+    () => ({
+      ...receiptContext,
+      guestCount: receiptContext?.guestCount ?? dto?.guestCount,
+      roomType: receiptContext?.roomType ?? dto?.roomType,
+    }),
+    [receiptContext, dto],
+  );
   const data = useMemo(
-    () => mapDtoToViewData(dto, receiptContext, reservationCode),
-    [dto, receiptContext, reservationCode],
+    () => mapDtoToViewData(dto, mergedContext, reservationCode, stayOverride),
+    [dto, mergedContext, reservationCode, stayOverride],
   );
   const nights = useMemo(() => {
-    const checkIn = receiptContext?.checkIn ?? dto?.checkIn;
-    const checkOut = receiptContext?.checkOut ?? dto?.checkOut;
+    const checkIn = dto?.checkIn ?? receiptContext?.checkIn ?? stayOverride?.checkIn;
+    const checkOut = dto?.checkOut ?? receiptContext?.checkOut ?? stayOverride?.checkOut;
     if (!checkIn || !checkOut) return 0;
-    return Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day')) + 1;
-  }, [receiptContext, dto]);
+    return Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day'));
+  }, [receiptContext, stayOverride, dto]);
   const unitPriceSuffix = useMemo(
-    () => buildPaymentUnitSuffix(receiptContext),
-    [receiptContext],
+    () => buildPaymentUnitSuffix(mergedContext),
+    [mergedContext],
   );
   const totalPriceSuffix = useMemo(
-    () => buildPaymentTotalSuffix(receiptContext, nights),
-    [receiptContext, nights],
+    () => buildPaymentTotalSuffix(mergedContext, nights),
+    [mergedContext, nights],
   );
 
   // 뒤로가기

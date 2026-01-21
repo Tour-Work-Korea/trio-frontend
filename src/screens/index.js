@@ -104,6 +104,7 @@ export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ProfileUpdate} from './(User)/Employ/ProfileUpdate';
 export {default as GuesthousePaymentReceipt} from './(User)/Guesthouse/GuesthousePaymentReceipt';
+export {default as GuesthouseCancelledReceipt} from './(User)/Guesthouse/GuesthouseCancelledReceipt';
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필

@@ -19,6 +19,7 @@ const GuesthousePaymentSuccess = () => {
       navigation.replace('GuesthousePaymentReceipt', {
         reservationId,
         receiptContext,
+        isFromPaymentFlow: true,
       });
     }, 2000);
 

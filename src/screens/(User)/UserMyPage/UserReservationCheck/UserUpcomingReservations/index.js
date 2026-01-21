@@ -96,6 +96,21 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
               onPress={() =>
                 navigation.navigate('GuesthousePaymentReceipt', {
                   reservationId: item.reservationId,
+                  isFromPaymentFlow: false,
+                  receiptContext: {
+                    guesthouseName: item.guesthouseName,
+                    guesthouseAddress: item.guesthouseAddress,
+                    roomName: item.roomName,
+                    roomType: item.roomType,
+                    roomCapacity: item.roomCapacity,
+                    roomMaxCapacity: item.roomMaxCapacity,
+                    femaleOnly: item.femaleOnly,
+                    dormitoryGenderType: item.dormitoryGenderType,
+                    checkIn: item.checkIn,
+                    checkOut: item.checkOut,
+                    checkInTime: item.guesthouseCheckIn,
+                    checkOutTime: item.guesthouseCheckOut,
+                  },
                 })
               }
             >

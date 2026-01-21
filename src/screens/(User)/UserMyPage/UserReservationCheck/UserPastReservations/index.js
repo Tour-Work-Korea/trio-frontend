@@ -2,20 +2,52 @@ import React from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
+import Toast from 'react-native-toast-message';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import ButtonWhite from '@components/ButtonWhite';
+
 import SearchEmpty from '@assets/images/search_empty.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
 
 export default function UserPastReservations({ data }) {
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
+  const genderMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
+
+  const buildRoomDetailText = (item) => {
+    if (!item) return '';
+    const isDormitory = item.roomType === 'DORMITORY';
+    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
+
+    if (isDormitory) {
+      const genderText = genderMap[item.dormitoryGenderType] || '';
+      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      if (genderText && item.dormitoryGenderType !== 'MIXED') {
+        return `${base}, ${genderText}`;
+      }
+      return base;
+    }
+
+    const maxCapacityText = item.roomMaxCapacity
+      ? `(최대 ${item.roomMaxCapacity}인)`
+      : '';
+    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const base = `${basePrefix}${maxCapacityText}`;
+    return item.femaleOnly ? `${base}, 여성 전용` : base;
+  };
 
   const renderItem = ({ item, index }) => {
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
@@ -27,14 +59,36 @@ export default function UserPastReservations({ data }) {
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity
-          style={styles.card}
-          onPress={() =>
-            navigation.navigate('GuesthousePaymentReceipt', {
-              reservationId: item.reservationId,
-            })
-          }
-        >
+        <View style={styles.card}>
+          <View style={styles.titleRow}>
+            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>이용 완료</Text>
+            <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() =>
+                navigation.navigate('GuesthousePaymentReceipt', {
+                  reservationId: item.reservationId,
+                  isFromPaymentFlow: false,
+                  receiptContext: {
+                    guesthouseName: item.guesthouseName,
+                    guesthouseAddress: item.guesthouseAddress,
+                    roomName: item.roomName,
+                    roomType: item.roomType,
+                    roomCapacity: item.roomCapacity,
+                    roomMaxCapacity: item.roomMaxCapacity,
+                    femaleOnly: item.femaleOnly,
+                    dormitoryGenderType: item.dormitoryGenderType,
+                    checkIn: item.checkIn,
+                    checkOut: item.checkOut,
+                    checkInTime: item.guesthouseCheckIn,
+                    checkOutTime: item.guesthouseCheckOut,
+                  },
+                })
+              }
+            >
+              <Text style={[FONTS.fs_12_medium, styles.detailText]}>예약 상세</Text>
+              <ChevronRight width={16} height={16}/>
+            </TouchableOpacity>
+          </View>
           <View style={styles.guesthouseInfo}>
             <Image
               source={{ uri: item.guesthouseImage }}
@@ -51,11 +105,11 @@ export default function UserPastReservations({ data }) {
                 {item.roomName}
               </Text>
               <Text
-                style={[FONTS.fs_12_medium, styles.adressText]}
+                style={[FONTS.fs_12_medium, styles.roomDetailText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.guesthouseAddress}
+                {buildRoomDetailText(item)}
               </Text>
             </View>
           </View>
@@ -64,64 +118,44 @@ export default function UserPastReservations({ data }) {
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
               <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
             </View>
-            <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
+            <View style={[FONTS.fs_14_medium, styles.rowDevide]}/>
             <View style={styles.dateContainer}>
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
               <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
-        <View style={styles.buttonContent}> 
-          <TouchableOpacity 
-            style={styles.buttonContainer}
-            onPress={() => {
+        <View style={styles.buttonRow}>
+          <ButtonWhite
+            title='다시 예약'
+            style={{flex:1}}
+            onPress={() =>
               navigation.navigate('GuesthouseDetail', {
                 id: item.guesthouseId,
-                isFromDeeplink: true,
+                isFromDeeplink: false,
                 checkIn: today.format('YYYY-MM-DD'),
                 checkOut: tomorrow.format('YYYY-MM-DD'),
                 guestCount: 1,
-              });
-            }}
-          >
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>다시 예약하기</Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[
-              styles.buttonContainer,
-            ]}
+              })
+            }
+          />
+          <ButtonWhite
+            title={item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
+            style={{flex:1}}
             disabled={item.reviewed}
             onPress={() => {
-              if (!item.reviewed) {
-                const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                  toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-                );
-                const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                  toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-                );
-
-                navigation.navigate('UserGuesthouseReviewForm', {
-                  guesthouseId: item.guesthouseId,
-                  guesthouseName: item.guesthouseName,
-                  roomName: item.roomName,
-                  guesthouseAddress: item.guesthouseAddress,
-                  checkInFormatted,
-                  checkOutFormatted,
-                });
-              }
+              if (item.reviewed) return;
+              navigation.navigate('UserGuesthouseReviewForm', {
+                guesthouseId: item.guesthouseId,
+                guesthouseName: item.guesthouseName,
+                roomName: item.roomName,
+                guesthouseAddress: item.guesthouseAddress,
+                checkInFormatted,
+                checkOutFormatted,
+              });
             }}
-          >
-            <Text
-              style={[
-                FONTS.fs_16_semibold,
-                styles.buttonText,
-                item.reviewed && { color: COLORS.grayscale_400 },
-              ]}
-            >
-              {item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
-            </Text>
-          </TouchableOpacity>
+          />
         </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
@@ -162,19 +196,35 @@ const styles = StyleSheet.create({
   devide: {
     marginVertical: 16,
     height: 0.4,
-    backgroundColor: COLORS.grayscale_300,
+    backgroundColor: COLORS.grayscale_200,
   },  
 
   // 리스트
   card: {
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleText: {
+  },
+  detailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    color: COLORS.semantic_blue,
   },
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
   },
   image: {
-    width: 112,
-    height: 112,
+    width: 80,
+    height: 80,
     borderRadius: 4,
     marginRight: 12,
   },
@@ -191,16 +241,15 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     flexShrink: 1,
   },
-  adressText: {
+  roomDetailText: {
     color: COLORS.grayscale_500,
     flexShrink: 1,
   },
 
   // 날짜, 시간
   dateContent: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
+    marginTop: 12,
+    padding: 4,
     flexDirection: 'row',
   },
   dateContainer: {
@@ -212,27 +261,20 @@ const styles = StyleSheet.create({
   timeText: {
     color: COLORS.grayscale_400,
   },
-  devideText: {
+  rowDevide: {
     marginHorizontal: 16,
     alignSelf: 'center',
+    backgroundColor: COLORS.grayscale_200,
+    height: '100%',
+    width: 1,
   },
 
   // 버튼
-  buttonContent: {
+  buttonRow: {
     flexDirection: 'row',
-    gap: 8,
-    marginTop: 8,
-  },
-  buttonContainer: {
-    flex: 1,
-    backgroundColor: COLORS.grayscale_200,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 16,
+    marginBottom: 8,
   },
 });
