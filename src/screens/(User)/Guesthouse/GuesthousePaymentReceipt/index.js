@@ -111,7 +111,7 @@ const buildPaymentTotalSuffix = (ctx, nights) => {
   return nights > 0 ? ` (${nights}박)` : '';
 };
 
-const mapDtoToViewData = (dto, fallback, reservationId) => {
+const mapDtoToViewData = (dto, fallback, reservationCode) => {
   if (!dto) return null;
 
   const fallbackAddress = [fallback?.guesthouseAddress, fallback?.guesthouseAddressDetail]
@@ -139,10 +139,10 @@ const mapDtoToViewData = (dto, fallback, reservationId) => {
 
     reservation: {
       number:
-        dto.reservationId !== undefined && dto.reservationId !== null
-          ? String(dto.reservationId)
-          : reservationId
-            ? String(reservationId)
+        dto.reservationCode
+          ? String(dto.reservationCode)
+          : reservationCode
+            ? String(reservationCode)
             : '',
       name: dto.userName ?? fallback?.userName ?? '',
       phone: dto.phoneNum ?? fallback?.userPhone ?? '',
@@ -188,13 +188,15 @@ const GuesthousePaymentReceipt = () => {
   const navigation = useNavigation();
   const receiptContext = route?.params?.receiptContext ?? null;
   const reservationId = route?.params?.reservationId ?? null;
+  const reservationCode = route?.params?.reservationCode ?? null;
+  const isFromPaymentFlow = Boolean(receiptContext);
 
   const [dto, setDto] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const data = useMemo(
-    () => mapDtoToViewData(dto, receiptContext, reservationId),
-    [dto, receiptContext, reservationId],
+    () => mapDtoToViewData(dto, receiptContext, reservationCode),
+    [dto, receiptContext, reservationCode],
   );
   const nights = useMemo(() => {
     const checkIn = receiptContext?.checkIn ?? dto?.checkIn;
@@ -572,22 +574,24 @@ const GuesthousePaymentReceipt = () => {
         </View>
 
         {/* 예약취소 */}
-        <View style={styles.section}>
-          <Text style={[FONTS.fs_16_semibold, styles.sectionTitle, {marginTop: 32}]}>
-            예약취소
-          </Text>
+        {isFromPaymentFlow && (
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle, {marginTop: 32}]}>
+              예약취소
+            </Text>
 
-          <Text style={[FONTS.fs_12_medium, styles.cancelNotice]}>
-            {data.cancelPolicy.notice}
-          </Text>
+            <Text style={[FONTS.fs_12_medium, styles.cancelNotice]}>
+              {data.cancelPolicy.notice}
+            </Text>
 
-          <ButtonWhite
-            onPress={onPressCancel}
-            backgroundColor={COLORS.cancel_btn_bg}
-            textColor={COLORS.semantic_red}
-            title='예약취소'
-          />
-        </View>
+            <ButtonWhite
+              onPress={onPressCancel}
+              backgroundColor={COLORS.cancel_btn_bg}
+              textColor={COLORS.semantic_red}
+              title='예약취소'
+            />
+          </View>
+        )}
       </ScrollView>
     </View>
   );
