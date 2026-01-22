@@ -65,6 +65,7 @@ export default function UserCancelledReservations({ data }) {
               onPress={() =>
                 navigation.navigate('GuesthouseCancelledReceipt', {
                   reservationId: item.reservationId,
+                  reservationItem: item,
                 })
               }
             >

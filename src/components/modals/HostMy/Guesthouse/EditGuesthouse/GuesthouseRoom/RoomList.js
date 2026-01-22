@@ -16,6 +16,17 @@ import EditIcon from '@assets/images/edit_gray.svg';
 
 const translateRoomType = (type) => {
   switch (type) {
+    case 'DORMITORY':
+      return '도미토리';
+    case 'PRIVATE':
+      return '일반 객실';
+    default:
+      return '';
+  }
+};
+
+const translateDormitoryGender = (type) => {
+  switch (type) {
     case 'FEMALE_ONLY':
       return '여성전용';
     case 'MALE_ONLY':
@@ -31,6 +42,15 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
   const renderItem = ({ item, index }) => {
     const thumbnailUrl =
       item.roomImages?.find((img) => img.isThumbnail)?.roomImageUrl;
+    const roomTypeText = translateRoomType(item.roomType);
+    const dormitoryText =
+      item.roomType === 'DORMITORY'
+        ? translateDormitoryGender(item.dormitoryGenderType)
+        : '';
+    const roomMeta =
+      roomTypeText && dormitoryText
+        ? `${roomTypeText}(${dormitoryText})`
+        : roomTypeText;
 
     return (
       <View style={styles.card}>
@@ -48,7 +68,7 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
               {item.roomName}
             </Text>
             <Text style={[FONTS.fs_16_regular, styles.roomSub]}>
-              {item.roomCapacity}인실 {translateRoomType(item.roomType)}
+              {item.roomCapacity}인실 {roomMeta}
             </Text>
             <Text style={[FONTS.fs_14_semibold, styles.roomSub]}>
               {item.roomPrice}원
@@ -135,4 +155,3 @@ const styles = StyleSheet.create({
     gap: 8,
   },
 });
-

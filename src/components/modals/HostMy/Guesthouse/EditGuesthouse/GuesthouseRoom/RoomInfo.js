@@ -19,6 +19,8 @@ import XBtn from '@assets/images/x_gray.svg';
 import AddImage from '@assets/images/add_image_gray.svg';
 import CheckIcon from '@assets/images/star_filled.svg';
 import ArrowRight from '@assets/images/arrow_right_black.svg';
+import DisabledRadio from '@assets/images/radio_button_disabled.svg';
+import EnabledRadio from '@assets/images/radio_button_enabled.svg';
 
 // 키보드
 const NEXT_BTN_H = 20;
@@ -72,6 +74,14 @@ const RoomInfo = ({ data, setData, onNext }) => {
     setData({ ...data, roomDesc: '' });
   };
 
+  const handleSelectRoomType = (type) => {
+    const next = { ...data, roomType: type };
+    if (type !== 'DORMITORY') {
+      next.dormitoryGenderType = null;
+    }
+    setData(next);
+  };
+
   const renderData =
     data.roomImages.length < 10
       ? [{ __add__: true }, ...data.roomImages]
@@ -79,6 +89,7 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
   // 유효성 검사
   const isNextDisabled =
+    !data.roomType ||
     !data.roomName?.trim() ||
     data.roomImages.length === 0 ||
     !data.roomImages.some((img) => img.isThumbnail) ||
@@ -97,8 +108,35 @@ const RoomInfo = ({ data, setData, onNext }) => {
       automaticallyAdjustKeyboardInsets
       scrollIndicatorInsets={{ bottom: bottomSpace }}
     >
+      {/* 룸 유형 */}
+      <Text style={[FONTS.fs_16_medium, styles.title]}>객실 유형</Text>
+      <View style={styles.radioRow}>
+        <TouchableOpacity
+          style={styles.radioOption}
+          onPress={() => handleSelectRoomType('DORMITORY')}
+        >
+          {data.roomType === 'DORMITORY' ? (
+            <EnabledRadio width={28} height={28} />
+          ) : (
+            <DisabledRadio width={28} height={28} />
+          )}
+          <Text style={[FONTS.fs_14_regular, styles.radioLabel]}>도미토리</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.radioOption}
+          onPress={() => handleSelectRoomType('PRIVATE')}
+        >
+          {data.roomType === 'PRIVATE' ? (
+            <EnabledRadio width={28} height={28} />
+          ) : (
+            <DisabledRadio width={28} height={28} />
+          )}
+          <Text style={[FONTS.fs_14_regular, styles.radioLabel]}>일반 객실</Text>
+        </TouchableOpacity>
+      </View>
+
       {/* 룸 이름 */}
-      <Text style={[FONTS.fs_16_medium, styles.title]}>객실 이름</Text>
+      <Text style={[FONTS.fs_16_medium, styles.title, {marginTop: 20}]}>객실 이름</Text>
       <TextInput
         placeholder="객실 이름을 입력해 주세요"
         placeholderTextColor={COLORS.grayscale_400}
@@ -224,6 +262,19 @@ export default RoomInfo;
 const styles = StyleSheet.create({
   title: {
     marginBottom: 8,
+  },
+  radioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 20,
+    marginBottom: 4,
+  },
+  radioOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  radioLabel: {
+    marginLeft: 8,
   },
   // 인풋 박스
   input: {

@@ -21,7 +21,7 @@ export const COLORS = {
     semantic_blue: '#0065FF',
     semantic_green: '#36B37E',
     semantic_yellow: '#FFAB00',
-    semantic_red: '#FF5630',
+    semantic_red: '#FF3030',
     semantic_purple: '#6554C0',
     semantic_pink: '#FF7EB6',
     semantic_brown: '#8B572A',

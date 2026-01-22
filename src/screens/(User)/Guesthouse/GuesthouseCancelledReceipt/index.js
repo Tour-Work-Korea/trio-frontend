@@ -1,40 +1,130 @@
-import React, {useMemo} from 'react';
-import {View, Text, Image, ScrollView, TouchableOpacity} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import React, {useEffect, useMemo, useState} from 'react';
+import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 import styles from './GuesthouseCancelledReceipt.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import {PAYMENT_TYPE_LABEL} from '@constants/payment';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import XBtn from '@assets/images/x_gray.svg';
 
 const GuesthouseCancelledReceipt = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const reservationId = route?.params?.reservationId ?? null;
+  const reservationItem = route?.params?.reservationItem ?? null;
+  const [dto, setDto] = useState(null);
 
-  // mock data (나중에 API 붙이면 여기만 교체)
+  const genderMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
+
+  const buildRoomDetailText = item => {
+    if (!item) return '';
+    const isDormitory = item.roomType === 'DORMITORY';
+    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
+
+    if (isDormitory) {
+      const genderText = genderMap[item.dormitoryGenderType] || '';
+      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      if (genderText && item.dormitoryGenderType !== 'MIXED') {
+        return `${base}, ${genderText}`;
+      }
+      return base;
+    }
+
+    const maxCapacityText = item.roomMaxCapacity
+      ? `(최대 ${item.roomMaxCapacity}인)`
+      : '';
+    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const base = `${basePrefix}${maxCapacityText}`;
+    return item.femaleOnly ? `${base}, 여성 전용` : base;
+  };
+
+  const toLocalDateTime = (date, time) =>
+    date ? `${date}T${time ?? '00:00:00'}` : '';
+
   const data = useMemo(
     () => ({
       statusMessage:
         '예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.',
-      guesthouseName: '김곤빌리지 게스트하우스',
-      roomName: '4인실 여자',
-      roomDesc: '[4인 도미토리], 여성전용',
-      imageUrl: 'https://picsum.photos/200/200', // 임시 이미지
-      checkInDate: '2025. 04. 15 (화)',
-      checkInTime: '16:00',
-      checkOutDate: '2025. 04. 16 (수)',
-      checkOutTime: '11:00',
-      cancelledAt: '취소일시 2025. 04. 15 (화) 13:00',
-      paidAmount: 125000,
-      cancelFee: 0,
-      refundMethod: '카카오페이 환불',
-      refundAmount: 125000,
-      cancelReason: '단순변심',
+      guesthouseName:
+        dto?.guesthouse ?? reservationItem?.guesthouseName ?? '',
+      roomName: dto?.roomName ?? reservationItem?.roomName ?? '',
+      roomDesc: buildRoomDetailText(reservationItem),
+      imageUrl: reservationItem?.guesthouseImage ?? '',
+      checkInDate: formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(
+          dto?.checkIn ?? reservationItem?.checkIn,
+          reservationItem?.guesthouseCheckIn ?? reservationItem?.checkInTime,
+        ),
+      ).date,
+      checkInTime: formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(
+          dto?.checkIn ?? reservationItem?.checkIn,
+          reservationItem?.guesthouseCheckIn ?? reservationItem?.checkInTime,
+        ),
+      ).time,
+      checkOutDate: formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(
+          dto?.checkOut ?? reservationItem?.checkOut,
+          reservationItem?.guesthouseCheckOut ?? reservationItem?.checkOutTime,
+        ),
+      ).date,
+      checkOutTime: formatLocalDateTimeToDotAndTimeWithDay(
+        toLocalDateTime(
+          dto?.checkOut ?? reservationItem?.checkOut,
+          reservationItem?.guesthouseCheckOut ?? reservationItem?.checkOutTime,
+        ),
+      ).time,
+      cancelledAt: (() => {
+        const {date, time} = formatLocalDateTimeToDotAndTimeWithDay(
+          dto?.cancelledAt,
+        );
+        return `취소일시 ${date} ${time}`;
+      })(),
+      paidAmount:
+        typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0,
+      cancelFee: (() => {
+        const totalAmount =
+          typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
+        const cancelledAmount =
+          typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0;
+        return Math.max(totalAmount - cancelledAmount, 0);
+      })(),
+      refundMethod: (() => {
+        const method =
+          (dto?.paymentType && PAYMENT_TYPE_LABEL[dto.paymentType]) ?? '';
+        return method ? `${method} 환불` : '';
+      })(),
+      refundAmount:
+        typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0,
+      cancelReason: dto?.cancelReason ?? '',
     }),
-    [],
+    [dto, reservationItem],
   );
 
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+
+  useEffect(() => {
+    if (!reservationId) return;
+    const fetchDetail = async () => {
+      try {
+        const res = await reservationPaymentApi.getReservationPaymentDetail(
+          reservationId,
+        );
+        setDto(res?.data ?? null);
+      } catch (e) {
+      }
+    };
+
+    fetchDetail();
+  }, [reservationId]);
 
   return (
     <View style={styles.container}>
