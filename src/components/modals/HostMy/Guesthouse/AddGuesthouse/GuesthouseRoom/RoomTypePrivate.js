@@ -1,6 +1,5 @@
 import React from 'react';
 import {
-  View,
   Text,
   TextInput,
   TouchableOpacity,
@@ -16,13 +15,61 @@ import EnabledRadio from '@assets/images/radio_button_enabled.svg';
 import ArrowLeft from '@assets/images/arrow_left_black.svg';
 
 const ROOM_SIZES = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const MIN_PRICE = 10000;
 
 const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
-  const [capacityMode, setCapacityMode] = React.useState('none');
-  const [etcInput, setEtcInput] = React.useState('');
+  const initialPreset =
+    data?.roomCapacity != null &&
+    ROOM_SIZES.includes(String(data.roomCapacity));
+  const initialEtc =
+    data?.roomCapacity != null &&
+    !ROOM_SIZES.includes(String(data.roomCapacity));
+
+  const initialPresetMax =
+    data?.roomMaxCapacity != null &&
+    ROOM_SIZES.includes(String(data.roomMaxCapacity));
+  const initialEtcMax =
+    data?.roomMaxCapacity != null &&
+    !ROOM_SIZES.includes(String(data.roomMaxCapacity));
+
+  const [capacityMode, setCapacityMode] = React.useState(
+    initialPreset ? 'preset' : initialEtc ? 'etc' : 'none'
+  );
+  const [etcInput, setEtcInput] = React.useState(
+    initialEtc ? String(data.roomCapacity) : ''
+  );
+
+  const [maxCapacityMode, setMaxCapacityMode] = React.useState(
+    initialPresetMax ? 'preset' : initialEtcMax ? 'etc' : 'none'
+  );
+  const [maxEtcInput, setMaxEtcInput] = React.useState(
+    initialEtcMax ? String(data.roomMaxCapacity) : ''
+  );
+
+  React.useEffect(() => {
+    if (data?.roomCapacity == null) {
+      setCapacityMode('none');
+      setEtcInput('');
+      return;
+    }
+    const isPreset = ROOM_SIZES.includes(String(data.roomCapacity));
+    setCapacityMode(isPreset ? 'preset' : 'etc');
+    setEtcInput(isPreset ? '' : String(data.roomCapacity));
+  }, [data?.roomCapacity]);
+
+  React.useEffect(() => {
+    if (data?.roomMaxCapacity == null) {
+      setMaxCapacityMode('none');
+      setMaxEtcInput('');
+      return;
+    }
+    const isPreset = ROOM_SIZES.includes(String(data.roomMaxCapacity));
+    setMaxCapacityMode(isPreset ? 'preset' : 'etc');
+    setMaxEtcInput(isPreset ? '' : String(data.roomMaxCapacity));
+  }, [data?.roomMaxCapacity]);
 
   const priceNum = Number(data.roomPrice);
-  const isPriceTooLow = !Number.isNaN(priceNum) && priceNum < 10000;
+  const isPriceTooLow = !Number.isNaN(priceNum) && priceNum < MIN_PRICE;
 
   const isSelectedSize = (val) =>
     capacityMode === 'preset' &&
@@ -30,10 +77,35 @@ const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
     String(data.roomCapacity) === val;
   const isEtc = capacityMode === 'etc';
 
+  const isSelectedMaxSize = (val) =>
+    maxCapacityMode === 'preset' &&
+    data.roomMaxCapacity != null &&
+    String(data.roomMaxCapacity) === val;
+  const isMaxEtc = maxCapacityMode === 'etc';
+  const minCapacity = (() => {
+    if (capacityMode === 'preset') return Number(data.roomCapacity);
+    if (capacityMode === 'etc') return Number(etcInput);
+    return null;
+  })();
+  const maxEtcNum = Number(maxEtcInput);
+  const isMaxBelowMin =
+    minCapacity != null &&
+    !Number.isNaN(minCapacity) &&
+    isMaxEtc &&
+    maxEtcInput !== '' &&
+    !Number.isNaN(maxEtcNum) &&
+    maxEtcNum < minCapacity;
+
   const handleSelectRoomSize = (val) => {
     setCapacityMode('preset');
     setEtcInput('');
     setData({ ...data, roomCapacity: Number(val) });
+  };
+
+  const handleSelectMaxRoomSize = (val) => {
+    setMaxCapacityMode('preset');
+    setMaxEtcInput('');
+    setData({ ...data, roomMaxCapacity: Number(val) });
   };
 
   const handlePriceChange = (text) => {
@@ -50,10 +122,28 @@ const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
     setEtcInput(onlyNums);
   };
 
+  const handleMaxEtcChange = (text) => {
+    const onlyNums = text.replace(/[^0-9]/g, '');
+    setMaxCapacityMode('etc');
+    setMaxEtcInput(onlyNums);
+  };
+
+  const handleToggleFemaleOnly = () => {
+    setData({ ...data, femaleOnly: !data.femaleOnly });
+  };
+
   const isDisabled =
     capacityMode === 'none' ||
     ((capacityMode === 'preset' && !data.roomCapacity) ||
     (capacityMode === 'etc' && (!etcInput || isNaN(Number(etcInput))))) ||
+    maxCapacityMode === 'none' ||
+    ((maxCapacityMode === 'preset' && !data.roomMaxCapacity) ||
+    (maxCapacityMode === 'etc' && (!maxEtcInput || isNaN(Number(maxEtcInput))))) ||
+    (minCapacity != null &&
+      !Number.isNaN(minCapacity) &&
+      data.roomMaxCapacity != null &&
+      Number(data.roomMaxCapacity) < minCapacity) ||
+    isMaxBelowMin ||
     !data.roomPrice ||
     isNaN(Number(data.roomPrice)) ||
     isPriceTooLow;
@@ -109,6 +199,96 @@ const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
           </View>
         </View>
 
+        {/* 최대 인원 */}
+        <Text style={[styles.title, FONTS.fs_16_medium, { marginTop: 20 }]}>
+          최대 인원
+        </Text>
+        <View style={styles.roomGrid}>
+          {ROOM_SIZES.map((size) => {
+            const isDisabledMax =
+              minCapacity != null &&
+              !Number.isNaN(minCapacity) &&
+              Number(size) < minCapacity;
+            return (
+              <TouchableOpacity
+                key={`max-${size}`}
+                style={styles.radioRow}
+                onPress={() => handleSelectMaxRoomSize(size)}
+                disabled={isDisabledMax}
+              >
+              {isSelectedMaxSize(size) ? (
+                <EnabledRadio width={28} height={28} />
+              ) : (
+                <DisabledRadio width={28} height={28} />
+              )}
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.radioLabel,
+                  isDisabledMax && { color: COLORS.grayscale_400 },
+                ]}
+              >
+                {size}인실
+              </Text>
+            </TouchableOpacity>
+            );
+          })}
+
+          {/* 기타 */}
+          <View style={[styles.radioRow, { flex: 1 }]}>
+            <TouchableOpacity
+              onPress={() => {
+                setMaxCapacityMode('etc');
+                if (!maxEtcInput) setMaxEtcInput('');
+              }}
+              style={styles.radioTextContent}
+            >
+              {isMaxEtc ? (
+                <EnabledRadio width={28} height={28} />
+              ) : (
+                <DisabledRadio width={28} height={28} />
+              )}
+              <Text style={[FONTS.fs_14_regular, styles.radioLabel, { marginHorizontal: 8 }]}>
+                기타
+              </Text>
+            </TouchableOpacity>
+            <TextInput
+              style={styles.etcInput}
+              editable={isMaxEtc}
+              keyboardType="numeric"
+              placeholder="최대 인원을 입력해주세요"
+              placeholderTextColor={COLORS.grayscale_400}
+              value={isMaxEtc ? maxEtcInput : ''}
+              onChangeText={handleMaxEtcChange}
+            />
+          </View>
+        </View>
+        {isMaxBelowMin && (
+          <Text style={[FONTS.fs_12_medium, { color: COLORS.semantic_red, marginTop: 6 }]}>
+            최대 인원은 기준 인원 이상이어야 합니다.
+          </Text>
+        )}
+
+        {/* 이용 제한(선택) */}
+        <Text style={[styles.title, FONTS.fs_16_medium, { marginTop: 20 }]}>
+          이용 제한(선택)
+        </Text>
+        <View style={styles.horizontalRow}>
+          <TouchableOpacity
+            style={styles.horizontalRadioRow}
+            onPress={handleToggleFemaleOnly}
+          >
+            {data.femaleOnly ? (
+              <EnabledRadio width={28} height={28} />
+            ) : (
+              <DisabledRadio width={28} height={28} />
+            )}
+            <Text style={[FONTS.fs_14_regular, styles.radioLabel, { marginLeft: 8 }]}>
+              여성전용 객실
+            </Text>
+          </TouchableOpacity>
+        </View>
+
         {/* 객실 가격 */}
         <Text style={[styles.title, FONTS.fs_16_medium, { marginTop: 20 }]}>
           객실 가격
@@ -153,7 +333,20 @@ const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
             }
             if (capacityMode === 'none') return;
 
-            const finalData = { ...data, roomCapacity: finalCapacity };
+            let finalMaxCapacity = data.roomMaxCapacity;
+            if (maxCapacityMode === 'etc') {
+              const n = Number(maxEtcInput);
+              if (!n || Number.isNaN(n)) return;
+              finalMaxCapacity = n;
+            }
+            if (maxCapacityMode === 'none') return;
+
+            const finalData = {
+              ...data,
+              roomCapacity: finalCapacity,
+              roomMaxCapacity: finalMaxCapacity,
+              dormitoryGenderType: 'MIXED',
+            };
             setData(finalData);
             onApply && onApply(finalData);
           }}
@@ -205,6 +398,18 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     padding: 12,
     borderColor: COLORS.grayscale_200,
+  },
+
+  // 여성전용
+  horizontalRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 40,
+  },
+  horizontalRadioRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
   },
 
   // 가격

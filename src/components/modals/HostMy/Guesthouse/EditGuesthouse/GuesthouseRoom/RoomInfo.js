@@ -76,8 +76,13 @@ const RoomInfo = ({ data, setData, onNext }) => {
 
   const handleSelectRoomType = (type) => {
     const next = { ...data, roomType: type };
-    if (type !== 'DORMITORY') {
+    if (type === 'DORMITORY') {
       next.dormitoryGenderType = null;
+      next.femaleOnly = false;
+      next.roomMaxCapacity = data.roomCapacity ?? null;
+    } else {
+      next.dormitoryGenderType = 'MIXED';
+      next.femaleOnly = data.femaleOnly ?? false;
     }
     setData(next);
   };
@@ -272,6 +277,7 @@ const styles = StyleSheet.create({
   radioOption: {
     flexDirection: 'row',
     alignItems: 'center',
+    flex: 1,
   },
   radioLabel: {
     marginLeft: 8,

@@ -14,17 +14,6 @@ import { COLORS } from '@constants/colors';
 import DeleteIcon from '@assets/images/delete_gray.svg';
 import EditIcon from '@assets/images/edit_gray.svg';
 
-const translateRoomType = (type) => {
-  switch (type) {
-    case 'DORMITORY':
-      return '도미토리';
-    case 'PRIVATE':
-      return '일반 객실';
-    default:
-      return '';
-  }
-};
-
 const translateDormitoryGender = (type) => {
   switch (type) {
     case 'FEMALE_ONLY':
@@ -32,7 +21,7 @@ const translateDormitoryGender = (type) => {
     case 'MALE_ONLY':
       return '남성전용';
     case 'MIXED':
-      return '혼숙';
+      return '공용';
     default:
       return '';
   }
@@ -42,15 +31,20 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
   const renderItem = ({ item, index }) => {
     const thumbnailUrl =
       item.roomImages?.find((img) => img.isThumbnail)?.roomImageUrl;
-    const roomTypeText = translateRoomType(item.roomType);
     const dormitoryText =
       item.roomType === 'DORMITORY'
         ? translateDormitoryGender(item.dormitoryGenderType)
         : '';
+    const femaleOnlyText =
+      item.roomType === 'PRIVATE' && item.femaleOnly ? '여성전용' : '';
     const roomMeta =
-      roomTypeText && dormitoryText
-        ? `${roomTypeText}(${dormitoryText})`
-        : roomTypeText;
+      item.roomType === 'DORMITORY'
+        ? `[${item.roomCapacity}인 도미토리]`
+        : '[일반객실]';
+    const roomSub =
+      dormitoryText || femaleOnlyText
+        ? `${roomMeta} ${dormitoryText || femaleOnlyText}`
+        : roomMeta;
 
     return (
       <View style={styles.card}>
@@ -68,7 +62,7 @@ const RoomList = ({ rooms, onDelete, onEdit }) => {
               {item.roomName}
             </Text>
             <Text style={[FONTS.fs_16_regular, styles.roomSub]}>
-              {item.roomCapacity}인실 {roomMeta}
+              {roomSub}
             </Text>
             <Text style={[FONTS.fs_14_semibold, styles.roomSub]}>
               {item.roomPrice}원

@@ -97,8 +97,19 @@ const buildRoomBasicDiff = (base, cur) => {
 
   const baseDorm = base?.dormitoryGenderType ?? null;
   const curDorm = cur?.dormitoryGenderType ?? null;
-  if (curType === 'DORMITORY' && baseDorm !== curDorm) {
-    payload.dormitoryGenderType = curDorm;
+  const baseFemale = base?.femaleOnly ?? false;
+  const curFemale = cur?.femaleOnly ?? false;
+  if (curType === 'DORMITORY') {
+    if (baseDorm !== curDorm) payload.dormitoryGenderType = curDorm;
+    if (baseFemale !== false) payload.femaleOnly = false;
+  }
+  if (curType === 'PRIVATE') {
+    if (baseType !== curType || baseDorm !== 'MIXED') {
+      payload.dormitoryGenderType = 'MIXED';
+    }
+    if (baseType !== curType || baseFemale !== curFemale) {
+      payload.femaleOnly = curFemale;
+    }
   }
 
   const baseCap = toNum(base?.roomCapacity);
@@ -122,17 +133,27 @@ const buildRoomBasicDiff = (base, cur) => {
 
 // 전체 payload (신규 생성 / fallback 업데이트용)
 const buildRoomBasicFull = (cur) => {
+  const roomType = cur?.roomType ?? null;
   const payload = {
     roomName: cur?.roomName ?? '',
-    roomType: cur?.roomType ?? null,
+    roomType,
     roomCapacity: toNum(cur?.roomCapacity),
-    roomMaxCapacity: toNum(cur?.roomMaxCapacity ?? cur?.roomCapacity),
+    roomMaxCapacity: toNum(
+      roomType === 'DORMITORY'
+        ? cur?.roomCapacity
+        : cur?.roomMaxCapacity ?? cur?.roomCapacity
+    ),
     roomDescription: cur?.roomDesc ?? cur?.roomDescription ?? '',
     roomPrice: toNum(cur?.roomPrice),
   };
 
-  if (payload.roomType === 'DORMITORY' && cur?.dormitoryGenderType != null) {
-    payload.dormitoryGenderType = cur.dormitoryGenderType;
+  if (roomType === 'DORMITORY') {
+    payload.dormitoryGenderType = cur?.dormitoryGenderType ?? null;
+    payload.femaleOnly = false;
+  }
+  if (roomType === 'PRIVATE') {
+    payload.dormitoryGenderType = 'MIXED';
+    payload.femaleOnly = !!cur?.femaleOnly;
   }
 
   return payload;
@@ -199,6 +220,7 @@ const GuesthouseRoomModal = ({
     roomMaxCapacity: null,
     roomType: null,
     dormitoryGenderType: null,
+    femaleOnly: false,
     roomPrice: '',     // 문자열로 관리(숫자만 입력 허용)
   }; 
 
@@ -232,6 +254,7 @@ const GuesthouseRoomModal = ({
         roomMaxCapacity: r.roomMaxCapacity ?? r.roomCapacity ?? null,
         roomType: normalizedRoomType,
         dormitoryGenderType: normalizedDormitoryGenderType,
+        femaleOnly: r.femaleOnly ?? false,
         // 내부 입력은 문자열로 관리 (기존 입력 UX 유지)
         roomPrice: r.roomPrice != null ? String(r.roomPrice) : '',
         roomExtraFees: r.roomExtraFees ?? [],
@@ -284,11 +307,15 @@ const GuesthouseRoomModal = ({
 
   const handleApplyRoom = (nextData) => {
     const src = nextData ?? tempRoomData;
+    const isPrivate = src.roomType === 'PRIVATE';
     const normalized = {
       ...src,
-      roomMaxCapacity:
-      tempRoomData.roomMaxCapacity ?? tempRoomData.roomCapacity,
-      roomImages: ensureOneThumbnail(tempRoomData.roomImages),
+      roomMaxCapacity: isPrivate
+        ? src.roomMaxCapacity ?? src.roomCapacity
+        : src.roomCapacity,
+      dormitoryGenderType: isPrivate ? 'MIXED' : src.dormitoryGenderType ?? null,
+      femaleOnly: isPrivate ? !!src.femaleOnly : false,
+      roomImages: ensureOneThumbnail(src.roomImages),
     };
 
     setRooms(prev => {
