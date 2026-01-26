@@ -13,6 +13,8 @@ import 'dayjs/locale/ko';
 import Clipboard from '@react-native-clipboard/clipboard';
 import {useRoute, useNavigation, StackActions} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
+import AlertModal from '@components/modals/AlertModal';
+import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
 
 import styles from './GuesthousePaymentReceipt.styles';
 import {FONTS} from '@constants/fonts';
@@ -217,6 +219,14 @@ const GuesthousePaymentReceipt = () => {
 
   const [dto, setDto] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundModalContent, setRefundModalContent] = useState({
+    title: '',
+    message: '',
+    highlightText: '',
+    buttonText: '확인',
+    buttonText2: null,
+  });
 
   const stayOverride = useMemo(
     () => ({
@@ -239,6 +249,11 @@ const GuesthousePaymentReceipt = () => {
     () => mapDtoToViewData(dto, mergedContext, reservationCode, stayOverride),
     [dto, mergedContext, reservationCode, stayOverride],
   );
+  const freeCancelUntil = useMemo(() => {
+    if (!data?.payment?.paidAt) return null;
+    const base = dayjs(data.payment.paidAt);
+    return base.isValid() ? base.add(10, 'minute').toISOString() : null;
+  }, [data]);
   const nights = useMemo(() => {
     const checkIn = dto?.checkIn ?? receiptContext?.checkIn ?? stayOverride?.checkIn;
     const checkOut = dto?.checkOut ?? receiptContext?.checkOut ?? stayOverride?.checkOut;
@@ -369,47 +384,31 @@ const GuesthousePaymentReceipt = () => {
     });
   };
 
-  // 예약취소
-  const onPressCancel = () => {
-    Alert.alert('예약취소', '예약을 취소할까요?', [
-      {text: '닫기', style: 'cancel'},
-      {
-        text: '취소',
-        style: 'destructive',
-        onPress: async () => {
-          if (!reservationId) {
-            Toast.show({
-              type: 'error',
-              text1: '예약 정보를 찾을 수 없어요.',
-              position: 'top',
-              visibilityTime: 2500,
-            });
-            return;
-          }
-
-          try {
-            await reservationPaymentApi.cancelReservation(
-              reservationId,
-              'GUESTHOUSE',
-            );
-            Toast.show({
-              type: 'success',
-              text1: '예약이 취소되었어요.',
-              position: 'top',
-              visibilityTime: 2000,
-            });
-            handleClose();
-          } catch (e) {
-            Toast.show({
-              type: 'error',
-              text1: '예약 취소에 실패했어요.',
-              position: 'top',
-              visibilityTime: 2500,
-            });
-          }
-        },
-      },
-    ]);
+  const handleRefundlessCancel = async () => {
+    if (!reservationId) {
+      setRefundModalOpen(false);
+      return;
+    }
+    try {
+      await reservationPaymentApi.cancelReservation(reservationId, 'GUESTHOUSE');
+      Toast.show({
+        type: 'success',
+        text1: '취소 되었어요!',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      setRefundModalOpen(false);
+      navigation.replace('GuesthouseCancelledReceipt', {
+        reservationId,
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소에 실패했습니다.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   // 로딩
@@ -446,7 +445,7 @@ const GuesthousePaymentReceipt = () => {
         </TouchableOpacity>
         {/* 타이틀 */}
         <View style={styles.title}>
-          <Text style={[FONTS.fs_20_semibold]}>예약확정</Text>
+          <Text style={[FONTS.fs_20_bold]}>예약확정</Text>
           <Text style={[FONTS.fs_18_semibold, styles.guesthouseName]}>
             {data.guesthouse.name}
           </Text>
@@ -626,7 +625,53 @@ const GuesthousePaymentReceipt = () => {
             </Text>
 
             <ButtonWhite
-              onPress={onPressCancel}
+              onPress={() => {
+                const {
+                  result,
+                  message,
+                  description,
+                  title,
+                  buttonText,
+                  buttonText2,
+                  highlightText,
+                } = getRefundPolicyModalContent({
+                  checkInDate: data.stay.checkIn,
+                  checkInTime: data.stay.checkInTime,
+                  freeCancelUntil,
+                });
+
+                if (result && result !== REFUND_POLICY_RESULT.OK) {
+                  setRefundModalContent({
+                    title: title || '',
+                    message: message || description || '',
+                    highlightText: highlightText || '',
+                    buttonText: buttonText || '확인',
+                    buttonText2: buttonText2 || null,
+                  });
+                  setRefundModalOpen(true);
+                  return;
+                }
+
+                navigation.navigate('GuesthouseCancelConfirm', {
+                  reservationId,
+                  cancelContext: {
+                    guesthouseName: data.guesthouse.name,
+                    roomName: data.purchase.title,
+                    roomDesc: data.purchase.subTitle,
+                    checkInDate: data.stay.checkIn,
+                    checkInTime: data.stay.checkInTime,
+                    checkOutDate: data.stay.checkOut,
+                    checkOutTime: data.stay.checkOutTime,
+                    paidAmount: data.payment.finalPrice,
+                    cancelFee: 0,
+                    refundAmount: data.payment.finalPrice,
+                    refundMethod: data.payment.method
+                      ? `${data.payment.method} 환불`
+                      : '환불',
+                    freeCancelUntil,
+                  },
+                });
+              }}
               backgroundColor={COLORS.cancel_btn_bg}
               textColor={COLORS.semantic_red}
               title='예약취소'
@@ -634,6 +679,17 @@ const GuesthousePaymentReceipt = () => {
           </View>
         )}
       </ScrollView>
+
+      <AlertModal
+        visible={refundModalOpen}
+        title={refundModalContent.title}
+        message={refundModalContent.message}
+        highlightText={refundModalContent.highlightText}
+        buttonText={refundModalContent.buttonText}
+        buttonText2={refundModalContent.buttonText2}
+        onPress={handleRefundlessCancel}
+        onPress2={() => setRefundModalOpen(false)}
+      />
     </View>
   );
 };

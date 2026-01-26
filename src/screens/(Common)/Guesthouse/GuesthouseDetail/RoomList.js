@@ -9,6 +9,8 @@ import ButtonWhite from '@components/ButtonWhite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 
+import RightArrow from '@assets/images/chevron_right_gray.svg';
+
 const RoomList = ({
   detail,
   guesthouseId,
@@ -224,6 +226,7 @@ const RoomList = ({
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
+          <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
         <View style={styles.roomInfoBottomRow}>
@@ -238,7 +241,7 @@ const RoomList = ({
               style={[
                 FONTS.fs_14_medium,
                 styles.roomType,
-                {color: COLORS.grayscale_500},
+                {color: COLORS.primary_orange},
               ]}
             >
                 남아 있는 베드 수 {room.remaining}개

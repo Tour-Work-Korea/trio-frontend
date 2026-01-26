@@ -9,16 +9,27 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
+import AlertModal from '@components/modals/AlertModal';
+import { getRefundPolicyModalContent, REFUND_POLICY_RESULT } from '@utils/refundPolicy';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationCancelModal from '@components/modals/UserMy/Guesthouse/ReservationCancelModal'; // 추가
 
 export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundModalContent, setRefundModalContent] = useState({
+    title: '',
+    message: '',
+    highlightText: '',
+    buttonText: '확인',
+    buttonText2: null,
+  });
+  const [refundReservationId, setRefundReservationId] = useState(null);
 
   const genderMap = {
     MIXED: '혼숙',
@@ -29,20 +40,6 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
-  // 예약 취소 모달
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [cancelReservationId, setCancelReservationId] = useState(null);
-
-  const openCancelModal = (reservationId) => {
-    setCancelReservationId(reservationId);
-    setCancelModalVisible(true);
-  };
-
-  const closeCancelModal = () => {
-    setCancelModalVisible(false);
-    setCancelReservationId(null);
-  };
-
   const handleCopyAddress = (address) => {
     Clipboard.setString(address ?? '');
 
@@ -52,6 +49,32 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
       position: 'top',
       visibilityTime: 2000,
     });
+  };
+
+  const handleRefundlessCancel = async () => {
+    if (!refundReservationId) {
+      setRefundModalOpen(false);
+      return;
+    }
+    try {
+      await reservationPaymentApi.cancelReservation(refundReservationId, 'GUESTHOUSE');
+      Toast.show({
+        type: 'success',
+        text1: '취소 되었어요!',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      setRefundModalOpen(false);
+      setRefundReservationId(null);
+      await onRefresh?.();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소에 실패했습니다.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const buildRoomDetailText = (item) => {
@@ -180,6 +203,56 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           title='예약취소'
           backgroundColor={COLORS.cancel_btn_bg}
           textColor={COLORS.semantic_red}
+          onPress={() => {
+            const { result, message, description, title, buttonText, buttonText2, highlightText } =
+              getRefundPolicyModalContent({
+                checkInDate: checkInFormatted.date,
+                checkInTime: checkInFormatted.time,
+              });
+
+            if (result && result !== REFUND_POLICY_RESULT.OK) {
+              setRefundModalContent({
+                title: title || '',
+                message: message || description || '',
+                highlightText: highlightText || '',
+                buttonText: buttonText || '확인',
+                buttonText2: buttonText2 || null,
+              });
+              setRefundReservationId(item.reservationId);
+              setRefundModalOpen(true);
+              return;
+            }
+
+            navigation.navigate('GuesthouseCancelConfirm', {
+              reservationId: item.reservationId,
+              cancelContext: {
+                guesthouseName: item.guesthouseName,
+                guesthouseImage: item.guesthouseImage,
+                roomName: item.roomName,
+                roomDesc: buildRoomDetailText(item),
+                checkInDate: checkInFormatted.date,
+                checkInTime: checkInFormatted.time,
+                checkOutDate: checkOutFormatted.date,
+                checkOutTime: checkOutFormatted.time,
+                ...(typeof item.amount === 'number'
+                  ? {paidAmount: item.amount}
+                  : typeof item.totalAmount === 'number'
+                    ? {paidAmount: item.totalAmount}
+                    : typeof item.reservationAmount === 'number'
+                      ? {paidAmount: item.reservationAmount}
+                      : {}),
+                ...(typeof item.cancelFee === 'number'
+                  ? {cancelFee: item.cancelFee}
+                  : {}),
+                ...(typeof item.refundAmount === 'number'
+                  ? {refundAmount: item.refundAmount}
+                  : {}),
+                ...(item.refundMethod
+                  ? {refundMethod: item.refundMethod}
+                  : {}),
+              },
+            });
+          }}
         />
   
         {index !== data.length - 1 && <View style={styles.devide} />}
@@ -209,15 +282,15 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           />
         }
       />
-
-      {/* 예약 취소 모달 */}
-      <ReservationCancelModal
-        visible={cancelModalVisible}
-        onClose={() => {
-          closeCancelModal();
-          onRefresh && onRefresh();
-        }}
-        reservationId={cancelReservationId}
+      <AlertModal
+        visible={refundModalOpen}
+        title={refundModalContent.title}
+        message={refundModalContent.message}
+        highlightText={refundModalContent.highlightText}
+        buttonText={refundModalContent.buttonText}
+        buttonText2={refundModalContent.buttonText2}
+        onPress={handleRefundlessCancel}
+        onPress2={() => setRefundModalOpen(false)}
       />
     </>
   );
