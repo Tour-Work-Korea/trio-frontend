@@ -1,4 +1,4 @@
-import React, {useMemo} from 'react';
+import React from 'react';
 import {
   Modal,
   View,
@@ -18,19 +18,13 @@ const ReservationCancelConfirmModal = ({
   onConfirm,
   data,
 }) => {
-  // ✅ mock 데이터
-  const mock = useMemo(
-    () => ({
-      paidAmount: 125000,
-      cancelFee: 0,
-      refundAmount: 125000,
-      payMethodLabel: '카카오페이',
-      refundMethodLabel: '카카오페이 환불',
-    }),
-    [],
-  );
-
-  const info = data || mock;
+  const info = data || {
+    paidAmount: 0,
+    cancelFee: 0,
+    refundAmount: 0,
+    payMethodLabel: '',
+    refundMethodLabel: '',
+  };
   const formatWon = v => `${Number(v || 0).toLocaleString()}원`;
 
   return (

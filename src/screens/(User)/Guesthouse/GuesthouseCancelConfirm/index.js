@@ -21,6 +21,7 @@ import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationCancelConfirmModal from '@components/modals/Guesthouse/ReservationCancelConfirmModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import Toast from 'react-native-toast-message';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckGray from '@assets/images/check_gray.svg';
@@ -41,6 +42,7 @@ const GuesthouseCancelConfirm = () => {
   const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
+  const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
   useEffect(() => {
     const fetchReservationDetail = async () => {
@@ -104,6 +106,42 @@ const GuesthouseCancelConfirm = () => {
     };
   }, [reservationDetail, cancelContext]);
   const refundAmount = viewData.refundAmount;
+
+  const handleCancelConfirm = async () => {
+    if (!reservationId || cancelSubmitting) return;
+    try {
+      setCancelSubmitting(true);
+      const res = await reservationPaymentApi.cancelReservation(
+        reservationId,
+        'GUESTHOUSE',
+        selectedReason,
+      );
+      const cancelDetail = res?.data ?? null;
+      const nextReservationId =
+        cancelDetail?.reservationId ?? reservationId;
+      const reservationItem = {
+        ...cancelDetail,
+        guesthouseImage: viewData.guesthouseImage,
+        roomDesc: viewData.roomDesc,
+        guesthouseCheckIn: viewData.checkInTime,
+        guesthouseCheckOut: viewData.checkOutTime,
+      };
+      setCancelConfirmOpen(false);
+      navigation.replace('GuesthouseCancelSuccess', {
+        reservationId: nextReservationId,
+        reservationItem,
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소에 실패했습니다.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } finally {
+      setCancelSubmitting(false);
+    }
+  };
 
   return (
     <View style={styles.container}>
@@ -272,6 +310,7 @@ const GuesthouseCancelConfirm = () => {
                 ))}
               </View>
             )}
+
           </View>
 
           {/* 약관 동의 */}
@@ -320,7 +359,7 @@ const GuesthouseCancelConfirm = () => {
           <ReservationCancelConfirmModal
             visible={cancelConfirmOpen}
             onClose={() => setCancelConfirmOpen(false)}
-            onConfirm={() => setCancelConfirmOpen(false)}
+            onConfirm={handleCancelConfirm}
             data={{
               paidAmount: viewData.paidAmount,
               cancelFee: viewData.cancelFee,

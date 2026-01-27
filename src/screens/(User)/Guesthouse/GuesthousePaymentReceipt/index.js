@@ -390,7 +390,11 @@ const GuesthousePaymentReceipt = () => {
       return;
     }
     try {
-      await reservationPaymentApi.cancelReservation(reservationId, 'GUESTHOUSE');
+      await reservationPaymentApi.cancelReservation(
+        reservationId,
+        'GUESTHOUSE',
+        '사용자 요청 취소',
+      );
       Toast.show({
         type: 'success',
         text1: '취소 되었어요!',
@@ -400,6 +404,16 @@ const GuesthousePaymentReceipt = () => {
       setRefundModalOpen(false);
       navigation.replace('GuesthouseCancelledReceipt', {
         reservationId,
+        reservationItem: {
+          guesthouseName: data.guesthouse.name,
+          guesthouseImage: receiptContext?.guesthouseImage ?? '',
+          roomName: data.purchase.title,
+          roomDesc: data.purchase.subTitle,
+          checkIn,
+          checkOut,
+          guesthouseCheckIn: checkInTime,
+          guesthouseCheckOut: checkOutTime,
+        },
       });
     } catch (error) {
       Toast.show({

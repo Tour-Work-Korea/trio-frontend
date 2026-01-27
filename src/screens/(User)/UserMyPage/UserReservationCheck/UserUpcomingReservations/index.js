@@ -57,7 +57,11 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
       return;
     }
     try {
-      await reservationPaymentApi.cancelReservation(refundReservationId, 'GUESTHOUSE');
+      await reservationPaymentApi.cancelReservation(
+        refundReservationId,
+        'GUESTHOUSE',
+        '사용자 요청 취소',
+      );
       Toast.show({
         type: 'success',
         text1: '취소 되었어요!',

@@ -56,7 +56,7 @@ const GuesthouseCancelledReceipt = () => {
       guesthouseName:
         dto?.guesthouse ?? reservationItem?.guesthouseName ?? '',
       roomName: dto?.roomName ?? reservationItem?.roomName ?? '',
-      roomDesc: buildRoomDetailText(reservationItem),
+      roomDesc: reservationItem?.roomDesc ?? buildRoomDetailText(reservationItem),
       imageUrl: reservationItem?.guesthouseImage ?? '',
       checkInDate: formatLocalDateTimeToDotAndTimeWithDay(
         toLocalDateTime(
