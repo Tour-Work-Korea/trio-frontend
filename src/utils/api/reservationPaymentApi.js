@@ -10,9 +10,10 @@ const reservationPaymentApi = {
     ),
 
   // 예약 ID 기반 결제 페이지 진입
-  requestPayment: reservationId =>
+  // reservationType: GUESTHOUSE, PARTY
+  requestPayment: (reservationId, reservationType = 'GUESTHOUSE') =>
     api.get('/payments/toss/request/reservation', {
-      params: {reservationId},
+      params: {reservationId, reservationType},
     }),
 
   // 토스 결제 성공 콜백
@@ -29,9 +30,9 @@ const reservationPaymentApi = {
 
   // 게스트하우스/모임 예약 취소
   // type: GUESTHOUSE, PARTY
-  cancelReservation: (reservationId, type = 'GUESTHOUSE') =>
+  cancelReservation: (reservationId, type = 'GUESTHOUSE', cancelReason = '') =>
     api.delete(`/payments/toss/reservation/${reservationId}`, {
-      data: {type},
+      data: {type, cancelReason},
     }),
 };
 

@@ -34,38 +34,41 @@ const ReservationConfirmModal = ({
           <TouchableWithoutFeedback>
             <View style={s.modal}>
               {/* 타이틀 */}
-              <Text style={[FONTS.fs_18_semibold, s.title]}>예약내역 확인</Text>
+              <Text style={[FONTS.fs_20_bold, s.title]}>예약내역 확인</Text>
               <View style={s.divider} />
 
-              {/* 숙소명 */}
-              <Text style={[FONTS.fs_18_bold, s.guesthouseName]}>
-                {guesthouseName}
-              </Text>
-
-              {/* 요약 */}
-              <Text style={[FONTS.fs_16_regular, s.roomSummary]}>
-                {roomSummary}
-              </Text>
-              {!!roomSubSummary && (
-                <Text style={[FONTS.fs_14_regular, s.roomSubSummary]}>
-                  {roomSubSummary}
+              <View style={{paddingHorizontal:8}}>
+                {/* 숙소명 */}
+                <Text style={[FONTS.fs_18_bold, s.guesthouseName]}>
+                  {guesthouseName}
                 </Text>
-              )}
 
-              {/* 체크인/아웃 */}
-              <View style={s.row}>
-                <Text style={[FONTS.fs_14_regular, s.label]}>체크인</Text>
-                <Text style={[FONTS.fs_14_medium, s.value]}>
-                  {checkInLabel}
+                {/* 요약 */}
+                <Text style={[FONTS.fs_16_regular, s.roomSummary]}>
+                  {roomSummary}
                 </Text>
+                {!!roomSubSummary && (
+                  <Text style={[FONTS.fs_14_regular, s.roomSubSummary]}>
+                    {roomSubSummary}
+                  </Text>
+                )}
+
+                {/* 체크인/아웃 */}
+                <View style={s.row}>
+                  <Text style={[FONTS.fs_14_regular, s.label]}>체크인</Text>
+                  <Text style={[FONTS.fs_14_medium, s.value]}>
+                    {checkInLabel}
+                  </Text>
+                </View>
+
+                <View style={s.row}>
+                  <Text style={[FONTS.fs_14_regular, s.label]}>체크아웃</Text>
+                  <Text style={[FONTS.fs_14_medium, s.value]}>
+                    {checkOutLabel}
+                  </Text>
+                </View>
               </View>
-
-              <View style={s.row}>
-                <Text style={[FONTS.fs_14_regular, s.label]}>체크아웃</Text>
-                <Text style={[FONTS.fs_14_medium, s.value]}>
-                  {checkOutLabel}
-                </Text>
-              </View>
+              
 
               {/* 안내 박스 */}
               <View style={s.noticeBox}>

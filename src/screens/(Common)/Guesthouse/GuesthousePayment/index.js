@@ -7,6 +7,7 @@ import useUserStore from '@stores/userStore';
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
   const {reservationId, amount, receiptContext} = route.params || {};
+  const reservationType = 'GUESTHOUSE';
 
   const accessToken = useUserStore(state => state.accessToken);
 
@@ -42,7 +43,7 @@ const GuesthousePayment = ({route}) => {
     <WebView
       source={{
         // 결제 페이지 진입
-        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}`,
+        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

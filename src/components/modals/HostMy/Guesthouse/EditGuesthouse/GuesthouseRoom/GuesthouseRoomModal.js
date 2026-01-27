@@ -30,6 +30,7 @@ import PlusIcon from '@assets/images/plus_gray.svg';
 import RoomList from './RoomList';
 import RoomInfo from './RoomInfo';
 import RoomType from './RoomType';
+import RoomTypePrivate from './RoomTypePrivate';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
@@ -94,6 +95,23 @@ const buildRoomBasicDiff = (base, cur) => {
   const curType = cur?.roomType ?? null;
   if (baseType !== curType) payload.roomType = curType;
 
+  const baseDorm = base?.dormitoryGenderType ?? null;
+  const curDorm = cur?.dormitoryGenderType ?? null;
+  const baseFemale = base?.femaleOnly ?? false;
+  const curFemale = cur?.femaleOnly ?? false;
+  if (curType === 'DORMITORY') {
+    if (baseDorm !== curDorm) payload.dormitoryGenderType = curDorm;
+    if (baseFemale !== false) payload.femaleOnly = false;
+  }
+  if (curType === 'PRIVATE') {
+    if (baseType !== curType || baseDorm !== 'MIXED') {
+      payload.dormitoryGenderType = 'MIXED';
+    }
+    if (baseType !== curType || baseFemale !== curFemale) {
+      payload.femaleOnly = curFemale;
+    }
+  }
+
   const baseCap = toNum(base?.roomCapacity);
   const curCap = toNum(cur?.roomCapacity);
   if (baseCap !== curCap && curCap != null) payload.roomCapacity = curCap;
@@ -114,14 +132,32 @@ const buildRoomBasicDiff = (base, cur) => {
 };
 
 // 전체 payload (신규 생성 / fallback 업데이트용)
-const buildRoomBasicFull = (cur) => ({
-  roomName: cur?.roomName ?? '',
-  roomType: cur?.roomType ?? null,
-  roomCapacity: toNum(cur?.roomCapacity),
-  roomMaxCapacity: toNum(cur?.roomMaxCapacity ?? cur?.roomCapacity),
-  roomDescription: cur?.roomDesc ?? cur?.roomDescription ?? '',
-  roomPrice: toNum(cur?.roomPrice),
-});
+const buildRoomBasicFull = (cur) => {
+  const roomType = cur?.roomType ?? null;
+  const payload = {
+    roomName: cur?.roomName ?? '',
+    roomType,
+    roomCapacity: toNum(cur?.roomCapacity),
+    roomMaxCapacity: toNum(
+      roomType === 'DORMITORY'
+        ? cur?.roomCapacity
+        : cur?.roomMaxCapacity ?? cur?.roomCapacity
+    ),
+    roomDescription: cur?.roomDesc ?? cur?.roomDescription ?? '',
+    roomPrice: toNum(cur?.roomPrice),
+  };
+
+  if (roomType === 'DORMITORY') {
+    payload.dormitoryGenderType = cur?.dormitoryGenderType ?? null;
+    payload.femaleOnly = false;
+  }
+  if (roomType === 'PRIVATE') {
+    payload.dormitoryGenderType = 'MIXED';
+    payload.femaleOnly = !!cur?.femaleOnly;
+  }
+
+  return payload;
+};
 
 const GuesthouseRoomModal = ({
   visible,
@@ -171,7 +207,7 @@ const GuesthouseRoomModal = ({
     }, ms);
   };
 
-  const [step, setStep] = useState('list'); // 'list' | 'info' | 'type'
+  const [step, setStep] = useState('list'); // 'list' | 'info' | 'typeDormitory' | 'typePrivate'
   const [rooms, setRooms] = useState([]);
   const [baselineRooms, setBaselineRooms] = useState([]);
 
@@ -183,6 +219,8 @@ const GuesthouseRoomModal = ({
     roomCapacity: null,
     roomMaxCapacity: null,
     roomType: null,
+    dormitoryGenderType: null,
+    femaleOnly: false,
     roomPrice: '',     // 문자열로 관리(숫자만 입력 허용)
   }; 
 
@@ -195,22 +233,33 @@ const GuesthouseRoomModal = ({
 
   // 기본값 normalize (깊은 복사 + 빠진 필드 보정)
   const normalizeRooms = (list = []) =>
-    (Array.isArray(list) ? list : []).map((r) => ({
-      id: r.id ?? undefined,
-      roomName: r.roomName ?? '',
-      roomDesc: r.roomDesc ?? '',
-      roomImages: (r.roomImages ?? []).map(ri => ({
-        id: ri.id ?? undefined,
-        roomImageUrl: ri.roomImageUrl,
-        isThumbnail: !!ri.isThumbnail,
-      })),
-      roomCapacity: r.roomCapacity ?? null,
-      roomMaxCapacity: r.roomMaxCapacity ?? r.roomCapacity ?? null,
-      roomType: r.roomType ?? null,
-      // 내부 입력은 문자열로 관리 (기존 입력 UX 유지)
-      roomPrice: r.roomPrice != null ? String(r.roomPrice) : '',
-      roomExtraFees: r.roomExtraFees ?? [],
-    }));
+    (Array.isArray(list) ? list : []).map((r) => {
+      const rawRoomType = r.roomType ?? null;
+      const isLegacyGenderType = ['MIXED', 'MALE_ONLY', 'FEMALE_ONLY'].includes(rawRoomType);
+      const normalizedRoomType = isLegacyGenderType ? 'DORMITORY' : rawRoomType;
+      const normalizedDormitoryGenderType = isLegacyGenderType
+        ? rawRoomType
+        : r.dormitoryGenderType ?? null;
+
+      return {
+        id: r.id ?? undefined,
+        roomName: r.roomName ?? '',
+        roomDesc: r.roomDesc ?? '',
+        roomImages: (r.roomImages ?? []).map(ri => ({
+          id: ri.id ?? undefined,
+          roomImageUrl: ri.roomImageUrl,
+          isThumbnail: !!ri.isThumbnail,
+        })),
+        roomCapacity: r.roomCapacity ?? null,
+        roomMaxCapacity: r.roomMaxCapacity ?? r.roomCapacity ?? null,
+        roomType: normalizedRoomType,
+        dormitoryGenderType: normalizedDormitoryGenderType,
+        femaleOnly: r.femaleOnly ?? false,
+        // 내부 입력은 문자열로 관리 (기존 입력 UX 유지)
+        roomPrice: r.roomPrice != null ? String(r.roomPrice) : '',
+        roomExtraFees: r.roomExtraFees ?? [],
+      };
+    });
 
   const normalizeRoom = (r) => normalizeRooms([r])[0] ?? EMPTY_ROOM;
 
@@ -253,16 +302,20 @@ const GuesthouseRoomModal = ({
   };
 
   const goToRoomType = () => {
-    setStep('type');
+    setStep(tempRoomData.roomType === 'PRIVATE' ? 'typePrivate' : 'typeDormitory');
   };
 
   const handleApplyRoom = (nextData) => {
     const src = nextData ?? tempRoomData;
+    const isPrivate = src.roomType === 'PRIVATE';
     const normalized = {
       ...src,
-      roomMaxCapacity:
-      tempRoomData.roomMaxCapacity ?? tempRoomData.roomCapacity,
-      roomImages: ensureOneThumbnail(tempRoomData.roomImages),
+      roomMaxCapacity: isPrivate
+        ? src.roomMaxCapacity ?? src.roomCapacity
+        : src.roomCapacity,
+      dormitoryGenderType: isPrivate ? 'MIXED' : src.dormitoryGenderType ?? null,
+      femaleOnly: isPrivate ? !!src.femaleOnly : false,
+      roomImages: ensureOneThumbnail(src.roomImages),
     };
 
     setRooms(prev => {
@@ -485,8 +538,17 @@ const GuesthouseRoomModal = ({
               />
             )}
 
-            {step === 'type' && (
+            {step === 'typeDormitory' && (
               <RoomType
+                data={tempRoomData}
+                setData={setTempRoomData}
+                onBack={() => setStep('info')}
+                onApply={handleApplyRoom}
+              />
+            )}
+
+            {step === 'typePrivate' && (
+              <RoomTypePrivate
                 data={tempRoomData}
                 setData={setTempRoomData}
                 onBack={() => setStep('info')}

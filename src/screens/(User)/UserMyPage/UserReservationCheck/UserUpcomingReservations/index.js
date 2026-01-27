@@ -1,47 +1,106 @@
-import React, { useEffect, useState } from 'react';
+import React, { useState } from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
+import Clipboard from '@react-native-clipboard/clipboard';
+import dayjs from 'dayjs';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import ButtonWhite from '@components/ButtonWhite';
+import AlertModal from '@components/modals/AlertModal';
+import { getRefundPolicyModalContent, REFUND_POLICY_RESULT } from '@utils/refundPolicy';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+
 import SearchEmpty from '@assets/images/search_empty.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationDetailModal from '@components/modals/UserMy/Guesthouse/ReservationDetailModal';
-import ReservationCancelModal from '@components/modals/UserMy/Guesthouse/ReservationCancelModal'; // 추가
 
 export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundModalContent, setRefundModalContent] = useState({
+    title: '',
+    message: '',
+    highlightText: '',
+    buttonText: '확인',
+    buttonText2: null,
+  });
+  const [refundReservationId, setRefundReservationId] = useState(null);
+
+  const genderMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
-  // 상세 모달
-  const [selectedReservationId, setSelectedReservationId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const handleCopyAddress = (address) => {
+    Clipboard.setString(address ?? '');
 
-  // 예약 취소 모달
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [cancelReservationId, setCancelReservationId] = useState(null);
-
-  const openDetailModal = (reservationId) => {
-    setSelectedReservationId(reservationId);
-    setModalVisible(true);
+    Toast.show({
+      type: 'success',
+      text1: '주소를 복사했어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
   };
 
-  const closeDetailModal = () => {
-    setModalVisible(false);
-    setSelectedReservationId(null);
+  const handleRefundlessCancel = async () => {
+    if (!refundReservationId) {
+      setRefundModalOpen(false);
+      return;
+    }
+    try {
+      await reservationPaymentApi.cancelReservation(
+        refundReservationId,
+        'GUESTHOUSE',
+        '사용자 요청 취소',
+      );
+      Toast.show({
+        type: 'success',
+        text1: '취소 되었어요!',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      setRefundModalOpen(false);
+      setRefundReservationId(null);
+      await onRefresh?.();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소에 실패했습니다.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
-  const openCancelModal = (reservationId) => {
-    setCancelReservationId(reservationId);
-    setCancelModalVisible(true);
-  };
+  const buildRoomDetailText = (item) => {
+    if (!item) return '';
+    const isDormitory = item.roomType === 'DORMITORY';
+    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
 
-  const closeCancelModal = () => {
-    setCancelModalVisible(false);
-    setCancelReservationId(null);
+    if (isDormitory) {
+      const genderText = genderMap[item.dormitoryGenderType] || '';
+      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      if (genderText && item.dormitoryGenderType !== 'MIXED') {
+        return `${base}, ${genderText}`;
+      }
+      return base;
+    }
+
+    const maxCapacityText = item.roomMaxCapacity
+      ? `(최대 ${item.roomMaxCapacity}인)`
+      : '';
+    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const base = `${basePrefix}${maxCapacityText}`;
+    return item.femaleOnly ? `${base}, 여성 전용` : base;
   };
 
   const renderItem = ({ item, index }) => {
@@ -54,7 +113,38 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
 
     return (
       <View style={styles.container}>
-        <TouchableOpacity style={styles.card} onPress={() => openDetailModal(item.reservationId)}>
+        <View
+          style={styles.card}
+        >
+          <View style={styles.titleRow}>
+            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>예약 확정</Text>
+            <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() =>
+                navigation.navigate('GuesthousePaymentReceipt', {
+                  reservationId: item.reservationId,
+                  isFromPaymentFlow: false,
+                  receiptContext: {
+                    guesthouseName: item.guesthouseName,
+                    guesthouseAddress: item.guesthouseAddress,
+                    roomName: item.roomName,
+                    roomType: item.roomType,
+                    roomCapacity: item.roomCapacity,
+                    roomMaxCapacity: item.roomMaxCapacity,
+                    femaleOnly: item.femaleOnly,
+                    dormitoryGenderType: item.dormitoryGenderType,
+                    checkIn: item.checkIn,
+                    checkOut: item.checkOut,
+                    checkInTime: item.guesthouseCheckIn,
+                    checkOutTime: item.guesthouseCheckOut,
+                  },
+                })
+              }
+            >
+              <Text style={[FONTS.fs_12_medium, styles.detailText]}>예약 상세</Text>
+              <ChevronRight width={16} height={16}/>
+            </TouchableOpacity>
+          </View>
           <View style={styles.guesthouseInfo}>
             <Image
               source={{ uri: item.guesthouseImage }}
@@ -71,11 +161,11 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
                 {item.roomName}
               </Text>
               <Text
-                style={[FONTS.fs_12_medium, styles.adressText]}
+                style={[FONTS.fs_12_medium, styles.roomDetailText]}
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.guesthouseAddress}
+                {buildRoomDetailText(item)}
               </Text>
             </View>
           </View>
@@ -84,17 +174,90 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
               <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
             </View>
-            <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
+            <View style={[FONTS.fs_14_medium, styles.rowDevide]}/>
             <View style={styles.dateContainer}>
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
               <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
-        {/* <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
-          <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
-        </TouchableOpacity> */}
+        <View style={styles.buttonRow}>
+          <ButtonWhite
+            title='숙소 상세'
+            style={{flex:1}}
+            onPress={() =>
+              navigation.navigate('GuesthouseDetail', {
+                id: item.guesthouseId,
+                isFromDeeplink: false,
+                checkIn: today.format('YYYY-MM-DD'),
+                checkOut: tomorrow.format('YYYY-MM-DD'),
+                guestCount: 1,
+              })
+            }
+          />
+          <ButtonWhite
+            title='주소 복사'
+            style={{flex:1}}
+            onPress={() => handleCopyAddress(item.guesthouseAddress)}
+          />
+        </View>
+
+        <ButtonWhite
+          title='예약취소'
+          backgroundColor={COLORS.cancel_btn_bg}
+          textColor={COLORS.semantic_red}
+          onPress={() => {
+            const { result, message, description, title, buttonText, buttonText2, highlightText } =
+              getRefundPolicyModalContent({
+                checkInDate: checkInFormatted.date,
+                checkInTime: checkInFormatted.time,
+              });
+
+            if (result && result !== REFUND_POLICY_RESULT.OK) {
+              setRefundModalContent({
+                title: title || '',
+                message: message || description || '',
+                highlightText: highlightText || '',
+                buttonText: buttonText || '확인',
+                buttonText2: buttonText2 || null,
+              });
+              setRefundReservationId(item.reservationId);
+              setRefundModalOpen(true);
+              return;
+            }
+
+            navigation.navigate('GuesthouseCancelConfirm', {
+              reservationId: item.reservationId,
+              cancelContext: {
+                guesthouseName: item.guesthouseName,
+                guesthouseImage: item.guesthouseImage,
+                roomName: item.roomName,
+                roomDesc: buildRoomDetailText(item),
+                checkInDate: checkInFormatted.date,
+                checkInTime: checkInFormatted.time,
+                checkOutDate: checkOutFormatted.date,
+                checkOutTime: checkOutFormatted.time,
+                ...(typeof item.amount === 'number'
+                  ? {paidAmount: item.amount}
+                  : typeof item.totalAmount === 'number'
+                    ? {paidAmount: item.totalAmount}
+                    : typeof item.reservationAmount === 'number'
+                      ? {paidAmount: item.reservationAmount}
+                      : {}),
+                ...(typeof item.cancelFee === 'number'
+                  ? {cancelFee: item.cancelFee}
+                  : {}),
+                ...(typeof item.refundAmount === 'number'
+                  ? {refundAmount: item.refundAmount}
+                  : {}),
+                ...(item.refundMethod
+                  ? {refundMethod: item.refundMethod}
+                  : {}),
+              },
+            });
+          }}
+        />
   
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
@@ -123,22 +286,15 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           />
         }
       />
-
-      {/* 상세 모달 */}
-      <ReservationDetailModal
-        visible={modalVisible}
-        onClose={closeDetailModal}
-        reservationId={selectedReservationId}
-      />
-
-      {/* 예약 취소 모달 */}
-      <ReservationCancelModal
-        visible={cancelModalVisible}
-        onClose={() => {
-          closeCancelModal();
-          onRefresh && onRefresh();
-        }}
-        reservationId={cancelReservationId}
+      <AlertModal
+        visible={refundModalOpen}
+        title={refundModalContent.title}
+        message={refundModalContent.message}
+        highlightText={refundModalContent.highlightText}
+        buttonText={refundModalContent.buttonText}
+        buttonText2={refundModalContent.buttonText2}
+        onPress={handleRefundlessCancel}
+        onPress2={() => setRefundModalOpen(false)}
       />
     </>
   );
@@ -156,19 +312,35 @@ const styles = StyleSheet.create({
   devide: {
     marginVertical: 16,
     height: 0.4,
-    backgroundColor: COLORS.grayscale_300,
+    backgroundColor: COLORS.grayscale_200,
   },  
 
   // 리스트
   card: {
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleText: {
+  },
+  detailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    color: COLORS.semantic_blue,
   },
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
   },
   image: {
-    width: 112,
-    height: 112,
+    width: 80,
+    height: 80,
     borderRadius: 4,
     marginRight: 12,
   },
@@ -185,16 +357,15 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     flexShrink: 1,
   },
-  adressText: {
+  roomDetailText: {
     color: COLORS.grayscale_500,
     flexShrink: 1,
   },
 
   // 날짜, 시간
   dateContent: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
+    marginTop: 12,
+    padding: 4,
     flexDirection: 'row',
   },
   dateContainer: {
@@ -206,8 +377,20 @@ const styles = StyleSheet.create({
   timeText: {
     color: COLORS.grayscale_400,
   },
-  devideText: {
+  rowDevide: {
     marginHorizontal: 16,
     alignSelf: 'center',
+    backgroundColor: COLORS.grayscale_200,
+    height: '100%',
+    width: 1,
+  },
+
+  // 버튼
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 16,
+    marginBottom: 8,
   },
 });

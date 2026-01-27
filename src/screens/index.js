@@ -104,6 +104,9 @@ export {default as ResumeDetail} from './(Common)/Employ/ResumeDetail';
 export {default as MyResumeList} from './(User)/UserMyPage/MyResumeList';
 export {default as ProfileUpdate} from './(User)/Employ/ProfileUpdate';
 export {default as GuesthousePaymentReceipt} from './(User)/Guesthouse/GuesthousePaymentReceipt';
+export {default as GuesthouseCancelledReceipt} from './(User)/Guesthouse/GuesthouseCancelledReceipt';
+export {default as GuesthouseCancelConfirm} from './(User)/Guesthouse/GuesthouseCancelConfirm';
+export {default as GuesthouseCancelSuccess} from './(User)/Guesthouse/GuesthouseCancelConfirm/GuesthouseCancelSuccess';
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필

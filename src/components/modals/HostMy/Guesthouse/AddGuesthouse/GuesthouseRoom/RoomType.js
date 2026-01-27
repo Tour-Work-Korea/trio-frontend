@@ -38,10 +38,10 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     setData({ ...data, roomCapacity: Number(val) });
   };
 
-  const handleSelectRoomType = (type) => {
+  const handleSelectDormitoryGender = (type) => {
     setData({
       ...data,
-      roomType: type,
+      dormitoryGenderType: type,
     });
   };
 
@@ -63,7 +63,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     (capacityMode === 'none') ||
     ((capacityMode === 'preset' && !data.roomCapacity) ||
     (capacityMode === 'etc' && (!etcInput || isNaN(Number(etcInput))))) ||
-    !data.roomType ||
+    !data.dormitoryGenderType ||
     !data.roomPrice ||
     isNaN(Number(data.roomPrice)) ||
     isPriceTooLow;
@@ -126,9 +126,9 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
           <TouchableOpacity
             key={type}
             style={styles.horizontalRadioRow}
-            onPress={() => handleSelectRoomType(type)}
+            onPress={() => handleSelectDormitoryGender(type)}
           >
-            {data.roomType === type ? (
+            {data.dormitoryGenderType === type ? (
               <EnabledRadio width={28} height={28} />
             ) : (
               <DisabledRadio width={28} height={28} />
