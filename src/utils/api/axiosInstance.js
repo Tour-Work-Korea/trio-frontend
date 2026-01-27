@@ -8,8 +8,8 @@ const API_BASE_URL = process.env.API_BASE_URL ?? '';
 const API_DEV_URL = process.env.API_DEV_URL;
 
 const api = axios.create({
-  baseURL: API_BASE_URL,
-  // baseURL: API_DEV_URL,
+  // baseURL: API_BASE_URL,
+  baseURL: API_DEV_URL,
   withCredentials: true,
   timeout: 5000,
   headers: {'Content-Type': 'application/json'},

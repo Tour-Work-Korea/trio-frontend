@@ -31,7 +31,7 @@ const translateDormitoryGender = (type) => {
     case 'MALE_ONLY':
       return '남성전용';
     case 'MIXED':
-      return '혼숙';
+      return '';
     default:
       return '';
   }
@@ -46,9 +46,12 @@ const RoomList = ({ rooms, onDelete }) => {
       item.roomType === 'DORMITORY'
         ? translateDormitoryGender(item.dormitoryGenderType)
         : '';
+    const privateFemaleText =
+      item.roomType === 'PRIVATE' && item.femaleOnly ? '여성전용' : '';
+    const roomMetaDetail = dormitoryText || privateFemaleText;
     const roomMeta =
-      roomTypeText && dormitoryText
-        ? `${roomTypeText}(${dormitoryText})`
+      roomTypeText && roomMetaDetail
+        ? `${roomTypeText}(${roomMetaDetail})`
         : roomTypeText;
 
     return (

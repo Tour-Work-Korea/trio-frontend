@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   StyleSheet,
   ScrollView,
+  View,
 } from 'react-native';
 
 import { FONTS } from '@constants/fonts';
@@ -152,7 +153,7 @@ const RoomTypePrivate = ({ data, setData, onBack, onApply }) => {
     <>
       <ScrollView style={{ flex: 1, marginBottom: 120 }}>
         {/* 객실 타입 */}
-        <Text style={[FONTS.fs_16_medium, styles.title]}>객실 타입</Text>
+        <Text style={[FONTS.fs_16_medium, styles.title]}>기준 인원</Text>
         <View style={styles.roomGrid}>
           {ROOM_SIZES.map((size) => (
             <TouchableOpacity
@@ -402,14 +403,11 @@ const styles = StyleSheet.create({
 
   // 여성전용
   horizontalRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 40,
   },
   horizontalRadioRow: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
   },
 
   // 가격
