@@ -29,6 +29,10 @@ const userMeetApi = {
   // 이벤트 결제 검증 및 확정
   verifyPayment: (reservationId, body) =>
     api.post(`/order/payment/${reservationId}`, body),
+
+  // 인기 이벤트 조회
+  getPopularParties: () =>
+    api.get('/user/parties/popular', {withAuth: false}),
 };
 
 export default userMeetApi;

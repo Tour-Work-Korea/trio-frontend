@@ -242,13 +242,22 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
+  roomInfoRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 4,
+  },
   roomNameDescContainer: {
     flex: 1,       // 왼쪽 블럭이 남는 공간을 사용
     minWidth: 0,   // 텍스트가 ellipsis 되도록 필요한 트릭
-    paddingRight: 8,
+    // paddingRight: 8,
+  },
+  roomNameTextWrapper: {
+    flex: 1,
+    minWidth: 0,
   },
   roomType: {
-    marginBottom: 4,
     color: COLORS.grayscale_800,
   },
   checkTimeContainer: {
@@ -261,6 +270,48 @@ const styles = StyleSheet.create({
   roomPrice: {
     color: COLORS.grayscale_800,
     flexShrink: 0,
+  },
+
+  // 룸 디테일 버튼
+  roomDetailBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+  },
+  roomDetailBtnText: {
+    color: COLORS.semantic_blue,
+  },
+
+  // 도미토리 카드 하단
+  roomInfoBottomRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    gap: 60,
+    marginTop: 24,
+  },
+  remainingRow: {
+    flex: 2,
+    backgroundColor: COLORS.grayscale_0,
+    borderColor: COLORS.grayscale_900,
+    borderWidth: 1,
+    paddingVertical: 10,
+    paddingHorizontal: 20,
+    height: 40,
+    borderRadius: 8,
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    flexDirection: 'row',
+  },
+  remainingText: {
+
+  },
+  fullBooked: {
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    paddingHorizontal: 20,
   },
   
   // 긴 소개

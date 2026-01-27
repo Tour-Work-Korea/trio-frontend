@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -6,100 +6,130 @@ import dayjs from 'dayjs';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import ButtonWhite from '@components/ButtonWhite';
+
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationCancelDetailModal from '@components/modals/UserMy/Guesthouse/ReservationCancelDetailModal';
 
 export default function UserCancelledReservations({ data }) {
   const navigation = useNavigation();
+  const today = dayjs();
+  const tomorrow = today.add(1, 'day');
+  const genderMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
-  
-  const today = dayjs();
-  const tomorrow = today.add(1, 'day');
 
-  // 모달
-  const [selectedCancelledId, setSelectedCancelledId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
+  const buildRoomDetailText = (item) => {
+    if (!item) return '';
+    const isDormitory = item.roomType === 'DORMITORY';
+    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
 
-  const openModal = (cancelledId) => {
-    setSelectedCancelledId(cancelledId);
-    setModalVisible(true);
-  };
+    if (isDormitory) {
+      const genderText = genderMap[item.dormitoryGenderType] || '';
+      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      if (genderText && item.dormitoryGenderType !== 'MIXED') {
+        return `${base}, ${genderText}`;
+      }
+      return base;
+    }
 
-  const closeModal = () => {
-    setModalVisible(false);
-    setSelectedCancelledId(null);
+    const maxCapacityText = item.roomMaxCapacity
+      ? `(최대 ${item.roomMaxCapacity}인)`
+      : '';
+    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const base = `${basePrefix}${maxCapacityText}`;
+    return item.femaleOnly ? `${base}, 여성 전용` : base;
   };
 
   const renderItem = ({ item, index }) => {
-      const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-        toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
-      );
-      const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-        toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
-      );
-  
-      return (
-        <View style={styles.container}>
-          <TouchableOpacity style={styles.card} onPress={() => openModal(item.reservationId)}>
-            <View style={styles.guesthouseInfo}>
-              <Image
-                source={{ uri: item.guesthouseImage }}
-                style={styles.image}
-                resizeMode="cover"
-              />
-              <View style={styles.infoContent}>
-                <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.roomText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item.roomName}
-                </Text>
-                <Text
-                  style={[FONTS.fs_12_medium, styles.adressText]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {item.guesthouseAddress}
-                </Text>
-              </View>
-            </View>
-            <View style={styles.dateContent}>
-              <View style={styles.dateContainer}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
-              </View>
-              <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
-              <View style={styles.dateContainer}>
-                <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-                <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
-              </View>
-            </View>
-          </TouchableOpacity>
+    const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+    );
+    const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+    );
 
-          <TouchableOpacity 
-            style={styles.reservationButton}
-            onPress={() => {
+    return (
+      <View style={styles.container}>
+        <View style={styles.card}>
+          <View style={styles.titleRow}>
+            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>예약 취소</Text>
+            <TouchableOpacity
+              style={styles.detailButton}
+              onPress={() =>
+                navigation.navigate('GuesthouseCancelledReceipt', {
+                  reservationId: item.reservationId,
+                  reservationItem: item,
+                })
+              }
+            >
+              <Text style={[FONTS.fs_12_medium, styles.detailText]}>취소 상세</Text>
+              <ChevronRight width={16} height={16}/>
+            </TouchableOpacity>
+          </View>
+          <View style={styles.guesthouseInfo}>
+            <Image
+              source={{ uri: item.guesthouseImage }}
+              style={styles.image}
+              resizeMode="cover"
+            />
+            <View style={styles.infoContent}>
+              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
+              <Text
+                style={[FONTS.fs_14_medium, styles.roomText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.roomName}
+              </Text>
+              <Text
+                style={[FONTS.fs_12_medium, styles.roomDetailText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {buildRoomDetailText(item)}
+              </Text>
+            </View>
+          </View>
+          <View style={styles.dateContent}>
+            <View style={styles.dateContainer}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+            </View>
+            <View style={[FONTS.fs_14_medium, styles.rowDevide]}/>
+            <View style={styles.dateContainer}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.buttonRow}>
+          <ButtonWhite
+            title='다시 예약'
+            style={{flex:1}}
+            onPress={() =>
               navigation.navigate('GuesthouseDetail', {
                 id: item.guesthouseId,
-                isFromDeeplink: true,
+                isFromDeeplink: false,
                 checkIn: today.format('YYYY-MM-DD'),
                 checkOut: tomorrow.format('YYYY-MM-DD'),
                 guestCount: 1,
-              });
-            }}
-          >
-            <Text style={[FONTS.fs_16_semibold, styles.buttonText]}>다시 예약하기</Text>
-          </TouchableOpacity>
-  
-          {index !== data.length - 1 && <View style={styles.devide} />}
+              })
+            }
+          />
         </View>
-      );
-    };
+
+        {index !== data.length - 1 && <View style={styles.devide} />}
+      </View>
+    );
+  };
 
   return (
     <>
@@ -124,13 +154,6 @@ export default function UserCancelledReservations({ data }) {
         }
       />
 
-      {/* 상세 모달 */}
-      <ReservationCancelDetailModal
-        visible={modalVisible}
-        onClose={closeModal}
-        reservationId={selectedCancelledId}
-      />
-
     </>
   );
 }
@@ -142,19 +165,36 @@ const styles = StyleSheet.create({
   devide: {
     marginVertical: 16,
     height: 0.4,
-    backgroundColor: COLORS.grayscale_300,
+    backgroundColor: COLORS.grayscale_200,
   },  
 
   // 리스트
   card: {
+  },
+  titleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  titleText: {
+    color: COLORS.semantic_red,
+  },
+  detailButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  detailText: {
+    color: COLORS.semantic_blue,
   },
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
   },
   image: {
-    width: 112,
-    height: 112,
+    width: 80,
+    height: 80,
     borderRadius: 4,
     marginRight: 12,
   },
@@ -171,43 +211,40 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     flexShrink: 1,
   },
-  adressText: {
+  roomDetailText: {
     color: COLORS.grayscale_500,
     flexShrink: 1,
   },
 
   // 날짜, 시간
   dateContent: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
+    marginTop: 12,
+    padding: 4,
     flexDirection: 'row',
   },
   dateContainer: {
     flex: 1,
   },
   dateText: {
-    color: COLORS.grayscale_700,
+    color: COLORS.grayscale_400,
   },
   timeText: {
     color: COLORS.grayscale_400,
   },
-  devideText: {
+  rowDevide: {
     marginHorizontal: 16,
     alignSelf: 'center',
+    backgroundColor: COLORS.grayscale_200,
+    height: '100%',
+    width: 1,
   },
 
   // 버튼
-  reservationButton: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_200,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    borderRadius: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  buttonText: {
-
+  buttonRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 16,
+    marginTop: 16,
+    marginBottom: 8,
   },
 });

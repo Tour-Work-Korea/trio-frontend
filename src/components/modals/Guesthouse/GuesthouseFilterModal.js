@@ -14,8 +14,8 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
 import { COLORS } from "@constants/colors";
 import { FONTS } from "@constants/fonts";
-import { guesthouseTags } from '@data/guesthouseTags';
-import { roomTypes, filterServices } from '@data/guesthouseOptions';
+import { guesthouseTags } from '@constants/guesthouseTags';
+import { roomTypes, filterServices } from '@constants/guesthouseOptions';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 

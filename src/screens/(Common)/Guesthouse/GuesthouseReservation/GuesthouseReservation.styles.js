@@ -21,19 +21,22 @@ const styles = StyleSheet.create({
   title: {
     marginTop: 20,
   },
-  // 날짜
-  dateTitle: {
-    marginTop: 20,
-    color: COLORS.grayscale_800,
-  },
-  dateBoxContainer: {
+  roomName: {
     marginTop: 12,
+    marginBottom: 2,
+  },
+  // 날짜
+  dateBoxContainer: {
+    marginTop: 20,
     flexDirection: 'row',
-    gap: 8,
+    gap: 4,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dateBoxCheckIn: {
     backgroundColor: COLORS.grayscale_100,
     padding: 8,
+    paddingLeft: 24,
     borderRadius: 8,
     flex: 1,
     gap: 4,
@@ -41,6 +44,7 @@ const styles = StyleSheet.create({
   dateBoxCheckOut: {
     backgroundColor: COLORS.grayscale_100,
     padding: 8,
+    paddingLeft: 24,
     borderRadius: 8,
     flex: 1,
     gap: 4,
@@ -51,6 +55,14 @@ const styles = StyleSheet.create({
   },
   dateText: {
     color: COLORS.grayscale_700,
+  },
+  nightsBox: {
+    position: 'absolute',
+    zIndex: 10,
+    backgroundColor: COLORS.grayscale_0,
+    paddingVertical: 4,
+    paddingHorizontal: 8,
+    borderRadius: 12,
   },
 
   // 예약자 정보

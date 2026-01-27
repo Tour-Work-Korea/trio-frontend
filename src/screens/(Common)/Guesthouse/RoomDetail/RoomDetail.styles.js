@@ -41,19 +41,25 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
   },
   description: {
-    marginTop: 4,
+    marginTop: 8,
+  },
+  priceRow: {
+    alignSelf: 'flex-end',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
+    marginVertical: 20,
+    gap: 2,
+  },
+  priceInfoText: {
     color: COLORS.grayscale_500,
   },
   price: {
-    alignSelf: 'flex-end',
-    marginVertical: 20,
     color: COLORS.grayscale_800,
   },
 
   // 날짜
   dateTitle: {
     marginTop: 20,
-    color: COLORS.grayscale_800,
   },
   dateBoxContainer: {
     marginTop: 12,
@@ -81,6 +87,15 @@ const styles = StyleSheet.create({
   dateText: {
     color: COLORS.grayscale_700,
   },
+
+  // 선택인원
+  guestCountRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    marginTop: 20,
+  },
+
   button: {
     paddingHorizontal: 20,
     marginBottom: 40,

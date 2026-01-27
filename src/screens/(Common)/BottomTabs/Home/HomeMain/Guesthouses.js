@@ -6,7 +6,7 @@ import dayjs from 'dayjs';
 import styles from './Home.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import { guesthouseTags } from '@data/guesthouseTags';
+import { guesthouseTags } from '@constants/guesthouseTags';
 
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Star from '@assets/images/star_white.svg';

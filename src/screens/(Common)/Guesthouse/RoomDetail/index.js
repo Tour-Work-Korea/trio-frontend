@@ -38,12 +38,22 @@ const RoomDetail = ({route}) => {
     roomPrice,
     roomDesc,
     guesthouseName,
+    guesthouseId,
+    guesthouseAddress,
+    guesthouseAddressDetail,
+    guesthousePhone,
     checkIn,
     checkOut,
+    checkInTime,
+    checkOutTime,
     guestCount,
     roomImages,
     roomCapacity,
     roomType,
+    dormitoryGenderType,
+    roomMaxCapacity,
+    femaleOnly,
+    totalPrice,
   } = route.params;
   const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
@@ -80,6 +90,8 @@ const RoomDetail = ({route}) => {
     FEMALE_ONLY: '여성전용',
     MALE_ONLY: '남성전용',
   };
+  const isDormitory = roomType === 'DORMITORY';
+  const genderText = roomTypeMap[dormitoryGenderType] || '';
 
   return (
     <View style={styles.container}>
@@ -123,15 +135,51 @@ const RoomDetail = ({route}) => {
             <Text style={[FONTS.fs_20_semibold, styles.roomType]}>
               {roomName}
             </Text>
-            <Text style={[FONTS.fs_14_medium, {marginVertical: 4}]}>
-              {roomCapacity}인실 {roomTypeMap[roomType] || ''}
-            </Text>
+            {isDormitory ? (
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4}}
+              >
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.roomType,
+                    {color: COLORS.grayscale_500},
+                  ]}>
+                  [{roomCapacity}인 도미토리]
+                </Text>
+                {dormitoryGenderType !== 'MIXED' && !!genderText && (
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.roomType,
+                      {color: COLORS.grayscale_500},
+                    ]}>
+                    , {genderText}
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+                <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                  {roomCapacity}인 기준(최대 {roomMaxCapacity}인)
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                  {femaleOnly ? ', 여성전용' : ''}
+                </Text>
+              </View>
+            )}
             <Text style={[FONTS.fs_14_regular, styles.description]}>
               {roomDesc}
             </Text>
-            <Text style={[FONTS.fs_20_bold, styles.price]}>
-              {roomPrice.toLocaleString()}원
-            </Text>
+            <View style={styles.priceRow}>
+              <Text style={[FONTS.fs_14_medium, styles.priceInfoText]}>
+                {isDormitory ? '1베드 당' : '1객실 당'}
+              </Text>
+              <Text style={[FONTS.fs_20_bold, styles.price]}>
+                {roomPrice.toLocaleString()}원
+              </Text>
+            </View>
           </View>
 
           <Text style={[FONTS.fs_16_medium, styles.dateTitle]}>선택 날짜</Text>
@@ -158,6 +206,11 @@ const RoomDetail = ({route}) => {
                 {formatTime(checkOut)}
               </Text>
             </View>
+          </View>
+
+          <View style={styles.guestCountRow}>
+            <Text style={[FONTS.fs_16_medium]}>선택 인원</Text>
+            <Text style={[FONTS.fs_16_semibold]}>{guestCount}명</Text>
           </View>
         </View>
       </ScrollView>
@@ -216,9 +269,21 @@ const RoomDetail = ({route}) => {
                 roomName,
                 roomPrice,
                 guesthouseName,
+                guesthouseId,
+                guesthouseAddress,
+                guesthouseAddressDetail,
+                guesthousePhone,
                 checkIn,
                 checkOut,
+                checkInTime,
+                checkOutTime,
                 guestCount,
+                totalPrice,
+                roomType,
+                dormitoryGenderType,
+                roomCapacity,
+                roomMaxCapacity,
+                femaleOnly,
               });
             }
           }}

@@ -103,7 +103,7 @@ const EmploySearchResult = ({route}) => {
         const params = buildParams(pageToFetch, keyword);
         const res = await userEmployApi.getRecruits(
           params,
-          userRole === 'USER',
+          // userRole === 'USER',
         );
 
         const {content, last} = res.data;

@@ -67,7 +67,8 @@ const hostGuesthouseApi = {
 
   /** 객실 추가
    * body {
-   *  roomName, roomType, roomCapacity, roomMaxCapacity,
+   *  roomName, roomType, dormitoryGenderType, femaleOnly
+   *  roomCapacity, roomMaxCapacity,
    *  roomDescription, roomPrice,
    *  roomExtraFees: [{ startDate, endDate, addPrice }],
    *  roomImages: [{ roomImageUrl, isThumbnail }]

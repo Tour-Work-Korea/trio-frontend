@@ -81,7 +81,7 @@ const HomeMain = () => {
     try {
       const response = await userEmployApi.getRecruits(
         {page: 0, size: 3},
-        userRole === 'USER',
+        // userRole === 'USER',
       );
       setEmployList(response.data.content || []);
     } catch (error) {
@@ -94,12 +94,11 @@ const HomeMain = () => {
 
   const tryFetchMeets = useCallback(async () => {
     try {
-      const response = await userMeetApi.searchParties({
-        page: 0,
-        size: 3,
-        sortBy: 'RECOMMEND',
-      });
-      setEventList(response.data.content || []);
+      const {data} = await userMeetApi.getPopularParties();
+      const list = Array.isArray(data)
+        ? data
+        : data?.content || (data ? [data] : []);
+      setEventList(list);
     } catch (error) {
       console.warn('이벤트 조회 실패', error);
       setEventList([]);
