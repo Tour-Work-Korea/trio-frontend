@@ -21,7 +21,7 @@ const translateDormitoryGender = (type) => {
     case 'MALE_ONLY':
       return '남성전용';
     case 'MIXED':
-      return '공용';
+      return '';
     default:
       return '';
   }
