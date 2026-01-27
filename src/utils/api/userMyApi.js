@@ -12,7 +12,7 @@ const userMyApi = {
     api.delete(`/user/guesthouses/favorites/${guesthouseId}`),
 
   // 유저 게하 예약 리스트
-  getMyReservations: () => api.get('/order/reservation/room'),
+  getMyReservations: () => api.get('/payments/toss/reservation/room'),
 
   // 게하 예약 상세 조회
   getReservationDetail: reservationId =>

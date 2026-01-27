@@ -460,6 +460,7 @@ const GuesthouseDetail = ({route}) => {
         {activeTab === '객실' && (
           <RoomList
             detail={detail}
+            guesthouseId={id}
             localCheckIn={localCheckIn}
             localCheckOut={localCheckOut}
             localAdults={localAdults}

@@ -9,8 +9,11 @@ import ButtonWhite from '@components/ButtonWhite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 
+import RightArrow from '@assets/images/chevron_right_blue.svg';
+
 const RoomList = ({
   detail,
+  guesthouseId,
   localCheckIn,
   localCheckOut,
   localAdults,
@@ -42,6 +45,7 @@ const RoomList = ({
       roomMaxCapacity: room.roomMaxCapacity,
       femaleOnly: room.femaleOnly,
       guesthouseName: detail.guesthouseName,
+      guesthouseId,
       guesthouseAddress: detail.guesthouseAddress,
       guesthouseAddressDetail: detail.guesthouseAddressDetail,
       guesthousePhone: detail.guesthousePhone,
@@ -108,6 +112,7 @@ const RoomList = ({
       roomName: room.roomName,
       roomPrice: room.roomPrice,
       guesthouseName: detail.guesthouseName,
+      guesthouseId,
       guesthouseAddress: detail.guesthouseAddress,
       guesthouseAddressDetail: detail.guesthouseAddressDetail,
       guesthousePhone: detail.guesthousePhone,
@@ -221,6 +226,7 @@ const RoomList = ({
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
+          <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
         <View style={styles.roomInfoBottomRow}>
@@ -235,14 +241,14 @@ const RoomList = ({
               style={[
                 FONTS.fs_14_medium,
                 styles.roomType,
-                {color: COLORS.grayscale_500},
+                {color: COLORS.primary_orange},
               ]}
             >
                 남아 있는 베드 수 {room.remaining}개
             </Text>
             {reserved ? (
               <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}]}>
+                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}>
                 예약 마감
               </Text>
             ) : (
@@ -305,6 +311,7 @@ const RoomList = ({
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
+          <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
         <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>
@@ -321,7 +328,8 @@ const RoomList = ({
           <View style={{width: 128, alignItems: 'center'}}>
             {reserved ? (
               <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}]}>
+                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}
+              >
                 예약 마감
               </Text>
             ) : (

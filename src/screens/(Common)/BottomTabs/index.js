@@ -114,7 +114,7 @@ const styles = StyleSheet.create({
   tabBarIOS: {
     height: 92,
     paddingTop: 12,
-    paddingHorizontal: 36,
+    paddingHorizontal: 24,
   },
   tabBarItem: {
     paddingVertical: 0, // 아이템 자체 여백 제거

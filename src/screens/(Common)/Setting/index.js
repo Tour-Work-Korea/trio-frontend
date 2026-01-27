@@ -5,6 +5,8 @@ import {useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import AlertModal from '@components/modals/AlertModal';
 
+import authApi from '@utils/api/authApi';
+import {tryLogout} from '@utils/auth/login';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
@@ -12,6 +14,26 @@ import RightArrow from '@assets/images/chevron_right_gray.svg';
 const Settings = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
+  const [isWithdrawing, setIsWithdrawing] = useState(false);
+
+  const handleWithdrawal = async () => {
+    if (isWithdrawing) return;
+    setIsWithdrawing(true);
+    setModalVisible(false);
+
+    try {
+      await authApi.withdrawal();
+    } catch (error) {
+      console.warn('[Settings] withdrawal failed:', error?.message);
+    } finally {
+      // await tryLogout();
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs'}],
+      });
+      setIsWithdrawing(false);
+    }
+  };
 
   return (
     <View style={styles.background}>
@@ -56,7 +78,7 @@ const Settings = () => {
         buttonText={'취소'}
         buttonText2={'탈퇴하기'}
         onPress={() => setModalVisible(false)}
-        onPress2={() => {}}
+        onPress2={handleWithdrawal}
       />
     </View>
   );

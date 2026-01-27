@@ -14,20 +14,21 @@ const GuesthousePaymentSuccess = () => {
   const { reservationId, receiptContext } = route.params || {};
 
   // 2초뒤 예약 획정 화면
-  // useEffect(() => {
-  //   const timer = setTimeout(() => {
-  //     navigation.replace('GuesthousePaymentReceipt', {
-  //       reservationId,
-  //       receiptContext,
-  //     });
-  //   }, 2000);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.replace('GuesthousePaymentReceipt', {
+        reservationId,
+        receiptContext,
+        isFromPaymentFlow: true,
+      });
+    }, 2000);
 
-  //   return () => clearTimeout(timer);
-  // }, [navigation]);
+    return () => clearTimeout(timer);
+  }, [navigation]);
 
-  const handleGoHome = () => {
-    navigation.navigate('MainTabs', { screen: '홈' });
-  };
+  // const handleGoHome = () => {
+  //   navigation.navigate('MainTabs', { screen: '홈' });
+  // };
 
   return (
     <View style={styles.container}>
@@ -43,9 +44,9 @@ const GuesthousePaymentSuccess = () => {
         </Text> */}
       </View>
 
-      <View style={styles.button}>
+      {/* <View style={styles.button}>
         <ButtonScarlet title={'홈으로'} onPress={handleGoHome}/>
-      </View>
+      </View> */}
     </View>
   );
 };
