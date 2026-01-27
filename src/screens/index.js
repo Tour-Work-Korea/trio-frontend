@@ -56,6 +56,7 @@ export {default as VerifyPhone} from './(Common)/Login/VerifyPhone';
 export {default as FindIntro} from './(Common)/Login/FindIntro';
 export {default as FindId} from './(Common)/Login/FindId';
 export {default as FindPassword} from './(Common)/Login/FindPassword';
+export {default as SocialLogin} from './(Common)/Login/SocialLogin';
 
 // (Host)
 
@@ -118,8 +119,6 @@ export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservati
 // 게하 리뷰
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
-//
-export {default as SocialLogin} from './(User)/UserRegister/SocialLogin';
 //
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
 // 좋아하는 이벤트

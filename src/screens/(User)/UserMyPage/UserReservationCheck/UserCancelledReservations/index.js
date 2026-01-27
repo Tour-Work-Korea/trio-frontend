@@ -9,7 +9,7 @@ import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
-import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 
 export default function UserCancelledReservations({ data }) {
@@ -123,6 +123,7 @@ export default function UserCancelledReservations({ data }) {
                 guestCount: 1,
               })
             }
+            backgroundColor={COLORS.grayscale_100}
           />
         </View>
 

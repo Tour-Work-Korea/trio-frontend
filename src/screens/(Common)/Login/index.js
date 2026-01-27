@@ -7,6 +7,7 @@ import {
   VerifyPhone,
   FindId,
   FindPassword,
+  SocialLogin,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -20,6 +21,7 @@ export default function Login() {
       <Stack.Screen name="VerifyPhone" component={VerifyPhone} />
       <Stack.Screen name="FindId" component={FindId} />
       <Stack.Screen name="FindPassword" component={FindPassword} />
+      <Stack.Screen name="SocialLogin" component={SocialLogin} />
     </Stack.Navigator>
   );
 }

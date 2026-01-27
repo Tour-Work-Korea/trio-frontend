@@ -26,7 +26,6 @@ import {
   Login,
   RegisterIntro,
   RegisterAgree,
-  SocialLogin,
   PhoneCertificate,
   EmailCertificate,
   UserRegisterProfile,
@@ -119,7 +118,6 @@ const RootNavigation = () => (
       <Stack.Screen name="ProfileUpdate" component={ProfileUpdate} />
       {/* 로그인, 회원가입 하단바 없는 화면 */}
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
-      <Stack.Screen name="SocialLogin" component={SocialLogin} />
       <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
       <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
       <Stack.Screen name="EmailCertificate" component={EmailCertificate} />

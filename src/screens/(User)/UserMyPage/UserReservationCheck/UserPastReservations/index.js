@@ -11,7 +11,7 @@ import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
-import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 
 export default function UserPastReservations({ data }) {
@@ -139,6 +139,7 @@ export default function UserPastReservations({ data }) {
                 guestCount: 1,
               })
             }
+            backgroundColor={COLORS.grayscale_100}
           />
           <ButtonWhite
             title={item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
@@ -155,6 +156,7 @@ export default function UserPastReservations({ data }) {
                 checkOutFormatted,
               });
             }}
+            backgroundColor={COLORS.grayscale_100}
           />
         </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
