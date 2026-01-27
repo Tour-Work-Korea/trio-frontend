@@ -5,6 +5,7 @@ import Toast from 'react-native-toast-message';
 import UserPhone from '@components/Certificate/UserPhone';
 import HostPhone from '@components/Certificate/HostPhone';
 import authApi from '@utils/api/authApi';
+import {storeLoginTokens} from '@utils/auth/login';
 
 import AlertModal from '@components/modals/AlertModal';
 
@@ -14,7 +15,8 @@ import AlertModal from '@components/modals/AlertModal';
  * - HOST: 기존 SMS(HostPhone) 인증 → phoneNumber 받기 → 다음 화면 이동
  */
 const PhoneCertificate = ({route}) => {
-  const {user, agreements, email} = route.params;
+  const {user, agreements, email, isSocial = false, externalId = null} =
+    route.params;
   const navigation = useNavigation();
   const [checking, setChecking] = useState(false); // 중복 호출 방지
 
@@ -51,6 +53,43 @@ const PhoneCertificate = ({route}) => {
 
     try {
       setChecking(true);
+
+      if (isSocial && !externalId) {
+        openModal({
+          message: '로그인 오류 잠시 후 다시 시도해주세요.',
+        });
+        return;
+      }
+
+      if (isSocial && externalId) {
+        const res = await authApi.completeSocialSignUp({
+          externalId,
+          niceAuthToken,
+          userRole: 'USER',
+          agreements: agreements || [],
+        });
+
+        const {accessToken, refreshToken} = res.data || {};
+
+        if (!accessToken || !refreshToken) {
+          openModal({
+            message: '로그인 오류 잠시 후 다시 시도해주세요.',
+          });
+          return;
+        }
+
+        await storeLoginTokens({
+          accessToken,
+          refreshToken,
+          userRole: 'USER',
+        });
+
+        navigation.reset({
+          index: 0,
+          routes: [{name: 'MainTabs'}],
+        });
+        return;
+      }
 
       // 가입 상태 체크
       const res = await authApi.checkSignUpStatus(niceAuthToken);

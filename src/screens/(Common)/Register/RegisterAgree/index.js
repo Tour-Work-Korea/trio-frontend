@@ -14,7 +14,7 @@ import styles from './Agree.styles';
 import { COLORS } from '@constants/colors';
 
 const RegisterAgree = ({route}) => {
-  const {user} = route.params;
+  const {user, isSocial = false, externalId = null} = route.params;
   const [agreements, setAgreements] = useState(
     user === 'USER' ? userRegisterAgrees : hostRegisterAgrees,
   );
@@ -68,6 +68,16 @@ const RegisterAgree = ({route}) => {
 
   const handleMoveNext = () => {
     const agreementPayload = getAgreementPayload();
+    if (isSocial) {
+      navigation.navigate('PhoneCertificate', {
+        user,
+        agreements: agreementPayload,
+        isSocial: true,
+        externalId,
+      });
+      return;
+    }
+
     navigation.navigate('EmailCertificate', {
       user,
       agreements: agreementPayload,
