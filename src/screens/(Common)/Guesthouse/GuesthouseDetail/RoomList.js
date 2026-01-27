@@ -9,7 +9,7 @@ import ButtonWhite from '@components/ButtonWhite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 
-import RightArrow from '@assets/images/chevron_right_gray.svg';
+import RightArrow from '@assets/images/chevron_right_blue.svg';
 
 const RoomList = ({
   detail,
@@ -311,6 +311,7 @@ const RoomList = ({
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
+          <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
         <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>

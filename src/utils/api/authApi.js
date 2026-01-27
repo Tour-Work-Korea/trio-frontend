@@ -131,8 +131,12 @@ const authApi = {
   //비밀번호 찾기
   findPassword: body =>
     api.post('/auth/find/password', body, {withAuth: false}),
+
   //로그아웃
   logout: refreshToken => api.post('/auth/logout', {refreshToken}),
+
+  //회원 탈퇴
+  withdrawal: () => api.post('/auth/user/withdrawal'),
 };
 
 export default authApi;

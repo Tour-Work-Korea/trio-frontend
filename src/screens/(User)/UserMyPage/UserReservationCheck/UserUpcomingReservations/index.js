@@ -14,7 +14,7 @@ import { getRefundPolicyModalContent, REFUND_POLICY_RESULT } from '@utils/refund
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
-import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 
 export default function UserUpcomingReservations({ data, onRefresh }) {
@@ -195,11 +195,13 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
                 guestCount: 1,
               })
             }
+            backgroundColor={COLORS.grayscale_100}
           />
           <ButtonWhite
             title='주소 복사'
             style={{flex:1}}
             onPress={() => handleCopyAddress(item.guesthouseAddress)}
+            backgroundColor={COLORS.grayscale_100}
           />
         </View>
 

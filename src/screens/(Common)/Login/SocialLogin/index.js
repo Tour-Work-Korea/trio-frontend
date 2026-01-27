@@ -192,6 +192,10 @@ const SocialLogin = () => {
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         javaScriptEnabled
         domStorageEnabled
+        incognito
+        cacheEnabled={false}
+        sharedCookiesEnabled={false}
+        thirdPartyCookiesEnabled={false}
         startInLoadingState
         renderLoading={() => (
           <View style={styles.loading}>

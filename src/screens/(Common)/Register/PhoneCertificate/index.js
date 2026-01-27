@@ -40,10 +40,23 @@ const PhoneCertificate = ({route}) => {
     setErrorModal(prev => ({...prev, visible: false}));
   };
 
+  const moveToLoginIntro = () => {
+    closeModal();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'LoginIntro'}],
+    });
+  };
+
   /**
    * NICE 인증 완료 토큰을 받았을 때 실행되는 콜백
    * - token은 일회용/유효시간(10분)
    */
+  const getErrorMessage = error =>
+    error?.response?.data?.message ||
+    error?.message ||
+    '계정 상태 확인 중 문제가 발생했어요.';
+
   const handleNiceVerifiedSuccess = async niceAuthToken => {
     // 토큰이 없으면 아무 것도 안함
     if (!niceAuthToken) return;
@@ -57,23 +70,37 @@ const PhoneCertificate = ({route}) => {
       if (isSocial && !externalId) {
         openModal({
           message: '로그인 오류 잠시 후 다시 시도해주세요.',
+          buttonText: '로그인으로 이동',
+          onPress: moveToLoginIntro,
         });
         return;
       }
 
       if (isSocial && externalId) {
-        const res = await authApi.completeSocialSignUp({
-          externalId,
-          niceAuthToken,
-          userRole: 'USER',
-          agreements: agreements || [],
-        });
+        let res;
+        try {
+          res = await authApi.completeSocialSignUp({
+            externalId,
+            niceAuthToken,
+            userRole: 'USER',
+            agreements: agreements || [],
+          });
+        } catch (error) {
+          openModal({
+            message: getErrorMessage(error),
+            buttonText: '로그인으로 이동',
+            onPress: moveToLoginIntro,
+          });
+          return;
+        }
 
         const {accessToken, refreshToken} = res.data || {};
 
         if (!accessToken || !refreshToken) {
           openModal({
-            message: '로그인 오류 잠시 후 다시 시도해주세요.',
+            message: getErrorMessage(),
+            buttonText: '로그인으로 이동',
+            onPress: moveToLoginIntro,
           });
           return;
         }
@@ -167,11 +194,14 @@ const PhoneCertificate = ({route}) => {
 
       // 알 수 없는 status
       openModal({
-        message: '계정 상태 확인 중 문제가 발생했어요.',
+        message: getErrorMessage(),
       });
     } catch (e) {
       openModal({
-        message: '계정 상태 확인 중 문제가 발생했어요.',
+        message: getErrorMessage(e),
+        ...(isSocial
+          ? {buttonText: '로그인으로 이동', onPress: moveToLoginIntro}
+          : null),
       });
     } finally {
       setChecking(false);
