@@ -10,6 +10,7 @@ import {
   Platform,
   Keyboard,
   TouchableWithoutFeedback,
+  Image,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -37,7 +38,16 @@ const formatPhoneNumber = phone => {
 const MeetReservation = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {partyId} = route.params ?? {};
+  const {
+    partyId,
+    partyTitle: routePartyTitle,
+    partyStartDateTime: routePartyStartDateTime,
+    partyStartTime: routePartyStartTime,
+    partyEndTime: routePartyEndTime,
+    amount: routeMaleGuestAmount,
+    maleNonAmount: routeMaleNonAmount,
+    thumbnailUrl: routeThumbnailUrl,
+  } = route.params ?? {};
   const [reservationInfo, setReservationInfo] = useState(null);
 
   // 예약 정보
@@ -77,11 +87,18 @@ const MeetReservation = () => {
     run();
   }, [partyId, navigation]);
 
-  const title = reservationInfo?.partyTitle ?? '';
-  const checkIn = reservationInfo?.partyStartDateTime ?? null;
-  const checkOut = reservationInfo?.partyEndDateTime ?? null;
+  const title = reservationInfo?.partyTitle ?? routePartyTitle ?? '';
+  const checkInDate = reservationInfo?.partyStartDateTime ?? routePartyStartDateTime ?? null;
+  const checkInTime =
+    reservationInfo?.partyStartDateTime ??
+    routePartyStartTime ??
+    routePartyStartDateTime ??
+    null;
+  const checkOutTime =
+    reservationInfo?.partyEndDateTime ?? routePartyEndTime ?? null;
   const isGuest = !!reservationInfo?.guest;
-  const gender = reservationInfo?.gender === 'F' ? '여자' : '남자';
+  const isFemale = reservationInfo?.gender === 'F';
+  const gender = isFemale ? '여자' : '남자';
   const meetPrice = reservationInfo?.amount ?? 0;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
@@ -99,6 +116,37 @@ const MeetReservation = () => {
     if (!date.isValid()) return '-';
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
+
+  const formatPriceValue = value => {
+    const numeric = Number(value);
+    if (!Number.isFinite(numeric)) return null;
+    return `${numeric.toLocaleString()}원`;
+  };
+
+  const guestPrice = isGuest
+    ? reservationInfo?.amount ?? routeMaleGuestAmount ?? null
+    : routeMaleGuestAmount ?? null;
+  const nonGuestPrice = isGuest
+    ? routeMaleNonAmount ?? null
+    : reservationInfo?.amount ?? routeMaleNonAmount ?? null;
+
+  const guestPriceText = formatPriceValue(guestPrice) ?? '-';
+  const nonGuestPriceText =
+    nonGuestPrice == null
+      ? '참여불가'
+      : formatPriceValue(nonGuestPrice) ?? '참여불가';
+
+  const eventDateText = formatDateWithDay(checkInDate);
+  const eventTimeText = `${formatTime(checkInTime)}~${formatTime(checkOutTime)}`;
+  const eventDateTimeText =
+    eventDateText === '-' ? eventTimeText : `${eventDateText} ${eventTimeText}`;
+  const eventDateTimeNoEndText =
+    eventDateText === '-'
+      ? formatTime(checkInTime)
+      : `${eventDateText} ${formatTime(checkInTime)}`;
+  const eventThumbnailSource = routeThumbnailUrl
+    ? {uri: routeThumbnailUrl}
+    : null;
 
   const [agreeAll, setAgreeAll] = useState(false);
 
@@ -200,30 +248,28 @@ const MeetReservation = () => {
           contentContainerStyle={styles.scrollContent}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled">
-          <Text style={[FONTS.fs_20_semibold, styles.title]}>{title}</Text>
-          {/* 날짜 */}
-          <View style={styles.dateBoxContainer}>
-            <View style={styles.dateBoxCheckIn}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-                이벤트 시작
-              </Text>
-              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-                {formatDateWithDay(checkIn)}
-              </Text>
-              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-                {formatTime(checkIn)}
-              </Text>
-            </View>
-            <View style={styles.dateBoxCheckOut}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-                이벤트 종료
-              </Text>
-              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-                {formatDateWithDay(checkOut)}
-              </Text>
-              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
-                {formatTime(checkOut)}
-              </Text>
+
+          {/* 이벤트 정보 */}
+          <View style={styles.eventInfoRow}>
+            {eventThumbnailSource && (
+              <Image
+                source={eventThumbnailSource}
+                style={styles.eventThumbnail}
+                resizeMode="cover"
+              />
+            )}
+            <View style={styles.eventTextRow}>
+              <Text style={[FONTS.fs_18_medium]}>{title}</Text>
+              <Text style={[FONTS.fs_14_medium]}>{eventDateTimeText}</Text>
+              <View style={styles.eventPriceRow}>
+                <Text style={[FONTS.fs_12_medium]}>
+                  숙박객 {guestPriceText}
+                </Text>
+                <View style={styles.priceDevide} />
+                <Text style={[FONTS.fs_12_medium]}>
+                  비숙박객 {nonGuestPriceText}
+                </Text>
+              </View>
             </View>
           </View>
 
@@ -394,6 +440,12 @@ const MeetReservation = () => {
                 </TouchableOpacity>
               </View>
             </View>
+          </View>
+
+          {/* 요약정보 */}
+          <View style={styles.bottomInfoRow}>
+            <Text style={[FONTS.fs_14_medium]}>{eventDateTimeNoEndText}</Text>
+            <Text  style={[FONTS.fs_16_medium]}>{Number(meetPrice || 0).toLocaleString()}원</Text>
           </View>
 
           <View style={styles.button}>

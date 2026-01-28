@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 20,
+    paddingBottom: 60,
   },
   devide: {
     width: '100%',
@@ -17,40 +17,32 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
 
-  // 이벤트 제목
-  title: {
-    marginTop: 20,
-  },
-  // 날짜
-  dateTitle: {
-    marginTop: 20,
-    color: COLORS.grayscale_800,
-  },
-  dateBoxContainer: {
-    marginTop: 12,
+  // 이벤트 정보
+  eventInfoRow: {
     flexDirection: 'row',
-    gap: 8,
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 20,
   },
-  dateBoxCheckIn: {
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
-    borderRadius: 8,
-    flex: 1,
+  eventThumbnail: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    backgroundColor: COLORS.grayscale_200,
+  },
+  eventTextRow: {
+    justifyContent: 'center',
+    gap: 6,
+  },
+  eventPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
     gap: 4,
   },
-  dateBoxCheckOut: {
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
-    borderRadius: 8,
-    flex: 1,
-    gap: 4,
-  },
-  dateLabel: {
-    marginBottom: 6,
-    color: COLORS.grayscale_400,
-  },
-  dateText: {
-    color: COLORS.grayscale_700,
+  priceDevide: {
+    width: 1,
+    backgroundColor: COLORS.grayscale_900,
+    height: 10,
   },
 
   // 예약자 정보
@@ -141,8 +133,16 @@ const styles = StyleSheet.create({
     color: COLORS.primary_blue,
   },
   button: {
-    marginTop: 40,
+    marginTop: 12,
     marginBottom: 20,
+  },
+
+  // 하단 요약정보
+  bottomInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginTop: 44,
   },
 });
 
