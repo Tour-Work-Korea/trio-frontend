@@ -43,8 +43,8 @@ const GuesthousePayment = ({route}) => {
     <WebView
       source={{
         // 결제 페이지 진입
-        // uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
-        uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        // uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
