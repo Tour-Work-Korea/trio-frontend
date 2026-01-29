@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,7 +8,6 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import dayjs from 'dayjs';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -19,12 +18,6 @@ import ReservationCancelDetailModal from '@components/modals/UserMy/Meet/Reserva
 
 export default function UserCancelledReservations({data}) {
   const navigation = useNavigation();
-
-  const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
-
-  const today = dayjs();
-  const tomorrow = today.add(1, 'day');
 
   // 모달
   const [selectedCancelledId, setSelectedCancelledId] = useState(null);
@@ -45,55 +38,38 @@ export default function UserCancelledReservations({data}) {
       item.startDateTime,
     );
 
+    const imageSource =
+      typeof item.partyImage === 'string'
+        ? {uri: item.partyImage}
+        : item.partyImage;
+
     return (
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.card}
+          activeOpacity={0.9}
           onPress={() => openModal(item.reservationId)}>
-          <View style={styles.guesthouseInfo}>
-            <Image
-              source={item.partyImage}
-              style={styles.image}
-              resizeMode="cover"
-            />
+          {/* 상단 날짜/시간 */}
+          <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
+            {startFormatted.date} {startFormatted.time}
+          </Text>
+
+          <View style={styles.divide} />
+
+          <View style={styles.infoRow}>
+            <Image source={imageSource} style={styles.image} resizeMode="cover" />
             <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
-                {item.guesthouseName}
-              </Text>
               <Text
-                style={[FONTS.fs_14_medium, styles.roomText]}
+                style={[FONTS.fs_16_semibold, styles.partyTitle]}
                 numberOfLines={1}
                 ellipsizeMode="tail">
                 {item.partyName}
               </Text>
               <Text
-                style={[FONTS.fs_12_medium, styles.adressText]}
+                style={[FONTS.fs_12_medium, styles.guesthouseText]}
                 numberOfLines={1}
                 ellipsizeMode="tail">
-                주소
-              </Text>
-            </View>
-          </View>
-          <View style={styles.dateContent}>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {' '}
-                {startFormatted.date}{' '}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
-                {' '}
-                {startFormatted.time}{' '}
-              </Text>
-            </View>
-            <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {' '}
-                {startFormatted.date}{' '}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
-                {' '}
-                {startFormatted.time}{' '}
+                {item.guesthouseName || '게스트하우스 정보 없음'}
               </Text>
             </View>
           </View>
@@ -150,52 +126,50 @@ const styles = StyleSheet.create({
   },
 
   // 리스트
-  card: {},
-  // 게하 정보
-  guesthouseInfo: {
+  card: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 12,
+    padding: 16,
+
+    // iOS shadow
+    shadowColor: COLORS.grayscale_900,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: {width: 0, height: 0},
+
+    // Android shadow
+    elevation: 3,
+  },
+  dateTimeText: {
+    color: COLORS.grayscale_700,
+    marginBottom: 8,
+  },
+  divide: {
+    height: 0.4,
+    backgroundColor: COLORS.grayscale_300,
+    marginBottom: 12,
+  },
+  infoRow: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   image: {
-    width: 112,
-    height: 112,
-    borderRadius: 4,
+    width: 72,
+    height: 72,
+    borderRadius: 10,
     marginRight: 12,
   },
   infoContent: {
     flex: 1,
     minWidth: 0,
-    paddingVertical: 4,
     gap: 4,
   },
-  nameText: {},
-  roomText: {
+  partyTitle: {
+    color: COLORS.grayscale_900,
+  },
+  guesthouseText: {
     color: COLORS.grayscale_800,
     flexShrink: 1,
-  },
-  adressText: {
-    color: COLORS.grayscale_500,
-    flexShrink: 1,
-  },
-
-  // 날짜, 시간
-  dateContent: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
-    flexDirection: 'row',
-  },
-  dateContainer: {
-    flex: 1,
-  },
-  dateText: {
-    color: COLORS.grayscale_700,
-  },
-  timeText: {
-    color: COLORS.grayscale_400,
-  },
-  devideText: {
-    marginHorizontal: 16,
-    alignSelf: 'center',
   },
 
   // 버튼

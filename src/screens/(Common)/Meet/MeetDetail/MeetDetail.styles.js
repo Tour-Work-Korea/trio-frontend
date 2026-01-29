@@ -292,6 +292,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 100,
+    backgroundColor: COLORS.grayscale_200,
   },
   profileAddr: {
     color: COLORS.grayscale_500,
