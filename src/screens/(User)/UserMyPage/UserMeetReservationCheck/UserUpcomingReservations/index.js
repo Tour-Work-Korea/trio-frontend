@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import {
   View,
   Text,
@@ -8,14 +8,17 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
+import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
 import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
-import ReservationCancelModal from '@components/modals/UserMy/Meet/ReservationCancelModal'; // 추가
+import AlertModal from '@components/modals/AlertModal';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
@@ -25,8 +28,17 @@ export default function UserUpcomingReservations({data, onRefresh}) {
   const [modalVisible, setModalVisible] = useState(false);
 
   // 예약 취소 모달
-  const [cancelModalVisible, setCancelModalVisible] = useState(false);
-  const [cancelReservationId, setCancelReservationId] = useState(null);
+  const [refundModalOpen, setRefundModalOpen] = useState(false);
+  const [refundModalContent, setRefundModalContent] = useState({
+    title: '',
+    message: '',
+    highlightText: '',
+    buttonText: '확인',
+    buttonText2: null,
+  });
+  const [refundReservationId, setRefundReservationId] = useState(null);
+  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
+  const [confirmReservationId, setConfirmReservationId] = useState(null);
 
   const openDetailModal = reservationId => {
     setSelectedReservationId(reservationId);
@@ -38,14 +50,29 @@ export default function UserUpcomingReservations({data, onRefresh}) {
     setSelectedReservationId(null);
   };
 
-  const openCancelModal = reservationId => {
-    setCancelReservationId(reservationId);
-    setCancelModalVisible(true);
-  };
-
-  const closeCancelModal = () => {
-    setCancelModalVisible(false);
-    setCancelReservationId(null);
+  const handleCancelReservation = async reservationId => {
+    if (!reservationId) return;
+    try {
+      await reservationPaymentApi.cancelReservation(
+        reservationId,
+        'PARTY',
+        '사용자 요청 취소',
+      );
+      Toast.show({
+        type: 'success',
+        text1: '취소 되었어요!',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+      await onRefresh?.();
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '예약 취소에 실패했습니다.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const renderItem = ({item, index}) => {
@@ -53,65 +80,86 @@ export default function UserUpcomingReservations({data, onRefresh}) {
       item.startDateTime,
     );
 
+    const imageSource =
+      typeof item.partyImage === 'string'
+        ? {uri: item.partyImage}
+        : item.partyImage;
+
     return (
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.card}
-          onPress={() => openDetailModal(item.reservationId)}>
-          <View style={styles.guesthouseInfo}>
-            <Image
-              source={item.partyImage}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
-                {item.guesthouseName}
-              </Text>
-              <Text
-                style={[FONTS.fs_14_medium, styles.roomText]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {item.partyName}
-              </Text>
-              <Text
-                style={[FONTS.fs_12_medium, styles.adressText]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                주소
-              </Text>
-            </View>
+          activeOpacity={0.9}
+          // onPress={() => openDetailModal(item.reservationId)}
+        >
+          {/* 상단 날짜/시간 */}
+          <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
+            {startFormatted.date} {startFormatted.time}
+          </Text>
+
+          <View style={styles.divide} />
+
+          {/* 파티명 */}
+          <Text
+            style={[FONTS.fs_18_medium, styles.partyTitle]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {item.partyName}
+          </Text>
+
+          {/* 주소 */}
+          <Text
+            style={[FONTS.fs_12_medium, styles.addressText]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {item.guesthouseAddress || '주소 정보 없음'}
+          </Text>
+
+          {/* 썸네일 */}
+          <View style={styles.imageWrap}>
+            <Image source={imageSource} style={styles.image} resizeMode="cover" />
           </View>
-          <View style={styles.dateContent}>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {' '}
-                {startFormatted.date}{' '}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
-                {' '}
-                {startFormatted.time}{' '}
-              </Text>
-            </View>
-            <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
-                {' '}
-                {startFormatted.date}{' '}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
-                {' '}
-                {startFormatted.time}{' '}
-              </Text>
-            </View>
-          </View>
+
+          {/* 예약취소 */}
+          <TouchableOpacity
+            style={styles.cancelBtn}
+            activeOpacity={0.7}
+            onPress={() => {
+              const {
+                result,
+                message,
+                description,
+                title,
+                buttonText,
+                buttonText2,
+                highlightText,
+              } = getRefundPolicyModalContent({
+                checkInDate: startFormatted.date,
+                checkInTime: startFormatted.time,
+              });
+
+              if (result && result !== REFUND_POLICY_RESULT.OK) {
+                setRefundModalContent({
+                  title: title || '',
+                  message: message || description || '',
+                  highlightText: highlightText || '',
+                  buttonText: buttonText || '확인',
+                  buttonText2: buttonText2 || null,
+                });
+                setRefundReservationId(item.reservationId);
+                setRefundModalOpen(true);
+                return;
+              }
+
+              setConfirmReservationId(item.reservationId);
+              setConfirmModalOpen(true);
+            }}>
+            <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
+              예약취소
+            </Text>
+          </TouchableOpacity>
         </TouchableOpacity>
 
-        {/* <TouchableOpacity onPress={() => openCancelModal(item.reservationId)}>
-          <Text style={[FONTS.fs_12_medium, styles.cancelText]}>예약취소</Text>
-        </TouchableOpacity> */}
-
-        {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
     );
   };
@@ -148,14 +196,35 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         reservationId={selectedReservationId}
       />
 
-      {/* 예약 취소 모달 */}
-      <ReservationCancelModal
-        visible={cancelModalVisible}
-        onClose={() => {
-          closeCancelModal();
-          onRefresh && onRefresh();
+      {/* 환불 없이 취소 모달 */}
+      <AlertModal
+        visible={refundModalOpen}
+        title={refundModalContent.title}
+        message={refundModalContent.message}
+        highlightText={refundModalContent.highlightText}
+        buttonText={refundModalContent.buttonText}
+        buttonText2={refundModalContent.buttonText2}
+        onPress={async () => {
+          await handleCancelReservation(refundReservationId);
+          setRefundModalOpen(false);
+          setRefundReservationId(null);
         }}
-        reservationId={cancelReservationId}
+        onPress2={() => setRefundModalOpen(false)}
+      />
+
+      {/* 환불 포함 취소 확인 모달 */}
+      <AlertModal
+        visible={confirmModalOpen}
+        title="예약 취소"
+        message="예약을 취소하시겠습니까?"
+        buttonText="취소하기"
+        buttonText2="유지하기"
+        onPress={async () => {
+          await handleCancelReservation(confirmReservationId);
+          setConfirmModalOpen(false);
+          setConfirmReservationId(null);
+        }}
+        onPress2={() => setConfirmModalOpen(false)}
       />
     </>
   );
@@ -165,63 +234,55 @@ const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
   },
-  cancelText: {
-    color: COLORS.grayscale_400,
-    alignSelf: 'flex-end',
-    marginTop: 8,
-  },
-  devide: {
-    marginVertical: 16,
-    height: 0.4,
-    backgroundColor: COLORS.grayscale_300,
-  },
 
   // 리스트
-  card: {},
-  // 게하 정보
-  guesthouseInfo: {
-    flexDirection: 'row',
-  },
-  image: {
-    width: 112,
-    height: 112,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  infoContent: {
-    flex: 1,
-    minWidth: 0,
-    paddingVertical: 4,
-    gap: 4,
-  },
-  nameText: {},
-  roomText: {
-    color: COLORS.grayscale_800,
-    flexShrink: 1,
-  },
-  adressText: {
-    color: COLORS.grayscale_500,
-    flexShrink: 1,
+  card: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 12,
+    padding: 16,
+
+    // iOS shadow
+    shadowColor: COLORS.grayscale_900,
+    shadowOpacity: 0.06,
+    shadowRadius: 10,
+    shadowOffset: {width: 0, height: 0},
+
+    // Android shadow
+    elevation: 3,
   },
 
-  // 날짜, 시간
-  dateContent: {
-    marginTop: 8,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 8,
-    flexDirection: 'row',
-  },
-  dateContainer: {
-    flex: 1,
-  },
-  dateText: {
+  dateTimeText: {
     color: COLORS.grayscale_700,
+    marginBottom: 8,
   },
-  timeText: {
+  divide: {
+    height: 0.4,
+    backgroundColor: COLORS.grayscale_300,
+    marginBottom: 8,
+  },
+  partyTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+  },
+  addressText: {
+    color: COLORS.grayscale_500,
+    marginBottom: 16,
+  },
+  imageWrap: {
+    borderRadius: 10,
+    overflow: 'hidden',
+  },
+  image: {
+    width: '100%',
+    height: 180,
+  },
+
+  // 예약취소
+  cancelBtn: {
+    marginTop: 12,
+    alignSelf: 'flex-end',
+  },
+  cancelBtnText: {
     color: COLORS.grayscale_400,
-  },
-  devideText: {
-    marginHorizontal: 16,
-    alignSelf: 'center',
   },
 });

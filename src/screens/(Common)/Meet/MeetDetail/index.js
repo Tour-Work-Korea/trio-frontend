@@ -695,7 +695,18 @@ const MeetDetail = () => {
 
       <TouchableOpacity
         style={styles.bottomButton}
-        onPress={() => navigation.navigate('MeetReservation', {partyId})}
+        onPress={() =>
+          navigation.navigate('MeetReservation', {
+            partyId,
+            partyTitle,
+            partyStartDateTime,
+            partyStartTime,
+            partyEndTime,
+            amount,
+            maleNonAmount,
+            thumbnailUrl: thumbnailSource?.uri,
+          })
+        }
       >
         <Text style={[FONTS.fs_16_semibold, {color: 'white'}]}>참여하기</Text>
       </TouchableOpacity>

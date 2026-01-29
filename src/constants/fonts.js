@@ -80,4 +80,18 @@ export const FONTS = {
     fontSize: 20,
     fontFamily: getFont('Bold'),
   },
+
+  // 22
+  fs_22_medium: {
+    fontSize: 22,
+    fontFamily: getFont('Medium'),
+  },
+  fs_22_semibold: {
+    fontSize: 22,
+    fontFamily: getFont('SemiBold'),
+  },
+  fs_22_bold: {
+    fontSize: 22,
+    fontFamily: getFont('Bold'),
+  },
 };
