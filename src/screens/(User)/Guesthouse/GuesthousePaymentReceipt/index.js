@@ -472,22 +472,22 @@ const GuesthousePaymentReceipt = () => {
         <View style={styles.actionRow}>
           <TouchableOpacity style={styles.actionBtn} onPress={handleCall}>
             <PhoneIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_medium, styles.actionText]}>숙소문의</Text>
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>숙소문의</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionBtn} onPress={handleCopyAddress}>
             <CopyIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_medium, styles.actionText]}>주소복사</Text>
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>주소복사</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionBtn} onPress={handleOpenMap}>
             <MapIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_medium, styles.actionText]}>지도보기</Text>
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>지도보기</Text>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.actionBtn} onPress={handleFindWay}>
             <RouteIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_medium, styles.actionText]}>길찾기</Text>
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>길찾기</Text>
           </TouchableOpacity>
         </View>
 

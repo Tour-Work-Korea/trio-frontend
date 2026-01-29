@@ -25,6 +25,7 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
@@ -210,9 +211,12 @@ const MeetReservation = () => {
     try {
       // 요청사항
       const requestText = requestMessage?.trim() || '';
-      const {data} = await userMeetApi.createPartyReservation(
+      const {data} = await reservationPaymentApi.createPartyReservation(
         partyId,
-        requestText,
+        {
+          amount: Number(reservationInfo?.amount ?? 0),
+          request: requestText,
+        },
       );
 
       const reservationId =

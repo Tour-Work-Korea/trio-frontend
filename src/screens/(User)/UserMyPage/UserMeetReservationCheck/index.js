@@ -1,14 +1,5 @@
 import React, {useEffect, useState, useCallback} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-  Image,
-  Alert,
-} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
-import dayjs from 'dayjs';
+import {View, Text, TouchableOpacity} from 'react-native';
 
 import styles from './UserMeetReservationCheck.styles';
 import Header from '@components/Header';
@@ -18,82 +9,25 @@ import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
 import UserCancelledReservations from './UserCancelledReservations';
 import Loading from '@components/Loading';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 const TABS = [
-  {key: 'upcoming', label: '다가오는 예약'},
-  {key: 'past', label: '지난 예약'},
-  {key: 'cancelled', label: '예약취소'},
+  {key: 'upcoming', label: '다가오는 이벤트'},
+  {key: 'past', label: '지난 이벤트'},
+  // {key: 'cancelled', label: '예약취소'},
 ];
-
-// 랜덤 유틸
-// const randInt = (min, max) => Math.floor(Math.random() * (max - min + 1)) + min;
-// const pick = arr => arr[randInt(0, arr.length - 1)];
-
-// 오늘~7일 뒤 사이의 임의 시간 생성
-// const randomDateTimeWithin7Days = () => {
-//   const dayOffset = randInt(0, 7); // 오늘 ~ +7일
-//   const hour = randInt(9, 22); // 09~22시
-//   const minute = pick([0, 10, 20, 30, 40, 50]); // 10분 단위
-//   return dayjs()
-//     .startOf('day')
-//     .add(dayOffset, 'day')
-//     .hour(hour)
-//     .minute(minute)
-//     .second(0);
-// };
-
-// 이벤트명 더미
-// const PARTY_NAMES = [
-//   '제주 선셋 바베큐 파티',
-//   '야간 번개 이벤트',
-//   '보드게임 & 맥주',
-//   '새벽 바다 산책',
-//   '별멍 감성 파티',
-//   '함께하는 사진 산책',
-// ];
-
-// 게스트하우스 더미
-// const GUESTHOUSE_IDS = [101, 102, 103, 104, 105];
-
-// ✅ 요구 스키마로 N개 생성
-// const generateMeetReservations = (n = 12) => {
-//   const statuses = ['CONFIRMED', 'COMPLETED', 'CANCELLED'];
-
-//   return Array.from({length: n}, (_, i) => {
-//     const start = randomDateTimeWithin7Days();
-//     const amount = randInt(1, 8) * 10000; // 10,000 ~ 80,000
-//     const reservationStatus = pick(statuses);
-
-//     const reservationId = 1000 + i;
-//     const guesthouseId = pick(GUESTHOUSE_IDS);
-//     const partyName = pick(PARTY_NAMES);
-//     const partyImage = `https://pixabay.com/ko/photos/%EA%B3%A8%EB%AA%A9-%EB%82%98%EB%AC%B4-%EA%B8%B8-%EC%88%B2-%EC%B9%A8%EC%B0%A9-%ED%95%9C-9723861/`;
-
-//     return {
-//       reservationId, // Long
-//       amount, // BigDecimal (숫자)
-//       guesthouseId, // Long
-//       partyName, // String
-//       partyImage, // String (URL)
-//       reservationStatus, // String
-//       startDateTime: start.toISOString(), // LocalDateTime (ISO)
-//     };
-//   });
-// };
 
 const UserMeetReservationCheck = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  // 모크 데이터 불러오기 (실제 API라면 fetchReservationList 호출)
   const fetchReservationList = useCallback(async () => {
     try {
       setLoading(true);
-      // 네트워크 호출 대신 모크 데이터 주입
-      await new Promise(r => setTimeout(r, 300));
-      // setReservations(generateMeetReservations(12));
-      setReservations([]);
+      const {data} = await reservationPaymentApi.getPartyReservationList();
+      const list = Array.isArray(data) ? data : data?.content ?? [];
+      setReservations(list);
     } catch (e) {
       console.log('예약 목록 불러오기 실패', e);
     } finally {
@@ -123,10 +57,10 @@ const UserMeetReservationCheck = () => {
         );
       case 'past':
         return <UserPastReservations data={filteredReservations.past} />;
-      case 'cancelled':
-        return (
-          <UserCancelledReservations data={filteredReservations.cancelled} />
-        );
+      // case 'cancelled':
+      //   return (
+      //     <UserCancelledReservations data={filteredReservations.cancelled} />
+      //   );
       default:
         return null;
     }

@@ -125,6 +125,7 @@ export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegister
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';
 // 이벤트 예약내역
 export {default as UserMeetReservationCheck} from './(User)/UserMyPage/UserMeetReservationCheck';
+export {default as UserMeetReservationCancelled} from './(User)/UserMyPage/UserMeetReservationCancelled';
 
 // 예시 화면들
 export {default as EXDeeplink} from './EXDeeplink';
