@@ -25,9 +25,11 @@ const styles = StyleSheet.create({
     color: COLORS.primary_orange,
   },
 
+  // 탭 내용
   tabContentContainer: {
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
+    paddingBottom: 20,
   },
 });
 
