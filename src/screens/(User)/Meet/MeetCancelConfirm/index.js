@@ -12,14 +12,14 @@ import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
-import styles from './GuesthouseCancelConfirm.styles';
+import styles from './MeetCancelConfirm.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
-import {formatLocalDateToDotWithDay} from '@utils/formatDate';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
+import {trimJejuPrefix} from '@utils/formatAddress';
 import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
-import ReservationCancelConfirmModal from '@components/modals/Guesthouse/ReservationCancelConfirmModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import Toast from 'react-native-toast-message';
 
@@ -28,7 +28,7 @@ import CheckGray from '@assets/images/check_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
-const GuesthouseCancelConfirm = () => {
+const MeetCancelConfirm = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const cancelContext = route?.params?.cancelContext ?? null;
@@ -41,7 +41,6 @@ const GuesthouseCancelConfirm = () => {
   const reasons = ['단순변심', '예약착오', '가격차이', '기타'];
   const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
-  const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
   useEffect(() => {
@@ -49,7 +48,7 @@ const GuesthouseCancelConfirm = () => {
       if (!reservationId) return;
       try {
         setDetailLoading(true);
-        const res = await reservationPaymentApi.getReservationPaymentDetail(
+        const res = await reservationPaymentApi.getPartyReservationDetail(
           reservationId,
         );
         setReservationDetail(res.data);
@@ -85,20 +84,28 @@ const GuesthouseCancelConfirm = () => {
       cancelContext?.refundMethod ||
       (paymentLabel ? `${paymentLabel} 환불` : '');
 
+    const startDateTime =
+      reservationDetail?.startDateTime ?? cancelContext?.startDateTime ?? null;
+    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      startDateTime,
+    );
+    const locationText =
+      trimJejuPrefix(reservationDetail?.partyLocation ?? '') ||
+      reservationDetail?.meetingPlace ||
+      cancelContext?.partyLocation ||
+      cancelContext?.meetingPlace ||
+      '';
+
     return {
+      partyTitle:
+        reservationDetail?.partyTitle ?? cancelContext?.partyTitle ?? '',
+      partyImage: reservationDetail?.partyImage ?? cancelContext?.partyImage ?? null,
       guesthouseName:
         reservationDetail?.guesthouse ?? cancelContext?.guesthouseName ?? '',
-      guesthouseImage: cancelContext?.guesthouseImage ?? null,
-      roomName: reservationDetail?.roomName ?? cancelContext?.roomName ?? '',
-      roomDesc: cancelContext?.roomDesc ?? '',
-      checkInDate: reservationDetail?.checkIn
-        ? formatLocalDateToDotWithDay(reservationDetail.checkIn)
-        : cancelContext?.checkInDate ?? '',
-      checkInTime: cancelContext?.checkInTime ?? '',
-      checkOutDate: reservationDetail?.checkOut
-        ? formatLocalDateToDotWithDay(reservationDetail.checkOut)
-        : cancelContext?.checkOutDate ?? '',
-      checkOutTime: cancelContext?.checkOutTime ?? '',
+      location: locationText,
+      startDateTime,
+      startDate: startFormatted.date,
+      startTime: startFormatted.time,
       paidAmount,
       cancelFee,
       refundAmount,
@@ -106,6 +113,9 @@ const GuesthouseCancelConfirm = () => {
     };
   }, [reservationDetail, cancelContext]);
   const refundAmount = viewData.refundAmount;
+  const startDateTimeText = viewData.startDateTime
+    ? dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')
+    : '-';
 
   const handleCancelConfirm = async () => {
     if (!reservationId || cancelSubmitting) return;
@@ -113,7 +123,7 @@ const GuesthouseCancelConfirm = () => {
       setCancelSubmitting(true);
       const res = await reservationPaymentApi.cancelReservation(
         reservationId,
-        'GUESTHOUSE',
+        'PARTY',
         selectedReason,
       );
       const cancelDetail = res?.data ?? null;
@@ -121,13 +131,19 @@ const GuesthouseCancelConfirm = () => {
         cancelDetail?.reservationId ?? reservationId;
       const reservationItem = {
         ...cancelDetail,
-        guesthouseImage: viewData.guesthouseImage,
-        roomDesc: viewData.roomDesc,
-        guesthouseCheckIn: viewData.checkInTime,
-        guesthouseCheckOut: viewData.checkOutTime,
+        partyTitle: viewData.partyTitle,
+        partyImage: viewData.partyImage,
+        guesthouseName: viewData.guesthouseName,
+        startDateTime: viewData.startDateTime,
+        startDate: viewData.startDate,
+        startTime: viewData.startTime,
+        location: viewData.location,
+        partyLocation:
+          reservationDetail?.partyLocation ?? cancelContext?.partyLocation ?? null,
+        meetingPlace:
+          reservationDetail?.meetingPlace ?? cancelContext?.meetingPlace ?? null,
       };
-      setCancelConfirmOpen(false);
-      navigation.replace('GuesthouseCancelSuccess', {
+      navigation.replace('MeetCancelSuccess', {
         reservationId: nextReservationId,
         reservationItem,
       });
@@ -171,46 +187,21 @@ const GuesthouseCancelConfirm = () => {
 
           {/* 예약 카드 */}
           <View style={styles.card}>
-            {viewData.guesthouseImage ? (
+            {viewData.partyImage ? (
               <Image
-                source={{uri: viewData.guesthouseImage}}
+                source={{uri: viewData.partyImage}}
                 style={styles.thumbnail}
               />
             ) : null}
 
             <View style={styles.cardInfo}>
               <Text style={[FONTS.fs_16_semibold]}>
-                {viewData.guesthouseName}
+                {viewData.partyTitle}
               </Text>
-              <Text style={[FONTS.fs_14_medium, styles.roomName]}>
-                {viewData.roomName}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.roomDesc]}>
-                {viewData.roomDesc}
-              </Text>
-            </View>
-          </View>
-
-          {/* 날짜 */}
-          <View style={styles.dateRow}>
-            <View style={{flex:1}}>
-              <Text style={[FONTS.fs_14_semibold]}>
-                {viewData.checkInDate}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.time]}>
-                {viewData.checkInTime}
-              </Text>
-            </View>
-
-            <View style={styles.dateDivider} />
-
-            <View style={{flex:1, paddingLeft: '8%'}}>
-              <Text style={[FONTS.fs_14_semibold]}>
-                {viewData.checkOutDate}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.time]}>
-                {viewData.checkOutTime}
-              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.timeText]}>{startDateTimeText}</Text>
+              {/* <Text>
+                숙박객 어쩌구 글씨
+              </Text> */}
             </View>
           </View>
 
@@ -336,7 +327,7 @@ const GuesthouseCancelConfirm = () => {
                 )}
               </View>
               <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
-                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 숙소 취소 / 환불
+                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 이벤트 취소 / 환불
                 규정에 동의합니다.
               </Text>
             </TouchableOpacity>
@@ -351,24 +342,9 @@ const GuesthouseCancelConfirm = () => {
           <TermsModal
             visible={termsOpen}
             onClose={() => setTermsOpen(false)}
-            title="숙소 취소 / 환불 규정"
+            title="이벤트 취소 / 환불 규정"
             content="약관 내용은 준비 중입니다."
             onAgree={() => setTermsOpen(false)}
-          />
-
-          <ReservationCancelConfirmModal
-            visible={cancelConfirmOpen}
-            onClose={() => setCancelConfirmOpen(false)}
-            onConfirm={handleCancelConfirm}
-            data={{
-              paidAmount: viewData.paidAmount,
-              cancelFee: viewData.cancelFee,
-              refundAmount,
-              payMethodLabel: viewData.refundMethod
-                ? viewData.refundMethod.replace(' 환불', '')
-                : '',
-              refundMethodLabel: viewData.refundMethod,
-            }}
           />
 
           {/* 하단 버튼 */}
@@ -380,7 +356,7 @@ const GuesthouseCancelConfirm = () => {
               },
             ]}
             disabled={!checked || !selectedReason || cancelSubmitting}
-            onPress={() => setCancelConfirmOpen(true)}
+            onPress={handleCancelConfirm}
           >
             <Text style={[styles.submitText, FONTS.fs_14_medium]}>취소 요청하기</Text>
           </TouchableOpacity>
@@ -390,4 +366,4 @@ const GuesthouseCancelConfirm = () => {
   );
 };
 
-export default GuesthouseCancelConfirm;
+export default MeetCancelConfirm;

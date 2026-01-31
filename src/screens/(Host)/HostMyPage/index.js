@@ -126,29 +126,11 @@ const HostMyPage = () => {
                 />
               </View>
             </View>
-            <View style={styles.devide} />
-            {/* 공고 섹션 */}
-            <View style={styles.section}>
-              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                알바
-              </Text>
-              <View style={styles.menuContainer}>
-                <MenuItem
-                  IconComponent={MyPostIcon}
-                  label="나의 공고"
-                  onPress={() => navigation.navigate('MyRecruitmentList')}
-                />
-                <MenuItem
-                  IconComponent={ApplicationCheckIcon}
-                  label="지원서 조회"
-                  onPress={() => navigation.navigate('ApplicantList')}
-                />
-              </View>
-            </View>
+            
             <View style={styles.devide} />
 
             {/* 이벤트 섹션 */}
-            <View style={[styles.section, {marginBottom: 20}]}>
+            <View style={[styles.section]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
                 이벤트
               </Text>
@@ -162,6 +144,26 @@ const HostMyPage = () => {
                   IconComponent={MeetReservationCheckIcon}
                   label="이벤트 예약 조회"
                   // onPress={() => navigation.navigate('ApplicantList')}
+                />
+              </View>
+            </View>
+
+            <View style={styles.devide} />
+            {/* 공고 섹션 */}
+            <View style={[styles.section, {marginBottom: 20}]}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                알바
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={MyPostIcon}
+                  label="나의 공고"
+                  onPress={() => navigation.navigate('MyRecruitmentList')}
+                />
+                <MenuItem
+                  IconComponent={ApplicationCheckIcon}
+                  label="지원서 조회"
+                  onPress={() => navigation.navigate('ApplicantList')}
                 />
               </View>
             </View>
