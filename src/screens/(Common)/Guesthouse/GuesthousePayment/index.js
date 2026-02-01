@@ -3,6 +3,7 @@ import {Alert} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
+import Config from 'react-native-config'; 
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
@@ -10,6 +11,9 @@ const GuesthousePayment = ({route}) => {
   const reservationType = 'GUESTHOUSE';
 
   const accessToken = useUserStore(state => state.accessToken);
+  
+  const BASE_URL = Config.API_BASE_URL;
+
 
   if (!reservationId) {
     Alert.alert('결제 오류', '결제를 진행할 수 없습니다.');
@@ -43,8 +47,7 @@ const GuesthousePayment = ({route}) => {
     <WebView
       source={{
         // 결제 페이지 진입
-        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
-        // uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `${BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
