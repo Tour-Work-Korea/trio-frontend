@@ -16,16 +16,11 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
 import AlertModal from '@components/modals/AlertModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
-
-  // 상세 모달
-  const [selectedReservationId, setSelectedReservationId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
 
   // 예약 취소 모달
   const [refundModalOpen, setRefundModalOpen] = useState(false);
@@ -37,20 +32,8 @@ export default function UserUpcomingReservations({data, onRefresh}) {
     buttonText2: null,
   });
   const [refundReservationId, setRefundReservationId] = useState(null);
-  const [confirmModalOpen, setConfirmModalOpen] = useState(false);
-  const [confirmReservationId, setConfirmReservationId] = useState(null);
 
-  const openDetailModal = reservationId => {
-    setSelectedReservationId(reservationId);
-    setModalVisible(true);
-  };
-
-  const closeDetailModal = () => {
-    setModalVisible(false);
-    setSelectedReservationId(null);
-  };
-
-  const handleCancelReservation = async reservationId => {
+  const handleRefundlessCancel = async reservationId => {
     if (!reservationId) return;
     try {
       await reservationPaymentApi.cancelReservation(
@@ -90,7 +73,11 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         <TouchableOpacity
           style={styles.card}
           activeOpacity={0.9}
-          // onPress={() => openDetailModal(item.reservationId)}
+          onPress={() =>
+            navigation.navigate('MeetPaymentReceipt', {
+              reservationId: item.reservationId,
+            })
+          }
         >
           {/* 상단 날짜/시간 */}
           <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
@@ -151,8 +138,28 @@ export default function UserUpcomingReservations({data, onRefresh}) {
                 return;
               }
 
-              setConfirmReservationId(item.reservationId);
-              setConfirmModalOpen(true);
+              navigation.navigate('MeetCancelConfirm', {
+                reservationId: item.reservationId,
+                cancelContext: {
+                  partyTitle: item.partyName,
+                  partyImage: item.partyImage,
+                  guesthouseName: item.guesthouseName,
+                  startDateTime: item.startDateTime,
+                  partyLocation: item.guesthouseAddress,
+                  ...(typeof item.amount === 'number'
+                    ? {paidAmount: item.amount}
+                    : {}),
+                  ...(typeof item.cancelFee === 'number'
+                    ? {cancelFee: item.cancelFee}
+                    : {}),
+                  ...(typeof item.refundAmount === 'number'
+                    ? {refundAmount: item.refundAmount}
+                    : {}),
+                  ...(item.refundMethod
+                    ? {refundMethod: item.refundMethod}
+                    : {}),
+                },
+              });
             }}>
             <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
               예약취소
@@ -189,13 +196,6 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         }
       />
 
-      {/* 상세 모달 */}
-      <ReservationDetailModal
-        visible={modalVisible}
-        onClose={closeDetailModal}
-        reservationId={selectedReservationId}
-      />
-
       {/* 환불 없이 취소 모달 */}
       <AlertModal
         visible={refundModalOpen}
@@ -205,26 +205,11 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         buttonText={refundModalContent.buttonText}
         buttonText2={refundModalContent.buttonText2}
         onPress={async () => {
-          await handleCancelReservation(refundReservationId);
+          await handleRefundlessCancel(refundReservationId);
           setRefundModalOpen(false);
           setRefundReservationId(null);
         }}
         onPress2={() => setRefundModalOpen(false)}
-      />
-
-      {/* 환불 포함 취소 확인 모달 */}
-      <AlertModal
-        visible={confirmModalOpen}
-        title="예약 취소"
-        message="예약을 취소하시겠습니까?"
-        buttonText="취소하기"
-        buttonText2="유지하기"
-        onPress={async () => {
-          await handleCancelReservation(confirmReservationId);
-          setConfirmModalOpen(false);
-          setConfirmReservationId(null);
-        }}
-        onPress2={() => setConfirmModalOpen(false)}
       />
     </>
   );

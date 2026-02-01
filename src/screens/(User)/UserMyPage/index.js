@@ -133,8 +133,31 @@ const UserMyPage = () => {
 
             <View style={styles.devide} />
 
+            {/* 이벤트 섹션 */}
+            <View style={[styles.section]}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                이벤트
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={FavoriteMeetIcon}
+                  label="즐겨찾는 이벤트"
+                  onPress={() => navigation.navigate('UserFavoriteMeet')}
+                />
+                <MenuItem
+                  IconComponent={MeetReservationCheckIcon}
+                  label="이벤트 예약내역"
+                  onPress={() =>
+                    navigation.navigate('UserMeetReservationCheck')
+                  }
+                />
+              </View>
+            </View>
+
+            <View style={styles.devide} />
+
             {/* 공고 섹션 */}
-            <View style={styles.section}>
+            <View style={[styles.section, {marginBottom: 16}]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
                 공고
               </Text>
@@ -153,29 +176,6 @@ const UserMyPage = () => {
                   IconComponent={ApplicationStatusIcon}
                   label="지원 현황"
                   onPress={() => navigation.navigate('MyApplicantList')}
-                />
-              </View>
-            </View>
-
-            <View style={styles.devide} />
-
-            {/* 이벤트 섹션 */}
-            <View style={[styles.section, {marginBottom: 16}]}>
-              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                이벤트
-              </Text>
-              <View style={styles.menuContainer}>
-                <MenuItem
-                  IconComponent={FavoriteMeetIcon}
-                  label="즐겨찾는 이벤트"
-                  onPress={() => navigation.navigate('UserFavoriteMeet')}
-                />
-                <MenuItem
-                  IconComponent={MeetReservationCheckIcon}
-                  label="이벤트 예약내역"
-                  onPress={() =>
-                    navigation.navigate('UserMeetReservationCheck')
-                  }
                 />
               </View>
             </View>

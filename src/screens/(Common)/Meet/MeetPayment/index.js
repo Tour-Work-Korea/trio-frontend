@@ -6,7 +6,14 @@ import useUserStore from '@stores/userStore';
 
 const MeetPayment = ({route}) => {
   const navigation = useNavigation();
-  const {reservationId} = route.params || {};
+  const {
+    reservationId,
+    partyTitle,
+    partyStartDateTime,
+    partyStartTime,
+    partyEndTime,
+    thumbnailUrl,
+  } = route.params || {};
   const reservationType = 'PARTY';
 
   const accessToken = useUserStore(state => state.accessToken);
@@ -22,7 +29,13 @@ const MeetPayment = ({route}) => {
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'PAYMENT_SUCCESS') {
-        navigation.replace('MeetPaymentSuccess');
+        navigation.replace('MeetPaymentSuccess', {
+          partyTitle,
+          partyStartDateTime,
+          partyStartTime,
+          partyEndTime,
+          thumbnailUrl,
+        });
         return;
       }
 
@@ -38,8 +51,8 @@ const MeetPayment = ({route}) => {
   return (
     <WebView
       source={{
-        // uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
-        uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        // uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

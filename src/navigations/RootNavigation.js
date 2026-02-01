@@ -77,6 +77,10 @@ import {
   GuesthouseCancelConfirm,
   GuesthouseCancelSuccess,
   UserMeetReservationCancelled,
+  MeetPaymentReceipt,
+  MeetCancelledReceipt,
+  MeetCancelConfirm,
+  MeetCancelSuccess,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -157,10 +161,11 @@ const RootNavigation = () => (
         name="UserMeetReservationCheck"
         component={UserMeetReservationCheck}
       />
-      <Stack.Screen
-        name="UserMeetReservationCancelled"
-        component={UserMeetReservationCancelled}
-      />
+      <Stack.Screen name="UserMeetReservationCancelled" component={UserMeetReservationCancelled} />
+      <Stack.Screen name="MeetPaymentReceipt" component={MeetPaymentReceipt} />
+      <Stack.Screen name="MeetCancelledReceipt" component={MeetCancelledReceipt} />
+      <Stack.Screen name="MeetCancelConfirm" component={MeetCancelConfirm} />
+      <Stack.Screen name="MeetCancelSuccess" component={MeetCancelSuccess} />
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />

@@ -232,6 +232,11 @@ const MeetReservation = () => {
       navigation.navigate('MeetPayment', {
         amount: Number(reservationInfo?.amount ?? 0),
         reservationId,
+        partyTitle: title,
+        partyStartDateTime: checkInDate,
+        partyStartTime: checkInTime,
+        partyEndTime: checkOutTime,
+        thumbnailUrl: routeThumbnailUrl,
       });
     } catch (e) {
       console.log('createPartyReservation error', e);

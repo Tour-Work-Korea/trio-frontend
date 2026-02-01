@@ -66,13 +66,16 @@ const StoreRegisterList = () => {
           renderItem={renderItem}
           keyExtractor={item => item.id.toString()}
           scrollEnabled={false}
+          contentContainerStyle={styles.listContent}
           ListEmptyComponent={
-            <EmptyState
-              icon={EmptyIcon}
-              iconSize={{width: 188, height: 84}}
-              title="입점된 게스트하우스가 없어요"
-              description="지금 입점신청을 해보세요!"
-            />
+            <View style={styles.emptyContainer}>
+              <EmptyState
+                icon={EmptyIcon}
+                iconSize={{width: 188, height: 84}}
+                title="입점된 게스트하우스가 없어요"
+                description="지금 입점신청을 해보세요!"
+              />
+            </View>
           }
         />
         <TouchableOpacity

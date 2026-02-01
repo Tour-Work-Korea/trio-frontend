@@ -58,6 +58,14 @@ export default StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 100,
   },
+  listContent: {
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   addButtonLocation: {
     position: 'absolute',
     right: 20,
