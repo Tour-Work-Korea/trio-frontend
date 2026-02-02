@@ -79,8 +79,25 @@ api.interceptors.response.use(
     const original = err.config;
     const id = original?._reqId || rid();
     const status = err.response?.status;
+    const errorData = err.response?.data;
 
-    log.error(`🛑 [${id}] error status=`, status, 'url=', original?.url, err);
+    log.error(
+      `🛑 [${id}] error status=`,
+      status,
+      'url=',
+      original?.url,
+      err,
+    );
+    if (errorData) {
+      try {
+        log.error(
+          `🧾 [${id}] error data=`,
+          JSON.stringify(errorData, null, 2),
+        );
+      } catch (e) {
+        log.error(`🧾 [${id}] error data=`, errorData);
+      }
+    }
     log.timeEnd(`⏱️ ${id}`);
 
     if (original?.url?.includes('/auth/refresh')) {
