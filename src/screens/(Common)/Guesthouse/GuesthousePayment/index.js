@@ -12,7 +12,7 @@ const GuesthousePayment = ({route}) => {
 
   const accessToken = useUserStore(state => state.accessToken);
   
-  const BASE_URL = Config.API_BASE_URL;
+  const WEB_BASE_URL = Config.WEB_BASE_URL;
 
 
   if (!reservationId) {
@@ -47,7 +47,7 @@ const GuesthousePayment = ({route}) => {
     <WebView
       source={{
         // 결제 페이지 진입
-        uri: `${BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
