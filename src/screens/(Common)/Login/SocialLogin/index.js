@@ -175,7 +175,7 @@ const SocialLogin = () => {
         <ActivityIndicator size="large" color={COLORS.primary_orange} />
         <AlertModal
           visible={true}
-          title={'KAKAO_CLIENT_ID 또는 KAKAO_REDIRECT_URI가 비어있어.\n.env 설정 확인해줘'}
+          title={'KAKAO_CLIENT_ID 또는 KAKAO_REDIRECT_URI가 비어있음.\n'}
           buttonText={'확인'}
           onPress={() => navigation.goBack()}
         />
@@ -192,10 +192,10 @@ const SocialLogin = () => {
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         javaScriptEnabled
         domStorageEnabled
-        incognito
-        cacheEnabled={false}
-        sharedCookiesEnabled={false}
-        thirdPartyCookiesEnabled={false}
+        // incognito
+        // cacheEnabled={false}
+        // sharedCookiesEnabled={false}
+        // thirdPartyCookiesEnabled={false}
         startInLoadingState
         renderLoading={() => (
           <View style={styles.loading}>
