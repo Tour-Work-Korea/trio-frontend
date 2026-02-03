@@ -3,6 +3,7 @@ import {Alert} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
+import Config from 'react-native-config';
 
 const MeetPayment = ({route}) => {
   const navigation = useNavigation();
@@ -17,6 +18,8 @@ const MeetPayment = ({route}) => {
   const reservationType = 'PARTY';
 
   const accessToken = useUserStore(state => state.accessToken);
+
+  const WEB_BASE_URL = Config.WEB_BASE_URL;
 
   if (!reservationId) {
     Alert.alert('결제 오류', '결제를 진행할 수 없습니다.');
@@ -51,8 +54,7 @@ const MeetPayment = ({route}) => {
   return (
     <WebView
       source={{
-        uri: `https://dev.workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
-        // uri: `https://workaway.kr/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
