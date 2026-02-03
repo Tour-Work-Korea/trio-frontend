@@ -5,6 +5,7 @@ on:
     branches:
       - develop    # TestFlight (DEV)
       - main    # App Store (PROD)
+  workflow_dispatch:
 
 # 👇 바로 여기에 추가
 permissions:
