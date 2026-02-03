@@ -131,6 +131,7 @@ jobs:
 
           cat <<EOF > ios/.env
           API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
+          WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
           PORTONE_STORE_ID=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_STORE_ID --with-decryption --query Parameter.Value --output text)
           PORTONE_REDIRECT_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_REDIRECT_URL --with-decryption --query Parameter.Value --output text)
           PORTONE_NOTICE_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_NOTICE_URL --with-decryption --query Parameter.Value --output text)
@@ -138,6 +139,8 @@ jobs:
           KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
           KAKAO_NATIVEAPP_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_NATIVEAPP_KEY --with-decryption --query Parameter.Value --output text)
           KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_CLIENT_ID --with-decryption --query Parameter.Value --output text)
+          KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_REDIRECT_URI --with-decryption --query Parameter.Value --output text)
           EOF
 
           cp ios/.env .env
