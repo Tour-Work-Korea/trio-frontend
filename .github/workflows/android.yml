@@ -34,6 +34,7 @@ jobs:
           echo "KAKAO_JS_KEY=${{ secrets.KAKAO_JS_KEY }}" >> .env.production
           echo "KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}" >> .env.production
           echo "KAKAO_NATIVEAPP_KEY=${{ secrets.KAKAO_NATIVEAPP_KEY }}" >> .env.production
+          echo "WEB_BASE_URL=${{secrets.WEB_BASE_URL}}" >> .env.production
 
       - name: Copy .env.production to .env
         run: cp .env.production .env
