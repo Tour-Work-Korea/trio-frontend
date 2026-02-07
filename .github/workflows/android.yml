@@ -40,7 +40,8 @@ jobs:
 
       - name: Set CI app version
         run: |
-          echo "CI_VERSION_CODE=${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          VERSION_OFFSET=1000
+          echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
           echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Generate local.properties

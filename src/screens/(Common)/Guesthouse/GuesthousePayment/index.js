@@ -3,7 +3,7 @@ import {Alert} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
-import Config from 'react-native-config'; 
+import Config from 'react-native-config';
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
