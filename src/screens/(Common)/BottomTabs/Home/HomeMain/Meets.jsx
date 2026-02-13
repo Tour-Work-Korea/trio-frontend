@@ -133,6 +133,8 @@ export default function Meets({events = [], setEventList}) {
 
   if (!events.length) return null;
 
+  const visibleEvents = events.slice(0, 3);
+
   return (
     <View style={styles.jobContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
@@ -148,7 +150,7 @@ export default function Meets({events = [], setEventList}) {
         </TouchableOpacity>
       </View>
 
-      {events.map(item => (
+      {visibleEvents.map(item => (
         <View key={item.partyId}>{renderEvents(item)}</View>
       ))}
     </View>
