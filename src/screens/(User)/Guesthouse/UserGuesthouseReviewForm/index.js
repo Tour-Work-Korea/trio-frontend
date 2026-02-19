@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { 
   View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder, 
-  Alert, KeyboardAvoidingView, TouchableWithoutFeedback, Keyboard, Platform,
+  Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
 
@@ -123,11 +123,15 @@ const UserGuesthouseReviewForm = () => {
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
     <View style={styles.container}>
       <Header title="리뷰작성" />
 
-      <ScrollView contentContainerStyle={styles.infoContainer}>
+      <ScrollView
+        contentContainerStyle={styles.infoContainer}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        nestedScrollEnabled
+      >
         {/* 숙소 정보 */}
         <View style={styles.infoBox}>
           <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{guesthouseName}</Text>
@@ -169,16 +173,24 @@ const UserGuesthouseReviewForm = () => {
               <Text style={[{color: COLORS.primary_orange}]}>{images.length}</Text>/5
             </Text>
           </View>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.imageContainer}>
+          <ScrollView
+            horizontal
+            nestedScrollEnabled
+            showsHorizontalScrollIndicator={false}
+            style={styles.imageContainer}
+            onStartShouldSetResponderCapture={() => true}
+            onMoveShouldSetResponderCapture={() => true}
+            directionalLockEnabled
+          >
             {images.length < 5 && (
               <TouchableOpacity style={styles.uploadBtn} onPress={handleAddImage}>
                 <PlusImg width={28} height={28} />
               </TouchableOpacity>
             )}
             {images.map((img, idx) => (
-              <View>
+              <View key={idx} pointerEvents="box-none">
                 <Image
-                  key={idx}
+                  pointerEvents="none"
                   source={{ uri: img }}
                   style={styles.reviewImage}
                 />
@@ -266,7 +278,6 @@ const UserGuesthouseReviewForm = () => {
         />
       </ScrollView>
     </View>
-    </TouchableWithoutFeedback>
     </KeyboardAvoidingView>
   );
 };

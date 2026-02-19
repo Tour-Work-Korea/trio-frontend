@@ -16,6 +16,7 @@ import styles from './MyMeetList.styles';
 import {FONTS} from '@constants/fonts';
 import hostMeetApi from '@utils/api/hostMeetApi';
 import EmptyState from '@components/EmptyState';
+import { trimJejuPrefix } from '@utils/formatAddress';
 
 import PlusIcon from '@assets/images/plus_white.svg';
 import EmptyIcon from '@assets/images/wlogo_blue_left.svg';
@@ -176,13 +177,19 @@ const MyMeetList = () => {
         }}>
         {/* 이벤트 정보 */}
         <View style={styles.cardInfo}>
-          <Text style={[FONTS.fs_12_light, styles.ghName]}>
+          <Text
+            style={[FONTS.fs_12_light, styles.ghName]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
             {item.guesthouseName}
           </Text>
           <Text style={[FONTS.fs_14_medium, styles.title]} numberOfLines={1}>
             {item.partyTitle}
           </Text>
-          <Text style={[FONTS.fs_12_medium, styles.time]}>
+          <Text
+            style={[FONTS.fs_12_medium, styles.time]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
             {timeLabel} (총{' '}
             {Math.max(
               1,
@@ -193,8 +200,8 @@ const MyMeetList = () => {
             )}
             시간)
           </Text>
-          <Text style={[FONTS.fs_12_medium, styles.location]} numberOfLines={1}>
-            {item.location}
+          <Text style={[FONTS.fs_12_medium, styles.location]} numberOfLines={1} ellipsizeMode="tail">
+            {trimJejuPrefix(item.location)}
           </Text>
         </View>
 

@@ -50,7 +50,6 @@ const styles = StyleSheet.create({
     reviewImageContainer: {
         flexDirection: 'row',
         marginTop: 10,
-        gap: 4,
     },
     reviewImage: {
         height: 100,

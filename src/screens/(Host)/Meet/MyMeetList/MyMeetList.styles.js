@@ -50,6 +50,8 @@ const styles = StyleSheet.create({
     flexDirection: 'column',
     marginBottom: 6,
     gap: 4,
+    flex: 1,
+    minWidth: 0,
   },
   // 게하 이름
   ghName: {
@@ -72,6 +74,9 @@ const styles = StyleSheet.create({
   actionRow: {
     justifyContent: 'center',
     gap: 10,
+    flexShrink: 0,
+    marginLeft: 8,
+    alignItems: 'flex-end',
   },
   // 참여 인원수
   capacityBadge: {
@@ -91,6 +96,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 4,
     alignItems: 'center',
+    width: '100%',
   },
   deleteText: {
     color: COLORS.grayscale_400,

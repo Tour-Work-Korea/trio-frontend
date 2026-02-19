@@ -73,7 +73,13 @@ const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
+  },
+  addressCopyButton: {
+    flex: 1,
     marginRight: 8,
+  },
+  copyableText: {
+    textDecorationLine: 'underline',
   },
   capacityText: {
     color: COLORS.grayscale_400,
