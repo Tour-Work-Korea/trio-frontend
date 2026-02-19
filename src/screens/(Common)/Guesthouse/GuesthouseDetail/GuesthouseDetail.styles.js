@@ -68,6 +68,9 @@ const styles = StyleSheet.create({
   phone: {
     
   },
+  copyableText: {
+    textDecorationLine: 'underline',
+  },
 
   // 리뷰
   reviewRow: {

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity } from 'react-native';
+import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
@@ -121,13 +121,21 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           {/* 리뷰 이미지 */}
           {hasImages && (
             <View style={styles.reviewImageContainer}>
-              <View style={{ flexDirection: 'row', marginBottom: 6 }}>
+              <ScrollView
+                horizontal
+                nestedScrollEnabled
+                directionalLockEnabled
+                showsHorizontalScrollIndicator={false}
+                onStartShouldSetResponderCapture={() => true}
+                onMoveShouldSetResponderCapture={() => true}
+                contentContainerStyle={{ flexDirection: 'row', marginBottom: 6, gap: 4 }}
+              >
                 {item.imgUrls.map((imgUrl, i) => (
                   <TouchableOpacity key={i} onPress={() => openImageModal(item.imgUrls, i)}>
                     <Image source={{ uri: imgUrl }} style={styles.reviewImage} />
                   </TouchableOpacity>
                 ))}
-              </View>
+              </ScrollView>
             </View>
           )}
 
