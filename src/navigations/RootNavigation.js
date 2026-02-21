@@ -35,7 +35,6 @@ import {
   MyGuesthouseAdd,
   MyGuesthouseEdit,
   MyGuesthouseDetail,
-  MyGuesthouseReservationStatus,
   MyRecruitmentList,
   RecruitmentForm,
   MyLikeRecruitList,
@@ -50,6 +49,7 @@ import {
   MyGuesthouseList,
   MyGuesthouseReview,
   MyGuesthouseReservation,
+  MyGuesthouseReservationDetail,
   MyRoomDetail,
   ProfileUpdate,
   UserReservationCheck,
@@ -181,8 +181,8 @@ const RootNavigation = () => (
         component={MyGuesthouseReservation}
       />
       <Stack.Screen
-        name="MyGuesthouseReservationStatus"
-        component={MyGuesthouseReservationStatus}
+        name="MyGuesthouseReservationDetail"
+        component={MyGuesthouseReservationDetail}
       />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />

@@ -256,7 +256,8 @@ const GuesthouseDetail = ({route}) => {
             renderItem={({item}) => (
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => setImageModalVisible(true)}>
+                onPress={() => setImageModalVisible(true)}
+              >
                 <Image
                   source={{uri: item.guesthouseImageUrl}}
                   style={styles.mainImage}

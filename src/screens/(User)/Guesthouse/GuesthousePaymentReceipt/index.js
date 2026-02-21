@@ -686,7 +686,7 @@ const GuesthousePaymentReceipt = () => {
                   },
                 });
               }}
-              backgroundColor={COLORS.cancel_btn_bg}
+              backgroundColor={COLORS.secondary_red}
               textColor={COLORS.semantic_red}
               title='예약취소'
             />
