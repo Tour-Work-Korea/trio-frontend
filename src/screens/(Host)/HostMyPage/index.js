@@ -102,7 +102,7 @@ const HostMyPage = () => {
                 <MenuItem
                   IconComponent={ReservationCalendarIcon}
                   label="예약 캘린더"
-                  // onPress={() => navigation.navigate('MyGuesthouseIntroList')}
+                  onPress={() => navigation.navigate('MyGuesthouseReservationCalendar')}
                 />
                 <MenuItem
                   IconComponent={RoomManageIcon}
