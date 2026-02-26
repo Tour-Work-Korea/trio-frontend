@@ -116,9 +116,49 @@ const hostGuesthouseApi = {
       },
     }),
 
+  // 게하 예약 검색
+  searchGuesthouseReservations: (formData) =>
+    api.get('/order/host/reservation/search', { params: formData }),
+
   // 게하 예약 현황 조회
   getGuesthouseReservations: (guesthouseId) =>
     api.get(`/order/host/reservation/${guesthouseId}`),
+
+  // 게하 예약 상세 조회
+  getGuesthouseReservationDetail: (reservationId) =>
+    api.get(`/order/host/reservation/detail/${reservationId}`),
+
+  // 게하 예약 캘린더 조회
+  getGuesthouseReservationCalendar: (formData) =>
+    api.get('/order/host/reservation/calendar', { params: formData }),
+
+  // 호스트 예약 취소
+  cancelGuesthouseReservationByHost: (reservationId) =>
+    api.post(`/order/host/reservation/${reservationId}/cancel`),
+
+  // 룸 관리 캘린더 조회
+  getRoomInventoryCalendar: (guesthouseId, roomId, formData) =>
+    api.get(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/inventory/calendar`, {
+      params: formData,
+    }),
+
+  // 룸 노출 상태 변경
+  updateRoomVisibility: (guesthouseId, roomId, payload) =>
+    api.patch(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/visibility`, payload),
+
+  // 도미토리 예약 가능 베드 수 변경 (단건)
+  updateAvailableBeds: (guesthouseId, roomId, payload) =>
+    api.patch(
+      `/host/guesthouses/${guesthouseId}/rooms/${roomId}/inventory/available-beds`,
+      payload
+    ),
+
+  // 도미토리 예약 가능 베드 수 변경 (전체)
+  bulkUpdateAvailableBeds: (guesthouseId, roomId, payload) =>
+    api.patch(
+      `/host/guesthouses/${guesthouseId}/rooms/${roomId}/inventory/available-beds/bulk`,
+      payload
+    ),
 
   // 게하 예약 취소
   cancelGuesthouseReservation: (reservationId) =>

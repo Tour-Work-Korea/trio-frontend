@@ -35,7 +35,7 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
         style={[
           styles.text,
           {
-            color: disabled ? COLORS.grayscale_400 : COLORS.white,
+            color: disabled ? COLORS.grayscale_400 : COLORS.grayscale_0,
           },
         ]}>
         {title}

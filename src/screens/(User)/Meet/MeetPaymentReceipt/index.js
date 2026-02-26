@@ -143,7 +143,7 @@ export default function MeetPaymentReceipt() {
           {/* 예약 취소 버튼 */}
           <ButtonWhite
             title="예약취소"
-            backgroundColor={COLORS.cancel_btn_bg}
+            backgroundColor={COLORS.secondary_red}
             textColor={COLORS.semantic_red}
           />
         </View>

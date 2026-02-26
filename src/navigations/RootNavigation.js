@@ -35,7 +35,6 @@ import {
   MyGuesthouseAdd,
   MyGuesthouseEdit,
   MyGuesthouseDetail,
-  MyGuesthouseReservationStatus,
   MyRecruitmentList,
   RecruitmentForm,
   MyLikeRecruitList,
@@ -50,6 +49,7 @@ import {
   MyGuesthouseList,
   MyGuesthouseReview,
   MyGuesthouseReservation,
+  MyGuesthouseReservationDetail,
   MyRoomDetail,
   ProfileUpdate,
   UserReservationCheck,
@@ -81,6 +81,8 @@ import {
   MeetCancelledReceipt,
   MeetCancelConfirm,
   MeetCancelSuccess,
+  MyGuesthouseReservationCalendar,
+  MyRoomManage,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -176,13 +178,13 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
       <Stack.Screen name="MyRoomDetail" component={MyRoomDetail} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
+      <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
+      <Stack.Screen name="MyGuesthouseReservationDetail" component={MyGuesthouseReservationDetail} />
+      <Stack.Screen name="MyGuesthouseReservationCalendar" component={MyGuesthouseReservationCalendar} />
       <Stack.Screen
-        name="MyGuesthouseReservation"
-        component={MyGuesthouseReservation}
-      />
-      <Stack.Screen
-        name="MyGuesthouseReservationStatus"
-        component={MyGuesthouseReservationStatus}
+        name="MyRoomManage"
+        component={MyRoomManage}
+        options={{gestureEnabled: false}}
       />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
