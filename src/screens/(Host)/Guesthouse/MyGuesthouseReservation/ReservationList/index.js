@@ -1,66 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { View, Text, StyleSheet, ScrollView, TouchableOpacity } from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  FlatList,
+  TouchableOpacity,
+  ActivityIndicator,
+} from 'react-native';
 
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
+import { formatLocalDateToDotWithDay } from '@utils/formatDate';
 import EmptyIcon from '@assets/images/search_empty.svg';
-
-// TODO
-// 취소, 확정, 완료 순으로 나오게 하기
-
-const reservations = [
-  {
-    id: '1',
-    reservationId: 1,
-    status: '취소',
-    statusText: '신규예약',
-    name: '이하늘',
-    age: '1999년생',
-    phone: '010-4123-0075',
-    reservationNumber: 'WA_sddfei13',
-    guestCount: '2',
-    room: '여 6인 도미토리',
-    period: '2025.04.15(화) ~ 2025.04.16(수)',
-    checkInDate: '2025-04-15',
-    checkOutDate: '2025-04-16',
-    paymentStatus: '환불',
-  },
-  {
-    id: '2',
-    reservationId: 2,
-    status: '확정',
-    statusText: '완료 1, 취소 1',
-    name: '이하늘',
-    age: '1999년생',
-    phone: '010-4123-0075',
-    reservationNumber: 'WA_sddfei13',
-    guestCount: '2',
-    room: '여 6인 도미토리',
-    period: '2025.04.15(화) ~ 2025.04.16(수)',
-    checkInDate: '2025-04-15',
-    checkOutDate: '2025-04-16',
-    showCancelButton: true,
-  },
-  {
-    id: '3',
-    reservationId: 3,
-    status: '완료',
-    statusText: '완료 1',
-    name: '이하늘',
-    age: '1999년생',
-    phone: '010-4123-0075',
-    reservationNumber: 'WA_sddfei13',
-    guestCount: '2',
-    room: '여 6인 도미토리',
-    period: '2025.04.15(화) ~ 2025.04.16(수)',
-    checkInDate: '2025-04-15',
-    checkOutDate: '2025-04-16',
-  },
-];
 
 const STATUS_STYLE = {
   취소: {
@@ -77,11 +32,72 @@ const STATUS_STYLE = {
   },
 };
 
-const ReservationList = ({ data, loading }) => {
+const STATUS_LABEL_MAP = {
+  CONFIRMED: '확정',
+  CANCELLED: '취소',
+  COMPLETED: '완료',
+};
+const STATUS_SORT_ORDER = {
+  취소: 0,
+  확정: 1,
+  완료: 2,
+};
+
+const normalizeReservation = (reservation) => {
+  const status = STATUS_LABEL_MAP[reservation?.status] || reservation?.status || '완료';
+  const completedTotal = Number(reservation?.completedTotal || 0);
+  const canceledTotal = Number(reservation?.canceledTotal || 0);
+  const amount = Number(reservation?.amount || 0);
+  const checkInDate = reservation?.checkInDate;
+  const checkOutDate = reservation?.checkOutDate;
+  const period = checkInDate && checkOutDate
+    ? `${formatLocalDateToDotWithDay(checkInDate)} ~ ${formatLocalDateToDotWithDay(checkOutDate)}`
+    : reservation?.period;
+  const birthYear = reservation?.birthDate?.split?.('-')?.[0];
+
+  return {
+    ...reservation,
+    id: reservation?.reservationId ?? reservation?.id,
+    reservationId: reservation?.reservationId ?? reservation?.id,
+    status,
+    statusText: reservation?.statusText ?? `완료 ${completedTotal}, 취소 ${canceledTotal}`,
+    name: reservation?.userName ?? reservation?.name,
+    age: reservation?.age ?? (birthYear ? `${birthYear}년생` : ''),
+    phone: reservation?.userPhone ?? reservation?.phone,
+    reservationNumber: reservation?.reservationCode ?? reservation?.reservationNumber,
+    guestCount:
+      reservation?.guestCount != null && `${reservation?.guestCount}` !== ''
+        ? `${reservation.guestCount}명`
+        : reservation?.guestCount,
+    email: reservation?.userEmail ?? reservation?.email,
+    serviceName: reservation?.guesthouseName ?? reservation?.serviceName,
+    room: reservation?.roomName ?? reservation?.room,
+    period,
+    paymentStatus: reservation?.paymentStatus ?? (status === '취소' ? '환불' : '결제완료'),
+    paymentState: reservation?.paymentState ?? (status === '취소' ? '환불' : '결제완료'),
+    paymentAmount:
+      reservation?.paymentAmount ??
+      (Number.isFinite(amount) ? `${amount.toLocaleString('ko-KR')}원` : ''),
+    showCancelButton:
+      reservation?.showCancelButton != null
+        ? reservation?.showCancelButton
+        : status === '확정',
+  };
+};
+
+const ReservationList = ({ data, totalCount = 0, loading, loadingMore = false, onEndReached }) => {
   const navigation = useNavigation();
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
-  const listData = Array.isArray(data) && data.length > 0 ? data : reservations;
+  const listData = Array.isArray(data)
+    ? data
+      .map(normalizeReservation)
+      .sort((a, b) => {
+        const aOrder = STATUS_SORT_ORDER[a.status] ?? Number.MAX_SAFE_INTEGER;
+        const bOrder = STATUS_SORT_ORDER[b.status] ?? Number.MAX_SAFE_INTEGER;
+        return aOrder - bOrder;
+      })
+    : [];
 
   const handleOpenCancelModal = (reservation) => {
     setSelectedReservation({
@@ -120,73 +136,89 @@ const ReservationList = ({ data, loading }) => {
     );
   }
 
+  const renderItem = ({ item: reservation, index }) => {
+    const statusStyle = STATUS_STYLE[reservation.status] || STATUS_STYLE.완료;
+
+    return (
+      <TouchableOpacity
+        key={String(reservation.reservationId || reservation.id || index)}
+        style={styles.card}
+        activeOpacity={0.85}
+        onPress={() =>
+          navigation.navigate('MyGuesthouseReservationDetail', {
+            reservationId: reservation.reservationId || reservation.id,
+            reservation,
+          })
+        }
+      >
+        <View style={styles.headerRow}>
+          <View style={[styles.statusBadge, { backgroundColor: statusStyle.badgeBackground }]}>
+            <Text style={[FONTS.fs_14_semibold, { color: statusStyle.badgeText }]}>
+              {reservation.status}
+            </Text>
+          </View>
+
+          <View style={styles.headerTextBox}>
+            <Text style={[FONTS.fs_16_semibold, styles.userName]}>{reservation.name}</Text>
+            <Text style={[FONTS.fs_12_medium, styles.subText]}>{reservation.statusText}</Text>
+          </View>
+        </View>
+
+        <View style={styles.infoSection}>
+          <InfoRow label="예약자" value={reservation.name} />
+          <InfoRow label="나이" value={reservation.age} />
+          <InfoRow label="전화번호" value={reservation.phone} />
+          <InfoRow label="예약번호" value={reservation.reservationNumber} />
+          <InfoRow label="인원수" value={reservation.guestCount} />
+          <InfoRow label="객실" value={reservation.room} isHighlight />
+          <InfoRow label="이용기간" value={reservation.period} isHighlight />
+          {reservation.paymentStatus ? (
+            <InfoRow label="결제상태" value={reservation.paymentStatus} isHighlight />
+          ) : null}
+        </View>
+
+        {reservation.showCancelButton ? (
+          <View style={styles.buttonRow}>
+            <TouchableOpacity
+              style={styles.cancelButton}
+              onPress={(e) => {
+                e.stopPropagation();
+                handleOpenCancelModal(reservation);
+              }}
+            >
+              <Text style={[FONTS.fs_14_medium, styles.cancelButtonText]}>예약취소</Text>
+            </TouchableOpacity>
+          </View>
+        ) : null}
+
+        {index !== listData.length - 1 ? <View style={styles.divider} /> : null}
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
-      <Text style={[FONTS.fs_18_semibold, styles.title]}>
-        예약 <Text style={styles.titleHighlight}>{listData.length}</Text>건
-      </Text>
-
-      <ScrollView
+      <FlatList
+        data={listData}
+        keyExtractor={(item, index) => String(item.reservationId || item.id || index)}
+        renderItem={renderItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
-      >
-        {listData.map((reservation, index) => {
-          const statusStyle = STATUS_STYLE[reservation.status] || STATUS_STYLE.완료;
-
-          return (
-            <TouchableOpacity
-              key={reservation.id}
-              style={styles.card}
-              activeOpacity={0.85}
-              onPress={() =>
-                navigation.navigate('MyGuesthouseReservationDetail', { reservation })
-              }
-            >
-              <View style={styles.headerRow}>
-                <View style={[styles.statusBadge, { backgroundColor: statusStyle.badgeBackground }]}>
-                  <Text style={[FONTS.fs_14_semibold, { color: statusStyle.badgeText }]}>
-                    {reservation.status}
-                  </Text>
-                </View>
-
-                <View style={styles.headerTextBox}>
-                  <Text style={[FONTS.fs_16_semibold, styles.userName]}>{reservation.name}</Text>
-                  <Text style={[FONTS.fs_12_medium, styles.subText]}>{reservation.statusText}</Text>
-                </View>
-              </View>
-
-              <View style={styles.infoSection}>
-                <InfoRow label="예약자" value={reservation.name} />
-                <InfoRow label="나이" value={reservation.age} />
-                <InfoRow label="전화번호" value={reservation.phone} />
-                <InfoRow label="예약번호" value={reservation.reservationNumber} />
-                <InfoRow label="인원수" value={reservation.guestCount} />
-                <InfoRow label="객실" value={reservation.room} isHighlight />
-                <InfoRow label="이용기간" value={reservation.period} isHighlight />
-                {reservation.paymentStatus ? (
-                  <InfoRow label="결제상태" value={reservation.paymentStatus} isHighlight />
-                ) : null}
-              </View>
-
-              {reservation.showCancelButton ? (
-                <View style={styles.buttonRow}>
-                  <TouchableOpacity 
-                    style={styles.cancelButton}
-                    onPress={(e) => {
-                      e.stopPropagation();
-                      handleOpenCancelModal(reservation);
-                    }}
-                  >
-                    <Text style={[FONTS.fs_14_medium, styles.cancelButtonText]}>예약취소</Text>
-                  </TouchableOpacity>
-                </View>
-              ) : null}
-
-              {index !== listData.length - 1 ? <View style={styles.divider} /> : null}
-            </TouchableOpacity>
-          );
-        })}
-      </ScrollView>
+        onEndReached={onEndReached}
+        onEndReachedThreshold={0.3}
+        ListHeaderComponent={(
+          <Text style={[FONTS.fs_18_semibold, styles.title]}>
+            예약 <Text style={styles.titleHighlight}>{totalCount}</Text>건
+          </Text>
+        )}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footerLoading}>
+              <ActivityIndicator color={COLORS.primary_orange} />
+            </View>
+          ) : null
+        }
+      />
 
       <ReservationCancelModal
         visible={cancelModalVisible}
@@ -239,6 +271,11 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingBottom: 24,
+  },
+  footerLoading: {
+    paddingVertical: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 
   card: {

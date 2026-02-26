@@ -24,6 +24,48 @@ export default StyleSheet.create({
     zIndex: 5,
   },
 
+  // 게스트하우스 선택
+  guesthouseSelectContainer: {
+    position: 'relative',
+    zIndex: 13,
+  },
+  guesthouseSelectBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 8,
+    gap: 8,
+  },
+  guesthouseSelectText: {
+    flex: 1,
+    color: COLORS.grayscale_900,
+  },
+  guesthouseDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_0,
+    shadowColor: COLORS.grayscale_900,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    elevation: 3,
+  },
+
   // 날짜 선택
   dateSelectContainer: {
     position: 'relative',

@@ -133,8 +133,8 @@ const hostGuesthouseApi = {
     api.get('/order/host/reservation/calendar', { params: formData }),
 
   // 호스트 예약 취소
-  cancelGuesthouseReservationByHost: (reservationId) =>
-    api.post(`/order/host/reservation/${reservationId}/cancel`),
+  cancelGuesthouseReservationByHost: (reservationId, payload) =>
+    api.post(`/order/host/reservation/${reservationId}/cancel`, payload),
 
   // 룸 관리 캘린더 조회
   getRoomInventoryCalendar: (guesthouseId, roomId, formData) =>
