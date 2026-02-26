@@ -81,6 +81,10 @@ export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseRev
 export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
 export {default as MyGuesthouseReservationDetail} from './(Host)/Guesthouse/MyGuesthouseReservationDetail';
 export {default as MyGuesthouseReservationCalendar} from './(Host)/Guesthouse/MyGuesthouseReservationCalendar';
+// 고객 알림 설정
+export {default as CustomerNotificationSettings} from './(Host)/Guesthouse/CustomerNotificationSettings';
+export {default as CheckInGuide} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide';
+export {default as RoomGuideMessageEditor} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide/RoomGuideMessageEditor';
 //
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';

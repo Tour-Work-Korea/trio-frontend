@@ -112,7 +112,7 @@ const HostMyPage = () => {
                 <MenuItem
                   IconComponent={NotificationSettingIcon}
                   label="고객 알림 설정"
-                  // onPress={() => navigation.navigate('MyGuesthouseIntroList')}
+                  onPress={() => navigation.navigate('CustomerNotificationSettings')}
                 />
               </View>
             </View>
