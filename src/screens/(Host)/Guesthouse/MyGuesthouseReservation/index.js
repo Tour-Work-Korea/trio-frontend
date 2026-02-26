@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useCallback, useEffect, useState } from 'react';
 import { View, Text, TouchableOpacity, TextInput } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
@@ -15,8 +15,17 @@ import ChevronLeft from '@assets/images/chevron_left_black.svg';
 import ChevronDown from '@assets/images/chevron_down_black.svg';
 import ChevronUp from '@assets/images/chevron_up_black.svg';
 import SearchIcon from '@assets/images/search_gray.svg';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
-const MyGuesthouseReservation = () => {
+const DEFAULT_PAGE = 0;
+const DEFAULT_SIZE = 10;
+
+// TODO
+// 사장님 프로필 변경되면 게하 id값 받아서 해야함
+
+const MyGuesthouseReservation = ({ route }) => {
+  const guesthouseId = route?.params?.guesthouseId;
+
   const getTodayLocalDate = () => {
     const today = new Date();
     const year = today.getFullYear();
@@ -40,6 +49,8 @@ const MyGuesthouseReservation = () => {
   const [selectedSearchFilter, setSelectedSearchFilter] = useState('예약자명');
   const [selectedReservationStatus, setSelectedReservationStatus] = useState('전체');
   const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
+  const [reservations, setReservations] = useState([]);
+  const [isReservationsLoading, setIsReservationsLoading] = useState(true);
 
   const searchFilterOptions = ['예약자명', '예약자 전화번호', '예약번호'];
   const reservationStatusOptions = ['전체', '확정', '취소', '완료'];
@@ -59,6 +70,44 @@ const MyGuesthouseReservation = () => {
     setSelectedReservationStatus(option);
     setIsReservationStatusOpen(false);
   };
+
+  const requestReservationSearch = useCallback(
+    async (formData) => {
+      if (!guesthouseId) return;
+
+      setIsReservationsLoading(true);
+      try {
+        const response = await hostGuesthouseApi.searchGuesthouseReservations(formData);
+        const content =
+          response?.data?.data?.content ??
+          response?.data?.content ??
+          response?.data?.data ??
+          [];
+
+        setReservations(Array.isArray(content) ? content : []);
+      } catch (error) {
+        setReservations([]);
+      } finally {
+        setIsReservationsLoading(false);
+      }
+    },
+    [guesthouseId],
+  );
+
+  useEffect(() => {
+    if (!guesthouseId) {
+      setReservations([]);
+      setIsReservationsLoading(false);
+      return;
+    }
+
+    requestReservationSearch({
+      guesthouseId,
+      targetDate: selectedDate,
+      page: DEFAULT_PAGE,
+      size: DEFAULT_SIZE,
+    });
+  }, [guesthouseId, selectedDate, requestReservationSearch]);
   
   return (
     <View style={styles.container}>
@@ -225,7 +274,7 @@ const MyGuesthouseReservation = () => {
         </View>
 
         {/* 리스트 */}
-        <ReservationList />
+        <ReservationList data={reservations} loading={isReservationsLoading} />
       </View>
     </View>
   );

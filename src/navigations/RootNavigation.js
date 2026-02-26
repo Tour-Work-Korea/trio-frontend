@@ -82,6 +82,7 @@ import {
   MeetCancelConfirm,
   MeetCancelSuccess,
   MyGuesthouseReservationCalendar,
+  MyRoomManage,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -180,6 +181,11 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
       <Stack.Screen name="MyGuesthouseReservationDetail" component={MyGuesthouseReservationDetail} />
       <Stack.Screen name="MyGuesthouseReservationCalendar" component={MyGuesthouseReservationCalendar} />
+      <Stack.Screen
+        name="MyRoomManage"
+        component={MyRoomManage}
+        options={{gestureEnabled: false}}
+      />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />
       <Stack.Screen name="ApplicantList" component={ApplicantList} />

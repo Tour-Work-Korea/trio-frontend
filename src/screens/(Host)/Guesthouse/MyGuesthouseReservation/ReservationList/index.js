@@ -77,12 +77,11 @@ const STATUS_STYLE = {
   },
 };
 
-const ReservationList = () => {
+const ReservationList = ({ data, loading }) => {
   const navigation = useNavigation();
-  const [loading] = useState(false);
-  const [data] = useState(reservations);
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState(null);
+  const listData = Array.isArray(data) && data.length > 0 ? data : reservations;
 
   const handleOpenCancelModal = (reservation) => {
     setSelectedReservation({
@@ -108,7 +107,7 @@ const ReservationList = () => {
     );
   }
 
-  if (data.length === 0) {
+  if (Array.isArray(data) && data.length === 0) {
     return (
       <View style={styles.center}>
         <EmptyState
@@ -124,14 +123,14 @@ const ReservationList = () => {
   return (
     <View style={styles.container}>
       <Text style={[FONTS.fs_18_semibold, styles.title]}>
-        예약 <Text style={styles.titleHighlight}>{data.length}</Text>건
+        예약 <Text style={styles.titleHighlight}>{listData.length}</Text>건
       </Text>
 
       <ScrollView
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
       >
-        {data.map((reservation, index) => {
+        {listData.map((reservation, index) => {
           const statusStyle = STATUS_STYLE[reservation.status] || STATUS_STYLE.완료;
 
           return (
@@ -183,7 +182,7 @@ const ReservationList = () => {
                 </View>
               ) : null}
 
-              {index !== data.length - 1 ? <View style={styles.divider} /> : null}
+              {index !== listData.length - 1 ? <View style={styles.divider} /> : null}
             </TouchableOpacity>
           );
         })}

@@ -74,6 +74,7 @@ export {default as MyRoomDetail} from './(Host)/Guesthouse/MyRoomDetail';
 export {default as MyGuesthouseList} from './(Host)/Guesthouse/MyGuesthouseList';
 export {default as MyGuesthouseEdit} from './(Host)/Guesthouse/MyGuesthouseEdit';
 export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
+export {default as MyRoomManage} from './(Host)/Guesthouse/MyRoomManage';
 // 게하 숙박 리뷰
 export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseReview';
 // 게하 예약 내역
