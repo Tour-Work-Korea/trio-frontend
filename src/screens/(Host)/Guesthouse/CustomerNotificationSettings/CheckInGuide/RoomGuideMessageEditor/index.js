@@ -1,4 +1,4 @@
-import React, {useRef, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -9,17 +9,61 @@ import {
   Keyboard,
   Platform,
 } from 'react-native';
+import Toast from 'react-native-toast-message';
 
 import Header from '@components/Header';
 import {FONTS} from '@constants/fonts';
 import styles from './RoomGuideMessageEditor.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
 import { COLORS } from '@constants/colors';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 const RoomGuideMessageEditor = ({route}) => {
   const roomName = route?.params?.roomName ?? '객실';
+  const guesthouseId = route?.params?.guesthouseId;
+  const roomId = route?.params?.roomId;
   const [message, setMessage] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
   const inputRef = useRef(null);
+
+  useEffect(() => {
+    const fetchCheckinNotice = async () => {
+      if (!guesthouseId || !roomId) return;
+
+      try {
+        const response = await hostGuesthouseApi.getRoomCheckinNotice(guesthouseId, roomId);
+        const payload = response?.data?.data ?? response?.data ?? {};
+        const noticeText = payload?.noticeText ?? '';
+        setMessage(noticeText);
+      } catch (error) {
+        setMessage('');
+      }
+    };
+
+    fetchCheckinNotice();
+  }, [guesthouseId, roomId]);
+
+  const handleSave = async () => {
+    if (!guesthouseId || !roomId || isSaving) return;
+
+    setIsSaving(true);
+    try {
+      await hostGuesthouseApi.updateRoomCheckinNotice(guesthouseId, roomId, message);
+      Toast.show({
+        type: 'success',
+        text1: '저장되었어요!',
+        position: 'top',
+      });
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '저장에 실패했어요.',
+        position: 'top',
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   return (
     <KeyboardAvoidingView
@@ -67,6 +111,7 @@ const RoomGuideMessageEditor = ({route}) => {
 
             <ButtonScarlet
               title='저장'
+              onPress={handleSave}
             />
           </View>
         </View>

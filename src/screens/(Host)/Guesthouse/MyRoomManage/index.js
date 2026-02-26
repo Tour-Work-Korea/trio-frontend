@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { PanResponder, ScrollView, Switch, Text, TouchableOpacity, View } from 'react-native';
 import { Calendar } from 'react-native-calendars';
 
@@ -11,24 +11,46 @@ import { formatLocalDateToDotWithDay } from '@utils/formatDate';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import ChevronLeft from '@assets/images/chevron_left_black.svg';
+import ChevronDown from '@assets/images/chevron_down_black.svg';
+import ChevronUp from '@assets/images/chevron_up_black.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
 import MinusIcon from '@assets/images/minus_black.svg';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 
 // 손가락을 이 정도(px) 이상 좌/우로 이동했을 때만 스와이프로 인정
 // 너무 작은 값이면 탭/스크롤이 오작동할 수 있어서 임계값을 둠
 const SWIPE_THRESHOLD = 60;
-const TEMP_DORMITORY_ROOMS = [
-  { id: 'dorm-1', name: '여 6인 도미토리', isExposed: false, availableBeds: 6 },
-  { id: 'dorm-2', name: '남성 2인실', isExposed: false, availableBeds: 2 },
-  { id: 'dorm-3', name: '남 6인 도미토리', isExposed: true, availableBeds: 2 },
-  { id: 'dorm-4', name: '남 6인 도미토리', isExposed: true, availableBeds: 2 },
-];
 
-const TEMP_NORMAL_ROOMS = [
-  { id: 'room-1', name: '동백 (1인실)', isExposed: false },
-  { id: 'room-2', name: '벚꽃 (1인실)', isExposed: true },
-];
+const normalizeRoom = (room = {}) => ({
+  ...room,
+  id: room?.roomId ?? room?.id,
+  roomId: room?.roomId ?? room?.id,
+  name: room?.roomName ?? room?.name ?? '이름 없음',
+  isClosed: Boolean(room?.isClosed),
+  isExposed: !Boolean(room?.isClosed),
+  displayBeds: Number(room?.roomCapacity ?? 0),
+  availableBeds: Number(room?.roomCapacity ?? 0),
+});
 
+const normalizeInventory = (inventory = {}, fallbackRoom = {}) => ({
+  ...inventory,
+  roomId: inventory?.roomId ?? fallbackRoom?.roomId,
+  roomName: inventory?.roomName ?? fallbackRoom?.roomName ?? '이름 없음',
+  name: inventory?.roomName ?? fallbackRoom?.roomName ?? '이름 없음',
+  roomType: inventory?.roomType ?? fallbackRoom?.roomType,
+  isClosed: inventory?.isClosed != null ? Boolean(inventory?.isClosed) : Boolean(fallbackRoom?.isClosed),
+  isExposed:
+    inventory?.isClosed != null ? !Boolean(inventory?.isClosed) : !Boolean(fallbackRoom?.isClosed),
+  reservedBeds: Number(inventory?.reservedBeds ?? 0),
+  availableBeds: Number(inventory?.availableBeds ?? fallbackRoom?.roomCapacity ?? 0),
+  sellableCapacity: Number(inventory?.sellableCapacity ?? fallbackRoom?.roomCapacity ?? 0),
+  displayBeds: Number(
+    inventory?.sellableCapacity ?? inventory?.availableBeds ?? fallbackRoom?.roomCapacity ?? 0,
+  ),
+  roomMaxCapacity: Number(inventory?.roomMaxCapacity ?? fallbackRoom?.roomMaxCapacity ?? 0),
+});
+
+// TODO: 사장님 프로필 변경되면 게하 id값 받아서 해야함
 const MyRoomManage = () => {
   const getTodayLocalDate = () => {
     const today = new Date();
@@ -49,8 +71,97 @@ const MyRoomManage = () => {
 
   const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [dormitoryRooms, setDormitoryRooms] = useState(TEMP_DORMITORY_ROOMS);
-  const [normalRooms, setNormalRooms] = useState(TEMP_NORMAL_ROOMS);
+  const [guesthouses, setGuesthouses] = useState([]);
+  const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(null);
+  const [isGuesthouseOpen, setIsGuesthouseOpen] = useState(false);
+  const [isGuesthousesLoading, setIsGuesthousesLoading] = useState(true);
+  const [isInventoryLoading, setIsInventoryLoading] = useState(true);
+  const [dormitoryRooms, setDormitoryRooms] = useState([]);
+  const [normalRooms, setNormalRooms] = useState([]);
+
+  const selectedGuesthouse = useMemo(
+    () => guesthouses.find((item) => String(item.guesthouseId) === String(selectedGuesthouseId)) ?? null,
+    [guesthouses, selectedGuesthouseId],
+  );
+
+  useEffect(() => {
+    const fetchGuesthousesWithRooms = async () => {
+      setIsGuesthousesLoading(true);
+      try {
+        const response = await hostGuesthouseApi.getMyGuesthousesWithRooms();
+        const payload = response?.data?.data ?? response?.data ?? [];
+        const safeList = Array.isArray(payload) ? payload : [];
+
+        setGuesthouses(safeList);
+        setSelectedGuesthouseId((prev) => {
+          if (prev && safeList.some((item) => String(item?.guesthouseId) === String(prev))) {
+            return prev;
+          }
+          return safeList[0]?.guesthouseId ?? null;
+        });
+      } catch (error) {
+        setGuesthouses([]);
+        setSelectedGuesthouseId(null);
+      } finally {
+        setIsGuesthousesLoading(false);
+      }
+    };
+
+    fetchGuesthousesWithRooms();
+  }, []);
+
+  useEffect(() => {
+    const fetchInventoryBySelectedDate = async () => {
+      const current = guesthouses.find(
+        (item) => String(item?.guesthouseId) === String(selectedGuesthouseId),
+      );
+      const rooms = Array.isArray(current?.rooms) ? current.rooms : [];
+      const normalizedRooms = rooms.map(normalizeRoom).filter((room) => room.roomId != null);
+
+      if (!selectedGuesthouseId || normalizedRooms.length === 0) {
+        setDormitoryRooms([]);
+        setNormalRooms([]);
+        setIsInventoryLoading(false);
+        return;
+      }
+
+      setIsInventoryLoading(true);
+      try {
+        const inventoryResponses = await Promise.all(
+          normalizedRooms.map(async (room) => {
+            try {
+              const response = await hostGuesthouseApi.getRoomInventoryCalendar(
+                selectedGuesthouseId,
+                room.roomId,
+                selectedDate,
+                selectedDate,
+              );
+              const payload = response?.data?.data ?? response?.data ?? {};
+              const list =
+                payload?.inventories ??
+                payload?.calendar ??
+                payload?.content ??
+                (Array.isArray(payload) ? payload : null) ??
+                [];
+              const matched = Array.isArray(list)
+                ? list.find((item) => item?.date === selectedDate) ?? list[0]
+                : payload;
+              return normalizeInventory(matched ?? {}, room);
+            } catch (error) {
+              return normalizeInventory({}, room);
+            }
+          }),
+        );
+
+        setDormitoryRooms(inventoryResponses.filter((room) => room.roomType === 'DORMITORY'));
+        setNormalRooms(inventoryResponses.filter((room) => room.roomType !== 'DORMITORY'));
+      } finally {
+        setIsInventoryLoading(false);
+      }
+    };
+
+    fetchInventoryBySelectedDate();
+  }, [guesthouses, selectedGuesthouseId, selectedDate]);
 
   // 화면 전체 좌우 스와이프를 감지해서 날짜를 하루씩 이동시키는 제스처 핸들러
   // useMemo로 한 번만 생성해서, 렌더마다 새 PanResponder가 만들어지지 않도록 유지
@@ -98,22 +209,22 @@ const MyRoomManage = () => {
 
   const handleToggleDormitoryRoom = (roomId, nextValue) => {
     setDormitoryRooms((prev) =>
-      prev.map((room) => (room.id === roomId ? { ...room, isExposed: nextValue } : room)),
+      prev.map((room) => (room.roomId === roomId ? { ...room, isExposed: nextValue } : room)),
     );
   };
 
   const handleToggleNormalRoom = (roomId, nextValue) => {
     setNormalRooms((prev) =>
-      prev.map((room) => (room.id === roomId ? { ...room, isExposed: nextValue } : room)),
+      prev.map((room) => (room.roomId === roomId ? { ...room, isExposed: nextValue } : room)),
     );
   };
 
   const handleChangeDormitoryBeds = (roomId, diff) => {
     setDormitoryRooms((prev) =>
       prev.map((room) => {
-        if (room.id !== roomId) return room;
-        const nextBeds = Math.max(0, room.availableBeds + diff);
-        return { ...room, availableBeds: nextBeds };
+        if (room.roomId !== roomId) return room;
+        const nextBeds = Math.max(0, room.displayBeds + diff);
+        return { ...room, displayBeds: nextBeds };
       }),
     );
   };
@@ -129,15 +240,72 @@ const MyRoomManage = () => {
         showsVerticalScrollIndicator={false}
         {...panResponder.panHandlers}
       >
-        {isCalendarOpen ? (
+        {isCalendarOpen || isGuesthouseOpen ? (
           <TouchableOpacity
             activeOpacity={1}
             style={styles.searchFilterBackdrop}
             onPress={() => {
               setIsCalendarOpen(false);
+              setIsGuesthouseOpen(false);
             }}
           />
         ) : null}
+
+        {/* 임시 게하 선택 */}
+        <View style={styles.guesthouseSelectContainer}>
+          <TouchableOpacity
+            style={styles.guesthouseSelectBox}
+            onPress={() => {
+              setIsGuesthouseOpen((prev) => !prev);
+              setIsCalendarOpen(false);
+            }}
+            disabled={isGuesthousesLoading}
+          >
+            <Text style={[FONTS.fs_14_regular, styles.guesthouseSelectText]}>
+              {selectedGuesthouse?.guesthouseName ?? '게스트하우스를 선택해 주세요'}
+            </Text>
+            {isGuesthouseOpen ? (
+              <ChevronUp width={12} height={12} />
+            ) : (
+              <ChevronDown width={12} height={12} />
+            )}
+          </TouchableOpacity>
+
+          {isGuesthouseOpen ? (
+            <View style={styles.guesthouseDropdown}>
+              {guesthouses.length === 0 ? (
+                <View style={styles.guesthouseOption}>
+                  <Text style={[FONTS.fs_14_regular, styles.guesthouseOptionText]}>
+                    등록된 게스트하우스가 없습니다
+                  </Text>
+                </View>
+              ) : (
+                guesthouses.map((item) => (
+                  <TouchableOpacity
+                    key={String(item?.guesthouseId)}
+                    style={styles.guesthouseOption}
+                    onPress={() => {
+                      setSelectedGuesthouseId(item?.guesthouseId);
+                      setIsGuesthouseOpen(false);
+                    }}
+                  >
+                    <Text
+                      style={[
+                        FONTS.fs_14_regular,
+                        styles.guesthouseOptionText,
+                        String(selectedGuesthouseId) === String(item?.guesthouseId)
+                          ? styles.selectedGuesthouseText
+                          : null,
+                      ]}
+                    >
+                      {item?.guesthouseName ?? '이름 없음'}
+                    </Text>
+                  </TouchableOpacity>
+                ))
+              )}
+            </View>
+          ) : null}
+        </View>
 
         {/* 날짜 선택 */}
         <View style={styles.dateSelectContainer}>
@@ -188,110 +356,134 @@ const MyRoomManage = () => {
         {/* 도미토리 */}
         <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>도미토리</Text>
         <View style={styles.roomList}>
-          {dormitoryRooms.map((room) => (
-            <View key={room.id} style={styles.roomCard}>
-              <View style={styles.roomTopRow}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.roomName]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {room.name}
-                </Text>
-                <View style={styles.roomRightBox}>
-                  <View
-                    style={[
-                      styles.exposureBadge,
-                      room.isExposed ? styles.exposureBadgeOn : styles.exposureBadgeOff,
-                    ]}
+          {isInventoryLoading ? (
+            <Text style={[FONTS.fs_14_regular, styles.emptyText]}>객실 정보를 불러오는 중입니다</Text>
+          ) : dormitoryRooms.length === 0 ? (
+            <Text style={[FONTS.fs_14_regular, styles.emptyText]}>도미토리 객실이 없습니다</Text>
+          ) : (
+            dormitoryRooms.map((room) => (
+              <View key={String(room.roomId)} style={styles.roomCard}>
+                <View style={styles.roomTopRow}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.roomName]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                   >
-                    <Text
+                    {room.name}
+                  </Text>
+                  <View style={styles.roomRightBox}>
+                    <View
                       style={[
-                        FONTS.fs_12_medium,
-                        room.isExposed ? styles.exposureTextOn : styles.exposureTextOff,
+                        styles.exposureBadge,
+                        room.isExposed ? styles.exposureBadgeOn : styles.exposureBadgeOff,
                       ]}
                     >
-                      {room.isExposed ? '노출중' : '미노출'}
-                    </Text>
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          room.isExposed ? styles.exposureTextOn : styles.exposureTextOff,
+                        ]}
+                      >
+                        {room.isExposed ? '노출중' : '미노출'}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={room.isExposed}
+                      onValueChange={(nextValue) =>
+                        handleToggleDormitoryRoom(room.roomId, nextValue)
+                      }
+                      trackColor={{
+                        false: COLORS.grayscale_300,
+                        true: COLORS.primary_orange,
+                      }}
+                      thumbColor={COLORS.grayscale_0}
+                    />
                   </View>
-                  <Switch
-                    value={room.isExposed}
-                    onValueChange={(nextValue) => handleToggleDormitoryRoom(room.id, nextValue)}
-                    trackColor={{
-                      false: COLORS.grayscale_300,
-                      true: COLORS.primary_orange,
-                    }}
-                    thumbColor={COLORS.grayscale_0}
-                  />
                 </View>
-              </View>
 
-              <View style={styles.bedControlRow}>
-                <Text style={[FONTS.fs_12_medium, styles.bedControlLabel]}>예약 가능 베드 수</Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.bedControlButton}
-                  onPress={() => handleChangeDormitoryBeds(room.id, -1)}
-                >
-                  <MinusIcon width={12} height={12} />
-                </TouchableOpacity>
-                <Text style={[FONTS.fs_12_medium, styles.bedCountText]}>{room.availableBeds}</Text>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.bedControlButton}
-                  onPress={() => handleChangeDormitoryBeds(room.id, 1)}
-                >
-                  <PlusIcon width={12} height={12} />
-                </TouchableOpacity>
+                <View style={styles.bedControlRow}>
+                  <Text style={[FONTS.fs_12_medium, styles.bedControlLabel]}>예약 가능 베드 수</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.bedControlButton}
+                    onPress={() => handleChangeDormitoryBeds(room.roomId, -1)}
+                  >
+                    <MinusIcon width={12} height={12} />
+                  </TouchableOpacity>
+                  <Text style={[FONTS.fs_12_medium, styles.bedCountText]}>{room.displayBeds}</Text>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.bedControlButton}
+                    onPress={() => handleChangeDormitoryBeds(room.roomId, 1)}
+                  >
+                    <PlusIcon width={12} height={12} />
+                  </TouchableOpacity>
+                </View>
+                <Text style={[FONTS.fs_12_medium, styles.roomSubText]}>
+                  예약 {room.reservedBeds} / 판매가능 {room.sellableCapacity} / 최대 {room.roomMaxCapacity}
+                </Text>
               </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
 
         {/* 일반객실 */}
         <Text style={[FONTS.fs_16_semibold, styles.sectionTitle, styles.normalSectionTitle]}>일반 객실</Text>
         <View style={styles.roomList}>
-          {normalRooms.map((room) => (
-            <View key={room.id} style={styles.roomCard}>
-              <View style={styles.roomTopRow}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.roomName]}
-                  numberOfLines={1}
-                  ellipsizeMode="tail"
-                >
-                  {room.name}
-                </Text>
-                <View style={styles.roomRightBox}>
-                  <View
-                    style={[
-                      styles.exposureBadge,
-                      room.isExposed ? styles.exposureBadgeOn : styles.exposureBadgeOff,
-                    ]}
+          {isInventoryLoading ? (
+            <Text style={[FONTS.fs_14_regular, styles.emptyText]}>객실 정보를 불러오는 중입니다</Text>
+          ) : normalRooms.length === 0 ? (
+            <Text style={[FONTS.fs_14_regular, styles.emptyText]}>일반 객실이 없습니다</Text>
+          ) : (
+            normalRooms.map((room) => (
+              <View key={String(room.roomId)} style={styles.roomCard}>
+                <View style={styles.roomTopRow}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.roomName]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail"
                   >
-                    <Text
+                    {room.name}
+                  </Text>
+                  <View style={styles.roomRightBox}>
+                    <View
                       style={[
-                        FONTS.fs_12_medium,
-                        room.isExposed ? styles.exposureTextOn : styles.exposureTextOff,
+                        styles.exposureBadge,
+                        room.isExposed ? styles.exposureBadgeOn : styles.exposureBadgeOff,
                       ]}
                     >
-                      {room.isExposed ? '노출중' : '미노출'}
-                    </Text>
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          room.isExposed ? styles.exposureTextOn : styles.exposureTextOff,
+                        ]}
+                      >
+                        {room.isExposed ? '노출중' : '미노출'}
+                      </Text>
+                    </View>
+                    <Switch
+                      value={room.isExposed}
+                      onValueChange={(nextValue) => handleToggleNormalRoom(room.roomId, nextValue)}
+                      trackColor={{
+                        false: COLORS.grayscale_300,
+                        true: COLORS.primary_orange,
+                      }}
+                      thumbColor={COLORS.grayscale_0}
+                    />
                   </View>
-                  <Switch
-                    value={room.isExposed}
-                    onValueChange={(nextValue) => handleToggleNormalRoom(room.id, nextValue)}
-                    trackColor={{
-                      false: COLORS.grayscale_300,
-                      true: COLORS.primary_orange,
-                    }}
-                    thumbColor={COLORS.grayscale_0}
-                  />
                 </View>
+                <Text style={[FONTS.fs_12_medium, styles.roomSubText]}>
+                  {room.availableBeds === 0 ? '예약완료' : '미예약'}
+                </Text>
               </View>
-            </View>
-          ))}
+            ))
+          )}
         </View>
       </ScrollView>
+
+      <TouchableOpacity style={styles.addButton} onPress={() => {}}>
+        <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>적용하기</Text>
+      </TouchableOpacity>
     </View>
   );
 };

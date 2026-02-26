@@ -36,7 +36,7 @@ const HostMyPage = () => {
 
   return (
     <View style={styles.view}>
-      <Header title={'마이페이지'} isSetting={true} />
+      <Header title={'마이페이지'} isSetting={true} showBackButton={false} />
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>
           {/* 사장 프로필 */}

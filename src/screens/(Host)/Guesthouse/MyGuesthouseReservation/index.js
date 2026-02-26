@@ -76,6 +76,7 @@ const MyGuesthouseReservation = ({ route }) => {
   const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(initialGuesthouseId ?? null);
   const [reservations, setReservations] = useState([]);
   const [reservationTotalCount, setReservationTotalCount] = useState(0);
+  const [targetDateCount, setTargetDateCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
   const [hasNextPage, setHasNextPage] = useState(false);
   const [isGuesthousesLoading, setIsGuesthousesLoading] = useState(true);
@@ -184,6 +185,7 @@ const MyGuesthouseReservation = ({ route }) => {
           response?.data?.content ??
           [];
         const totalCount = Number(payload?.totalCount);
+        const targetCount = Number(payload?.targetDateCount);
         const next = Boolean(payload?.hasNext);
         const page = Number(payload?.currentPage);
         const safeContent = Array.isArray(content) ? content : [];
@@ -196,12 +198,18 @@ const MyGuesthouseReservation = ({ route }) => {
         } else if (!isAppend) {
           setReservationTotalCount(safeContent.length);
         }
+        if (Number.isFinite(targetCount)) {
+          setTargetDateCount(targetCount);
+        } else if (!isAppend) {
+          setTargetDateCount(safeContent.length);
+        }
         setHasNextPage(next);
         setCurrentPage(Number.isFinite(page) ? page : formData?.page ?? DEFAULT_PAGE);
       } catch (error) {
         if (!isAppend) {
           setReservations([]);
           setReservationTotalCount(0);
+          setTargetDateCount(0);
           setHasNextPage(false);
           setCurrentPage(DEFAULT_PAGE);
         }
@@ -236,6 +244,7 @@ const MyGuesthouseReservation = ({ route }) => {
     if (!selectedGuesthouseId) {
       setReservations([]);
       setReservationTotalCount(0);
+      setTargetDateCount(0);
       setCurrentPage(DEFAULT_PAGE);
       setHasNextPage(false);
       setIsLoadingMore(false);
@@ -453,7 +462,7 @@ const MyGuesthouseReservation = ({ route }) => {
         </View>
         <View style={styles.filterContainer}>
           <View style={styles.filterBox}>
-            <Text style={[FONTS.fs_14_regular]}>오늘이용 {reservationTotalCount}</Text>
+            <Text style={[FONTS.fs_14_regular]}>오늘이용 {targetDateCount}</Text>
           </View>
           <View style={styles.statusFilterContainer}>
             <TouchableOpacity

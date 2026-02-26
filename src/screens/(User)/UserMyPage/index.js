@@ -35,7 +35,7 @@ const UserMyPage = () => {
 
   return (
     <View style={styles.view}>
-      <Header title={'마이페이지'} isSetting={true} />
+      <Header title={'마이페이지'} isSetting={true} showBackButton={false} />
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>
           {/* 유저 프로필 */}
