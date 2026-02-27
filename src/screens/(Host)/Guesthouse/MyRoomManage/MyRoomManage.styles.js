@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
@@ -24,6 +24,56 @@ export default StyleSheet.create({
     bottom: 0,
     left: 0,
     zIndex: 5,
+  },
+  guesthouseSelectContainer: {
+    position: 'relative',
+    zIndex: 13,
+  },
+  guesthouseSelectBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingVertical: 12,
+    paddingHorizontal: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_0,
+    gap: 8,
+  },
+  guesthouseSelectText: {
+    flex: 1,
+    color: COLORS.grayscale_900,
+  },
+  guesthouseDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    marginTop: 4,
+    paddingVertical: 12,
+    paddingHorizontal: 16,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_0,
+    shadowColor: COLORS.grayscale_900,
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    shadowOffset: {
+      width: 0,
+      height: 2,
+    },
+    elevation: 3,
+  },
+  guesthouseOption: {
+    paddingVertical: 8,
+  },
+  guesthouseOptionText: {
+    color: COLORS.grayscale_900,
+  },
+  selectedGuesthouseText: {
+    color: COLORS.primary_orange,
   },
 
   // 날짜 선택
@@ -62,6 +112,11 @@ export default StyleSheet.create({
   },
   roomList: {
     gap: 12,
+  },
+  emptyText: {
+    color: COLORS.grayscale_500,
+    textAlign: 'center',
+    paddingVertical: 8,
   },
   roomCard: {
     borderWidth: 1,
@@ -133,5 +188,24 @@ export default StyleSheet.create({
     minWidth: 18,
     textAlign: 'center',
     color: COLORS.grayscale_900,
+  },
+  addButton: {
+    alignItems: 'center',
+    backgroundColor: COLORS.primary_orange,
+    flexDirection: 'row',
+    paddingVertical: 8,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+    position: 'absolute',
+    right: 20,
+    bottom: 20,
+    ...Platform.select({
+      ios: {
+        marginBottom: 20,
+      },
+    }),
+  },
+  addButtonText: {
+    color: COLORS.grayscale_0,
   },
 });

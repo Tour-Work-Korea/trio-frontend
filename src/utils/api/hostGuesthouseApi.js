@@ -3,6 +3,9 @@ import api from './axiosInstance';
 const hostGuesthouseApi = {
   // 사장님 전체 게스트하우스 조회
   getMyGuesthouses: () => api.get('/host/guesthouses'),
+  
+  // 사장님 전체 게스트하우스 조회 (룸 포함)
+  getMyGuesthousesWithRooms: () => api.get('/host/guesthouses/with-rooms'),
 
   // 특정 게스트하우스 상세 조회
   getGuesthouseDetail: guesthouseId =>
@@ -133,18 +136,38 @@ const hostGuesthouseApi = {
     api.get('/order/host/reservation/calendar', { params: formData }),
 
   // 호스트 예약 취소
-  cancelGuesthouseReservationByHost: (reservationId) =>
-    api.post(`/order/host/reservation/${reservationId}/cancel`),
+  cancelGuesthouseReservationByHost: (reservationId, payload) =>
+    api.post(`/order/host/reservation/${reservationId}/cancel`, payload),
 
-  // 룸 관리 캘린더 조회
-  getRoomInventoryCalendar: (guesthouseId, roomId, formData) =>
+  // 특정 객실 기간별 운영 상태/예약 인원/잔여 인원 조회
+  // query: { from: 'YYYY-MM-DD', toInclusive: 'YYYY-MM-DD' }
+  getRoomInventoryCalendar: (guesthouseId, roomId, from, toInclusive) =>
     api.get(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/inventory/calendar`, {
-      params: formData,
+      params: {
+        from,
+        toInclusive,
+      },
     }),
 
-  // 룸 노출 상태 변경
-  updateRoomVisibility: (guesthouseId, roomId, payload) =>
-    api.patch(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/visibility`, payload),
+  // 객실 날짜별 운영 상태 변경 (단건)
+  // body: { date: 'YYYY-MM-DD', isClosed: boolean }
+  updateRoomStatusByDate: (guesthouseId, roomId, payload) =>
+    api.put(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/status`, payload),
+
+  // 객실 날짜별 운영 상태 변경 (여러개 동시)
+  // body: [{ date: 'YYYY-MM-DD', isClosed: boolean }, ...]
+  updateRoomStatusesByDates: (guesthouseId, roomId, payload) =>
+    api.put(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/statuses`, payload),
+
+  // 객실 체크인 안내문 조회
+  getRoomCheckinNotice: (guesthouseId, roomId) =>
+    api.get(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/checkin-notice`),
+
+  // 객실 체크인 안내문 수정
+  updateRoomCheckinNotice: (guesthouseId, roomId, noticeText) =>
+    api.put(`/host/guesthouses/${guesthouseId}/rooms/${roomId}/checkin-notice`, {
+      noticeText,
+    }),
 
   // 도미토리 예약 가능 베드 수 변경 (단건)
   updateAvailableBeds: (guesthouseId, roomId, payload) =>

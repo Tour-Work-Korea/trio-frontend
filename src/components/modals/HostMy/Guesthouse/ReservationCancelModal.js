@@ -21,6 +21,7 @@ dayjs.locale('ko');
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import { formatLocalDateToDotWithDay } from '@utils/formatDate';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import ButtonWhite from '@components/ButtonWhite';
 
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
@@ -62,8 +63,17 @@ export default function ReservationCancelModal({
     }
     try {
       setSubmitting(true);
+      await hostGuesthouseApi.cancelGuesthouseReservationByHost(
+        reservation.reservationId,
+        { cancelReason: finalReason },
+      );
       await onSubmit?.(reservation.reservationId, finalReason);
-      // 성공/실패 토스트는 상위에서 처리
+      Toast.show({
+        type: 'success',
+        text1: '예약이 취소되었어요.',
+        position: 'top',
+        visibilityTime: 2000,
+      });
       resetAndClose();
     } catch (e) {
       setSubmitting(false);
@@ -179,7 +189,7 @@ export default function ReservationCancelModal({
               />
               <ButtonWhite
                 onPress={handlePressSubmit}
-                disabled={!isReasonValid}
+                disabled={!isReasonValid || submitting}
                 title='예약 취소'
                 backgroundColor={COLORS.primary_orange}
                 textColor={COLORS.grayscale_0}

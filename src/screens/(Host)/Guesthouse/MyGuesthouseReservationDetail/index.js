@@ -1,32 +1,13 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { ScrollView, Text, TouchableOpacity, View } from 'react-native';
 
 import Header from '@components/Header';
 import ReservationCancelModal from '@components/modals/HostMy/Guesthouse/ReservationCancelModal';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
+import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import { formatLocalDateToDotWithDay } from '@utils/formatDate';
 import styles from './MyGuesthouseReservationDetail.styles';
-
-const DEFAULT_RESERVATION = {
-  status: '확정',
-  statusText: '완료 1, 취소 1',
-  name: '이하늘',
-  age: '1999년생',
-  phone: '010-4123-0075',
-  reservationNumber: 'WA_sddfei13',
-  email: 'leesky0075@naver.com',
-  guestCount: '2',
-  serviceName: '김닝기억',
-  room: '여 6인 도미토리',
-  period: '2025.04.15(화) ~ 2025.04.16(수)',
-  checkInDate: '2025-04-15',
-  checkOutDate: '2025-04-16',
-  reservationId: 1,
-  paymentState: '결제완료',
-  paymentMethod: '카카오페이',
-  paymentAmount: '30,000원',
-  showCancelButton: true,
-};
 
 const STATUS_STYLE = {
   취소: {
@@ -43,13 +24,80 @@ const STATUS_STYLE = {
   },
 };
 
+const STATUS_LABEL_MAP = {
+  CONFIRMED: '확정',
+  CANCELLED: '취소',
+  COMPLETED: '완료',
+};
+
+const mapReservationDetailToViewData = (reservation = {}) => {
+  const status = STATUS_LABEL_MAP[reservation?.status] || reservation?.status || '완료';
+  const completedTotal = Number(reservation?.completedTotal || 0);
+  const canceledTotal = Number(reservation?.canceledTotal || 0);
+  const birthYear = reservation?.birthDate?.split?.('-')?.[0];
+  const amount = Number(reservation?.amount || 0);
+  const period = reservation?.checkInDate && reservation?.checkOutDate
+    ? `${formatLocalDateToDotWithDay(reservation.checkInDate)} ~ ${formatLocalDateToDotWithDay(
+      reservation.checkOutDate,
+    )}`
+    : reservation?.period;
+
+  return {
+    ...reservation,
+    reservationId: reservation?.reservationId ?? reservation?.id,
+    status,
+    statusText: reservation?.statusText ?? `완료 ${completedTotal}, 취소 ${canceledTotal}`,
+    name: reservation?.userName ?? reservation?.name,
+    age: reservation?.age ?? (birthYear ? `${birthYear}년생` : ''),
+    phone: reservation?.userPhone ?? reservation?.phone,
+    reservationNumber: reservation?.reservationCode ?? reservation?.reservationNumber,
+    email: reservation?.userEmail ?? reservation?.email,
+    guestCount:
+      reservation?.guestCount != null && `${reservation?.guestCount}` !== ''
+        ? `${reservation.guestCount}명`
+        : reservation?.guestCount,
+    serviceName: reservation?.guesthouseName ?? reservation?.serviceName,
+    room: reservation?.roomName ?? reservation?.room,
+    period,
+    paymentMethod: reservation?.paymentMethod,
+    paymentStatus: reservation?.paymentStatus ?? (status === '취소' ? '환불' : '결제완료'),
+    paymentState: reservation?.paymentState ?? (status === '취소' ? '환불' : '결제완료'),
+    paymentAmount:
+      reservation?.paymentAmount ??
+      (Number.isFinite(amount) ? `${amount.toLocaleString('ko-KR')}원` : ''),
+    showCancelButton:
+      reservation?.showCancelButton != null
+        ? reservation?.showCancelButton
+        : status === '확정',
+  };
+};
+
 const MyGuesthouseReservationDetail = ({ route }) => {
   const [cancelModalVisible, setCancelModalVisible] = useState(false);
+  const reservationId = route?.params?.reservationId;
+  const [reservation, setReservation] = useState(
+    mapReservationDetailToViewData(route?.params?.reservation || {}),
+  );
 
-  const reservation = {
-    ...DEFAULT_RESERVATION,
-    ...(route?.params?.reservation || {}),
-  };
+  useEffect(() => {
+    if (!reservationId) return;
+
+    const fetchReservationDetail = async () => {
+      try {
+        const response = await hostGuesthouseApi.getGuesthouseReservationDetail(reservationId);
+        const payload = response?.data?.data ?? response?.data ?? {};
+        setReservation(prev => ({
+          ...prev,
+          ...mapReservationDetailToViewData(payload),
+        }));
+      } catch (error) {
+        console.error('게스트하우스 예약 상세 조회 실패:', error);
+      }
+    };
+
+    fetchReservationDetail();
+  }, [reservationId]);
+
   const cancelModalReservation = {
     reservationId: reservation.reservationId || reservation.id,
     roomName: reservation.room,
