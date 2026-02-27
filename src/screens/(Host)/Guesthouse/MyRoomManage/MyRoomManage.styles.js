@@ -189,10 +189,6 @@ export default StyleSheet.create({
     textAlign: 'center',
     color: COLORS.grayscale_900,
   },
-  roomSubText: {
-    color: COLORS.grayscale_600,
-    textAlign: 'right',
-  },
   addButton: {
     alignItems: 'center',
     backgroundColor: COLORS.primary_orange,
