@@ -21,19 +21,19 @@ const styles = StyleSheet.create({
 
   bottomButtonContainer: {
     width: '100%',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
     paddingVertical: 40,
   },
   applyButton: {
-    backgroundColor: COLORS.scarlet,
+    backgroundColor: COLORS.primary_orange,
     paddingVertical: 12,
     borderRadius: 8,
     alignItems: 'center',
   },
   applyButtonText: {
     ...FONTS.fs_body_bold,
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
   },
 });
 

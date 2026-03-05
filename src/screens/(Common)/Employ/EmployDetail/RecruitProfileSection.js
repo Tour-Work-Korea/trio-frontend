@@ -64,7 +64,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...FONTS.fs_20_semibold,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
   },
   location: {
     ...FONTS.fs_14_regular,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     marginBottom: 8,
   },
   descriptionContainer: {

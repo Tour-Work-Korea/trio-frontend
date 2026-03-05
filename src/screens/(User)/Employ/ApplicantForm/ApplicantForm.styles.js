@@ -142,7 +142,7 @@ const styles = StyleSheet.create({
   },
   datePickerButton: {
     width: '48%',
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.stroke_gray,
@@ -150,7 +150,7 @@ const styles = StyleSheet.create({
   },
   datePickerLabel: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     marginBottom: 8,
   },
   datePickerContent: {
@@ -160,10 +160,10 @@ const styles = StyleSheet.create({
   },
   dateText: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   messageInput: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
     borderWidth: 1,
     borderColor: COLORS.stroke_gray,
@@ -180,14 +180,14 @@ const styles = StyleSheet.create({
     paddingBottom: 40,
   },
   submitButton: {
-    backgroundColor: COLORS.scarlet,
+    backgroundColor: COLORS.primary_orange,
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
   },
   submitButtonText: {
     ...FONTS.fs_body_bold,
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
   },
 });
 export default styles;

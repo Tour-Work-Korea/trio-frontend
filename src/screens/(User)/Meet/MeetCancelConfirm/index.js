@@ -255,7 +255,7 @@ const MeetCancelConfirm = () => {
               <Text
                 style={[
                   FONTS.fs_14_medium,
-                  {color: selectedReason ? COLORS.black : COLORS.grayscale_400},
+                  {color: selectedReason ? COLORS.grayscale_900 : COLORS.grayscale_400},
                 ]}
               >
                 {selectedReason || '취소 사유를 선택해 주세요'}
@@ -286,7 +286,7 @@ const MeetCancelConfirm = () => {
                             color:
                               selectedReason === r
                                 ? COLORS.primary_orange
-                                : COLORS.black,
+                                : COLORS.grayscale_900,
                           },
                         ]}
                       >

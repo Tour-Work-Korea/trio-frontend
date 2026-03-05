@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   placePill: {
-    color: 'white',
+    color: COLORS.grayscale_0,
   },
   bottomContainer: {
     position: 'absolute',

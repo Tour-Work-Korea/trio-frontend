@@ -727,7 +727,7 @@ const MeetDetail = () => {
           })
         }
       >
-        <Text style={[FONTS.fs_16_semibold, {color: 'white'}]}>참여하기</Text>
+        <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>참여하기</Text>
       </TouchableOpacity>
     </View>
 

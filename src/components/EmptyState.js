@@ -67,7 +67,7 @@ const styles = {
     alignItems: 'center',
   },
   buttonText: {
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
     marginRight: 10,
   },
 };
