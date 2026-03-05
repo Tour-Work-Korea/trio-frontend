@@ -22,7 +22,7 @@ const styles = StyleSheet.create({
   },
   title: {
     marginBottom: 12,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   image: {
     width: 180,

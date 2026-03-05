@@ -1,19 +1,31 @@
 import React, {useEffect, useRef} from 'react';
 import {Linking, Alert} from 'react-native';
-import {navigate, reset} from './navigationService';
+import {navigate, reset, navigationRef} from './navigationService';
 import useUserStore from '@stores/userStore';
 
-const deeplinkHandler = () => {
+const DeeplinkHandler = () => {
   const accessToken = useUserStore(state => state.accessToken);
   const userRole = useUserStore(state => state.userRole);
   const promptingRef = useRef(false); // 중복 알림/네비게이션 가드
+
+  const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
+  const waitForNavigationReady = async () => {
+    let tries = 0;
+
+    while (!navigationRef.isReady() && tries < 100) {
+      await wait(30);
+      tries += 1;
+    }
+
+    return navigationRef.isReady();
+  };
 
   // 최초 실행시 (앱이 딥링크로 켜질 때)
   useEffect(() => {
     const checkInitialUrl = async () => {
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl) {
-        handleUrl(initialUrl);
+        await handleUrl(initialUrl);
       }
     };
 
@@ -57,15 +69,19 @@ const deeplinkHandler = () => {
   };
 
   const parseDeeplink = url => {
-    const parsedUrl = new URL(url);
-    const host = parsedUrl.host || '';
-    const pathname = (parsedUrl.pathname || '').replace(/^\/+/, '');
-    const rawPath = [host, pathname].filter(Boolean).join('/');
-    const parts = rawPath ? rawPath.split('/') : [];
+    const normalized = String(url || '').trim();
+    const withoutScheme = normalized.replace(
+      /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//,
+      '',
+    );
+    const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
+    const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
+    const parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
+    const searchParams = new URLSearchParams(queryPart);
 
     return {
       parts,
-      searchParams: parsedUrl.searchParams,
+      searchParams,
     };
   };
 
@@ -97,10 +113,16 @@ const deeplinkHandler = () => {
     ]);
   };
 
-  const handleUrl = url => {
+  const handleUrl = async url => {
     console.log('딥링크 URL 받음:', url);
 
     try {
+      const navReady = await waitForNavigationReady();
+      if (!navReady) {
+        console.warn('네비게이션 준비 전이라 딥링크 이동을 건너뜀', url);
+        return;
+      }
+
       const {parts, searchParams} = parseDeeplink(url);
 
       // 경로별 로그인 필요 여부 분리
@@ -185,4 +207,4 @@ const deeplinkHandler = () => {
   return null;
 };
 
-export default deeplinkHandler;
+export default DeeplinkHandler;

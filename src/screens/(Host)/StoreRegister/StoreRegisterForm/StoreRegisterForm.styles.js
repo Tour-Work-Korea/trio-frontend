@@ -6,7 +6,7 @@ export default StyleSheet.create({
   flex: {flex: 1},
   flexGrow: {flexGrow: 1},
   container: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flex: 1,
     color: COLORS.grayscale_900,
     paddingVertical: 20,
@@ -65,7 +65,7 @@ export default StyleSheet.create({
   },
   inputLabel: {...FONTS.fs_16_semibold},
   inputBox: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',
@@ -156,7 +156,7 @@ export default StyleSheet.create({
     justifyContent: 'center',
   },
   checked: {
-    borderColor: COLORS.scarlet,
+    borderColor: COLORS.primary_orange,
   },
   textBlue: {
     color: COLORS.primary_blue,

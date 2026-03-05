@@ -19,7 +19,7 @@ export default StyleSheet.create({
   emptyText: {...FONTS.fs_14_semibold, color: COLORS.grayscale_500},
   //카드
   applicantCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
     padding: 12,
     gap: 12,
