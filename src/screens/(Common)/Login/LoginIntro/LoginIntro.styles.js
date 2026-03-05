@@ -4,7 +4,7 @@ import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   signin: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flex: 1,
     color: COLORS.grayscale_900,
   },

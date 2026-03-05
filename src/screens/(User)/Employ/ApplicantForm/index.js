@@ -171,7 +171,7 @@ const ApplicantForm = () => {
                     <CheckedCircleIcon
                       width={24}
                       height={24}
-                      color={COLORS.scarlet}
+                      color={COLORS.primary_orange}
                     />
                   ) : (
                     <UncheckedCircleIcon

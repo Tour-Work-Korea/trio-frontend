@@ -12,7 +12,7 @@ export default function Loading({title}) {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
-        backgroundColor: 'white',
+        backgroundColor: COLORS.grayscale_0,
       }}>
       <LottieView
         source={require('@assets/lottie/loading.json')}
@@ -27,7 +27,7 @@ export default function Loading({title}) {
 
 const styles = StyleSheet.create({
   container: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flex: 1,
     width: '100%',
     alignItems: 'center',

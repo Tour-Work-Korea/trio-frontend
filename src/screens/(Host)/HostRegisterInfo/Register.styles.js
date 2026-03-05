@@ -4,7 +4,7 @@ import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   container: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flex: 1,
     color: COLORS.grayscale_900,
     ...Platform.select({
@@ -69,7 +69,7 @@ export default StyleSheet.create({
   },
   inputLabel: {...FONTS.fs_16_semibold},
   inputBox: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',

@@ -244,7 +244,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,
@@ -261,7 +261,7 @@ const styles = StyleSheet.create({
     gap: 20,
   },
   inputBox: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',

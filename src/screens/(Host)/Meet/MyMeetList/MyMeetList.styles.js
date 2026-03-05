@@ -116,7 +116,7 @@ const styles = StyleSheet.create({
     paddingVertical: 8,
   },
   fabText: {
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
   },
 });
 
