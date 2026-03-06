@@ -81,7 +81,21 @@ const BottomTabs = () => {
         })}
       />
       {/* <Tab.Screen name="스탭" component={Employ} /> */}
-      <Tab.Screen name="찜" component={Favorite} />
+      <Tab.Screen
+        name="찜"
+        component={Favorite}
+        listeners={() => ({
+          tabPress: e => {
+            const role = useUserStore.getState().userRole;
+            if (role === 'HOST') {
+              e.preventDefault();
+              showErrorModal({
+                message: '찜 목록은\n유저 계정으로 로그인 후 사용해주세요',
+              });
+            }
+          },
+        })}
+      />
       <Tab.Screen
         name="마이"
         component={My}

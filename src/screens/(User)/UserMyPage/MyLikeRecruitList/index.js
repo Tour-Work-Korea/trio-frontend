@@ -11,7 +11,7 @@ import EmployEmpty from '@components/Employ/EmployEmpty';
 
 import {COLORS} from '@constants/colors';
 
-export default function MyLikeRecruitList() {
+export default function MyLikeRecruitList({hideHeader = false}) {
   const navigation = useNavigation();
   const [recruits, setRecruits] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -68,7 +68,7 @@ export default function MyLikeRecruitList() {
 
   return (
     <View style={styles.container}>
-      <Header title={'즐겨찾는 알바'} />
+      {!hideHeader && <Header title={'즐겨찾는 알바'} />}
       <View style={styles.contentContainer}>
         {loading ? (
           <></>
@@ -76,8 +76,8 @@ export default function MyLikeRecruitList() {
           <EmployEmpty
             title={'아직 즐겨찾는 알바가 없어요'}
             subTitle={'마음에 드는 알바를 빠르게 볼 수 있어요 !'}
-            buttonText={'알바 찾으러 가기'}
-            onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
+            // buttonText={'알바 찾으러 가기'}
+            // onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
           />
         ) : (
           <RecruitList
@@ -88,7 +88,7 @@ export default function MyLikeRecruitList() {
             onToggleFavorite={handleLikePress}
             setRecruitList={setRecruits}
             onEndReached={() => {}}
-            scrollEnabled={false}
+            scrollEnabled={hideHeader}
             showErrorModal={setErrorModal}
           />
         )}
