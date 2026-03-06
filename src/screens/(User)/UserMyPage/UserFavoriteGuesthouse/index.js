@@ -15,7 +15,7 @@ import FillHeart from '@assets/images/heart_filled.svg';
 import Star from '@assets/images/star_white.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
 
-const UserFavoriteGuesthouse = () => {
+const UserFavoriteGuesthouse = ({hideHeader = false}) => {
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -78,8 +78,8 @@ const UserFavoriteGuesthouse = () => {
         <View style={styles.topContent}>
           <View style={styles.hashtagContainer}>
             {item.hashtags.map((tag, idx) => (
-              <View style={styles.hashtagBox}>
-                <Text key={idx} style={[FONTS.fs_12_medium, styles.hashtag]}>#{tag}</Text>
+              <View key={`${tag}-${idx}`} style={styles.hashtagBox}>
+                <Text style={[FONTS.fs_12_medium, styles.hashtag]}>#{tag}</Text>
               </View>
             ))}
           </View>
@@ -97,7 +97,7 @@ const UserFavoriteGuesthouse = () => {
 
   return (
     <View style={styles.container}>
-      <Header title='즐겨찾는 게하' />
+      {!hideHeader && <Header title='즐겨찾는 게하' />}
       {loading ? (
         <Loading title='게스트하우스를 불러오는 중이에요' />
       ) : guesthouses.length === 0 ? (
@@ -107,15 +107,11 @@ const UserFavoriteGuesthouse = () => {
             iconSize={{ width: 120, height: 120 }}
             title='즐겨찾는 게스트하우스가 없어요'
             description='마음에 드는 게스트 하우스를 찾으러 가볼까요?'
+            buttonText="게하 찾으러 가기"
+            onPressButton={() =>
+              navigation.navigate('MainTabs', {screen: '검색'})
+            }
           />
-          <View style={styles.emptyButton}>
-            <ButtonScarlet
-              title={'게스트하우스 찾아보기'}
-              onPress={() => {
-                navigation.navigate('MainTabs', { screen: '게하' });
-              }}
-            />
-          </View>
         </View>
       ) : (
         <FlatList

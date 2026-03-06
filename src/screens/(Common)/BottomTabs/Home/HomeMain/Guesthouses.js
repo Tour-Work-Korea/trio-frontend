@@ -87,7 +87,9 @@ export default function Guesthouses({guesthouses}) {
   return (
     <View style={styles.guesthouseContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
-        <Text style={styles.sectionTitle}>인기 게스트하우스</Text>
+        <Text style={styles.sectionTitle}>
+          <Text style={{color: COLORS.primary_orange}}>게딱지</Text> 추천 게하
+        </Text>
         <TouchableOpacity
           style={styles.seeMoreButton}
           onPress={() => {

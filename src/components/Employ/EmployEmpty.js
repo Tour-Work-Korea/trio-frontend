@@ -20,10 +20,10 @@ export default function EmployEmpty({
           <Text style={styles.titleText}>{title}</Text>
           <Text style={styles.subtitleText}>{subTitle}</Text>
         </View>
-        <TouchableOpacity onPress={onPress} style={styles.button}>
+        {/* <TouchableOpacity onPress={onPress} style={styles.button}>
           <Text style={styles.buttonText}>{buttonText}</Text>
           <ArrowRight width={24} />
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );

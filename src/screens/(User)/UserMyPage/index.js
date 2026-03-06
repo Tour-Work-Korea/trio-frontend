@@ -2,13 +2,10 @@ import React from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import FavoriteGuesthouseIcon from '@assets/images/user-favorite-guesthouse-icon.svg';
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
-import FavoritePostIcon from '@assets/images/user-favorite-post-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
-import FavoriteMeetIcon from '@assets/images/user-favorite-meet-icon.svg';
 import MeetReservationCheckIcon from '@assets/images/user-meet-reservation-check-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
@@ -114,11 +111,6 @@ const UserMyPage = () => {
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
-                  IconComponent={FavoriteGuesthouseIcon}
-                  label="즐겨찾는 게하"
-                  onPress={() => navigation.navigate('UserFavoriteGuesthouse')}
-                />
-                <MenuItem
                   IconComponent={ReservationCheckIcon}
                   label="예약 내역"
                   onPress={() => navigation.navigate('UserReservationCheck')}
@@ -140,11 +132,6 @@ const UserMyPage = () => {
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
-                  IconComponent={FavoriteMeetIcon}
-                  label="즐겨찾는 이벤트"
-                  onPress={() => navigation.navigate('UserFavoriteMeet')}
-                />
-                <MenuItem
                   IconComponent={MeetReservationCheckIcon}
                   label="이벤트 예약내역"
                   onPress={() =>
@@ -162,11 +149,6 @@ const UserMyPage = () => {
                 공고
               </Text>
               <View style={styles.menuContainer}>
-                <MenuItem
-                  IconComponent={FavoritePostIcon}
-                  label="즐겨찾는 알바"
-                  onPress={() => navigation.navigate('MyLikeRecruitList')}
-                />
                 <MenuItem
                   IconComponent={MyApplicationIcon}
                   label="나의 이력서"

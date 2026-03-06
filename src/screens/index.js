@@ -40,6 +40,8 @@ export {default as GuesthousePost} from './(Common)/GuesthousePost';
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
+// 찜
+export {default as Favorite} from './(Common)/BottomTabs/Favorite';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
