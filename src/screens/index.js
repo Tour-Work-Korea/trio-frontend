@@ -40,6 +40,8 @@ export {default as GuesthousePost} from './(Common)/GuesthousePost';
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
+// 찜
+export {default as Favorite} from './(Common)/BottomTabs/Favorite';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
@@ -74,11 +76,17 @@ export {default as MyRoomDetail} from './(Host)/Guesthouse/MyRoomDetail';
 export {default as MyGuesthouseList} from './(Host)/Guesthouse/MyGuesthouseList';
 export {default as MyGuesthouseEdit} from './(Host)/Guesthouse/MyGuesthouseEdit';
 export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
+export {default as MyRoomManage} from './(Host)/Guesthouse/MyRoomManage';
 // 게하 숙박 리뷰
 export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseReview';
 // 게하 예약 내역
 export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
-export {default as MyGuesthouseReservationStatus} from './(Host)/Guesthouse/MyGuesthouseReservationStatus';
+export {default as MyGuesthouseReservationDetail} from './(Host)/Guesthouse/MyGuesthouseReservationDetail';
+export {default as MyGuesthouseReservationCalendar} from './(Host)/Guesthouse/MyGuesthouseReservationCalendar';
+// 고객 알림 설정
+export {default as CustomerNotificationSettings} from './(Host)/Guesthouse/CustomerNotificationSettings';
+export {default as CheckInGuide} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide';
+export {default as RoomGuideMessageEditor} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide/RoomGuideMessageEditor';
 //
 export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
 export {default as RecruitmentForm} from './(Host)/RecruitmentForm';

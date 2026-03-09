@@ -207,7 +207,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
 
         <ButtonWhite
           title='예약취소'
-          backgroundColor={COLORS.cancel_btn_bg}
+          backgroundColor={COLORS.secondary_red}
           textColor={COLORS.semantic_red}
           onPress={() => {
             const { result, message, description, title, buttonText, buttonText2, highlightText } =

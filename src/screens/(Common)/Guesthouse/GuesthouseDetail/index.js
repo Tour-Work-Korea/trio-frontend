@@ -11,6 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
 import Carousel from 'react-native-reanimated-carousel';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -213,6 +214,28 @@ const GuesthouseDetail = ({route}) => {
     });
   };
 
+  const handleCopyAddress = () => {
+    Clipboard.setString(detail?.guesthouseAddress ?? '');
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
+  const handleCopyPhone = () => {
+    Clipboard.setString(detail?.guesthousePhone ?? '');
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
 
@@ -233,7 +256,8 @@ const GuesthouseDetail = ({route}) => {
             renderItem={({item}) => (
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => setImageModalVisible(true)}>
+                onPress={() => setImageModalVisible(true)}
+              >
                 <Image
                   source={{uri: item.guesthouseImageUrl}}
                   style={styles.mainImage}
@@ -335,14 +359,18 @@ const GuesthouseDetail = ({route}) => {
             </View>
           </View>
 
-          <Text style={[FONTS.fs_14_regular, styles.address]}>
-            {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
-          </Text>
+          <TouchableOpacity activeOpacity={0.7} onPress={handleCopyAddress}>
+            <Text style={[FONTS.fs_14_regular, styles.address, styles.copyableText]}>
+              {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
+            </Text>
+          </TouchableOpacity>
 
           {is050Number(detail.guesthousePhone) && (
-            <Text style={[FONTS.fs_14_regular, styles.phone]}>
-              숙소 문의 : {detail.guesthousePhone}
-            </Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={handleCopyPhone}>
+              <Text style={[FONTS.fs_14_regular, styles.phone]}>
+                숙소 문의 : <Text style={styles.copyableText}>{detail.guesthousePhone}</Text>
+              </Text>
+            </TouchableOpacity>
           )}
 
           <View style={[styles.reviewRow, {marginTop: 20}]}>

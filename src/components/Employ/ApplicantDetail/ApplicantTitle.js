@@ -48,7 +48,7 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   inputBox: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flexDirection: 'row',
     width: '100%',
     alignItems: 'center',

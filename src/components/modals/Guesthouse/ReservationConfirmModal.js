@@ -166,7 +166,7 @@ const s = StyleSheet.create({
     color: COLORS.grayscale_900,
   },
   noticeBox: {
-    backgroundColor: COLORS.cancel_btn_bg,
+    backgroundColor: COLORS.secondary_red,
     borderRadius: 10,
     padding: 16,
     marginTop: 12,

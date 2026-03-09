@@ -1,18 +1,12 @@
 export const COLORS = {
-    white: '#FFFFFF',
-    black: '#000000',
-    scarlet: '#FF6F61',
-    light_gray: '#F8F9FB',
-    stroke_gray: '#C8D1E2',
-    gray: '#747D8F',
-    yellow: '#FFEF5E',
-
-    // 새로운 디자인 색
     primary_orange: '#FE4401',
     primary_blue: '#5361DB',
 
-    secondary_blue: '#ADC4FA',
-    secondary_green: '#87986C',
+    secondary_blue: '#CFDDFF',
+    Secondary_khaki: '#87986C',
+    secondary_red: '#FEE9E8',
+    secondary_yellow: '#FDF6E7',
+    secondary_green: '#DBFFED',
 
     neutral_black: '#121212',
     neutral_gray: '#FAFAFC',
@@ -40,6 +34,4 @@ export const COLORS = {
     // 모달창 뒷 배경
     modal_background: 'rgba(0,0,0,0.1)',
 
-    // 취소버튼 배경색
-    cancel_btn_bg: '#FEE9E8'
 };

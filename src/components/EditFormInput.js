@@ -83,7 +83,7 @@ const styles = StyleSheet.create({
   container: {
     marginHorizontal: 15,
     marginVertical: 40,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
   },
   label: {
     marginBottom: 24,
@@ -91,12 +91,12 @@ const styles = StyleSheet.create({
   inputWrapper: {
     position: 'relative',
     borderBottomWidth: 2,
-    borderBottomColor: COLORS.scarlet,
+    borderBottomColor: COLORS.primary_orange,
   },
   input: {
     // height: 32,
     paddingHorizontal: 15,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   clearButton: {
     position: 'absolute',
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
     borderRadius: 5,
     paddingHorizontal: 12,
     marginRight: 8,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   authInputButton: {
     flex: 0.5,

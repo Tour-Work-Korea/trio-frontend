@@ -13,7 +13,7 @@ const styles = StyleSheet.create({
   },
   pageTitle: {
     ...FONTS.fs_body_bold,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     marginBottom: 16,
     paddingHorizontal: 16,
   },
@@ -62,12 +62,12 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     textAlign: 'right',
   },
   infoValueHashtag: {
     ...FONTS.fs_body,
-    color: COLORS.scarlet,
+    color: COLORS.primary_orange,
     flex: 1,
     textAlign: 'right',
   },
@@ -82,17 +82,17 @@ const styles = StyleSheet.create({
   },
   sectionTitle: {
     ...FONTS.fs_h2_bold,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     marginBottom: 16,
   },
   experienceTotal: {
     ...FONTS.fs_body,
-    color: COLORS.scarlet,
+    color: COLORS.primary_orange,
     marginLeft: 8,
     marginBottom: 16,
   },
   experienceCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -112,7 +112,7 @@ const styles = StyleSheet.create({
     width: 12,
     height: 12,
     borderRadius: 6,
-    backgroundColor: COLORS.scarlet,
+    backgroundColor: COLORS.primary_orange,
     marginTop: 6,
     marginRight: 12,
     zIndex: 2,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     top: 18,
     width: 2,
     height: '100%',
-    backgroundColor: COLORS.scarlet,
+    backgroundColor: COLORS.primary_orange,
     zIndex: 1,
   },
   lastTimelineLine: {
@@ -139,15 +139,15 @@ const styles = StyleSheet.create({
   },
   experienceCompany: {
     ...FONTS.fs_body_bold,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     marginBottom: 4,
   },
   experienceDuties: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   introductionCard: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,
     padding: 16,
     shadowColor: '#000',
@@ -158,11 +158,11 @@ const styles = StyleSheet.create({
   },
   introductionText: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     lineHeight: 22,
   },
   attachmentButton: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,
     padding: 16,
     marginBottom: 12,
@@ -175,18 +175,18 @@ const styles = StyleSheet.create({
   },
   attachmentText: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   bottomButtonContainer: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     gap: 8,
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 15,
     borderTopRightRadius: 15,
     ...Platform.select({
       ios: {
-        shadowColor: COLORS.black,
+        shadowColor: COLORS.grayscale_900,
         shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.05,
         shadowRadius: 6,
@@ -201,14 +201,14 @@ const styles = StyleSheet.create({
   },
   applyButton: {
     flex: 1,
-    backgroundColor: COLORS.scarlet,
+    backgroundColor: COLORS.primary_orange,
     borderRadius: 8,
     padding: 12,
     alignItems: 'center',
   },
   applyButtonText: {
     ...FONTS.fs_body_bold,
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
   },
   secondaryButton: {
     flex: 1,

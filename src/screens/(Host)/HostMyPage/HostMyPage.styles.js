@@ -85,11 +85,15 @@ export default StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 8,
+    gap: 24,
   },
   section: {},
   sectionTitle: {
-    marginBottom: 16,
+    paddingBottom: 8,
+    marginBottom: 8,
     color: COLORS.grayscale_800,
+    borderBottomColor: COLORS.grayscale_200,
+    borderBottomWidth: 0.8,
   },
   menuContainer: {
     gap: 8,
@@ -111,9 +115,9 @@ export default StyleSheet.create({
     color: COLORS.grayscale_700,
   },
   devide: {
-    marginVertical: 16,
-    height: 0.8,
-    backgroundColor: COLORS.grayscale_200,
+    // marginVertical: 16,
+    // height: 0.8,
+    // backgroundColor: COLORS.grayscale_200,
   },
 
   // 회원 탈퇴

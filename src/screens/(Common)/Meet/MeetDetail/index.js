@@ -11,6 +11,7 @@ import MapView, {Marker} from 'react-native-maps';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
+import Clipboard from '@react-native-clipboard/clipboard';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
@@ -222,6 +223,17 @@ const MeetDetail = () => {
     });
   };
 
+  const handleCopyText = (text) => {
+    Clipboard.setString(text ?? '');
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
   // 가격 설정
   const renderPrice = (value) => {
     // 0, null, undefined → 무료
@@ -336,12 +348,17 @@ const MeetDetail = () => {
 
         <View style={styles.addressCapacityContainer}>
           {/* 주소 */}
-          <Text
-            style={[FONTS.fs_14_regular, styles.addressText]}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {trimJejuPrefix(location)}
-          </Text>
+          <TouchableOpacity
+            style={styles.addressCopyButton}
+            activeOpacity={0.7}
+            onPress={() => handleCopyText(location)}>
+            <Text
+              style={[FONTS.fs_14_regular, styles.addressText, styles.copyableText]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {trimJejuPrefix(location)}
+            </Text>
+          </TouchableOpacity>
           {/* 인원수 */}
           <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
             {numOfAttendance}/{maxAttendance}명
@@ -402,7 +419,9 @@ const MeetDetail = () => {
           />
           <View style={styles.profileTextBox}>
             <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
-            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>{trimJejuPrefix(guesthouseAddress)}</Text>
+            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>
+              {trimJejuPrefix(guesthouseAddress)}
+            </Text>
           </View>
         </View>
 
@@ -708,7 +727,7 @@ const MeetDetail = () => {
           })
         }
       >
-        <Text style={[FONTS.fs_16_semibold, {color: 'white'}]}>참여하기</Text>
+        <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>참여하기</Text>
       </TouchableOpacity>
     </View>
 

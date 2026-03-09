@@ -35,7 +35,7 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
         style={[
           styles.text,
           {
-            color: disabled ? COLORS.grayscale_400 : COLORS.white,
+            color: disabled ? COLORS.grayscale_400 : COLORS.grayscale_0,
           },
         ]}>
         {title}
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     flex: 1,
     ...FONTS.fs_16_semibold,
-    color: COLORS.white,
+    color: COLORS.grayscale_0,
     lineHeight: 22,
   },
 });
