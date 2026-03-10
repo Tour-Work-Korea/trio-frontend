@@ -1,10 +1,17 @@
 import api from './axiosInstance';
 
 const userGuesthouseApi = {
-  // 게하 키워드 검색
+  // 게하 지역 키워드 검색
   searchGuesthouseByKeyword: keyword =>
     api.get('/guesthouse/keyword', {
       params: {keyword},
+      withAuth: false,
+    }),
+
+  // 게스트하우스 이름 검색
+  searchGuesthouseByName: guesthouseName =>
+    api.get('/user/guesthouses/search/name', {
+      params: {guesthouseName},
       withAuth: false,
     }),
 

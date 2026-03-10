@@ -12,7 +12,13 @@ import SettingIcon from '@assets/images/settings_gray.svg';
 //왼쪽 화살표 누르면 뒤로가기가 되도록 해놓았음
 //예시는 EXHome에 있습니다
 
-const Header = ({title, onPress = null, isSetting = false, role}) => {
+const Header = ({
+  title,
+  onPress = null,
+  isSetting = false,
+  showBackButton = true,
+  role,
+}) => {
   const navigation = useNavigation();
   const handleOnPress = () => {
     if (onPress) {
@@ -26,11 +32,13 @@ const Header = ({title, onPress = null, isSetting = false, role}) => {
     <View style={styles.container}>
       {title ? (
         <View style={styles.subTitleWrapper}>
-          <TouchableOpacity
-            style={styles.leftContainer}
-            onPress={handleOnPress}>
-            <ChevronLeft width={28} height={28} />
-          </TouchableOpacity>
+          <View style={[styles.sideSlot, styles.leftContainer]}>
+            {showBackButton ? (
+              <TouchableOpacity style={styles.iconButton} onPress={handleOnPress}>
+                <ChevronLeft width={28} height={28} />
+              </TouchableOpacity>
+            ) : null}
+          </View>
           <Text style={[styles.subTitle]}>{title}</Text>
           {isSetting ? (
             <TouchableOpacity
@@ -61,13 +69,24 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  leftContainer: {
+  sideSlot: {
     position: 'absolute',
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  leftContainer: {
     left: 20,
   },
   rightContainer: {
-    position: 'absolute',
     right: 20,
+  },
+  iconButton: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   subTitle: {
     ...FONTS.fs_20_semibold,

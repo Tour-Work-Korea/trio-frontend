@@ -31,10 +31,11 @@ export const tryAutoLogin = async () => {
   }
 };
 
-const storeLoginInfo = async (res, userRole) => {
-  const accessToken = res.data.accessToken;
-  const refreshToken = res.data.refreshToken;
-
+export const storeLoginTokens = async ({
+  accessToken,
+  refreshToken,
+  userRole,
+}) => {
   log.info(
     '✅ login success: accessToken=',
     mask(accessToken),
@@ -53,6 +54,13 @@ const storeLoginInfo = async (res, userRole) => {
   log.info('🔐 saved refresh?', !!check);
 
   await updateProfile(userRole);
+};
+
+const storeLoginInfo = async (res, userRole) => {
+  const accessToken = res.data.accessToken;
+  const refreshToken = res.data.refreshToken;
+
+  await storeLoginTokens({accessToken, refreshToken, userRole});
 };
 
 export const tryLogin = async (email, password, userRole) => {

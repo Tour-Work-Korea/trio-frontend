@@ -26,7 +26,6 @@ import {
   Login,
   RegisterIntro,
   RegisterAgree,
-  SocialLogin,
   PhoneCertificate,
   EmailCertificate,
   UserRegisterProfile,
@@ -36,7 +35,6 @@ import {
   MyGuesthouseAdd,
   MyGuesthouseEdit,
   MyGuesthouseDetail,
-  MyGuesthouseReservationStatus,
   MyRecruitmentList,
   RecruitmentForm,
   MyLikeRecruitList,
@@ -51,6 +49,7 @@ import {
   MyGuesthouseList,
   MyGuesthouseReview,
   MyGuesthouseReservation,
+  MyGuesthouseReservationDetail,
   MyRoomDetail,
   ProfileUpdate,
   UserReservationCheck,
@@ -73,6 +72,20 @@ import {
   MeetBasics,
   MeetDetails,
   MeetDirections,
+  GuesthousePaymentReceipt,
+  GuesthouseCancelledReceipt,
+  GuesthouseCancelConfirm,
+  GuesthouseCancelSuccess,
+  UserMeetReservationCancelled,
+  MeetPaymentReceipt,
+  MeetCancelledReceipt,
+  MeetCancelConfirm,
+  MeetCancelSuccess,
+  MyGuesthouseReservationCalendar,
+  MyRoomManage,
+  CustomerNotificationSettings,
+  CheckInGuide,
+  RoomGuideMessageEditor,
   HostProfilePage,
   HostSetting,
   HostEditProfile,
@@ -104,6 +117,10 @@ const RootNavigation = () => (
         name="GuesthousePaymentSuccess"
         component={GuesthousePaymentSuccess}
       />
+      <Stack.Screen name="GuesthousePaymentReceipt" component={GuesthousePaymentReceipt} />
+      <Stack.Screen name="GuesthouseCancelledReceipt" component={GuesthouseCancelledReceipt} />
+      <Stack.Screen name="GuesthouseCancelConfirm" component={GuesthouseCancelConfirm} />
+      <Stack.Screen name="GuesthouseCancelSuccess" component={GuesthouseCancelSuccess} />
       <Stack.Screen name="StoreRegisterList" component={StoreRegisterList} />
       {/* 공고 하단바 없는 화면 */}
       <Stack.Screen name="EmployDetail" component={EmployDetail} />
@@ -114,7 +131,6 @@ const RootNavigation = () => (
       <Stack.Screen name="ProfileUpdate" component={ProfileUpdate} />
       {/* 로그인, 회원가입 하단바 없는 화면 */}
       <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
-      <Stack.Screen name="SocialLogin" component={SocialLogin} />
       <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
       <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
       <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
@@ -153,6 +169,11 @@ const RootNavigation = () => (
         name="UserMeetReservationCheck"
         component={UserMeetReservationCheck}
       />
+      <Stack.Screen name="UserMeetReservationCancelled" component={UserMeetReservationCancelled} />
+      <Stack.Screen name="MeetPaymentReceipt" component={MeetPaymentReceipt} />
+      <Stack.Screen name="MeetCancelledReceipt" component={MeetCancelledReceipt} />
+      <Stack.Screen name="MeetCancelConfirm" component={MeetCancelConfirm} />
+      <Stack.Screen name="MeetCancelSuccess" component={MeetCancelSuccess} />
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditInfo" component={HostEditInfo} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
@@ -165,13 +186,16 @@ const RootNavigation = () => (
       <Stack.Screen name="MyGuesthouseDetail" component={MyGuesthouseDetail} />
       <Stack.Screen name="MyRoomDetail" component={MyRoomDetail} />
       <Stack.Screen name="MyGuesthouseReview" component={MyGuesthouseReview} />
+      <Stack.Screen name="MyGuesthouseReservation" component={MyGuesthouseReservation} />
+      <Stack.Screen name="MyGuesthouseReservationDetail" component={MyGuesthouseReservationDetail} />
+      <Stack.Screen name="MyGuesthouseReservationCalendar" component={MyGuesthouseReservationCalendar} />
+      <Stack.Screen name="CustomerNotificationSettings" component={CustomerNotificationSettings} />
+      <Stack.Screen name="CheckInGuide" component={CheckInGuide} />
+      <Stack.Screen name="RoomGuideMessageEditor" component={RoomGuideMessageEditor} />
       <Stack.Screen
-        name="MyGuesthouseReservation"
-        component={MyGuesthouseReservation}
-      />
-      <Stack.Screen
-        name="MyGuesthouseReservationStatus"
-        component={MyGuesthouseReservationStatus}
+        name="MyRoomManage"
+        component={MyRoomManage}
+        options={{gestureEnabled: false}}
       />
       <Stack.Screen name="MyRecruitmentList" component={MyRecruitmentList} />
       <Stack.Screen name="RecruitmentForm" component={RecruitmentForm} />

@@ -4,7 +4,7 @@ import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
   signin: {
-    backgroundColor: COLORS.white,
+    backgroundColor: COLORS.grayscale_0,
     flex: 1,
   },
   viewFlexBox: {
@@ -41,7 +41,7 @@ export default StyleSheet.create({
     paddingLeft: 1,
   },
   checked: {
-    borderColor: COLORS.scarlet,
+    borderColor: COLORS.primary_orange,
   },
   textBlue: {
     color: COLORS.primary_blue,

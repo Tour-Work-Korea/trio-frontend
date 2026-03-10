@@ -4,8 +4,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-import GuesthouseIcon from '@assets/images/guesthouse_black.svg';
-import GuesthouseIconFilled from '@assets/images/guesthouse_black_filled.svg';
+import GuesthouseIcon from '@assets/images/search_black.svg';
+import GuesthouseIconFilled from '@assets/images/search_fill_black.svg';
 import EmployIcon from '@assets/images/work_black.svg';
 import EmployIconFilled from '@assets/images/work_black_filled.svg';
 import HomeIcon from '@assets/images/wa_home_gray.svg';
@@ -14,8 +14,10 @@ import MeetIcon from '@assets/images/event_black.svg';
 import MeetIconFilled from '@assets/images/event_black_filled.svg';
 import MyIcon from '@assets/images/person_black.svg';
 import MyIconFilled from '@assets/images/person_black_filled.svg';
+import HeartIcon from '@assets/images/heart_black.svg';
+import HeartIconFilled from '@assets/images/heart_fill_black.svg';
 
-import {Guesthouse, Employ, Home, Meet, My} from '@screens';
+import {Guesthouse, Employ, Home, Meet, My, Favorite} from '@screens';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 
@@ -31,10 +33,11 @@ const BottomTabs = () => {
         tabBarIcon: ({focused}) => {
           const iconProps = {width: 24, height: 24};
           const map = {
-            게하: focused ? GuesthouseIconFilled : GuesthouseIcon,
+            검색: focused ? GuesthouseIconFilled : GuesthouseIcon,
             스탭: focused ? EmployIconFilled : EmployIcon,
+            찜: focused ? HeartIconFilled : HeartIcon,
             홈: focused ? HomeIconFilled : HomeIcon,
-            이벤트: focused ? MeetIconFilled : MeetIcon,
+            콘텐츠: focused ? MeetIconFilled : MeetIcon,
             마이: focused ? MyIconFilled : MyIcon,
           };
           const Icon = map[route.name];
@@ -65,19 +68,34 @@ const BottomTabs = () => {
         tabBarSafeAreaInset: {bottom: 0}, // SafeArea 중복 방지
         headerShown: false,
       })}>
+      <Tab.Screen name="홈" component={Home} />
+      <Tab.Screen name="콘텐츠" component={Meet} />
       <Tab.Screen
-        name="게하"
+        name="검색"
         component={Guesthouse}
         listeners={({navigation}) => ({
           tabPress: e => {
             e.preventDefault();
-            navigation.navigate('게하', {screen: 'GuesthouseSearch'});
+            navigation.navigate('검색', {screen: 'GuesthouseSearch'});
           },
         })}
       />
-      <Tab.Screen name="이벤트" component={Meet} />
-      <Tab.Screen name="홈" component={Home} />
-      <Tab.Screen name="스탭" component={Employ} />
+      {/* <Tab.Screen name="스탭" component={Employ} /> */}
+      <Tab.Screen
+        name="찜"
+        component={Favorite}
+        listeners={() => ({
+          tabPress: e => {
+            const role = useUserStore.getState().userRole;
+            if (role === 'HOST') {
+              e.preventDefault();
+              showErrorModal({
+                message: '찜 목록은\n유저 계정으로 로그인 후 사용해주세요',
+              });
+            }
+          },
+        })}
+      />
       <Tab.Screen
         name="마이"
         component={My}
@@ -114,7 +132,7 @@ const styles = StyleSheet.create({
   tabBarIOS: {
     height: 92,
     paddingTop: 12,
-    paddingHorizontal: 36,
+    paddingHorizontal: 24,
   },
   tabBarItem: {
     paddingVertical: 0, // 아이템 자체 여백 제거

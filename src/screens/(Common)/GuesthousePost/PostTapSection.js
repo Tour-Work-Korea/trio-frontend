@@ -136,15 +136,16 @@ const styles = StyleSheet.create({
     paddingBottom: Platform.OS === 'ios' ? 20 : 0,
   },
   blockImage: {
-    paddingHorizontal: 10,
+    paddingHorizontal: 20,
     width: '100%',
     height: 350,
+    borderRadius: 10,
   },
   textBox: {
     paddingVertical: 20,
     flexDirection: 'column',
     gap: 8,
-    paddingHorizontal: 12,
+    paddingHorizontal: 24,
   },
   blockTitle: {
     ...FONTS.fs_18_semibold,

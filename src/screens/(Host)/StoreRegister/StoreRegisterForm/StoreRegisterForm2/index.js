@@ -288,7 +288,7 @@ const StoreRegisterForm2 = ({route}) => {
                         <Text
                           style={{
                             ...FONTS.fs_14_medium,
-                            color: COLORS.white,
+                            color: COLORS.grayscale_0,
                           }}>
                           주소 검색
                         </Text>
@@ -332,7 +332,7 @@ const StoreRegisterForm2 = ({route}) => {
                         <Text
                           style={{
                             ...FONTS.fs_14_medium,
-                            color: COLORS.white,
+                            color: COLORS.grayscale_0,
                           }}>
                           확인
                         </Text>

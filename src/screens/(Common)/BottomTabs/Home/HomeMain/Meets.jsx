@@ -3,9 +3,9 @@ import {
   View,
   Text,
   TouchableOpacity,
-  FlatList,
   Image,
   StyleSheet,
+  FlatList,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -13,38 +13,18 @@ import styles from './Home.styles';
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
+import PeopleIcon from '@assets/images/people_gray.svg';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {toggleFavorite} from '@utils/toggleFavorite';
-import {trimJejuPrefix} from '@utils/formatAddress';
 
 export default function Meets({events = [], setEventList}) {
   const navigation = useNavigation();
+  const [selectedChip, setSelectedChip] = useState('guesthouseParty');
 
   const moveToDetail = partyId => {
     navigation.navigate('MeetDetail', {partyId});
-  };
-
-  const formatDateTime = isoStr => {
-    if (!isoStr) return '';
-    const d = new Date(isoStr);
-    const month = d.getMonth() + 1;
-    const day = d.getDate();
-    let hour = d.getHours();
-    const minute = d.getMinutes();
-    const ampm = hour >= 12 ? '오후' : '오전';
-    if (hour === 0) hour = 12;
-    else if (hour > 12) hour -= 12;
-
-    const mm = String(minute).padStart(2, '0');
-    return `${month}월 ${day}일 ${ampm} ${hour}:${mm}`;
-  };
-
-  const formatPrice = price => {
-    const num = Number(price || 0);
-    if (num === 0) return '무료';
-    return `${num.toLocaleString('ko-KR')}원`;
   };
 
   const handleToggleFavorite = async item => {
@@ -72,58 +52,48 @@ export default function Meets({events = [], setEventList}) {
         style={localStyles.cardButton}
         onPress={() => moveToDetail(item.partyId)}>
         <View style={localStyles.card}>
-          <Image source={{uri: item.partyImageUrl}} style={localStyles.image} />
+          <View style={localStyles.imageWrapper}>
+            <Image source={{uri: item.partyImageUrl}} style={localStyles.image} />
 
-          {/* 하트 아이콘 (이미지 위 오른쪽 상단) */}
-          <View style={localStyles.heartWrapper}>
-            <TouchableOpacity
-              style={{padding: 10}}
-              activeOpacity={0.8}
-              onPress={e => {
-                e.stopPropagation(); // 카드 onPress로 이벤트 전파 막기
-                handleToggleFavorite(item);
-              }}>
-              {isFav ? (
-                <HeartFilled width={24} height={24} />
-              ) : (
-                <HeartEmpty width={24} height={24} />
-              )}
-            </TouchableOpacity>
+            {/* 하트 아이콘 (이미지 내부 오른쪽 상단) */}
+            <View style={localStyles.heartWrapper}>
+              <TouchableOpacity
+                style={localStyles.heartButton}
+                activeOpacity={0.8}
+                onPress={e => {
+                  e.stopPropagation(); // 카드 onPress로 이벤트 전파 막기
+                  handleToggleFavorite(item);
+                }}>
+                {isFav ? (
+                  <HeartFilled width={24} height={24} />
+                ) : (
+                  <HeartEmpty width={24} height={24} />
+                )}
+              </TouchableOpacity>
+            </View>
           </View>
 
           {/* 아래 정보 영역 */}
           <View style={localStyles.infoWrapper}>
-            {/* 타이틀 */}
             <Text
-              style={[FONTS.fs_14_medium, localStyles.title]}
-              numberOfLines={1}
-              ellipsizeMode="tail">
-              {item.guesthouseName} {item.partyTitle}
+              style={[FONTS.fs_12_medium, localStyles.guesthouseName]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.guesthouseName}
             </Text>
-            <View>
-              {/* 날짜 + 장소 */}
-              <Text
-                style={[FONTS.fs_12_medium, localStyles.subText]}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {formatDateTime(item.partyStartDateTime)} ·{' '}
-                {trimJejuPrefix(item.location)}
+            <Text
+              style={[FONTS.fs_14_semibold, localStyles.title]}
+              numberOfLines={2}
+              ellipsizeMode="tail"
+            >
+              {item.partyTitle}
+            </Text>
+            <View style={localStyles.capacityRow}>
+              <PeopleIcon width={16} height={16} />
+              <Text style={[FONTS.fs_12_medium, localStyles.capacityText]}>
+                최대인원 {item.maxAttendance}명
               </Text>
-
-              {/* 가격 + 인원 */}
-              <View style={localStyles.bottomRow}>
-                <Text style={[FONTS.fs_12_medium, localStyles.priceText]}>
-                  숙박객: {formatPrice(item.amount)}
-                  {!item.isGuest && (
-                    <>
-                      {' '}| 비숙박객: {formatPrice(item.nonGuestAmount)}
-                    </>
-                  )}
-                </Text>
-                <Text style={[FONTS.fs_12_medium, localStyles.capacityText]}>
-                  {item.numOfAttendance}/{item.maxAttendance}명
-                </Text>
-              </View>
             </View>
           </View>
         </View>
@@ -133,24 +103,69 @@ export default function Meets({events = [], setEventList}) {
 
   if (!events.length) return null;
 
+  const guesthousePartyEvents = events;
+  const visibleEvents =
+    selectedChip === 'guesthouseParty' ? guesthousePartyEvents.slice(0, 3) : [];
+
   return (
     <View style={styles.jobContainer}>
-      <View style={[styles.titleSection, {marginBottom: 10}]}>
-        <Text style={styles.sectionTitle}>인기 이벤트</Text>
-        <TouchableOpacity
-          style={styles.seeMoreButton}
-          // onPress={() => {
-          //   navigation.navigate('PopularMeetList');
-          // }}
-        >
-          <Text style={styles.seeMoreText}>더보기</Text>
-          <Chevron_right_gray width={24} height={24} />
-        </TouchableOpacity>
+      <View style={localStyles.meetTopRow}>
+        <View style={[styles.titleSection]}>
+          <Text style={styles.sectionTitle}>인기 게하 콘텐츠</Text>
+          <TouchableOpacity
+            style={styles.seeMoreButton}
+            onPress={() => {
+              navigation.navigate('PopularMeetList');
+            }}
+          >
+            <Text style={styles.seeMoreText}>더보기</Text>
+            <Chevron_right_gray width={24} height={24} />
+          </TouchableOpacity>
+        </View>
+        <View style={localStyles.meetChipRow}>
+          <TouchableOpacity
+            style={[
+              localStyles.meetChip,
+              selectedChip === 'guesthouseParty' && localStyles.meetChipActive,
+            ]}
+            activeOpacity={0.85}
+            onPress={() => setSelectedChip('guesthouseParty')}>
+            <Text
+              style={[
+                localStyles.meetChipText,
+                selectedChip === 'guesthouseParty' &&
+                  localStyles.meetChipTextActive,
+              ]}>
+              게하 파티
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={[
+              localStyles.meetChip,
+              selectedChip === 'event' && localStyles.meetChipActive,
+            ]}
+            activeOpacity={0.85}
+            onPress={() => setSelectedChip('event')}>
+            <Text
+              style={[
+                localStyles.meetChipText,
+                selectedChip === 'event' && localStyles.meetChipTextActive,
+              ]}>
+              이벤트
+            </Text>
+          </TouchableOpacity>
+        </View>
       </View>
 
-      {events.map(item => (
-        <View key={item.partyId}>{renderEvents(item)}</View>
-      ))}
+      <FlatList
+        data={visibleEvents}
+        horizontal
+        nestedScrollEnabled
+        showsHorizontalScrollIndicator={false}
+        keyExtractor={item => String(item.partyId)}
+        renderItem={({item}) => renderEvents(item)}
+        ItemSeparatorComponent={() => <View style={{width: 12}} />}
+      />
     </View>
   );
 }
@@ -160,40 +175,71 @@ const localStyles = StyleSheet.create({
     borderWidth: 0,
   },
   card: {
+    width: 160,
     overflow: 'hidden',
     backgroundColor: COLORS.grayscale_0,
-    paddingVertical: 5,
+  },
+  imageWrapper: {
+    width: 160,
+    position: 'relative',
   },
   image: {
-    borderRadius: 4,
-    width: '100%',
-    height: 117,
+    borderRadius: 12,
+    width: 160,
+    height: 240,
   },
   heartWrapper: {
     position: 'absolute',
-    right: 0,
-    top: 0,
+    right: 8,
+    top: 8,
+  },
+  heartButton: {
+    padding: 4,
   },
   infoWrapper: {
-    paddingVertical: 10,
+    marginTop: 8,
+    gap: 4,
+    width: 160,
+  },
+  guesthouseName: {
+    color: COLORS.grayscale_500,
+    width: '100%',
   },
   title: {
     color: COLORS.grayscale_900,
-    marginBottom: 4,
+    width: '100%',
   },
-  subText: {
-    color: COLORS.grayscale_500,
-  },
-  bottomRow: {
-    marginTop: 3,
+  capacityRow: {
     flexDirection: 'row',
     alignItems: 'center',
-  },
-  priceText: {
-    flex: 1,
+    gap: 6,
   },
   capacityText: {
-    marginLeft: 8,
-    color: COLORS.grayscale_500,
+    color: COLORS.grayscale_400,
+  },
+
+  meetTopRow: {
+    marginBottom: 10,
+    gap: 8,
+  },
+  meetChipRow: {
+    flexDirection: 'row',
+    gap: 12,
+  },
+  meetChip: {
+    backgroundColor: COLORS.grayscale_200,
+    borderRadius: 999,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+  },
+  meetChipActive: {
+    backgroundColor: COLORS.grayscale_900,
+  },
+  meetChipText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_900,
+  },
+  meetChipTextActive: {
+    color: COLORS.grayscale_0,
   },
 });

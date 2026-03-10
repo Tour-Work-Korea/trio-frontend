@@ -10,7 +10,7 @@ export default StyleSheet.create({
     color: COLORS.grayscale_800,
   },
   boxContainer: {
-    marginVertical: 4,
+    marginVertical: 2,
   },
 
   Header: {
@@ -20,12 +20,103 @@ export default StyleSheet.create({
     marginTop: 8,
   },
 
+  // 검색
+  searchArea: {
+    marginHorizontal: 12,
+    position: 'relative',
+    zIndex: 100,
+    elevation: 20,
+  },
+  searchBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: COLORS.primary_orange,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    gap: 8,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  searchBoxConnected: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+    borderBottomWidth: 0,
+  },
+  searchInput: {
+    flex: 1,
+    color: COLORS.grayscale_800,
+  },
+  searchPlaceholder: {
+    color: COLORS.grayscale_600,
+  },
+  searchResultDropdown: {
+    position: 'absolute',
+    top: '100%',
+    left: 0,
+    right: 0,
+    backgroundColor: COLORS.grayscale_0,
+    borderBottomLeftRadius: 14,
+    borderBottomRightRadius: 14,
+    borderWidth: 1,
+    borderColor: COLORS.primary_orange,
+    borderTopWidth: 0,
+    shadowColor: COLORS.grayscale_800,
+    shadowOffset: {width: 0, height: 6},
+    shadowOpacity: 0.1,
+    shadowRadius: 12,
+    elevation: 24,
+    maxHeight: 260,
+    overflow: 'hidden',
+    zIndex: 101,
+    marginTop: -1,
+  },
+  searchResultList: {
+    maxHeight: 260,
+  },
+  searchResultItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    paddingVertical: 11,
+    paddingHorizontal: 12,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.grayscale_100,
+    gap: 10,
+  },
+  searchResultItemLast: {
+    borderBottomWidth: 0,
+  },
+  searchResultLeftIcon: {
+    // padding: 8,
+    // borderRadius: 100,
+    // borderColor: COLORS.grayscale_200,
+    // borderWidth: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchResultContent: {
+    flex: 1,
+    minWidth: 0,
+  },
+  searchResultText: {
+    color: COLORS.grayscale_800,
+  },
+  searchResultSubText: {
+    marginTop: 2,
+    color: COLORS.grayscale_500,
+  },
+  searchResultEmptyText: {
+    paddingVertical: 16,
+    paddingHorizontal: 14,
+    color: COLORS.grayscale_500,
+    textAlign: 'center',
+  },
+
   //배너
   bannerContainer: {
     alignItems: 'center',
     flexDirection: 'column',
     paddingVertical: 12,
-    borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
     overflow: 'hidden',
   },
@@ -36,7 +127,7 @@ export default StyleSheet.create({
     borderRadius: 10,
   },
   indicatorRow: {
-    marginTop: 4,
+    marginTop: 8,
     flexDirection: 'row',
     justifyContent: 'center',
   },

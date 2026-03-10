@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
   },
   title: {
     ...FONTS.fs_18_semibold,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
   },
   headerIcons: {
     flexDirection: 'row',

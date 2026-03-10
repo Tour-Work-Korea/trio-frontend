@@ -2,15 +2,16 @@ import React, {useEffect, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   Dimensions,
+  Image,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
 import Carousel from 'react-native-reanimated-carousel';
+import Clipboard from '@react-native-clipboard/clipboard';
 
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -24,10 +25,12 @@ import {
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
 import Loading from '@components/Loading';
-import {genderOptions} from '@data/guesthouseOptions';
+import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';
+
+import RoomList from './RoomList';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -97,8 +100,6 @@ const GuesthouseDetail = ({route}) => {
   const [modalVisible, setModalVisible] = useState(false);
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
-
-  const formatTime = timeStr => (timeStr ? timeStr.slice(0, 5) : '');
 
   const rawImages = detail?.guesthouseImages ?? [];
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
@@ -213,6 +214,28 @@ const GuesthouseDetail = ({route}) => {
     });
   };
 
+  const handleCopyAddress = () => {
+    Clipboard.setString(detail?.guesthouseAddress ?? '');
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
+  const handleCopyPhone = () => {
+    Clipboard.setString(detail?.guesthousePhone ?? '');
+
+    Toast.show({
+      type: 'success',
+      text1: '복사되었어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  };
+
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
 
@@ -233,7 +256,8 @@ const GuesthouseDetail = ({route}) => {
             renderItem={({item}) => (
               <TouchableOpacity
                 activeOpacity={0.9}
-                onPress={() => setImageModalVisible(true)}>
+                onPress={() => setImageModalVisible(true)}
+              >
                 <Image
                   source={{uri: item.guesthouseImageUrl}}
                   style={styles.mainImage}
@@ -339,14 +363,18 @@ const GuesthouseDetail = ({route}) => {
             </View>
           </View>
 
-          <Text style={[FONTS.fs_14_regular, styles.address]}>
-            {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
-          </Text>
+          <TouchableOpacity activeOpacity={0.7} onPress={handleCopyAddress}>
+            <Text style={[FONTS.fs_14_regular, styles.address, styles.copyableText]}>
+              {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
+            </Text>
+          </TouchableOpacity>
 
           {is050Number(detail.guesthousePhone) && (
-            <Text style={[FONTS.fs_14_regular, styles.phone]}>
-              숙소 문의 : {detail.guesthousePhone}
-            </Text>
+            <TouchableOpacity activeOpacity={0.7} onPress={handleCopyPhone}>
+              <Text style={[FONTS.fs_14_regular, styles.phone]}>
+                숙소 문의 : <Text style={styles.copyableText}>{detail.guesthousePhone}</Text>
+              </Text>
+            </TouchableOpacity>
           )}
 
           <View style={[styles.reviewRow, {marginTop: 20}]}>
@@ -462,100 +490,14 @@ const GuesthouseDetail = ({route}) => {
         </View>
 
         {activeTab === '객실' && (
-          <View style={styles.roomContentWrapper}>
-            <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
-            {detail.roomInfos?.map(room => {
-              const isReserved = room.isReserved;
-              const roomTypeMap = {
-                MIXED: '혼숙',
-                FEMALE_ONLY: '여성전용',
-                MALE_ONLY: '남성전용',
-              };
-
-              return (
-                <View key={room.id}>
-                  <TouchableOpacity
-                    disabled={isReserved} // 예약 완료 시 클릭 막기
-                    onPress={() => {
-                      if (!isReserved) {
-                        navigation.navigate('RoomDetail', {
-                          roomId: room.id,
-                          roomName: room.roomName,
-                          roomPrice: room.roomPrice,
-                          roomDesc: room.roomDesc,
-                          roomCapacity: room.roomCapacity,
-                          roomType: room.roomType,
-                          guesthouseName: detail.guesthouseName,
-                          checkIn: `${localCheckIn}T${detail.checkIn}`,
-                          checkOut: `${localCheckOut}T${detail.checkOut}`,
-                          guestCount: localAdults + localChildren,
-                          roomImages: room.roomImages || [],
-                        });
-                      }
-                    }}>
-                    <View style={styles.roomCard}>
-                      {(() => {
-                        const thumbnailImage =
-                          room.roomImages?.find(img => img.isThumbnail)
-                            ?.roomImageUrl ||
-                          room.roomImages?.[0]?.roomImageUrl;
-
-                        return thumbnailImage ? (
-                          <Image
-                            source={{uri: thumbnailImage}}
-                            style={styles.roomImage}
-                          />
-                        ) : (
-                          <View
-                            style={[
-                              styles.roomImage,
-                              {backgroundColor: COLORS.grayscale_0},
-                            ]}
-                          />
-                        );
-                      })()}
-                      <View style={styles.roomInfo}>
-                        <View style={styles.roomNameDescContainer}>
-                          <Text
-                            style={[FONTS.fs_16_semibold, styles.roomType]}
-                            numberOfLines={1}
-                            ellipsizeMode="tail">
-                            {room.roomName}
-                          </Text>
-                          <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-                            {room.roomCapacity}인실{' '}
-                            {roomTypeMap[room.roomType] || ''}
-                          </Text>
-                          <View style={styles.checkTimeContainer}>
-                            <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-                              입실 {formatTime(detail.checkIn)}
-                            </Text>
-                            <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-                              퇴실 {formatTime(detail.checkOut)}
-                            </Text>
-                          </View>
-                        </View>
-                        {isReserved ? (
-                          <Text
-                            style={[
-                              FONTS.fs_16_semibold,
-                              {color: COLORS.grayscale_300},
-                            ]}>
-                            예약불가
-                          </Text>
-                        ) : (
-                          <Text
-                            style={[FONTS.fs_18_semibold, styles.roomPrice]}>
-                            {room.roomPrice?.toLocaleString()}원
-                          </Text>
-                        )}
-                      </View>
-                    </View>
-                  </TouchableOpacity>
-                </View>
-              );
-            })}
-          </View>
+          <RoomList
+            detail={detail}
+            guesthouseId={id}
+            localCheckIn={localCheckIn}
+            localCheckOut={localCheckOut}
+            localAdults={localAdults}
+            localChildren={localChildren}
+          />
         )}
 
         {activeTab === '소개' && (

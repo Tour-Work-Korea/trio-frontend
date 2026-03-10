@@ -195,7 +195,7 @@ const HostPhone = ({user, onPress}) => {
                       style={[
                         styles.inputButton,
                         isPhoneNumberValid && !hasRequestedCode
-                          ? {color: COLORS.scarlet}
+                          ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
                       인증요청
@@ -222,7 +222,7 @@ const HostPhone = ({user, onPress}) => {
                   <Text
                     style={[
                       styles.inputButton,
-                      isCodeSent ? {color: COLORS.scarlet} : '',
+                      isCodeSent ? {color: COLORS.primary_orange} : '',
                     ]}>
                     {isCodeSent ? formatTime(timeLeft) : '00:00'}
                   </Text>

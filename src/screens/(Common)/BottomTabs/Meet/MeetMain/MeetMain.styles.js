@@ -5,213 +5,205 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
-    paddingVertical: 12,
   },
-  // 헤더
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 16,
-    paddingHorizontal: 20,
-  },
-  headerText: {
-    color: COLORS.grayscale_800,
-  },
-
-  // 배너
-  bannerContainer: {
-    alignItems: 'center',
-    flexDirection: 'column',
-    backgroundColor: COLORS.grayscale_0,
-    paddingVertical: 8,
-    marginBottom: 12,
-  },
-  bannerImageContainer: {
-    borderRadius: 8,
-    overflow: 'hidden',
-  },
-  bannerImage: {
-    alignSelf: 'center',
-    height: 120,
-    width: '85%',
-    borderRadius: 8,
-  },
-  dotsContainer: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    marginTop: 12,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: COLORS.grayscale_200,
-    marginHorizontal: 8,
-  },
-  dotActive: {
-    backgroundColor: COLORS.grayscale_400,
-  },
-
-  // 이벤트 일정 캘린더
-  meetListContainer: {
+  body: {
+    flex: 1,
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 16,
-    paddingVertical: 12,
-    flex: 1,
   },
-  devide: {
-    height: 0.8,
-    backgroundColor: COLORS.grayscale_200,
+  listContent: {
+    paddingBottom: 28,
   },
-  // 날짜
-  dateTabsRow: {
+
+  // 검색
+  topContent: {
+    paddingTop: 20,
+    paddingBottom: 14,
+    paddingHorizontal: 16,
+  },
+  contentTitle: {
+    color: COLORS.grayscale_800,
+    marginBottom: 8,
+  },
+  contentSubTitle: {
+    color: COLORS.grayscale_500,
+    marginBottom: 16,
+  },
+  searchBox: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginVertical: 16,
-  },
-  dateTab: {
-    width: 40,
-    paddingVertical: 4,
-    paddingHorizontal: 8,
-    borderRadius: 16,
-    backgroundColor: COLORS.grayscale_0,
-    justifyContent: 'center',
     alignItems: 'center',
-    gap: 4,
+    borderWidth: 1,
+    borderColor: COLORS.primary_orange,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+    paddingVertical: 10,
+    gap: 8,
+    backgroundColor: COLORS.grayscale_0,
   },
-  dateTabSelected: {
-    backgroundColor: COLORS.grayscale_100,
-  },
-  dateTabTop: {
-    color: COLORS.grayscale_400,
-  },
-  dateTabTopSelected: {
+  searchPlaceholder: {
     color: COLORS.grayscale_600,
   },
-  dateTabDayNum: {
-    color: COLORS.grayscale_800,
+
+  // 검색 필터
+  conditionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    paddingVertical: 12,
   },
-  dateTabDayNumSelected: {
+  conditionText: {
     color: COLORS.grayscale_900,
   },
 
-  // 필터/정렬 바
-  filterBar: {
+  filterHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    paddingVertical: 16,
+    justifyContent: 'space-between',
+    paddingVertical: 12,
   },
-  // 필터
-  filterLeft: {
+  filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 8,
+    width: '75%',
+  },
+  filterButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
     padding: 10,
     borderRadius: 12,
     backgroundColor: COLORS.grayscale_100,
   },
   filterText: {
-    color: COLORS.grayscale_800,
     marginLeft: 8,
+    color: COLORS.grayscale_800,
   },
-  // 태그
-  tagChipsContainer: {
+  quickTagScroll: {
     paddingHorizontal: 8,
     gap: 8,
   },
-  tagChip: {
+  quickTagChip: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
     borderRadius: 100,
     backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 10,
-    paddingVertical: 4,
-    justifyContent: 'center',
     alignItems: 'center',
+    justifyContent: 'center',
   },
-  tagChipText: {
+  quickTagText: {
     color: COLORS.primary_blue,
   },
-  // 정렬
-  sortRight: {
+  sortButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 8,
     padding: 10,
-    borderRadius: 12,
   },
   sortText: {
-    color: COLORS.grayscale_700,
     marginLeft: 8,
+    color: COLORS.grayscale_700,
   },
 
-  // 리스트
-  listContent: {
-    paddingBottom: 40,
-    gap: 16,
+  // 게하 카드
+  guesthouseSection: {
+    paddingTop: 6,
+    paddingBottom: 18,
   },
-  meetItemContainer: {},
-  // 주소, 시간 제외
-  meetTopContainer: {
+  guesthouseTitleRow: {
     flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
   },
-  meetThumb: {
-    width: 90,
-    height: 90,
-    borderRadius: 4,
+  guesthouseName: {
+    color: COLORS.grayscale_900,
+    flex: 1,
     marginRight: 10,
   },
-  meetInfo: {
-    flex: 1,
-  },
-  meetTextRow: {
+  moveGuesthouseButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
+    gap: 2,
   },
-  // 게하 이름
-  meetPlace: {
-    color: COLORS.grayscale_600,
+  moveGuesthouseText: {
+    color: COLORS.primary_blue,
   },
-  // 글 제목
-  meetTitle: {
-    color: COLORS.grayscale_800,
-    marginTop: 4,
-    flex: 1,
-    flexShrink: 1,
-    marginRight: 8,
-  },
-  // 인원수
-  capacityText: {
-    color: COLORS.grayscale_400,
-  },
-  // 가격
-  meetBottomRow: {
-    position: 'absolute',
-    bottom: 0,
-    right: 0,
-  },
-  price: {
-    color: COLORS.grayscale_800,
-  },
-  // 주소, 시간
-  meetBottomContainer: {
+  chipRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: 10,
+    gap: 8,
+    marginBottom: 12,
   },
-  meetAddress: {
-    color: COLORS.grayscale_500,
-    flexShrink: 1,
-    marginRight: 8,
+  countChip: {
+    borderRadius: 20,
+    paddingHorizontal: 10,
+    height: 26,
+    backgroundColor: COLORS.grayscale_200,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
-  timeText: {
-    color: COLORS.primary_orange,
+  partyCountChip: {
+    backgroundColor: COLORS.primary_orange,
+  },
+  partyCountText: {
+    color: COLORS.grayscale_0,
+  },
+  eventCountText: {
+    color: COLORS.grayscale_700,
+  },
+  partyList: {
+    gap: 12,
   },
 
-  // 이벤트 없을 때
+  // 파티 카드
+  partyCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  partyThumb: {
+    width: 88,
+    height: 88,
+    borderRadius: 6,
+    backgroundColor: COLORS.grayscale_200,
+  },
+  partyInfo: {
+    flex: 1,
+    height: 88,
+  },
+  partyTopInfo: {
+    gap: 4,
+  },
+  partyTitleRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  partyTitle: {
+    flex: 1,
+    color: COLORS.grayscale_900,
+  },
+  partyPeopleRow: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+    marginTop: 4,
+  },
+  partyPeople: {
+    color: COLORS.grayscale_400,
+  },
+  partyTime: {
+    color: COLORS.primary_orange,
+    textAlign: 'right',
+    alignSelf: 'flex-end',
+    marginTop: 'auto',
+  },
+
   emptyWrap: {
     alignItems: 'center',
-    paddingVertical: 40,
+    justifyContent: 'center',
+    paddingVertical: 56,
   },
   emptyText: {
     color: COLORS.grayscale_500,

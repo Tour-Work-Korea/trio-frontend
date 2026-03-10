@@ -27,6 +27,7 @@ const styles = StyleSheet.create({
   tabContentContainer: {
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
+    paddingBottom: 20,
   },
 });
 

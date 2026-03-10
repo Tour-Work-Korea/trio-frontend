@@ -46,7 +46,7 @@ const EmploySearchList = () => {
             page: pageToFetch,
             size: PAGE_SIZE,
           },
-          userRole === 'USER',
+          // userRole === 'USER',
         );
 
         const {content, last, number} = res.data;

@@ -23,6 +23,7 @@ import PlusIcon from '@assets/images/plus_gray.svg';
 import RoomList from './RoomList';
 import RoomInfo from './RoomInfo';
 import RoomType from './RoomType';
+import RoomTypePrivate from './RoomTypePrivate';
 
 const MODAL_HEIGHT = Math.round(Dimensions.get('window').height * 0.9);
 
@@ -39,7 +40,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
     };
   }, []);
 
-  const [step, setStep] = useState('list'); // 'list' | 'info' | 'type'
+  const [step, setStep] = useState('list'); // 'list' | 'info' | 'typeDormitory' | 'typePrivate'
   const [rooms, setRooms] = useState([]);
 
   const EMPTY_ROOM = {
@@ -49,6 +50,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
     roomCapacity: null,
     roomMaxCapacity: null,
     roomType: null,
+    dormitoryGenderType: null,
     roomPrice: '',     // 문자열로 관리(숫자만 입력 허용)
   }; 
 
@@ -66,7 +68,7 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
   };
 
   const goToRoomType = () => {
-    setStep('type');
+    setStep(tempRoomData.roomType === 'PRIVATE' ? 'typePrivate' : 'typeDormitory');
   };
 
   const handleApplyRoom = (roomFromChild) => {
@@ -171,8 +173,17 @@ const GuesthouseRoomModal = ({ visible, onClose, onSelect, shouldResetOnClose })
               />
             )}
 
-            {step === 'type' && (
+            {step === 'typeDormitory' && (
               <RoomType
+                data={tempRoomData}
+                setData={setTempRoomData}
+                onBack={() => setStep('info')}
+                onApply={handleApplyRoom}
+              />
+            )}
+
+            {step === 'typePrivate' && (
+              <RoomTypePrivate
                 data={tempRoomData}
                 setData={setTempRoomData}
                 onBack={() => setStep('info')}

@@ -30,7 +30,7 @@ import SearchEmpty from '@assets/images/search_empty.svg';
 import styles from './GuesthouseList.styles';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import {guesthouseTags} from '@data/guesthouseTags';
+import {guesthouseTags} from '@constants/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';

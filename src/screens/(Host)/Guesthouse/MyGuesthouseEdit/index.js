@@ -18,8 +18,8 @@ import GuesthouseRoomModal from '@components/modals/HostMy/Guesthouse/EditGuesth
 import GuesthouseDetailInfoModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseDetailInfoModal';
 import GuesthouseRulesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseRulesModal';
 import GuesthouseAmenitiesModal from '@components/modals/HostMy/Guesthouse/EditGuesthouse/GuesthouseAmenitiesModal';
-import { guesthouseTags } from '@data/guesthouseTags';
-import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
+import { guesthouseTags } from '@constants/guesthouseTags';
+import { publicFacilities, roomFacilities, services } from '@constants/guesthouseOptions';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import CheckWhite from '@assets/images/check_white.svg';

@@ -21,7 +21,7 @@ import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import ImageModal from '@components/modals/ImageModal';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
 import Loading from '@components/Loading';
-import { publicFacilities, roomFacilities, services } from '@data/guesthouseOptions';
+import { publicFacilities, roomFacilities, services } from '@constants/guesthouseOptions';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import LeftArrow from '@assets/images/chevron_left_white.svg';

@@ -76,8 +76,8 @@ const UserGuesthouseReviewList = () => {
           <Image source={{ uri: item.reviewImageUrls[0] }} style={styles.thumbnail} />
           <View style={styles.topInfoRow}>
             <Text style={[FONTS.fs_16_semibold]}>{item.guesthouseName}</Text>
-            <Text style={[FONTS.fs_14_medium]}>룸이름</Text>
-            <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_500}]}>주소</Text>
+            {/* <Text style={[FONTS.fs_14_medium]}>룸이름</Text> */}
+            {/* <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_500}]}>주소</Text> */}
             <Text style={[FONTS.fs_12_medium, { color: COLORS.grayscale_500 }]}>
               {item.checkIn} ~ {item.checkOut}
             </Text>

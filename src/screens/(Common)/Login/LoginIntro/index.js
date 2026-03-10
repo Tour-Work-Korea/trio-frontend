@@ -29,18 +29,12 @@ const LoginIntro = () => {
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>
-            {/* <ButtonWhite
+            <ButtonWhite
               title="카카오로 시작하기"
-              // to="SocialLogin"
-              onPress={() =>
-                setErrorModal({
-                  visible: true,
-                  message: '카카오 로그인 기능은\n구현 중입니다',
-                })
-              }
+              onPress={() => navigation.navigate('SocialLogin', {provider: 'KAKAO'})}
               Icon={KakaoLogo}
               backgroundColor="#fee500"
-            /> */}
+            />
             {/* <ButtonWhite
               title="네이버로 시작하기"
               onPress={() =>

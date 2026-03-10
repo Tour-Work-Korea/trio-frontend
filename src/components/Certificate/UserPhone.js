@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useCallback} from 'react';
+import React, {useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -18,37 +18,27 @@ import authApi from '@utils/api/authApi';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
 
-/**
- * NICE 자동 submit 폼 HTML 생성기
- * - encData / integrityValue / tokenVersionId 3개 값을 hidden input으로 넣고
- * - body onload에서 자동 submit → NICE 인증 화면으로 바로 이동
- */
-const createNiceFormHtml = (encData, integrityValue, tokenVersionId) => `
-  <html>
-    <head>
-      <title>NICE Auth</title>
-      <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    </head>
+const extractNiceTokenFromUrl = url => {
+  if (!url) {
+    return null;
+  }
 
-    <body onload="document.forms[0].submit()">
-      <form name="form_auth" method="post" action="https://nice.checkplus.co.kr/CheckPlusSafeModel/checkplus.cb">
-        <input type="hidden" name="m" value="service" />
-        <input type="hidden" name="token_version_id" value="${tokenVersionId}" />
-        <input type="hidden" name="enc_data" value="${encData}" />
-        <input type="hidden" name="integrity_value" value="${integrityValue}" />
-      </form>
+  try {
+    const parsed = new URL(url);
+    return (
+      parsed.searchParams.get('niceAuthToken') ||
+      parsed.searchParams.get('token') ||
+      parsed.searchParams.get('authToken')
+    );
+  } catch (e) {
+    return null;
+  }
+};
 
-      <div style="text-align:center; margin-top: 20px;">
-        <h3>본인인증 페이지로 이동 중...</h3>
-      </div>
-    </body>
-  </html>
-`;
-
-const UserPhone = ({user, onPress}) => {
+const UserPhone = ({onPress}) => {
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
-  const [formHtml, setFormHtml] = useState('');
+  const [authUrl, setAuthUrl] = useState('');
 
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -61,7 +51,7 @@ const UserPhone = ({user, onPress}) => {
     useCallback(() => {
       setLoading(false);
       setShowWebView(false);
-      setFormHtml('');
+      setAuthUrl('');
       setErrorModal({visible: false, message: '', buttonText: ''});
     }, []),
   );
@@ -74,18 +64,16 @@ const UserPhone = ({user, onPress}) => {
       /**
        * 서버에 init 요청
        * - POST /auth/nice/init
-       * - 응답에 encData / integrityValue / tokenVersionId 가 옴
+       * - 응답에 authUrl / requestNo / expiresAt 가 옴
        */
       const res = await authApi.niceInit();
-      const {encData, integrityValue, tokenVersionId} = res.data;
+      const {authUrl: nextAuthUrl} = res.data || {};
 
-      /**
-       * WebView에 올릴 HTML 생성
-       * - 만들자마자 onload submit → NICE 인증 페이지로 이동
-       */
-      const html = createNiceFormHtml(encData, integrityValue, tokenVersionId);
+      if (!nextAuthUrl) {
+        throw new Error('본인 인증 URL이 없습니다.');
+      }
 
-      setFormHtml(html);
+      setAuthUrl(nextAuthUrl);
       setShowWebView(true); // 모달 열기
     } catch (error) {
       setErrorModal({
@@ -110,7 +98,9 @@ const UserPhone = ({user, onPress}) => {
      */
     try {
       const raw = event?.nativeEvent?.data;
-      if (!raw) return;
+      if (!raw) {
+        return;
+      }
 
       const data = JSON.parse(raw);
 
@@ -118,7 +108,7 @@ const UserPhone = ({user, onPress}) => {
       if (data?.type === 'NICE_AUTH_COMPLETE' && data?.token) {
         // WebView 닫기
         setShowWebView(false);
-        setFormHtml('');
+        setAuthUrl('');
 
         // 상위로 niceAuthToken 전달
         onPress(data.token);
@@ -130,10 +120,22 @@ const UserPhone = ({user, onPress}) => {
     }
   };
 
+  const handleShouldStartLoadWithRequest = request => {
+    const token = extractNiceTokenFromUrl(request?.url);
+    if (!token) {
+      return true;
+    }
+
+    setShowWebView(false);
+    setAuthUrl('');
+    onPress(token);
+    return false;
+  };
+
   // WebView 닫기 (사용자가 중간에 닫는 경우)
   const closeWebView = () => {
     setShowWebView(false);
-    setFormHtml('');
+    setAuthUrl('');
   };
 
   return (
@@ -194,15 +196,13 @@ const UserPhone = ({user, onPress}) => {
               </TouchableOpacity>
             </View>
 
-            {/* WebView: HTML 로드 → 자동 submit */}
+            {/* WebView: init 응답 authUrl 로드 */}
             <WebView
-              source={{
-                html: formHtml,
-                baseUrl: 'https://nice.checkplus.co.kr',
-              }}
+              source={{uri: authUrl}}
               javaScriptEnabled={true}
               originWhitelist={['*']}
               onMessage={handleWebViewMessage}
+              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
               style={{flex: 1}}
             />
           </View>

@@ -8,13 +8,13 @@ export default StyleSheet.create({
   },
   body: {paddingHorizontal: 20, paddingTop: 12, flex: 1},
   headerText: {
-    color: COLORS.scarlet, // Red-orange color
+    color: COLORS.primary_orange, // Red-orange color
     textAlign: 'right',
     marginVertical: 12,
   },
 
   postingCard: {
-    backgroundColor: 'white',
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
     paddingHorizontal: 20,
     paddingVertical: 12,
@@ -57,6 +57,14 @@ export default StyleSheet.create({
     paddingVertical: 8,
     paddingHorizontal: 12,
     borderRadius: 100,
+  },
+  listContent: {
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   addButtonLocation: {
     position: 'absolute',

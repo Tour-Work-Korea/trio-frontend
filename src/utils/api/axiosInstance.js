@@ -1,13 +1,13 @@
 import qs from 'qs';
 import axios from 'axios';
 import useUserStore from '@stores/userStore';
-import {API_BASE_URL, API_DEV_URL} from '@env';
 import {log, mask} from '@utils/logger';
 import {tryRefresh} from '@utils/auth/login';
 
+const API_BASE_URL = process.env.API_BASE_URL ?? '';
+
 const api = axios.create({
   baseURL: API_BASE_URL,
-  // baseURL: API_DEV_URL,
   withCredentials: true,
   timeout: 5000,
   headers: {'Content-Type': 'application/json'},
@@ -79,8 +79,25 @@ api.interceptors.response.use(
     const original = err.config;
     const id = original?._reqId || rid();
     const status = err.response?.status;
+    const errorData = err.response?.data;
 
-    log.error(`🛑 [${id}] error status=`, status, 'url=', original?.url, err);
+    log.error(
+      `🛑 [${id}] error status=`,
+      status,
+      'url=',
+      original?.url,
+      err,
+    );
+    if (errorData) {
+      try {
+        log.error(
+          `🧾 [${id}] error data=`,
+          JSON.stringify(errorData, null, 2),
+        );
+      } catch (e) {
+        log.error(`🧾 [${id}] error data=`, errorData);
+      }
+    }
     log.timeEnd(`⏱️ ${id}`);
 
     if (original?.url?.includes('/auth/refresh')) {

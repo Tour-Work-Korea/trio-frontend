@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
   },
   infoValue: {
     ...FONTS.fs_body,
-    color: COLORS.black,
+    color: COLORS.grayscale_900,
     textAlign: 'left',
     flex: 1,
   },

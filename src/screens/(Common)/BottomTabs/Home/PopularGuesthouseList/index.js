@@ -16,7 +16,7 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
-import { guesthouseTags } from '@data/guesthouseTags';
+import { guesthouseTags } from '@constants/guesthouseTags';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';

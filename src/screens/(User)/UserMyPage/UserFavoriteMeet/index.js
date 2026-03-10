@@ -21,15 +21,14 @@ const mapApiToUI = it => ({
   guesthouseName: it.guesthouseName,
   title: it.partyTitle,
   address: it.location,
-  // price 없음 → null 처리 (UI에서 감춤)
-  price: null,
+  price: it.amount,
   datetime: it.partyStartDateTime,
   liked: it.numOfAttendance, // 현재 참여 인원
   limit: it.maxAttendance, // 최대 인원
-  image: require('@assets/images/exphoto.jpeg'), // 응답에 이미지 없으므로 플레이스홀더
+  image: it.partyImageUrl ? {uri: it.partyImageUrl} : null,
 });
 
-const UserFavoriteMeet = () => {
+const UserFavoriteMeet = ({hideHeader = false}) => {
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [list, setList] = useState([]);
@@ -95,7 +94,10 @@ const UserFavoriteMeet = () => {
       : `${dt.format('D일, A h:mm')}`; // 예: 13일, 오전 9:00
 
     return (
-      <View style={styles.row}>
+      <TouchableOpacity 
+        style={styles.row}
+        onPress={() => navigation.navigate('MeetDetail', { partyId: item.id })}
+      >
         <View style={{flexDirection: 'row'}}>
           <Image source={item.image} style={styles.thumbnail} />
 
@@ -126,9 +128,9 @@ const UserFavoriteMeet = () => {
               </View>
             </View>
 
-            {/* <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
+            <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
               {item.price.toLocaleString()}원
-            </Text> */}
+            </Text>
           </View>
         </View>
 
@@ -150,13 +152,13 @@ const UserFavoriteMeet = () => {
             {dateLabel}
           </Text>
         </View>
-      </View>
+      </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      <Header title="즐겨찾는 이벤트" />
+      {!hideHeader && <Header title="즐겨찾는 콘텐츠" />}
 
       <View style={styles.body}>
         {loading ? (
@@ -181,11 +183,11 @@ const UserFavoriteMeet = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 210, height: 112}}
-                  title="아직 즐겨찾는 이벤트이 없어요"
-                  description="마음에 드는 이벤트을 빠르게 볼 수 있어요!"
-                  buttonText="이벤트 찾으러 가기"
+                  title="아직 즐겨찾는 콘텐츠가 없어요"
+                  description="마음에 드는 콘텐츠를 빠르게 볼 수 있어요!"
+                  buttonText="콘텐츠 찾으러 가기"
                   onPressButton={() =>
-                    navigation.navigate('MainTabs', {screen: '이벤트'})
+                    navigation.navigate('MainTabs', {screen: '콘텐츠'})
                   }
                 />
               </View>

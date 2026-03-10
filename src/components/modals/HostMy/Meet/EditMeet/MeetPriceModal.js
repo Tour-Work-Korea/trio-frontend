@@ -19,7 +19,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import hostMeetApi from '@utils/api/hostMeetApi';
-import {meetTags} from '@data/meetOptions';
+import {meetTags} from '@constants/meetOptions';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
 import MinusIcon from '@assets/images/minus_gray.svg';
@@ -59,7 +59,9 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
 
   // 모달 열릴 때 마지막 적용 값 복원
   useEffect(() => {
-    if (!visible) return;
+    if (!visible) {
+      return;
+    }
     // 시설/서비스 옵션 가져오기
     fetchFacilities();
 
@@ -73,7 +75,7 @@ const MeetPriceModal = ({visible, onClose, onSelect, shouldResetOnClose}) => {
       setMaleNonAmount(appliedData.maleNonAmount);
       setSelectedFacilities(appliedData.selectedFacilities);
     }
-  }, [visible]);
+  }, [visible, appliedData]);
 
   const fetchFacilities = async () => {
     try {

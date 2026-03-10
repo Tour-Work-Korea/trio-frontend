@@ -13,9 +13,9 @@ import UserCancelledReservations from './UserCancelledReservations';
 import Loading from '@components/Loading';
 
 const TABS = [
-  { key: 'upcoming', label: '다가오는 예약' },
-  { key: 'past', label: '지난 예약' },
-  { key: 'cancelled', label: '예약취소' },
+  { key: 'upcoming', label: '이용전' },
+  { key: 'past', label: '이용후' },
+  { key: 'cancelled', label: '취소됨' },
 ];
 
 const UserReservationCheck = () => {

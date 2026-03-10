@@ -12,7 +12,7 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {meetScales, stayTypes, meetTags} from '@data/meetOptions';
+import {meetScales, stayTypes, meetTags} from '@constants/meetOptions';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
@@ -467,7 +467,7 @@ const styles = StyleSheet.create({
     right: 0,
     bottom: 0,
     flexDirection: 'row',
-    backgroundColor: 'white',
+    backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
     paddingTop: 20,
     paddingBottom: 40,

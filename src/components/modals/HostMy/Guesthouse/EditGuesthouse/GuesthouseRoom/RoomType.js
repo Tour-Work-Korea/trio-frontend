@@ -15,7 +15,7 @@ import DisabledRadio from '@assets/images/radio_button_disabled.svg';
 import EnabledRadio from '@assets/images/radio_button_enabled.svg';
 import ArrowLeft from '@assets/images/arrow_left_black.svg';
 
-const ROOM_SIZES = ['1', '2', '3', '4', '5', '6', '7', '8'];
+const ROOM_SIZES = ['2', '3', '4', '5', '6', '7'];
 const MIN_PRICE = 10000;
 
 const RoomType = ({ data, setData, onBack, onApply }) => {
@@ -59,10 +59,10 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     setData({ ...data, roomCapacity: Number(val) });
   };
 
-  const handleSelectRoomType = (type) => {
+  const handleSelectDormitoryGender = (type) => {
     setData({
       ...data,
-      roomType: type,
+      dormitoryGenderType: type,
     });
   };
 
@@ -89,7 +89,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
     capacityMode === 'none' ||
     (capacityMode === 'preset' && !data.roomCapacity) ||
     (capacityMode === 'etc' && (!etcInput || isNaN(Number(etcInput)))) ||
-    !data.roomType ||
+    !data.dormitoryGenderType ||
     !data.roomPrice ||
     isNaN(Number(data.roomPrice)) ||
     isPriceTooLow;
@@ -104,7 +104,12 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
       finalCapacity = n;
     }
 
-    const finalData = { ...data, roomCapacity: finalCapacity };
+    const finalData = {
+      ...data,
+      roomCapacity: finalCapacity,
+      roomMaxCapacity: finalCapacity,
+      femaleOnly: false,
+    };
     setData(finalData);
     onApply && onApply(finalData); // GuesthouseRoomModal의 handleApplyRoom과 호환(인자 없이 호출)
   };
@@ -126,7 +131,7 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
             ) : (
               <DisabledRadio width={28} height={28} />
             )}
-            <Text style={[FONTS.fs_14_medium, styles.radioLabel]}>{size}인실</Text>
+            <Text style={[FONTS.fs_14_medium, styles.radioLabel]}>{size}인 도미토리</Text>
           </TouchableOpacity>
         ))}
 
@@ -167,16 +172,16 @@ const RoomType = ({ data, setData, onBack, onApply }) => {
           <TouchableOpacity
             key={type}
             style={styles.horizontalRadioRow}
-            onPress={() => handleSelectRoomType(type)}
+            onPress={() => handleSelectDormitoryGender(type)}
           >
-            {data.roomType === type ? (
+            {data.dormitoryGenderType === type ? (
               <EnabledRadio width={28} height={28} />
             ) : (
               <DisabledRadio width={28} height={28} />
             )}
             <Text style={[FONTS.fs_14_regular, styles.radioLabel, {marginLeft: 8}]}>
               {type === 'MIXED'
-                ? '혼숙'
+                ? '공용'
                 : type === 'MALE_ONLY'
                 ? '남성전용'
                 : '여성전용'}

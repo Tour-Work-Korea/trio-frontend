@@ -31,7 +31,7 @@ import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {COLORS} from '@constants/colors';
-import {regions} from '@data/filter';
+import {regions} from '@constants/filter';
 
 // 임시 게하
 const mockGuesthouseResults = [

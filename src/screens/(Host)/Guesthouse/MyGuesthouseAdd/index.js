@@ -152,17 +152,15 @@ const MyGuesthouseAdd = () => {
   const hasNumberValue = (v) =>
     v !== null && v !== undefined && !Number.isNaN(Number(v));
   const hasThumb = (arr = []) => Array.isArray(arr) && arr.some(i => i?.isThumbnail === true);
-  const isRoomValid = (room) => {
-    return (
-      isNonEmpty(room?.roomName) &&
-      ['MIXED','MALE_ONLY','FEMALE_ONLY'].includes(room?.roomType ?? '') &&
-      hasNumberValue(room?.roomCapacity) &&
-      isNonEmpty(room?.roomDesc) &&
-      hasNumberValue(room?.roomPrice) &&
-      Array.isArray(room?.roomImages) && room.roomImages.length > 0 &&
-      hasThumb(room.roomImages)
-    );
-  };
+  const isRoomValid = (room) =>
+    isNonEmpty(room?.roomName) &&
+    ['DORMITORY', 'PRIVATE'].includes(room?.roomType ?? '') &&
+    hasNumberValue(room?.roomCapacity) &&
+    isNonEmpty(room?.roomDesc) &&
+    hasNumberValue(room?.roomPrice) &&
+    Array.isArray(room?.roomImages) &&
+    room.roomImages.length > 0 &&
+    hasThumb(room.roomImages);
 
   const isSubmitReady =
     // 기본 정보
@@ -194,15 +192,45 @@ const MyGuesthouseAdd = () => {
     if (!isSubmitReady) return;
 
     try {
+      const toLocalTime = (timeStr) => {
+        if (typeof timeStr !== 'string') return timeStr;
+        const [h = '0', m = '0', s = '0'] = timeStr.split(':');
+        const pad = (v) => String(v).padStart(2, '0');
+        return `${pad(h)}:${pad(m)}:${pad(s)}`;
+      };
+
+      const normalizeRoom = (room) => {
+        const roomType = room?.roomType ?? null;
+        const roomCapacity = Number(room?.roomCapacity);
+        const roomMaxCapacity = Number(
+          roomType === 'DORMITORY'
+            ? roomCapacity
+            : room?.roomMaxCapacity ?? roomCapacity
+        );
+
+        return {
+          roomName: room?.roomName ?? '',
+          roomType,
+          dormitoryGenderType:
+            roomType === 'DORMITORY'
+              ? room?.dormitoryGenderType ?? null
+              : 'MIXED',
+          femaleOnly: roomType === 'PRIVATE' ? !!room?.femaleOnly : false,
+          roomCapacity,
+          roomMaxCapacity,
+          roomDesc: room?.roomDesc ?? '',
+          roomPrice: Number(room?.roomPrice),
+          roomExtraFees: Array.isArray(room?.roomExtraFees) ? room.roomExtraFees : [],
+          roomImages: Array.isArray(room?.roomImages) ? room.roomImages : [],
+        };
+      };
+
       const payload = {
         ...guesthouse,
         applicationId: selectedApplication?.id,
-        roomInfos: guesthouse.roomInfos.map(room => ({
-          ...room,
-          roomCapacity: Number(room.roomCapacity),
-          roomMaxCapacity: Number(room.roomMaxCapacity),
-          roomPrice: Number(room.roomPrice), // 가격도 숫자 변환
-        })),
+        checkIn: toLocalTime(guesthouse.checkIn),
+        checkOut: toLocalTime(guesthouse.checkOut),
+        roomInfos: guesthouse.roomInfos.map(normalizeRoom),
       };
 
       // console.log('📦 Guesthouse 등록 payload:', JSON.stringify(payload, null, 2));

@@ -285,7 +285,7 @@ const HostRegisterInfo = ({route}) => {
                           style={{
                             ...FONTS.fs_14_medium,
                             color: formValid.bussinessNum
-                              ? COLORS.white
+                              ? COLORS.grayscale_0
                               : COLORS.grayscale_400,
                           }}>
                           확인

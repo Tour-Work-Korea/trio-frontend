@@ -286,7 +286,7 @@ const UserRegisterProfile = () => {
                           color:
                             formValid.nickname?.hasNoSpecialChars &&
                             formValid.nickname?.isLengthValid
-                              ? COLORS.white
+                              ? COLORS.grayscale_0
                               : COLORS.grayscale_400,
                         }}>
                         중복확인

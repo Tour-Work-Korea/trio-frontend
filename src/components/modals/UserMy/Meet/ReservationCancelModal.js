@@ -186,7 +186,7 @@ export default function ReservationCancelModal({
                   style={styles.dropdown}
                   onPress={() => setReasonOpen(!reasonOpen)}
                 >
-                  <Text style={[FONTS.fs_14_medium,{ color: selectedReason ? COLORS.black : COLORS.grayscale_400 }]}>
+                  <Text style={[FONTS.fs_14_medium,{ color: selectedReason ? COLORS.grayscale_900 : COLORS.grayscale_400 }]}>
                     {selectedReason || '취소 사유를 선택해 주세요'}
                   </Text>
                   {reasonOpen ? <ChevronUp width={24} height={24}/> : <ChevronDown width={24} height={24}/>}
@@ -208,7 +208,7 @@ export default function ReservationCancelModal({
                             style={[
                               FONTS.fs_14_medium,
                               selectedReason === r && FONTS.fs_14_semibold,
-                              { color: selectedReason === r ? COLORS.primary_orange : COLORS.black }
+                              { color: selectedReason === r ? COLORS.primary_orange : COLORS.grayscale_900 }
                             ]}
                           >
                             {r}

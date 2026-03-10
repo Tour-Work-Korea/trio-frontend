@@ -61,7 +61,7 @@ const EmployIntro = () => {
 
         const response = await userEmployApi.getRecruits(
           body,
-          userRole === 'USER',
+          // userRole === 'USER',
         );
 
         const {content, last, number} = response.data; // Spring Data Page 가정

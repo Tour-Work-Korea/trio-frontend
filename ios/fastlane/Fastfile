@@ -40,7 +40,7 @@ platform :ios do
     UI.message("🚀 Build scheme: #{scheme_name}")
     UI.message("🌐 API_BASE_URL: #{ENV['API_BASE_URL']}")
 
-    increment_version_number(version_number: "1.9")
+    increment_version_number(version_number: "2.2")
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
     match(
@@ -52,6 +52,18 @@ platform :ios do
       keychain_name: ENV["MATCH_KEYCHAIN_NAME"],
       keychain_password: ENV["MATCH_KEYCHAIN_PASSWORD"]
     )
+    # 이전 JS bundle 완전 삭제
+    sh <<-SHELL
+      echo "🧹 Cleaning old JS bundle"
+      rm -rf ios/trioFrontendApp/main.jsbundle
+      rm -rf ios/trioFrontendApp/assets
+    SHELL
+
+    # 번들 시점 환경변수 검증
+    sh <<-SHELL
+      echo "🔥 API_BASE_URL during bundle: $API_BASE_URL"
+    SHELL
+
 
     sh <<-SHELL
       echo "📦 Using ENVFILE: #{File.expand_path("../.env")}"
@@ -108,14 +120,14 @@ platform :ios do
       scheme: "WorkAway-Prod"
     )
 
-    upload_to_app_store(
+    upload_to_testflight(
       api_key: app_store_connect_api_key(
         key_id: ENV["APP_STORE_CONNECT_KEY_ID"],
         issuer_id: ENV["APP_STORE_CONNECT_ISSUER_ID"],
         key_content: ENV["APP_STORE_CONNECT_PRIVATE_KEY"]
       ),
       ipa: "../output/trioFrontendApp.ipa",
-      submit_for_review: false
+      skip_waiting_for_build_processing: true
     )
   end
 end

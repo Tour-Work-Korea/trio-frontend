@@ -42,7 +42,7 @@ const styles = StyleSheet.create({
     alignSelf: 'center',
   },
   placePill: {
-    color: 'white',
+    color: COLORS.grayscale_0,
   },
 
   // 본문
@@ -73,7 +73,13 @@ const styles = StyleSheet.create({
   },
   addressText: {
     flex: 1,
+  },
+  addressCopyButton: {
+    flex: 1,
     marginRight: 8,
+  },
+  copyableText: {
+    textDecorationLine: 'underline',
   },
   capacityText: {
     color: COLORS.grayscale_400,
@@ -292,6 +298,7 @@ const styles = StyleSheet.create({
     width: 36,
     height: 36,
     borderRadius: 100,
+    backgroundColor: COLORS.grayscale_200,
   },
   profileAddr: {
     color: COLORS.grayscale_500,
