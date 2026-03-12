@@ -121,6 +121,7 @@ const BottomTabs = () => {
 
 const styles = StyleSheet.create({
   tabBarAndroid: {
+    position: 'relative',
     backgroundColor: COLORS.grayscale_0,
     height: 64, // 고정 높이
     paddingTop: 6,
@@ -130,6 +131,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.grayscale_200,
   },
   tabBarIOS: {
+    position: 'relative',
     height: 92,
     paddingTop: 12,
     paddingHorizontal: 24,

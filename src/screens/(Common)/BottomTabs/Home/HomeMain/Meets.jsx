@@ -139,7 +139,7 @@ export default function Meets({events = [], setEventList}) {
               게하 파티
             </Text>
           </TouchableOpacity>
-          <TouchableOpacity
+          {/* <TouchableOpacity
             style={[
               localStyles.meetChip,
               selectedChip === 'event' && localStyles.meetChipActive,
@@ -153,7 +153,23 @@ export default function Meets({events = [], setEventList}) {
               ]}>
               이벤트
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
+          {/* 임시 */}
+          <View
+            style={[
+              localStyles.meetChip,
+              selectedChip === 'event' && localStyles.meetChipActive,
+            ]}
+            activeOpacity={0.85}
+            onPress={() => setSelectedChip('event')}>
+            <Text
+              style={[
+                localStyles.meetChipText,
+                selectedChip === 'event' && localStyles.meetChipTextActive,
+              ]}>
+              이벤트
+            </Text>
+          </View>
         </View>
       </View>
 
