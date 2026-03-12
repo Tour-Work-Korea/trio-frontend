@@ -107,6 +107,23 @@ const RoomList = ({
       return;
     }
 
+    if (detail.guesthouseName === '이상한밤 게스트하우스') {
+      const url =
+        'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
+      Linking.canOpenURL(url)
+        .then(supported => {
+          if (supported) {
+            Linking.openURL(url);
+          } else {
+            Alert.alert('알림', '링크를 열 수 없어요');
+          }
+        })
+        .catch(() => {
+          Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+        });
+      return;
+    }
+
     navigation.navigate('GuesthouseReservation', {
       roomId: room.id,
       roomName: room.roomName,

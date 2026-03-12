@@ -12,6 +12,10 @@ export default StyleSheet.create({
   boxContainer: {
     marginVertical: 2,
   },
+  todayContainer: {
+    flex: 1,
+    marginVertical: 2,
+  },
 
   Header: {
     alignItems: 'center',

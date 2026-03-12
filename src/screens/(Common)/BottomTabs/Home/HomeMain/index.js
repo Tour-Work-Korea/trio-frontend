@@ -33,8 +33,12 @@ import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
 const TABS = [
-  {key: 'MEET', label: '콘텐츠'},
+  // {key: 'MEET', label: '콘텐츠'},
+  // {key: 'STAY', label: '게하'},
+  // 임시
   {key: 'STAY', label: '게하'},
+  {key: 'MEET', label: '콘텐츠'},
+  
   {key: 'EMPLOY', label: '스탭'},
 ];
 const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
@@ -365,7 +369,7 @@ const HomeMain = () => {
       <View style={styles.container}>
         {StickyHeader}
         {activeTab === 'TODAY' ? (
-          <View style={styles.boxContainer}>
+          <View style={styles.todayContainer}>
             <TodayGuesthouses />
           </View>
         ) : (
@@ -374,14 +378,22 @@ const HomeMain = () => {
             style={styles.container}
             showsVerticalScrollIndicator={false}>
             <>
-              {/* 이벤트(콘텐츠) 섹션 */}
+            {/* 임시 */}
               <View
+                onLayout={e => {
+                  stayYRef.current = e.nativeEvent.layout.y;
+                }}
+                style={styles.boxContainer}>
+                <Guesthouses guesthouses={guesthouseList} />
+              </View>
+              {/* 이벤트(콘텐츠) 섹션 */}
+              {/* <View
                 onLayout={e => {
                   meetYRef.current = e.nativeEvent.layout.y;
                 }}
                 style={styles.boxContainer}>
                 <Meets events={eventList} setEventList={setEventList} />
-              </View>
+              </View> */}
 
               {/* 배너 */}
               <View style={styles.boxContainer}>
@@ -389,12 +401,21 @@ const HomeMain = () => {
               </View>
 
               {/* 숙박 섹션 */}
-              <View
+              {/* <View
                 onLayout={e => {
                   stayYRef.current = e.nativeEvent.layout.y;
                 }}
                 style={styles.boxContainer}>
                 <Guesthouses guesthouses={guesthouseList} />
+              </View> */}
+
+              {/* 임시 */}
+              <View
+                onLayout={e => {
+                  meetYRef.current = e.nativeEvent.layout.y;
+                }}
+                style={styles.boxContainer}>
+                <Meets events={eventList} setEventList={setEventList} />
               </View>
 
               {/* 채용 섹션 */}
