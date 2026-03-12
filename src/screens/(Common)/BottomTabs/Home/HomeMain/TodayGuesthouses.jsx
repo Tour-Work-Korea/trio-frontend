@@ -6,8 +6,6 @@ import {
   Image,
   StyleSheet,
   Pressable,
-  Platform,
-  ScrollView,
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -185,8 +183,9 @@ export default function TodayGuesthouses() {
   }, [loading]);
 
   return (
-    <View style={{paddingBottom: 200}}>
+    <View style={styles.container}>
       <FlatList
+        style={styles.list}
         data={items}
         keyExtractor={keyExtractor}
         renderItem={renderItem}
@@ -206,9 +205,15 @@ export default function TodayGuesthouses() {
 }
 
 const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+  },
+  list: {
+    flex: 1,
+  },
   listContent: {
     paddingTop: 6,
-    paddingBottom: 30,
+    paddingBottom: 20,
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 10,
   },

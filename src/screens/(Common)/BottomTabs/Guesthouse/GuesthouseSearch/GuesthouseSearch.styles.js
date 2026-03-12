@@ -27,7 +27,9 @@ const styles = StyleSheet.create({
     flex: 1,
     marginLeft: 8,
     color: COLORS.grayscale_900,
-    fontSize: 14,
+    lineHeight: 20,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   selectRow: {
     flexDirection: 'row',

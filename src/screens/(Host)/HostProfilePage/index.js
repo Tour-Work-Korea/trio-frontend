@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from 'react';
+import React, {useMemo} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   ImageBackground,
   TouchableOpacity,
   ScrollView,
+  useWindowDimensions,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -13,14 +14,14 @@ import styles from './HostProfilePage.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
-import Header from '@components/Header';
 
 import HostProfileEvents from './HostProfileEvents';
 import HostProfileStaff from './HostProfileStaff';
 import HostProfileReviews from './HostProfileReviews';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 
 import MapIcon from '@assets/images/map_blue';
-import BackBtn from '@assets/images/chevron_left_white';
+import BackBtn from '@assets/images/chevron_left_black';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 
 const TAB = {
@@ -31,8 +32,26 @@ const TAB = {
 
 const HostProfilePage = () => {
   const navigation = useNavigation();
+  const {width: screenWidth} = useWindowDimensions();
 
-  const [selectedTab, setSelectedTab] = useState(TAB.EVENTS);
+  const tabs = useMemo(
+    () => [
+      {key: 'events', label: TAB.EVENTS},
+      {key: 'staff', label: TAB.STAFF},
+      {key: 'reviews', label: TAB.REVIEWS},
+    ],
+    [],
+  );
+  const {
+    pagerRef,
+    isActive,
+    setKey,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs,
+    initialKey: 'events',
+  });
 
   // ✅ 임시 데이터 (나중에 API 붙이면 여기만 교체하면 됨)
   const host = useMemo(
@@ -51,7 +70,7 @@ const HostProfilePage = () => {
     <>
       {hasHeaderImage && <View style={styles.headerOverlay} />}
 
-      <TouchableOpacity 
+      <TouchableOpacity
         style={styles.backButton}
         onPress={() => navigation.goBack()}
       >
@@ -60,9 +79,6 @@ const HostProfilePage = () => {
 
       {/* 프로필 영역 */}
       <View style={styles.profileWrap}>
-        <Text style={[FONTS.fs_20_bold, styles.guesthouseNameText]}>
-          이상한밤 게스트하우스
-        </Text>
 
         <View style={styles.profileImageWrap}>
           {host.photoUrl ? (
@@ -77,8 +93,8 @@ const HostProfilePage = () => {
           )}
         </View>
 
-        <Text style={[FONTS.fs_16_semibold, styles.hostNameText]}>
-          호스트 이름
+        <Text style={[FONTS.fs_16_semibold, styles.guesthouseNameText]}>
+          이상한밤 게스트하우스
         </Text>
       </View>
     </>
@@ -87,16 +103,6 @@ const HostProfilePage = () => {
   const handlePressReservation = () => {
     // 예: navigation.navigate('GuesthouseReservation', { guesthouseId: ... })
     // navigation.navigate('GuesthouseReservation');
-  };
-
-  const renderTabContent = () => {
-    return (
-      <View style={styles.tabContentWrapper}>
-        {selectedTab === TAB.EVENTS && <HostProfileEvents />}
-        {selectedTab === TAB.STAFF && <HostProfileStaff />}
-        {selectedTab === TAB.REVIEWS && <HostProfileReviews />}
-      </View>
-    );
   };
 
   return (
@@ -119,59 +125,89 @@ const HostProfilePage = () => {
           </View>
         )}
 
-        {/* 소개/주소 */}
+        {/* 포스트 팔로워 리뷰 */}
         <View style={styles.contentContainer}>
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>소개</Text>
-            <Text style={[FONTS.fs_14_semibold, styles.introText]}>
-              {host.intro}
-            </Text>
+          <View style={styles.sectionRow}>
+            <View style={styles.section}>
+              <Text style={[styles.countText, FONTS.fs_14_medium]}>10</Text>
+              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>포스트</Text>
+            </View>
+            <View style={styles.section}>
+              <Text style={[styles.countText, FONTS.fs_14_medium]}>12</Text>
+              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>팔로워</Text>
+            </View>
+            <View style={styles.section}>
+              <Text style={[styles.countText, FONTS.fs_14_medium]}>5</Text>
+              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>리뷰</Text>
+            </View>
           </View>
-
-          <View style={styles.addressRow}>
-            <MapIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_regular, styles.addressText]}>
-              {host.address}
-            </Text>
+          <View style={styles.hostBtnContainer}>
+            <ButtonWhite
+              title="프로필 편집"
+              onPress={handlePressReservation}
+              backgroundColor={COLORS.grayscale_100}
+              textColor={COLORS.grayscale_700}
+              style={{flex: 1}}
+            />
+            <ButtonWhite
+              title="숙소 정보"
+              onPress={handlePressReservation}
+              backgroundColor={COLORS.grayscale_100}
+              textColor={COLORS.grayscale_700}
+              style={{flex: 1}}
+            />
           </View>
-
-          <ButtonWhite
-            title='숙소 예약하러 가기'
-            onPress={handlePressReservation}
-            backgroundColor={COLORS.primary_blue}
-            textColor={COLORS.grayscale_0}
-          />
         </View>
 
         {/* 탭 바 */}
         <View style={styles.tabBar}>
-          {Object.values(TAB).map(tab => {
-            const isActive = selectedTab === tab;
+          {tabs.map(tab => {
+            const active = isActive(tab.key);
             return (
               <TouchableOpacity
-                key={tab}
+                key={tab.key}
                 activeOpacity={0.8}
                 style={[
                   styles.tabItem,
-                  isActive && styles.tabItemActive,
+                  active && styles.tabItemActive,
                 ]}
-                onPress={() => setSelectedTab(tab)}>
+                onPress={() => setKey(tab.key)}>
                 <Text
                   style={[
                     FONTS.fs_14_medium,
                     styles.tabText,
-                    isActive && styles.tabTextActive,
+                    active && styles.tabTextActive,
                   ]}>
-                  {tab}
+                  {tab.label}
                 </Text>
-                {isActive ? <View style={styles.tabIndicator} /> : null}
+                {active ? <View style={styles.tabIndicator} /> : null}
               </TouchableOpacity>
             );
           })}
         </View>
 
         {/* 탭 내용 */}
-        <View>{renderTabContent()}</View>
+        <View style={styles.tabContentWrapper}>
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            onLayout={onPagerLayout}
+            onMomentumScrollEnd={onMomentumScrollEnd}
+            showsHorizontalScrollIndicator={false}
+            scrollEventThrottle={16}
+          >
+            <View style={[styles.tabPage, {width: screenWidth}]}>
+              <HostProfileEvents />
+            </View>
+            <View style={[styles.tabPage, {width: screenWidth}]}>
+              <HostProfileStaff />
+            </View>
+            <View style={[styles.tabPage, {width: screenWidth}]}>
+              <HostProfileReviews />
+            </View>
+          </ScrollView>
+        </View>
       </ScrollView>
     </View>
   );

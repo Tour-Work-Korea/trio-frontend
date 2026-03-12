@@ -1,9 +1,6 @@
-import {StyleSheet, Dimensions, Platform} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 
-const {width: SCREEN_WIDTH} = Dimensions.get('window');
-
-const HEADER_HEIGHT = 280;
 const PROFILE_SIZE = 80;
 
 const styles = StyleSheet.create({
@@ -22,48 +19,38 @@ const styles = StyleSheet.create({
   // 상단 헤더 배경
   headerBg: {
     width: '100%',
-    height: HEADER_HEIGHT,
     position: 'relative',
     alignItems: 'center',
+    paddingTop: 40,
+    paddingBottom: 24,
   },
   headerBgFallback: {
-    backgroundColor: COLORS.grayscale_700,
+    backgroundColor: COLORS.grayscale_0,
   },
   headerOverlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.35)',
   },
   backButton: {
     position: 'absolute',
     left: 20,
     top: 16,
-    backgroundColor: COLORS.modal_background,
     alignItems: 'center',
     justifyContent: 'center',
-    width: 28,
-    height: 28,
-    borderRadius: 14,
   },
 
   // 프로필 영역
   profileWrap: {
     alignItems: 'center',
-    height: '100%',
-    alignItems: 'center',
     justifyContent: 'center',
   },
   guesthouseNameText: {
-    color: COLORS.grayscale_0,
+    marginTop: 20,
   },
   profileImageWrap: {
     width: PROFILE_SIZE,
     height: PROFILE_SIZE,
     borderRadius: PROFILE_SIZE / 2,
     overflow: 'hidden',
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_0,
-    backgroundColor: COLORS.grayscale_0,
-    marginTop: 24,
+    backgroundColor: COLORS.grayscale_200,
   },
   profileImage: {
     width: '100%',
@@ -71,37 +58,32 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  hostNameText: {
-    marginTop: 16,
-    color: COLORS.grayscale_0,
-    textAlign: 'center',
-  },
 
   // 소개/주소 영역
   contentContainer: {
     backgroundColor: COLORS.grayscale_0,
-    paddingHorizontal: 20,
-    paddingVertical: 24,
-  },
-  section: {
-  },
-  sectionTitle: {
-    marginBottom: 8,
-  },
-  introText: {
-    color: COLORS.grayscale_700,
-    lineHeight: 24,
-  },
-
-  addressRow: {
-    flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    marginTop: 12,
+    paddingBottom: 12,
+  },
+  sectionRow: {
+    flexDirection: 'row',
+    gap: 16,
     marginBottom: 24,
   },
-  addressText: {
-    color: COLORS.grayscale_700,
+  section: {
+    alignItems: 'center',
+    gap: 4,
+  },
+  countText: {
+
+  },
+  sectionText: {
+
+  },
+  hostBtnContainer: {
+    flexDirection: 'row',
+    gap: 12,
+    paddingHorizontal: 20,
   },
 
   // 탭 바
@@ -109,7 +91,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.grayscale_0,
-    marginTop: 12,
+    marginTop: 4,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
     paddingVertical: 12,
@@ -139,6 +121,9 @@ const styles = StyleSheet.create({
 
   // 탭 내용
   tabContentWrapper: {
+    backgroundColor: COLORS.grayscale_0,
+  },
+  tabPage: {
     backgroundColor: COLORS.grayscale_0,
   },
 });
