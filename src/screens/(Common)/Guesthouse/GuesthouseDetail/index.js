@@ -342,9 +342,18 @@ const GuesthouseDetail = ({route}) => {
       <View style={styles.contentWrapper}>
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
-            <Text style={[FONTS.fs_20_semibold, styles.name]}>
-              {detail.guesthouseName}
-            </Text>
+            <TouchableOpacity 
+              onPress={() =>
+                navigation.navigate('HostProfilePage', {
+                  isHostMy: false,
+                  guesthouseId: id,
+                })
+              }
+            >
+              <Text style={[FONTS.fs_20_semibold, styles.name]}>
+                {detail.guesthouseName}
+              </Text>
+            </TouchableOpacity>
             <View style={styles.topIcons}>
               <TouchableOpacity onPress={handleCopyLink}>
                 <ShareIcon width={20} height={20} />

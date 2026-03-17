@@ -58,8 +58,9 @@ const GuesthousePost = ({route}) => {
           <PostProfileSection
             title={post?.title}
             tags={post?.tags}
+            guesthouseId={post?.guesthouseId ?? guesthouseId}
             guesthouseName={post?.guesthouseName}
-            guesthouseImgUrl={post?.hostProfileImageUrl}
+            guesthouseImgUrl={post?.profileSummary?.profileImageUrl ?? post?.hostProfileImageUrl}
             toggleFavorite={handleFavorite}
             isLiked={post?.isLiked}
           />

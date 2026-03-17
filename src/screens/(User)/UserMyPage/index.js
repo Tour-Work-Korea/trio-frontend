@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
@@ -8,7 +8,7 @@ import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
 import MeetReservationCheckIcon from '@assets/images/user-meet-reservation-check-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import Avatar from '@components/Avatar';
 
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
@@ -53,16 +53,13 @@ const UserMyPage = () => {
             </View>
 
             <View style={styles.profileContainer}>
-              {user.photoUrl ? (
-                <Image
-                  source={{uri: user.photoUrl}}
-                  style={styles.profileImage}
-                />
-              ) : (
-                <View style={styles.profileImage}>
-                  <EmptyImage width={32} height={32} />
-                </View>
-              )}
+              <Avatar
+                uri={user.photoUrl}
+                size={116}
+                iconSize={32}
+                borderRadius={8}
+                style={styles.profileImage}
+              />
               <View style={styles.profilePlaceholder}>
                 <View style={styles.profileText}>
                   <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>

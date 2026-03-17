@@ -6,6 +6,7 @@ import {
   Image,
   StyleSheet,
   Pressable,
+  TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -18,6 +19,7 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import Loading from '@components/Loading';
+import Avatar from '@components/Avatar';
 
 const PAGE_SIZE = 6;
 
@@ -123,16 +125,28 @@ export default function TodayGuesthouses() {
 
             {/* 게하이름 + 좋아요 */}
             <View style={styles.bottomRow}>
-              <Image
-                source={{uri: item.hostProfileImageUrl}}
-                style={styles.profileThumb}
-              />
-              <Text
-                style={styles.cardGhName}
-                numberOfLines={1}
-                ellipsizeMode="tail">
-                {item.guesthouseName}
-              </Text>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('HostProfilePage', {
+                    isHostMy: false,
+                    guesthouseId: item.guesthouseId,
+                  })
+                }
+                style={styles.bottomLeft}
+              >
+                <Avatar
+                  uri={item.profileSummary?.profileImageUrl ?? item.hostProfileImageUrl}
+                  size={30}
+                  iconSize={12}
+                  style={styles.profileThumb}
+                />
+                <Text
+                  style={styles.cardGhName}
+                  numberOfLines={1}
+                  ellipsizeMode="tail">
+                  {item.guesthouseName}
+                </Text>
+              </TouchableOpacity>
 
               <View style={styles.likeBox}>
                 <Pressable
@@ -207,7 +221,7 @@ const styles = StyleSheet.create({
   },
   listContent: {
     paddingTop: 6,
-    paddingBottom: 12,
+    paddingBottom: 20,
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 10,
   },
@@ -258,14 +272,20 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    gap: 4,
+  },
+  bottomLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    minWidth: 0,
+    marginRight: 4,
   },
 
   cardGhName: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_600,
-    flex: 1,
     flexShrink: 1,
+    marginLeft: 4,
   },
 
   likeBox: {
@@ -273,7 +293,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 2,
     flexShrink: 0,
-    justifyContent: 'flex-end',
   },
 
   likeCountText: {

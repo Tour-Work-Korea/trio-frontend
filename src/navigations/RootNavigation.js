@@ -41,7 +41,7 @@ import {
   MyApplicantList,
   MyResumeList,
   UserEditProfile,
-  HostEditProfile,
+  HostEditInfo,
   ApplicantList,
   ApplicantListByRecruit,
   Setting,
@@ -86,6 +86,9 @@ import {
   CustomerNotificationSettings,
   CheckInGuide,
   RoomGuideMessageEditor,
+  HostProfilePage,
+  HostSetting,
+  HostEditProfile,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -172,7 +175,9 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetCancelConfirm" component={MeetCancelConfirm} />
       <Stack.Screen name="MeetCancelSuccess" component={MeetCancelSuccess} />
       {/* 사장님 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="HostEditInfo" component={HostEditInfo} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
+      <Stack.Screen name="HostSetting" component={HostSetting} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
       <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />
@@ -205,6 +210,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetBasics" component={MeetBasics} />
       <Stack.Screen name="MeetDetails" component={MeetDetails} />
       <Stack.Screen name="MeetDirections" component={MeetDirections} />
+      <Stack.Screen name="HostProfilePage" component={HostProfilePage} />
 
       {/* 이벤트화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />

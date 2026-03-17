@@ -156,21 +156,52 @@ export const tryLogout = async () => {
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);
-  const {setUserProfile, setHostProfile} = useUserStore.getState();
+  const {
+    setUserProfile,
+    setHostProfile,
+    selectedHostGuesthouseId,
+    setSelectedHostGuesthouseId,
+  } = useUserStore.getState();
 
   try {
     if (role === 'HOST') {
       const res = await hostMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, businessNum} = res.data;
+      const {hostId, name, photoUrl, phone, email, businessNum, guesthouseProfiles} =
+        res.data ?? {};
+      const normalizedGuesthouseProfiles = Array.isArray(guesthouseProfiles)
+        ? guesthouseProfiles.map(guesthouse => ({
+            guesthouseId: guesthouse?.guesthouseId ?? null,
+            guesthouseName: guesthouse?.guesthouseName ?? '',
+            profileImageUrl:
+              guesthouse?.profileImageUrl &&
+              guesthouse.profileImageUrl !== '사진을 추가해주세요'
+                ? guesthouse.profileImageUrl
+                : null,
+          }))
+        : [];
+      const profileIds = normalizedGuesthouseProfiles.map((guesthouse, index) =>
+        String(guesthouse.guesthouseId ?? `guesthouse-${index}`),
+      );
 
       setHostProfile({
+        hostId: hostId ?? null,
         name: name ?? '',
         photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',
         businessNum: businessNum ?? '',
+        guesthouseProfiles: normalizedGuesthouseProfiles,
       });
+
+      if (profileIds.length === 0) {
+        setSelectedHostGuesthouseId(null);
+      } else if (
+        !selectedHostGuesthouseId ||
+        !profileIds.includes(String(selectedHostGuesthouseId))
+      ) {
+        setSelectedHostGuesthouseId(profileIds[0]);
+      }
       log.info('👤 HOST profile loaded');
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
