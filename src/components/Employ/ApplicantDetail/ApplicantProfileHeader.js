@@ -1,6 +1,6 @@
 import React from 'react';
-import {View, Text, Image, StyleSheet, TouchableOpacity} from 'react-native';
-import ProfileIcon from '@assets/images/wlogo_gray_up.svg';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
+import Avatar from '@components/Avatar';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {openWebLink} from '@utils/openWebLink';
@@ -17,16 +17,13 @@ const ApplicantProfileHeader = ({data}) => {
           </Text>
         </View>
         <View style={styles.profileMainContainer}>
-          {data?.photoUrl !== '사진을 추가해주세요' ? (
-            <Image
-              source={{uri: data?.photoUrl}}
-              style={styles.profileImageContainer}
-            />
-          ) : (
-            <View style={styles.profileImageContainer}>
-              <ProfileIcon width={40} height={40} />
-            </View>
-          )}
+          <Avatar
+            uri={data?.photoUrl}
+            size={116}
+            iconSize={40}
+            borderRadius={8}
+            style={styles.profileImageContainer}
+          />
 
           <View style={styles.infoContainer}>
             <InfoRow label="연락처" value={data?.phone} />

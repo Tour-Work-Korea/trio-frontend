@@ -1,8 +1,9 @@
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React, {useMemo} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import Avatar from '@components/Avatar';
 
 import HeartIcon from '@assets/images/heart_empty.svg';
 import FilledHeartIcon from '@assets/images/heart_filled.svg';
@@ -10,6 +11,7 @@ import FilledHeartIcon from '@assets/images/heart_filled.svg';
 export default function PostProfileSection({
   title,
   tags,
+  guesthouseId,
   guesthouseName,
   guesthouseImgUrl,
   toggleFavorite,
@@ -49,15 +51,14 @@ export default function PostProfileSection({
           gap: 12,
           marginTop: 12,
         }}
-        onPress={() => navigation.navigate('HostProfilePage')}
+        onPress={() =>
+          navigation.navigate('HostProfilePage', {
+            isHostMy: false,
+            guesthouseId,
+          })
+        }
       >
-        <Image
-          source={{uri: guesthouseImgUrl}}
-          width={30}
-          height={30}
-          style={styles.profileImg}
-          resizeMode="cover"
-        />
+        <Avatar uri={guesthouseImgUrl} size={40} iconSize={16} style={styles.profileImg} />
         <View>
           <Text style={{...FONTS.fs_14_semibold}}>{guesthouseName}</Text>
           <View style={{flexDirection: 'row', gap: 4}}>

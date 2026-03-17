@@ -19,6 +19,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
 import ButtonScarlet from '@components/ButtonScarlet';
+import Avatar from '@components/Avatar';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {
@@ -427,12 +428,14 @@ const MeetDetail = () => {
         {/* 사장님 계정 */}
         <TouchableOpacity 
           style={styles.profileBox}
-          onPress={() => navigation.navigate('HostProfilePage')}
+          onPress={() =>
+            navigation.navigate('HostProfilePage', {
+              isHostMy: false,
+              guesthouseId: detail?.guesthouseId ?? detail?.profileSummary?.guesthouseId,
+            })
+          }
         >
-          <Image 
-            style={styles.profileImage} 
-            source={{uri: hostProfileImage}}
-          />
+          <Avatar uri={hostProfileImage} size={36} iconSize={16} style={styles.profileImage} />
           <View style={styles.profileTextBox}>
             <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
             <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>

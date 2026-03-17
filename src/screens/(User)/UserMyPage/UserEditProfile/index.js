@@ -3,7 +3,6 @@ import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   TextInput,
   ScrollView,
   KeyboardAvoidingView,
@@ -23,7 +22,7 @@ import {Email} from '@components/Certificate/Email';
 import Phone from '@components/Certificate/UserPhone';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import Avatar from '@components/Avatar';
 import {FONTS} from '@constants/fonts';
 
 const UserEditProfile = () => {
@@ -126,17 +125,12 @@ const UserEditProfile = () => {
               {/* 이미지 */}
               <View style={styles.profileImageContainer}>
                 <View style={styles.profileImageWrapper}>
-                  {formData.photoUrl ? (
-                    <Image
-                      source={{uri: formData.photoUrl}}
-                      style={styles.profileImage}
-                      resizeMode="cover"
-                    />
-                  ) : (
-                    <View style={styles.profileImage}>
-                      <EmptyImage width={60} height={60} />
-                    </View>
-                  )}
+                  <Avatar
+                    uri={formData.photoUrl}
+                    size={116}
+                    iconSize={60}
+                    style={styles.profileImage}
+                  />
                   <TouchableOpacity
                     style={styles.plusButton}
                     onPress={handleEditProfileImage}>

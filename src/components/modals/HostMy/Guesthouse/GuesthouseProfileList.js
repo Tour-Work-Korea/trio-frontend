@@ -1,16 +1,10 @@
 import React from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  TouchableOpacity,
-  Image,
-} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
-import PlusIcon from '@assets/images/plus_black.svg';
+import Avatar from '@components/Avatar';
 import CheckIcon from '@assets/images/check_white.svg';
+import PlusIcon from '@assets/images/plus_black.svg';
 
 const GuesthouseProfileList = ({
   items = [],
@@ -35,13 +29,12 @@ const GuesthouseProfileList = ({
                 activeOpacity={0.8}>
                 <View style={styles.leftSection}>
                   <View style={styles.avatarWrap}>
-                    {item.photoUrl ? (
-                      <Image source={{uri: item.photoUrl}} style={styles.avatarImage} />
-                    ) : (
-                      <View style={styles.avatarFallback}>
-                        <EmptyImage width={20} height={20} />
-                      </View>
-                    )}
+                    <Avatar
+                      uri={item.photoUrl}
+                      size={36}
+                      iconSize={20}
+                      style={styles.avatarImage}
+                    />
                   </View>
 
                   <View style={styles.textWrap}>
@@ -73,7 +66,8 @@ const GuesthouseProfileList = ({
           );
         })}
 
-        <View style={styles.divider} />
+        {/* 임시: 게하 프로필 추가 비활성화 */}
+        {/* {items.length > 0 ? <View style={styles.divider} /> : null}
 
         <TouchableOpacity
           style={styles.addRow}
@@ -83,7 +77,7 @@ const GuesthouseProfileList = ({
             <PlusIcon width={20} height={20} />
           </View>
           <Text style={[FONTS.fs_14_semibold, styles.addText]}>{addLabel}</Text>
-        </TouchableOpacity>
+        </TouchableOpacity> */}
       </View>
     </View>
   );
@@ -129,12 +123,7 @@ const styles = StyleSheet.create({
   avatarImage: {
     width: '100%',
     height: '100%',
-  },
-  avatarFallback: {
-    width: '100%',
-    height: '100%',
-    justifyContent: 'center',
-    alignItems: 'center',
+    backgroundColor: COLORS.grayscale_100,
   },
   textWrap: {
     flex: 1,

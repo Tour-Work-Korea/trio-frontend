@@ -1,9 +1,7 @@
-import React, {useMemo} from 'react';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
-  Image,
-  ImageBackground,
   TouchableOpacity,
   ScrollView,
   useWindowDimensions,
@@ -18,21 +16,34 @@ import ButtonWhite from '@components/ButtonWhite';
 import HostProfileEvents from './HostProfileEvents';
 import HostProfileStaff from './HostProfileStaff';
 import HostProfileReviews from './HostProfileReviews';
-import useSwipeTabs from '@hooks/useSwipeTabs';
+import useUserStore from '@stores/userStore';
+import guesthouseProfileApi from '@utils/api/guesthouseProfileApi';
+import Avatar from '@components/Avatar';
 
-import MapIcon from '@assets/images/map_blue';
 import BackBtn from '@assets/images/chevron_left_black';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 
 const TAB = {
-  EVENTS: '이벤트 목록',
+  EVENTS: '콘텐츠',
   STAFF: '스탭 공고',
   REVIEWS: '리뷰',
 };
 
-const HostProfilePage = () => {
+const HostProfilePage = ({route}) => {
   const navigation = useNavigation();
+  const isHostMy = Boolean(route?.params?.isHostMy);
+  const routeGuesthouseId = Number(route?.params?.guesthouseId);
   const {width: screenWidth} = useWindowDimensions();
+  const pagerRef = useRef(null);
+  const hostProfile = useUserStore(state => state.hostProfile);
+  const selectedHostGuesthouseId = useUserStore(
+    state => state.selectedHostGuesthouseId,
+  );
+  const [profileCounts, setProfileCounts] = useState({
+    postsCount: 0,
+    followCount: 0,
+    reviewCount: 0,
+  });
+  const [profileSummary, setProfileSummary] = useState(null);
 
   const tabs = useMemo(
     () => [
@@ -42,29 +53,91 @@ const HostProfilePage = () => {
     ],
     [],
   );
-  const {
-    pagerRef,
-    isActive,
-    setKey,
-    onPagerLayout,
-    onMomentumScrollEnd,
-  } = useSwipeTabs({
-    tabs,
-    initialKey: 'events',
-  });
+  const [activeIndex, setActiveIndex] = useState(0);
+  const isActive = key => tabs[activeIndex]?.key === key;
 
-  // ✅ 임시 데이터 (나중에 API 붙이면 여기만 교체하면 됨)
-  const host = useMemo(
-    () => ({
-      name: '이상한밤 게스트하우스',
-      intro:
-        '잔잔하고 따뜻한 소규모 게스트하우스 ‘이상한밤’ 입니다.\n처음 만난 사람들과도 나눌 수 있는 또 다른 즐거움,\n이야깃거리가 되는 소소한 이벤트들을 통해 서로가 조금 더 편해지는 새로운 공간을 만들어가고 있습니다.',
-      address: '제주시 흥운길 25-7 1층',
-      photoUrl: null,
-    }),
-    [],
-  );
-  const hasHeaderImage = Boolean(host?.photoUrl);
+  const selectedGuesthouse = useMemo(() => {
+    const profiles = Array.isArray(hostProfile?.guesthouseProfiles)
+      ? hostProfile.guesthouseProfiles
+      : [];
+
+    if (!profiles.length) {
+      return null;
+    }
+
+    const current =
+      profiles.find(
+        (item, index) =>
+          String(item?.guesthouseId ?? `guesthouse-${index}`) ===
+          String(selectedHostGuesthouseId),
+      ) || profiles[0];
+
+    return {
+      guesthouseId: current?.guesthouseId ?? null,
+      guesthouseName: current?.guesthouseName || '이름 없음',
+      profileImageUrl: current?.profileImageUrl || null,
+    };
+  }, [hostProfile?.guesthouseProfiles, selectedHostGuesthouseId]);
+
+  const effectiveGuesthouseId = useMemo(() => {
+    if (!isHostMy && Number.isFinite(routeGuesthouseId) && routeGuesthouseId > 0) {
+      return routeGuesthouseId;
+    }
+
+    const id = Number(selectedGuesthouse?.guesthouseId);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [isHostMy, routeGuesthouseId, selectedGuesthouse?.guesthouseId]);
+
+  const displayedGuesthouse = useMemo(() => {
+    if (isHostMy) return selectedGuesthouse;
+
+    return {
+      guesthouseId: Number(profileSummary?.guesthouseId) || effectiveGuesthouseId || null,
+      guesthouseName: profileSummary?.guesthouseName || selectedGuesthouse?.guesthouseName || '이름 없음',
+      profileImageUrl: profileSummary?.profileImageUrl || selectedGuesthouse?.profileImageUrl || null,
+    };
+  }, [isHostMy, selectedGuesthouse, profileSummary, effectiveGuesthouseId]);
+
+  const hasHeaderImage = Boolean(displayedGuesthouse?.profileImageUrl);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    const fetchProfileCounts = async () => {
+      const guesthouseId = effectiveGuesthouseId;
+      if (!guesthouseId) {
+        if (isMounted) {
+          setProfileSummary(null);
+          setProfileCounts({postsCount: 0, followCount: 0, reviewCount: 0});
+        }
+        return;
+      }
+
+      try {
+        const res = await guesthouseProfileApi.getGuesthouseProfile(guesthouseId);
+        if (!isMounted) return;
+        const data = res?.data ?? {};
+
+        setProfileSummary(data?.profileSummary ?? null);
+        setProfileCounts({
+          postsCount: Number(data?.postsCount ?? 0),
+          followCount: Number(data?.followCount ?? 0),
+          reviewCount: Number(data?.reviewCount ?? 0),
+        });
+      } catch (error) {
+        if (isMounted) {
+          setProfileSummary(null);
+          setProfileCounts({postsCount: 0, followCount: 0, reviewCount: 0});
+        }
+      }
+    };
+
+    fetchProfileCounts();
+
+    return () => {
+      isMounted = false;
+    };
+  }, [effectiveGuesthouseId]);
 
   const renderHeaderContent = () => (
     <>
@@ -81,134 +154,177 @@ const HostProfilePage = () => {
       <View style={styles.profileWrap}>
 
         <View style={styles.profileImageWrap}>
-          {host.photoUrl ? (
-            <Image
-              source={{uri: host.photoUrl}}
-              style={styles.profileImage}
-            />
-          ) : (
-            <View style={styles.profileImage}>
-              <EmptyImage width={32} height={32} />
-            </View>
-          )}
+          <Avatar uri={displayedGuesthouse?.profileImageUrl} size={80} iconSize={32} />
         </View>
 
         <Text style={[FONTS.fs_16_semibold, styles.guesthouseNameText]}>
-          이상한밤 게스트하우스
+          {displayedGuesthouse?.guesthouseName || '이름 없음'}
         </Text>
       </View>
     </>
   );
 
+  // 유저일 때 객실 예약
   const handlePressReservation = () => {
-    // 예: navigation.navigate('GuesthouseReservation', { guesthouseId: ... })
-    // navigation.navigate('GuesthouseReservation');
+    const guesthouseId = Number(effectiveGuesthouseId);
+    if (!Number.isFinite(guesthouseId) || guesthouseId <= 0) return;
+
+    const formatDate = date => {
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, '0');
+      const day = String(date.getDate()).padStart(2, '0');
+      return `${year}-${month}-${day}`;
+    };
+
+    const checkInDate = new Date();
+    const checkOutDate = new Date();
+    checkOutDate.setDate(checkOutDate.getDate() + 1);
+
+    navigation.navigate('GuesthouseDetail', {
+      id: guesthouseId,
+      checkIn: formatDate(checkInDate),
+      checkOut: formatDate(checkOutDate),
+      guestCount: 1,
+      isFromDeeplink: false,
+    });
+  };
+
+  // 호스트일 때 프로필 편집
+  const handlePressEditProfile = () => {
+    navigation.navigate('HostEditProfile');
+  };
+
+  // 호스트일 때 숙소정보
+  const handlePressGuesthouseInfo = () => {
+    navigation.navigate('MyGuesthouseList');
+  };
+  
+  const handlePressTab = tabKey => {
+    const tabIndex = tabs.findIndex(tab => tab.key === tabKey);
+    if (tabIndex < 0) return;
+    setActiveIndex(tabIndex);
+    pagerRef.current?.scrollTo?.({
+      x: tabIndex * screenWidth,
+      y: 0,
+      animated: true,
+    });
+  };
+  const handleMomentumScrollEnd = event => {
+    const offsetX = Number(event?.nativeEvent?.contentOffset?.x ?? 0);
+    const nextIndex = Math.round(offsetX / screenWidth);
+    if (nextIndex >= 0 && nextIndex < tabs.length) {
+      setActiveIndex(nextIndex);
+    }
   };
 
   return (
     <View style={styles.container}>
-      <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}>
-        {/* 상단 배경 */}
-        {hasHeaderImage ? (
-          <ImageBackground
-            source={{uri: host.photoUrl}}
-            style={styles.headerBg}
-            resizeMode="cover">
-            {renderHeaderContent()}
-          </ImageBackground>
-        ) : (
-          <View style={[styles.headerBg, styles.headerBgFallback]}>
-            {renderHeaderContent()}
-          </View>
-        )}
+      {/* 상단 프로필 */}
+      <View style={[styles.headerBg, styles.headerBgFallback]}>
+        {renderHeaderContent()}
+      </View>
 
-        {/* 포스트 팔로워 리뷰 */}
-        <View style={styles.contentContainer}>
-          <View style={styles.sectionRow}>
-            <View style={styles.section}>
-              <Text style={[styles.countText, FONTS.fs_14_medium]}>10</Text>
-              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>포스트</Text>
-            </View>
-            <View style={styles.section}>
-              <Text style={[styles.countText, FONTS.fs_14_medium]}>12</Text>
-              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>팔로워</Text>
-            </View>
-            <View style={styles.section}>
-              <Text style={[styles.countText, FONTS.fs_14_medium]}>5</Text>
-              <Text style={[styles.sectionText, FONTS.fs_14_medium]}>리뷰</Text>
-            </View>
+      {/* 포스트 팔로워 리뷰 */}
+      <View style={styles.contentContainer}>
+        <View style={styles.sectionRow}>
+          <View style={styles.section}>
+            <Text style={[styles.countText, FONTS.fs_14_medium]}>
+              {profileCounts.postsCount}
+            </Text>
+            <Text style={[styles.sectionText, FONTS.fs_14_medium]}>포스트</Text>
           </View>
-          <View style={styles.hostBtnContainer}>
-            <ButtonWhite
-              title="프로필 편집"
-              onPress={handlePressReservation}
-              backgroundColor={COLORS.grayscale_100}
-              textColor={COLORS.grayscale_700}
-              style={{flex: 1}}
-            />
-            <ButtonWhite
-              title="숙소 정보"
-              onPress={handlePressReservation}
-              backgroundColor={COLORS.grayscale_100}
-              textColor={COLORS.grayscale_700}
-              style={{flex: 1}}
-            />
+          <View style={styles.section}>
+            <Text style={[styles.countText, FONTS.fs_14_medium]}>
+              {profileCounts.followCount}
+            </Text>
+            <Text style={[styles.sectionText, FONTS.fs_14_medium]}>팔로워</Text>
+          </View>
+          <View style={styles.section}>
+            <Text style={[styles.countText, FONTS.fs_14_medium]}>
+              {profileCounts.reviewCount}
+            </Text>
+            <Text style={[styles.sectionText, FONTS.fs_14_medium]}>리뷰</Text>
           </View>
         </View>
+        <View style={styles.hostBtnContainer}>
+          {isHostMy ? (
+            <>
+              <ButtonWhite
+                title="프로필 편집"
+                onPress={handlePressEditProfile}
+                backgroundColor={COLORS.grayscale_100}
+                textColor={COLORS.grayscale_700}
+                style={{flex: 1}}
+              />
+              <ButtonWhite
+                title="숙소 정보"
+                onPress={handlePressGuesthouseInfo}
+                backgroundColor={COLORS.grayscale_100}
+                textColor={COLORS.grayscale_700}
+                style={{flex: 1}}
+              />
+            </>
+          ) : (
+            <ButtonWhite
+              title="객실 예약"
+              onPress={handlePressReservation}
+              backgroundColor={COLORS.primary_orange}
+              textColor={COLORS.grayscale_0}
+              style={{flex: 1}}
+            />
+          )}
+        </View>
+      </View>
 
-        {/* 탭 바 */}
-        <View style={styles.tabBar}>
-          {tabs.map(tab => {
-            const active = isActive(tab.key);
-            return (
-              <TouchableOpacity
-                key={tab.key}
-                activeOpacity={0.8}
+      {/* 탭 바 */}
+      <View style={styles.tabBar}>
+        {tabs.map(tab => {
+          const active = isActive(tab.key);
+          return (
+            <TouchableOpacity
+              key={tab.key}
+              activeOpacity={0.8}
+              style={[
+                styles.tabItem,
+                active && styles.tabItemActive,
+              ]}
+              onPress={() => handlePressTab(tab.key)}>
+              <Text
                 style={[
-                  styles.tabItem,
-                  active && styles.tabItemActive,
+                  FONTS.fs_14_medium,
+                  styles.tabText,
+                  active && styles.tabTextActive,
                 ]}
-                onPress={() => setKey(tab.key)}>
-                <Text
-                  style={[
-                    FONTS.fs_14_medium,
-                    styles.tabText,
-                    active && styles.tabTextActive,
-                  ]}>
-                  {tab.label}
-                </Text>
-                {active ? <View style={styles.tabIndicator} /> : null}
-              </TouchableOpacity>
-            );
-          })}
-        </View>
+              >
+                {tab.label}
+              </Text>
+              {active ? <View style={styles.tabIndicator} /> : null}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
 
-        {/* 탭 내용 */}
-        <View style={styles.tabContentWrapper}>
-          <ScrollView
-            ref={pagerRef}
-            horizontal
-            pagingEnabled
-            onLayout={onPagerLayout}
-            onMomentumScrollEnd={onMomentumScrollEnd}
-            showsHorizontalScrollIndicator={false}
-            scrollEventThrottle={16}
-          >
-            <View style={[styles.tabPage, {width: screenWidth}]}>
-              <HostProfileEvents />
-            </View>
-            <View style={[styles.tabPage, {width: screenWidth}]}>
-              <HostProfileStaff />
-            </View>
-            <View style={[styles.tabPage, {width: screenWidth}]}>
-              <HostProfileReviews />
-            </View>
-          </ScrollView>
-        </View>
-      </ScrollView>
+      {/* 탭 내용 */}
+      <View style={styles.tabContentWrapper}>
+        <ScrollView
+          ref={pagerRef}
+          horizontal
+          pagingEnabled
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          showsHorizontalScrollIndicator={false}
+          scrollEventThrottle={16}
+        >
+          <View style={[styles.tabPage, {width: screenWidth}]}>
+            <HostProfileEvents guesthouseId={effectiveGuesthouseId} />
+          </View>
+          <View style={[styles.tabPage, {width: screenWidth}]}>
+            <HostProfileStaff guesthouseId={effectiveGuesthouseId} />
+          </View>
+          <View style={[styles.tabPage, {width: screenWidth}]}>
+            <HostProfileReviews guesthouseId={effectiveGuesthouseId} />
+          </View>
+        </ScrollView>
+      </View>
     </View>
   );
 };

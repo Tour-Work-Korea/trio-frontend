@@ -10,6 +10,7 @@ import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import ImageModal from '@components/modals/ImageModal';
+import Avatar from '@components/Avatar';
 
 const PAGE_SIZE = 10;
 const SORT = 'id';
@@ -102,14 +103,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         <View style={styles.reviewContainer}>
           <View style={styles.reviewHeaderContainer}>
             <View style={styles.userProfileContainer}>
-              <View style={styles.userImage}>
-                {item.userImgUrl ? (
-                  <Image
-                    source={{ uri: item.userImgUrl }}
-                    style={[styles.userImage, { position: 'absolute' }]}
-                  />
-                ) : null}
-              </View>
+              <Avatar uri={item.userImgUrl} size={44} iconSize={18} style={styles.userImage} />
               <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
             </View>
             <View style={styles.userRatingContainer}>

@@ -343,7 +343,12 @@ const GuesthouseDetail = ({route}) => {
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
             <TouchableOpacity 
-              onPress={() => navigation.navigate('HostProfilePage')}
+              onPress={() =>
+                navigation.navigate('HostProfilePage', {
+                  isHostMy: false,
+                  guesthouseId: id,
+                })
+              }
             >
               <Text style={[FONTS.fs_20_semibold, styles.name]}>
                 {detail.guesthouseName}

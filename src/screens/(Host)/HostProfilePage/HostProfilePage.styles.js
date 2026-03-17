@@ -21,8 +21,8 @@ const styles = StyleSheet.create({
     width: '100%',
     position: 'relative',
     alignItems: 'center',
-    paddingTop: 40,
-    paddingBottom: 24,
+    paddingTop: 28,
+    paddingBottom: 16,
   },
   headerBgFallback: {
     backgroundColor: COLORS.grayscale_0,
@@ -43,7 +43,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   guesthouseNameText: {
-    marginTop: 20,
+    marginTop: 16,
   },
   profileImageWrap: {
     width: PROFILE_SIZE,
@@ -59,7 +59,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
 
-  // 소개/주소 영역
   contentContainer: {
     backgroundColor: COLORS.grayscale_0,
     alignItems: 'center',
@@ -108,7 +107,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_500,
   },
   tabTextActive: {
-    color: COLORS.primary_blue,
+    color: COLORS.primary_orange,
   },
   tabIndicator: {
     position: 'absolute',
@@ -116,15 +115,17 @@ const styles = StyleSheet.create({
     width: '70%',
     height: 2,
     borderRadius: 2,
-    backgroundColor: COLORS.primary_blue,
+    backgroundColor: COLORS.primary_orange,
   },
 
   // 탭 내용
   tabContentWrapper: {
     backgroundColor: COLORS.grayscale_0,
+    flex: 1,
   },
   tabPage: {
     backgroundColor: COLORS.grayscale_0,
+    flex: 1,
   },
 });
 

@@ -149,6 +149,7 @@ export default function UserPastReservations({ data }) {
               if (item.reviewed) return;
               navigation.navigate('UserGuesthouseReviewForm', {
                 guesthouseId: item.guesthouseId,
+                reservationId: item.reservationId,
                 guesthouseName: item.guesthouseName,
                 roomName: item.roomName,
                 guesthouseAddress: item.guesthouseAddress,

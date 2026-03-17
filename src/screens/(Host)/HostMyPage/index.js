@@ -1,11 +1,9 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
   ScrollView,
-  Image,
-  ImageBackground,
   Pressable,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -28,52 +26,66 @@ import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import SettingIcon from '@assets/images/settings_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
 
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
 import styles from './HostMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
 import GuesthouseProfileList from '@components/modals/HostMy/Guesthouse/GuesthouseProfileList';
+import Avatar from '@components/Avatar';
 
 const HostMyPage = () => {
   const navigation = useNavigation();
 
   //저장된 호스트 프로필 호출-> 추후 수정
   const host = useUserStore(state => state.hostProfile);
-  const hasHeaderImage = Boolean(host?.photoUrl);
+  const selectedProfileId = useUserStore(
+    state => state.selectedHostGuesthouseId,
+  );
+  const setSelectedProfileId = useUserStore(
+    state => state.setSelectedHostGuesthouseId,
+  );
   const [isGuesthouseListVisible, setIsGuesthouseListVisible] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState('host-profile-1');
 
   const guesthouseProfiles = useMemo(
-    () => [
-      {
-        id: 'host-profile-1',
-        name: host?.name || '나의 게스트하우스',
-        photoUrl: host?.photoUrl || null,
-        noticeCount: 1,
-      },
-      {
-        id: 'host-profile-2',
-        name: `${host?.name || '호스트'}의 서브 게스트하우스`,
-        photoUrl: null,
-        noticeCount: 3,
-      },
-    ],
-    [host?.name, host?.photoUrl],
+    () =>
+      Array.isArray(host?.guesthouseProfiles) && host.guesthouseProfiles.length > 0
+        ? host.guesthouseProfiles.map((item, index) => ({
+            id: String(item.guesthouseId ?? `guesthouse-${index}`),
+            name: item.guesthouseName || '이름 없음',
+            photoUrl: item.profileImageUrl || null,
+            noticeCount: 0,
+          }))
+        : [],
+    [host?.guesthouseProfiles],
   );
 
   const selectedGuesthouse = useMemo(
-    () => guesthouseProfiles.find(item => item.id === selectedProfileId) || guesthouseProfiles[0],
+    () =>
+      guesthouseProfiles.find(item => item.id === selectedProfileId) ||
+      guesthouseProfiles[0] ||
+      null,
     [guesthouseProfiles, selectedProfileId],
   );
+  const selectedGuesthousePhotoUrl = selectedGuesthouse?.photoUrl ?? null;
+
+  useEffect(() => {
+    if (!guesthouseProfiles.length) {
+      setSelectedProfileId(null);
+      return;
+    }
+
+    const hasSelected = guesthouseProfiles.some(
+      profile => profile.id === selectedProfileId,
+    );
+    if (!hasSelected) {
+      setSelectedProfileId(guesthouseProfiles[0].id);
+    }
+  }, [guesthouseProfiles, selectedProfileId, setSelectedProfileId]);
 
   const renderHeaderContent = () => (
     <>
-      {hasHeaderImage && <View style={styles.headerOverlay} />}
-
       <TouchableOpacity
         style={styles.profileEditButton}
-        onPress={() => navigation.navigate('HostProfilePage')}
-        // onPress={() => navigation.navigate('HostEditProfile')}
+        onPress={() => navigation.navigate('HostProfilePage', {isHostMy: true})}
       >
         <Text style={[FONTS.fs_14_medium, styles.profileEditBtnText]}>미리보기</Text>
       </TouchableOpacity>
@@ -81,20 +93,11 @@ const HostMyPage = () => {
       {/* 프로필 영역 */}
       <View style={styles.profileWrap}>
         <View style={styles.profileImageWrap}>
-          {host.photoUrl ? (
-            <Image
-              source={{uri: host.photoUrl}}
-              style={styles.profileImage}
-            />
-          ) : (
-            <View style={styles.profileImage}>
-              <EmptyImage width={32} height={32} />
-            </View>
-          )}
+          <Avatar uri={selectedGuesthousePhotoUrl} size={80} iconSize={32} />
         </View>
 
         <Text style={[FONTS.fs_18_semibold, styles.guesthouseNameText]}>
-          게하 이름
+          {selectedGuesthouse?.name || '게하 이름'}
         </Text>
       </View>
     </>
@@ -139,20 +142,8 @@ const HostMyPage = () => {
 
       <ScrollView style={styles.outContainer}>
         {/* 사장 프로필 */}
-        <View>
-          {hasHeaderImage ? (
-            <ImageBackground
-              source={{uri: host.photoUrl}}
-              style={styles.headerBg}
-              resizeMode="cover"
-            >
-              {renderHeaderContent()}
-            </ImageBackground>
-          ) : (
-            <View style={[styles.headerBg, styles.headerBgFallback]}>
-              {renderHeaderContent()}
-            </View>
-          )}
+        <View style={[styles.headerBg, styles.headerBgFallback]}>
+          {renderHeaderContent()}
         </View>
 
         <View style={styles.container}>

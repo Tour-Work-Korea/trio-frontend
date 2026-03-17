@@ -32,6 +32,7 @@ const UserGuesthouseReviewForm = () => {
 
   const {
     guesthouseId,
+    reservationId,
     guesthouseName,
     roomName,
     guesthouseAddress,
@@ -261,6 +262,7 @@ const UserGuesthouseReviewForm = () => {
             detail: reviewText.trim(),
             imageUrls: images,
             isJobReview: false,
+            reservationId,
           }}
           onSuccess={() => {
             setModalVisible(false);

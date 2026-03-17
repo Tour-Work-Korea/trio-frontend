@@ -1,46 +1,164 @@
-// HostProfileEvents.js
-import React, {useMemo} from 'react';
-import {View, Text, Image, FlatList, StyleSheet} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {View, Text, Image, FlatList, StyleSheet, ActivityIndicator} from 'react-native';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import useUserStore from '@stores/userStore';
+import guesthouseProfileApi from '@utils/api/guesthouseProfileApi';
 
-const HostProfileStaff = () => {
-  // ✅ 임시 이벤트 목록 (나중에 API로 교체)
-  const events = useMemo(
-    () => [
-      {
-        id: '1',
-        title: '이상한밤의 미니 방탈출 + 포틀럭 + 불멍',
-        dateTimeText: '1.02 (금) 19:30~23:00',
-        priceText: '10,000원',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-      {
-        id: '2',
-        title: '신년 맞이 보드게임 + 야식 타임',
-        dateTimeText: '1.08 (목) 20:00~23:30',
-        priceText: '5,000원',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-      {
-        id: '3',
-        title: '제주 감성 산책 + 사진 찍기',
-        dateTimeText: '1.12 (월) 15:00~17:30',
-        priceText: '무료',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-    ],
-    [],
+const FORCE_EMPTY_STAFF = true;
+// 임시로 빈 화면 처리
+
+const toPriceText = value => {
+  const amount = Number(value);
+  if (!Number.isFinite(amount)) return '';
+  if (amount === 0) return '급여 협의';
+  return `${amount.toLocaleString()}원`;
+};
+
+const formatDateText = dateTime => {
+  if (!dateTime) return '';
+  const date = new Date(dateTime);
+  if (Number.isNaN(date.getTime())) return '';
+  return `${date.getMonth() + 1}/${date.getDate()}`;
+};
+
+const normalizeRecruitItem = (item, fallbackId) => ({
+  id: String(item?.itemId ?? item?.recruitId ?? item?.postId ?? item?.id ?? fallbackId),
+  title: item?.title ?? item?.recruitTitle ?? item?.postTitle ?? '제목 없음',
+  locationText:
+    item?.location ??
+    item?.address ??
+    item?.recruitAddress ??
+    item?.regionType ??
+    '',
+  createdAtText: formatDateText(
+    item?.createdAt ?? item?.postCreatedAt ?? item?.recruitCreatedAt,
+  ),
+  priceText:
+    item?.recruitPayText ??
+    item?.priceText ??
+    toPriceText(item?.recruitPay ?? item?.price ?? item?.amount),
+  imageUrl:
+    item?.thumbnailImageUrl ??
+    item?.thumbnailImgUrl ??
+    item?.thumbnailUrl ??
+    item?.recruitImageUrl ??
+    item?.imageUrl ??
+    null,
+});
+
+const HostProfileStaff = ({guesthouseId}) => {
+  const hostProfile = useUserStore(state => state.hostProfile);
+  const selectedHostGuesthouseId = useUserStore(
+    state => state.selectedHostGuesthouseId,
   );
 
+  const [recruits, setRecruits] = useState([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const inFlight = useRef(false);
+
+  const selectedGuesthouseId = useMemo(() => {
+    const routeId = Number(guesthouseId);
+    if (Number.isFinite(routeId) && routeId > 0) return routeId;
+
+    const profiles = Array.isArray(hostProfile?.guesthouseProfiles)
+      ? hostProfile.guesthouseProfiles
+      : [];
+    if (!profiles.length) return null;
+
+    const selected =
+      profiles.find(
+        (item, index) =>
+          String(item?.guesthouseId ?? `guesthouse-${index}`) ===
+          String(selectedHostGuesthouseId),
+      ) || profiles[0];
+
+    const id = Number(selected?.guesthouseId);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [guesthouseId, hostProfile?.guesthouseProfiles, selectedHostGuesthouseId]);
+
+  const fetchPage = useCallback(
+    async ({pageToFetch, append}) => {
+      if (!selectedGuesthouseId || inFlight.current) return;
+
+      inFlight.current = true;
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+
+      try {
+        const res = await guesthouseProfileApi.getGuesthouseProfileFeed({
+          guesthouseId: selectedGuesthouseId,
+          tab: 'POSTS',
+          postType: 'RECRUIT',
+          page: pageToFetch,
+        });
+
+        const payload = res?.data ?? {};
+        const content = Array.isArray(payload?.content)
+          ? payload.content
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+
+        const normalized = content.map((item, index) =>
+          normalizeRecruitItem(item, `${pageToFetch}-${index}`),
+        );
+        const last =
+          typeof payload?.last === 'boolean' ? payload.last : normalized.length < 10;
+        const currentPage = Number(payload?.number);
+
+        setRecruits(prev => (append ? [...prev, ...normalized] : normalized));
+        setPage(Number.isFinite(currentPage) ? currentPage : pageToFetch);
+        setHasNext(!last);
+      } catch (error) {
+        if (!append) setRecruits([]);
+        setHasNext(false);
+      } finally {
+        inFlight.current = false;
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [selectedGuesthouseId],
+  );
+
+  useEffect(() => {
+    if (FORCE_EMPTY_STAFF) {
+      setRecruits([]);
+      setPage(0);
+      setHasNext(false);
+      setLoading(false);
+      setLoadingMore(false);
+      return;
+    }
+
+    setRecruits([]);
+    setPage(0);
+    setHasNext(true);
+
+    if (!selectedGuesthouseId) return;
+    fetchPage({pageToFetch: 0, append: false});
+  }, [selectedGuesthouseId, fetchPage]);
+
+  const handleEndReached = useCallback(() => {
+    if (loading || loadingMore || !hasNext) return;
+    fetchPage({pageToFetch: page + 1, append: true});
+  }, [fetchPage, hasNext, loading, loadingMore, page]);
+
   const renderItem = ({item}) => {
+    const subtitle = [item.createdAtText, item.locationText].filter(Boolean).join(' • ');
+
     return (
       <View style={styles.card}>
-        <Image source={item.image} style={styles.thumb} />
+        {item.imageUrl ? (
+          <Image source={{uri: item.imageUrl}} style={styles.thumb} />
+        ) : (
+          <View style={[styles.thumb, styles.thumbFallback]} />
+        )}
 
         <View style={styles.info}>
           <Text style={[FONTS.fs_14_bold, styles.title]} numberOfLines={2}>
@@ -48,12 +166,10 @@ const HostProfileStaff = () => {
           </Text>
 
           <Text style={[FONTS.fs_12_regular, styles.sub]} numberOfLines={1}>
-            {item.dateTimeText} • {item.locationText}
+            {subtitle}
           </Text>
 
-          <Text style={[FONTS.fs_14_bold, styles.price]}>
-            {item.priceText}
-          </Text>
+          <Text style={[FONTS.fs_14_bold, styles.price]}>{item.priceText}</Text>
         </View>
       </View>
     );
@@ -61,16 +177,34 @@ const HostProfileStaff = () => {
 
   return (
     <View style={styles.container}>
-      {/* 필요하면 타이틀도 살려서 쓰면 됨 */}
-      {/* <Text style={[FONTS.fs_16_bold, styles.sectionTitle]}>이벤트 목록</Text> */}
-
       <FlatList
-        data={events}
+        data={FORCE_EMPTY_STAFF ? [] : recruits}
         keyExtractor={item => item.id}
         renderItem={renderItem}
         ItemSeparatorComponent={() => <View style={{height: 12}} />}
-        scrollEnabled={false} // ✅ 바깥 ScrollView랑 같이 쓰는 구조면 false가 안전
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
         showsVerticalScrollIndicator={false}
+        ListFooterComponent={
+          loadingMore ? (
+            <View style={styles.footer}>
+              <ActivityIndicator size="small" color={COLORS.grayscale_500} />
+            </View>
+          ) : null
+        }
+        ListEmptyComponent={
+          loading && !FORCE_EMPTY_STAFF ? (
+            <View style={styles.emptyWrap}>
+              <ActivityIndicator size="small" color={COLORS.grayscale_500} />
+            </View>
+          ) : (
+            <View style={styles.emptyWrap}>
+              <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
+                표시할 스탭 공고가 없습니다.
+              </Text>
+            </View>
+          )
+        }
       />
     </View>
   );
@@ -84,6 +218,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     paddingTop: 14,
     paddingBottom: 16,
+    flex: 1,
   },
 
   sectionTitle: {
@@ -108,6 +243,9 @@ const styles = StyleSheet.create({
     borderRadius: 10,
     backgroundColor: COLORS.grayscale_100,
   },
+  thumbFallback: {
+    backgroundColor: COLORS.grayscale_200,
+  },
 
   info: {
     flex: 1,
@@ -127,5 +265,16 @@ const styles = StyleSheet.create({
   price: {
     marginTop: 10,
     color: COLORS.grayscale_900,
+  },
+  emptyWrap: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: COLORS.grayscale_500,
+  },
+  footer: {
+    paddingVertical: 16,
+    alignItems: 'center',
   },
 });

@@ -1,76 +1,233 @@
-// HostProfileEvents.js
-import React, {useMemo} from 'react';
-import {View, Text, Image, FlatList, StyleSheet} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  FlatList,
+  StyleSheet,
+  ActivityIndicator,
+} from 'react-native';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import useUserStore from '@stores/userStore';
+import guesthouseProfileApi from '@utils/api/guesthouseProfileApi';
+import PeopleIcon from '@assets/images/people_gray.svg';
 
-const HostProfileEvents = () => {
-  // ✅ 임시 이벤트 목록 (나중에 API로 교체)
-  const events = useMemo(
-    () => [
-      {
-        id: '1',
-        title: '이상한밤의 미니 방탈출 + 포틀럭 + 불멍',
-        dateTimeText: '1.02 (금) 19:30~23:00',
-        priceText: '10,000원',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-      {
-        id: '2',
-        title: '신년 맞이 보드게임 + 야식 타임',
-        dateTimeText: '1.08 (목) 20:00~23:30',
-        priceText: '5,000원',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-      {
-        id: '3',
-        title: '제주 감성 산책 + 사진 찍기',
-        dateTimeText: '1.12 (월) 15:00~17:30',
-        priceText: '무료',
-        locationText: '제주시 흥운길 25-7 1층',
-        image: require('@assets/images/exphoto.jpeg'),
-      },
-    ],
-    [],
-  );
+const normalizeFeedItem = (item, fallbackId) => ({
+  id: String(item?.itemId ?? item?.partyId ?? item?.postId ?? item?.id ?? fallbackId),
+  itemType: item?.itemType ?? 'PARTY',
+  title: item?.partyTitle ?? item?.postTitle ?? item?.title ?? '제목 없음',
+  dateTimeText:
+    item?.partyStartDateTime ??
+    item?.postCreatedAt ??
+    item?.createdAt ??
+    item?.dateTimeText ??
+    '',
+  imageUrl:
+    item?.thumbnailImageUrl ??
+    item?.partyImageUrl ??
+    item?.thumbnailImgUrl ??
+    item?.thumbnailUrl ??
+    item?.imageUrl ??
+    null,
+  maxAttendance: Number(item?.maxAttendance ?? item?.partyMaxAttendance ?? 0),
+});
 
-  const renderItem = ({item}) => {
-    return (
-      <View style={styles.card}>
-        <Image source={item.image} style={styles.thumb} />
+const formatPartyDateText = dateTimeStr => {
+  if (!dateTimeStr) return '';
 
-        <View style={styles.info}>
-          <Text style={[FONTS.fs_14_bold, styles.title]} numberOfLines={2}>
-            {item.title}
-          </Text>
+  const date = new Date(dateTimeStr);
+  if (Number.isNaN(date.getTime())) return '';
 
-          <Text style={[FONTS.fs_12_regular, styles.sub]} numberOfLines={1}>
-            {item.dateTimeText} • {item.locationText}
-          </Text>
+  const month = date.getMonth() + 1;
+  const day = date.getDate();
+  const hour24 = date.getHours();
+  const minute = date.getMinutes();
+  const meridiem = hour24 < 12 ? '오전' : '오후';
+  const hour12 = hour24 % 12 || 12;
+  const minuteText = String(minute).padStart(2, '0');
 
-          <Text style={[FONTS.fs_14_bold, styles.price]}>
-            {item.priceText}
+  return `${month}/${day}, ${meridiem} ${hour12}:${minuteText}`;
+};
+
+const EventCard = ({item}) => {
+  const dateText = formatPartyDateText(item.dateTimeText);
+
+  return (
+    <View style={styles.card}>
+      {item.imageUrl ? (
+        <Image source={{uri: item.imageUrl}} style={styles.thumb} />
+      ) : (
+        <View style={[styles.thumb, styles.thumbFallback]} />
+      )}
+
+      <View style={styles.info}>
+        <Text style={[FONTS.fs_16_semibold, styles.title]} numberOfLines={1}>
+          {item.title}
+        </Text>
+
+        <View style={styles.capacityRow}>
+          <PeopleIcon width={16} height={16} />
+          <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
+            최대인원 {item.maxAttendance}명
           </Text>
         </View>
+
+        <Text style={[FONTS.fs_14_medium, styles.dateText]}>{dateText}</Text>
       </View>
-    );
-  };
+    </View>
+  );
+};
+
+const HostProfileEvents = ({guesthouseId}) => {
+  const hostProfile = useUserStore(state => state.hostProfile);
+  const selectedHostGuesthouseId = useUserStore(
+    state => state.selectedHostGuesthouseId,
+  );
+
+  const [events, setEvents] = useState([]);
+  const [page, setPage] = useState(0);
+  const [hasNext, setHasNext] = useState(true);
+  const [loading, setLoading] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const inFlight = useRef(false);
+
+  const selectedGuesthouseId = useMemo(() => {
+    const routeId = Number(guesthouseId);
+    if (Number.isFinite(routeId) && routeId > 0) return routeId;
+
+    const profiles = Array.isArray(hostProfile?.guesthouseProfiles)
+      ? hostProfile.guesthouseProfiles
+      : [];
+    if (!profiles.length) return null;
+
+    const selected =
+      profiles.find(
+        (item, index) =>
+          String(item?.guesthouseId ?? `guesthouse-${index}`) ===
+          String(selectedHostGuesthouseId),
+      ) || profiles[0];
+
+    const id = Number(selected?.guesthouseId);
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [guesthouseId, hostProfile?.guesthouseProfiles, selectedHostGuesthouseId]);
+
+  const fetchPage = useCallback(
+    async ({pageToFetch, append}) => {
+      if (!selectedGuesthouseId || inFlight.current) return;
+
+      inFlight.current = true;
+      if (append) setLoadingMore(true);
+      else setLoading(true);
+
+      try {
+        const res = await guesthouseProfileApi.getGuesthouseProfileFeed({
+          guesthouseId: selectedGuesthouseId,
+          tab: 'POSTS',
+          postType: 'PARTY',
+          page: pageToFetch,
+        });
+
+        const payload = res?.data ?? {};
+        const content = Array.isArray(payload?.content)
+          ? payload.content
+          : Array.isArray(payload?.items)
+            ? payload.items
+            : [];
+        const normalized = content.map((item, index) =>
+          normalizeFeedItem(item, `${pageToFetch}-${index}`),
+        );
+        const last =
+          typeof payload?.last === 'boolean' ? payload.last : normalized.length < 10;
+        const currentPage = Number(payload?.number);
+
+        setEvents(prev => (append ? [...prev, ...normalized] : normalized));
+        setPage(Number.isFinite(currentPage) ? currentPage : pageToFetch);
+        setHasNext(!last);
+      } catch (error) {
+        if (!append) setEvents([]);
+        setHasNext(false);
+      } finally {
+        inFlight.current = false;
+        setLoading(false);
+        setLoadingMore(false);
+      }
+    },
+    [selectedGuesthouseId],
+  );
+
+  useEffect(() => {
+    setEvents([]);
+    setPage(0);
+    setHasNext(true);
+
+    if (!selectedGuesthouseId) return;
+    fetchPage({pageToFetch: 0, append: false});
+  }, [selectedGuesthouseId, fetchPage]);
+
+  const handleEndReached = useCallback(() => {
+    if (loading || loadingMore || !hasNext) return;
+    fetchPage({pageToFetch: page + 1, append: true});
+  }, [fetchPage, hasNext, loading, loadingMore, page]);
+
+  const partyItems = useMemo(
+    () => events.filter(item => item.itemType === 'PARTY'),
+    [events],
+  );
 
   return (
     <View style={styles.container}>
-      {/* 필요하면 타이틀도 살려서 쓰면 됨 */}
-      {/* <Text style={[FONTS.fs_16_bold, styles.sectionTitle]}>이벤트 목록</Text> */}
-
       <FlatList
-        data={events}
+        data={partyItems}
         keyExtractor={item => item.id}
-        renderItem={renderItem}
-        ItemSeparatorComponent={() => <View style={{height: 12}} />}
-        scrollEnabled={false} // ✅ 바깥 ScrollView랑 같이 쓰는 구조면 false가 안전
+        renderItem={({item, index}) => (
+          <View>
+            <EventCard item={item} />
+            {index < partyItems.length - 1 ? <View style={styles.separator} /> : null}
+          </View>
+        )}
+        style={styles.scroll}
+        contentContainerStyle={styles.scrollContent}
+        scrollEnabled
+        nestedScrollEnabled
         showsVerticalScrollIndicator={false}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.5}
+        ListHeaderComponent={
+          <Text style={[FONTS.fs_14_semibold, styles.sectionTitle]}>게하 파티</Text>
+        }
+        ListEmptyComponent={
+          loading ? (
+            <View style={styles.emptyWrap}>
+              <ActivityIndicator size="small" color={COLORS.grayscale_500} />
+            </View>
+          ) : (
+            <View style={styles.emptyWrap}>
+              <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
+                표시할 게하 파티가 없습니다.
+              </Text>
+            </View>
+          )
+        }
+        ListFooterComponent={
+          <View>
+            {loadingMore ? (
+              <View style={styles.footer}>
+                <ActivityIndicator size="small" color={COLORS.grayscale_500} />
+              </View>
+            ) : null}
+
+            <View style={styles.eventSection}>
+              <Text style={[FONTS.fs_14_semibold, styles.sectionTitle, {marginTop: 20}]}>이벤트</Text>
+              <View style={styles.emptyWrap}>
+                <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
+                  표시할 이벤트가 없습니다.
+                </Text>
+              </View>
+            </View>
+          </View>
+        }
       />
     </View>
   );
@@ -80,45 +237,77 @@ export default HostProfileEvents;
 
 const styles = StyleSheet.create({
   container: {
-    paddingTop: 14,
-    paddingBottom: 16,
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  scroll: {
+    flex: 1,
+  },
+  scrollContent: {
+    paddingTop: 16,
+    paddingBottom: 24,
+    paddingHorizontal: 12,
   },
 
   sectionTitle: {
-    color: COLORS.grayscale_900,
-    marginBottom: 12,
+    color: COLORS.grayscale_500,
+    marginBottom: 14,
   },
 
   card: {
     width: '100%',
-    overflow: 'hidden',
     flexDirection: 'row',
-    padding: 12,
+    alignItems: 'flex-start',
   },
 
   thumb: {
-    width: 78,
-    height: 78,
-    borderRadius: 10,
+    width: 88,
+    height: 88,
+    borderRadius: 4,
+  },
+  thumbFallback: {
+    backgroundColor: COLORS.grayscale_200,
   },
 
   info: {
     flex: 1,
     marginLeft: 12,
-    justifyContent: 'space-between',
   },
 
   title: {
     color: COLORS.grayscale_900,
   },
 
-  sub: {
-    marginTop: 6,
-    color: COLORS.grayscale_600,
+  capacityRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 8,
+    gap: 4,
+  },
+  capacityText: {
+    color: COLORS.grayscale_500,
+  },
+  dateText: {
+    marginTop: 'auto',
+    color: COLORS.primary_orange,
+    alignSelf: 'flex-end',
   },
 
-  price: {
-    marginTop: 10,
-    color: COLORS.grayscale_900,
+  separator: {
+    height: 14,
+  },
+  emptyWrap: {
+    paddingVertical: 24,
+    alignItems: 'center',
+  },
+  emptyText: {
+    color: COLORS.grayscale_500,
+  },
+  eventSection: {
+    marginTop: 8,
+  },
+  footer: {
+    paddingVertical: 16,
+    alignItems: 'center',
   },
 });

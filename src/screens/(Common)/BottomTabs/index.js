@@ -1,10 +1,9 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   StyleSheet,
   View,
   Text,
   Platform,
-  Image,
   Modal,
   Pressable,
 } from 'react-native';
@@ -24,7 +23,7 @@ import MyIcon from '@assets/images/person_black.svg';
 import MyIconFilled from '@assets/images/person_black_filled.svg';
 import HeartIcon from '@assets/images/heart_black.svg';
 import HeartIconFilled from '@assets/images/heart_fill_black.svg';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import Avatar from '@components/Avatar';
 
 import {Guesthouse, Home, Meet, My, Favorite} from '@screens';
 import useUserStore from '@stores/userStore';
@@ -36,27 +35,49 @@ const Tab = createBottomTabNavigator();
 const BottomTabs = () => {
   const userRole = useUserStore(state => state.userRole);
   const hostProfile = useUserStore(state => state.hostProfile);
-  const hostPhotoUrl = useUserStore(state => state.hostProfile.photoUrl);
+  const selectedProfileId = useUserStore(
+    state => state.selectedHostGuesthouseId,
+  );
+  const setSelectedProfileId = useUserStore(
+    state => state.setSelectedHostGuesthouseId,
+  );
   const [isProfileModalVisible, setIsProfileModalVisible] = useState(false);
-  const [selectedProfileId, setSelectedProfileId] = useState('host-profile-1');
 
   const guesthouseProfiles = useMemo(
-    () => [
-      {
-        id: 'host-profile-1',
-        name: '나의 게스트하우스',
-        photoUrl: hostPhotoUrl,
-        noticeCount: 1,
-      },
-      {
-        id: 'host-profile-2',
-        name: `${hostProfile.name || '호스트'}의 서브 게스트하우스`,
-        photoUrl: null,
-        noticeCount: 3,
-      },
-    ],
-    [hostPhotoUrl, hostProfile.name],
+    () =>
+      Array.isArray(hostProfile.guesthouseProfiles) &&
+      hostProfile.guesthouseProfiles.length > 0
+        ? hostProfile.guesthouseProfiles.map((item, index) => ({
+            id: String(item.guesthouseId ?? `guesthouse-${index}`),
+            name: item.guesthouseName || '이름 없음',
+            photoUrl: item.profileImageUrl || null,
+            noticeCount: 0,
+          }))
+        : [],
+    [hostProfile.guesthouseProfiles],
   );
+  const selectedGuesthouse = useMemo(
+    () =>
+      guesthouseProfiles.find(item => item.id === selectedProfileId) ||
+      guesthouseProfiles[0] ||
+      null,
+    [guesthouseProfiles, selectedProfileId],
+  );
+  const selectedGuesthousePhotoUrl = selectedGuesthouse?.photoUrl ?? null;
+
+  useEffect(() => {
+    if (!guesthouseProfiles.length) {
+      setSelectedProfileId(null);
+      return;
+    }
+
+    const hasSelected = guesthouseProfiles.some(
+      profile => profile.id === selectedProfileId,
+    );
+    if (!hasSelected) {
+      setSelectedProfileId(guesthouseProfiles[0].id);
+    }
+  }, [guesthouseProfiles, selectedProfileId, setSelectedProfileId]);
 
   return (
     <View style={styles.container}>
@@ -75,29 +96,24 @@ const BottomTabs = () => {
               콘텐츠: focused ? MeetIconFilled : MeetIcon,
               마이: focused ? MyIconFilled : MyIcon,
             };
+            const hasHostProfileImage = Boolean(
+              typeof selectedGuesthousePhotoUrl === 'string' &&
+                selectedGuesthousePhotoUrl.trim() &&
+                selectedGuesthousePhotoUrl !== '사진을 추가해주세요',
+            );
 
             if (route.name === '마이' && userRole === 'HOST') {
-              if (hostPhotoUrl) {
-                return (
-                  <Image
-                    source={{uri: hostPhotoUrl}}
-                    style={[
-                      styles.hostProfileImage,
-                      focused && styles.hostProfileImageFocused,
-                    ]}
-                  />
-                );
-              }
-
               return (
-                <View
+                <Avatar
+                  uri={selectedGuesthousePhotoUrl}
+                  size={28}
+                  iconSize={16}
                   style={[
                     styles.hostProfileImage,
-                    styles.hostProfilePlaceholder,
+                    !hasHostProfileImage && styles.hostProfilePlaceholder,
                     focused && styles.hostProfileImageFocused,
-                  ]}>
-                  <EmptyImage width={16} height={16} />
-                </View>
+                  ]}
+                />
               );
             }
 

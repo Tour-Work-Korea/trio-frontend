@@ -19,6 +19,7 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import Loading from '@components/Loading';
+import Avatar from '@components/Avatar';
 
 const PAGE_SIZE = 6;
 
@@ -125,11 +126,18 @@ export default function TodayGuesthouses() {
             {/* 게하이름 + 좋아요 */}
             <View style={styles.bottomRow}>
               <TouchableOpacity
-                onPress={() => navigation.navigate('HostProfilePage')}
+                onPress={() =>
+                  navigation.navigate('HostProfilePage', {
+                    isHostMy: false,
+                    guesthouseId: item.guesthouseId,
+                  })
+                }
                 style={styles.bottomLeft}
               >
-                <Image
-                  source={{uri: item.hostProfileImageUrl}}
+                <Avatar
+                  uri={item.profileSummary?.profileImageUrl ?? item.hostProfileImageUrl}
+                  size={30}
+                  iconSize={12}
                   style={styles.profileThumb}
                 />
                 <Text
