@@ -206,6 +206,7 @@ const updateProfile = async role => {
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
+        userId,
         name,
         nickname,
         photoUrl,
@@ -218,6 +219,7 @@ const updateProfile = async role => {
       } = res.data;
 
       setUserProfile({
+        userId: userId ?? null,
         name: name ?? '',
         nickname: nickname ?? '',
         photoUrl:

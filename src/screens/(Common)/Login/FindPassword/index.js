@@ -33,7 +33,7 @@ import styles from '../Login.styles';
 const FindPassword = ({route}) => {
   const {phoneNumber, userRole, updateProfile} = route.params;
   const editProfileRoute =
-    userRole === 'HOST' ? 'HostEditProfile' : 'UserEditProfile';
+    userRole === 'HOST' ? 'HostEditProfile' : 'UserEditInfo';
   const navigation = useNavigation();
   const [formData, setFormData] = useState({
     newPassword: '',

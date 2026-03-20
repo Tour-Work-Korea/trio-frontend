@@ -15,15 +15,14 @@ import styles from './UserEditProfile.styles';
 import userMyApi from '@utils/api/userMyApi';
 import useUserStore from '@stores/userStore';
 import {uploadSingleImage} from '@utils/imageUploadHandler';
-import ButtonScarlet from '@components/ButtonScarlet';
 import AlertModal from '@components/modals/AlertModal';
 import {calculateAge} from '@utils/auth/login';
-import {Email} from '@components/Certificate/Email';
-import Phone from '@components/Certificate/UserPhone';
 
 import PlusIcon from '@assets/images/plus_gray.svg';
+import EditGray from '@assets/images/edit_gray.svg';
 import Avatar from '@components/Avatar';
 import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
@@ -31,21 +30,21 @@ const UserEditProfile = () => {
   const setUserProfile = useUserStore(state => state.setUserProfile);
   const [formData, setFormData] = useState({
     photoUrl: userProfile.photoUrl,
-    name: userProfile.name,
     nickname: userProfile.nickname,
-    phone: userProfile.phone,
-    email: userProfile.email,
-    mbti: userProfile.mbti,
+    mbti: userProfile.mbti === 'DEFAULT' ? '' : userProfile.mbti,
     instagramId:
       userProfile.instagramId === 'ID를 추가해주세요'
         ? ''
         : userProfile.instagramId,
-    gender: userProfile.gender,
-    birthDate: userProfile.birthDate,
   });
-  const [editEmail, setEditEmail] = useState(false);
-  const [editPhone, setEditPhone] = useState(false);
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
+
+  const basicInfoRows = [
+    {label: '이름', value: userProfile.name},
+    {label: '생년월일', value: userProfile.birthDate},
+    {label: '성별', value: userProfile.gender === 'F' ? '여성' : '남성'},
+    {label: '이메일 주소', value: userProfile.email},
+  ];
 
   const handleEditProfileImage = async () => {
     try {
@@ -59,44 +58,55 @@ const UserEditProfile = () => {
     }
   };
 
-  const handleEditEmail = email => {
-    setEditEmail(false);
-    setFormData(prev => ({...prev, email}));
-  };
-
-  const handleEditPhone = phone => {
-    setEditPhone(false);
-    setFormData(prev => ({...prev, phone}));
-  };
-
   const updateMyProfile = async () => {
     try {
-      const parseData = {
-        ...formData,
-        instagramId:
-          formData.instagramId === ''
-            ? 'ID를 추가해주세요'
-            : formData.instagramId,
-      };
+      const nextInstagramId =
+        formData.instagramId.trim() === ''
+          ? 'ID를 추가해주세요'
+          : formData.instagramId.trim();
+      const requestList = [];
 
-      await userMyApi.updateMyProfile(parseData);
+      if (formData.photoUrl !== userProfile.photoUrl) {
+        requestList.push(
+          userMyApi.updateMyProfile({
+            ...userProfile,
+            photoUrl: formData.photoUrl,
+          }),
+        );
+      }
+      if (formData.nickname.trim() !== userProfile.nickname) {
+        requestList.push(
+          userMyApi.updateNickname({name: formData.nickname.trim()}),
+        );
+      }
+      if ((formData.mbti || 'DEFAULT') !== userProfile.mbti) {
+        requestList.push(
+          userMyApi.updateMbti({mbti: formData.mbti || 'DEFAULT'}),
+        );
+      }
+      if (nextInstagramId !== userProfile.instagramId) {
+        requestList.push(
+          userMyApi.updateInstagram({instagramId: nextInstagramId}),
+        );
+      }
+
+      if (!requestList.length) {
+        navigation.goBack();
+        return;
+      }
+
+      await Promise.all(requestList);
+
       setUserProfile({
-        name: formData.name ?? '',
-        nickname: formData.nickname ?? '',
+        ...userProfile,
         photoUrl:
           formData.photoUrl && formData.photoUrl !== '사진을 추가해주세요'
             ? formData.photoUrl
             : null,
-        phone: formData.phone ?? '',
-        email: formData.email ?? '',
-        mbti: formData.mbti ?? '',
-        instagramId:
-          formData.instagramId === ''
-            ? 'ID를 추가해주세요'
-            : formData.instagramId,
-        gender: formData.gender ?? 'F',
-        birthDate: formData.birthDate ?? null,
-        age: calculateAge(formData.birthDate),
+        nickname: formData.nickname.trim() || userProfile.nickname,
+        mbti: formData.mbti || 'DEFAULT',
+        instagramId: nextInstagramId,
+        age: calculateAge(userProfile.birthDate),
       });
       navigation.goBack();
     } catch (error) {
@@ -109,218 +119,159 @@ const UserEditProfile = () => {
   };
 
   return (
-    <>
-      {!editEmail && !editPhone ? (
-        <KeyboardAvoidingView
-          style={styles.flex}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-          keyboardVerticalOffset={80} // 필요에 따라 조절
-        >
-          <View style={styles.outContainer}>
-            <Header title="회원 정보 수정" />
-            <ScrollView
-              style={styles.container}
-              keyboardDismissMode="on-drag"
-              keyboardShouldPersistTaps="handled">
-              {/* 이미지 */}
-              <View style={styles.profileImageContainer}>
-                <View style={styles.profileImageWrapper}>
-                  <Avatar
-                    uri={formData.photoUrl}
-                    size={116}
-                    iconSize={60}
-                    style={styles.profileImage}
-                  />
-                  <TouchableOpacity
-                    style={styles.plusButton}
-                    onPress={handleEditProfileImage}>
-                    <PlusIcon width={24} height={24} />
-                  </TouchableOpacity>
-                </View>
-              </View>
+    <KeyboardAvoidingView
+      style={styles.outContainer}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      keyboardVerticalOffset={80}>
+      <ScrollView
+        style={styles.container}
+        contentContainerStyle={styles.contentContainer}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled"
+      >
+        <Header title="내 정보" />
+        <View style={styles.body}>
+          <View style={styles.profileImageContainer}>
+            <View style={styles.profileImageWrapper}>
+              <Avatar
+                uri={formData.photoUrl}
+                size={116}
+                iconSize={60}
+                style={styles.profileImage}
+              />
+              <TouchableOpacity
+                style={styles.plusButton}
+                onPress={handleEditProfileImage}>
+                <PlusIcon width={24} height={24} />
+              </TouchableOpacity>
+            </View>
 
-              {/* 이름 */}
-              <View style={styles.contentContainer}>
-                <Text style={[FONTS.fs_16_medium, styles.label]}>이름</Text>
-                <TextInput
-                  style={styles.input}
-                  value={formData.nickname}
-                  onChangeText={text =>
-                    setFormData({...formData, nickname: text})
-                  }
-                />
-                {/* 성별 */}
-                <View style={styles.genderRow}>
-                  <TouchableOpacity
-                    style={[
-                      styles.genderButton,
-                      formData.gender === 'F' && styles.genderSelected,
-                    ]}
-                    onPress={() => setFormData({...formData, gender: 'F'})}>
-                    <Text
-                      style={[
-                        styles.genderText,
-                        FONTS.fs_14_medium,
-                        formData.gender === 'F' && styles.genderSelectedText,
-                        formData.gender === 'F' && FONTS.fs_14_semibold,
-                      ]}>
-                      여자
-                    </Text>
-                  </TouchableOpacity>
-                  <TouchableOpacity
-                    style={[
-                      styles.genderButton,
-                      formData.gender === 'M' && styles.genderSelected,
-                    ]}
-                    onPress={() => setFormData({...formData, gender: 'M'})}>
-                    <Text
-                      style={[
-                        styles.genderText,
-                        FONTS.fs_14_medium,
-                        formData.gender === 'M' && styles.genderSelectedText,
-                        formData.gender === 'M' && FONTS.fs_14_semibold,
-                      ]}>
-                      남자
-                    </Text>
-                  </TouchableOpacity>
-                </View>
+            <View style={styles.nicknameRow}>
+              <TextInput
+                style={[FONTS.fs_18_bold, styles.nicknameInput]}
+                value={formData.nickname}
+                onChangeText={text =>
+                  setFormData(prev => ({...prev, nickname: text}))
+                }
+                placeholder="닉네임"
+                placeholderTextColor={COLORS.grayscale_400}
+              />
+              <View style={{position: 'absolute', right: '-8%'}}>
+                <EditGray width={18} height={18} />
               </View>
+            </View>
+          </View>
+          
+          <View style={styles.sectionGroup}>
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                기본 정보
+              </Text>
+              <View style={styles.card}>
+                {basicInfoRows.map(item => (
+                  <View key={item.label} style={styles.infoRow}>
+                    <Text style={[FONTS.fs_16_medium, styles.infoLabel]}>
+                      {item.label}
+                    </Text>
+                    <Text
+                      style={[FONTS.fs_16_regular, styles.infoValue]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {item.value}
+                    </Text>
+                  </View>
+                ))}
+              </View>
+            </View>
 
-              {/* 생일 */}
-              <View style={styles.contentContainer}>
-                <View style={styles.ageBirthYearRow}>
-                  <View style={styles.row}>
-                    <Text style={styles.label}>생일</Text>
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                프로필 정보
+              </Text>
+              <View style={styles.card}>
+                <View style={styles.profileInfoRow}>
+                  <Text style={[FONTS.fs_16_medium, styles.infoLabel]}>
+                    MBTI
+                  </Text>
+                  <View style={styles.mbtiGrid}>
+                    {[
+                      'ISTJ',
+                      'ISFJ',
+                      'INTJ',
+                      'INFJ',
+                      'ISTP',
+                      'ISFP',
+                      'INTP',
+                      'INFP',
+                      'ESTJ',
+                      'ESFJ',
+                      'ENTJ',
+                      'ENFJ',
+                      'ESTP',
+                      'ESFP',
+                      'ENTP',
+                      'ENFP',
+                    ].map(type => (
+                      <TouchableOpacity
+                        key={type}
+                        style={[
+                          styles.mbtiButton,
+                          formData.mbti === type && styles.mbtiSelected,
+                        ]}
+                        onPress={() =>
+                          setFormData(prev => ({...prev, mbti: type}))
+                        }>
+                        <Text
+                          style={[
+                            styles.mbtiText,
+                            FONTS.fs_14_medium,
+                            formData.mbti === type && styles.mbtiSelectedText,
+                            formData.mbti === type && FONTS.fs_14_semibold,
+                          ]}>
+                          {type}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                </View>
+
+                <View style={styles.instagramSection}>
+                  <Text style={[FONTS.fs_16_medium, styles.infoLabel]}>
+                    인스타 ID
+                  </Text>
+                  <View style={styles.instagramRow}>
+                    <Text style={[FONTS.fs_16_medium, styles.atSymbol]}>@</Text>
                     <TextInput
-                      style={[styles.input]}
-                      value={formData.birthDate?.toString()}
-                      keyboardType="numeric"
+                      style={[FONTS.fs_16_regular, styles.instagramInput]}
+                      value={formData.instagramId}
                       onChangeText={text =>
-                        setFormData({...formData, birthDate: text})
+                        setFormData(prev => ({...prev, instagramId: text}))
                       }
-                      placeholder="2000-01-01"
+                      placeholder="guesthouse_com"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      autoCapitalize="none"
                     />
                   </View>
                 </View>
               </View>
-
-              {/* 연락처 */}
-              <View style={styles.contentContainer}>
-                <Text style={styles.label}>연락처</Text>
-                <TouchableOpacity onPress={() => setEditPhone(true)}>
-                  <TextInput
-                    editable={false}
-                    style={styles.input}
-                    value={formData.phone}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* 이메일 */}
-              <View style={styles.contentContainer}>
-                <Text style={styles.label}>이메일</Text>
-                <TouchableOpacity onPress={() => setEditEmail(true)}>
-                  <TextInput
-                    editable={false}
-                    style={styles.input}
-                    value={formData.email}
-                  />
-                </TouchableOpacity>
-              </View>
-
-              {/* MBTI */}
-              <View style={styles.contentContainer}>
-                <Text style={styles.label}>MBTI</Text>
-                <View style={styles.mbtiGrid}>
-                  {[
-                    'ISTJ',
-                    'ISFJ',
-                    'INTJ',
-                    'INFJ',
-                    'ISTP',
-                    'ISFP',
-                    'INTP',
-                    'INFP',
-                    'ESTJ',
-                    'ESFJ',
-                    'ENTJ',
-                    'ENFJ',
-                    'ESTP',
-                    'ESFP',
-                    'ENTP',
-                    'ENFP',
-                  ].map(type => (
-                    <TouchableOpacity
-                      key={type}
-                      style={[
-                        styles.mbtiButton,
-                        formData.mbti === type && styles.mbtiSelected,
-                      ]}
-                      onPress={() => setFormData({...formData, mbti: type})}>
-                      <Text
-                        style={[
-                          styles.mbtiText,
-                          FONTS.fs_14_medium,
-                          formData.mbti === type && styles.mbtiSelectedText,
-                          formData.mbti === type && FONTS.fs_14_semibold,
-                        ]}>
-                        {type}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </View>
-              </View>
-
-              {/* 인스타 */}
-              <View style={styles.contentContainer}>
-                <Text style={styles.label}>insta</Text>
-                <View style={styles.instagramRow}>
-                  <Text style={[FONTS.fs_14_medium, styles.atSymbol]}>@</Text>
-                  <TextInput
-                    style={styles.instagramInput}
-                    value={formData.instagramId}
-                    onChangeText={text =>
-                      setFormData({...formData, instagramId: text})
-                    }
-                    placeholder="ID를 추가해주세요"
-                  />
-                </View>
-              </View>
-              <View style={styles.contentRowContainer}>
-                <Text style={[FONTS.fs_14_medium, styles.label]}>비밀번호</Text>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('FindIntro', {
-                      find: 'password',
-                      userRole: 'USER',
-                      originPhone: formData.phone,
-                    })
-                  }>
-                  <Text>비밀번호 변경하기</Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.saveButton}>
-                <ButtonScarlet
-                  title={'정보 저장하기'}
-                  onPress={updateMyProfile}
-                />
-              </View>
-            </ScrollView>
+            </View>
           </View>
-        </KeyboardAvoidingView>
-      ) : (
-        <></>
-      )}
-      {editEmail ? <Email onPress={handleEditEmail} user="USER" /> : <></>}
-      {editPhone ? <Phone onPress={handleEditPhone} user="USER" /> : <></>}
+
+        </View>
+
+      </ScrollView>
+      <TouchableOpacity style={styles.saveButton} onPress={updateMyProfile}>
+        <Text style={[FONTS.fs_16_medium, styles.saveButtonText]}>
+          적용
+        </Text>
+      </TouchableOpacity>
       <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
         buttonText={'확인'}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
-    </>
+    </KeyboardAvoidingView>
   );
 };
 

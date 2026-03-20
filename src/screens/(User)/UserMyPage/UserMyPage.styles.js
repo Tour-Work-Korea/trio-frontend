@@ -2,12 +2,40 @@ import {StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
-  view: {flex: 1, backgroundColor: COLORS.grayscale_100},
+  view: {flex: 1, backgroundColor: COLORS.grayscale_0},
   outContainer: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_100,
+    backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
   },
+
+  topBarContainer: {
+    padding: 16,
+    backgroundColor: COLORS.grayscale_0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  guesthouseSelectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  topBarTitle: {
+    marginRight: 4,
+    flexShrink: 1,
+  },
+  topBarRightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  topBarIconButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  
   // 헤더
   headerText: {
     color: COLORS.grayscale_800,
@@ -22,66 +50,82 @@ export default StyleSheet.create({
   // 유저 프로필
   userInfoContainer: {
     backgroundColor: COLORS.grayscale_0,
-    paddingHorizontal: 8,
     paddingVertical: 12,
     borderRadius: 8,
     marginTop: 16,
   },
-  // 이름 성별
-  profileHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 16,
-  },
-  name: {},
-  age: {
-    color: COLORS.grayscale_500,
-    marginLeft: 16,
-  },
-  profileEdit: {
-    position: 'absolute',
-    right: 0,
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
-  },
-
-  // 유저 정보
   profileContainer: {
     flexDirection: 'row',
+    alignItems: 'center',
   },
   profileImage: {
-    width: 116,
-    height: 116,
-    borderRadius: 8,
-    marginRight: 20,
+    width: 88,
+    height: 88,
+    marginRight: 12,
     backgroundColor: COLORS.grayscale_200,
     justifyContent: 'center',
     alignItems: 'center',
   },
-  profilePlaceholder: {
-    gap: 4,
-    justifyContent: 'center',
-    flexDirection: 'column',
+  profileContent: {
     flex: 1,
   },
-  profileText: {
+  profileHeader: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+  },
+  profileTextGroup: {
+    flex: 1,
+    marginRight: 12,
+  },
+  name: {
+    color: COLORS.grayscale_800,
+    marginBottom: 8,
+  },
+  profileMeta: {
+    color: COLORS.grayscale_700,
+    marginBottom: 8,
+  },
+  profileInstagram: {
+    color: COLORS.grayscale_700,
+    flex: 1,
+  },
+  profileEdit: {
+    backgroundColor: COLORS.grayscale_200,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 100,
+  },
+  profileEditText: {
+    color: COLORS.grayscale_800,
+  },
+
+  // 유저 프로모션 섹션
+  promoContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 40,
+    paddingVertical: 12,
+    marginVertical: 16,
+    borderRadius: 10,
+    backgroundColor: COLORS.grayscale_0,
+    shadowColor: COLORS.grayscale_900,
+    shadowOffset: {width: 0, height: 2},
+    shadowOpacity: 0.08,
+    shadowRadius: 4,
+    elevation: 4,
   },
-  profileTitleText: {
-    color: COLORS.grayscale_400,
-    width: 42,
+  promoSection: {
+    alignItems: 'center', 
+    gap: 4,
   },
-  profileContentText: {
-    marginLeft: 20,
-    flex: 1,
+  promoSectionText: {
+    color: COLORS.primary_orange,
   },
 
   // 마이페이지
   bottomSection: {
-    marginTop: 16,
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 12,
     paddingHorizontal: 8,

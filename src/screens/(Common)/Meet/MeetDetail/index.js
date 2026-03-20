@@ -27,6 +27,7 @@ import {
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
 import { trimJejuPrefix } from '@utils/formatAddress';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
 
 import ChevronLeft from '@assets/images/chevron_left_white.svg';
@@ -36,7 +37,11 @@ import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyIcon from '@assets/images/meet_reservation_success.svg';
 
-const TABS = ['이벤트 소개', '상세 안내', '오시는 길'];
+const TABS = [
+  {key: 'intro', label: '이벤트 소개'},
+  {key: 'detail', label: '상세 안내'},
+  {key: 'way', label: '오시는 길'},
+];
 
 const SNACK_TAG_LABEL = {
   PARTY_FOOD: '음식 제공',
@@ -61,7 +66,6 @@ const MeetDetail = () => {
   const route = useRoute();
   const {partyId} = route.params ?? {};
 
-  const [selectedTab, setSelectedTab] = useState('이벤트 소개');
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [detail, setDetail] = useState(null);
@@ -75,6 +79,17 @@ const MeetDetail = () => {
   const [infoModalTags, setInfoModalTags] = useState([]);
   const [infoModalContent, setInfoModalContent] = useState("");
   const [infoModalSections, setInfoModalSections] = useState([]);
+  const {
+    pagerRef,
+    isActive,
+    onTabPress,
+    pageWidth,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs: TABS,
+    initialKey: 'intro',
+  });
 
   const openTagModal = (title, tags, content) => {
     setInfoModalTitle(title);
@@ -320,6 +335,201 @@ const MeetDetail = () => {
     !(trafficInfo?.length > 0) &&
     !parkingContentText;
 
+  const renderTabContent = tabKey => {
+    if (tabKey === 'intro') {
+      return (
+        <View style={styles.tabContent}>
+          {!events || events.length === 0 ? (
+            renderEmptyInfo()
+          ) : (
+            events?.map(ev => {
+              const images = ev.partyEventImageUrls ?? [];
+
+              return (
+                <View key={ev.id} style={{marginBottom: 20}}>
+                  {images.length > 0 && (
+                    <ScrollView
+                      horizontal
+                      nestedScrollEnabled
+                      showsHorizontalScrollIndicator={false}
+                      contentContainerStyle={styles.eventImageRow}>
+                      {images.map((url, idx) => (
+                        <Image
+                          key={`${ev.id}-${idx}`}
+                          source={{uri: url}}
+                          style={styles.eventImageBlog}
+                          resizeMode="cover"
+                        />
+                      ))}
+                    </ScrollView>
+                  )}
+                  <Text style={[FONTS.fs_16_semibold, styles.eventTitle]}>
+                    {ev.eventName}
+                  </Text>
+                  {!!ev.eventDescription && (
+                    <Text style={[FONTS.fs_14_regular, styles.eventBody]}>
+                      {ev.eventDescription}
+                    </Text>
+                  )}
+                </View>
+              );
+            })
+          )}
+        </View>
+      );
+    }
+
+    if (tabKey === 'detail') {
+      return (
+        <View style={styles.tabContent}>
+          <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
+          <View style={styles.infoTextContainer}>
+            <Text style={[FONTS.fs_14_regular, styles.infoText]}>
+              {partySchedule}
+            </Text>
+          </View>
+          {!!snackInfo && (
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
+              <View style={styles.detailInfoText}>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {snackTagTexts?.map(tag => `#${tag}`).join('  ')}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.detailInfoBtn}
+                  onPress={() =>
+                    openTagModal(
+                      '음식 • 음료',
+                      snackTagTexts?.map(t => `#${t}`),
+                      snackInfo,
+                    )
+                  }>
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+          {rules?.length > 0 && (
+            <View style={styles.detailInfoContainer}>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
+              <View style={styles.detailInfoText}>
+                <View style={styles.tagWrapper}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.tagText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {ruleTitleLine}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  style={styles.detailInfoBtn}
+                  onPress={() =>
+                    openSectionModal(
+                      '이용규칙',
+                      (rules ?? []).map(r => ({
+                        subtitle: r.title,
+                        body: r.content,
+                      })),
+                    )
+                  }>
+                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    내용 확인하기
+                  </Text>
+                  <ChevronRight width={16} height={16} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          )}
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.tabContent}>
+        {isEmptyWayInfo ? (
+          renderEmptyInfo()
+        ) : (
+          <>
+            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
+            {!!meetingPlace && (
+              <Text style={[FONTS.fs_14_regular, styles.infoText]}>
+                만나는 장소 : {meetingPlace}
+              </Text>
+            )}
+            {trafficInfo?.length > 0 && (
+              <View style={styles.detailInfoContainer}>
+                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
+                <View style={styles.detailInfoText}>
+                  <View style={styles.tagWrapper}>
+                    <Text
+                      style={[FONTS.fs_14_medium, styles.tagText]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {trafficTitleLine}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.detailInfoBtn}
+                    onPress={() =>
+                      openSectionModal(
+                        '교통 정보',
+                        (trafficInfo ?? []).map(it => ({
+                          subtitle: it.title,
+                          body: it.content,
+                        })),
+                      )
+                    }>
+                    <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                      내용 확인하기
+                    </Text>
+                    <ChevronRight width={16} height={16} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+            {!!parkingContentText && (
+              <View style={styles.detailInfoContainer}>
+                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
+                <View style={styles.detailInfoText}>
+                  <View style={styles.tagWrapper}>
+                    <Text
+                      style={[FONTS.fs_14_medium, styles.tagText]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
+                      {parkingTagTexts?.map(t => `#${t}`).join('  ')}
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.detailInfoBtn}
+                    onPress={() =>
+                      openTagModal(
+                        '주차 정보',
+                        parkingTagTexts?.map(t => `#${t}`),
+                        parkingContentText,
+                      )
+                    }>
+                    <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                      내용 확인하기
+                    </Text>
+                    <ChevronRight width={16} height={16} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            )}
+          </>
+        )}
+      </View>
+    );
+  };
+
   return (
     <View style={{flex: 1}}>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
@@ -453,269 +663,44 @@ const MeetDetail = () => {
 
         {/* 하단 탭 */}
         <View style={styles.tabContainer}>
-          {TABS.map(tab => (
+          {TABS.map((tab, index) => (
             <Pressable
-              key={tab}
+              key={tab.key}
               style={[
                 styles.tabButton,
-                selectedTab === tab && styles.tabButtonActive,
+                isActive(tab.key) && styles.tabButtonActive,
               ]}
-              onPress={() => setSelectedTab(tab)}>
+              onPress={() => onTabPress(index)}>
               <Text
                 style={[
                   FONTS.fs_14_medium,
                   styles.tabText,
-                  selectedTab === tab && styles.tabTextActive,
-                  selectedTab === tab && FONTS.fs_14_semibold,
+                  isActive(tab.key) && styles.tabTextActive,
+                  isActive(tab.key) && FONTS.fs_14_semibold,
                 ]}>
-                {tab}
+                {tab.label}
               </Text>
             </Pressable>
           ))}
         </View>
-
-        {/* 탭 콘텐츠 */}
-        {/* 이벤트 소개 */}
-        {selectedTab === '이벤트 소개' && (
-          <View style={styles.tabContent}>
-            {(!events || events.length === 0) ? (
-              renderEmptyInfo()
-            ) : (
-            events?.map(ev => {
-              const images = ev.partyEventImageUrls ?? [];
-
-              return (
-              <View key={ev.id} style={{ marginBottom: 20 }}>
-                {/* 이미지(들) */}
-                {images.length > 0 && (
-                  <ScrollView
-                    horizontal
-                    showsHorizontalScrollIndicator={false}
-                    contentContainerStyle={styles.eventImageRow}
-                  >
-                    {images.map((url, idx) => (
-                      <Image
-                        key={`${ev.id}-${idx}`}
-                        source={{ uri: url }}
-                        style={styles.eventImageBlog}
-                        resizeMode="cover"
-                      />
-                    ))}
-                  </ScrollView>
-                )}
-                {/* 제목 */}
-                <Text style={[FONTS.fs_16_semibold, styles.eventTitle]}>
-                  {ev.eventName}
-                </Text>
-                {/* 내용 */}
-                {!!ev.eventDescription && (
-                  <Text style={[FONTS.fs_14_regular, styles.eventBody]}>
-                    {ev.eventDescription}
-                  </Text>
-                )}
-              </View>
-              );
-            })
-          )}
-          </View>
-        )}
-
-        {/* 상세 안내 */}
-        {selectedTab === '상세 안내' && (
-          <View style={styles.tabContent}>
-            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
-            <View style={styles.infoTextContainer}>
-              <Text style={[FONTS.fs_14_regular, styles.infoText]}>
-                {partySchedule}
-              </Text>
+        <ScrollView
+          ref={pagerRef}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onLayout={onPagerLayout}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          style={styles.tabPager}>
+          {TABS.map(tab => (
+            <View
+              key={tab.key}
+              style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
+              {renderTabContent(tab.key)}
             </View>
-            {/* 음식 • 음료 */}
-            {!!snackInfo && (
-            <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {snackTagTexts?.map(tag => `#${tag}`).join('  ')}
-                  </Text>
-                </View>
-                <TouchableOpacity 
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openTagModal(
-                      "음식 • 음료",
-                      snackTagTexts?.map(t => `#${t}`),
-                      snackInfo
-                    )
-                  }
-                >
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16}/>
-                </TouchableOpacity>
-              </View>
-            </View>
-            )}
-            {/* 이용규칙 */}
-            {rules?.length > 0 && (
-            <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {ruleTitleLine}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openSectionModal(
-                      '이용규칙',
-                      (rules ?? []).map(r => ({
-                        subtitle: r.title,
-                        body: r.content,
-                      }))
-                    )
-                  }
-                >
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16}/>
-                </TouchableOpacity>
-              </View>
-            </View>
-            )}
-            {/* <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>기타 정보</Text>
-              <View style={styles.detailInfoText}>
-                <Text style={[FONTS.fs_14_medium, styles.tagText]}>이름들</Text>
-                <TouchableOpacity 
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openSectionModal("기타 정보", [
-                      {
-                        subtitle: "포틀럭 정리",
-                        body: `✔ 포틀럭 후 먹은 것 함께 정리
-                        ✔ 마무리 청소는 저희가 담당합니다`
-                      }
-                    ])
-                  }
-                >
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16}/>
-                </TouchableOpacity>
-              </View>
-            </View> */}
-          </View>
-        )}
-
-        {/* 오시는 길 */}
-        {selectedTab === '오시는 길' && (
-          <View style={styles.tabContent}>
-            {isEmptyWayInfo ? (
-              renderEmptyInfo()
-            ) : (
-            <>
-            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
-            {/* 지도 */}
-            {/* <MapView
-              style={styles.map}
-              initialRegion={{
-                latitude: coordinate.latitude,
-                longitude: coordinate.longitude,
-                latitudeDelta: 0.05,
-                longitudeDelta: 0.05,
-              }}
-            >
-              <Marker coordinate={coordinate} />
-            </MapView> */}
-            {!!meetingPlace && (
-            <Text style={[FONTS.fs_14_regular, styles.infoText]}>
-              만나는 장소 : {meetingPlace}
-            </Text>
-            )}
-            {/* 교통정보 */}
-            {trafficInfo?.length > 0 && (
-            <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {trafficTitleLine}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openSectionModal(
-                      '교통 정보',
-                      (trafficInfo ?? []).map(it => ({
-                        subtitle: it.title,
-                        body: it.content,
-                      }))
-                    )
-                  }
-                >
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16}/>
-                </TouchableOpacity>
-              </View>
-            </View>
-            )}
-            {/* 주차정보 */}
-            {!!parkingContentText && (
-            <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
-                    {parkingTagTexts?.map(t => `#${t}`).join('  ')}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openTagModal(
-                      '주차 정보',
-                      parkingTagTexts?.map(t => `#${t}`),
-                      parkingContentText
-                    )
-                  }
-                >
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16}/>
-                </TouchableOpacity>
-              </View>
-            </View>
-            )}
-            </>
-          )}
-          </View>
-        )}
+          ))}
+        </ScrollView>
       </View>
 
     </ScrollView>

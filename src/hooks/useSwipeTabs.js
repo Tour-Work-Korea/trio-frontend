@@ -18,6 +18,7 @@ export default function useSwipeTabs({
   onChange,
 } = {}) {
   const pagerRef = useRef(null);
+  const pendingScrollRef = useRef(null);
   const [pageWidth, setPageWidth] = useState(0);
 
   const tabKeys = useMemo(
@@ -61,20 +62,23 @@ export default function useSwipeTabs({
   const scrollToIndex = useCallback(
     (index, animated = true) => {
       if (!Number.isFinite(index)) {
-        return;
+        return false;
       }
       if (index < 0 || index >= tabKeys.length) {
-        return;
+        return false;
       }
       if (pageWidth <= 0) {
-        return;
+        return false;
       }
 
-      pagerRef.current?.scrollTo?.({
-        x: index * pageWidth,
-        y: 0,
-        animated,
+      requestAnimationFrame(() => {
+        pagerRef.current?.scrollTo?.({
+          x: index * pageWidth,
+          y: 0,
+          animated,
+        });
       });
+      return true;
     },
     [pageWidth, tabKeys.length],
   );
@@ -92,10 +96,20 @@ export default function useSwipeTabs({
       emitChange(index);
 
       if (syncScroll) {
-        scrollToIndex(index, animated);
+        const didScroll = scrollToIndex(index, animated);
+        if (!didScroll) {
+          pendingScrollRef.current = {index, animated};
+        }
       }
     },
     [emitChange, scrollToIndex, tabKeys.length],
+  );
+
+  const onTabPress = useCallback(
+    index => {
+      setIndex(index, {animated: true, syncScroll: true});
+    },
+    [setIndex],
   );
 
   const setKey = useCallback(
@@ -120,7 +134,7 @@ export default function useSwipeTabs({
     if (width <= 0) {
       return;
     }
-    setPageWidth(width);
+    setPageWidth(prev => (prev === width ? prev : width));
   }, []);
 
   // 손가락을 떼고 paging 정렬이 끝난 시점에 현재 페이지 인덱스를 반영
@@ -141,19 +155,30 @@ export default function useSwipeTabs({
     [activeIndex, pageWidth, setIndex],
   );
 
-  // width 측정 후 초기 탭 위치 동기화
+  // width 측정 직후 또는 레이아웃 폭이 바뀌었을 때 현재 탭 위치만 맞춘다.
+  // activeIndex 변경마다 여기서 다시 scrollTo를 호출하면
+  // 탭 클릭 이동과 paging 스냅이 서로 덮어쓸 수 있다.
   useEffect(() => {
     if (pageWidth <= 0) {
       return;
     }
+    if (pendingScrollRef.current) {
+      const {index, animated} = pendingScrollRef.current;
+      pendingScrollRef.current = null;
+      scrollToIndex(index, animated);
+      return;
+    }
+
     scrollToIndex(activeIndex, false);
-  }, [activeIndex, pageWidth, scrollToIndex]);
+  }, [pageWidth, scrollToIndex]);
 
   return {
     pagerRef,
     activeKey,
     activeIndex,
     isActive,
+    onTabPress,
+    pageWidth,
     setKey,
     setIndex,
     onPagerLayout,

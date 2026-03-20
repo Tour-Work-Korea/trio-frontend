@@ -4,6 +4,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import AlertModal from '@components/modals/AlertModal';
+import useUserStore from '@stores/userStore';
 
 import authApi from '@utils/api/authApi';
 import {tryLogout} from '@utils/auth/login';
@@ -15,6 +16,26 @@ const Settings = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
+  const userRole = useUserStore(state => state.userRole);
+  const userProfile = useUserStore(state => state.userProfile);
+  const hostProfile = useUserStore(state => state.hostProfile);
+
+  const isHost = userRole === 'HOST';
+  const accountName = isHost ? hostProfile.name : userProfile.name;
+  const accountEmail = isHost ? hostProfile.email : userProfile.email;
+  const accountPhone = isHost ? hostProfile.phone : userProfile.phone;
+
+  const goToEditProfile = () => {
+    navigation.navigate(isHost ? 'HostEditInfo' : 'UserEditInfo');
+  };
+
+  const handleLogout = async () => {
+    await tryLogout();
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'Login'}],
+    });
+  };
 
   const handleWithdrawal = async () => {
     if (isWithdrawing) return;
@@ -23,13 +44,13 @@ const Settings = () => {
 
     try {
       await authApi.withdrawal();
+      await tryLogout();
     } catch (error) {
       console.warn('[Settings] withdrawal failed:', error?.message);
     } finally {
-      // await tryLogout();
       navigation.reset({
         index: 0,
-        routes: [{name: 'MainTabs'}],
+        routes: [{name: 'Login'}],
       });
       setIsWithdrawing(false);
     }
@@ -40,27 +61,66 @@ const Settings = () => {
       <Header title={'설정'} />
 
       <View style={styles.container}>
-        {/* 메뉴 */}
-        <View style={styles.menuContainer}>
-          {/* 버전정보 */}
-          <View style={styles.menuRow}>
-            <Text style={styles.menuText}>버전 정보</Text>
-            <Text style={styles.versionText}>ver.1</Text>
+        <View>
+          <Text style={styles.menuHeader}>계정 정보</Text>
+          <View style={styles.menuContainer}>
+            <View style={styles.menuRow}>
+              <Text style={styles.menuText}>이름</Text>
+              <Text style={styles.versionText}>{accountName || '-'}</Text>
+            </View>
+            <View style={styles.menuRow}>
+              <Text style={styles.menuText}>이메일 주소</Text>
+              <Text style={styles.versionText}>{accountEmail || '-'}</Text>
+            </View>
+            <View style={styles.menuRow}>
+              <Text style={styles.menuText}>휴대폰 번호</Text>
+              <View style={styles.menuButtonRow}>
+                <Text style={styles.versionText}>{accountPhone || '-'}</Text>
+                <TouchableOpacity onPress={goToEditProfile}>
+                  <RightArrow width={20} height={20} />
+                </TouchableOpacity>
+              </View>
+            </View>
+            <View style={styles.menuRow}>
+              <Text style={styles.menuText}>비밀번호</Text>
+              <View style={styles.menuButtonRow}>
+                <Text style={styles.versionText}>**********</Text>
+                <TouchableOpacity onPress={goToEditProfile}>
+                  <RightArrow width={20} height={20} />
+                </TouchableOpacity>
+              </View>
+            </View>
           </View>
-          {/* 이용약관 */}
-          <TouchableOpacity
-            style={styles.menuRow}
-            onPress={() => navigation.navigate('Terms')}>
-            <Text style={styles.menuText}>이용 약관</Text>
-            <RightArrow width={24} height={24} />
+        </View>
+
+        <View>
+          <Text style={styles.menuHeader}>서비스 정보</Text>
+          <View style={styles.menuContainer}>
+            <View style={styles.menuRow}>
+              <Text style={styles.menuText}>버전 정보</Text>
+              <Text style={styles.versionText}>ver.1</Text>
+            </View>
+            <TouchableOpacity
+              style={styles.menuRow}
+              onPress={() => navigation.navigate('Terms')}>
+              <Text style={styles.menuText}>이용 약관</Text>
+              <RightArrow width={20} height={20} />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        <View style={styles.logoutContainer}>
+          <TouchableOpacity style={styles.menuRow} onPress={handleLogout}>
+            <Text style={styles.logoutText}>로그아웃</Text>
           </TouchableOpacity>
-          {/* 탈퇴 */}
+          <View style={styles.devide} />
           <TouchableOpacity
             style={styles.menuRow}
             onPress={() => setModalVisible(true)}>
-            <Text style={styles.menuText}>탈퇴하기</Text>
+            <Text style={[styles.logoutText, {textDecorationLine:'none'}]}>회원 탈퇴</Text>
           </TouchableOpacity>
         </View>
+
         <View style={styles.detailContainer}>
           <Text style={styles.detailText}>상호명 : 워커웨이</Text>
           <Text style={styles.detailText}>사업자등록번호: 888-25-02003</Text>
@@ -86,13 +146,26 @@ const Settings = () => {
 
 const styles = StyleSheet.create({
   background: {flex: 1, backgroundColor: COLORS.grayscale_100},
-  container: {paddingHorizontal: 20},
+  container: {
+    paddingHorizontal: 20,
+    paddingVertical: 8,
+    gap: 40,
+  },
+  menuHeader: {
+    ...FONTS.fs_18_semibold,
+    marginBottom: 8,
+  },
   menuContainer: {backgroundColor: COLORS.grayscale_0, borderRadius: 8},
   menuRow: {
     padding: 16,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+  },
+  menuButtonRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
   },
   menuText: {
     ...FONTS.fs_16_medium,
@@ -102,8 +175,24 @@ const styles = StyleSheet.create({
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_500,
   },
+  logoutContainer: {
+    marginTop: -40,
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+  },
+  logoutText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+    textDecorationLine: 'underline',
+  },
+  devide: {
+    backgroundColor: COLORS.grayscale_500,
+    height: 12,
+    width: 1,
+  },
   detailContainer: {
-    marginTop: 20,
+    gap: 4,
   },
   detailText: {
     ...FONTS.fs_12_medium,

@@ -29,6 +29,7 @@ import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 
 import RoomList from './RoomList';
 
@@ -81,7 +82,12 @@ const serviceIcons = [
   },
 ];
 
-const TAB_OPTIONS = ['객실', '소개', '이용규칙', '리뷰'];
+const TAB_OPTIONS = [
+  {key: 'room', label: '객실'},
+  {key: 'intro', label: '소개'},
+  {key: 'rule', label: '이용규칙'},
+  {key: 'review', label: '리뷰'},
+];
 
 // 안심번호 일 경우만 공개
 const is050Number = phone => {
@@ -94,8 +100,18 @@ const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
-  const [activeTab, setActiveTab] = useState('객실');
   const [detail, setDetail] = useState(null);
+  const {
+    pagerRef,
+    isActive,
+    onTabPress,
+    pageWidth,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs: TAB_OPTIONS,
+    initialKey: 'room',
+  });
 
   const [modalVisible, setModalVisible] = useState(false);
   // 이미지 모달
@@ -238,6 +254,72 @@ const GuesthouseDetail = ({route}) => {
 
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
+
+  const renderTabContent = tabKey => {
+    if (tabKey === 'room') {
+      return (
+        <RoomList
+          detail={detail}
+          guesthouseId={id}
+          localCheckIn={localCheckIn}
+          localCheckOut={localCheckOut}
+          localAdults={localAdults}
+          localChildren={localChildren}
+        />
+      );
+    }
+
+    if (tabKey === 'intro') {
+      return (
+        <View style={styles.introductionContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>소개</Text>
+          <View style={styles.longTextContainer}>
+            <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
+              {detail.guesthouseLongDesc}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    if (tabKey === 'rule') {
+      return (
+        <View style={styles.introductionContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>이용 규칙</Text>
+          <View style={styles.longTextContainer}>
+            <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
+              {detail.rules}
+            </Text>
+          </View>
+        </View>
+      );
+    }
+
+    return (
+      <View style={styles.introductionContainer}>
+        <View style={styles.reviewRowContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>리뷰</Text>
+          <View style={styles.reviewRow}>
+            <View style={styles.reviewBoxBlue}>
+              <Star width={14} height={14} />
+              <Text style={[FONTS.fs_12_medium, styles.rating]}>
+                {detail.averageRating?.toFixed(1) ?? '0.0'}
+              </Text>
+              <Text style={styles.ratingDevide}>·</Text>
+              <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+                {detail.reviewCount} 리뷰
+              </Text>
+            </View>
+          </View>
+        </View>
+        <GuesthouseReview
+          guesthouseId={id}
+          averageRating={detail.averageRating}
+          totalCount={detail.reviewCount}
+        />
+      </View>
+    );
+  };
 
   return (
     <ScrollView style={styles.container}>
@@ -473,86 +555,44 @@ const GuesthouseDetail = ({route}) => {
 
         {/* 탭 메뉴 */}
         <View style={styles.tabMenuWrapper}>
-          {TAB_OPTIONS.map(tab => (
-            <TouchableOpacity key={tab} onPress={() => setActiveTab(tab)}>
+          {TAB_OPTIONS.map((tab, index) => (
+            <TouchableOpacity key={tab.key} onPress={() => onTabPress(index)}>
               <View style={styles.tabButton}>
                 <Text
                   style={[
                     FONTS.fs_14_semibold,
                     {
                       color:
-                        activeTab === tab
+                        isActive(tab.key)
                           ? COLORS.primary_blue
                           : COLORS.grayscale_800,
                     },
                   ]}>
-                  {tab}
+                  {tab.label}
                 </Text>
-                {activeTab === tab && <View style={styles.tabUnderline} />}
+                {isActive(tab.key) && <View style={styles.tabUnderline} />}
               </View>
             </TouchableOpacity>
           ))}
         </View>
-
-        {activeTab === '객실' && (
-          <RoomList
-            detail={detail}
-            guesthouseId={id}
-            localCheckIn={localCheckIn}
-            localCheckOut={localCheckOut}
-            localAdults={localAdults}
-            localChildren={localChildren}
-          />
-        )}
-
-        {activeTab === '소개' && (
-          <View style={styles.introductionContainer}>
-            <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>소개</Text>
-            <View style={styles.longTextContainer}>
-              <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
-                {detail.guesthouseLongDesc}
-              </Text>
+        <ScrollView
+          ref={pagerRef}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onLayout={onPagerLayout}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          style={styles.tabPager}>
+          {TAB_OPTIONS.map(tab => (
+            <View
+              key={tab.key}
+              style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
+              {renderTabContent(tab.key)}
             </View>
-          </View>
-        )}
-
-        {activeTab === '이용규칙' && (
-          <View style={styles.introductionContainer}>
-            <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
-              이용 규칙
-            </Text>
-            <View style={styles.longTextContainer}>
-              <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
-                {detail.rules}
-              </Text>
-            </View>
-          </View>
-        )}
-
-        {activeTab === '리뷰' && (
-          <View style={styles.introductionContainer}>
-            <View style={styles.reviewRowContainer}>
-              <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>리뷰</Text>
-              <View style={styles.reviewRow}>
-                <View style={styles.reviewBoxBlue}>
-                  <Star width={14} height={14} />
-                  <Text style={[FONTS.fs_12_medium, styles.rating]}>
-                    {detail.averageRating?.toFixed(1) ?? '0.0'}
-                  </Text>
-                  <Text style={styles.ratingDevide}>·</Text>
-                  <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                    {detail.reviewCount} 리뷰
-                  </Text>
-                </View>
-              </View>
-            </View>
-            <GuesthouseReview
-              guesthouseId={id}
-              averageRating={detail.averageRating}
-              totalCount={detail.reviewCount}
-            />
-          </View>
-        )}
+          ))}
+        </ScrollView>
       </View>
 
       {/* 편의시설/서비스 모달 */}

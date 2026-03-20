@@ -64,7 +64,6 @@ export {default as SocialLogin} from './(Common)/Login/SocialLogin';
 
 // 마이 페이지
 export {default as HostMyPage} from './(Host)/HostMyPage';
-export {default as HostSetting} from './(Host)/HostSetting';
 // 프로필
 export {default as HostEditInfo} from './(Host)/HostMyPage/HostEditInfo';
 export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
@@ -127,6 +126,7 @@ export {default as MeetCancelSuccess} from './(User)/Meet/MeetCancelConfirm/Meet
 export {default as UserMyPage} from './(User)/UserMyPage';
 // 프로필
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
+export {default as UserEditInfo} from './(User)/UserMyPage/UserEditInfo';
 // 좋아하는 게하 숙박
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
 // 게하 예약 목록

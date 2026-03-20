@@ -178,9 +178,14 @@ const styles = StyleSheet.create({
   tabTextActive: {
     color: COLORS.primary_blue,
   },
+  tabPager: {
+    marginTop: 20,
+  },
+  tabPage: {
+    flexShrink: 0,
+  },
 
   tabContent: {
-    marginTop: 20,
     gap: 12,
   },
   // 상세 안내

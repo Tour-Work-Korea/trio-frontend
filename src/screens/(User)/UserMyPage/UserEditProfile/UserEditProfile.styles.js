@@ -6,22 +6,23 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_100,
   },
-  flex: {flex: 1},
-  // 본문
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_0,
-    marginHorizontal: 16,
-    marginVertical: 20,
-    paddingHorizontal: 8,
-    paddingVertical: 20,
-    borderRadius: 8,
   },
-
-  // 이미지
+  contentContainer: {
+    flexGrow: 1,
+    paddingBottom: 120,
+  },
+  body: {
+    paddingHorizontal: 16,
+    paddingTop: 20,
+  },
   profileImageContainer: {
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 32,
+  },
+  profileImageWrapper: {
+    position: 'relative',
   },
   profileImage: {
     width: 116,
@@ -31,7 +32,22 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  // 이미지 추가 버튼
+  nicknameRow: {
+    marginTop: 20,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  nicknameInput: {
+    minWidth: 90,
+    maxWidth: 140,
+    textAlign: 'center',
+    color: COLORS.grayscale_900,
+    paddingVertical: 0,
+    borderBottomColor: COLORS.grayscale_300,
+    borderBottomWidth: 1,
+    paddingBottom: 2,
+  },
   plusButton: {
     position: 'absolute',
     right: 4,
@@ -44,68 +60,54 @@ export default StyleSheet.create({
     alignItems: 'center',
   },
 
-  // 각 섹션
-  contentContainer: {
-    marginBottom: 16,
+  // 프로필 정보
+  sectionGroup: {
+    gap: 28,
   },
-  contentRowContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignContent: 'center',
-  },
-  label: {
+  section: {},
+  sectionTitle: {
+    color: COLORS.grayscale_900,
     marginBottom: 8,
   },
-  input: {
-    borderWidth: 1,
-    padding: 12,
-    borderColor: COLORS.grayscale_200,
-    borderRadius: 20,
-  },
-
-  // 성별
-  genderRow: {
-    flexDirection: 'row',
-    marginTop: 16,
-    backgroundColor: COLORS.grayscale_100,
-    padding: 10,
+  card: {
+    backgroundColor: COLORS.grayscale_0,
     borderRadius: 8,
+    paddingVertical: 12,
+    paddingHorizontal: 8,
   },
-  genderButton: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  genderSelected: {},
-  genderText: {
-    color: COLORS.grayscale_400,
-    fontWeight: '500',
-  },
-  genderSelectedText: {
-    color: COLORS.primary_orange,
-    fontWeight: '600',
-  },
-
-  // 나이, 출생연도
-  ageBirthYearRow: {
+  infoRow: {
     flexDirection: 'row',
-    gap: 16,
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 14,
   },
-  row: {
+  infoLabel: {
+    color: COLORS.grayscale_900,
+    marginRight: 16,
+  },
+  infoValue: {
+    color: COLORS.grayscale_500,
     flex: 1,
+    textAlign: 'right',
   },
-
-  // mbti
+  profileInfoRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    marginBottom: 20,
+  },
   mbtiGrid: {
+    flex: 1,
     backgroundColor: COLORS.grayscale_100,
     borderRadius: 8,
     flexDirection: 'row',
     flexWrap: 'wrap',
     justifyContent: 'space-between',
+    paddingVertical: 8,
     gap: 4,
   },
   mbtiButton: {
     width: '22%',
-    padding: 10,
+    paddingVertical: 8,
     alignItems: 'center',
   },
   mbtiSelected: {},
@@ -115,26 +117,40 @@ export default StyleSheet.create({
   mbtiSelectedText: {
     color: COLORS.primary_orange,
   },
-
-  // 인스타
+  instagramSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   instagramRow: {
     flexDirection: 'row',
     alignItems: 'center',
     borderWidth: 1,
-    paddingHorizontal: 12,
-    paddingVertical: 2,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
     borderColor: COLORS.grayscale_200,
     borderRadius: 20,
+    flex: 1,
   },
   atSymbol: {
-    marginRight: 2,
+    marginRight: 8,
+    color: COLORS.grayscale_900,
   },
   instagramInput: {
     flex: 1,
+    color: COLORS.grayscale_900,
+    paddingVertical: 0,
   },
-
-  // 버튼
   saveButton: {
-    marginVertical: 40,
+    // alignSelf: 'flex-end',
+    position: 'absolute',
+    bottom: 40,
+    right: 16,
+    backgroundColor: COLORS.primary_orange,
+    paddingVertical: 4,
+    paddingHorizontal: 12,
+    borderRadius: 100,
+  },
+  saveButtonText: {
+    color: COLORS.grayscale_0,
   },
 });

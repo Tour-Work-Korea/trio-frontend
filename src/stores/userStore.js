@@ -13,6 +13,7 @@ const useUserStore = create(
 
       // 유저 프로필
       userProfile: {
+        userId: null,
         name: '',
         nickname: '',
         photoUrl: null,
@@ -57,6 +58,7 @@ const useUserStore = create(
           refreshToken: null,
           userRole: null,
           userProfile: {
+            userId: null,
             name: '',
             nickname: '',
             photoUrl: null,

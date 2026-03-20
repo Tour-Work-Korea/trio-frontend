@@ -216,6 +216,12 @@ const styles = StyleSheet.create({
     width: 75,
     backgroundColor: COLORS.primary_blue,
   },
+  tabPager: {
+    marginTop: 4,
+  },
+  tabPage: {
+    flexShrink: 0,
+  },
   tabTitle: {
     color: COLORS.grayscale_800,
     marginTop: 28,

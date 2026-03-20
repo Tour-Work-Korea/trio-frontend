@@ -133,9 +133,9 @@ const HostMyPage = () => {
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.topBarIconButton}
-            onPress={() => navigation.navigate('HostSetting')}
+            onPress={() => navigation.navigate('Setting')}
             activeOpacity={0.8}>
-            <SettingIcon width={20} height={20} />
+            <SettingIcon width={22} height={22} />
           </TouchableOpacity>
         </View>
       </View>

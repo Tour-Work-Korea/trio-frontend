@@ -41,6 +41,7 @@ import {
   MyApplicantList,
   MyResumeList,
   UserEditProfile,
+  UserEditInfo,
   HostEditInfo,
   ApplicantList,
   ApplicantListByRecruit,
@@ -87,7 +88,6 @@ import {
   CheckInGuide,
   RoomGuideMessageEditor,
   HostProfilePage,
-  HostSetting,
   HostEditProfile,
 } from '@screens';
 
@@ -145,6 +145,7 @@ const RootNavigation = () => (
       <Stack.Screen name="FindPassword" component={FindPassword} />
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
+      <Stack.Screen name="UserEditInfo" component={UserEditInfo} />
       <Stack.Screen
         name="UserReservationCheck"
         component={UserReservationCheck}
@@ -177,7 +178,6 @@ const RootNavigation = () => (
       {/* 사장님 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="HostEditInfo" component={HostEditInfo} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
-      <Stack.Screen name="HostSetting" component={HostSetting} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
       <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
       <Stack.Screen name="MyGuesthouseList" component={MyGuesthouseList} />

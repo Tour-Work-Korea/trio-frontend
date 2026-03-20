@@ -1,10 +1,17 @@
-import React, {useMemo, useState} from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import React from 'react';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import {MyLikeRecruitList, UserFavoriteGuesthouse, UserFavoriteMeet} from '@screens';
+import Header from '@components/Header';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import Header from '@components/Header';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 
 const TAB_ITEMS = [
   {key: 'guesthouse', label: '게하'},
@@ -13,31 +20,37 @@ const TAB_ITEMS = [
 ];
 
 const Favorite = () => {
-  const [activeTab, setActiveTab] = useState('guesthouse');
-
-  const content = useMemo(() => {
-    if (activeTab === 'meet') return <UserFavoriteMeet hideHeader />;
-    if (activeTab === 'recruit') return <MyLikeRecruitList hideHeader />;
-    return <UserFavoriteGuesthouse hideHeader />;
-  }, [activeTab]);
+  const {
+    pagerRef,
+    isActive,
+    onTabPress,
+    pageWidth,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs: TAB_ITEMS,
+    initialKey: 'guesthouse',
+  });
 
   return (
     <View style={styles.container}>
-      <Header title='찜' showBackButton={false}/>
+      <Header title='찜' showBackButton={false} />
+
       <View style={styles.tabBar}>
-        {TAB_ITEMS.map(tab => {
-          const isActive = activeTab === tab.key;
+        {TAB_ITEMS.map((tab, index) => {
+          const active = isActive(tab.key);
+
           return (
             <TouchableOpacity
               key={tab.key}
               activeOpacity={0.8}
-              style={[styles.tabButton, isActive && styles.tabButtonActive]}
-              onPress={() => setActiveTab(tab.key)}>
+              style={[styles.tabButton, active && styles.tabButtonActive]}
+              onPress={() => onTabPress(index)}>
               <Text
                 style={[
                   FONTS.fs_14_semibold,
                   styles.tabLabel,
-                  isActive && styles.tabLabelActive,
+                  active && styles.tabLabelActive,
                 ]}>
                 {tab.label}
               </Text>
@@ -45,7 +58,27 @@ const Favorite = () => {
           );
         })}
       </View>
-      <View style={styles.content}>{content}</View>
+
+      <ScrollView
+        ref={pagerRef}
+        horizontal
+        pagingEnabled
+        nestedScrollEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        onLayout={onPagerLayout}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={styles.content}>
+        <View style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+          <UserFavoriteGuesthouse hideHeader />
+        </View>
+        <View style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+          <UserFavoriteMeet hideHeader />
+        </View>
+        <View style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+          <MyLikeRecruitList hideHeader />
+        </View>
+      </ScrollView>
     </View>
   );
 };
@@ -57,7 +90,6 @@ const styles = StyleSheet.create({
   },
   tabBar: {
     flexDirection: 'row',
-    // backgroundColor: COLORS.grayscale_0,
   },
   tabButton: {
     flex: 1,
@@ -79,6 +111,9 @@ const styles = StyleSheet.create({
     color: COLORS.primary_orange,
   },
   content: {
+    flex: 1,
+  },
+  page: {
     flex: 1,
   },
 });
