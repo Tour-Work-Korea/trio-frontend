@@ -1,246 +1,275 @@
-import React, {useState} from 'react';
-import {useNavigation} from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
+  import React, {useState} from 'react';
+  import {useNavigation} from '@react-navigation/native';
+  import Toast from 'react-native-toast-message';
 
-import UserPhone from '@components/Certificate/UserPhone';
-import HostPhone from '@components/Certificate/HostPhone';
-import authApi from '@utils/api/authApi';
-import {storeLoginTokens} from '@utils/auth/login';
+  import UserPhone from '@components/Certificate/UserPhone';
+  import HostPhone from '@components/Certificate/HostPhone';
+  import authApi from '@utils/api/authApi';
+  import {storeLoginTokens} from '@utils/auth/login';
 
-import AlertModal from '@components/modals/AlertModal';
-
-/**
- * PhoneCertificate 역할
- * - USER: NICE(UserPhone) 인증 → niceAuthToken 받기 → check-status 호출 → 다음 화면 이동
- * - HOST: 기존 SMS(HostPhone) 인증 → phoneNumber 받기 → 다음 화면 이동
- */
-const PhoneCertificate = ({route}) => {
-  const {user, agreements, email, isSocial = false, externalId = null} =
-    route.params;
-  const navigation = useNavigation();
-  const [checking, setChecking] = useState(false); // 중복 호출 방지
-
-  const [errorModal, setErrorModal] = useState({
-    visible: false,
-    message: '',
-    buttonText: '확인',
-    onPress: null,
-  });
-
-  const openModal = ({message, buttonText = '확인', onPress = null}) => {
-    setErrorModal({
-      visible: true,
-      message,
-      buttonText,
-      onPress,
-    });
-  };
-
-  const closeModal = () => {
-    setErrorModal(prev => ({...prev, visible: false}));
-  };
-
-  const moveToLoginIntro = () => {
-    closeModal();
-    navigation.reset({
-      index: 0,
-      routes: [{name: 'LoginIntro'}],
-    });
-  };
+  import AlertModal from '@components/modals/AlertModal';
 
   /**
-   * NICE 인증 완료 토큰을 받았을 때 실행되는 콜백
-   * - token은 일회용/유효시간(10분)
+   * PhoneCertificate 역할
+   * - USER: NICE(UserPhone) 인증 → niceAuthToken 받기 → check-status 호출 → 다음 화면 이동
+   * - HOST: 기존 SMS(HostPhone) 인증 → phoneNumber 받기 → 다음 화면 이동
    */
-  const getErrorMessage = error =>
-    error?.response?.data?.message ||
-    error?.message ||
-    '계정 상태 확인 중 문제가 발생했어요.';
+  const PhoneCertificate = ({route}) => {
+    const {user, agreements, email, isSocial = false, externalId = null, isUpdateCi = false} =
+      route.params;
+    const navigation = useNavigation();
+    const [checking, setChecking] = useState(false); // 중복 호출 방지
 
-  const handleNiceVerifiedSuccess = async niceAuthToken => {
-    // 토큰이 없으면 아무 것도 안함
-    if (!niceAuthToken) return;
-
-    // 중복 방지
-    if (checking) return;
-
-    try {
-      setChecking(true);
-
-      if (isSocial && !externalId) {
-        openModal({
-          message: '로그인 오류 잠시 후 다시 시도해주세요.',
-          buttonText: '로그인으로 이동',
-          onPress: moveToLoginIntro,
-        });
-        return;
-      }
-
-      if (isSocial && externalId) {
-        let res;
-        try {
-          res = await authApi.completeSocialSignUp({
-            externalId,
-            niceAuthToken,
-            userRole: 'USER',
-            agreements: agreements || [],
-          });
-        } catch (error) {
-          openModal({
-            message: getErrorMessage(error),
-            buttonText: '로그인으로 이동',
-            onPress: moveToLoginIntro,
-          });
-          return;
-        }
-
-        const {accessToken, refreshToken} = res.data || {};
-
-        if (!accessToken || !refreshToken) {
-          openModal({
-            message: getErrorMessage(),
-            buttonText: '로그인으로 이동',
-            onPress: moveToLoginIntro,
-          });
-          return;
-        }
-
-        await storeLoginTokens({
-          accessToken,
-          refreshToken,
-          userRole: 'USER',
-        });
-
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'MainTabs'}],
-        });
-        return;
-      }
-
-      // 가입 상태 체크
-      const res = await authApi.checkSignUpStatus(niceAuthToken);
-      const {status, socialTypes, message} = res.data;
-
-      if (!status) {
-        openModal({
-          message: '계정 상태 확인 중 문제가 발생했어요.',
-        });
-        return;
-      }
-
-      // NEW_USER: 신규 회원 → 가입폼으로 이동
-      if (status === 'NEW_USER') {
-        Toast.show({
-          type: 'success',
-          text1: '인증이 완료되었어요!',
-          position: 'top',
-          visibilityTime: 2000,
-        });
-
-        navigation.navigate('UserRegisterProfile', {
-          prevData: {
-            userRole: 'USER',
-            agreements: agreements || [],
-            email: email || '',
-            niceAuthToken,
-            nickname: '',
-            password: '',
-            passwordConfirm: '',
-          },
-        });
-        return;
-      }
-
-      // ALREADY_LOCAL: 이미 로컬 계정 존재 → 로그인 유도
-      if (status === 'ALREADY_LOCAL') {
-        openModal({
-          message:
-            message || '해당 명의로 이미 가입된 계정이 있어요.',
-          buttonText: '로그인으로 이동',
-          onPress: () => {
-            closeModal();
-            navigation.navigate('LoginIntro');
-          },
-        });
-        return;
-      }
-
-      // SOCIAL_INTEGRATION: 소셜 계정 존재 → 연동 내역 + 가입폼 이동
-      if (status === 'SOCIAL_INTEGRATION') {
-        Toast.show({
-          type: 'success',
-          text1: '인증이 완료되었어요!',
-          position: 'top',
-          visibilityTime: 2000,
-        });
-
-        navigation.navigate('UserRegisterProfile', {
-          prevData: {
-            userRole: 'USER',
-            agreements: agreements || [],
-            email: email || '',
-            niceAuthToken,
-            isIntegration: true,
-            socialTypes: socialTypes || [],
-            nickname: '',
-            password: '',
-            passwordConfirm: '',
-          },
-        });
-
-        return;
-      }
-
-      // 알 수 없는 status
-      openModal({
-        message: getErrorMessage(),
-      });
-    } catch (e) {
-      openModal({
-        message: getErrorMessage(e),
-        ...(isSocial
-          ? {buttonText: '로그인으로 이동', onPress: moveToLoginIntro}
-          : null),
-      });
-    } finally {
-      setChecking(false);
-    }
-  };
-
-  // 호스트
-  const handleHostPhoneVerifiedSuccess = phoneNumber => {
-    navigation.navigate('HostRegisterInfo', {
-      agreements,
-      email,
-      phoneNumber,
+    const [errorModal, setErrorModal] = useState({
+      visible: false,
+      message: '',
+      buttonText: '확인',
+      onPress: null,
     });
-  };
 
-  const isHost = user === 'HOST';
+    const openModal = ({message, buttonText = '확인', onPress = null}) => {
+      setErrorModal({
+        visible: true,
+        message,
+        buttonText,
+        onPress,
+      });
+    };
 
-  return (
-    <>
-      {isHost ? (
-        <HostPhone user={user} onPress={handleHostPhoneVerifiedSuccess} />
-      ) : (
-        <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
-      )}
+    const closeModal = () => {
+      setErrorModal(prev => ({...prev, visible: false}));
+    };
 
-      <AlertModal
-        visible={errorModal.visible}
-        title={errorModal.message}
-        buttonText={errorModal.buttonText}
-        onPress={() => {
-          if (typeof errorModal.onPress === 'function') {
-            errorModal.onPress();
+    const moveToLoginIntro = () => {
+      closeModal();
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'LoginIntro'}],
+      });
+    };
+
+    /**
+     * NICE 인증 완료 토큰을 받았을 때 실행되는 콜백
+     * - token은 일회용/유효시간(10분)
+     */
+    const getErrorMessage = error =>
+      error?.response?.data?.message ||
+      error?.message ||
+      '계정 상태 확인 중 문제가 발생했어요.';
+
+    const handleNiceVerifiedSuccess = async niceAuthToken => {
+      // 토큰이 없으면 아무 것도 안함
+      if (!niceAuthToken) return;
+
+      // 중복 방지
+      if (checking) return;
+
+      try {
+        setChecking(true);
+
+  if (isUpdateCi) {
+          try {
+            // 1. 서버에 CI 매핑 요청
+            await authApi.verifyCi(niceAuthToken);
+            
+            Toast.show({
+              type: 'success',
+              text1: '본인 인증이 완료되었습니다!',
+              position: 'top',
+            });
+            
+            useUserStore.getState().setIsVerified(true);
+            
+            // 2. 인증이 완료되었으므로 메인으로 이동
+            navigation.reset({
+              index: 0,
+              routes: [{name: 'MainTabs'}],
+            });
+            return;
+          } catch (error) {
+            openModal({
+              message: error?.response?.data?.message || '인증 정보 업데이트에 실패했습니다.',
+              buttonText: '확인',
+              onPress: () => navigation.goBack(),
+            });
             return;
           }
-          closeModal();
-        }}
-      />
-    </>
-  );
-};
+        }
 
-export default PhoneCertificate;
+        if (isSocial && !externalId) {
+          openModal({
+            message: '로그인 오류 잠시 후 다시 시도해주세요.',
+            buttonText: '로그인으로 이동',
+            onPress: moveToLoginIntro,
+          });
+          return;
+        }
+
+        if (isSocial && externalId) {
+          let res;
+          try {
+            res = await authApi.completeSocialSignUp({
+              externalId,
+              niceAuthToken,
+              userRole: 'USER',
+              agreements: agreements || [],
+            });
+          } catch (error) {
+            openModal({
+              message: getErrorMessage(error),
+              buttonText: '로그인으로 이동',
+              onPress: moveToLoginIntro,
+            });
+            return;
+          }
+
+          const {accessToken, refreshToken} = res.data || {};
+
+          if (!accessToken || !refreshToken) {
+            openModal({
+              message: getErrorMessage(),
+              buttonText: '로그인으로 이동',
+              onPress: moveToLoginIntro,
+            });
+            return;
+          }
+
+          await storeLoginTokens({
+            accessToken,
+            refreshToken,
+            userRole: 'USER',
+          });
+
+          navigation.reset({
+            index: 0,
+            routes: [{name: 'MainTabs'}],
+          });
+          return;
+        }
+
+        // 가입 상태 체크
+        const res = await authApi.checkSignUpStatus(niceAuthToken);
+        const {status, socialTypes, message} = res.data;
+
+        if (!status) {
+          openModal({
+            message: '계정 상태 확인 중 문제가 발생했어요.',
+          });
+          return;
+        }
+
+        // NEW_USER: 신규 회원 → 가입폼으로 이동
+        if (status === 'NEW_USER') {
+          Toast.show({
+            type: 'success',
+            text1: '인증이 완료되었어요!',
+            position: 'top',
+            visibilityTime: 2000,
+          });
+
+          navigation.navigate('UserRegisterProfile', {
+            prevData: {
+              userRole: 'USER',
+              agreements: agreements || [],
+              email: email || '',
+              niceAuthToken,
+              nickname: '',
+              password: '',
+              passwordConfirm: '',
+            },
+          });
+          return;
+        }
+
+        // ALREADY_LOCAL: 이미 로컬 계정 존재 → 로그인 유도
+        if (status === 'ALREADY_LOCAL') {
+          openModal({
+            message:
+              message || '해당 명의로 이미 가입된 계정이 있어요.',
+            buttonText: '로그인으로 이동',
+            onPress: () => {
+              closeModal();
+              navigation.navigate('LoginIntro');
+            },
+          });
+          return;
+        }
+
+        // SOCIAL_INTEGRATION: 소셜 계정 존재 → 연동 내역 + 가입폼 이동
+        if (status === 'SOCIAL_INTEGRATION') {
+          Toast.show({
+            type: 'success',
+            text1: '인증이 완료되었어요!',
+            position: 'top',
+            visibilityTime: 2000,
+          });
+
+          navigation.navigate('UserRegisterProfile', {
+            prevData: {
+              userRole: 'USER',
+              agreements: agreements || [],
+              email: email || '',
+              niceAuthToken,
+              isIntegration: true,
+              socialTypes: socialTypes || [],
+              nickname: '',
+              password: '',
+              passwordConfirm: '',
+            },
+          });
+
+          return;
+        }
+
+        // 알 수 없는 status
+        openModal({
+          message: getErrorMessage(),
+        });
+      } catch (e) {
+        openModal({
+          message: getErrorMessage(e),
+          ...(isSocial
+            ? {buttonText: '로그인으로 이동', onPress: moveToLoginIntro}
+            : null),
+        });
+      } finally {
+        setChecking(false);
+      }
+    };
+
+    // 호스트
+    const handleHostPhoneVerifiedSuccess = phoneNumber => {
+      navigation.navigate('HostRegisterInfo', {
+        agreements,
+        email,
+        phoneNumber,
+      });
+    };
+
+    const isHost = user === 'HOST';
+
+    return (
+      <>
+        {isHost ? (
+          <HostPhone user={user} onPress={handleHostPhoneVerifiedSuccess} />
+        ) : (
+          <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
+        )}
+
+        <AlertModal
+          visible={errorModal.visible}
+          title={errorModal.message}
+          buttonText={errorModal.buttonText}
+          onPress={() => {
+            if (typeof errorModal.onPress === 'function') {
+              errorModal.onPress();
+              return;
+            }
+            closeModal();
+          }}
+        />
+      </>
+    );
+  };
+
+  export default PhoneCertificate;

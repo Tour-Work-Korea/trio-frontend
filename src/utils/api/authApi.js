@@ -42,6 +42,12 @@ const authApi = {
       withAuth: false,
     }),
 
+  // 결측 CI 수집 완료 후 CI 등록
+  verifyCi: (niceAuthToken) =>
+    api.post('/auth/user/verify-ci', {niceAuthToken}, {
+      withAuth: true, // 로그인 상태에서 호출, 토큰 포함
+    }),
+    
   // 소셜 회원가입 완료
   completeSocialSignUp: body =>
     api.post('/auth/user/signup/social/complete', body, {

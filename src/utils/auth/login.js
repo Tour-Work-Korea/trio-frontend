@@ -7,6 +7,7 @@ import userMyApi from '@utils/api/userMyApi';
 import hostMyApi from '@utils/api/hostMyApi';
 import {log, mask} from '@utils/logger';
 import {navigate} from '@utils/navigationService';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 
 const REFRESH_KEY = 'refresh-token';
 
@@ -35,6 +36,7 @@ export const storeLoginTokens = async ({
   accessToken,
   refreshToken,
   userRole,
+  needVerification
 }) => {
   log.info(
     '✅ login success: accessToken=',
@@ -43,11 +45,22 @@ export const storeLoginTokens = async ({
     mask(refreshToken),
     'role=',
     userRole,
+    'needVerification=',
+    needVerification
   );
 
-  const {setTokens, setUserRole} = useUserStore.getState();
+  const {setTokens, setUserRole, setIsVerified} = useUserStore.getState();
   setTokens({accessToken});
   setUserRole(userRole);
+
+  // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
+  if (setIsVerified) {
+    if (userRole === 'HOST') {
+      setIsVerified(true); // HOST는 무조건 인증 통과 상태로 간주
+    } else {
+      setIsVerified(needVerification !== "true"); // USER는 서버 응답에 따름
+    }
+  }
 
   await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
   const check = await EncryptedStorage.getItem(REFRESH_KEY);
@@ -57,10 +70,9 @@ export const storeLoginTokens = async ({
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const accessToken = res.data.accessToken;
-  const refreshToken = res.data.refreshToken;
+  const { accessToken, refreshToken, needVerification } = res.data;
 
-  await storeLoginTokens({accessToken, refreshToken, userRole});
+  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification});
 };
 
 export const tryLogin = async (email, password, userRole) => {
@@ -68,7 +80,7 @@ export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password, userRole);
     await storeLoginInfo(res, userRole);
-    return true;
+    return res.data;
   } catch (err) {
     log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
 

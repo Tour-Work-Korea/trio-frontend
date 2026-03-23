@@ -10,7 +10,7 @@ const useUserStore = create(
       // 초기 상태값
       accessToken: null,
       userRole: null,
-
+      isVerified: true, // 초기값은 true로 설정, 로그인 시 서버에서 needVerification이 "true"면 false로 업데이트
       // 유저 프로필
       userProfile: {
         name: '',
@@ -45,6 +45,9 @@ const useUserStore = create(
       // 유저 프로필 저장 함수
       setUserProfile: profile => set({userProfile: profile}),
 
+      // 인증 상태 저장 함수
+      setIsVerified: (status) => set({ isVerified: status }),
+
       //사장 프로필 저장 함수
       setHostProfile: profile => set({hostProfile: profile}),
       setSelectedHostGuesthouseId: selectedHostGuesthouseId =>
@@ -56,6 +59,7 @@ const useUserStore = create(
           accessToken: null,
           refreshToken: null,
           userRole: null,
+          isVerified: true, // 초기화
           userProfile: {
             name: '',
             nickname: '',
