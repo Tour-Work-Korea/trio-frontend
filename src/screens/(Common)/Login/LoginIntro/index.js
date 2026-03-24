@@ -13,6 +13,8 @@ import MailGray from '@assets/images/mail_fill_gray.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import { COLORS } from '@constants/colors';
 
+import { tryKakaoLoginNative } from '@utils/auth/authFlow';
+
 const LoginIntro = () => {
   const navigation = useNavigation();
 
