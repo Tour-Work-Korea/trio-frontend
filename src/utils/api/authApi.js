@@ -103,10 +103,10 @@ const authApi = {
   },
 
   //카카오 로그인
-  loginKakao: accessCode =>
+  loginKakao: accessToken =>
     api.post(
       '/auth/user/social-login',
-      {provider: 'KAKAO', accessCode},
+      {provider: 'KAKAO', accessToken},
       {withAuth: false},
     ),
     
