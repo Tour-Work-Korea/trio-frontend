@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -11,7 +11,7 @@ import {
   Keyboard,
   TouchableWithoutFeedback,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -22,17 +22,28 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import userMyApi from '@utils/api/userMyApi';
+import { getUsableCouponCount } from '@utils/coupon/couponUtils';
+import { AGREEMENT_CONTENT } from '@data/agreeContents';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import DiscountArrow from '@assets/images/discount_arrow.svg';
 
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = (phone) => {
   if (!phone || phone.length !== 11) return phone; // 예외 처리
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
+};
+
+const TERM_DOCUMENT_MAP = {
+  terms: 'GUESTHOUSE_RESERVATION_POLICY',
+  personalInfo: 'GUESTHOUSE_RESERVATION_PRIVACY_POLICY',
+  thirdParty: 'GUESTHOUSE_PRIVACY_THIRD_PARTY',
 };
 
 const GuesthouseReservation = ({ route }) => {
@@ -56,6 +67,7 @@ const GuesthouseReservation = ({ route }) => {
     roomCapacity,
     roomMaxCapacity,
     femaleOnly,
+    selectedCoupon,
   } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
@@ -67,6 +79,9 @@ const GuesthouseReservation = ({ route }) => {
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
   const [requestMessage, setRequestMessage] = useState('');
+  const [pointValue, setPointValue] = useState('');
+  const [pointBalance, setPointBalance] = useState(0);
+  const [coupons, setCoupons] = useState([]);
 
   const [isConfirmVisible, setConfirmVisible] = useState(false);
 
@@ -94,6 +109,18 @@ const GuesthouseReservation = ({ route }) => {
   };
   const isDormitory = roomType === 'DORMITORY';
   const genderText = roomTypeMap[dormitoryGenderType] || '';
+  const numericPointValue = Number(pointValue || 0);
+  const isPointOverBalance = numericPointValue > Number(pointBalance || 0);
+  const usableCouponCount = getUsableCouponCount(coupons, totalPrice);
+  const couponDiscountAmount = Number(selectedCoupon?.discountAmount || 0);
+  const priceAfterCoupon = Math.max(Number(totalPrice || 0) - couponDiscountAmount, 0);
+  const appliedPointAmount = Math.min(
+    numericPointValue,
+    Number(pointBalance || 0),
+    priceAfterCoupon,
+  );
+  const finalPaymentAmount = Math.max(priceAfterCoupon - appliedPointAmount, 0);
+  const totalDiscountAmount = couponDiscountAmount + appliedPointAmount;
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
@@ -123,8 +150,67 @@ const GuesthouseReservation = ({ route }) => {
     }
   }, [agreements]);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchPointBalance = async () => {
+      try {
+        const response = await userMyApi.getPointBalance();
+        if (!isActive) return;
+
+        setPointBalance(response?.data?.currentPoints ?? 0);
+      } catch (error) {
+        if (!isActive) return;
+        console.warn('포인트 조회 실패:', error);
+        setPointBalance(0);
+      }
+    };
+
+    fetchPointBalance();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchCoupons = async () => {
+        try {
+          const response = await userMyApi.getMyCoupons();
+          if (!isActive) return;
+          setCoupons(Array.isArray(response?.data) ? response.data : []);
+        } catch (error) {
+          if (!isActive) return;
+          console.warn('쿠폰 조회 실패:', error);
+          setCoupons([]);
+        }
+      };
+
+      fetchCoupons();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const selectedAgreementDoc =
+    selectedTerm && TERM_DOCUMENT_MAP[selectedTerm]
+      ? AGREEMENT_CONTENT.USER?.[TERM_DOCUMENT_MAP[selectedTerm]]
+      : null;
+  const selectedAgreementContent = (selectedAgreementDoc?.detail || '').replace(
+    /{{guesthouseName}}/g,
+    guesthouseName || '해당 게스트하우스',
+  );
+  const selectedAgreementHtml = (selectedAgreementDoc?.detailHtml || '').replace(
+    /{{guesthouseName}}/g,
+    guesthouseName || '해당 게스트하우스',
+  );
 
   const openTermModal = (key) => {
     setSelectedTerm(key);
@@ -139,6 +225,17 @@ const GuesthouseReservation = ({ route }) => {
       }));
     }
     setModalVisible(false);
+  };
+
+  const handleChangePointValue = (text) => {
+    const numericText = text.replace(/[^0-9]/g, '');
+
+    if (!numericText) {
+      setPointValue('');
+      return;
+    }
+
+    setPointValue(numericText);
   };
 
   // 예약 호출
@@ -161,7 +258,12 @@ const GuesthouseReservation = ({ route }) => {
       // 결제
       navigation.navigate('GuesthousePayment', {
         reservationId,
-        amount: totalPrice,
+        amount: finalPaymentAmount,
+        userCouponId:
+          selectedCoupon?.userCouponId ||
+          selectedCoupon?.couponId ||
+          selectedCoupon?.id,
+        pointUsed: appliedPointAmount,
         receiptContext: {
           guesthouseName,
           guesthouseId,
@@ -181,6 +283,9 @@ const GuesthouseReservation = ({ route }) => {
           guestCount,
           roomPrice,
           totalPrice,
+          selectedCoupon,
+          pointUsed: appliedPointAmount,
+          finalPaymentAmount,
           userName: name,
           userPhone: formatPhoneNumber(phone),
         },
@@ -270,9 +375,9 @@ const GuesthouseReservation = ({ route }) => {
 
           <View style={styles.devide}/>
 
-          {/* 룸이름, 가격 */}
+          {/* 결제 정보 */}
           <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>결제 정보</Text>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>할인 및 결제 정보</Text>
               <View style={styles.userInfo}>
                 <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
                   객실 가격 ({isDormitory ? '1베드 당' : '1객실 당'})
@@ -287,6 +392,105 @@ const GuesthouseReservation = ({ route }) => {
                 </Text>
                 <Text style={FONTS.fs_14_medium}>
                   {totalPrice?.toLocaleString()}원
+                </Text>
+              </View>
+              <View style={[styles.devide,{marginVertical: 8}]}/>
+              {/* 쿠폰 */}
+              <View style={styles.userInfo}>
+                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                  쿠폰 할인
+                </Text>
+                <TouchableOpacity
+                  style={styles.couponBtn}
+                  onPress={() =>
+                    navigation.navigate('CouponSelect', {
+                      totalPrice,
+                      selectedCouponId:
+                        selectedCoupon?.userCouponId ||
+                        selectedCoupon?.couponId ||
+                        selectedCoupon?.id ||
+                        null,
+                      targetScreen: 'GuesthouseReservation',
+                      title: '쿠폰 할인',
+                    })
+                  }>
+                  {selectedCoupon?.discountLabel ? (
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.selectedCouponDiscountText,
+                      ]}>
+                      - {selectedCoupon.discountLabel}
+                    </Text>
+                  ) : (
+                    <Text style={FONTS.fs_14_medium}>
+                      사용 가능 쿠폰 {usableCouponCount}장
+                    </Text>
+                  )}
+                  <ChevronRight width={16} height={16}/>
+                </TouchableOpacity>
+              </View>
+              {selectedCoupon ? (
+                <View style={styles.selectedCouponBanner}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.selectedCouponNameText]}
+                    numberOfLines={1}>
+                    ㄴ {selectedCoupon.title}
+                  </Text>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.selectedCouponAmountText,
+                    ]}>
+                    {selectedCoupon.discountLabel}
+                  </Text>
+                </View>
+              ) : (
+                <View style={styles.couponBanner}>
+                  <Text style={[FONTS.fs_14_semibold]}>
+                    쿠폰 적용하고{' '}
+                    <Text style={styles.couponBannerText}>최대 할인 혜택</Text>{' '}
+                    받으세요!
+                  </Text>
+                </View>
+              )}
+              {/* 포인트 */}
+              <View style={[styles.userInfo, {marginTop: 4}]}>
+                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                  포인트
+                </Text>
+                <View style={styles.pointSection}>
+                  <TextInput
+                    style={[FONTS.fs_14_medium, styles.pointInput]}
+                    value={pointValue}
+                    onChangeText={handleChangePointValue}
+                    keyboardType="number-pad"
+                    placeholder="0"
+                    placeholderTextColor={COLORS.grayscale_400}
+                  />
+                  <TouchableOpacity
+                    style={styles.pointBtn}
+                    onPress={() => setPointValue(String(pointBalance || 0))}>
+                    <Text style={FONTS.fs_14_regular}>전액사용</Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+              <Text style={[FONTS.fs_12_medium, styles.pointText]}>
+                보유 {Number(pointBalance || 0).toLocaleString()}P
+              </Text>
+              {isPointOverBalance ? (
+                <Text style={[FONTS.fs_12_medium, styles.pointWarningText]}>
+                  보유 포인트보다 많이 입력할 수 없어요.
+                </Text>
+              ) : null}
+
+              {/* 총 결제 금액 */}
+              <View style={[styles.userInfo, {marginTop: 12}]}>
+                <Text style={[FONTS.fs_16_semibold, styles.userInfoTitle]}>
+                  총 결제 금액
+                </Text>
+                <Text style={[FONTS.fs_18_semibold, styles.roomPriceText]}>
+                  {finalPaymentAmount.toLocaleString()}원
                 </Text>
               </View>
           </View>
@@ -366,10 +570,18 @@ const GuesthouseReservation = ({ route }) => {
         </ScrollView>
 
         <View style={styles.button}>
+          {totalDiscountAmount > 0 ? (
+            <View style={styles.discountBanner}>
+              <DiscountArrow width={18} height={18} />
+              <Text style={[FONTS.fs_14_semibold]}>
+                <Text style={styles.discountBannerText}>총 {totalDiscountAmount.toLocaleString()}원</Text> 할인 받았어요
+              </Text>
+            </View>
+          ) : null}
           <ButtonScarlet
-            title={`${totalPrice?.toLocaleString()}원 결제하기`}
+            title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
             onPress={() => setConfirmVisible(true)}
-            disabled={!isAllRequiredAgreed}
+            disabled={!isAllRequiredAgreed || isPointOverBalance}
           />
         </View>
 
@@ -377,24 +589,9 @@ const GuesthouseReservation = ({ route }) => {
         <TermsModal
           visible={isModalVisible}
           onClose={() => setModalVisible(false)}
-          title={
-            selectedTerm === 'terms'
-              ? '숙소 취소/환불 규정'
-              : selectedTerm === 'personalInfo'
-              ? '개인정보 수집 및 이용'
-              : selectedTerm === 'thirdParty'
-              ? '개인정보 제3자 제공'
-              : ''
-          }
-          content={
-            selectedTerm === 'terms'
-              ? '취소 환불 규정 내용 ...'
-              : selectedTerm === 'personalInfo'
-              ? '개인정보 수집 이용 동의 내용 ...'
-              : selectedTerm === 'thirdParty'
-              ? '개인정보 제3자 제공 동의 내용 ...'
-              : ''
-          }
+          title={selectedAgreementDoc?.title || ''}
+          content={selectedAgreementContent}
+          contentHtml={selectedAgreementHtml}
           onAgree={handleAgreeModal}
         />
 

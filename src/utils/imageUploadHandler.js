@@ -47,7 +47,8 @@ export const uploadImageToS3 = async (presignedUrl, fileUri, fileType) => {
     body: blob,
   });
 
-  return presignedUrl.split('?')[0]; // 실제 접근 URL
+  const publicUrl = presignedUrl.split('?')[0];
+  return publicUrl.replace(/^https?:\/\/[^/]+/, 'https://cdn.ddakji.kr');
 };
 
 //단일 이미지 업로드 (✅ 압축 추가)

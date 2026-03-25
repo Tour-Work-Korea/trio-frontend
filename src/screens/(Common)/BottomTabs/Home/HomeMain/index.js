@@ -7,6 +7,7 @@ import {
   TextInput,
   TouchableWithoutFeedback,
   Keyboard,
+  Pressable,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
@@ -67,6 +68,11 @@ const HomeMain = () => {
   const meetYRef = useRef(0);
   const searchDebounceRef = useRef(null);
   const searchRequestIdRef = useRef(0);
+
+  const dismissSearchUI = useCallback(() => {
+    Keyboard.dismiss();
+    setIsSearchFocused(false);
+  }, []);
 
   useFocusEffect(
     useCallback(() => {
@@ -132,15 +138,10 @@ const HomeMain = () => {
   }, []);
 
   useEffect(() => {
-    const hideSub = Keyboard.addListener('keyboardDidHide', () => {
-      setIsSearchFocused(false);
-    });
-
     return () => {
       if (searchDebounceRef.current) {
         clearTimeout(searchDebounceRef.current);
       }
-      hideSub.remove();
     };
   }, []);
 
@@ -237,6 +238,7 @@ const HomeMain = () => {
             placeholder="찾는 게하가 있으신가요?"
             placeholderTextColor={COLORS.grayscale_600}
             style={[FONTS.fs_14_regular, styles.searchInput]}
+            returnKeyType="search"
           />
         </View>
 
@@ -365,18 +367,21 @@ const HomeMain = () => {
     return <Loading />;
   }
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+    <TouchableWithoutFeedback onPress={dismissSearchUI} accessible={false}>
       <View style={styles.container}>
         {StickyHeader}
         {activeTab === 'TODAY' ? (
-          <View style={styles.todayContainer}>
+          <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
             <TodayGuesthouses />
-          </View>
+          </Pressable>
         ) : (
           <ScrollView
             ref={scrollRef}
             style={styles.container}
-            showsVerticalScrollIndicator={false}>
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            keyboardDismissMode="on-drag"
+            onScrollBeginDrag={dismissSearchUI}>
             <>
             {/* 임시 */}
               <View
