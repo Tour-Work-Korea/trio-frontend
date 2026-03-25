@@ -42,7 +42,7 @@ jobs:
       # --------------------------------
       # Xcode
       # --------------------------------
-      - name: Use Xcode 16.2
+      - name: Use Xcode 15.4
         run: sudo xcode-select -s /Applications/Xcode_16.2.app
 
       # --------------------------------
