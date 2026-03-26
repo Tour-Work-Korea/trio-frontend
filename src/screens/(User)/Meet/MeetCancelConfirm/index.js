@@ -65,6 +65,14 @@ const MeetCancelConfirm = () => {
   const viewData = useMemo(() => {
     const paymentLabel =
       PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] ?? '';
+    const couponDiscountAmount =
+      typeof reservationDetail?.couponDiscountAmount === 'number'
+        ? reservationDetail.couponDiscountAmount
+        : 0;
+    const pointDiscountAmount =
+      typeof reservationDetail?.pointDiscountAmount === 'number'
+        ? reservationDetail.pointDiscountAmount
+        : 0;
     const paidAmount =
       typeof reservationDetail?.totalAmount === 'number'
         ? reservationDetail.totalAmount
@@ -106,13 +114,19 @@ const MeetCancelConfirm = () => {
       startDateTime,
       startDate: startFormatted.date,
       startTime: startFormatted.time,
+      originalAmount:
+        paidAmount + couponDiscountAmount + pointDiscountAmount,
       paidAmount,
+      couponDiscountAmount,
+      pointDiscountAmount,
       cancelFee,
       refundAmount,
       refundMethod,
     };
   }, [reservationDetail, cancelContext]);
   const refundAmount = viewData.refundAmount;
+  const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+  const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const startDateTimeText = viewData.startDateTime
     ? dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')
     : '-';
@@ -213,15 +227,34 @@ const MeetCancelConfirm = () => {
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>실 결제 금액</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>
-                {viewData.paidAmount.toLocaleString()}원
+              <View style={styles.valueInline}>
+                <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                  {formatPrice(viewData.paidAmount)}
+                </Text>
+                <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
+                  {formatPrice(viewData.originalAmount)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                {formatPrice(viewData.couponDiscountAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                {formatPoint(viewData.pointDiscountAmount)}
               </Text>
             </View>
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>예상 취소 수수료</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>
-                {viewData.cancelFee.toLocaleString()}원
+                {formatPrice(viewData.cancelFee)}
               </Text>
             </View>
           </View>
@@ -239,7 +272,7 @@ const MeetCancelConfirm = () => {
             <View style={styles.row}>
               <Text style={styles.label}>최종 환불 금액</Text>
               <Text style={styles.refundAmount}>
-                {refundAmount.toLocaleString()}<Text style={{color: COLORS.grayscale_900}}>원</Text>
+                {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
               </Text>
             </View>
           </View>

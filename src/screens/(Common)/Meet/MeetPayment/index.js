@@ -9,11 +9,14 @@ const MeetPayment = ({route}) => {
   const navigation = useNavigation();
   const {
     reservationId,
+    amount,
     partyTitle,
     partyStartDateTime,
     partyStartTime,
     partyEndTime,
     thumbnailUrl,
+    userCouponId,
+    pointUsed,
   } = route.params || {};
   const reservationType = 'PARTY';
 
@@ -33,6 +36,8 @@ const MeetPayment = ({route}) => {
 
       if (data.type === 'PAYMENT_SUCCESS') {
         navigation.replace('MeetPaymentSuccess', {
+          reservationId,
+          amount,
           partyTitle,
           partyStartDateTime,
           partyStartTime,
@@ -51,10 +56,23 @@ const MeetPayment = ({route}) => {
     }
   };
 
+  const paymentQuery = new URLSearchParams({
+    reservationId: String(reservationId),
+    reservationType,
+  });
+
+  if (userCouponId) {
+    paymentQuery.append('userCouponId', String(userCouponId));
+  }
+
+  if (pointUsed) {
+    paymentQuery.append('pointUsed', String(pointUsed));
+  }
+
   return (
     <WebView
       source={{
-        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?${paymentQuery.toString()}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

@@ -1,18 +1,15 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Alert,
   KeyboardAvoidingView,
   Platform,
-  Keyboard,
-  TouchableWithoutFeedback,
   Image,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -26,9 +23,13 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import userMyApi from '@utils/api/userMyApi';
+import {getUsableCouponCount} from '@utils/coupon/couponUtils';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
+import ChevronRight from '@assets/images/chevron_right_gray.svg';
+import DiscountArrow from '@assets/images/discount_arrow.svg';
 
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = phone => {
@@ -48,6 +49,7 @@ const MeetReservation = () => {
     amount: routeMaleGuestAmount,
     maleNonAmount: routeMaleNonAmount,
     thumbnailUrl: routeThumbnailUrl,
+    selectedCoupon,
   } = route.params ?? {};
   const [reservationInfo, setReservationInfo] = useState(null);
 
@@ -105,6 +107,9 @@ const MeetReservation = () => {
   const phone = reservationInfo?.phoneNumber;
 
   const [requestMessage, setRequestMessage] = useState('');
+  const [pointValue, setPointValue] = useState('');
+  const [pointBalance, setPointBalance] = useState(0);
+  const [coupons, setCoupons] = useState([]);
 
   const formatTime = timeStr => {
     if (!timeStr) return '시간 없음';
@@ -148,6 +153,21 @@ const MeetReservation = () => {
   const eventThumbnailSource = routeThumbnailUrl
     ? {uri: routeThumbnailUrl}
     : null;
+  const numericPointValue = Number(pointValue || 0);
+  const isPointOverBalance = numericPointValue > Number(pointBalance || 0);
+  const usableCouponCount = getUsableCouponCount(coupons, meetPrice);
+  const couponDiscountAmount = Number(selectedCoupon?.discountAmount || 0);
+  const priceAfterCoupon = Math.max(
+    Number(meetPrice || 0) - couponDiscountAmount,
+    0,
+  );
+  const appliedPointAmount = Math.min(
+    numericPointValue,
+    Number(pointBalance || 0),
+    priceAfterCoupon,
+  );
+  const finalPaymentAmount = Math.max(priceAfterCoupon - appliedPointAmount, 0);
+  const totalDiscountAmount = couponDiscountAmount + appliedPointAmount;
 
   const [agreeAll, setAgreeAll] = useState(false);
 
@@ -189,6 +209,52 @@ const MeetReservation = () => {
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
 
+  useEffect(() => {
+    let isActive = true;
+
+    const fetchPointBalance = async () => {
+      try {
+        const response = await userMyApi.getPointBalance();
+        if (!isActive) return;
+        setPointBalance(response?.data?.currentPoints ?? 0);
+      } catch (error) {
+        if (!isActive) return;
+        console.warn('포인트 조회 실패:', error);
+        setPointBalance(0);
+      }
+    };
+
+    fetchPointBalance();
+
+    return () => {
+      isActive = false;
+    };
+  }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchCoupons = async () => {
+        try {
+          const response = await userMyApi.getMyCoupons();
+          if (!isActive) return;
+          setCoupons(Array.isArray(response?.data) ? response.data : []);
+        } catch (error) {
+          if (!isActive) return;
+          console.warn('쿠폰 조회 실패:', error);
+          setCoupons([]);
+        }
+      };
+
+      fetchCoupons();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
   const openTermModal = key => {
     setSelectedTerm(key);
     setModalVisible(true);
@@ -202,6 +268,17 @@ const MeetReservation = () => {
       }));
     }
     setModalVisible(false);
+  };
+
+  const handleChangePointValue = text => {
+    const numericText = text.replace(/[^0-9]/g, '');
+
+    if (!numericText) {
+      setPointValue('');
+      return;
+    }
+
+    setPointValue(numericText);
   };
 
   // 예약 생성
@@ -230,13 +307,18 @@ const MeetReservation = () => {
 
       // 결제로 이동 (amount는 joinParty 응답의 금액 사용)
       navigation.navigate('MeetPayment', {
-        amount: Number(reservationInfo?.amount ?? 0),
+        amount: finalPaymentAmount,
         reservationId,
         partyTitle: title,
         partyStartDateTime: checkInDate,
         partyStartTime: checkInTime,
         partyEndTime: checkOutTime,
         thumbnailUrl: routeThumbnailUrl,
+        userCouponId:
+          selectedCoupon?.userCouponId ||
+          selectedCoupon?.couponId ||
+          selectedCoupon?.id,
+        pointUsed: appliedPointAmount,
       });
     } catch (e) {
       console.log('createPartyReservation error', e);
@@ -316,6 +398,121 @@ const MeetReservation = () => {
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>
                 {Number(meetPrice || 0).toLocaleString()}원
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.devide} />
+
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+              할인 및 결제 정보
+            </Text>
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                참가비
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.meetPriceText]}>
+                {Number(meetPrice || 0).toLocaleString()}원
+              </Text>
+            </View>
+            <View style={[styles.devide, {marginVertical: 8}]} />
+
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                쿠폰 할인
+              </Text>
+              <TouchableOpacity
+                style={styles.couponBtn}
+                onPress={() =>
+                  navigation.navigate('CouponSelect', {
+                    totalPrice: meetPrice,
+                    selectedCouponId:
+                      selectedCoupon?.userCouponId ||
+                      selectedCoupon?.couponId ||
+                      selectedCoupon?.id ||
+                      null,
+                    targetScreen: 'MeetReservation',
+                    title: '쿠폰 할인',
+                  })
+                }>
+                {selectedCoupon?.discountLabel ? (
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.selectedCouponDiscountText,
+                    ]}>
+                    - {selectedCoupon.discountLabel}
+                  </Text>
+                ) : (
+                  <Text style={FONTS.fs_14_medium}>
+                    사용 가능 쿠폰 {usableCouponCount}장
+                  </Text>
+                )}
+                <ChevronRight width={16} height={16} />
+              </TouchableOpacity>
+            </View>
+
+            {selectedCoupon ? (
+              <View style={styles.selectedCouponBanner}>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.selectedCouponNameText]}
+                  numberOfLines={1}>
+                  ㄴ {selectedCoupon.title}
+                </Text>
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.selectedCouponAmountText,
+                  ]}>
+                  {selectedCoupon.discountLabel}
+                </Text>
+              </View>
+            ) : (
+              <View style={styles.couponBanner}>
+                <Text style={[FONTS.fs_14_semibold]}>
+                  쿠폰 적용하고{' '}
+                  <Text style={styles.couponBannerText}>최대 할인 혜택</Text>{' '}
+                  받으세요!
+                </Text>
+              </View>
+            )}
+
+            <View style={[styles.userInfo, {marginTop: 4}]}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                포인트
+              </Text>
+              <View style={styles.pointSection}>
+                <TextInput
+                  style={[FONTS.fs_14_medium, styles.pointInput]}
+                  value={pointValue}
+                  onChangeText={handleChangePointValue}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={COLORS.grayscale_400}
+                />
+                <TouchableOpacity
+                  style={styles.pointBtn}
+                  onPress={() => setPointValue(String(pointBalance || 0))}>
+                  <Text style={FONTS.fs_14_regular}>전액사용</Text>
+                </TouchableOpacity>
+              </View>
+            </View>
+            <Text style={[FONTS.fs_12_medium, styles.pointText]}>
+              보유 {Number(pointBalance || 0).toLocaleString()}P
+            </Text>
+            {isPointOverBalance ? (
+              <Text style={[FONTS.fs_12_medium, styles.pointWarningText]}>
+                보유 포인트보다 많이 입력할 수 없어요.
+              </Text>
+            ) : null}
+
+            <View style={[styles.userInfo, {marginTop: 12}]}>
+              <Text style={[FONTS.fs_16_semibold, styles.userInfoTitle]}>
+                총 결제 금액
+              </Text>
+              <Text style={[FONTS.fs_18_semibold, styles.meetPriceText]}>
+                {finalPaymentAmount.toLocaleString()}원
               </Text>
             </View>
           </View>
@@ -454,13 +651,24 @@ const MeetReservation = () => {
           {/* 요약정보 */}
           <View style={styles.bottomInfoRow}>
             <Text style={[FONTS.fs_14_medium]}>{eventDateTimeNoEndText}</Text>
-            <Text  style={[FONTS.fs_16_medium]}>{Number(meetPrice || 0).toLocaleString()}원</Text>
+            <Text  style={[FONTS.fs_16_medium]}>{finalPaymentAmount.toLocaleString()}원</Text>
           </View>
 
           <View style={styles.button}>
+            {totalDiscountAmount > 0 ? (
+              <View style={styles.discountBanner}>
+                <DiscountArrow width={18} height={18} />
+                <Text style={[FONTS.fs_14_semibold]}>
+                  <Text style={styles.discountBannerText}>
+                    총 {totalDiscountAmount.toLocaleString()}원
+                  </Text>{' '}
+                  할인 받았어요
+                </Text>
+              </View>
+            ) : null}
             <ButtonScarlet
-              title="요청하기"
-              disabled={!isAllRequiredAgreed}
+              title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
+              disabled={!isAllRequiredAgreed || isPointOverBalance}
               onPress={handleCreateReservation}
             />
           </View>

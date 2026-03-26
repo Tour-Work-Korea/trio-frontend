@@ -59,7 +59,7 @@ const MeetPaymentSuccess = () => {
       <Logo />
       <Text style={[FONTS.fs_20_semibold, styles.text]}>
         예약 완료되었어요! {'\n'}
-        이제 이벤트을 즐기러 가볼까요?
+        이제 이벤트를 즐기러 가볼까요?
       </Text>
 
       <View style={styles.bottomRow}>

@@ -79,6 +79,15 @@ export default StyleSheet.create({
   value: {
     color: COLORS.grayscale_900,
   },
+  valueInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  valueStrike: {
+    color: COLORS.grayscale_400,
+    textDecorationLine: 'line-through',
+  },
 
   refundMethod: {
     color: COLORS.primary_orange,
