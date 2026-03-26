@@ -161,13 +161,16 @@ const UserMyPage = () => {
                 {reviewCount}
               </Text>
             </TouchableOpacity>
-            <View style={styles.promoSection}>
+            <TouchableOpacity
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('MyCouponList')}
+            >
               <CouponIcon width={20} height={20}/>
               <Text style={[FONTS.fs_14_medium]}>쿠폰</Text>
               <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                 {couponCount}
               </Text>
-            </View>
+            </TouchableOpacity>
             <View style={styles.promoSection}>
               <PointIcon width={20} height={20}/>
               <Text style={[FONTS.fs_14_medium]}>포인트</Text>

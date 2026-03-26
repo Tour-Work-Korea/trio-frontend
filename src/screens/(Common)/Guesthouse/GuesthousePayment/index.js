@@ -7,7 +7,8 @@ import Config from 'react-native-config';
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
-  const {reservationId, amount, receiptContext} = route.params || {};
+  const {reservationId, amount, receiptContext, userCouponId, pointUsed} =
+    route.params || {};
   const reservationType = 'GUESTHOUSE';
 
   const accessToken = useUserStore(state => state.accessToken);
@@ -43,11 +44,40 @@ const GuesthousePayment = ({route}) => {
     }
   };
 
+  const logSuccessParams = url => {
+    if (!url?.includes('/payments/toss/success')) return;
+
+    try {
+      const parsedUrl = new URL(url);
+      console.log('Toss success params', {
+        paymentKey: parsedUrl.searchParams.get('paymentKey'),
+        orderId: parsedUrl.searchParams.get('orderId'),
+        amount: parsedUrl.searchParams.get('amount'),
+        paymentType: parsedUrl.searchParams.get('paymentType'),
+      });
+    } catch (error) {
+      console.log('Toss success params parse error', error);
+    }
+  };
+
+  const paymentQuery = new URLSearchParams({
+    reservationId: String(reservationId),
+    reservationType,
+  });
+
+  if (userCouponId) {
+    paymentQuery.append('userCouponId', String(userCouponId));
+  }
+
+  if (pointUsed) {
+    paymentQuery.append('pointUsed', String(pointUsed));
+  }
+
   return (
     <WebView
       source={{
         // 결제 페이지 진입
-        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?reservationId=${reservationId}&reservationType=${reservationType}`,
+        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?${paymentQuery.toString()}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },
@@ -62,8 +92,14 @@ const GuesthousePayment = ({route}) => {
       thirdPartyCookiesEnabled
 
       onError={e => console.log('WebView onError', e.nativeEvent)}
-      onHttpError={e => console.log('WebView onHttpError', e.nativeEvent)}
-      onLoadStart={e => console.log('WebView onLoadStart', e.nativeEvent.url)}
+      onHttpError={e => {
+        console.log('WebView onHttpError', e.nativeEvent);
+        logSuccessParams(e.nativeEvent?.url);
+      }}
+      onLoadStart={e => {
+        console.log('WebView onLoadStart', e.nativeEvent.url);
+        logSuccessParams(e.nativeEvent?.url);
+      }}
       onLoadEnd={e => console.log('WebView onLoadEnd', e.nativeEvent.url)}
     />
   );
