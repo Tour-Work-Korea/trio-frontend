@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - main
+      - develop
 
 jobs:
   build:
@@ -34,7 +35,7 @@ jobs:
           echo "KAKAO_JS_KEY=${{ secrets.KAKAO_JS_KEY }}" >> .env.production
           echo "KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}" >> .env.production
           echo "KAKAO_NATIVEAPP_KEY=${{ secrets.KAKAO_NATIVEAPP_KEY }}" >> .env.production
-          echo "WEB_BASE_URL=${{secrets.WEB_BASE_URL}}" >> .env.production
+          echo "WEB_BASE_URL=${{ secrets.WEB_BASE_URL }}" >> .env.production
 
       - name: Copy .env.production to .env
         run: cp .env.production .env
@@ -80,27 +81,29 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
 
-      # APK 빌드
+      # APK 빌드 (main, develop)
       - name: Build Release APK
         run: |
           ENVFILE=.env.production bundle exec fastlane build_release
         working-directory: android
 
-      # APK 업로드
+      # APK 업로드 (main, develop)
       - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: app-release
           path: android/app/build/outputs/apk/release/app-release.apk
 
-      # AAB 빌드
+      # AAB 빌드 (main)
       - name: Build Release AAB
+        if: github.ref == 'refs/heads/main'
         run: |
           ENVFILE=.env.production bundle exec fastlane bundle_release
         working-directory: android
 
-      # AAB 업로드
+      # AAB 업로드 (main)
       - name: Upload AAB Artifact
+        if: github.ref == 'refs/heads/main'
         uses: actions/upload-artifact@v4
         with:
           name: app-release-aab
