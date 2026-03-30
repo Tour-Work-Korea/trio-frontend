@@ -29,7 +29,7 @@ export default StyleSheet.create({
     marginHorizontal: 12,
     position: 'relative',
     zIndex: 100,
-    elevation: 20,
+    elevation: 4,
   },
   searchBox: {
     flexDirection: 'row',
@@ -41,6 +41,11 @@ export default StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
     backgroundColor: COLORS.grayscale_0,
+  },
+  searchBoxAndroid: {
+    paddingVertical: 0,
+    marginBottom: 12,
+    zIndex: 101,
   },
   searchBoxConnected: {
     borderBottomLeftRadius: 0,
@@ -69,7 +74,7 @@ export default StyleSheet.create({
     shadowOffset: {width: 0, height: 6},
     shadowOpacity: 0.1,
     shadowRadius: 12,
-    elevation: 24,
+    elevation: 4,
     maxHeight: 260,
     overflow: 'hidden',
     zIndex: 101,

@@ -8,6 +8,7 @@ import {
   TouchableWithoutFeedback,
   Keyboard,
   Pressable,
+  Platform,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
@@ -237,7 +238,10 @@ const HomeMain = () => {
             onFocus={() => setIsSearchFocused(true)}
             placeholder="찾는 게하가 있으신가요?"
             placeholderTextColor={COLORS.grayscale_600}
-            style={[FONTS.fs_14_regular, styles.searchInput]}
+            style={[
+              FONTS.fs_14_regular,
+              styles.searchInput,
+            ]}
             returnKeyType="search"
           />
         </View>
