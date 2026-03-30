@@ -32,8 +32,17 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  nicknameRow: {
+  // 닉네임
+  nicknameSection: {
+    justifyContent: 'center',
+    alignItems: 'center',
     marginTop: 20,
+    gap: 4,
+  },
+  nicknameTitle: {
+    color: COLORS.grayscale_400,
+  },
+  nicknameRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
@@ -50,12 +59,13 @@ export default StyleSheet.create({
   },
   plusButton: {
     position: 'absolute',
-    right: 4,
-    bottom: 4,
-    width: 24,
-    height: 24,
-    backgroundColor: COLORS.secondary_blue,
-    borderRadius: 12,
+    right: 0,
+    bottom: 0,
+    padding: 4,
+    backgroundColor: COLORS.grayscale_0,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 100,
     justifyContent: 'center',
     alignItems: 'center',
   },

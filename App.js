@@ -19,7 +19,7 @@ import {
   SafeAreaProvider,
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
-import LoginErrorModal from '@components/LoginErrorModal';
+import GlobalAlertModal from '@components/modals/GlobalAlertModal';
 
 
 
@@ -98,7 +98,7 @@ function AppContent() {
       )}
       <Toast config={toastConfig} />
 
-      <LoginErrorModal />
+      <GlobalAlertModal />
     </>
   );
 }

@@ -19,15 +19,11 @@ const Settings = () => {
   const userRole = useUserStore(state => state.userRole);
   const userProfile = useUserStore(state => state.userProfile);
   const hostProfile = useUserStore(state => state.hostProfile);
+  const accountProfile = userRole === 'HOST' ? hostProfile : userProfile;
 
-  const isHost = userRole === 'HOST';
-  const accountName = isHost ? hostProfile.name : userProfile.name;
-  const accountEmail = isHost ? hostProfile.email : userProfile.email;
-  const accountPhone = isHost ? hostProfile.phone : userProfile.phone;
-
-  const goToEditProfile = () => {
-    navigation.navigate(isHost ? 'HostEditInfo' : 'UserEditInfo');
-  };
+  const accountName = accountProfile?.name;
+  const accountEmail = accountProfile?.email;
+  const accountPhone = accountProfile?.phone;
 
   const handleLogout = async () => {
     await tryLogout();
@@ -74,22 +70,24 @@ const Settings = () => {
             </View>
             <View style={styles.menuRow}>
               <Text style={styles.menuText}>휴대폰 번호</Text>
-              <View style={styles.menuButtonRow}>
-                <Text style={styles.versionText}>{accountPhone || '-'}</Text>
-                <TouchableOpacity onPress={goToEditProfile}>
-                  <RightArrow width={20} height={20} />
-                </TouchableOpacity>
-              </View>
+              <Text style={styles.versionText}>{accountPhone || '-'}</Text>
             </View>
             <View style={styles.menuRow}>
-              <Text style={styles.menuText}>비밀번호</Text>
-              <View style={styles.menuButtonRow}>
-                <Text style={styles.versionText}>**********</Text>
-                <TouchableOpacity onPress={goToEditProfile}>
-                  <RightArrow width={20} height={20} />
-                </TouchableOpacity>
+                <Text style={styles.menuText}>비밀번호</Text>
+                <View style={styles.menuButtonRow}>
+                  <Text style={styles.versionText}>**********</Text>
+                  <TouchableOpacity
+                    onPress={() =>
+                      navigation.navigate('FindIntro', {
+                        find: 'password',
+                        userRole,
+                        originPhone: accountPhone,
+                      })
+                    }>
+                    <Text style={styles.logoutText}>변경</Text>
+                  </TouchableOpacity>
+                </View>
               </View>
-            </View>
           </View>
         </View>
 
@@ -128,7 +126,7 @@ const Settings = () => {
           <Text style={styles.detailText}>
             통신판매번호: 2025-서울양천-0825
           </Text>
-          <Text style={styles.detailText}>주소: 서울특별시 중앙로 36길 15</Text>
+          <Text style={styles.detailText}>주소: 제주시 연동 263-13 레지던스이타스3</Text>
           <Text style={styles.detailText}>대표자 : 이하늘, 정재원</Text>
         </View>
       </View>
@@ -165,7 +163,7 @@ const styles = StyleSheet.create({
   menuButtonRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 4,
+    gap: 12,
   },
   menuText: {
     ...FONTS.fs_16_medium,
