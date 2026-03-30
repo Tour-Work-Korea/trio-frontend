@@ -22,6 +22,8 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import Avatar from '@components/Avatar';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
+import useUserStore from '@stores/userStore';
+import {showErrorModal} from '@utils/loginModalHub';
 import {
   partyDetailDeeplink,
   copyDeeplinkToClipboard,
@@ -260,6 +262,39 @@ const MeetDetail = () => {
       text1: '복사되었어요!',
       position: 'top',
       visibilityTime: 2000,
+    });
+  };
+
+  const handlePressReservation = () => {
+    const role = useUserStore.getState().userRole;
+
+    if (role !== 'USER' && role !== 'HOST') {
+      showErrorModal({
+        message: '이벤트는\n 로그인 후 사용해주세요',
+        buttonText2: '취소',
+        buttonText: '로그인하기',
+        onPress: () => navigation.navigate('Login'),
+        onPress2: () => {},
+      });
+      return;
+    }
+
+    if (role === 'HOST') {
+      showErrorModal({
+        message: '이벤트는\n유저 계정으로 로그인 후 사용해주세요',
+      });
+      return;
+    }
+
+    navigation.navigate('MeetReservation', {
+      partyId,
+      partyTitle,
+      partyStartDateTime,
+      partyStartTime,
+      partyEndTime,
+      amount,
+      maleNonAmount,
+      thumbnailUrl: thumbnailSource?.uri,
     });
   };
 
@@ -718,19 +753,7 @@ const MeetDetail = () => {
 
       <TouchableOpacity
         style={styles.bottomButton}
-        onPress={() =>
-          navigation.navigate('MeetReservation', {
-            partyId,
-            partyTitle,
-            partyStartDateTime,
-            partyStartTime,
-            partyEndTime,
-            amount,
-            maleNonAmount,
-            thumbnailUrl: thumbnailSource?.uri,
-          })
-        }
-      >
+        onPress={handlePressReservation}>
         <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>참여하기</Text>
       </TouchableOpacity>
     </View>

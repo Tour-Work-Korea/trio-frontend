@@ -124,18 +124,33 @@ const UserMyPage = () => {
               <View style={styles.profileContent}>
                 <View style={styles.profileHeader}>
                   <View style={styles.profileTextGroup}>
-                    <Text style={[FONTS.fs_18_semibold, styles.name]}>
-                      {user.nickname}
-                    </Text>
-                    <Text style={[FONTS.fs_12_medium, styles.profileMeta]}>
-                      {profileMeta.join('/')}
-                    </Text>
-                    <Text
-                      style={[FONTS.fs_12_medium, styles.profileInstagram]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      {instagramText}
-                    </Text>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        닉네임
+                      </Text>
+                      <Text style={[FONTS.fs_18_semibold, styles.name]}>
+                        {user.nickname}
+                      </Text>
+                    </View>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        정보
+                      </Text>
+                      <Text style={[FONTS.fs_12_medium, styles.profileMeta]}>
+                        {profileMeta.join('/')}
+                      </Text>
+                    </View>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        insta
+                      </Text>
+                      <Text
+                        style={[FONTS.fs_12_medium, styles.profileInstagram]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail">
+                        {instagramText}
+                      </Text>
+                    </View>
                   </View>
                   <TouchableOpacity
                     style={styles.profileEdit}
