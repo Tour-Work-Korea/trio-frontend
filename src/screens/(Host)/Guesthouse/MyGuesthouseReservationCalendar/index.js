@@ -7,7 +7,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import { Calendar } from 'react-native-calendars';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import EmptyState from '@components/EmptyState';
@@ -20,9 +20,8 @@ import {
   formatLocalDateToDotWithDay,
 } from '@utils/formatDate';
 import hostGuesthouseApi from '@utils/api/hostGuesthouseApi';
+import useUserStore from '@stores/userStore';
 import EmptyIcon from '@assets/images/search_empty.svg';
-import ChevronDown from '@assets/images/chevron_down_black.svg';
-import ChevronUp from '@assets/images/chevron_up_black.svg';
 
 const RESERVATION_STATUS_STYLE = {
   확정: {
@@ -84,62 +83,16 @@ const normalizeReservation = (reservation = {}) => {
   };
 };
 
-// TODO: 사장님 프로필 변경되면 게하 id값 받아서 해야함
 const MyGuesthouseReservationCalendar = () => {
   const navigation = useNavigation();
-  const route = useRoute();
-  const initialGuesthouseId = route?.params?.guesthouseId;
+  const selectedGuesthouseId = useUserStore(state => state.selectedHostGuesthouseId);
 
   const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
-  const [guesthouses, setGuesthouses] = useState([]);
-  const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(initialGuesthouseId ?? null);
-  const [isGuesthouseOpen, setIsGuesthouseOpen] = useState(false);
-  const [isGuesthousesLoading, setIsGuesthousesLoading] = useState(true);
   const [reservations, setReservations] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
   const [hasNextPage, setHasNextPage] = useState(false);
-
-  const selectedGuesthouse =
-    guesthouses.find((item) => String(item.id) === String(selectedGuesthouseId)) ?? null;
-
-  useEffect(() => {
-    const fetchMyGuesthouses = async () => {
-      setIsGuesthousesLoading(true);
-      try {
-        const response = await hostGuesthouseApi.getMyGuesthouses();
-        const list = Array.isArray(response?.data) ? response.data : [];
-        const mapped = list
-          .map((item) => ({
-            id: item?.id,
-            guesthouseName: item?.guesthouseName ?? item?.name ?? '이름 없음',
-          }))
-          .filter((item) => item.id != null);
-
-        setGuesthouses(mapped);
-        setSelectedGuesthouseId((prev) => {
-          if (
-            initialGuesthouseId &&
-            mapped.some((item) => String(item.id) === String(initialGuesthouseId))
-          ) {
-            return initialGuesthouseId;
-          }
-          if (prev && mapped.some((item) => String(item.id) === String(prev))) {
-            return prev;
-          }
-          return mapped[0]?.id ?? null;
-        });
-      } catch (error) {
-        setGuesthouses([]);
-        setSelectedGuesthouseId(null);
-      } finally {
-        setIsGuesthousesLoading(false);
-      }
-    };
-
-    fetchMyGuesthouses();
-  }, [initialGuesthouseId]);
 
   useEffect(() => {
     if (!selectedGuesthouseId) {
@@ -244,66 +197,6 @@ const MyGuesthouseReservationCalendar = () => {
       <Header title="예약 캘린더"/>
 
       <View style={styles.body}>
-        {isGuesthouseOpen ? (
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.guesthouseBackdrop}
-            onPress={() => setIsGuesthouseOpen(false)}
-          />
-        ) : null}
-
-        <View style={styles.guesthouseSelectContainer}>
-          <TouchableOpacity
-            style={styles.guesthouseSelectBox}
-            onPress={() => setIsGuesthouseOpen((prev) => !prev)}
-            disabled={isGuesthousesLoading}
-          >
-            <Text style={[FONTS.fs_14_regular, styles.guesthouseSelectText]}>
-              {selectedGuesthouse?.guesthouseName ?? '게스트하우스를 선택해 주세요'}
-            </Text>
-            {isGuesthouseOpen ? (
-              <ChevronUp width={12} height={12} />
-            ) : (
-              <ChevronDown width={12} height={12} />
-            )}
-          </TouchableOpacity>
-
-          {isGuesthouseOpen ? (
-            <View style={styles.guesthouseDropdown}>
-              {guesthouses.length === 0 ? (
-                <View style={styles.guesthouseOption}>
-                  <Text style={[FONTS.fs_14_regular, styles.guesthouseOptionText]}>
-                    등록된 게스트하우스가 없습니다
-                  </Text>
-                </View>
-              ) : (
-                guesthouses.map((item) => (
-                  <TouchableOpacity
-                    key={String(item.id)}
-                    style={styles.guesthouseOption}
-                    onPress={() => {
-                      setSelectedGuesthouseId(item.id);
-                      setIsGuesthouseOpen(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        FONTS.fs_14_regular,
-                        styles.guesthouseOptionText,
-                        String(selectedGuesthouseId) === String(item.id)
-                          ? styles.selectedGuesthouseText
-                          : null,
-                      ]}
-                    >
-                      {item.guesthouseName}
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </View>
-          ) : null}
-        </View>
-
         {/* 예약 달력 */}
         <View style={styles.calendarContainer}>
           <Calendar

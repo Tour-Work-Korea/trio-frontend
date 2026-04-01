@@ -1,6 +1,6 @@
-import React from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Image} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import React, {useCallback, useState} from 'react';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
@@ -8,21 +8,43 @@ import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
 import MeetReservationCheckIcon from '@assets/images/user-meet-reservation-check-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import SettingIcon from '@assets/images/settings_gray.svg';
+import BellIcon from '@assets/images/bell_gray.svg';
+import CommentIcon from '@assets/images/comment_black.svg';
+import CouponIcon from '@assets/images/coupon_black.svg';
+import PointIcon from '@assets/images/point_black.svg';
+import Avatar from '@components/Avatar';
 
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
-import ButtonScarlet from '@components/ButtonScarlet';
-import {tryLogout} from '@utils/auth/login';
-import Header from '@components/Header';
 import {COLORS} from '@constants/colors';
+import userMyApi from '@utils/api/userMyApi';
 
 const UserMyPage = () => {
   const navigation = useNavigation();
+  const [reviewCount, setReviewCount] = useState(0);
+  const [couponCount, setCouponCount] = useState(0);
+  const [pointBalance, setPointBalance] = useState(0);
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
+  const hasMbti = user.mbti && user.mbti !== 'DEFAULT';
+  const ageValue = Number(user.age);
+  const ageGroup =
+    Number.isFinite(ageValue) && ageValue > 0
+      ? `${Math.floor(ageValue / 10) * 10}대`
+      : null;
+  const profileMeta = [
+    ageGroup,
+    user.gender === 'F' ? '여성' : '남성',
+    hasMbti ? user.mbti : null,
+  ].filter(Boolean);
+  const instagramText =
+    user.instagramId === '@ID를 추가해주세요'
+      ? user.instagramId
+      : `@${user.instagramId}`;
+  const formattedPointBalance = Number(pointBalance || 0).toLocaleString('ko-KR');
 
   const goToEditProfile = () => {
     navigation.navigate('UserEditProfile', {
@@ -30,114 +52,170 @@ const UserMyPage = () => {
     });
   };
 
+  useFocusEffect(
+    useCallback(() => {
+      let isActive = true;
+
+      const fetchPromoData = async () => {
+        try {
+          const [reviewsRes, couponsRes, pointRes] = await Promise.all([
+            userMyApi.getMyReviews(),
+            userMyApi.getMyCoupons(),
+            userMyApi.getPointBalance(),
+          ]);
+          if (!isActive) return;
+
+          setReviewCount(
+            Array.isArray(reviewsRes.data) ? reviewsRes.data.length : 0,
+          );
+          setCouponCount(
+            Array.isArray(couponsRes.data) ? couponsRes.data.length : 0,
+          );
+          setPointBalance(pointRes?.data?.currentPoints ?? 0);
+        } catch (error) {
+          if (!isActive) return;
+          console.warn('리뷰/쿠폰/포인트 조회 실패:', error);
+          setReviewCount(0);
+          setCouponCount(0);
+          setPointBalance(0);
+        }
+      };
+
+      fetchPromoData();
+
+      return () => {
+        isActive = false;
+      };
+    }, []),
+  );
+
   return (
     <View style={styles.view}>
-      <Header title={'마이페이지'} isSetting={true} showBackButton={false} />
+      <View style={styles.topBarContainer}>
+        <Text style={[FONTS.fs_20_semibold]}>마이페이지</Text>
+
+        <View style={styles.topBarRightIcons}>
+          <TouchableOpacity
+            style={styles.topBarIconButton}
+            onPress={() => {}}
+            activeOpacity={0.8}>
+            <BellIcon width={20} height={20} />
+          </TouchableOpacity>
+          <TouchableOpacity
+            style={styles.topBarIconButton}
+            onPress={() => navigation.navigate('Setting')}
+            activeOpacity={0.8}>
+            <SettingIcon width={22} height={22} />
+          </TouchableOpacity>
+        </View>
+      </View>
       <ScrollView style={styles.outContainer}>
         <View style={styles.container}>
           {/* 유저 프로필 */}
           <View style={styles.userInfoContainer}>
-            <View style={styles.profileHeader}>
-              <Text style={[FONTS.fs_16_semibold, styles.name]}>
-                {user.nickname}
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.age]}>
-                {user.gender === 'F' ? '여자' : '남자'} {user.age ?? '00'}세 (
-                {user.birthDate?.split('-')[0] ?? '0000'}년생)
-              </Text>
-              <TouchableOpacity
-                style={styles.profileEdit}
-                onPress={goToEditProfile}>
-                <Text>수정</Text>
-              </TouchableOpacity>
-            </View>
-
             <View style={styles.profileContainer}>
-              {user.photoUrl ? (
-                <Image
-                  source={{uri: user.photoUrl}}
-                  style={styles.profileImage}
-                />
-              ) : (
-                <View style={styles.profileImage}>
-                  <EmptyImage width={32} height={32} />
-                </View>
-              )}
-              <View style={styles.profilePlaceholder}>
-                <View style={styles.profileText}>
-                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                    연락처
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
-                    {user.phone}
-                  </Text>
-                </View>
-                <View style={styles.profileText}>
-                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                    이메일
-                  </Text>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.profileContentText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {user.email}
-                  </Text>
-                </View>
-                <View style={styles.profileText}>
-                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                    MBTI
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
-                    {user.mbti === 'DEFAULT' ? 'MBTI를 추가해주세요' : user.mbti}
-                  </Text>
-                </View>
-                <View style={styles.profileText}>
-                  <Text style={[FONTS.fs_14_medium, styles.profileTitleText]}>
-                    insta
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.profileContentText]}>
-                    @{user.instagramId}
-                  </Text>
+              <Avatar
+                uri={user.photoUrl}
+                size={88}
+                iconSize={24}
+                borderRadius={58}
+                style={styles.profileImage}
+              />
+              <View style={styles.profileContent}>
+                <View style={styles.profileHeader}>
+                  <View style={styles.profileTextGroup}>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        닉네임
+                      </Text>
+                      <Text style={[FONTS.fs_18_semibold, styles.name]}>
+                        {user.nickname}
+                      </Text>
+                    </View>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        정보
+                      </Text>
+                      <Text style={[FONTS.fs_12_medium, styles.profileMeta]}>
+                        {profileMeta.join('/')}
+                      </Text>
+                    </View>
+                    <View style={styles.profileTextSection}>
+                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                        insta
+                      </Text>
+                      <Text
+                        style={[FONTS.fs_12_medium, styles.profileInstagram]}
+                        numberOfLines={1}
+                        ellipsizeMode="tail">
+                        {instagramText}
+                      </Text>
+                    </View>
+                  </View>
+                  <TouchableOpacity
+                    style={styles.profileEdit}
+                    onPress={goToEditProfile}>
+                    <Text style={[FONTS.fs_14_medium, styles.profileEditText]}>
+                      내 정보
+                    </Text>
+                  </TouchableOpacity>
                 </View>
               </View>
             </View>
           </View>
 
+          {/* 유저 프로모션 섹션 */}
+          <View style={styles.promoContainer}>
+            <TouchableOpacity 
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('UserGuesthouseReview')}
+            >
+              <CommentIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium]}>내 리뷰</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                {reviewCount}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('MyCouponList')}
+            >
+              <CouponIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium]}>쿠폰</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                {couponCount}
+              </Text>
+            </TouchableOpacity>
+            <View style={styles.promoSection}>
+              <PointIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium]}>포인트</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                {formattedPointBalance}
+              </Text>
+            </View>
+          </View>
+
           <View style={styles.bottomSection}>
-            {/* 숙박 섹션 */}
+            {/* 예약 내역 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                숙박
+                예약 내역
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={ReservationCheckIcon}
-                  label="예약 내역"
+                  label="숙소"
                   onPress={() => navigation.navigate('UserReservationCheck')}
                 />
+                <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={GuesthouseReviewIcon}
-                  label="나의 게하 리뷰"
-                  onPress={() => navigation.navigate('UserGuesthouseReview')}
-                />
-              </View>
-            </View>
-
-            <View style={styles.devide} />
-
-            {/* 이벤트 섹션 */}
-            <View style={[styles.section]}>
-              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                이벤트
-              </Text>
-              <View style={styles.menuContainer}>
-                <MenuItem
-                  IconComponent={MeetReservationCheckIcon}
-                  label="이벤트 예약내역"
+                  label="이벤트"
                   onPress={() =>
                     navigation.navigate('UserMeetReservationCheck')
                   }
                 />
+              </View>
               </View>
             </View>
 
@@ -146,7 +224,7 @@ const UserMyPage = () => {
             {/* 공고 섹션 */}
             <View style={[styles.section, {marginBottom: 16}]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                공고
+                스탭
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
@@ -161,17 +239,6 @@ const UserMyPage = () => {
                 />
               </View>
             </View>
-
-            <ButtonScarlet
-              title="로그아웃"
-              onPress={async () => {
-                await tryLogout();
-                navigation.reset({
-                  index: 0,
-                  routes: [{name: 'Login'}],
-                });
-              }}
-            />
           </View>
         </View>
       </ScrollView>

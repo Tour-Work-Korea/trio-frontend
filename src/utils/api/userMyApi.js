@@ -41,6 +41,34 @@ const userMyApi = {
   //   return api.put(`/user/my/${config.path}`, body);
   // },
   updateMyProfile: draft => api.put('/user/my', draft),
+  updateNickname: data => api.put('/user/my/nickname', data),
+  updateMbti: data => api.put('/user/my/mbti', data),
+  updateInstagram: data => api.put('/user/my/instagram', data),
+  updatePhone: data => api.put('/user/my/phone', data),
+
+  // 포인트 잔액 조회
+  getPointBalance: () => api.get('/points/me/balance'),
+
+  // 포인트 내역 조회
+  getPointHistory: ({page, size, sort = []}) =>
+    api.get('/points/me/history', {
+      params: {
+        page,
+        size,
+        sort,
+      },
+    }),
+
+  // 내 쿠폰 조회
+  getMyCoupons: () => api.get('/coupons/my'),
+
+  // 쿠폰 템플릿 발급
+  issueCouponByTemplate: templateId =>
+    api.post(`/coupons/${templateId}/issue`),
+
+  // 쿠폰 코드 발급
+  issueCouponByCode: couponCode =>
+    api.post('/coupons/code/issue', {couponCode}),
 
   // 파티 예약 내역 조회
   getMyPartyReservations: () => api.get('/order/reservation/party'),

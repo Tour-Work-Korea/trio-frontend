@@ -108,6 +108,10 @@ android {
         versionName (ciVersionName ?: "1.0.0")    // 로컬 기본값 1.0.0
 
         resValue "string", "google_maps_api_key", MAPS_API_KEY_LOCAL
+
+        manifestPlaceholders = [
+            KAKAO_NATIVEAPP_KEY: project.env.get("KAKAO_NATIVEAPP_KEY") ?: ""
+        ]
     }
     signingConfigs {
         debug {

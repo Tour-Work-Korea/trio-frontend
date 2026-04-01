@@ -54,7 +54,22 @@ export default function LoginByEmail({route}) {
 
   const handleLogin = async () => {
     try {
-      await tryLogin(email, password, userRole);
+      const data = await tryLogin(email, password, userRole);
+      if (userRole === 'USER' && data?.needVerification === "true") {
+        setErrorModal({
+          visible: true,
+          message: data.message || "안전한 서비스 이용을 위해\n최초 1회 본인 인증이 필요합니다.",
+          buttonText: "인증하기",
+          onPress: () => {
+            setErrorModal(prev => ({...prev, visible: false, onPress: null}));
+            navigation.navigate('PhoneCertificate', {
+              user: userRole,
+              isUpdateCi: true
+            });
+          }
+        });
+        return;
+      }
       navigation.dispatch(
         CommonActions.reset({
           index: 0,
@@ -156,7 +171,13 @@ export default function LoginByEmail({route}) {
           title={errorModal.message}
           buttonText={errorModal.buttonText}
           color={mainColor}
-          onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+          onPress={() => {
+            if (errorModal.onPress) {
+              errorModal.onPress(); // "인증하기" 클릭 시 navigation 이동 실행
+            } else {
+              setErrorModal(prev => ({...prev, visible: false})); // 일반 에러는 닫기만
+            }
+          }}
         />
       </View>
     </TouchableWithoutFeedback>

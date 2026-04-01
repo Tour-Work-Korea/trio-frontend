@@ -3,81 +3,94 @@ import {COLORS} from '@constants/colors';
 
 export default StyleSheet.create({
   view: {flex: 1, backgroundColor: COLORS.grayscale_100},
-  outContainer: {
-    flex: 1,
-    paddingHorizontal: 20,
-  },
+
   // 헤더
-  headerText: {
-    color: COLORS.grayscale_800,
-    lineHeight: 28,
-    textAlign: 'center',
-    marginTop: 13,
+  topBarContainer: {
+    padding: 16,
+    backgroundColor: COLORS.grayscale_100,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  guesthouseSelectorButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flex: 1,
+    marginRight: 12,
+  },
+  topBarTitle: {
+    marginRight: 4,
+    flexShrink: 1,
+  },
+  topBarRightIcons: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  topBarIconButton: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
   },
 
   // 본문
-  container: {marginBottom: 20},
-
-  // 유저 프로필
-  userInfoContainer: {
-    backgroundColor: COLORS.grayscale_0,
-    paddingHorizontal: 8,
-    paddingVertical: 12,
-    borderRadius: 8,
-    marginTop: 16,
+  outContainer: {
+    flex: 1,
   },
-  // 이름 성별
-  profileHeader: {
-    flexDirection: 'row',
+
+  // 메뉴박스
+  container: {marginBottom: 20, paddingHorizontal: 20},
+
+  // 상단 호스트 프로필
+  headerBg: {
+    width: '100%',
+    position: 'relative',
     alignItems: 'center',
-    marginBottom: 16,
+    justifyContent: 'center',
+    paddingVertical: 24,
   },
-  name: {},
-  age: {
-    color: COLORS.grayscale_500,
-    marginLeft: 16,
+  headerBgFallback: {
+    backgroundColor: COLORS.grayscale_0,
   },
-  profileEdit: {
-    position: 'absolute',
-    right: 0,
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
+  headerOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: 'rgba(0,0,0,0.35)',
   },
 
-  // 유저 정보
-  profileContainer: {
-    flexDirection: 'row',
+  // 미리보기 버튼
+  profileEditButton: {
+    position: 'absolute',
+    right: 12,
+    top: 12,
+    backgroundColor: COLORS.grayscale_200,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  profileEditBtnText: {
+    color: COLORS.grayscale_500,
+  },
+
+  // 프로필 영역
+  profileWrap: {
+    alignItems: 'center',
+  },
+  guesthouseNameText: {
+    marginTop: 20,
+  },
+  profileImageWrap: {
+    width: 80,
+    height: 80,
+    borderRadius: 100,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_200,
   },
   profileImage: {
-    width: 116,
-    height: 116,
-    borderRadius: 8,
-    marginRight: 20,
-    backgroundColor: COLORS.grayscale_200,
+    width: '100%',
+    height: '100%',
+    alignItems:'center',
     justifyContent: 'center',
-    alignItems: 'center',
   },
-  profilePlaceholder: {
-    gap: 4,
-    justifyContent: 'flex-start',
-    flexDirection: 'column',
-    flex: 1,
-  },
-  profileText: {
-    flexDirection: 'row',
-    alignItems: 'center',
-  },
-  profileTitleText: {
-    color: COLORS.grayscale_400,
-    width: 42,
-  },
-  profileContentText: {
-    marginLeft: 20,
-    flex: 1,
-  },
-
+  
   // 마이페이지
   bottomSection: {
     marginTop: 16,
@@ -120,13 +133,11 @@ export default StyleSheet.create({
     // backgroundColor: COLORS.grayscale_200,
   },
 
-  // 회원 탈퇴
-  deleteAccount: {
-    marginVertical: 8,
-    alignSelf: 'flex-end',
-    marginRight: 12,
+  // 프로필 선택 모달
+  profileListOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 20,
   },
-  deleteAccountText: {
-    color: COLORS.grayscale_400,
+  profileListWrap: {
   },
 });

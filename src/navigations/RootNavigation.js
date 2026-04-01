@@ -21,6 +21,7 @@ import {
   GuesthouseDetail,
   RoomDetail,
   GuesthouseReservation,
+  CouponSelectScreen,
   GuesthousePayment,
   GuesthousePaymentSuccess,
   Login,
@@ -40,8 +41,11 @@ import {
   MyLikeRecruitList,
   MyApplicantList,
   MyResumeList,
+  MyCouponList,
+  MyCouponRegister,
   UserEditProfile,
-  HostEditProfile,
+  UserEditInfo,
+  HostEditInfo,
   ApplicantList,
   ApplicantListByRecruit,
   Setting,
@@ -86,6 +90,8 @@ import {
   CustomerNotificationSettings,
   CheckInGuide,
   RoomGuideMessageEditor,
+  HostProfilePage,
+  HostEditProfile,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -109,6 +115,7 @@ const RootNavigation = () => (
         name="GuesthouseReservation"
         component={GuesthouseReservation}
       />
+      <Stack.Screen name="CouponSelect" component={CouponSelectScreen} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen
         name="GuesthousePaymentSuccess"
@@ -142,6 +149,7 @@ const RootNavigation = () => (
       <Stack.Screen name="FindPassword" component={FindPassword} />
       {/* 유저 마이페이지 하단바 없는 화면 */}
       <Stack.Screen name="UserEditProfile" component={UserEditProfile} />
+      <Stack.Screen name="UserEditInfo" component={UserEditInfo} />
       <Stack.Screen
         name="UserReservationCheck"
         component={UserReservationCheck}
@@ -158,6 +166,8 @@ const RootNavigation = () => (
         name="UserGuesthouseReviewForm"
         component={UserGuesthouseReviewForm}
       />
+      <Stack.Screen name="MyCouponList" component={MyCouponList} />
+      <Stack.Screen name="MyCouponRegister" component={MyCouponRegister} />
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />
@@ -172,6 +182,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetCancelConfirm" component={MeetCancelConfirm} />
       <Stack.Screen name="MeetCancelSuccess" component={MeetCancelSuccess} />
       {/* 사장님 마이페이지 하단바 없는 화면 */}
+      <Stack.Screen name="HostEditInfo" component={HostEditInfo} />
       <Stack.Screen name="HostEditProfile" component={HostEditProfile} />
       <Stack.Screen name="StoreRegisterForm1" component={StoreRegisterForm1} />
       <Stack.Screen name="StoreRegisterForm2" component={StoreRegisterForm2} />
@@ -205,6 +216,7 @@ const RootNavigation = () => (
       <Stack.Screen name="MeetBasics" component={MeetBasics} />
       <Stack.Screen name="MeetDetails" component={MeetDetails} />
       <Stack.Screen name="MeetDirections" component={MeetDirections} />
+      <Stack.Screen name="HostProfilePage" component={HostProfilePage} />
 
       {/* 이벤트화면 */}
       <Stack.Screen name="MeetDetail" component={MeetDetail} />

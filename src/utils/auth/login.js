@@ -7,8 +7,38 @@ import userMyApi from '@utils/api/userMyApi';
 import hostMyApi from '@utils/api/hostMyApi';
 import {log, mask} from '@utils/logger';
 import {navigate} from '@utils/navigationService';
+import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 
 const REFRESH_KEY = 'refresh-token';
+
+export const tryKakaoLoginNative = async (userRole) => {
+  log.info('tryKakaoLoginNative: role=', userRole);
+  try {
+    // 1. 카카오 네이티브 SDK 실행 (앱 유무 파악 및 앱/웹 자동 전환)
+    const kakaoToken = await kakaoLogin();
+    log.info('카카오 SDK 로그인 성공, Access Token 획득');
+
+    // 2. 획득한 accessToken을 백엔드로 전달
+    const res = await authApi.loginKakao(kakaoToken.accessToken);
+    
+    // 3. 백엔드에서 응답받은 우리 서비스의 토큰을 저장
+    await storeLoginInfo(res, userRole);
+    
+    return {
+      success: true, 
+      isNewUser: res.data.isNewUser, 
+      externalId: res.data.externalId
+    };
+  } catch (err) {
+    log.warn('❌ tryKakaoLoginNative failed:', err?.message);
+    useUserStore.getState().clearUser();
+    
+    return {
+      success: false, 
+      message: err?.message
+    };
+  }
+};
 
 export const tryAutoLogin = async () => {
   log.info('🚪 tryAutoLogin: start');
@@ -35,6 +65,7 @@ export const storeLoginTokens = async ({
   accessToken,
   refreshToken,
   userRole,
+  needVerification
 }) => {
   log.info(
     '✅ login success: accessToken=',
@@ -43,11 +74,22 @@ export const storeLoginTokens = async ({
     mask(refreshToken),
     'role=',
     userRole,
+    'needVerification=',
+    needVerification
   );
 
-  const {setTokens, setUserRole} = useUserStore.getState();
+  const {setTokens, setUserRole, setIsVerified} = useUserStore.getState();
   setTokens({accessToken});
   setUserRole(userRole);
+
+  // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
+  if (setIsVerified) {
+    if (userRole === 'HOST') {
+      setIsVerified(true); // HOST는 무조건 인증 통과 상태로 간주
+    } else {
+      setIsVerified(needVerification !== "true"); // USER는 서버 응답에 따름
+    }
+  }
 
   await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
   const check = await EncryptedStorage.getItem(REFRESH_KEY);
@@ -57,10 +99,9 @@ export const storeLoginTokens = async ({
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const accessToken = res.data.accessToken;
-  const refreshToken = res.data.refreshToken;
+  const { accessToken, refreshToken, needVerification } = res.data;
 
-  await storeLoginTokens({accessToken, refreshToken, userRole});
+  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification});
 };
 
 export const tryLogin = async (email, password, userRole) => {
@@ -68,7 +109,7 @@ export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password, userRole);
     await storeLoginInfo(res, userRole);
-    return true;
+    return res.data;
   } catch (err) {
     log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
 
@@ -156,25 +197,57 @@ export const tryLogout = async () => {
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);
-  const {setUserProfile, setHostProfile} = useUserStore.getState();
+  const {
+    setUserProfile,
+    setHostProfile,
+    selectedHostGuesthouseId,
+    setSelectedHostGuesthouseId,
+  } = useUserStore.getState();
 
   try {
     if (role === 'HOST') {
       const res = await hostMyApi.getMyProfile();
-      const {name, photoUrl, phone, email, businessNum} = res.data;
+      const {hostId, name, photoUrl, phone, email, businessNum, guesthouseProfiles} =
+        res.data ?? {};
+      const normalizedGuesthouseProfiles = Array.isArray(guesthouseProfiles)
+        ? guesthouseProfiles.map(guesthouse => ({
+            guesthouseId: guesthouse?.guesthouseId ?? null,
+            guesthouseName: guesthouse?.guesthouseName ?? '',
+            profileImageUrl:
+              guesthouse?.profileImageUrl &&
+              guesthouse.profileImageUrl !== '사진을 추가해주세요'
+                ? guesthouse.profileImageUrl
+                : null,
+          }))
+        : [];
+      const profileIds = normalizedGuesthouseProfiles.map((guesthouse, index) =>
+        String(guesthouse.guesthouseId ?? `guesthouse-${index}`),
+      );
 
       setHostProfile({
+        hostId: hostId ?? null,
         name: name ?? '',
         photoUrl:
           photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
         phone: phone ?? '',
         email: email ?? '',
         businessNum: businessNum ?? '',
+        guesthouseProfiles: normalizedGuesthouseProfiles,
       });
+
+      if (profileIds.length === 0) {
+        setSelectedHostGuesthouseId(null);
+      } else if (
+        !selectedHostGuesthouseId ||
+        !profileIds.includes(String(selectedHostGuesthouseId))
+      ) {
+        setSelectedHostGuesthouseId(profileIds[0]);
+      }
       log.info('👤 HOST profile loaded');
     } else if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
+        userId,
         name,
         nickname,
         photoUrl,
@@ -187,6 +260,7 @@ const updateProfile = async role => {
       } = res.data;
 
       setUserProfile({
+        userId: userId ?? null,
         name: name ?? '',
         nickname: nickname ?? '',
         photoUrl:

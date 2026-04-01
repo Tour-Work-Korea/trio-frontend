@@ -86,8 +86,14 @@ const styles = StyleSheet.create({
   priceValue: {
     color: COLORS.grayscale_900,
   },
+  priceValueInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
   strikeThrough: {
     textDecorationLine: 'line-through',
+    color: COLORS.grayscale_400,
   },
   reasonText: {
     color: COLORS.grayscale_500,

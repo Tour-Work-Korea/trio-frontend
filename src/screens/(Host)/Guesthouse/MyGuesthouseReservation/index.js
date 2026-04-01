@@ -17,6 +17,7 @@ import { COLORS } from '@constants/colors';
 import { CALENDAR_COMMON_PROPS, CALENDAR_THEME } from '@constants/calendarConfig';
 import ReservationList from './ReservationList';
 import { formatLocalDateToDotWithDay } from '@utils/formatDate';
+import useUserStore from '@stores/userStore';
 
 import ChevronRight from '@assets/images/chevron_right_black.svg';
 import ChevronLeft from '@assets/images/chevron_left_black.svg';
@@ -38,12 +39,8 @@ const RESERVATION_STATUS_MAP = {
   완료: 'COMPLETED',
 };
 
-// TODO
-// 사장님 프로필 변경되면 게하 id값 받아서 해야함
-
-const MyGuesthouseReservation = ({ route }) => {
-  const initialGuesthouseId = route?.params?.guesthouseId;
-  const isSameGuesthouseId = (a, b) => String(a) === String(b);
+const MyGuesthouseReservation = () => {
+  const selectedGuesthouseId = useUserStore(state => state.selectedHostGuesthouseId);
 
   const getTodayLocalDate = () => {
     const today = new Date();
@@ -65,21 +62,17 @@ const MyGuesthouseReservation = ({ route }) => {
   const [isSearchFilterOpen, setIsSearchFilterOpen] = useState(false);
   const [isReservationStatusOpen, setIsReservationStatusOpen] = useState(false);
   const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-  const [isGuesthouseOpen, setIsGuesthouseOpen] = useState(false);
   const [selectedSearchFilter, setSelectedSearchFilter] = useState('예약자명');
   const [selectedReservationStatus, setSelectedReservationStatus] = useState('전체');
   const [selectedDate, setSelectedDate] = useState(getTodayLocalDate());
   const [searchKeywordInput, setSearchKeywordInput] = useState('');
   const [appliedSearchKeyword, setAppliedSearchKeyword] = useState('');
   const [appliedSearchType, setAppliedSearchType] = useState(SEARCH_TYPE_MAP.예약자명);
-  const [guesthouses, setGuesthouses] = useState([]);
-  const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(initialGuesthouseId ?? null);
   const [reservations, setReservations] = useState([]);
   const [reservationTotalCount, setReservationTotalCount] = useState(0);
   const [targetDateCount, setTargetDateCount] = useState(0);
   const [currentPage, setCurrentPage] = useState(DEFAULT_PAGE);
   const [hasNextPage, setHasNextPage] = useState(false);
-  const [isGuesthousesLoading, setIsGuesthousesLoading] = useState(true);
   const [isReservationsLoading, setIsReservationsLoading] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
 
@@ -129,41 +122,6 @@ const MyGuesthouseReservation = ({ route }) => {
     appliedSearchKeyword,
     appliedSearchType,
   ]);
-
-  const selectedGuesthouse =
-    guesthouses.find((item) => isSameGuesthouseId(item.id, selectedGuesthouseId)) ?? null;
-
-  const fetchMyGuesthouses = useCallback(async () => {
-    setIsGuesthousesLoading(true);
-    try {
-      const response = await hostGuesthouseApi.getMyGuesthouses();
-      const list = Array.isArray(response?.data) ? response.data : [];
-      const mapped = list.map((item) => ({
-        id: item?.id,
-        guesthouseName: item?.guesthouseName ?? item?.name ?? '이름 없음',
-      })).filter((item) => item.id != null);
-
-      setGuesthouses(mapped);
-      setSelectedGuesthouseId((prev) => {
-        if (initialGuesthouseId && mapped.some((item) => isSameGuesthouseId(item.id, initialGuesthouseId))) {
-          return initialGuesthouseId;
-        }
-        if (prev && mapped.some((item) => isSameGuesthouseId(item.id, prev))) {
-          return prev;
-        }
-        return mapped[0]?.id ?? null;
-      });
-    } catch (error) {
-      setGuesthouses([]);
-      setSelectedGuesthouseId(null);
-    } finally {
-      setIsGuesthousesLoading(false);
-    }
-  }, [initialGuesthouseId]);
-
-  useEffect(() => {
-    fetchMyGuesthouses();
-  }, [fetchMyGuesthouses]);
 
   const requestReservationSearch = useCallback(
     async (formData, options = { append: false }) => {
@@ -285,7 +243,7 @@ const MyGuesthouseReservation = ({ route }) => {
 
       <TouchableWithoutFeedback onPress={Keyboard.dismiss}>
         <View style={styles.body}>
-        {isSearchFilterOpen || isReservationStatusOpen || isCalendarOpen || isGuesthouseOpen ? (
+        {isSearchFilterOpen || isReservationStatusOpen || isCalendarOpen ? (
           <TouchableOpacity
             activeOpacity={1}
             style={styles.searchFilterBackdrop}
@@ -293,66 +251,9 @@ const MyGuesthouseReservation = ({ route }) => {
               setIsSearchFilterOpen(false);
               setIsReservationStatusOpen(false);
               setIsCalendarOpen(false);
-              setIsGuesthouseOpen(false);
             }}
           />
         ) : null}
-
-        {/* 임시 게하 선택 */}
-        <View style={styles.guesthouseSelectContainer}>
-          <TouchableOpacity
-            style={styles.guesthouseSelectBox}
-            onPress={() => {
-              setIsGuesthouseOpen((prev) => !prev);
-              setIsSearchFilterOpen(false);
-              setIsReservationStatusOpen(false);
-              setIsCalendarOpen(false);
-            }}
-            disabled={isGuesthousesLoading}
-          >
-            <Text style={[FONTS.fs_14_regular, styles.guesthouseSelectText]}>
-              {selectedGuesthouse?.guesthouseName ?? '게스트하우스를 선택해 주세요'}
-            </Text>
-            {isGuesthouseOpen ? (
-              <ChevronUp width={12} height={12} />
-            ) : (
-              <ChevronDown width={12} height={12} />
-            )}
-          </TouchableOpacity>
-
-          {isGuesthouseOpen ? (
-            <View style={styles.guesthouseDropdown}>
-              {guesthouses.length === 0 ? (
-                <View style={styles.searchFilterOption}>
-                  <Text style={[FONTS.fs_14_regular, styles.searchFilterOptionText]}>
-                    등록된 게스트하우스가 없습니다
-                  </Text>
-                </View>
-              ) : (
-                guesthouses.map((item) => (
-                  <TouchableOpacity
-                    key={String(item.id)}
-                    style={styles.searchFilterOption}
-                    onPress={() => {
-                      setSelectedGuesthouseId(item.id);
-                      setIsGuesthouseOpen(false);
-                    }}
-                  >
-                    <Text
-                      style={[
-                        FONTS.fs_14_regular,
-                        styles.searchFilterOptionText,
-                        isSameGuesthouseId(selectedGuesthouseId, item.id) && { color: COLORS.primary_orange },
-                      ]}
-                    >
-                      {item.guesthouseName}
-                    </Text>
-                  </TouchableOpacity>
-                ))
-              )}
-            </View>
-          ) : null}
-        </View>
 
         {/* 날짜 선택 */}
         <View style={styles.dateSelectContainer}>
@@ -370,7 +271,6 @@ const MyGuesthouseReservation = ({ route }) => {
                 setIsCalendarOpen((prev) => !prev);
                 setIsSearchFilterOpen(false);
                 setIsReservationStatusOpen(false);
-                setIsGuesthouseOpen(false);
               }}
           >
             <Text style={[FONTS.fs_16_medium]}>
@@ -412,7 +312,6 @@ const MyGuesthouseReservation = ({ route }) => {
                 setIsSearchFilterOpen((prev) => !prev);
                 setIsReservationStatusOpen(false);
                 setIsCalendarOpen(false);
-                setIsGuesthouseOpen(false);
               }}
             >
               <Text style={[FONTS.fs_14_regular]}>
@@ -471,7 +370,6 @@ const MyGuesthouseReservation = ({ route }) => {
                 setIsReservationStatusOpen((prev) => !prev);
                 setIsSearchFilterOpen(false);
                 setIsCalendarOpen(false);
-                setIsGuesthouseOpen(false);
               }}
             >
             <Text style={[FONTS.fs_14_regular]}>예약상태</Text>

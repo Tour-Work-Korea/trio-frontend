@@ -1,8 +1,8 @@
 import React from 'react';
-import {View, Image, Text, TouchableOpacity} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import styles from './ApplicantList.styles';
 import {formatLocalDateToDot} from '@utils/formatDate';
-import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import Avatar from '@components/Avatar';
 import {openWebLink} from '@utils/openWebLink';
 
 export default function ApplicantCard({item, handleApplicantPress}) {
@@ -18,17 +18,13 @@ export default function ApplicantCard({item, handleApplicantPress}) {
 
         <View style={styles.applicantInfo}>
           <View style={styles.profileImageContainer}>
-            {item.photoUrl !== '사진을 추가해주세요' ? (
-              <Image
-                source={{uri: item.photoUrl}}
-                style={styles.profileImage}
-                resizeMode="cover"
-              />
-            ) : (
-              <View style={styles.profileImage}>
-                <EmptyImage width={32} height={32} />
-              </View>
-            )}
+            <Avatar
+              uri={item.photoUrl}
+              size={68}
+              iconSize={32}
+              borderRadius={8}
+              style={styles.profileImage}
+            />
           </View>
 
           <View style={styles.detailsContainer}>

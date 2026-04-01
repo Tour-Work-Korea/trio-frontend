@@ -102,6 +102,7 @@ const UserGuesthouseReviewWrite = () => {
 
               navigation.navigate('UserGuesthouseReviewForm', {
                 guesthouseId: item.guesthouseId,
+                reservationId: item.reservationId,
                 guesthouseName: item.guesthouseName,
                 roomName: item.roomName,
                 guesthouseAddress: item.guesthouseAddress,

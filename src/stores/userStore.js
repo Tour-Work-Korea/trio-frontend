@@ -10,9 +10,10 @@ const useUserStore = create(
       // 초기 상태값
       accessToken: null,
       userRole: null,
-
+      isVerified: true, // 초기값은 true로 설정, 로그인 시 서버에서 needVerification이 "true"면 false로 업데이트
       // 유저 프로필
       userProfile: {
+        userId: null,
         name: '',
         nickname: '',
         photoUrl: null,
@@ -26,12 +27,15 @@ const useUserStore = create(
       },
       // 사장 프로필
       hostProfile: {
+        hostId: null,
         name: '',
         photoUrl: null,
         phone: '',
         email: '',
         businessNum: '',
+        guesthouseProfiles: [],
       },
+      selectedHostGuesthouseId: null,
 
       // 토큰 저장 함수
       setTokens: ({accessToken}) => set({accessToken}),
@@ -42,8 +46,13 @@ const useUserStore = create(
       // 유저 프로필 저장 함수
       setUserProfile: profile => set({userProfile: profile}),
 
+      // 인증 상태 저장 함수
+      setIsVerified: (status) => set({ isVerified: status }),
+
       //사장 프로필 저장 함수
       setHostProfile: profile => set({hostProfile: profile}),
+      setSelectedHostGuesthouseId: selectedHostGuesthouseId =>
+        set({selectedHostGuesthouseId}),
 
       // 전체 초기화 (로그아웃 시 사용)
       clearUser: () =>
@@ -51,7 +60,9 @@ const useUserStore = create(
           accessToken: null,
           refreshToken: null,
           userRole: null,
+          isVerified: true, // 초기화
           userProfile: {
+            userId: null,
             name: '',
             nickname: '',
             photoUrl: null,
@@ -61,12 +72,15 @@ const useUserStore = create(
             instagramId: '',
           },
           hostProfile: {
+            hostId: null,
             name: '',
             photoUrl: null,
             phone: '',
             email: '',
             businessNum: '',
+            guesthouseProfiles: [],
           },
+          selectedHostGuesthouseId: null,
         }),
     }),
     {
