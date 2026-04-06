@@ -5,6 +5,11 @@ on:
     branches:
       - main
       - develop
+  workflow_dispatch:
+
+permissions:
+  id-token: write
+  contents: read
 
 jobs:
   build:
@@ -13,6 +18,20 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v3
+
+      - name: Configure AWS credentials (DEV)
+        if: github.ref == 'refs/heads/develop'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-android-dev
+          aws-region: ap-northeast-2
+
+      - name: Configure AWS credentials (PROD)
+        if: github.ref == 'refs/heads/main'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-android-prod
+          aws-region: ap-northeast-2
 
       - name: Install Node.js
         uses: actions/setup-node@v3
@@ -25,17 +44,33 @@ jobs:
       - name: Install JS dependencies
         run: yarn install
 
-      - name: Generate .env.production
+      - name: Load Android env from AWS SSM
         run: |
-          echo "API_BASE_URL=${{ secrets.API_BASE_URL }}" >> .env.production
-          echo "PORTONE_STORE_ID=${{ secrets.PORTONE_STORE_ID }}" >> .env.production
-          echo "PORTONE_CHANNEL_KEY=${{ secrets.PORTONE_CHANNEL_KEY }}" >> .env.production
-          echo "PORTONE_REDIRECT_URL=${{ secrets.PORTONE_REDIRECT_URL }}" >> .env.production
-          echo "PORTONE_NOTICE_URL=${{ secrets.PORTONE_NOTICE_URL }}" >> .env.production
-          echo "KAKAO_JS_KEY=${{ secrets.KAKAO_JS_KEY }}" >> .env.production
-          echo "KAKAO_RESTAPI_KEY=${{ secrets.KAKAO_RESTAPI_KEY }}" >> .env.production
-          echo "KAKAO_NATIVEAPP_KEY=${{ secrets.KAKAO_NATIVEAPP_KEY }}" >> .env.production
-          echo "WEB_BASE_URL=${{ secrets.WEB_BASE_URL }}" >> .env.production
+          BRANCH="${GITHUB_REF##*/}"
+
+          if [ "$BRANCH" = "develop" ]; then
+            ENV=dev
+          else
+            ENV=prod
+          fi
+
+          BASE_PATH="/workaway/$ENV/android"
+
+          echo "Loading env from $BASE_PATH"
+
+          cat <<EOF > .env.production
+          API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
+          WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
+          PORTONE_STORE_ID=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_STORE_ID --with-decryption --query Parameter.Value --output text)
+          PORTONE_CHANNEL_KEY=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_CHANNEL_KEY --with-decryption --query Parameter.Value --output text)
+          PORTONE_REDIRECT_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_REDIRECT_URL --with-decryption --query Parameter.Value --output text)
+          PORTONE_NOTICE_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_NOTICE_URL --with-decryption --query Parameter.Value --output text)
+          KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_NATIVEAPP_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_NATIVEAPP_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_CLIENT_ID --with-decryption --query Parameter.Value --output text)
+          KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_REDIRECT_URI --with-decryption --query Parameter.Value --output text)
+          EOF
 
       - name: Copy .env.production to .env
         run: cp .env.production .env
@@ -48,7 +83,16 @@ jobs:
 
       - name: Generate local.properties
         run: |
-          echo "MAPS_API_KEY=${{ secrets.MAPS_API_KEY }}" >> android/local.properties
+          BRANCH="${GITHUB_REF##*/}"
+
+          if [ "$BRANCH" = "develop" ]; then
+            ENV=dev
+          else
+            ENV=prod
+          fi
+
+          BASE_PATH="/workaway/$ENV/android"
+          echo "MAPS_API_KEY=$(aws ssm get-parameter --name $BASE_PATH/MAPS_API_KEY --with-decryption --query Parameter.Value --output text)" >> android/local.properties
 
       - name: Decode google-services.json
         run: |
