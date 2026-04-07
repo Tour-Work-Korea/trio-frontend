@@ -38,6 +38,11 @@ const formatPrice = n => {
   return `${n.toLocaleString()}원`;
 };
 
+const formatPoint = n => {
+  if (typeof n !== 'number') return '';
+  return `${n.toLocaleString()}P`;
+};
+
 const formatTime = timeStr => {
   if (!timeStr) return '';
   const date = dayjs(timeStr);
@@ -175,7 +180,9 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
 
       unitPriceLabel: '객실 가격',
       totalLabel: '총 가격',
-      finalLabel: '실 결제 금액',
+      couponDiscountLabel: '쿠폰 할인',
+      pointDiscountLabel: '포인트 적용',
+      finalLabel: '총 결제 금액',
 
       unitPrice:
         typeof dto.amount === 'number'
@@ -185,9 +192,29 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
             : 0,
       totalPrice:
         typeof dto.totalAmount === 'number'
-          ? dto.totalAmount
-          : typeof fallback?.totalPrice === 'number'
-            ? fallback.totalPrice
+          ? dto.totalAmount +
+            (typeof dto.couponDiscountAmount === 'number'
+              ? dto.couponDiscountAmount
+              : 0) +
+            (typeof dto.pointDiscountAmount === 'number'
+              ? dto.pointDiscountAmount
+              : 0)
+          : typeof dto.amount === 'number'
+            ? dto.amount
+            : typeof fallback?.totalPrice === 'number'
+              ? fallback.totalPrice
+              : 0,
+      couponDiscountAmount:
+        typeof dto.couponDiscountAmount === 'number'
+          ? dto.couponDiscountAmount
+          : typeof fallback?.couponDiscountAmount === 'number'
+            ? fallback.couponDiscountAmount
+            : 0,
+      pointDiscountAmount:
+        typeof dto.pointDiscountAmount === 'number'
+          ? dto.pointDiscountAmount
+          : typeof fallback?.pointDiscountAmount === 'number'
+            ? fallback.pointDiscountAmount
             : 0,
       finalPrice:
         typeof dto.totalAmount === 'number'
@@ -575,6 +602,8 @@ const GuesthousePaymentReceipt = () => {
           </View>
         </View>
 
+        <View style={[styles.divider, {marginTop: 16}]}/>
+
         {/* 결제 정보 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
@@ -607,13 +636,31 @@ const GuesthousePaymentReceipt = () => {
             </Text>
           </View>
 
-          <View style={styles.divider}/>
+          <View style={styles.row}>
+            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+              {data.payment.couponDiscountLabel}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
+              - {formatPrice(data.payment.couponDiscountAmount)}
+            </Text>
+          </View>
 
           <View style={styles.row}>
             <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+              {data.payment.pointDiscountLabel}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
+              - {formatPoint(data.payment.pointDiscountAmount)}
+            </Text>
+          </View>
+
+          <View style={styles.divider}/>
+
+          <View style={styles.row}>
+            <Text style={[FONTS.fs_16_semibold]}>
               {data.payment.finalLabel}
             </Text>
-            <Text style={[FONTS.fs_16_medium, styles.rowValue, styles.finalPrice]}>
+            <Text style={[FONTS.fs_16_semibold, styles.rowValue, styles.finalPrice]}>
               {formatPrice(data.payment.finalPrice)}
             </Text>
           </View>

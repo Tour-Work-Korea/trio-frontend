@@ -14,9 +14,9 @@ import ImageResizer from 'react-native-image-resizer';
  */
 
 //비민감 이미지 URL 받기
-const getPresignedUrl = async filename => {
-  const response = await commonApi.getPresignedUrl(filename);
-  return response.data;
+const getPresignedUrl = async (filename, contentType) => {
+  const response = await commonApi.getPresignedUrl(filename, contentType);
+  return response.data?.presignedUrl;
 };
 
 // ⬇️ 압축 유틸 (JPEG로 리사이즈/재인코딩)
@@ -43,11 +43,12 @@ export const uploadImageToS3 = async (presignedUrl, fileUri, fileType) => {
 
   await fetch(presignedUrl, {
     method: 'PUT',
-    headers: {'Content-Type': 'image/*'}, // 기존 로직 유지
+    headers: {'Content-Type': fileType},
     body: blob,
   });
 
-  return presignedUrl.split('?')[0]; // 실제 접근 URL
+  const publicUrl = presignedUrl.split('?')[0];
+  return publicUrl.replace(/^https?:\/\/[^/]+/, 'https://cdn.ddakji.kr');
 };
 
 //단일 이미지 업로드 (✅ 압축 추가)
@@ -80,7 +81,7 @@ export const uploadSingleImage = async () => {
   const fileType = 'image/jpeg';
   const filename = generateUniqueFilename('jpg');
 
-  const presignedUrl = await getPresignedUrl(filename);
+  const presignedUrl = await getPresignedUrl(filename, fileType);
   const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
 
   return uploadedUrl;
@@ -123,7 +124,7 @@ export const uploadMultiImage = async (limit = 10) => {
     const fileType = 'image/jpeg';
     const filename = generateUniqueFilename('jpg');
 
-    const presignedUrl = await getPresignedUrl(filename);
+    const presignedUrl = await getPresignedUrl(filename, fileType);
     const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
 
     uploadedUrls.push(uploadedUrl);

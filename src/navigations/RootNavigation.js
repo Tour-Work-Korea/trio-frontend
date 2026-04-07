@@ -21,6 +21,7 @@ import {
   GuesthouseDetail,
   RoomDetail,
   GuesthouseReservation,
+  CouponSelectScreen,
   GuesthousePayment,
   GuesthousePaymentSuccess,
   Login,
@@ -40,6 +41,8 @@ import {
   MyLikeRecruitList,
   MyApplicantList,
   MyResumeList,
+  MyCouponList,
+  MyCouponRegister,
   UserEditProfile,
   UserEditInfo,
   HostEditInfo,
@@ -112,6 +115,7 @@ const RootNavigation = () => (
         name="GuesthouseReservation"
         component={GuesthouseReservation}
       />
+      <Stack.Screen name="CouponSelect" component={CouponSelectScreen} />
       <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
       <Stack.Screen
         name="GuesthousePaymentSuccess"
@@ -162,6 +166,8 @@ const RootNavigation = () => (
         name="UserGuesthouseReviewForm"
         component={UserGuesthouseReviewForm}
       />
+      <Stack.Screen name="MyCouponList" component={MyCouponList} />
+      <Stack.Screen name="MyCouponRegister" component={MyCouponRegister} />
       <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
       <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
       <Stack.Screen name="MyResumeList" component={MyResumeList} />

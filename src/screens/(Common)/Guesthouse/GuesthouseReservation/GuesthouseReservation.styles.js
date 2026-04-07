@@ -80,6 +80,7 @@ const styles = StyleSheet.create({
   userInfo: {
     flexDirection: 'row',
     justifyContent: 'space-between',
+    alignItems: 'center',
   },
   userInfoTitle: {
     color: COLORS.grayscale_600,
@@ -91,6 +92,78 @@ const styles = StyleSheet.create({
   },
   roomPriceText: {
     color: COLORS.grayscale_600,
+  },
+  // 쿠폰
+  couponBtn: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+  },
+  selectedCouponDiscountText: {
+    color: COLORS.primary_orange,
+  },
+  couponBanner: {
+    alignSelf: 'center',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 4,
+    width: '100%',
+    paddingVertical: 8,
+  },
+  couponBannerText: {
+    color: COLORS.semantic_red,
+  },
+  selectedCouponBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 4,
+    width: '100%',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    gap: 12,
+  },
+  selectedCouponNameText: {
+    flex: 1,
+    color: COLORS.grayscale_400,
+  },
+  selectedCouponAmountText: {
+    color: COLORS.grayscale_400,
+  },
+  // 포인트
+  pointSection: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  pointInput: {
+    width: 120,
+    padding: 8,
+    borderColor: COLORS.grayscale_200,
+    borderWidth: 1,
+    borderRadius: 4,
+    textAlign: 'right',
+  },
+  pointBtn: {
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    borderWidth: 1,
+    padding: 8,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pointText: {
+    color: COLORS.grayscale_600,
+    alignSelf: 'flex-end',
+    marginTop: -8,
+    paddingRight: 8,
+  },
+  pointWarningText: {
+    color: COLORS.semantic_red,
+    alignSelf: 'flex-end',
+    paddingRight: 8,
   },
 
   // 요청 사항
@@ -159,6 +232,18 @@ const styles = StyleSheet.create({
   button: {
     marginHorizontal: 20,
     marginBottom: 40,
+  },
+
+  discountBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 4,
+    marginBottom: 8,
+    paddingTop: 4,
+  },
+  discountBannerText: {
+    color: COLORS.primary_orange,
   },
 });
 

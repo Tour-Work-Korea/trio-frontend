@@ -2,8 +2,11 @@ import api from './axiosInstance';
 
 const commonApi = {
   //비민감 이미지 presigned url 발급
-  getPresignedUrl: filename =>
-    api.get('/common/S3/presigned-url', {params: {filename}, withAuth: false}),
+  getPresignedUrl: (filename, contentType) =>
+    api.get('/common/S3/presigned-url', {
+      params: {filename, contentType},
+      withAuth: false,
+    }),
 
   //민감 이미지 직접 업로드
   postImage: image =>

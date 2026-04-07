@@ -43,10 +43,23 @@ export default function MeetPaymentReceipt() {
   const approvedFormatted = formatLocalDateTimeToDotAndTimeWithDay(
     reservationDetail?.approvedAt,
   );
-  const amountText =
-    typeof reservationDetail?.amount === 'number'
-      ? `${reservationDetail.amount.toLocaleString()}원`
-      : '-';
+  const formatPrice = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  const formatPoint = value => `${Number(value || 0).toLocaleString('ko-KR')}P`;
+  const couponDiscountAmount =
+    typeof reservationDetail?.couponDiscountAmount === 'number'
+      ? reservationDetail.couponDiscountAmount
+      : 0;
+  const pointDiscountAmount =
+    typeof reservationDetail?.pointDiscountAmount === 'number'
+      ? reservationDetail.pointDiscountAmount
+      : 0;
+  const finalAmount =
+    typeof reservationDetail?.totalAmount === 'number'
+      ? reservationDetail.totalAmount
+      : typeof reservationDetail?.amount === 'number'
+        ? reservationDetail.amount
+        : 0;
+  const originalAmount = finalAmount + couponDiscountAmount + pointDiscountAmount;
   const paymentTypeText = useMemo(() => {
     return PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] || '-';
   }, [reservationDetail?.paymentType]);
@@ -120,8 +133,31 @@ export default function MeetPaymentReceipt() {
               <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
                 실 결제 금액
               </Text>
+              <View style={styles.priceValueInline}>
+                <Text style={[FONTS.fs_14_semibold, styles.priceValue]}>
+                  {formatPrice(finalAmount)}
+                </Text>
+                <Text style={[FONTS.fs_14_regular, styles.priceValueStrike]}>
+                  {formatPrice(originalAmount)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.priceInfoRow}>
+              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
+                쿠폰 할인
+              </Text>
               <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                {amountText}
+                - {formatPrice(couponDiscountAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.priceInfoRow}>
+              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
+                포인트 적용
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                - {formatPoint(pointDiscountAmount)}
               </Text>
             </View>
 

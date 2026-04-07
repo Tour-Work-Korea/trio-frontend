@@ -1,5 +1,5 @@
 import {View, TouchableOpacity, Text} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, CommonActions} from '@react-navigation/native';
 import React, {useState} from 'react';
 
 import ButtonWhite from '@components/ButtonWhite';
@@ -13,7 +13,7 @@ import MailGray from '@assets/images/mail_fill_gray.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
 import { COLORS } from '@constants/colors';
 
-import { tryKakaoLoginNative } from '@utils/auth/authFlow';
+import { tryKakaoLoginNative } from '@utils/auth/login';
 
 const LoginIntro = () => {
   const navigation = useNavigation();
@@ -22,6 +22,46 @@ const LoginIntro = () => {
     visible: false,
     message: '',
   });
+
+  const handleKakaoLoginClick = async () => {
+    // 앱 유무를 파악하고 1초 만에 로그인하는 네이티브 통신
+    const result = await tryKakaoLoginNative('USER');
+
+    if (result.success) {
+      if (result.isNewUser) {
+        // 신규 유저: 약관 동의 화면으로 이동
+        navigation.reset({
+          index: 0,
+          routes: [
+            {
+              name: 'RegisterAgree',
+              params: {
+                user: 'USER',
+                isSocial: true,
+                externalId: result.externalId,
+              },
+            },
+          ],
+        });
+      } else {
+        // 기존 유저: 메인 화면으로 이동
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: 'MainTabs'}],
+          }),
+        );
+      }
+    } else {
+      // 에러 발생 시 처리 (사용자가 도중에 취소한 경우는 제외)
+      if (!result.message?.toLowerCase().includes('cancel')) {
+        setErrorModal({
+          visible: true,
+          message: '카카오 로그인 중 오류가 발생했습니다.\n다시 시도해주세요.',
+        });
+      }
+    }
+  };
 
   return (
     <View style={styles.signin}>
@@ -33,7 +73,7 @@ const LoginIntro = () => {
           <View style={styles.buttonParent}>
             <ButtonWhite
               title="카카오로 시작하기"
-              onPress={() => navigation.navigate('SocialLogin', {provider: 'KAKAO'})}
+              onPress={handleKakaoLoginClick} 
               Icon={KakaoLogo}
               backgroundColor="#fee500"
             />

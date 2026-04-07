@@ -77,17 +77,25 @@ export default StyleSheet.create({
   profileTextGroup: {
     flex: 1,
     marginRight: 12,
+    gap: 8,
+  },
+  profileTextSection: {
+    flexDirection: 'row',
+    gap: 8,
+    alignItems: 'center',
+  },
+  profileSectionTitle: {
+    color: COLORS.grayscale_400,
+    width: 36,
   },
   name: {
     color: COLORS.grayscale_800,
-    marginBottom: 8,
   },
   profileMeta: {
-    color: COLORS.grayscale_700,
-    marginBottom: 8,
+    color: COLORS.grayscale_800,
   },
   profileInstagram: {
-    color: COLORS.grayscale_700,
+    color: COLORS.grayscale_800,
     flex: 1,
   },
   profileEdit: {

@@ -162,9 +162,21 @@ const BottomTabs = () => {
         <Tab.Screen
           name="찜"
           component={Favorite}
-          listeners={() => ({
+          listeners={({navigation}) => ({
             tabPress: e => {
               const role = useUserStore.getState().userRole;
+              if (role !== 'USER' && role !== 'HOST') {
+                e.preventDefault();
+                showErrorModal({
+                  message: '찜 목록은\n 로그인 후 사용해주세요',
+                  buttonText2: '취소',
+                  buttonText: '로그인하기',
+                  onPress: () => navigation.navigate('Login'),
+                  onPress2: () => {},
+                });
+                return;
+              }
+
               if (role === 'HOST') {
                 e.preventDefault();
                 showErrorModal({

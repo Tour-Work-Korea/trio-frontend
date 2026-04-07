@@ -1,13 +1,13 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {
   Modal,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
-  ScrollView,
-  TouchableWithoutFeedback,
+  useColorScheme,
 } from 'react-native';
+import {WebView} from 'react-native-webview';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
@@ -19,7 +19,56 @@ import XIcon from '@assets/images/x_gray.svg';
 // content 약관동의 내용 -> 나중에 data파일에 적어주고 모달호출할때 보내주면 될듯!
 // onAgree 동의합니다 누르고 진행할 함수
 
-const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
+const onShouldStartLoadWithRequest = request => {
+  if (request.navigationType === 'click') {
+    return false;
+  }
+  return true;
+};
+
+const escapeHtml = text =>
+  String(text || '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;');
+
+const TermsModal = ({ visible, onClose, title, content, contentHtml, onAgree }) => {
+  const scheme = useColorScheme();
+  const rawHtml =
+    contentHtml ||
+    `<pre style="white-space:pre-wrap;font-family:system-ui, -apple-system, Roboto;line-height:1.6">${escapeHtml(
+      content,
+    )}</pre>`;
+
+  const html = useMemo(
+    () => `
+    <!doctype html>
+    <html lang="ko">
+      <head>
+        <meta charset="utf-8"/>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
+        <style>
+          body {
+            margin: 0; padding: 16px;
+            background: ${scheme === 'dark' ? '#000' : '#fff'};
+            color: ${scheme === 'dark' ? '#fff' : '#111'};
+            -webkit-text-size-adjust: 100%;
+          }
+          pre { margin: 0; white-space: pre-wrap; }
+          table { border-collapse: collapse; width: 100%; }
+          th, td { border: 1px solid #e5e7eb; padding: 8px; }
+          th { background:#f9fafb; }
+          img { max-width: 100%; height: auto; }
+        </style>
+      </head>
+      <body>
+        ${rawHtml}
+      </body>
+    </html>
+  `,
+    [rawHtml, scheme],
+  );
+
   return (
     <Modal
       animationType="slide"
@@ -27,8 +76,12 @@ const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
       visible={visible}
       onRequestClose={onClose}
     >
-      <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.backdrop}
+          onPress={onClose}
+        />
         <View style={styles.modalContainer}>
           <View style={styles.contentContainer}>
             {/* 헤더 */}
@@ -41,11 +94,16 @@ const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
 
             {/* 본문 */}
             <View style={styles.contentBox}>
-              <ScrollView >
-                <Text style={[FONTS.fs_14_regular, styles.contentText]}>
-                  {content}
-                </Text>
-              </ScrollView>
+              <WebView
+                originWhitelist={['*']}
+                source={{html}}
+                javaScriptEnabled={false}
+                domStorageEnabled={false}
+                allowFileAccess={true}
+                allowingReadAccessToURL={'/'}
+                onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
+                setSupportMultipleWindows={false}
+              />
             </View>
           </View>
 
@@ -59,7 +117,6 @@ const TermsModal = ({ visible, onClose, title, content, onAgree }) => {
 
         </View>
       </View>
-      </TouchableWithoutFeedback>
     </Modal>
   );
 };
@@ -70,6 +127,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.modal_background,
     justifyContent: "flex-end",
     alignItems: 'center',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
   },
   modalContainer: {
     width: '100%',
@@ -95,14 +155,10 @@ const styles = StyleSheet.create({
 
   // 본문
   contentBox: {
-    backgroundColor: COLORS.grayscale_200,
+    overflow: 'hidden',
     flexGrow: 1,
     minHeight: 520,
     marginBottom: 20,
-  },
-  contentText: {
-    color: COLORS.grayscale_900,
-    lineHeight: 20,
   },
 
   // 동의 버튼

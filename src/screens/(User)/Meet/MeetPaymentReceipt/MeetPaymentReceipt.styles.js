@@ -85,6 +85,15 @@ const styles = StyleSheet.create({
   priceValue: {
     color: COLORS.grayscale_500,
   },
+  priceValueInline: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  priceValueStrike: {
+    color: COLORS.grayscale_400,
+    textDecorationLine: 'line-through',
+  },
 
   // 경고 문구
   warningText: {

@@ -17,6 +17,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import {formatLocalDateToDotWithDay} from '@utils/formatDate';
+import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationCancelConfirmModal from '@components/modals/Guesthouse/ReservationCancelConfirmModal';
@@ -66,6 +67,14 @@ const GuesthouseCancelConfirm = () => {
   const viewData = useMemo(() => {
     const paymentLabel =
       PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] ?? '';
+    const couponDiscountAmount =
+      typeof reservationDetail?.couponDiscountAmount === 'number'
+        ? reservationDetail.couponDiscountAmount
+        : 0;
+    const pointDiscountAmount =
+      typeof reservationDetail?.pointDiscountAmount === 'number'
+        ? reservationDetail.pointDiscountAmount
+        : 0;
     const paidAmount =
       typeof reservationDetail?.totalAmount === 'number'
         ? reservationDetail.totalAmount
@@ -99,13 +108,28 @@ const GuesthouseCancelConfirm = () => {
         ? formatLocalDateToDotWithDay(reservationDetail.checkOut)
         : cancelContext?.checkOutDate ?? '',
       checkOutTime: cancelContext?.checkOutTime ?? '',
+      originalAmount:
+        paidAmount + couponDiscountAmount + pointDiscountAmount,
       paidAmount,
+      couponDiscountAmount,
+      pointDiscountAmount,
       cancelFee,
       refundAmount,
       refundMethod,
     };
   }, [reservationDetail, cancelContext]);
   const refundAmount = viewData.refundAmount;
+  const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+  const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
+  const cancelPolicyDoc = AGREEMENT_CONTENT.USER?.GUESTHOUSE_RESERVATION_POLICY;
+  const cancelPolicyContent = (cancelPolicyDoc?.detail || '').replace(
+    /{{guesthouseName}}/g,
+    viewData?.guesthouseName || '해당 게스트하우스',
+  );
+  const cancelPolicyHtml = (cancelPolicyDoc?.detailHtml || '').replace(
+    /{{guesthouseName}}/g,
+    viewData?.guesthouseName || '해당 게스트하우스',
+  );
 
   const handleCancelConfirm = async () => {
     if (!reservationId || cancelSubmitting) return;
@@ -222,15 +246,34 @@ const GuesthouseCancelConfirm = () => {
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>실 결제 금액</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>
-                {viewData.paidAmount.toLocaleString()}원
+              <View style={styles.valueInline}>
+                <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                  {formatPrice(viewData.paidAmount)}
+                </Text>
+                <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
+                  {formatPrice(viewData.originalAmount)}
+                </Text>
+              </View>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                {formatPrice(viewData.couponDiscountAmount)}
+              </Text>
+            </View>
+
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                {formatPoint(viewData.pointDiscountAmount)}
               </Text>
             </View>
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>예상 취소 수수료</Text>
               <Text style={[FONTS.fs_14_medium, styles.value]}>
-                {viewData.cancelFee.toLocaleString()}원
+                {formatPrice(viewData.cancelFee)}
               </Text>
             </View>
           </View>
@@ -248,7 +291,7 @@ const GuesthouseCancelConfirm = () => {
             <View style={styles.row}>
               <Text style={styles.label}>최종 환불 금액</Text>
               <Text style={styles.refundAmount}>
-                {refundAmount.toLocaleString()}<Text style={{color: COLORS.grayscale_900}}>원</Text>
+                {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
               </Text>
             </View>
           </View>
@@ -351,8 +394,9 @@ const GuesthouseCancelConfirm = () => {
           <TermsModal
             visible={termsOpen}
             onClose={() => setTermsOpen(false)}
-            title="숙소 취소 / 환불 규정"
-            content="약관 내용은 준비 중입니다."
+            title={cancelPolicyDoc?.title || '숙소 취소 / 환불 규정'}
+            content={cancelPolicyContent}
+            contentHtml={cancelPolicyHtml}
             onAgree={() => setTermsOpen(false)}
           />
 

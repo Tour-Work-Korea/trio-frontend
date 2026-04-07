@@ -90,6 +90,14 @@ const GuesthouseCancelledReceipt = () => {
       })(),
       paidAmount:
         typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0,
+      couponDiscountAmount:
+        typeof dto?.couponDiscountAmount === 'number'
+          ? dto.couponDiscountAmount
+          : 0,
+      pointDiscountAmount:
+        typeof dto?.pointDiscountAmount === 'number'
+          ? dto.pointDiscountAmount
+          : 0,
       cancelFee: (() => {
         const totalAmount =
           typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
@@ -110,6 +118,7 @@ const GuesthouseCancelledReceipt = () => {
   );
 
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+  const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
 
   useEffect(() => {
     if (!reservationId) return;
@@ -217,6 +226,20 @@ const GuesthouseCancelledReceipt = () => {
                 {formatPrice(data.paidAmount)}
               </Text>
             </View>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
+            <Text style={[FONTS.fs_14_semibold, styles.value]}>
+              {formatPrice(data.couponDiscountAmount)}
+            </Text>
+          </View>
+
+          <View style={styles.row}>
+            <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
+            <Text style={[FONTS.fs_14_semibold, styles.value]}>
+              {formatPoint(data.pointDiscountAmount)}
+            </Text>
           </View>
 
           <View style={styles.row}>

@@ -20,6 +20,7 @@ export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
 export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
 export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
 export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
+export {default as CouponSelectScreen} from './(Common)/Coupon/CouponSelectScreen';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
 export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
@@ -133,6 +134,8 @@ export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavorit
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
 // 게하 리뷰
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
+export {default as MyCouponList} from './(User)/UserMyPage/MyCouponList';
+export {default as MyCouponRegister} from './(User)/UserMyPage/MyCouponList/MyCouponRegister';
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
