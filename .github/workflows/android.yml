@@ -3,12 +3,12 @@ name: Build Android Release APK, AAB
 on:
   push:
     branches:
-      - main
-      - develop
+      - develop    # 내부 테스트/개발용 (DEV)
+      - main       # 구글 플레이 출시용 (PROD)
   workflow_dispatch:
 
 permissions:
-  id-token: write
+  id-token: write   # OIDC 필수
   contents: read
 
 jobs:
@@ -19,20 +19,26 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
+      # --------------------------------
+      # 1. AWS OIDC (브랜치별 Role 분기)
+      # --------------------------------
       - name: Configure AWS credentials (DEV)
         if: github.ref == 'refs/heads/develop'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-android-dev
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-dev
           aws-region: ap-northeast-2
 
       - name: Configure AWS credentials (PROD)
         if: github.ref == 'refs/heads/main'
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-android-prod
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-prod
           aws-region: ap-northeast-2
 
+      # --------------------------------
+      # 2. 환경 설정 (Node, Java, Ruby)
+      # --------------------------------
       - name: Install Node.js
         uses: actions/setup-node@v3
         with:
@@ -40,63 +46,6 @@ jobs:
 
       - name: Install yarn
         run: npm install -g yarn
-
-      - name: Install JS dependencies
-        run: yarn install
-
-      - name: Load Android env from AWS SSM
-        run: |
-          BRANCH="${GITHUB_REF##*/}"
-
-          if [ "$BRANCH" = "develop" ]; then
-            ENV=dev
-          else
-            ENV=prod
-          fi
-
-          BASE_PATH="/workaway/$ENV/android"
-
-          echo "Loading env from $BASE_PATH"
-
-          cat <<EOF > .env.production
-          API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
-          WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
-          PORTONE_STORE_ID=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_STORE_ID --with-decryption --query Parameter.Value --output text)
-          PORTONE_CHANNEL_KEY=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_CHANNEL_KEY --with-decryption --query Parameter.Value --output text)
-          PORTONE_REDIRECT_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_REDIRECT_URL --with-decryption --query Parameter.Value --output text)
-          PORTONE_NOTICE_URL=$(aws ssm get-parameter --name $BASE_PATH/PORTONE_NOTICE_URL --with-decryption --query Parameter.Value --output text)
-          KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
-          KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
-          KAKAO_NATIVEAPP_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_NATIVEAPP_KEY --with-decryption --query Parameter.Value --output text)
-          KAKAO_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_CLIENT_ID --with-decryption --query Parameter.Value --output text)
-          KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_REDIRECT_URI --with-decryption --query Parameter.Value --output text)
-          EOF
-
-      - name: Copy .env.production to .env
-        run: cp .env.production .env
-
-      - name: Set CI app version
-        run: |
-          VERSION_OFFSET=1000
-          echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
-          echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
-
-      - name: Generate local.properties
-        run: |
-          BRANCH="${GITHUB_REF##*/}"
-
-          if [ "$BRANCH" = "develop" ]; then
-            ENV=dev
-          else
-            ENV=prod
-          fi
-
-          BASE_PATH="/workaway/$ENV/android"
-          echo "MAPS_API_KEY=$(aws ssm get-parameter --name $BASE_PATH/MAPS_API_KEY --with-decryption --query Parameter.Value --output text)" >> android/local.properties
-
-      - name: Decode google-services.json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
       - name: Set up JDK
         uses: actions/setup-java@v3
@@ -110,13 +59,62 @@ jobs:
           ruby-version: 3.1
           bundler-cache: true
 
+      # --------------------------------
+      # 3. ENV 분기 + SSM 로딩 (⭐ 핵심 변경 사항)
+      # --------------------------------
+      - name: Load Android env from AWS SSM
+        run: |
+          BRANCH="${GITHUB_REF##*/}"
+
+          if [ "$BRANCH" = "develop" ]; then
+            ENV=dev
+          else
+            ENV=prod
+          fi
+
+          BASE_PATH="/workaway/$ENV/android"
+          echo "📦 Loading env from $BASE_PATH"
+
+          # .env.production 생성 (SSM에서 데이터 로드)
+          cat <<EOF > .env.production
+          API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
+          WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
+          KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_NATIVEAPP_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_NATIVEAPP_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
+          KAKAO_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_CLIENT_ID --with-decryption --query Parameter.Value --output text)
+          KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_REDIRECT_URI --with-decryption --query Parameter.Value --output text)
+          EOF
+
+        
+          cp .env.production .env
+          
+          # local.properties (Google Maps 등) 생성
+          MAPS_KEY=$(aws ssm get-parameter --name $BASE_PATH/MAPS_API_KEY --with-decryption --query Parameter.Value --output text)
+          echo "MAPS_API_KEY=$MAPS_KEY" >> android/local.properties
+          
+          echo "ENV_NAME=$ENV" >> $GITHUB_ENV
+
+      # --------------------------------
+      # 4. 의존성 및 보안 파일 설정
+      # --------------------------------
+      - name: Install JS dependencies
+        run: yarn install
+
       - name: Install fastlane
         run: bundle install
         working-directory: android
 
-      - name: Decode keystore
+      - name: Decode Secrets (Keystore & Google Services)
         run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/test-release-key.jks
+
+      - name: Set CI app version
+        run: |
+          VERSION_OFFSET=1000
+          echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
+          echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
       - name: Set keystore env
         run: |
@@ -125,30 +123,30 @@ jobs:
           echo "KEY_ALIAS=${{ secrets.KEY_ALIAS }}" >> $GITHUB_ENV
           echo "KEY_PASSWORD=${{ secrets.KEY_PASSWORD }}" >> $GITHUB_ENV
 
-      # APK 빌드 (main, develop)
+      # --------------------------------
+      # 5. 빌드 및 배포
+      # --------------------------------
+      # develop 브랜치: APK 빌드 (내부 테스트용)
       - name: Build Release APK
+        if: github.ref == 'refs/heads/develop'
         run: |
           ENVFILE=.env.production bundle exec fastlane build_release
         working-directory: android
 
-      # APK 업로드 (main, develop)
-      - name: Upload APK Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: app-release
-          path: android/app/build/outputs/apk/release/app-release.apk
-
-      # AAB 빌드 (main)
+      # AAB 빌드 (스토어 배포 및 내부 테스트용)
       - name: Build Release AAB
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           ENVFILE=.env.production bundle exec fastlane bundle_release
         working-directory: android
 
-      # AAB 업로드 (main)
-      - name: Upload AAB Artifact
-        if: github.ref == 'refs/heads/main'
+      # --------------------------------
+      # 6. 결과물 업로드
+      # --------------------------------
+      - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: app-release-aab
-          path: android/app/build/outputs/bundle/release/app-release.aab
+          name: app-release-${{ env.ENV_NAME }}
+          path: |
+            android/app/build/outputs/apk/release/*.apk
+            android/app/build/outputs/bundle/release/*.aab
