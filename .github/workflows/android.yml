@@ -133,9 +133,9 @@ jobs:
           ENVFILE=.env.production bundle exec fastlane build_release
         working-directory: android
 
-      # main 브랜치: AAB 빌드 (스토어 배포용)
+      # AAB 빌드 (스토어 배포 및 내부 테스트용)
       - name: Build Release AAB
-        if: github.ref == 'refs/heads/main'
+        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           ENVFILE=.env.production bundle exec fastlane bundle_release
         working-directory: android
