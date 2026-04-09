@@ -112,7 +112,7 @@ jobs:
 
       - name: Set CI app version
         run: |
-          VERSION_OFFSET=1000
+          VERSION_OFFSET=2000
           echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
           echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
 
@@ -127,15 +127,13 @@ jobs:
       # 5. 빌드 및 배포
       # --------------------------------
       # develop 브랜치: APK 빌드 (내부 테스트용)
-      - name: Build Release APK
-        if: github.ref == 'refs/heads/develop'
-        run: |
-          ENVFILE=.env.production bundle exec fastlane build_release
-        working-directory: android
+      # - name: Build Release APK
+      #   run: |
+      #     ENVFILE=.env.production bundle exec fastlane build_release
+      #   working-directory: android
 
       # AAB 빌드 (스토어 배포 및 내부 테스트용)
       - name: Build Release AAB
-        if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
         run: |
           ENVFILE=.env.production bundle exec fastlane bundle_release
         working-directory: android
@@ -148,5 +146,7 @@ jobs:
         with:
           name: app-release-${{ env.ENV_NAME }}
           path: |
-            android/app/build/outputs/apk/release/*.apk
             android/app/build/outputs/bundle/release/*.aab
+      
+      #apk 파일 관련 부분 주석처리
+      # android/app/build/outputs/apk/release/*.apk
