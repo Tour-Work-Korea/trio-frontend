@@ -40,7 +40,7 @@ platform :ios do
     UI.message("🚀 Build scheme: #{scheme_name}")
     UI.message("🌐 API_BASE_URL: #{ENV['API_BASE_URL']}")
 
-    increment_version_number(version_number: "2.22")
+    increment_version_number(version_number: "2.23")
     increment_build_number(build_number: Time.now.strftime("%Y%m%d%H%M"))
 
     match(
