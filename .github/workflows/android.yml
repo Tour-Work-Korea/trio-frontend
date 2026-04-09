@@ -113,8 +113,8 @@ jobs:
       - name: Set CI app version
         run: |
           VERSION_OFFSET=2000
-          echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
-          echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          echo "CI_VERSION_CODE=$(($VERSION_OFFSET + ${{ github.run_number }}))" >> $GITHUB_ENV
+          echo "CI_VERSION_NAME=1.0.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Set keystore env
         run: |
