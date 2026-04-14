@@ -151,3 +151,13 @@ jobs:
       
       #apk 파일 관련 부분 주석처리
       # android/app/build/outputs/apk/release/*.apk
+
+      # Google Play 배포
+      - name: Deploy to Google Play (Internal Testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.ddakjihostapp
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal  
+          status: completed 
