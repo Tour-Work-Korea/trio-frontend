@@ -10,6 +10,7 @@ import ErrorToast from '@components/toasts/ErrorToast';
 import DeeplinkHandler from '@utils/deeplinkHandler';
 import { COLORS } from '@constants/colors';
 import { tryAutoLogin } from '@utils/auth/login';
+import useUserStore from '@stores/userStore';
 import LottieView from 'lottie-react-native';
 import { navigationRef } from '@utils/navigationService';
 import messaging from '@react-native-firebase/messaging';
@@ -82,7 +83,7 @@ function AppContent() {
     bootstrap();
     crashlytics().log('App mounted - Crashlytics initialized');
 
-    // 포그라운드 메시지 리스너
+    // 1. 포그라운드 메시지 리스너
     const unsubscribeFCM = messaging().onMessage(async remoteMessage => {
       console.log('Foreground FCM message:', remoteMessage);
       Toast.show({
@@ -91,11 +92,58 @@ function AppContent() {
         text2: remoteMessage.notification?.body || '새로운 알림이 도착했습니다.',
         position: 'top',
         topOffset: 60,
+        onPress: () => {
+          handleNotificationTap(remoteMessage);
+          Toast.hide();
+        }
       });
     });
 
+    // 2. 백그라운드 상태에서 알림 배너 터치 시 앱 진입 리스너
+    const unsubscribeOnNotificationOpenedApp = messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Background FCM message tap:', remoteMessage);
+      handleNotificationTap(remoteMessage);
+    });
+
+    // 3. 완전히 앱이 파괴(Killed)된 상태에서 탭하여 앱 부팅 시
+    messaging().getInitialNotification().then(remoteMessage => {
+      if (remoteMessage) {
+        console.log('Killed FCM message tap:', remoteMessage);
+        handleNotificationTap(remoteMessage);
+      }
+    });
+
+    // 화면 이동을 처리해 주는 헬퍼 로직
+    const handleNotificationTap = async (remoteMessage) => {
+      // 내비게이션 레퍼런스가 활성화될 때까지 잠깐 대기
+      let tries = 0;
+      while (!navigationRef.isReady() && tries < 100) {
+        await wait(30);
+        tries++;
+      }
+
+      const { type, reservationId } = remoteMessage.data || {};
+      const { userRole } = useUserStore.getState();
+
+      if (type === 'GUESTHOUSE_RESERVATION') {
+        if (userRole === 'HOST') {
+          navigationRef.navigate('MyGuesthouseReservationDetail', { reservationId });
+        } else {
+          navigationRef.navigate('UserReservationCheck');
+        }
+      } else if (type === 'PARTY_RESERVATION') {
+        if (userRole === 'HOST') {
+          // TODO: 추후 사장님용 파티 예약 상세 화면이 만들어지면 예약 상세 컴포넌트로 연결하세요.
+          // 현재는 백엔드에서 reservationId를 정상적으로 주지만 화면이 없어 앱만 실행되도록 둠
+        } else {
+          navigationRef.navigate('UserMeetReservationCheck');
+        }
+      }
+    };
+
     return () => {
       unsubscribeFCM();
+      unsubscribeOnNotificationOpenedApp();
     };
   }, []);
 
