@@ -112,9 +112,10 @@ jobs:
 
       - name: Set CI app version
         run: |
+          APP_VERSION=$(node -p "require('./package.json').version")
           VERSION_OFFSET=2000
-          echo "CI_VERSION_CODE=$((VERSION_OFFSET + GITHUB_RUN_NUMBER))" >> $GITHUB_ENV
-          echo "CI_VERSION_NAME=1.0.${GITHUB_RUN_NUMBER}" >> $GITHUB_ENV
+          echo "CI_VERSION_CODE=$(($VERSION_OFFSET + ${{ github.run_number }}))" >> $GITHUB_ENV
+          echo "CI_VERSION_NAME=${APP_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
       - name: Set keystore env
         run: |
@@ -150,3 +151,13 @@ jobs:
       
       #apk 파일 관련 부분 주석처리
       # android/app/build/outputs/apk/release/*.apk
+
+      # Google Play 배포
+      - name: Deploy to Google Play (Internal Testing)
+        uses: r0adkll/upload-google-play@v1
+        with:
+          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
+          packageName: com.triofrontendapp
+          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          track: internal  
+          status: completed 
