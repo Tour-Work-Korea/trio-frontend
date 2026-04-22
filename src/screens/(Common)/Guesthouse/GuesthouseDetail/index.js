@@ -322,8 +322,9 @@ const GuesthouseDetail = ({route}) => {
   };
 
   return (
-    <ScrollView style={styles.container}>
-      <View>
+    <View style={{flex: 1}}>
+      <ScrollView style={styles.container}>
+        <View>
         {/* 대표 이미지 */}
         {hasImages ? (
           <Carousel
@@ -595,44 +596,43 @@ const GuesthouseDetail = ({route}) => {
         </ScrollView>
       </View>
 
-      {/* 편의시설/서비스 모달 */}
+        {/* 이미지 모달 */}
+        {hasImages && (
+          <ImageModal
+            visible={imageModalVisible}
+            title={detail.guesthouseName}
+            images={modalImages}
+            selectedImageIndex={imageIndex}
+            onClose={() => setImageModalVisible(false)}
+          />
+        )}
+
+        {/* 날짜, 인원 모달 */}
+        <DateGuestModal
+          visible={dateGuestModalVisible}
+          onClose={() => setDateGuestModalVisible(false)}
+          onApply={(newCheckIn, newCheckOut, adults, children) => {
+            setLocalCheckIn(dayjs(newCheckIn).format('YYYY-MM-DD'));
+            setLocalCheckOut(dayjs(newCheckOut).format('YYYY-MM-DD'));
+            setLocalAdults(adults);
+            setLocalChildren(children);
+            setHasChanged(true);
+            setDateGuestModalVisible(false);
+
+            fetchDetailWith(newCheckIn, newCheckOut, adults + children);
+          }}
+          initCheckInDate={dayjs(localCheckIn).format('YYYY-MM-DD')}
+          initCheckOutDate={dayjs(localCheckOut).format('YYYY-MM-DD')}
+          initAdultGuestCount={localAdults}
+          initChildGuestCount={localChildren}
+        />
+      </ScrollView>
       <ServiceInfoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}
         selectedAmenities={detail.amenities}
       />
-
-      {/* 이미지 모달 */}
-      {hasImages && (
-        <ImageModal
-          visible={imageModalVisible}
-          title={detail.guesthouseName}
-          images={modalImages}
-          selectedImageIndex={imageIndex}
-          onClose={() => setImageModalVisible(false)}
-        />
-      )}
-
-      {/* 날짜, 인원 모달 */}
-      <DateGuestModal
-        visible={dateGuestModalVisible}
-        onClose={() => setDateGuestModalVisible(false)}
-        onApply={(newCheckIn, newCheckOut, adults, children) => {
-          setLocalCheckIn(dayjs(newCheckIn).format('YYYY-MM-DD'));
-          setLocalCheckOut(dayjs(newCheckOut).format('YYYY-MM-DD'));
-          setLocalAdults(adults);
-          setLocalChildren(children);
-          setHasChanged(true);
-          setDateGuestModalVisible(false);
-
-          fetchDetailWith(newCheckIn, newCheckOut, adults + children);
-        }}
-        initCheckInDate={dayjs(localCheckIn).format('YYYY-MM-DD')}
-        initCheckOutDate={dayjs(localCheckOut).format('YYYY-MM-DD')}
-        initAdultGuestCount={localAdults}
-        initChildGuestCount={localChildren}
-      />
-    </ScrollView>
+    </View>
   );
 };
 
