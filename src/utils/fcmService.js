@@ -1,4 +1,5 @@
 import messaging from '@react-native-firebase/messaging';
+import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { v4 as uuidv4 } from 'uuid';
 import { log } from '@utils/logger';
@@ -20,8 +21,33 @@ export const getDeviceId = async () => {
   }
 };
 
+const requestAndroidNotificationPermission = async () => {
+  if (Platform.OS !== 'android' || Platform.Version < 33) {
+    return true;
+  }
+
+  try {
+    const granted = await PermissionsAndroid.request(
+      PermissionsAndroid.PERMISSIONS.POST_NOTIFICATIONS,
+    );
+    return granted === PermissionsAndroid.RESULTS.GRANTED;
+  } catch (error) {
+    log.error('Failed to request Android notification permission', error);
+    return false;
+  }
+};
+
 export const requestUserPermission = async () => {
   try {
+    const androidGranted = await requestAndroidNotificationPermission();
+    if (!androidGranted) {
+      return false;
+    }
+
+    if (Platform.OS === 'ios') {
+      await messaging().registerDeviceForRemoteMessages();
+    }
+
     const authStatus = await messaging().requestPermission();
     const enabled =
       authStatus === messaging.AuthorizationStatus.AUTHORIZED ||
@@ -50,9 +76,9 @@ export const syncFcmToken = async () => {
     }
 
     const deviceId = await getDeviceId();
-    
+
     log.info('📤 syncFcmToken:', { deviceId, fcmToken });
-    
+
     await notificationApi.registerToken(deviceId, fcmToken);
 
   } catch (error) {
