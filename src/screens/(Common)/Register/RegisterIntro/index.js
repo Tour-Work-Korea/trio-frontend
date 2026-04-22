@@ -69,12 +69,6 @@ const RegisterIntro = () => {
               Icon={Mail}
             />
           </View>
-          <TouchableOpacity
-            onPress={() =>
-              navigation.navigate('RegisterAgree', {user: 'HOST'})
-            }>
-            <Text style={[styles.textGray]}>게스트하우스 호스트에요</Text>
-          </TouchableOpacity>
         </View>
         <AlertModal
           visible={errorModal.visible}

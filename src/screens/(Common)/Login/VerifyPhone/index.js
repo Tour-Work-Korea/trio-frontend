@@ -17,10 +17,10 @@ import AlertModal from '@components/modals/AlertModal';
 import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 
 const VerifyPhone = ({route}) => {
-  const {userRole, find, originPhone} = route.params;
+  const {find, originPhone} = route.params;
+  const userRole = 'USER';
   const navigation = useNavigation();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
@@ -89,7 +89,7 @@ const VerifyPhone = ({route}) => {
         }
       }, 850);
     }
-  }, [isCodeVerified]);
+  }, [find, isCodeVerified, navigation, originPhone, phoneNumber, userRole]);
 
   // 타이머 기능
   useEffect(() => {
@@ -180,12 +180,8 @@ const VerifyPhone = ({route}) => {
     return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
   };
 
-  // 사장님 분기
-    const isHost = userRole === 'HOST';
-    const MainLogo = isHost ? LogoBlue : LogoOrange;
-    const mainColor = isHost
-      ? COLORS.primary_blue
-      : COLORS.primary_orange;
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -196,9 +192,6 @@ const VerifyPhone = ({route}) => {
             <View style={styles.groupParent}>
               <View  style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
-                {isHost && (
-                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
-                )}
               </View>
               <Text style={[styles.titleText]}>전화번호 인증</Text>
             </View>

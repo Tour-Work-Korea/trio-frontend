@@ -173,7 +173,7 @@ const GuesthouseDetail = ({route}) => {
       }
     };
     fetchDetail();
-  }, [id]);
+  }, [checkIn, checkOut, guestCount, id]);
 
   const fetchDetailWith = async (ci, co, totalGuests) => {
     try {
@@ -427,8 +427,7 @@ const GuesthouseDetail = ({route}) => {
           <View style={styles.nameIconContainer}>
             <TouchableOpacity 
               onPress={() =>
-                navigation.navigate('HostProfilePage', {
-                  isHostMy: false,
+                navigation.navigate('GuesthousePost', {
                   guesthouseId: id,
                 })
               }

@@ -61,53 +61,6 @@ export {default as FindId} from './(Common)/Login/FindId';
 export {default as FindPassword} from './(Common)/Login/FindPassword';
 export {default as SocialLogin} from './(Common)/Login/SocialLogin';
 
-// 🩷(Host)
-
-// 마이 페이지
-export {default as HostMyPage} from './(Host)/HostMyPage';
-// 프로필
-export {default as HostEditInfo} from './(Host)/HostMyPage/HostEditInfo';
-export {default as HostRegisterInfo} from './(Host)/HostRegisterInfo';
-export {default as HostProfilePage} from './(Host)/HostProfilePage';
-export {default as HostEditProfile} from './(Host)/HostEditProfile';
-// 게하 포스트 목록 & 수정 & 등록
-export {default as MyGuesthouseIntroList} from './(Host)/MyGuesthouseIntroList';
-export {default as MyGuesthouseIntroForm} from './(Host)/MyGuesthouseIntroForm';
-// 게하 목록 & 수정 & 등록
-export {default as MyGuesthouseDetail} from './(Host)/Guesthouse/MyGuesthouseDetail';
-export {default as MyRoomDetail} from './(Host)/Guesthouse/MyRoomDetail';
-export {default as MyGuesthouseList} from './(Host)/Guesthouse/MyGuesthouseList';
-export {default as MyGuesthouseEdit} from './(Host)/Guesthouse/MyGuesthouseEdit';
-export {default as MyGuesthouseAdd} from './(Host)/Guesthouse/MyGuesthouseAdd';
-export {default as MyRoomManage} from './(Host)/Guesthouse/MyRoomManage';
-// 게하 숙박 리뷰
-export {default as MyGuesthouseReview} from './(Host)/Guesthouse/MyGuesthouseReview';
-// 게하 예약 내역
-export {default as MyGuesthouseReservation} from './(Host)/Guesthouse/MyGuesthouseReservation';
-export {default as MyGuesthouseReservationDetail} from './(Host)/Guesthouse/MyGuesthouseReservationDetail';
-export {default as MyGuesthouseReservationCalendar} from './(Host)/Guesthouse/MyGuesthouseReservationCalendar';
-// 고객 알림 설정
-export {default as CustomerNotificationSettings} from './(Host)/Guesthouse/CustomerNotificationSettings';
-export {default as CheckInGuide} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide';
-export {default as RoomGuideMessageEditor} from './(Host)/Guesthouse/CustomerNotificationSettings/CheckInGuide/RoomGuideMessageEditor';
-//
-export {default as MyRecruitmentList} from './(Host)/MyRecruitmentList';
-export {default as RecruitmentForm} from './(Host)/RecruitmentForm';
-export {default as ApplicantList} from './(Host)/ApplicantList';
-export {default as ApplicantListByRecruit} from './(Host)/ApplicantListByRecruit';
-
-//
-export {default as StoreRegisterForm1} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm1';
-export {default as StoreRegisterForm2} from './(Host)/StoreRegister/StoreRegisterForm/StoreRegisterForm2';
-export {default as StoreRegisterList} from './(Host)/StoreRegister/StoreRegisterList';
-// 이벤트
-export {default as MyMeetList} from './(Host)/Meet/MyMeetList';
-export {default as MyMeetDetail} from './(Host)/Meet/MyMeetDetail';
-export {default as MyMeetAdd} from './(Host)/Meet/MyMeetAdd';
-export {default as MeetBasics} from './(Host)/Meet/MyMeetAdd/MeetBasics';
-export {default as MeetDetails} from './(Host)/Meet/MyMeetAdd/MeetDetails';
-export {default as MeetDirections} from './(Host)/Meet/MyMeetAdd/MeetDirections';
-
 // 🩷(User)
 export {default as ApplicantForm} from './(User)/Employ/ApplicantForm';
 export {default as MyApplicantList} from './(User)/UserMyPage/MyApplicantList';

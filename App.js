@@ -7,14 +7,15 @@ import RootNavigation from '@navigations/RootNavigation';
 import Toast from 'react-native-toast-message';
 import BasicToast from '@components/toasts/BasicToast';
 import ErrorToast from '@components/toasts/ErrorToast';
+import InAppNotificationBanner from '@components/InAppNotificationBanner';
 import DeeplinkHandler from '@utils/deeplinkHandler';
 import { COLORS } from '@constants/colors';
 import { tryAutoLogin } from '@utils/auth/login';
-import useUserStore from '@stores/userStore';
 import LottieView from 'lottie-react-native';
 import { navigationRef } from '@utils/navigationService';
 import messaging from '@react-native-firebase/messaging';
 import { syncFcmToken, setupTokenRefreshListener } from '@utils/fcmService';
+import { publishForegroundNotification } from '@utils/notifications';
 
 import crashlytics from '@react-native-firebase/crashlytics';
 import {
@@ -86,17 +87,7 @@ function AppContent() {
     // 1. 포그라운드 메시지 리스너
     const unsubscribeFCM = messaging().onMessage(async remoteMessage => {
       console.log('Foreground FCM message:', remoteMessage);
-      Toast.show({
-        type: 'success',
-        text1: remoteMessage.notification?.title || '알림',
-        text2: remoteMessage.notification?.body || '새로운 알림이 도착했습니다.',
-        position: 'top',
-        topOffset: 60,
-        onPress: () => {
-          handleNotificationTap(remoteMessage);
-          Toast.hide();
-        }
-      });
+      publishForegroundNotification(remoteMessage);
     });
 
     // 2. 백그라운드 상태에서 알림 배너 터치 시 앱 진입 리스너
@@ -122,22 +113,12 @@ function AppContent() {
         tries++;
       }
 
-      const { type, reservationId } = remoteMessage.data || {};
-      const { userRole } = useUserStore.getState();
+      const { type } = remoteMessage.data || {};
 
       if (type === 'GUESTHOUSE_RESERVATION') {
-        if (userRole === 'HOST') {
-          navigationRef.navigate('MyGuesthouseReservationDetail', { reservationId });
-        } else {
-          navigationRef.navigate('UserReservationCheck');
-        }
+        navigationRef.navigate('UserReservationCheck');
       } else if (type === 'PARTY_RESERVATION') {
-        if (userRole === 'HOST') {
-          // TODO: 추후 사장님용 파티 예약 상세 화면이 만들어지면 예약 상세 컴포넌트로 연결하세요.
-          // 현재는 백엔드에서 reservationId를 정상적으로 주지만 화면이 없어 앱만 실행되도록 둠
-        } else {
-          navigationRef.navigate('UserMeetReservationCheck');
-        }
+        navigationRef.navigate('UserMeetReservationCheck');
       }
     };
 
@@ -172,6 +153,7 @@ function AppContent() {
           }}
         />
       )}
+      <InAppNotificationBanner />
       <Toast config={toastConfig} />
 
       <GlobalAlertModal />

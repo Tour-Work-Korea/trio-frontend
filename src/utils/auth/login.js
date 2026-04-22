@@ -4,7 +4,6 @@ import { Platform } from 'react-native';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
-import hostMyApi from '@utils/api/hostMyApi';
 import { log, mask } from '@utils/logger';
 import { navigate } from '@utils/navigationService';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
@@ -89,11 +88,7 @@ export const storeLoginTokens = async ({
 
   // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
   if (setIsVerified) {
-    if (userRole === 'HOST') {
-      setIsVerified(true); // HOST는 무조건 인증 통과 상태로 간주
-    } else {
-      setIsVerified(needVerification !== "true"); // USER는 서버 응답에 따름
-    }
+    setIsVerified(needVerification !== "true");
   }
 
   await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
@@ -211,54 +206,10 @@ export const tryLogout = async () => {
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);
-  const {
-    setUserProfile,
-    setHostProfile,
-    selectedHostGuesthouseId,
-    setSelectedHostGuesthouseId,
-  } = useUserStore.getState();
+  const { setUserProfile } = useUserStore.getState();
 
   try {
-    if (role === 'HOST') {
-      const res = await hostMyApi.getMyProfile();
-      const { hostId, name, photoUrl, phone, email, businessNum, guesthouseProfiles } =
-        res.data ?? {};
-      const normalizedGuesthouseProfiles = Array.isArray(guesthouseProfiles)
-        ? guesthouseProfiles.map(guesthouse => ({
-          guesthouseId: guesthouse?.guesthouseId ?? null,
-          guesthouseName: guesthouse?.guesthouseName ?? '',
-          profileImageUrl:
-            guesthouse?.profileImageUrl &&
-              guesthouse.profileImageUrl !== '사진을 추가해주세요'
-              ? guesthouse.profileImageUrl
-              : null,
-        }))
-        : [];
-      const profileIds = normalizedGuesthouseProfiles.map((guesthouse, index) =>
-        String(guesthouse.guesthouseId ?? `guesthouse-${index}`),
-      );
-
-      setHostProfile({
-        hostId: hostId ?? null,
-        name: name ?? '',
-        photoUrl:
-          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
-        phone: phone ?? '',
-        email: email ?? '',
-        businessNum: businessNum ?? '',
-        guesthouseProfiles: normalizedGuesthouseProfiles,
-      });
-
-      if (profileIds.length === 0) {
-        setSelectedHostGuesthouseId(null);
-      } else if (
-        !selectedHostGuesthouseId ||
-        !profileIds.includes(String(selectedHostGuesthouseId))
-      ) {
-        setSelectedHostGuesthouseId(profileIds[0]);
-      }
-      log.info('👤 HOST profile loaded');
-    } else if (role === 'USER') {
+    if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
         userId,

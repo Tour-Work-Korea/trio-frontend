@@ -55,15 +55,6 @@ export const toggleFavorite = async ({
 
   const role = useUserStore.getState().userRole;
 
-  if (role === 'HOST') {
-    showErrorModal({
-      message: '좋아요 기능은\n유저 계정으로 로그인 후 사용해주세요',
-      buttonText: '취소',
-      onPress: () => {},
-    });
-    return;
-  }
-
   // UI 먼저 토글
   if (setList) {
     const idKey = conf.listIdKey;
