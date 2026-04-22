@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -9,10 +9,10 @@ import ButtonWhite from '@components/ButtonWhite';
 import styles from '../Login.styles';
 import {COLORS} from '@constants/colors';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 
 export default function FindId({route}) {
-  const {userRole, phoneNumber} = route.params;
+  const {phoneNumber} = route.params;
+  const userRole = 'USER';
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [errorModal, setErrorModal] = useState({
@@ -21,11 +21,7 @@ export default function FindId({route}) {
     buttonText: '',
   });
 
-  useEffect(() => {
-    tryFindId();
-  }, [userRole, phoneNumber]);
-
-  const tryFindId = async () => {
+  const tryFindId = useCallback(async () => {
     try {
       const response = await authApi.findId(phoneNumber, userRole);
       setEmail(response.data);
@@ -38,14 +34,14 @@ export default function FindId({route}) {
         buttonText: '확인',
       });
     }
-  };
+  }, [phoneNumber, userRole]);
 
-  // 사장님 분기
-  const isHost = userRole === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
+  useEffect(() => {
+    tryFindId();
+  }, [tryFindId]);
+
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   return (
     <>
@@ -56,9 +52,6 @@ export default function FindId({route}) {
             <View style={styles.groupParent}>
               <View  style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
-                {isHost && (
-                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
-                )}
               </View>
               <View>
                 <Text style={[styles.titleText]}>아이디를 찾았어요!</Text>

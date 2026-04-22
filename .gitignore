@@ -57,6 +57,7 @@ android/app/release-test-key.jks
 
 # firebase
 android/app/google-services.json
+ios/GoogleService-Info.plist
 
 # Bundle artifact
 *.jsbundle

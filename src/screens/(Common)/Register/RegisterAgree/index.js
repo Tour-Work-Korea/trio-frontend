@@ -3,11 +3,10 @@ import {Text, View, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import ButtonScarlet from '@components/ButtonScarlet';
-import {userRegisterAgrees, hostRegisterAgrees} from '@data/agree';
+import {userRegisterAgrees} from '@data/agree';
 import ButtonWhite from '@components/ButtonWhite';
 
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
@@ -15,19 +14,13 @@ import { COLORS } from '@constants/colors';
 
 const RegisterAgree = ({route}) => {
   const {user, isSocial = false, externalId = null} = route.params;
-  const [agreements, setAgreements] = useState(
-    user === 'USER' ? userRegisterAgrees : hostRegisterAgrees,
-  );
+  const [agreements, setAgreements] = useState(userRegisterAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
   const navigation = useNavigation();
 
-  // 사장님 분기
-  const isHost = user === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   useEffect(() => {
     const allRequired = agreements

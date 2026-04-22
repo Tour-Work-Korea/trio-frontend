@@ -268,20 +268,13 @@ const MeetDetail = () => {
   const handlePressReservation = () => {
     const role = useUserStore.getState().userRole;
 
-    if (role !== 'USER' && role !== 'HOST') {
+    if (role !== 'USER') {
       showErrorModal({
         message: '이벤트는\n 로그인 후 사용해주세요',
         buttonText2: '취소',
         buttonText: '로그인하기',
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
-      });
-      return;
-    }
-
-    if (role === 'HOST') {
-      showErrorModal({
-        message: '이벤트는\n유저 계정으로 로그인 후 사용해주세요',
       });
       return;
     }
@@ -674,9 +667,8 @@ const MeetDetail = () => {
         <TouchableOpacity 
           style={styles.profileBox}
           onPress={() =>
-            navigation.navigate('HostProfilePage', {
-              isHostMy: false,
-              guesthouseId: detail?.guesthouseId ?? detail?.profileSummary?.guesthouseId,
+            navigation.navigate('GuesthouseDetail', {
+              id: detail?.guesthouseId ?? detail?.profileSummary?.guesthouseId,
             })
           }
         >

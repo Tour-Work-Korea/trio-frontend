@@ -51,12 +51,7 @@ export default function PostProfileSection({
           gap: 12,
           marginTop: 12,
         }}
-        onPress={() =>
-          navigation.navigate('HostProfilePage', {
-            isHostMy: false,
-            guesthouseId,
-          })
-        }
+        onPress={() => navigation.navigate('GuesthouseDetail', {id: guesthouseId})}
       >
         <Avatar uri={guesthouseImgUrl} size={40} iconSize={16} style={styles.profileImg} />
         <View>

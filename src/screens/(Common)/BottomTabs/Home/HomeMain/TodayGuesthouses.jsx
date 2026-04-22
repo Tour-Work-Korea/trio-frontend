@@ -127,9 +127,8 @@ export default function TodayGuesthouses() {
             <View style={styles.bottomRow}>
               <TouchableOpacity
                 onPress={() =>
-                  navigation.navigate('HostProfilePage', {
-                    isHostMy: false,
-                    guesthouseId: item.guesthouseId,
+                  navigation.navigate('GuesthouseDetail', {
+                    id: item.guesthouseId,
                   })
                 }
                 style={styles.bottomLeft}

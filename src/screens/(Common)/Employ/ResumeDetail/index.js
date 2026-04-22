@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {View, ScrollView} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
@@ -15,7 +15,6 @@ import {parseDotDateToLocalDate} from '@utils/formatDate';
 import AlertModal from '@components/modals/AlertModal';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
-import hostEmployApi from '@utils/api/hostEmployApi';
 import EmptyState from '@components/EmptyState';
 
 import styles from './MyResumeDetail.styles';
@@ -26,7 +25,6 @@ const ResumeDetail = ({route}) => {
   const {
     id = null,
     isEditable = false,
-    role = 'USER',
     isNew = false,
     headerTitle = '이력서 수정',
   } = route.params || {};
@@ -44,20 +42,9 @@ const ResumeDetail = ({route}) => {
   });
   const [newResumeSuccess, setNewResumeSuccess] = useState(false);
 
-  useEffect(() => {
-    if (id != null) {
-      tryFetchResumeById();
-    }
-  }, []);
-
-  const tryFetchResumeById = async () => {
+  const tryFetchResumeById = useCallback(async () => {
     try {
-      let response;
-      if (role === 'HOST') {
-        response = await hostEmployApi.getApplicantDetail(id);
-      } else {
-        response = await userEmployApi.getResumeById(id);
-      }
+      const response = await userEmployApi.getResumeById(id);
       const parsedFormData = {
         resumeTitle: response.data.resumeTitle || '',
         selfIntro: response.data.selfIntro || '',
@@ -74,7 +61,13 @@ const ResumeDetail = ({route}) => {
         buttonText: '확인',
       });
     }
-  };
+  }, [id]);
+
+  useEffect(() => {
+    if (id != null) {
+      tryFetchResumeById();
+    }
+  }, [id, tryFetchResumeById]);
 
   const tryUpdateResumeById = async () => {
     try {

@@ -1,13 +1,14 @@
 // authFlow.js
 import EncryptedStorage from 'react-native-encrypted-storage';
-import {Platform} from 'react-native';
+import { Platform } from 'react-native';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
-import hostMyApi from '@utils/api/hostMyApi';
-import {log, mask} from '@utils/logger';
-import {navigate} from '@utils/navigationService';
+import { log, mask } from '@utils/logger';
+import { navigate } from '@utils/navigationService';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
+import { syncFcmToken } from '@utils/fcmService';
+import notificationApi from '@utils/api/notificationApi';
 
 const REFRESH_KEY = 'refresh-token';
 
@@ -20,21 +21,24 @@ export const tryKakaoLoginNative = async (userRole) => {
 
     // 2. 획득한 accessToken을 백엔드로 전달
     const res = await authApi.loginKakao(kakaoToken.accessToken);
-    
+
     // 3. 백엔드에서 응답받은 우리 서비스의 토큰을 저장
     await storeLoginInfo(res, userRole);
-    
+
+    // 4. FCM 토큰 동기화 (Authorization 헤더가 설정된 상태로 등록)
+    await syncFcmToken();
+
     return {
-      success: true, 
-      isNewUser: res.data.isNewUser, 
+      success: true,
+      isNewUser: res.data.isNewUser,
       externalId: res.data.externalId
     };
   } catch (err) {
     log.warn('❌ tryKakaoLoginNative failed:', err?.message);
     useUserStore.getState().clearUser();
-    
+
     return {
-      success: false, 
+      success: false,
       message: err?.message
     };
   }
@@ -47,10 +51,10 @@ export const tryAutoLogin = async () => {
     log.info('🔐 has refreshToken?', !!storedRefresh);
     if (!storedRefresh) return false;
 
-    const ok = await tryRefresh({silent: true});
+    const ok = await tryRefresh({ silent: true });
     log.info('🚪 tryAutoLogin: refresh result =', ok);
     if (ok) {
-      const {userRole} = useUserStore.getState();
+      const { userRole } = useUserStore.getState();
       log.info('👤 tryAutoLogin: userRole =', userRole);
       if (userRole) await updateProfile(userRole);
     }
@@ -78,17 +82,13 @@ export const storeLoginTokens = async ({
     needVerification
   );
 
-  const {setTokens, setUserRole, setIsVerified} = useUserStore.getState();
-  setTokens({accessToken});
+  const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
+  setTokens({ accessToken });
   setUserRole(userRole);
 
   // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
   if (setIsVerified) {
-    if (userRole === 'HOST') {
-      setIsVerified(true); // HOST는 무조건 인증 통과 상태로 간주
-    } else {
-      setIsVerified(needVerification !== "true"); // USER는 서버 응답에 따름
-    }
+    setIsVerified(needVerification !== "true");
   }
 
   await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
@@ -101,7 +101,7 @@ export const storeLoginTokens = async ({
 const storeLoginInfo = async (res, userRole) => {
   const { accessToken, refreshToken, needVerification } = res.data;
 
-  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification});
+  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification });
 };
 
 export const tryLogin = async (email, password, userRole) => {
@@ -109,6 +109,10 @@ export const tryLogin = async (email, password, userRole) => {
   try {
     const res = await authApi.login(email, password, userRole);
     await storeLoginInfo(res, userRole);
+
+    log.info('🔓 tryLogin: sync FCM token');
+    await syncFcmToken();
+
     return res.data;
   } catch (err) {
     log.warn('❌ tryLogin failed:', err?.response?.status, err?.message);
@@ -135,7 +139,7 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
     await storeLoginInfo(res, userRole);
-    return {success: true, isNewUser: res.data.isNewUser};
+    return { success: true, isNewUser: res.data.isNewUser };
   } catch (err) {
     log.warn('❌ tryKakaoLogin failed:', err?.message);
     useUserStore.getState().clearUser();
@@ -143,11 +147,11 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
     const check = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🧹 removed refresh?', !check);
 
-    return {success: false};
+    return { success: false };
   }
 };
 
-export const tryRefresh = async ({silent = false} = {}) => {
+export const tryRefresh = async ({ silent = false } = {}) => {
   log.info('🔄 tryRefresh: start');
   try {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
@@ -160,7 +164,7 @@ export const tryRefresh = async ({silent = false} = {}) => {
     const accessToken = res.data.accessToken;
     const refreshTokenUpdated = res.data.refreshToken;
 
-    useUserStore.getState().setTokens({accessToken});
+    useUserStore.getState().setTokens({ accessToken });
     log.info('🔄 tryRefresh: new accessToken=', mask(accessToken));
 
     if (refreshTokenUpdated) {
@@ -174,7 +178,7 @@ export const tryRefresh = async ({silent = false} = {}) => {
     useUserStore.getState().clearUser();
 
     if (!silent) {
-      navigate('Login', {reason: 'refresh_failed'});
+      navigate('Login', { reason: 'refresh_failed' });
     }
     return false;
   }
@@ -183,6 +187,11 @@ export const tryRefresh = async ({silent = false} = {}) => {
 export const tryLogout = async () => {
   log.info('🚪 tryLogout');
   try {
+    try {
+      await notificationApi.logoutToken();
+    } catch (e) {
+      log.warn('FCM 토큰 로그아웃 실패:', e?.message);
+    }
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     await authApi.logout(storedRefresh);
     await EncryptedStorage.removeItem(REFRESH_KEY);
@@ -197,54 +206,10 @@ export const tryLogout = async () => {
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);
-  const {
-    setUserProfile,
-    setHostProfile,
-    selectedHostGuesthouseId,
-    setSelectedHostGuesthouseId,
-  } = useUserStore.getState();
+  const { setUserProfile } = useUserStore.getState();
 
   try {
-    if (role === 'HOST') {
-      const res = await hostMyApi.getMyProfile();
-      const {hostId, name, photoUrl, phone, email, businessNum, guesthouseProfiles} =
-        res.data ?? {};
-      const normalizedGuesthouseProfiles = Array.isArray(guesthouseProfiles)
-        ? guesthouseProfiles.map(guesthouse => ({
-            guesthouseId: guesthouse?.guesthouseId ?? null,
-            guesthouseName: guesthouse?.guesthouseName ?? '',
-            profileImageUrl:
-              guesthouse?.profileImageUrl &&
-              guesthouse.profileImageUrl !== '사진을 추가해주세요'
-                ? guesthouse.profileImageUrl
-                : null,
-          }))
-        : [];
-      const profileIds = normalizedGuesthouseProfiles.map((guesthouse, index) =>
-        String(guesthouse.guesthouseId ?? `guesthouse-${index}`),
-      );
-
-      setHostProfile({
-        hostId: hostId ?? null,
-        name: name ?? '',
-        photoUrl:
-          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
-        phone: phone ?? '',
-        email: email ?? '',
-        businessNum: businessNum ?? '',
-        guesthouseProfiles: normalizedGuesthouseProfiles,
-      });
-
-      if (profileIds.length === 0) {
-        setSelectedHostGuesthouseId(null);
-      } else if (
-        !selectedHostGuesthouseId ||
-        !profileIds.includes(String(selectedHostGuesthouseId))
-      ) {
-        setSelectedHostGuesthouseId(profileIds[0]);
-      }
-      log.info('👤 HOST profile loaded');
-    } else if (role === 'USER') {
+    if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
       const {
         userId,

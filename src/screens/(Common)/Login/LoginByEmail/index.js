@@ -17,11 +17,10 @@ import styles from '../Login.styles';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 import {COLORS} from '@constants/colors';
 
 export default function LoginByEmail({route}) {
-  const {userRole} = route.params;
+  const userRole = route?.params?.userRole ?? 'USER';
   const navigation = useNavigation();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -33,12 +32,8 @@ export default function LoginByEmail({route}) {
     color: mainColor,
   });
 
-  // 호스트 분기
-  const isHost = userRole === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   const handleMoveToRegister = () => {
     navigation.navigate('RegisterAgree', {user: userRole});
@@ -96,9 +91,6 @@ export default function LoginByEmail({route}) {
             <View style={styles.groupParent}>
               <MainLogo width={60} height={29} />
               <Text style={[styles.titleText]}>이메일로 로그인해주세요</Text>
-              {isHost && (
-                <Text style={styles.subTitleText}>비즈니스 로그인</Text>
-              )}
             </View>
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
