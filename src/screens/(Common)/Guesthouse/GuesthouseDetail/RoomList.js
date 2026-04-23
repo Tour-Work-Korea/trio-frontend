@@ -56,6 +56,7 @@ const RoomList = ({
       guestCount: guestCountOverride ?? totalGuestCount,
       roomImages: room.roomImages || [],
       totalPrice: room.totalPrice ?? detail.totalPrice,
+      reservationPolicyMode: detail?.reservationPolicy?.mode,
     });
   };
 
@@ -149,7 +150,7 @@ const RoomList = ({
 
   const renderCommonCardShell = (room, topInfoNode, reserved, guestCount) => {
     const thumbnailImage = getThumbnailImage(room);
-    
+
     return (
       <View>
         <View style={styles.roomCard}>
@@ -163,7 +164,7 @@ const RoomList = ({
 
           <View style={styles.roomInfo}>
             <View style={styles.roomNameDescContainer}>
-              <View style={[styles.roomInfoRow, {gap: 4}]}>
+              <View style={[styles.roomHeaderRow, {gap: 4}]}>
                 <View style={styles.roomNameTextWrapper}>
                   <Text
                     style={[FONTS.fs_16_semibold, styles.roomType]}
@@ -192,6 +193,7 @@ const RoomList = ({
     const genderText = dormitoryGenderMap[room.dormitoryGenderType] || '';
     const remaining = typeof room.remaining === 'number' ? room.remaining : 0;
     const isGuestCountOverRemaining = totalGuestCount > remaining;
+    const isReservationClosed = detail?.reservationPolicy?.mode === 'CLOSED';
     const dormitoryInfo = (
       <>
         <View style={styles.roomInfoRow}>
@@ -234,7 +236,7 @@ const RoomList = ({
           </Text>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.roomDetailBtn}
           onPress={() => {
             goRoomDetail(room, totalGuestCount);
@@ -246,39 +248,41 @@ const RoomList = ({
           <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
-        <View style={styles.roomInfoBottomRow}>
-          <View style={styles.remainingRow}>
-            <Text style={[FONTS.fs_14_medium, styles.remainingText]}>베드 수</Text>
-            <Text style={[FONTS.fs_14_medium, styles.remainingText]}>
-              {totalGuestCount}
-            </Text>
-          </View>
-          <View style={{gap: 4, width: 128, alignItems: 'center'}}>
-            <Text
-              style={[
-                FONTS.fs_14_medium,
-                styles.roomType,
-                {color: COLORS.primary_orange},
-              ]}
-            >
-                남아 있는 베드 수 {room.remaining}개
-            </Text>
-            {reserved ? (
-              <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}>
-                예약 마감
+        {!isReservationClosed && (
+          <View style={styles.roomInfoBottomRow}>
+            <View style={styles.remainingRow}>
+              <Text style={[FONTS.fs_14_medium, styles.remainingText]}>베드 수</Text>
+              <Text style={[FONTS.fs_14_medium, styles.remainingText]}>
+                {totalGuestCount}
               </Text>
-            ) : (
-              <ButtonWhite
-                title='예약하기'
-                backgroundColor={COLORS.primary_orange}
-                textColor={COLORS.grayscale_0}
-                disabled={isGuestCountOverRemaining}
-                onPress={() => handleReservationPress(room, totalGuestCount)}
-              />
-            )}
+            </View>
+            <View style={{gap: 4, width: 128, alignItems: 'center'}}>
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.roomType,
+                  {color: COLORS.primary_orange},
+                ]}
+              >
+                  남아 있는 베드 수 {room.remaining}개
+              </Text>
+              {reserved ? (
+                <Text
+                  style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}>
+                  예약 마감
+                </Text>
+              ) : (
+                <ButtonWhite
+                  title='예약하기'
+                  backgroundColor={COLORS.primary_orange}
+                  textColor={COLORS.grayscale_0}
+                  disabled={isGuestCountOverRemaining}
+                  onPress={() => handleReservationPress(room, totalGuestCount)}
+                />
+              )}
+            </View>
           </View>
-        </View>
+        )}
       </>
     );
 
@@ -288,6 +292,7 @@ const RoomList = ({
   // 일반객실 카드
   const renderNormalRoom = (room, reserved) => {
     const isOverCapacity = totalGuestCount > room.roomMaxCapacity;
+    const isReservationClosed = detail?.reservationPolicy?.mode === 'CLOSED';
 
     const normalInfo = (
       <>
@@ -319,7 +324,7 @@ const RoomList = ({
           </Text>
         </View>
 
-        <TouchableOpacity 
+        <TouchableOpacity
           style={styles.roomDetailBtn}
           onPress={() => {
             goRoomDetail(room, totalGuestCount);
@@ -331,35 +336,37 @@ const RoomList = ({
           <RightArrow width={16} height={16}/>
         </TouchableOpacity>
 
-        <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>
-          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-            <Text
-              style={[FONTS.fs_14_medium, styles.roomType]}
-            >
-              {room.roomCapacity}인 기준(최대 {room.roomMaxCapacity}인)
-            </Text>
-            <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-              {room.femaleOnly ? ', 여성전용' : ''}
-            </Text>
-          </View>
-          <View style={{width: 128, alignItems: 'center'}}>
-            {reserved ? (
+        {!isReservationClosed && (
+          <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>
+            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
               <Text
-                style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}
+                style={[FONTS.fs_14_medium, styles.roomType]}
               >
-                예약 마감
+                {room.roomCapacity}인 기준(최대 {room.roomMaxCapacity}인)
               </Text>
-            ) : (
-              <ButtonWhite
-                title='예약하기'
-                backgroundColor={COLORS.primary_orange}
-                textColor={COLORS.grayscale_0}
-                disabled={isOverCapacity}
-                onPress={() => handleReservationPress(room, totalGuestCount)}
-              />
-            )}
+              <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                {room.femaleOnly ? ', 여성전용' : ''}
+              </Text>
+            </View>
+            <View style={{width: 128, alignItems: 'center'}}>
+              {reserved ? (
+                <Text
+                  style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}
+                >
+                  예약 마감
+                </Text>
+              ) : (
+                <ButtonWhite
+                  title='예약하기'
+                  backgroundColor={COLORS.primary_orange}
+                  textColor={COLORS.grayscale_0}
+                  disabled={isOverCapacity}
+                  onPress={() => handleReservationPress(room, totalGuestCount)}
+                />
+              )}
+            </View>
           </View>
-        </View>
+        )}
       </>
     );
 

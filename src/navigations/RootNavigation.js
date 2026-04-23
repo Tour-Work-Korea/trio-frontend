@@ -16,6 +16,7 @@ import {
   MeetReservation,
   MeetPaymentSuccess,
   GuesthouseDetail,
+  GuesthouseMap,
   RoomDetail,
   GuesthouseReservation,
   CouponSelectScreen,
@@ -73,6 +74,7 @@ const RootNavigation = () => (
 
       <Stack.Screen name="RoomDetail" component={RoomDetail} />
       <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
+      <Stack.Screen name="GuesthouseLocationMap" component={GuesthouseMap} />
       <Stack.Screen
         name="GuesthouseReservation"
         component={GuesthouseReservation}
