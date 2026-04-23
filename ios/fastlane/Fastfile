@@ -122,7 +122,7 @@ platform :ios do
   desc "App Store release (PROD)"
   lane :release do
     build_common(
-      scheme: "WorkAway-Prod"
+      scheme: "trioFrontendApp"
     )
 
     upload_to_testflight(
