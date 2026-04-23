@@ -117,6 +117,10 @@ jobs:
           echo "CI_VERSION_CODE=$(($VERSION_OFFSET + ${{ github.run_number }}))" >> $GITHUB_ENV
           echo "CI_VERSION_NAME=${APP_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
+      - name: Decode google-services.json
+        run: |
+          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+
       - name: Set keystore env
         run: |
           echo "KEYSTORE_PATH=test-release-key.jks" >> $GITHUB_ENV
