@@ -24,16 +24,15 @@ import ButtonWhite from '@components/ButtonWhite';
 import LogoSmile from '@assets/images/logo_blue_smile.svg';
 import Logo from '@assets/images/logo_orange.svg';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 import ShowPassword from '@assets/images/show_password.svg';
 import HidePassword from '@assets/images/hide_password.svg';
 import {COLORS} from '@constants/colors';
 import styles from '../Login.styles';
 
 const FindPassword = ({route}) => {
-  const {phoneNumber, userRole, updateProfile} = route.params;
-  const editProfileRoute =
-    userRole === 'HOST' ? 'HostEditProfile' : 'UserEditInfo';
+  const {phoneNumber, updateProfile} = route.params;
+  const userRole = 'USER';
+  const editProfileRoute = 'UserEditInfo';
   const navigation = useNavigation();
   const [formData, setFormData] = useState({
     newPassword: '',
@@ -52,12 +51,8 @@ const FindPassword = ({route}) => {
     },
   });
 
-  // 사장님 분기
-  const isHost = userRole === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
   const [isPasswordCheckVisible, setIsPasswordCheckVisible] = useState(false);
@@ -195,9 +190,6 @@ const FindPassword = ({route}) => {
             <View style={styles.groupParent}>
               <View  style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
-                {isHost && (
-                  <Text style={styles.subTitleText}>워커웨이 비즈니스</Text>
-                )}
               </View>
               <Text style={styles.titleText}>비밀번호를 재설정 해주세요!</Text>
               {/* 비밀번호 입력 */}

@@ -16,10 +16,8 @@ const Settings = () => {
   const navigation = useNavigation();
   const [modalVisible, setModalVisible] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
-  const userRole = useUserStore(state => state.userRole);
   const userProfile = useUserStore(state => state.userProfile);
-  const hostProfile = useUserStore(state => state.hostProfile);
-  const accountProfile = userRole === 'HOST' ? hostProfile : userProfile;
+  const accountProfile = userProfile;
 
   const accountName = accountProfile?.name;
   const accountEmail = accountProfile?.email;
@@ -80,7 +78,7 @@ const Settings = () => {
                     onPress={() =>
                       navigation.navigate('FindIntro', {
                         find: 'password',
-                        userRole,
+                        userRole: 'USER',
                         originPhone: accountPhone,
                       })
                     }>

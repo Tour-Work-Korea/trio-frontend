@@ -12,7 +12,6 @@ import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarletLogo from '@components/ButtonScarletLogo';
 import AlertModal from '@components/modals/AlertModal';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import LogoBlue from '@assets/images/logo_blue.svg';
 import {COLORS} from '@constants/colors';
 import {useFocusEffect} from '@react-navigation/native';
 import authApi from '@utils/api/authApi';
@@ -37,12 +36,8 @@ export const Email = ({user, onPress}) => {
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
   const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
 
-   // 사장님 분기
-  const isHost = user === 'HOST';
-  const MainLogo = isHost ? LogoBlue : LogoOrange;
-  const mainColor = isHost
-    ? COLORS.primary_blue
-    : COLORS.primary_orange;
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
 
   useFocusEffect(
     useCallback(() => {
@@ -62,7 +57,7 @@ export const Email = ({user, onPress}) => {
         color: mainColor,
       });
       setLoading(false);
-    }, []),
+    }, [mainColor]),
   );
 
   // 타이머 기능
@@ -109,7 +104,7 @@ export const Email = ({user, onPress}) => {
         onPress(email);
       }, 850);
     }
-  }, [isCodeVerified]);
+  }, [email, isCodeVerified, onPress]);
 
   // 인증번호 전송
   const sendVerificationCode = async () => {
@@ -180,11 +175,6 @@ export const Email = ({user, onPress}) => {
             <View style={styles.groupParent}>
               <View  style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
-                {isHost && (
-                  <View style={styles.subTitleContainer}>
-                    <Text style={styles.subTitleText}>워커웨이 파트너스</Text>
-                  </View>
-                )}
                 <View style={{width: 60, height: 29}} />
               </View>
               <Text style={[styles.titleText]}>이메일 인증</Text>

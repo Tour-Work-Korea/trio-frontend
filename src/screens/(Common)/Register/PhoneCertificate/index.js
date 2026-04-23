@@ -3,7 +3,7 @@
   import Toast from 'react-native-toast-message';
 
   import UserPhone from '@components/Certificate/UserPhone';
-  import HostPhone from '@components/Certificate/HostPhone';
+  import useUserStore from '@stores/userStore';
   import authApi from '@utils/api/authApi';
   import {storeLoginTokens} from '@utils/auth/login';
 
@@ -12,7 +12,6 @@
   /**
    * PhoneCertificate 역할
    * - USER: NICE(UserPhone) 인증 → niceAuthToken 받기 → check-status 호출 → 다음 화면 이동
-   * - HOST: 기존 SMS(HostPhone) 인증 → phoneNumber 받기 → 다음 화면 이동
    */
   const PhoneCertificate = ({route}) => {
     const {user, agreements, email, isSocial = false, externalId = null, isUpdateCi = false} =
@@ -237,24 +236,9 @@
       }
     };
 
-    // 호스트
-    const handleHostPhoneVerifiedSuccess = phoneNumber => {
-      navigation.navigate('HostRegisterInfo', {
-        agreements,
-        email,
-        phoneNumber,
-      });
-    };
-
-    const isHost = user === 'HOST';
-
     return (
       <>
-        {isHost ? (
-          <HostPhone user={user} onPress={handleHostPhoneVerifiedSuccess} />
-        ) : (
-          <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
-        )}
+        <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
 
         <AlertModal
           visible={errorModal.visible}

@@ -25,18 +25,6 @@ const useUserStore = create(
         birthDate: '',
         age: '',
       },
-      // 사장 프로필
-      hostProfile: {
-        hostId: null,
-        name: '',
-        photoUrl: null,
-        phone: '',
-        email: '',
-        businessNum: '',
-        guesthouseProfiles: [],
-      },
-      selectedHostGuesthouseId: null,
-
       // 토큰 저장 함수
       setTokens: ({accessToken}) => set({accessToken}),
 
@@ -48,11 +36,6 @@ const useUserStore = create(
 
       // 인증 상태 저장 함수
       setIsVerified: (status) => set({ isVerified: status }),
-
-      //사장 프로필 저장 함수
-      setHostProfile: profile => set({hostProfile: profile}),
-      setSelectedHostGuesthouseId: selectedHostGuesthouseId =>
-        set({selectedHostGuesthouseId}),
 
       // 전체 초기화 (로그아웃 시 사용)
       clearUser: () =>
@@ -71,16 +54,6 @@ const useUserStore = create(
             mbti: '',
             instagramId: '',
           },
-          hostProfile: {
-            hostId: null,
-            name: '',
-            photoUrl: null,
-            phone: '',
-            email: '',
-            businessNum: '',
-            guesthouseProfiles: [],
-          },
-          selectedHostGuesthouseId: null,
         }),
     }),
     {

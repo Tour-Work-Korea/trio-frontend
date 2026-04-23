@@ -6,7 +6,6 @@ import {
   SocialLogin,
   EmailCertificate,
   PhoneCertificate,
-  HostRegisterInfo,
   AgreeDetail,
   UserRegisterProfile,
   Result,
@@ -27,7 +26,6 @@ export default function Register() {
         name="UserRegisterProfile"
         component={UserRegisterProfile}
       />
-      <Stack.Screen name="HostRegisterInfo" component={HostRegisterInfo} />
       <Stack.Screen name="Result" component={Result} />
     </Stack.Navigator>
   );

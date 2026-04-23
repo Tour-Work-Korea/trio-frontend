@@ -1,17 +1,21 @@
 import 'react-native-reanimated';
-import React, {useState, useEffect} from 'react';
-import {Platform, StatusBar, StyleSheet, View} from 'react-native';
+import React, { useState, useEffect } from 'react';
+import { Platform, StatusBar, StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 
 import RootNavigation from '@navigations/RootNavigation';
 import Toast from 'react-native-toast-message';
 import BasicToast from '@components/toasts/BasicToast';
 import ErrorToast from '@components/toasts/ErrorToast';
+import InAppNotificationBanner from '@components/InAppNotificationBanner';
 import DeeplinkHandler from '@utils/deeplinkHandler';
-import {COLORS} from '@constants/colors';
-import {tryAutoLogin} from '@utils/auth/login';
+import { COLORS } from '@constants/colors';
+import { tryAutoLogin } from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
-import {navigationRef} from '@utils/navigationService';
+import { navigationRef } from '@utils/navigationService';
+import messaging from '@react-native-firebase/messaging';
+import { syncFcmToken, setupTokenRefreshListener } from '@utils/fcmService';
+import { publishForegroundNotification } from '@utils/notifications';
 
 import crashlytics from '@react-native-firebase/crashlytics';
 import {
@@ -28,12 +32,12 @@ const toastConfig = {
   error: props => <ErrorToast {...props} />,
 };
 
-function SplashOverlay({onFinish}) {
+function SplashOverlay({ onFinish }) {
   return (
     <View style={styles.splashOverlay}>
       <LottieView
         source={require('@assets/lottie/splash.json')}
-        style={{width: 180, height: 153}}
+        style={{ width: 180, height: 153 }}
         autoPlay
         loop={false}
         onAnimationFinish={onFinish}
@@ -61,7 +65,17 @@ function AppContent() {
       try {
         await wait(120);
         await waitForNavReady();
+
+        // 1. 자동 로그인(토큰 갱신 등)을 먼저 수행
         await tryAutoLogin();
+
+        // 2. 이후 FCM 토큰 동기화 및 갱신 리스너 등록 (로그인 여부에 따라 헤더 삽입 결정)
+        await syncFcmToken();
+        const unsubscribeTokenRefresh = setupTokenRefreshListener();
+
+        return () => {
+          if (unsubscribeTokenRefresh) unsubscribeTokenRefresh();
+        };
       } finally {
         setAppLoaded(true); // 스플래시 제거
       }
@@ -69,6 +83,49 @@ function AppContent() {
 
     bootstrap();
     crashlytics().log('App mounted - Crashlytics initialized');
+
+    // 1. 포그라운드 메시지 리스너
+    const unsubscribeFCM = messaging().onMessage(async remoteMessage => {
+      console.log('Foreground FCM message:', remoteMessage);
+      publishForegroundNotification(remoteMessage);
+    });
+
+    // 2. 백그라운드 상태에서 알림 배너 터치 시 앱 진입 리스너
+    const unsubscribeOnNotificationOpenedApp = messaging().onNotificationOpenedApp(remoteMessage => {
+      console.log('Background FCM message tap:', remoteMessage);
+      handleNotificationTap(remoteMessage);
+    });
+
+    // 3. 완전히 앱이 파괴(Killed)된 상태에서 탭하여 앱 부팅 시
+    messaging().getInitialNotification().then(remoteMessage => {
+      if (remoteMessage) {
+        console.log('Killed FCM message tap:', remoteMessage);
+        handleNotificationTap(remoteMessage);
+      }
+    });
+
+    // 화면 이동을 처리해 주는 헬퍼 로직
+    const handleNotificationTap = async (remoteMessage) => {
+      // 내비게이션 레퍼런스가 활성화될 때까지 잠깐 대기
+      let tries = 0;
+      while (!navigationRef.isReady() && tries < 100) {
+        await wait(30);
+        tries++;
+      }
+
+      const { type } = remoteMessage.data || {};
+
+      if (type === 'GUESTHOUSE_RESERVATION') {
+        navigationRef.navigate('UserReservationCheck');
+      } else if (type === 'PARTY_RESERVATION') {
+        navigationRef.navigate('UserMeetReservationCheck');
+      }
+    };
+
+    return () => {
+      unsubscribeFCM();
+      unsubscribeOnNotificationOpenedApp();
+    };
   }, []);
 
   return (
@@ -77,7 +134,7 @@ function AppContent() {
         edges={['top']}
         style={[
           styles.container,
-          Platform.OS === 'android' && {paddingBottom: insets.bottom},
+          Platform.OS === 'android' && { paddingBottom: insets.bottom },
         ]}>
         <StatusBar
           translucent={false}
@@ -96,6 +153,7 @@ function AppContent() {
           }}
         />
       )}
+      <InAppNotificationBanner />
       <Toast config={toastConfig} />
 
       <GlobalAlertModal />
