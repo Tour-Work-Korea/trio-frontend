@@ -22,6 +22,10 @@ const styles = StyleSheet.create({
   // 상단
   title: {
   },
+  pendingNotice: {
+    marginTop: 6,
+    color: COLORS.semantic_red,
+  },
   guesthouseName: {
     marginTop: 16,
   },
@@ -145,6 +149,32 @@ const styles = StyleSheet.create({
   },
   copyBtnText: {
     color: COLORS.grayscale_700,
+  },
+  actualGuestBox: {
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 12,
+    paddingHorizontal: 12,
+    paddingVertical: 10,
+    marginTop: 8,
+  },
+  actualGuestTitle: {
+    color: COLORS.grayscale_700,
+    marginBottom: 4,
+  },
+  requestBox: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    padding: 12,
+    marginTop: 12,
+  },
+  requestTitle: {
+    color: COLORS.grayscale_700,
+    marginBottom: 8,
+  },
+  requestText: {
+    color: COLORS.grayscale_900,
+    lineHeight: 20,
   },
 
   divider: {

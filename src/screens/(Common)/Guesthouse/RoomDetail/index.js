@@ -54,6 +54,8 @@ const RoomDetail = ({route}) => {
     roomMaxCapacity,
     femaleOnly,
     totalPrice,
+    refundPolicies,
+    reservationPolicy,
     reservationPolicyMode,
   } = route.params;
   const isReservationClosed = reservationPolicyMode === 'CLOSED';
@@ -307,6 +309,8 @@ const RoomDetail = ({route}) => {
                   roomCapacity,
                   roomMaxCapacity,
                   femaleOnly,
+                  refundPolicies,
+                  reservationPolicy,
                 });
               }
             }}

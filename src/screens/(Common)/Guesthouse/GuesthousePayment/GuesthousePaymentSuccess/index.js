@@ -1,10 +1,9 @@
 import React, {useEffect} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import { View, Text, StyleSheet, Platform } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
-import ButtonScarlet from '@components/ButtonScarlet';
 
 import Logo from '@assets/images/guesthouse_reservation_success.svg';
 
@@ -12,6 +11,11 @@ const GuesthousePaymentSuccess = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const { reservationId, receiptContext } = route.params || {};
+  const isRequestConfirmationReservation =
+    receiptContext?.reservationPolicy?.mode === 'REQUEST_CONFIRMATION';
+  const successMessage = isRequestConfirmationReservation
+    ? '예약 요청 완료!\n호스트 승인 후 예약이 최종 확정됩니다'
+    : '결제 완료되었어요!\n이제 떠날 일만 남았어요';
 
   // 2초뒤 예약 획정 화면
   useEffect(() => {
@@ -24,29 +28,16 @@ const GuesthousePaymentSuccess = () => {
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
-
-  // const handleGoHome = () => {
-  //   navigation.navigate('MainTabs', { screen: '홈' });
-  // };
+  }, [navigation, receiptContext, reservationId]);
 
   return (
     <View style={styles.container}>
       <Logo />
       <View>
         <Text style={[FONTS.fs_20_semibold, styles.text]}>
-          결제 완료되었어요!
-          {'\n'} 이제 떠날 일만 남았어요 
+          {successMessage}
         </Text>
-        {/* <Text style={[FONTS.fs_16_medium, styles.subText]}>
-          예약 확인이 완료되면 문자로 입금 안내를 드릴게요. {'\n'}
-          입금이 완료되면 예약이 확정됩니다. 🌿
-        </Text> */}
       </View>
-
-      {/* <View style={styles.button}>
-        <ButtonScarlet title={'홈으로'} onPress={handleGoHome}/>
-      </View> */}
     </View>
   );
 };

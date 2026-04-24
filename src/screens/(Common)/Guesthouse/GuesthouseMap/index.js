@@ -74,14 +74,12 @@ const GuesthouseMap = ({route}) => {
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.addressCard}
-          onPress={handleCopyAddress}
-        >
+          onPress={handleCopyAddress}>
           <CopyIcon width={24} height={24} />
           <Text
             style={[FONTS.fs_16_medium, styles.addressText]}
             numberOfLines={1}
-            ellipsizeMode="tail"
-          >
+            ellipsizeMode="tail">
             {guesthouseAddress || '주소 정보가 없어요'}
           </Text>
         </TouchableOpacity>

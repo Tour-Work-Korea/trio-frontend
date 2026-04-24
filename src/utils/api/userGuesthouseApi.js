@@ -100,6 +100,11 @@ const userGuesthouseApi = {
       params: { page, size },
       withAuth: false,
     }),
+
+  getGuesthouseAmenities: () =>
+    api.get('/user/guesthouses/amenities', {
+      withAuth: false,
+    }),
 };
 
 export default userGuesthouseApi;

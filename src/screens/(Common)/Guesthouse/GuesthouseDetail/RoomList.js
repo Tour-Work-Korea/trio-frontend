@@ -56,6 +56,8 @@ const RoomList = ({
       guestCount: guestCountOverride ?? totalGuestCount,
       roomImages: room.roomImages || [],
       totalPrice: room.totalPrice ?? detail.totalPrice,
+      refundPolicies: detail?.refundPolicies,
+      reservationPolicy: detail?.reservationPolicy,
       reservationPolicyMode: detail?.reservationPolicy?.mode,
     });
   };
@@ -145,6 +147,8 @@ const RoomList = ({
       roomCapacity: room.roomCapacity,
       roomMaxCapacity: room.roomMaxCapacity,
       femaleOnly: room.femaleOnly,
+      refundPolicies: detail?.refundPolicies,
+      reservationPolicy: detail?.reservationPolicy,
     });
   };
 

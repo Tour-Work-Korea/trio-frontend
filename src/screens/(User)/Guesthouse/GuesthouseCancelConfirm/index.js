@@ -17,10 +17,19 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import {formatLocalDateToDotWithDay} from '@utils/formatDate';
+import {
+  applyRefundPoliciesToAgreementHtml,
+  normalizeRefundPolicies,
+} from '@utils/refundPolicyAgreement';
+import {
+  getRefundPolicyResult,
+  REFUND_POLICY_RESULT,
+} from '@utils/refundPolicy';
 import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationCancelConfirmModal from '@components/modals/Guesthouse/ReservationCancelConfirmModal';
+import AlertModal from '@components/modals/AlertModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import Toast from 'react-native-toast-message';
 
@@ -44,6 +53,12 @@ const GuesthouseCancelConfirm = () => {
   const [termsOpen, setTermsOpen] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
+  const [refundlessAlertOpen, setRefundlessAlertOpen] = useState(false);
+  const [refundlessAlertContent, setRefundlessAlertContent] = useState({
+    title: '',
+    message: '',
+    highlightText: '환불 없이',
+  });
 
   useEffect(() => {
     const fetchReservationDetail = async () => {
@@ -83,11 +98,28 @@ const GuesthouseCancelConfirm = () => {
           : typeof cancelContext?.paidAmount === 'number'
             ? cancelContext.paidAmount
             : 0;
+    const refundRateApplied =
+      typeof reservationDetail?.refundRateApplied === 'number'
+        ? reservationDetail.refundRateApplied
+        : typeof cancelContext?.refundRateApplied === 'number'
+          ? cancelContext.refundRateApplied
+          : null;
+    const computedRefundAmount =
+      refundRateApplied !== null
+        ? Math.floor((paidAmount * refundRateApplied) / 100)
+        : typeof cancelContext?.refundAmount === 'number'
+          ? cancelContext.refundAmount
+          : paidAmount;
     const cancelFee =
-      typeof cancelContext?.cancelFee === 'number' ? cancelContext.cancelFee : 0;
-    const computedRefundAmount = paidAmount - cancelFee;
+      refundRateApplied !== null
+        ? Math.max(paidAmount - computedRefundAmount, 0)
+        : typeof cancelContext?.cancelFee === 'number'
+          ? cancelContext.cancelFee
+          : 0;
     const refundAmount =
-      typeof cancelContext?.refundAmount === 'number'
+      typeof reservationDetail?.refundRateApplied === 'number'
+        ? computedRefundAmount
+        : typeof cancelContext?.refundAmount === 'number'
         ? cancelContext.refundAmount
         : computedRefundAmount;
     const refundMethod =
@@ -113,6 +145,7 @@ const GuesthouseCancelConfirm = () => {
       paidAmount,
       couponDiscountAmount,
       pointDiscountAmount,
+      refundRateApplied,
       cancelFee,
       refundAmount,
       refundMethod,
@@ -122,14 +155,74 @@ const GuesthouseCancelConfirm = () => {
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const cancelPolicyDoc = AGREEMENT_CONTENT.USER?.GUESTHOUSE_RESERVATION_POLICY;
+  const refundPolicies = normalizeRefundPolicies(
+    reservationDetail?.refundPolicy?.policies ??
+      reservationDetail?.refundPolicies ??
+      cancelContext?.refundPolicies,
+  );
   const cancelPolicyContent = (cancelPolicyDoc?.detail || '').replace(
     /{{guesthouseName}}/g,
     viewData?.guesthouseName || '해당 게스트하우스',
   );
-  const cancelPolicyHtml = (cancelPolicyDoc?.detailHtml || '').replace(
-    /{{guesthouseName}}/g,
-    viewData?.guesthouseName || '해당 게스트하우스',
-  );
+  const cancelPolicyHtml = applyRefundPoliciesToAgreementHtml(
+    cancelPolicyDoc?.detailHtml || '',
+    refundPolicies,
+  ).replace(/{{guesthouseName}}/g, viewData?.guesthouseName || '해당 게스트하우스');
+  const freeCancelUntil = useMemo(() => {
+    if (cancelContext?.freeCancelUntil) {
+      return cancelContext.freeCancelUntil;
+    }
+
+    if (!reservationDetail?.approvedAt) {
+      return null;
+    }
+
+    const approvedAt = dayjs(reservationDetail.approvedAt);
+    return approvedAt.isValid()
+      ? approvedAt.add(10, 'minute').toISOString()
+      : null;
+  }, [cancelContext, reservationDetail]);
+
+  const handlePressSubmit = () => {
+    const result = getRefundPolicyResult({
+      checkInDate: reservationDetail?.checkIn ?? cancelContext?.checkInDate,
+      checkInTime: cancelContext?.checkInTime,
+      freeCancelUntil,
+    });
+    const isRefundUnavailable = reservationDetail?.refundRateApplied === 0;
+
+    if (!isRefundUnavailable) {
+      setCancelConfirmOpen(true);
+      return;
+    }
+
+    if (
+      result === REFUND_POLICY_RESULT.CHECKIN_DAY ||
+      result === REFUND_POLICY_RESULT.AFTER_CHECKIN_TIME
+    ) {
+      setRefundlessAlertContent({
+        title: '체크인 당일',
+        message:
+          '체크인 당일에는 환불이 불가능합니다.\n환불 없이 취소하시겠습니까?',
+        highlightText: '환불 없이',
+      });
+      setRefundlessAlertOpen(true);
+      return;
+    }
+
+    if (result === REFUND_POLICY_RESULT.FREE_CANCEL_EXPIRED) {
+      setRefundlessAlertContent({
+        title: '무료 취소 기한 초과',
+        message:
+          '무료 취소 기한이 지나 환불이 불가능합니다.\n환불 없이 취소하시겠습니까?',
+        highlightText: '환불 없이',
+      });
+      setRefundlessAlertOpen(true);
+      return;
+    }
+
+    setCancelConfirmOpen(true);
+  };
 
   const handleCancelConfirm = async () => {
     if (!reservationId || cancelSubmitting) return;
@@ -387,7 +480,7 @@ const GuesthouseCancelConfirm = () => {
               <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
             </TouchableOpacity>
           </View>
-          
+
             </View>
           </ScrollView>
 
@@ -415,6 +508,20 @@ const GuesthouseCancelConfirm = () => {
             }}
           />
 
+          <AlertModal
+            visible={refundlessAlertOpen}
+            title={refundlessAlertContent.title}
+            message={refundlessAlertContent.message}
+            highlightText={refundlessAlertContent.highlightText}
+            buttonText="환불 없이 취소하기"
+            buttonText2="유지하기"
+            onPress={() => {
+              setRefundlessAlertOpen(false);
+              handleCancelConfirm();
+            }}
+            onPress2={() => setRefundlessAlertOpen(false)}
+          />
+
           {/* 하단 버튼 */}
           <TouchableOpacity
             style={[
@@ -424,7 +531,7 @@ const GuesthouseCancelConfirm = () => {
               },
             ]}
             disabled={!checked || !selectedReason || cancelSubmitting}
-            onPress={() => setCancelConfirmOpen(true)}
+            onPress={handlePressSubmit}
           >
             <Text style={[styles.submitText, FONTS.fs_14_medium]}>취소 요청하기</Text>
           </TouchableOpacity>

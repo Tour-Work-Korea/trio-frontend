@@ -12,8 +12,9 @@ export {default as ApplySuccess} from './(User)/Employ/ApplySuccess';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';
 export {default as GuesthouseDetail} from './(Common)/Guesthouse/GuesthouseDetail';
+export {default as GuesthouseMap} from './(Common)/Guesthouse/GuesthouseMap';
 export {default as GuesthouseList} from './(Common)/BottomTabs/Guesthouse/GuesthouseList';
-export {default as GuesthouseMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseMap';
+export {default as GuesthouseListMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseListMap';
 export {default as GuesthouseReview} from './(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/GuesthouseSearch';
 export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
