@@ -145,7 +145,7 @@ jobs:
 
       - name: Decode GoogleService-Info.plist
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ios/trioFrontendApp/GoogleService-Info.plist
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/trioFrontendApp/GoogleService-Info.plist
 
 
       # --------------------------------
