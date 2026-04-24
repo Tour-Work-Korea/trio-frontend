@@ -40,6 +40,8 @@ import ShareIcon from '@assets/images/share_gray.svg';
 import Star from '@assets/images/star_white.svg';
 import CalendarIcon from '@assets/images/calendar_white.svg';
 import PersonIcon from '@assets/images/person20_white.svg';
+import MapPinIcon from '@assets/images/map_pin_fill_black.svg';
+import RightChevronBlack from '@assets/images/chevron_right_black.svg';
 
 import WifiIcon from '@assets/images/wifi_black.svg';
 import UnWifiIcon from '@assets/images/wifi_gray.svg';
@@ -87,6 +89,7 @@ const TAB_OPTIONS = [
   {key: 'intro', label: '소개'},
   {key: 'rule', label: '이용규칙'},
   {key: 'review', label: '리뷰'},
+  {key: 'refund', label: '취소규정'},
 ];
 
 // 안심번호 일 경우만 공개
@@ -230,14 +233,15 @@ const GuesthouseDetail = ({route}) => {
     });
   };
 
-  const handleCopyAddress = () => {
-    Clipboard.setString(detail?.guesthouseAddress ?? '');
-
-    Toast.show({
-      type: 'success',
-      text1: '복사되었어요!',
-      position: 'top',
-      visibilityTime: 2000,
+  const handlePressAddress = () => {
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: detail?.guesthouseName,
+      guesthouseAddress: [
+        trimJejuPrefix(detail?.guesthouseAddress),
+        detail?.guesthouseAddressDetail,
+      ].filter(Boolean).join(' '),
+      latitude: detail?.lat,
+      longitude: detail?.lng,
     });
   };
 
@@ -254,6 +258,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
+  const refundPolicies = detail?.refundPolicies ?? [];
 
   const renderTabContent = tabKey => {
     if (tabKey === 'room') {
@@ -291,6 +296,43 @@ const GuesthouseDetail = ({route}) => {
               {detail.rules}
             </Text>
           </View>
+        </View>
+      );
+    }
+
+    if (tabKey === 'refund') {
+      return (
+        <View style={styles.introductionContainer}>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>취소 수수료</Text>
+          {refundPolicies.length > 0 ? (
+            <View style={styles.refundPolicyContainer}>
+              {refundPolicies.map((policy, index) => (
+                <View
+                  key={`${policy.daysBeforeCheckin}-${index}`}
+                  style={styles.refundPolicyRow}
+                >
+                  <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
+                    방문 {policy.daysBeforeCheckin}일 전
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
+                    총금액의
+                  </Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.refundRateText]}>
+                    {policy.refundRate}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
+                    % 환불
+                  </Text>
+                </View>
+              ))}
+            </View>
+          ) : (
+            <View style={styles.refundEmptyBox}>
+              <Text style={[FONTS.fs_14_regular, styles.refundEmptyText]}>
+                등록된 취소규정이 없어요.
+              </Text>
+            </View>
+          )}
         </View>
       );
     }
@@ -425,7 +467,7 @@ const GuesthouseDetail = ({route}) => {
       <View style={styles.contentWrapper}>
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               onPress={() =>
                 navigation.navigate('GuesthousePost', {
                   guesthouseId: id,
@@ -450,14 +492,23 @@ const GuesthouseDetail = ({route}) => {
             </View>
           </View>
 
-          <TouchableOpacity activeOpacity={0.7} onPress={handleCopyAddress}>
-            <Text style={[FONTS.fs_14_regular, styles.address, styles.copyableText]}>
+          <TouchableOpacity
+            activeOpacity={0.7}
+            onPress={handlePressAddress}
+            style={styles.addressSection}
+          >
+            <MapPinIcon width={20} height={20}/>
+            <Text style={[FONTS.fs_14_regular, styles.address]}>
               {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
             </Text>
+            <RightChevronBlack width={12} height={12}/>
           </TouchableOpacity>
 
           {is050Number(detail.guesthousePhone) && (
-            <TouchableOpacity activeOpacity={0.7} onPress={handleCopyPhone}>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              onPress={handleCopyPhone}
+              style={styles.phoneButton}>
               <Text style={[FONTS.fs_14_regular, styles.phone]}>
                 숙소 문의 : <Text style={styles.copyableText}>{detail.guesthousePhone}</Text>
               </Text>
@@ -554,7 +605,12 @@ const GuesthouseDetail = ({route}) => {
         </View>
 
         {/* 탭 메뉴 */}
-        <View style={styles.tabMenuWrapper}>
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.tabMenuWrapper}
+          contentContainerStyle={styles.tabMenuContent}
+        >
           {TAB_OPTIONS.map((tab, index) => (
             <TouchableOpacity key={tab.key} onPress={() => onTabPress(index)}>
               <View style={styles.tabButton}>
@@ -574,7 +630,7 @@ const GuesthouseDetail = ({route}) => {
               </View>
             </TouchableOpacity>
           ))}
-        </View>
+        </ScrollView>
         <ScrollView
           ref={pagerRef}
           horizontal

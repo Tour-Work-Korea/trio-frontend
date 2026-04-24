@@ -18,6 +18,11 @@ const TABS = [
   { key: 'cancelled', label: '취소됨' },
 ];
 
+const UPCOMING_STATUS_ORDER = {
+  PENDING: 0,
+  CONFIRMED: 1,
+};
+
 const UserReservationCheck = () => {
   const [activeTab, setActiveTab] = useState('upcoming');
   const [reservations, setReservations] = useState([]);
@@ -46,8 +51,21 @@ const UserReservationCheck = () => {
     }, [])
   );
 
+  const upcomingReservations = reservations
+    .filter(r => ['PENDING', 'CONFIRMED'].includes(r.reservationStatus))
+    .sort((a, b) => {
+      const statusOrderA = UPCOMING_STATUS_ORDER[a.reservationStatus] ?? 99;
+      const statusOrderB = UPCOMING_STATUS_ORDER[b.reservationStatus] ?? 99;
+
+      if (statusOrderA !== statusOrderB) {
+        return statusOrderA - statusOrderB;
+      }
+
+      return new Date(a.checkIn).getTime() - new Date(b.checkIn).getTime();
+    });
+
   const filteredReservations = {
-    upcoming: reservations.filter(r => r.reservationStatus === 'CONFIRMED'),
+    upcoming: upcomingReservations,
     past: reservations.filter(r => r.reservationStatus === 'COMPLETED'),
     cancelled: reservations.filter(r => r.reservationStatus === 'CANCELLED'),
   };

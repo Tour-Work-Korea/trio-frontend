@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React from 'react';
 import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -9,9 +9,6 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
-import AlertModal from '@components/modals/AlertModal';
-import { getRefundPolicyModalContent, REFUND_POLICY_RESULT } from '@utils/refundPolicy';
-import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_blue.svg';
@@ -21,15 +18,6 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
-  const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundModalContent, setRefundModalContent] = useState({
-    title: '',
-    message: '',
-    highlightText: '',
-    buttonText: '확인',
-    buttonText2: null,
-  });
-  const [refundReservationId, setRefundReservationId] = useState(null);
 
   const genderMap = {
     MIXED: '혼숙',
@@ -40,6 +28,10 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
+  const getReservationStatusTitle = item =>
+    item?.reservationStatus === 'PENDING' ? '승인 대기 중' : '예약 확정';
+  const isPendingReservation = item => item?.reservationStatus === 'PENDING';
+
   const handleCopyAddress = (address) => {
     Clipboard.setString(address ?? '');
 
@@ -49,36 +41,6 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
       position: 'top',
       visibilityTime: 2000,
     });
-  };
-
-  const handleRefundlessCancel = async () => {
-    if (!refundReservationId) {
-      setRefundModalOpen(false);
-      return;
-    }
-    try {
-      await reservationPaymentApi.cancelReservation(
-        refundReservationId,
-        'GUESTHOUSE',
-        '사용자 요청 취소',
-      );
-      Toast.show({
-        type: 'success',
-        text1: '취소 되었어요!',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-      setRefundModalOpen(false);
-      setRefundReservationId(null);
-      await onRefresh?.();
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: '예약 취소에 실패했습니다.',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-    }
   };
 
   const buildRoomDetailText = (item) => {
@@ -117,7 +79,14 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           style={styles.card}
         >
           <View style={styles.titleRow}>
-            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>예약 확정</Text>
+            <Text
+              style={[
+                FONTS.fs_16_semibold,
+                styles.titleText,
+                isPendingReservation(item) && styles.pendingTitleText,
+              ]}>
+              {getReservationStatusTitle(item)}
+            </Text>
             <TouchableOpacity
               style={styles.detailButton}
               onPress={() =>
@@ -210,25 +179,6 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           backgroundColor={COLORS.secondary_red}
           textColor={COLORS.semantic_red}
           onPress={() => {
-            const { result, message, description, title, buttonText, buttonText2, highlightText } =
-              getRefundPolicyModalContent({
-                checkInDate: checkInFormatted.date,
-                checkInTime: checkInFormatted.time,
-              });
-
-            if (result && result !== REFUND_POLICY_RESULT.OK) {
-              setRefundModalContent({
-                title: title || '',
-                message: message || description || '',
-                highlightText: highlightText || '',
-                buttonText: buttonText || '확인',
-                buttonText2: buttonText2 || null,
-              });
-              setRefundReservationId(item.reservationId);
-              setRefundModalOpen(true);
-              return;
-            }
-
             navigation.navigate('GuesthouseCancelConfirm', {
               reservationId: item.reservationId,
               cancelContext: {
@@ -288,16 +238,6 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           />
         }
       />
-      <AlertModal
-        visible={refundModalOpen}
-        title={refundModalContent.title}
-        message={refundModalContent.message}
-        highlightText={refundModalContent.highlightText}
-        buttonText={refundModalContent.buttonText}
-        buttonText2={refundModalContent.buttonText2}
-        onPress={handleRefundlessCancel}
-        onPress2={() => setRefundModalOpen(false)}
-      />
     </>
   );
 }
@@ -327,6 +267,9 @@ const styles = StyleSheet.create({
     marginBottom: 12,
   },
   titleText: {
+  },
+  pendingTitleText: {
+    color: COLORS.semantic_red,
   },
   detailButton: {
     flexDirection: 'row',

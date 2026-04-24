@@ -54,9 +54,16 @@ const RoomDetail = ({route}) => {
     roomMaxCapacity,
     femaleOnly,
     totalPrice,
+    refundPolicies,
+    reservationPolicy,
+    reservationPolicyMode,
   } = route.params;
+  const isReservationClosed = reservationPolicyMode === 'CLOSED';
   const formatTime = timeStr => {
-    if (!timeStr) return '시간 없음';
+    if (!timeStr) {
+      return '시간 없음';
+    }
+
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
@@ -215,97 +222,101 @@ const RoomDetail = ({route}) => {
         </View>
       </ScrollView>
 
-      <View style={styles.button}>
-        {/* 비지터 게스트하우스 */}
-        {/* 베드라디오 동문점 */}
-        {/* 이상한밤 게스트하우스 */}
-        <ButtonScarlet
-          title="숙박 예약"
-          onPress={() => {
-            if (userRole !== 'USER') {
-              showErrorModal({
-                message: '숙박 예약은\n 로그인 후 사용해주세요',
-                buttonText2: '취소',
-                buttonText: '로그인하기',
-                onPress: () => {
-                  navigation.navigate('Login');
-                },
-                onPress2: () => {},
-              });
-            } else if( guesthouseName==='비지터 게스트하우스' ) {
-              const url =
-                'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
+      {!isReservationClosed && (
+        <View style={styles.button}>
+          {/* 비지터 게스트하우스 */}
+          {/* 베드라디오 동문점 */}
+          {/* 이상한밤 게스트하우스 */}
+          <ButtonScarlet
+            title="숙박 예약"
+            onPress={() => {
+              if (userRole !== 'USER') {
+                showErrorModal({
+                  message: '숙박 예약은\n 로그인 후 사용해주세요',
+                  buttonText2: '취소',
+                  buttonText: '로그인하기',
+                  onPress: () => {
+                    navigation.navigate('Login');
+                  },
+                  onPress2: () => {},
+                });
+              } else if( guesthouseName === '비지터 게스트하우스' ) {
+                const url =
+                  'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
+
+                Linking.canOpenURL(url)
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
+
+              } else if( guesthouseName === '베드라디오 동문점' ) {
+                const url =
+                'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
 
               Linking.canOpenURL(url)
-              .then(supported => {
-                if (supported) {
-                  Linking.openURL(url);
-                } else {
-                  Alert.alert('알림', '링크를 열 수 없어요');
-                }
-              })
-              .catch(() => {
-                Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-              });
-              
-            } else if( guesthouseName==='베드라디오 동문점' ) {
-              const url =
-              'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
 
-            Linking.canOpenURL(url)
-              .then(supported => {
-                if (supported) {
-                  Linking.openURL(url);
-                } else {
-                  Alert.alert('알림', '링크를 열 수 없어요');
-                }
-              })
-              .catch(() => {
-                Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-              });
-              
-            } else if( guesthouseName==='이상한밤 게스트하우스' ) {
-              const url =
-              'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
+              } else if( guesthouseName === '이상한밤 게스트하우스' ) {
+                const url =
+                'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
 
-            Linking.canOpenURL(url)
-              .then(supported => {
-                if (supported) {
-                  Linking.openURL(url);
-                } else {
-                  Alert.alert('알림', '링크를 열 수 없어요');
-                }
-              })
-              .catch(() => {
-                Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-              });
-              
-            } else {
-              navigation.navigate('GuesthouseReservation', {
-                roomId,
-                roomName,
-                roomPrice,
-                guesthouseName,
-                guesthouseId,
-                guesthouseAddress,
-                guesthouseAddressDetail,
-                guesthousePhone,
-                checkIn,
-                checkOut,
-                checkInTime,
-                checkOutTime,
-                guestCount,
-                totalPrice,
-                roomType,
-                dormitoryGenderType,
-                roomCapacity,
-                roomMaxCapacity,
-                femaleOnly,
-              });
-            }
-          }}
-        />
-      </View>
+              Linking.canOpenURL(url)
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
+
+              } else {
+                navigation.navigate('GuesthouseReservation', {
+                  roomId,
+                  roomName,
+                  roomPrice,
+                  guesthouseName,
+                  guesthouseId,
+                  guesthouseAddress,
+                  guesthouseAddressDetail,
+                  guesthousePhone,
+                  checkIn,
+                  checkOut,
+                  checkInTime,
+                  checkOutTime,
+                  guestCount,
+                  totalPrice,
+                  roomType,
+                  dormitoryGenderType,
+                  roomCapacity,
+                  roomMaxCapacity,
+                  femaleOnly,
+                  refundPolicies,
+                  reservationPolicy,
+                });
+              }
+            }}
+          />
+        </View>
+      )}
 
       {/* 이미지 모달 */}
       {hasImages && (

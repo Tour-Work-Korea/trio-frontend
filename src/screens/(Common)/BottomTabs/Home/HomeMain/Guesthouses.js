@@ -6,14 +6,18 @@ import dayjs from 'dayjs';
 import styles from './Home.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import { guesthouseTags } from '@constants/guesthouseTags';
 
 import Chevron_right_gray from '@assets/images/chevron_right_gray.svg';
 import Star from '@assets/images/star_white.svg';
 
 export default function Guesthouses({guesthouses}) {
   const navigation = useNavigation();
-  const tagNameById = Object.fromEntries(guesthouseTags.map(t => [t.id, t.hashtag]));
+
+  const getTagLabels = item =>
+    (Array.isArray(item.hashtags) ? item.hashtags : [])
+      .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
+      .filter(Boolean)
+      .slice(0, 3);
 
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
@@ -72,10 +76,10 @@ export default function Guesthouses({guesthouses}) {
           )}
         </View>
         <View style={styles.hashTagContainer}>
-          {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-            <View style={styles.hashtagButton} key={id}>
+          {getTagLabels(item).map((tag, index) => (
+            <View style={styles.hashtagButton} key={`${tag}-${index}`}>
               <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-                {tagNameById[id] ?? `#${id}`}
+                {tag}
               </Text>
             </View>
           ))}
