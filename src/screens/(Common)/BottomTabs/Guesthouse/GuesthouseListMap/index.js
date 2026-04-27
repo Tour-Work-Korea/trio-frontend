@@ -51,6 +51,34 @@ const normalizeGuesthouses = guesthouses =>
     isLiked: Boolean(item?.isLiked ?? item?.isFavorite),
   }));
 
+const getGuesthouseResponseItems = data => {
+  if (Array.isArray(data)) {
+    return data;
+  }
+
+  if (Array.isArray(data?.content)) {
+    return data.content;
+  }
+
+  if (Array.isArray(data?.guesthouses)) {
+    return data.guesthouses;
+  }
+
+  if (Array.isArray(data?.data)) {
+    return data.data;
+  }
+
+  if (Array.isArray(data?.data?.content)) {
+    return data.data.content;
+  }
+
+  if (Array.isArray(data?.data?.guesthouses)) {
+    return data.data.guesthouses;
+  }
+
+  return [];
+};
+
 const getGuesthouseImageUrls = item => {
   const imageUrls = Array.isArray(item?.guesthouseImages)
     ? item.guesthouseImages
@@ -293,6 +321,7 @@ const GuesthouseListMap = ({
   checkOut: checkOutProp,
   guestCount: guestCountProp,
   regionIds: regionIdsProp,
+  regionBounds: regionBoundsProp,
   onPressListToggle,
 }) => {
   const navigation = useNavigation();
@@ -310,8 +339,11 @@ const GuesthouseListMap = ({
     [regionIdsProp, route?.params?.regionIds],
   );
   const presetBounds = useMemo(
-    () => getGuesthouseMapBoundsByRegionIds(regionIds),
-    [regionIds],
+    () =>
+      regionBoundsProp
+        ?? route?.params?.regionBounds
+        ?? getGuesthouseMapBoundsByRegionIds(regionIds),
+    [regionBoundsProp, route?.params?.regionBounds, regionIds],
   );
   const presetRegion = useMemo(
     () => getMapRegionFromBounds(presetBounds),
@@ -331,6 +363,7 @@ const GuesthouseListMap = ({
   const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(null);
   const [pendingBounds, setPendingBounds] = useState(null);
   const [lastFetchedBounds, setLastFetchedBounds] = useState(null);
+  const [hasFetchedMapGuesthouses, setHasFetchedMapGuesthouses] = useState(false);
   const [showResearchButton, setShowResearchButton] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(initialRegion);
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
@@ -441,6 +474,7 @@ const GuesthouseListMap = ({
 
   useEffect(() => {
     initialPresetFetchDoneRef.current = false;
+    setHasFetchedMapGuesthouses(false);
   }, [presetBounds]);
 
   const getCurrentBounds = useCallback(async () => {
@@ -492,11 +526,12 @@ const GuesthouseListMap = ({
 
       const responseData = response?.data;
       const nextGuesthouses = normalizeGuesthouses(
-        Array.isArray(responseData) ? responseData : responseData?.content ?? [],
+        getGuesthouseResponseItems(responseData),
       );
 
       setMapGuesthouses(nextGuesthouses);
       setLastFetchedBounds(bounds);
+      setHasFetchedMapGuesthouses(true);
       setPendingBounds(null);
       setShowResearchButton(false);
     } catch (error) {
@@ -789,7 +824,7 @@ const GuesthouseListMap = ({
     <View style={styles.container}>
       {!embedded && (
         <View style={styles.headerContainer}>
-          <Header title="게스트하우스 지도" />
+          <Header title="게스트하우스 지도" showBackButton={false} />
         </View>
       )}
 
@@ -923,7 +958,7 @@ const GuesthouseListMap = ({
           </View>
         )}
 
-        {!loading && clusters.length === 0 && (
+        {!loading && hasFetchedMapGuesthouses && clusters.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={[FONTS.fs_14_medium, styles.emptyTitle]}>
               이 지도 영역에는 조건에 맞는 숙소가 없어요

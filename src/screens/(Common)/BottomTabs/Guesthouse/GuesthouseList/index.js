@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -21,7 +21,6 @@ import Person from '@assets/images/person20_gray.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
-import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import MapIcon from '@assets/images/map_black.svg';
 import ListIcon from '@assets/images/bullet_list_black.svg';
@@ -39,10 +38,17 @@ import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';
+import {
+  GUESTHOUSE_MAP_BOUNDS,
+  getGuesthouseMapBoundsByRegionIds,
+} from '@constants/guesthouseMapRegions';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const defaultDisplayDate = `${dayjs().format('M.D dd')} - ${dayjs()
+    .add(1, 'day')
+    .format('M.D dd')}`;
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -51,24 +57,28 @@ const GuesthouseList = () => {
   const [error, setError] = useState(false);
 
   const {
-    displayDate: routeDisplayDate,
-    adultCount: routeAdultCount,
-    childCount: routeChildCount,
-    keyword: initialKeyword = null,
-    searchText,
+    displayDate: routeDisplayDate = defaultDisplayDate,
+    adultCount: routeAdultCount = 1,
+    childCount: routeChildCount = 0,
+    searchText = '',
     regionIds = [],
+    regionBounds: initialRegionBounds = null,
+    initialMapView = false,
   } = route.params || {};
 
-  // 지역을 눌러서 왔는지 검색어로 왔는지 구분
-  const [keyword] = useState(initialKeyword);
-  const isKeywordSearch = !!keyword;
-  const isRegionSearch = regionIds.length > 0;
+  const regionBounds = useMemo(
+    () =>
+      initialRegionBounds
+        ?? getGuesthouseMapBoundsByRegionIds(regionIds)
+        ?? GUESTHOUSE_MAP_BOUNDS.ALL,
+    [initialRegionBounds, regionIds],
+  );
 
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [isMapView, setIsMapView] = useState(false);
+  const [isMapView, setIsMapView] = useState(initialMapView);
   const [availableTags, setAvailableTags] = useState([]);
 
   // 필터 정보
@@ -100,6 +110,16 @@ const GuesthouseList = () => {
   const [childCount, setChildCount] = useState(routeChildCount || 0);
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
+  useEffect(() => {
+    setDisplayDateState(routeDisplayDate);
+    setAdultCount(routeAdultCount);
+    setChildCount(routeChildCount);
+
+    if (initialMapView) {
+      setIsMapView(true);
+    }
+  }, [initialMapView, routeAdultCount, routeChildCount, routeDisplayDate]);
+
   // api 보낼 날짜 데이터
   const year = dayjs().year();
   const [startInit, endInit] = routeDisplayDate.split(' - ');
@@ -113,6 +133,29 @@ const GuesthouseList = () => {
   const [checkOut, setCheckOut] = useState(
     dayjs(`${year}-${endMonthInit}-${endDayInit}`).format('YYYY-MM-DD'),
   );
+
+  useEffect(() => {
+    const [nextStart, nextEnd] = routeDisplayDate.split(' - ');
+    const [nextStartMonth, nextStartDay] = nextStart
+      .split(' ')[0]
+      .split('.')
+      .map(Number);
+    const [nextEndMonth, nextEndDay] = nextEnd
+      .split(' ')[0]
+      .split('.')
+      .map(Number);
+
+    setCheckIn(
+      dayjs(`${year}-${nextStartMonth}-${nextStartDay}`).format('YYYY-MM-DD'),
+    );
+    setCheckOut(
+      dayjs(`${year}-${nextEndMonth}-${nextEndDay}`).format('YYYY-MM-DD'),
+    );
+    setPage(0);
+    setIsLast(false);
+    setGuesthouses([]);
+    setError(false);
+  }, [regionBounds, routeAdultCount, routeChildCount, routeDisplayDate, year]);
 
   // 모달 열기 전 값 저장(닫을 때 변경 감지용)
   const [tempDateGuest, setTempDateGuest] = useState({
@@ -140,15 +183,11 @@ const GuesthouseList = () => {
         sortBy,
       };
 
-      // 키워드 검색인 경우
-      if (isKeywordSearch) {
-        params.keyword = keyword.keyword;
-        params.keywordId = keyword.id;
-      }
-
-      // 지역 검색인 경우
-      if (isRegionSearch) {
-        params.regionIds = regionIds;
+      if (regionBounds) {
+        params.swLat = regionBounds.swLat;
+        params.swLng = regionBounds.swLng;
+        params.neLat = regionBounds.neLat;
+        params.neLng = regionBounds.neLng;
       }
 
       // 필터 적용 시 조건 분기
@@ -206,12 +245,9 @@ const GuesthouseList = () => {
     error,
     filterApplied,
     filterOptions,
-    isKeywordSearch,
     isLast,
-    isRegionSearch,
-    keyword,
     loading,
-    regionIds,
+    regionBounds,
     sortBy,
   ]);
 
@@ -364,42 +400,6 @@ const GuesthouseList = () => {
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
           게스트 하우스
         </Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'MainTabs',
-                  state: {
-                    index: 0,
-                    routes: [
-                      {
-                        name: '검색',
-                        state: {
-                          index: 0,
-                          routes: [
-                            {
-                              name: 'GuesthouseSearch',
-                              params: {
-                                displayDate: displayDateState,
-                                adultCount,
-                                childCount,
-                                // searchText,
-                              },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            });
-          }}>
-          <LeftChevron width={24} height={24} />
-        </TouchableOpacity>
       </View>
       <TouchableOpacity
         style={styles.searchContainer}
@@ -455,6 +455,7 @@ const GuesthouseList = () => {
             checkOut={checkOut}
             guestCount={adultCount + childCount}
             regionIds={regionIds}
+            regionBounds={regionBounds}
             onPressListToggle={() => setIsMapView(false)}
           />
         </View>

@@ -24,8 +24,11 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import GlobalAlertModal from '@components/modals/GlobalAlertModal';
+import AlertModal from '@components/modals/AlertModal';
+import LogoOrange from '@assets/images/meet_reservation_success.svg';
 import useUserStore from '@stores/userStore';
 import authApi from '@utils/api/authApi';
+import { checkForceUpdate, openAppStoreForUpdate } from '@utils/appUpdate';
 
 
 const toastConfig = {
@@ -59,15 +62,37 @@ const waitForNavReady = async () => {
 function AppContent() {
   const [appLoaded, setAppLoaded] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
+  const [forceUpdateState, setForceUpdateState] = useState({
+    visible: false,
+    minVersion: '',
+  });
   const insets = useSafeAreaInsets();
   const accessToken = useUserStore(state => state.accessToken);
 
   useEffect(() => {
     console.log('🚨 API_BASE_URL (runtime):', process.env.API_BASE_URL);
+
+    const syncForceUpdateState = async () => {
+      const result = await checkForceUpdate();
+
+      setForceUpdateState({
+        visible: result.shouldUpdate,
+        minVersion: result.minVersion,
+      });
+
+      return result;
+    };
+
     const bootstrap = async () => {
       try {
         await wait(120);
         await waitForNavReady();
+
+        const forceUpdateResult = await syncForceUpdateState();
+
+        if (forceUpdateResult.shouldUpdate) {
+          return undefined;
+        }
 
         // 1. 자동 로그인(토큰 갱신 등)을 먼저 수행
         await tryAutoLogin();
@@ -169,6 +194,31 @@ function AppContent() {
     };
   }, [appState, accessToken]);
 
+  useEffect(() => {
+    if (appState !== 'active') {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const refreshForceUpdateState = async () => {
+      const result = await checkForceUpdate();
+
+      if (!cancelled) {
+        setForceUpdateState({
+          visible: result.shouldUpdate,
+          minVersion: result.minVersion,
+        });
+      }
+    };
+
+    refreshForceUpdateState();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [appState]);
+
   return (
     <>
       <SafeAreaView
@@ -198,6 +248,15 @@ function AppContent() {
       <Toast config={toastConfig} />
 
       <GlobalAlertModal />
+      <AlertModal
+        visible={forceUpdateState.visible}
+        title="새로운 버전이 출시되었습니다!"
+        message={`더욱 안정적인 서비스 이용을 위해\n최신 버전으로 업데이트가 필요합니다.\n\n최신 버전: V${forceUpdateState.minVersion}`}
+        buttonText="업데이트 하기"
+        onPress={openAppStoreForUpdate}
+        onRequestClose={() => {}}
+        iconElement={<LogoOrange width={180} height={150} />}
+      />
     </>
   );
 }

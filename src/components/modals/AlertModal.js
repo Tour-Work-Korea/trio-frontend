@@ -23,10 +23,13 @@ const AlertModal = ({
   imageUri,
   imageSource,   // png/jpg 같은 이미지
   iconElement,   // SVG
+  onRequestClose = () => {},
 }) => {
   // 강조 텍스트 여부
   const renderMessage = () => {
-    if (!message) return null;
+    if (!message) {
+      return null;
+    }
 
     // 강조할 텍스트가 없으면 그냥 출력
     if (!highlightText || !message.includes(highlightText)) {
@@ -60,7 +63,11 @@ const AlertModal = ({
   };
 
   return (
-    <Modal transparent={true} animationType="fade" visible={visible}>
+    <Modal
+      transparent={true}
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onRequestClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* 이미지 주소 or 로컬 이미지 */}
@@ -76,9 +83,7 @@ const AlertModal = ({
             <Text style={[FONTS.fs_18_semibold, styles.title]}>{title}</Text>
           ) : null}
           {/* 내용 */}
-          {message ? (
-            <Text style={[FONTS.fs_14_medium, styles.message]}>{renderMessage()}</Text>
-          ) : null}
+          {message ? renderMessage() : null}
 
           {buttonText2 ? (
             <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>

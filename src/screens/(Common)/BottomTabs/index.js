@@ -16,6 +16,7 @@ import HeartIcon from '@assets/images/heart_black.svg';
 import HeartIconFilled from '@assets/images/heart_fill_black.svg';
 
 import {Guesthouse, Home, Meet, My, Favorite} from '@screens';
+import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
 
@@ -68,7 +69,10 @@ const BottomTabs = () => (
         listeners={({navigation}) => ({
           tabPress: e => {
             e.preventDefault();
-            navigation.navigate('검색', {screen: 'GuesthouseSearch'});
+            navigation.navigate('검색', {
+              screen: 'GuesthouseList',
+              params: getDefaultGuesthouseListParams(),
+            });
           },
         })}
       />

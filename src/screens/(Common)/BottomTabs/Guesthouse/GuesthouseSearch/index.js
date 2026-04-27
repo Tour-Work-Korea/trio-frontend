@@ -29,9 +29,11 @@ import JejuNorth from '@assets/images/regions/jeju/jeju_north.svg';
 import styles from './GuesthouseSearch.styles';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import Header from '@components/Header';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {COLORS} from '@constants/colors';
 import {regions} from '@constants/filter';
+import {getGuesthouseMapBoundsByRegionIds} from '@constants/guesthouseMapRegions';
 import {trimJejuPrefix} from '@utils/formatAddress';
 
 const regionIcons = {
@@ -150,13 +152,15 @@ const GuesthouseSearch = () => {
   };
 
   // 게하 리스트 페이지로 지역 선택해서 이동
-  const goToGuesthouseList = (regionIds, regionName) => {
+  const goToGuesthouseList = regionIds => {
+    const bounds = getGuesthouseMapBoundsByRegionIds(regionIds);
+
     navigation.navigate('GuesthouseList', {
       displayDate,
       adultCount,
       childCount,
-      regionIds,
-      searchText: regionName,
+      regionBounds: bounds,
+      searchText: '',
     });
   };
 
@@ -223,7 +227,7 @@ const GuesthouseSearch = () => {
       <TouchableOpacity
         key={subRegion.name}
         style={styles.subRegionItem}
-        onPress={() => goToGuesthouseList(subRegion.regionIds, subRegion.name)}>
+        onPress={() => goToGuesthouseList(subRegion.regionIds)}>
         {isAll ? (
           <View style={styles.imagePlaceholder}>
             <AllIcon width={36} height={36} />
@@ -285,8 +289,8 @@ const GuesthouseSearch = () => {
                 displayDate,
                 adultCount,
                 childCount,
-                keyword: { id, keyword },
-                searchText: keyword,
+                regionBounds: getGuesthouseMapBoundsByRegionIds([1, 2, 3, 4]),
+                searchText: '',
               })
             }>
             <View style={styles.resultIconBox}>
@@ -302,16 +306,14 @@ const GuesthouseSearch = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
-          게스트 하우스
-        </Text>
+        <Header title="검색" />
 
         {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
         <View style={styles.searchBar}>
           <SearchIcon width={24} height={24} />
           <TextInput
             style={styles.searchInput}
-            placeholder="찾는 지역이나 숙소가 있으신가요?"
+            placeholder="찾는 숙소가 있으신가요?"
             placeholderTextColor={COLORS.grayscale_600}
             value={searchTerm}
             onChangeText={handleChangeSearchTerm}
