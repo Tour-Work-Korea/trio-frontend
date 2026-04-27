@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -32,13 +32,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {COLORS} from '@constants/colors';
 import {regions} from '@constants/filter';
-
-// 임시 게하
-const mockGuesthouseResults = [
-  // '제주 WA 게스트하우스',
-  // '제주 WB 게스트하우스',
-  // '제주 WC 게스트하우스',
-];
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 const regionIcons = {
   제주전체: AllIcon,
@@ -56,8 +50,12 @@ const GuesthouseSearch = () => {
   const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
   // 검색어 입력
   const [searchTerm, setSearchTerm] = useState(route.params?.searchText || '');
+  // 게하 이름 검색 결과
+  const [guesthouseResults, setGuesthouseResults] = useState([]);
   // 키워드 검색 결과
-  const [keywordResults, setKeywordResults] = useState([]); 
+  const [keywordResults, setKeywordResults] = useState([]);
+  const searchDebounceRef = useRef(null);
+  const searchRequestIdRef = useRef(0);
 
   // 선택 날짜, 인원 출력
   const [displayDate, setDisplayDate] = useState('');
@@ -86,6 +84,71 @@ const GuesthouseSearch = () => {
     }, [route.params]),
   );
 
+  useEffect(() => {
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, []);
+
+  const fetchSearchResults = useCallback(async term => {
+    const trimmedTerm = term.trim();
+
+    if (!trimmedTerm) {
+      setGuesthouseResults([]);
+      setKeywordResults([]);
+      return;
+    }
+
+    const requestId = Date.now();
+    searchRequestIdRef.current = requestId;
+
+    try {
+      const [guesthouseResponse, keywordResponse] = await Promise.all([
+        userGuesthouseApi.searchGuesthouseByName(trimmedTerm),
+        userGuesthouseApi.searchGuesthouseByKeyword(trimmedTerm),
+      ]);
+
+      const guesthouseData = guesthouseResponse?.data;
+      const nextGuesthouseResults = Array.isArray(guesthouseData)
+        ? guesthouseData
+        : guesthouseData?.guesthouses ||
+          guesthouseData?.content ||
+          guesthouseData?.data ||
+          (guesthouseData ? [guesthouseData] : []);
+
+      if (searchRequestIdRef.current === requestId) {
+        setGuesthouseResults(nextGuesthouseResults);
+        setKeywordResults(keywordResponse?.data || []);
+      }
+    } catch (e) {
+      if (searchRequestIdRef.current === requestId) {
+        setGuesthouseResults([]);
+        setKeywordResults([]);
+      }
+      console.warn('게스트하우스 검색 실패', e);
+    }
+  }, []);
+
+  const handleChangeSearchTerm = text => {
+    setSearchTerm(text);
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    if (!text.trim()) {
+      setGuesthouseResults([]);
+      setKeywordResults([]);
+      return;
+    }
+
+    searchDebounceRef.current = setTimeout(() => {
+      fetchSearchResults(text);
+    }, 300);
+  };
+
   // 게하 리스트 페이지로 지역 선택해서 이동
   const goToGuesthouseList = (regionIds, regionName) => {
     navigation.navigate('GuesthouseList', {
@@ -97,16 +160,33 @@ const GuesthouseSearch = () => {
     });
   };
 
-  // 검색어 검색 (지역 키워드 호출)
-  const handleSearch = async () => {
-    try {
-      const response = await userGuesthouseApi.searchGuesthouseByKeyword(
-        searchTerm.trim(),
-      );
-      setKeywordResults(response.data);
-    } catch (e) {
-      console.warn('키워드 검색 실패', e);
+  const getSearchDates = () => {
+    const year = dayjs().year();
+    const [startLabel, endLabel] = displayDate.split(' - ');
+    const [startMonth, startDay] = startLabel.split(' ')[0].split('.').map(Number);
+    const [endMonth, endDay] = endLabel.split(' ')[0].split('.').map(Number);
+
+    return {
+      checkIn: dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD'),
+      checkOut: dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD'),
+    };
+  };
+
+  const handlePressGuesthouseResult = guesthouse => {
+    const guesthouseId = guesthouse?.id || guesthouse?.guesthouseId;
+
+    if (!guesthouseId) {
+      return;
     }
+
+    const {checkIn, checkOut} = getSearchDates();
+
+    navigation.navigate('GuesthouseDetail', {
+      id: guesthouseId,
+      checkIn,
+      checkOut,
+      guestCount: adultCount + childCount,
+    });
   };
 
   // 큰 지역 전환
@@ -166,20 +246,32 @@ const GuesthouseSearch = () => {
   // 검색어 입력시
   const renderSearchResults = () => (
     <View style={styles.searchResultContainer}>
-      {mockGuesthouseResults.length > 0 && (
+      {guesthouseResults.length > 0 && (
         <View style={styles.searchResultSection}>
-          {mockGuesthouseResults.map((name, idx) => (
-            <TouchableOpacity key={idx} style={styles.searchResultRow}>
+          {guesthouseResults.map((guesthouse, idx) => (
+            <TouchableOpacity
+              key={guesthouse?.id || `guesthouse-${idx}`}
+              style={styles.searchResultRow}
+              onPress={() => handlePressGuesthouseResult(guesthouse)}>
               <View style={styles.resultIconBox}>
                 <GuesthouseIcon width={24} height={24} />
               </View>
-              <Text style={[FONTS.fs_14_medium]}>{name}</Text>
+              <View>
+                <Text style={[FONTS.fs_14_medium]}>
+                  {guesthouse?.name}
+                </Text>
+                {!!guesthouse?.address && (
+                  <Text style={[FONTS.fs_12_medium, styles.resultSubText]}>
+                    {trimJejuPrefix(guesthouse.address)}
+                  </Text>
+                )}
+              </View>
             </TouchableOpacity>
           ))}
         </View>
       )}
 
-      {mockGuesthouseResults.length > 0 && (
+      {guesthouseResults.length > 0 && keywordResults.length > 0 && (
         <View style={styles.searchResultDivider} />
       )}
 
@@ -219,12 +311,10 @@ const GuesthouseSearch = () => {
           <SearchIcon width={24} height={24} />
           <TextInput
             style={styles.searchInput}
-            // placeholder="찾는 숙소가 있으신가요?"
-            placeholder="찾는 지역이 있으신가요?"
+            placeholder="찾는 지역이나 숙소가 있으신가요?"
             placeholderTextColor={COLORS.grayscale_600}
             value={searchTerm}
-            onChangeText={setSearchTerm}
-            onSubmitEditing={handleSearch}
+            onChangeText={handleChangeSearchTerm}
             returnKeyType="search"
           />
         </View>

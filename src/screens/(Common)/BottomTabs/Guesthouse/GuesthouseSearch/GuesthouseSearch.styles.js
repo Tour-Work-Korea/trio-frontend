@@ -146,6 +146,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     gap: 10,
   },
+  resultSubText: {
+    color: COLORS.grayscale_500,
+    marginTop: 2,
+  },
   resultIconBox: {
     padding: 4,
     borderRadius: 100,

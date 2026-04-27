@@ -105,6 +105,46 @@ const userGuesthouseApi = {
     api.get('/user/guesthouses/amenities', {
       withAuth: false,
     }),
+
+  getGuesthouseMap: ({
+    checkIn,
+    checkOut,
+    guestCount,
+    swLat,
+    swLng,
+    neLat,
+    neLng,
+    limit = 200,
+    sortBy = 'RECOMMEND',
+    minPrice,
+    maxPrice,
+    hashtagIds,
+    amenityIds,
+    roomMaxCapacity,
+    femaleOnly,
+    availableOnly,
+  }) =>
+    api.get('/user/guesthouses/map', {
+      params: {
+        checkIn,
+        checkOut,
+        guestCount,
+        swLat,
+        swLng,
+        neLat,
+        neLng,
+        limit,
+        sortBy,
+        minPrice,
+        maxPrice,
+        hashtagIds,
+        amenityIds,
+        roomMaxCapacity,
+        femaleOnly,
+        availableOnly,
+      },
+      withAuth: false,
+    }),
 };
 
 export default userGuesthouseApi;

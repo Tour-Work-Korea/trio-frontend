@@ -1,6 +1,6 @@
 import 'react-native-reanimated';
 import React, { useState, useEffect } from 'react';
-import { Platform, StatusBar, StyleSheet, View } from 'react-native';
+import { AppState, Platform, StatusBar, StyleSheet, View } from 'react-native';
 import 'react-native-gesture-handler';
 
 import RootNavigation from '@navigations/RootNavigation';
@@ -24,7 +24,8 @@ import {
   useSafeAreaInsets,
 } from 'react-native-safe-area-context';
 import GlobalAlertModal from '@components/modals/GlobalAlertModal';
-
+import useUserStore from '@stores/userStore';
+import authApi from '@utils/api/authApi';
 
 
 const toastConfig = {
@@ -57,7 +58,9 @@ const waitForNavReady = async () => {
 
 function AppContent() {
   const [appLoaded, setAppLoaded] = useState(false);
+  const [appState, setAppState] = useState(AppState.currentState);
   const insets = useSafeAreaInsets();
+  const accessToken = useUserStore(state => state.accessToken);
 
   useEffect(() => {
     console.log('🚨 API_BASE_URL (runtime):', process.env.API_BASE_URL);
@@ -74,7 +77,9 @@ function AppContent() {
         const unsubscribeTokenRefresh = setupTokenRefreshListener();
 
         return () => {
-          if (unsubscribeTokenRefresh) unsubscribeTokenRefresh();
+          if (unsubscribeTokenRefresh) {
+            unsubscribeTokenRefresh();
+          }
         };
       } finally {
         setAppLoaded(true); // 스플래시 제거
@@ -127,6 +132,42 @@ function AppContent() {
       unsubscribeOnNotificationOpenedApp();
     };
   }, []);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', nextAppState => {
+      setAppState(nextAppState);
+    });
+
+    return () => {
+      subscription.remove();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (appState !== 'active' || !accessToken) {
+      return undefined;
+    }
+
+    let cancelled = false;
+
+    const sendHeartbeat = async () => {
+      try {
+        await authApi.heartbeat();
+      } catch (error) {
+        if (__DEV__ && !cancelled) {
+          console.warn('heartbeat request failed:', error?.message);
+        }
+      }
+    };
+
+    sendHeartbeat();
+    const intervalId = setInterval(sendHeartbeat, 60 * 1000);
+
+    return () => {
+      cancelled = true;
+      clearInterval(intervalId);
+    };
+  }, [appState, accessToken]);
 
   return (
     <>

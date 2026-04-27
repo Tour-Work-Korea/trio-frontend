@@ -147,6 +147,8 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
       name: dto.guesthouse ?? fallback?.guesthouseName ?? '',
       address: dto.address ?? fallbackAddress ?? '',
       phone: dto.guesthousePhoneNum ?? fallback?.guesthousePhone ?? '',
+      latitude: dto.lat ?? fallback?.lat ?? fallback?.latitude ?? null,
+      longitude: dto.lng ?? fallback?.lng ?? fallback?.longitude ?? null,
     },
 
     stay: {
@@ -427,11 +429,11 @@ const GuesthousePaymentReceipt = () => {
 
   // 지도보기
   const handleOpenMap = async () => {
-    Toast.show({
-      type: 'success',
-      text1: '준비중인 기능이에요',
-      position: 'top',
-      visibilityTime: 2000,
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: data?.guesthouse?.name,
+      guesthouseAddress: trimJejuPrefix(data?.guesthouse?.address),
+      latitude: data?.guesthouse?.latitude,
+      longitude: data?.guesthouse?.longitude,
     });
   };
 

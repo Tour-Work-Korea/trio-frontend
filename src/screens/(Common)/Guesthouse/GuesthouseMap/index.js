@@ -22,13 +22,15 @@ const GuesthouseMap = ({route}) => {
     guesthouseAddress,
     latitude,
     longitude,
+    lat,
+    lng,
   } = route?.params ?? {};
 
-  const lat = Number(latitude);
-  const lng = Number(longitude);
-  const hasCoordinate = Number.isFinite(lat) && Number.isFinite(lng);
+  const parsedLat = Number(latitude ?? lat);
+  const parsedLng = Number(longitude ?? lng);
+  const hasCoordinate = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
   const coordinate = hasCoordinate
-    ? {latitude: lat, longitude: lng}
+    ? {latitude: parsedLat, longitude: parsedLng}
     : DEFAULT_COORDINATE;
 
   const region = {

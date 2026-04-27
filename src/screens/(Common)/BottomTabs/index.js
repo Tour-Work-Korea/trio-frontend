@@ -4,8 +4,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-import GuesthouseIcon from '@assets/images/search_black.svg';
-import GuesthouseIconFilled from '@assets/images/search_fill_black.svg';
+import GuesthouseIcon from '@assets/images/navigation_black.svg';
+import GuesthouseIconFilled from '@assets/images/navigation_fill_black.svg';
 import HomeIcon from '@assets/images/wa_home_gray.svg';
 import HomeIconFilled from '@assets/images/wa_home_orange.svg';
 import MeetIcon from '@assets/images/event_black.svg';
