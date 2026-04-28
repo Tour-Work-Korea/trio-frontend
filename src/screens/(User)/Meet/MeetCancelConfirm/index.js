@@ -94,9 +94,12 @@ const MeetCancelConfirm = () => {
 
     const startDateTime =
       reservationDetail?.startDateTime ?? cancelContext?.startDateTime ?? null;
+    const endDateTime =
+      reservationDetail?.endDateTime ?? cancelContext?.endDateTime ?? null;
     const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
       startDateTime,
     );
+    const endFormatted = formatLocalDateTimeToDotAndTimeWithDay(endDateTime);
     const locationText =
       trimJejuPrefix(reservationDetail?.partyLocation ?? '') ||
       reservationDetail?.meetingPlace ||
@@ -112,8 +115,10 @@ const MeetCancelConfirm = () => {
         reservationDetail?.guesthouse ?? cancelContext?.guesthouseName ?? '',
       location: locationText,
       startDateTime,
+      endDateTime,
       startDate: startFormatted.date,
       startTime: startFormatted.time,
+      endTime: endFormatted.time,
       originalAmount:
         paidAmount + couponDiscountAmount + pointDiscountAmount,
       paidAmount,
@@ -128,7 +133,9 @@ const MeetCancelConfirm = () => {
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const startDateTimeText = viewData.startDateTime
-    ? dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')
+    ? `${dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')}${
+        viewData.endDateTime && viewData.endTime ? ` ~ ${viewData.endTime}` : ''
+      }`
     : '-';
 
   const handleCancelConfirm = async () => {
@@ -185,14 +192,14 @@ const MeetCancelConfirm = () => {
       ) : (
         <>
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Header title='예약취소'/>
+            <Header title='신청취소'/>
             <View style={styles.body}>
           {/* 안내 배너 */}
-          <View style={styles.noticeBox}>
+          {/* <View style={styles.noticeBox}>
             <Text style={[FONTS.fs_14_semibold, styles.noticeText]}>
               상세 내역을 확인하고 예약을 취소해주세요!
             </Text>
-          </View>
+          </View> */}
 
           {/* 현재 날짜 및 시간 */}
           <Text style={[FONTS.fs_12_medium, styles.todayText]}>
@@ -222,7 +229,7 @@ const MeetCancelConfirm = () => {
           <View style={styles.devide}/>
 
           {/* 환불 정보 */}
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <Text style={[FONTS.fs_16_semibold, {marginBottom: 12}]}>환불 예상 정보</Text>
 
             <View style={styles.row}>
@@ -259,9 +266,9 @@ const MeetCancelConfirm = () => {
             </View>
           </View>
 
-          <View style={styles.devide}/>
+          <View style={styles.devide}/> */}
 
-          <View style={styles.section}>
+          {/* <View style={styles.section}>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>환불 방법</Text>
               <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
@@ -275,7 +282,7 @@ const MeetCancelConfirm = () => {
                 {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
               </Text>
             </View>
-          </View>
+          </View> */}
 
           {/* 취소 사유 */}
           <View style={styles.section}>
@@ -338,7 +345,7 @@ const MeetCancelConfirm = () => {
           </View>
 
           {/* 약관 동의 */}
-          <View style={styles.agreeRow}>
+          {/* <View style={styles.agreeRow}>
             <TouchableOpacity
               style={styles.agreeBox}
               onPress={() => setChecked(!checked)}
@@ -367,9 +374,9 @@ const MeetCancelConfirm = () => {
             <TouchableOpacity onPress={() => setTermsOpen(true)}>
               <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
             </TouchableOpacity>
-          </View>
+          </View> */}
           
-            </View>
+            </View> 
           </ScrollView>
 
           <TermsModal
@@ -384,11 +391,11 @@ const MeetCancelConfirm = () => {
           <TouchableOpacity
             style={[
               styles.submitButton,
-              (!checked || !selectedReason || cancelSubmitting) && {
+              (!selectedReason || cancelSubmitting) && {
                 backgroundColor: COLORS.grayscale_300,
               },
             ]}
-            disabled={!checked || !selectedReason || cancelSubmitting}
+            disabled={!selectedReason || cancelSubmitting}
             onPress={handleCancelConfirm}
           >
             <Text style={[styles.submitText, FONTS.fs_14_medium]}>취소 요청하기</Text>

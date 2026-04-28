@@ -189,7 +189,7 @@ const MeetMain = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.chipRow}>
+        {/* <View style={styles.chipRow}>
           <View style={[styles.countChip, styles.partyCountChip]}>
             <Text style={[FONTS.fs_12_medium, styles.partyCountText]}>
               게하 파티 {item.parties.length}
@@ -198,7 +198,7 @@ const MeetMain = () => {
           <View style={styles.countChip}>
             <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>이벤트 0</Text>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.partyList}>{item.parties.map(renderPartyItem)}</View>
       </View>

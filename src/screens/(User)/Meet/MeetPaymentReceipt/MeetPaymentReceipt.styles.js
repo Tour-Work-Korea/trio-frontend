@@ -61,6 +61,21 @@ const styles = StyleSheet.create({
   noticeText: {
     lineHeight: 22,
   },
+  requestBox: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    padding: 12,
+    marginBottom: 20,
+  },
+  requestTitle: {
+    color: COLORS.grayscale_700,
+    marginBottom: 8,
+  },
+  requestText: {
+    color: COLORS.grayscale_900,
+    lineHeight: 20,
+  },
 
   // 결제정보
   paymentBox: {

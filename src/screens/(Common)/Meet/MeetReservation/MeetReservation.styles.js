@@ -141,13 +141,17 @@ const styles = StyleSheet.create({
     paddingTop: 40,
   },
   guideTitle: {
-    marginTop: 18,
+    marginTop: 8,
     color: COLORS.grayscale_900,
-    lineHeight: 23,
+    lineHeight: 28,
+  },
+  guideRuleScroll: {
+    marginTop: 36,
+    maxHeight: 320,
   },
   guideRuleList: {
-    marginTop: 36,
-    gap: 28,
+    gap: 32,
+    paddingBottom: 4,
   },
   guideRuleRow: {
     flexDirection: 'row',
@@ -157,13 +161,13 @@ const styles = StyleSheet.create({
   guideRuleNumber: {
     width: 20,
     height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_200,
     alignItems: 'center',
     justifyContent: 'center',
   },
   guideRuleNumberText: {
-    color: COLORS.grayscale_600,
+    color: COLORS.grayscale_900,
   },
   guideRuleText: {
     flex: 1,
@@ -171,34 +175,33 @@ const styles = StyleSheet.create({
     lineHeight: 21,
   },
   guideAgreeBox: {
-    marginTop: 32,
-    minHeight: 44,
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
     flexDirection: 'row',
     alignItems: 'center',
-    paddingHorizontal: 14,
-    gap: 8,
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    gap: 12,
     borderWidth: 1,
     borderColor: COLORS.grayscale_100,
   },
   guideAgreeBoxActive: {
     borderColor: COLORS.semantic_red,
-    backgroundColor: COLORS.grayscale_0,
+    backgroundColor: COLORS.secondary_red,
   },
   guideUncheckedCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.grayscale_200,
+    width: 24,
+    height: 24,
+    borderRadius: 100,
+    backgroundColor: COLORS.grayscale_300,
     alignItems: 'center',
     justifyContent: 'center',
   },
   guideCheckedCircle: {
-    width: 20,
-    height: 20,
-    borderRadius: 10,
-    backgroundColor: COLORS.secondary_red,
+    width: 24,
+    height: 24,
+    borderRadius: 100,
+    backgroundColor: COLORS.semantic_red,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -210,20 +213,9 @@ const styles = StyleSheet.create({
   },
   guideBottomButtonWrap: {
     paddingHorizontal: 20,
-    paddingBottom: 34,
+    paddingBottom: 36,
   },
   guideNextButton: {
-    height: 48,
-    borderRadius: 8,
-    backgroundColor: COLORS.primary_orange,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  guideNextButtonDisabled: {
-    backgroundColor: COLORS.grayscale_300,
-  },
-  guideNextButtonText: {
-    color: COLORS.grayscale_0,
   },
 
 });

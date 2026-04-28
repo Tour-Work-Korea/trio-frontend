@@ -24,8 +24,9 @@ import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 import Checked from '@assets/images/check_orange.svg';
-import Unchecked from '@assets/images/check_gray.svg';
-import WarningAlarm from '@assets/images/warning_alarm_orange.svg';
+import Unchecked from '@assets/images/check_white.svg';
+import WarningAlarm from '@assets/images/notice_bubble_orange.svg';
+import { COLORS } from '@constants/colors';
 
 const formatPhoneNumber = phone => {
   if (!phone || phone.length !== 11) {
@@ -268,63 +269,64 @@ const MeetReservation = () => {
         </View>
 
         <View style={styles.guideContent}>
-          <WarningAlarm width={28} height={28} />
-          <Text style={[FONTS.fs_16_semibold, styles.guideTitle]}>
-            필수 안내 사항을{'\n'}꼭 확인해 주세요!
+          <WarningAlarm width={36} height={36} />
+          <Text style={[FONTS.fs_20_medium, styles.guideTitle]}>
+            모두가 즐거운 시간이 될 수 있도록{'\n'}꼭 확인해 주세요!
           </Text>
 
-          <View style={styles.guideRuleList}>
+          <ScrollView
+            style={styles.guideRuleScroll}
+            contentContainerStyle={styles.guideRuleList}
+            showsVerticalScrollIndicator={false}
+            nestedScrollEnabled>
             {announcementItems.map((item, index) => (
               <View key={`${step}-${index}`} style={styles.guideRuleRow}>
                 <View style={styles.guideRuleNumber}>
-                  <Text style={[FONTS.fs_12_semibold, styles.guideRuleNumberText]}>
+                  <Text style={[FONTS.fs_16_semibold, styles.guideRuleNumberText]}>
                     {index + 1}
                   </Text>
                 </View>
-                <Text style={[FONTS.fs_14_medium, styles.guideRuleText]}>
+                <Text style={[FONTS.fs_18_medium, styles.guideRuleText]}>
                   {item}
                 </Text>
               </View>
             ))}
-          </View>
 
-          <TouchableOpacity
-            style={[
-              styles.guideAgreeBox,
-              checked && styles.guideAgreeBoxActive,
-            ]}
-            activeOpacity={0.8}
-            onPress={handleToggleGuideAgreement}>
-            {checked ? (
-              <View style={styles.guideCheckedCircle}>
-                <Checked width={16} height={16} />
-              </View>
-            ) : (
-              <View style={styles.guideUncheckedCircle}>
-                <Unchecked width={16} height={16} />
-              </View>
-            )}
-            <Text
+            <TouchableOpacity
               style={[
-                FONTS.fs_14_medium,
-                styles.guideAgreeText,
-                checked && styles.guideAgreeTextActive,
-              ]}>
-              필수 안내 사항을 확인했어요!
-            </Text>
-          </TouchableOpacity>
+                styles.guideAgreeBox,
+                checked && styles.guideAgreeBoxActive,
+              ]}
+              activeOpacity={0.8}
+              onPress={handleToggleGuideAgreement}>
+              {checked ? (
+                <View style={styles.guideCheckedCircle}>
+                  <Unchecked width={20} height={20} />
+                </View>
+              ) : (
+                <View style={styles.guideUncheckedCircle}>
+                  <Unchecked width={20} height={20} />
+                </View>
+              )}
+              <Text
+                style={[
+                  FONTS.fs_16_medium,
+                  styles.guideAgreeText,
+                  checked && styles.guideAgreeTextActive,
+                ]}>
+                이용 규칙을 확인했어요!
+              </Text>
+            </TouchableOpacity>
+          </ScrollView>
         </View>
 
         <View style={styles.guideBottomButtonWrap}>
-          <TouchableOpacity
+          <ButtonScarlet
+            title="다음"
             style={styles.guideNextButton}
-            activeOpacity={0.8}
             disabled={!checked}
-            onPress={handlePressGuideNext}>
-            <Text style={[FONTS.fs_14_semibold, styles.guideNextButtonText]}>
-              다음
-            </Text>
-          </TouchableOpacity>
+            onPress={handlePressGuideNext}
+          />
         </View>
       </View>
     );
@@ -393,7 +395,7 @@ const MeetReservation = () => {
               <TextInput
                 style={[FONTS.fs_14_regular, styles.requestInput]}
                 placeholder="요청사항을 호스트께 전달해보세요"
-                placeholderTextColor="#9EA3A7"
+                placeholderTextColor={COLORS.grayscale_400}
                 value={requestMessage}
                 onChangeText={setRequestMessage}
               />
@@ -420,35 +422,6 @@ const MeetReservation = () => {
             </TouchableOpacity>
 
             <View style={styles.agreeRowConent}>
-              <View style={styles.agreeRow}>
-                <TouchableOpacity onPress={() => toggleAgreement('terms')}>
-                  {agreements.terms ? (
-                    <View style={styles.checkedBox}>
-                      {' '}
-                      <Checked width={24} height={24} />{' '}
-                    </View>
-                  ) : (
-                    <View style={styles.uncheckedBox}>
-                      {' '}
-                      <Unchecked width={24} height={24} />{' '}
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
-                    [필수]
-                  </Text>{' '}
-                  이벤트 취소/환불 규정에 동의합니다.
-                </Text>
-                <TouchableOpacity
-                  style={styles.seeMore}
-                  onPress={() => openTermModal('terms')}>
-                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
-                    보기
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
               <View style={styles.agreeRow}>
                 <TouchableOpacity
                   onPress={() => toggleAgreement('personalInfo')}

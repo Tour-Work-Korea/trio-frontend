@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useCallback, useRef} from 'react';
 import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -12,6 +12,8 @@ import Star from '@assets/images/star_white.svg';
 
 export default function Guesthouses({guesthouses}) {
   const navigation = useNavigation();
+  const listRef = useRef(null);
+  const scrollOffsetRef = useRef(0);
 
   const getTagLabels = item =>
     (Array.isArray(item.hashtags) ? item.hashtags : [])
@@ -88,6 +90,16 @@ export default function Guesthouses({guesthouses}) {
     </TouchableOpacity>
   );
 
+  const handleHorizontalScroll = useCallback(event => {
+    scrollOffsetRef.current = event.nativeEvent.contentOffset.x;
+  }, []);
+
+  const stopHorizontalMomentum = useCallback(event => {
+    const offset = event.nativeEvent.contentOffset.x;
+    scrollOffsetRef.current = offset;
+    listRef.current?.scrollToOffset({offset, animated: false});
+  }, []);
+
   return (
     <View style={styles.guesthouseContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
@@ -107,9 +119,16 @@ export default function Guesthouses({guesthouses}) {
         </TouchableOpacity>
       </View>
       <FlatList
+        ref={listRef}
         data={guesthouses}
         horizontal
+        directionalLockEnabled
+        nestedScrollEnabled={false}
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={handleHorizontalScroll}
+        onScrollEndDrag={stopHorizontalMomentum}
         keyExtractor={item => String(item.guesthouseId)}
         renderItem={renderGuesthouse}
         ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
