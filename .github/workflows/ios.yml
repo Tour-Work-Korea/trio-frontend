@@ -145,8 +145,7 @@ jobs:
 
       - name: Decode GoogleService-Info.plist
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
-
+          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
 
       # --------------------------------
       # Build & Upload
@@ -158,3 +157,33 @@ jobs:
         run: |
           echo "🚀 Fastlane lane: $LANE"
           bundle exec fastlane $LANE
+
+      - name: Notify Discord
+        if: always()
+        run: |
+          BRANCH="${GITHUB_REF##*/}"
+      
+          if [ "$BRANCH" = "develop" ]; then
+            ENV_NAME="🧪 DEV"
+          else
+            ENV_NAME="🚀 PROD"
+          fi
+      
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993
+            MSG="✅ iOS 빌드 성공"
+          else
+            COLOR=15158332
+            MSG="❌ iOS 빌드 실패"
+          fi
+      
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"embeds\": [{
+              \"title\": \"$MSG\",
+              \"description\": \"환경: $ENV_NAME\n브랜치: $BRANCH\n작성자: ${{ github.actor }}\n링크: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
+              \"color\": $COLOR
+            }]
+          }" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}
