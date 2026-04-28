@@ -2437,6 +2437,13 @@
   resolved "https://registry.npmjs.org/@react-native-community/geolocation/-/geolocation-3.4.0.tgz"
   integrity sha512-bzZH89/cwmpkPMKKveoC72C4JH0yF4St5Ceg/ZM9pA1SqX9MlRIrIrrOGZ/+yi++xAvFDiYfihtn9TvXWU9/rA==
 
+"@react-native-firebase/analytics@22.4.0":
+  version "22.4.0"
+  resolved "https://registry.npmjs.org/@react-native-firebase/analytics/-/analytics-22.4.0.tgz"
+  integrity sha512-iTwwJQPv2ea4RhjmuzMu1D2x0rKDRaLFbbkvOYp+hzRXIxSVcDI4Adeo0Hci4Am6EZbi04FRjhEobqUqTFhewA==
+  dependencies:
+    superstruct "^2.0.2"
+
 "@react-native-firebase/app@^22.4.0", "@react-native-firebase/app@22.4.0":
   version "22.4.0"
   resolved "https://registry.npmjs.org/@react-native-firebase/app/-/app-22.4.0.tgz"
@@ -2455,6 +2462,11 @@
   version "22.4.0"
   resolved "https://registry.npmjs.org/@react-native-firebase/messaging/-/messaging-22.4.0.tgz"
   integrity sha512-iuTA8IJ102pQijFejhWZXxVIt4+JJ5n3JTN8Mb+OXZmIVswUZ4ryErk8Y0RhcFiIwEF5a99ziJfPybA1EheVLg==
+
+"@react-native-firebase/remote-config@^22.4.0":
+  version "22.4.0"
+  resolved "https://registry.npmjs.org/@react-native-firebase/remote-config/-/remote-config-22.4.0.tgz"
+  integrity sha512-uisPD4ACE1PDGtAzQMmlPLg08jozT7PI2ddVLUJke499Fne9wc9f3edRqi+7afdMfXf7P70IxA3rR0iE9wagsQ==
 
 "@react-native-masked-view/masked-view@^0.2.8", "@react-native-masked-view/masked-view@>= 0.2.0":
   version "0.2.9"
@@ -4070,6 +4082,11 @@ compare-versions@^3.6.0:
   version "3.6.0"
   resolved "https://registry.npmjs.org/compare-versions/-/compare-versions-3.6.0.tgz"
   integrity sha512-W6Af2Iw1z4CB7q4uU4hv646dW9GQuBM+YpC0UvUCWSD8w90SJjp+ujJuXaEMtAXBtSqGfMPuFOVn4/+FlaqfBA==
+
+compare-versions@^6.1.1:
+  version "6.1.1"
+  resolved "https://registry.npmjs.org/compare-versions/-/compare-versions-6.1.1.tgz"
+  integrity sha512-4hm4VPpIecmlg59CHXnRDnqGplJFrbLG4aFEl5vl6cK1u76ws3LLvX7ikFnTDl5vo39sjWD6AaDPYodJp/NNHg==
 
 compressible@~2.0.18:
   version "2.0.18"
@@ -7785,6 +7802,11 @@ react-native-config@^1.5.5:
   resolved "https://registry.npmjs.org/react-native-config/-/react-native-config-1.5.5.tgz"
   integrity sha512-dGdLnBU0cd5xL5bF0ROTmHYbsstZnQKOEPfglvZi1vStvAjpld14X25K6mY3KGPTMWAzx6TbjKeq5dR+ILuMMA==
 
+react-native-device-info@^15.0.2:
+  version "15.0.2"
+  resolved "https://registry.npmjs.org/react-native-device-info/-/react-native-device-info-15.0.2.tgz"
+  integrity sha512-dd71eXG2l3Cwp66IvKNadMTB8fhU3PEjyVddI97sYan+D4bgIAUmgGDhbSOFvHcGavksb2U17kiQYaDiK2WK2g==
+
 react-native-dotenv@^3.4.11:
   version "3.4.11"
   resolved "https://registry.npmjs.org/react-native-dotenv/-/react-native-dotenv-3.4.11.tgz"
@@ -8802,6 +8824,11 @@ sucrase@3.35.0:
     mz "^2.7.0"
     pirates "^4.0.1"
     ts-interface-checker "^0.1.9"
+
+superstruct@^2.0.2:
+  version "2.0.2"
+  resolved "https://registry.npmjs.org/superstruct/-/superstruct-2.0.2.tgz"
+  integrity sha512-uV+TFRZdXsqXTL2pRvujROjdZQ4RAlBUS5BTh9IGm+jTqQntYThciG/qu57Gs69yjnVUSqdxF9YLmSnpupBW9A==
 
 supports-color@^5.3.0:
   version "5.5.0"

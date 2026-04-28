@@ -4,8 +4,8 @@ import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-import GuesthouseIcon from '@assets/images/search_black.svg';
-import GuesthouseIconFilled from '@assets/images/search_fill_black.svg';
+import GuesthouseIcon from '@assets/images/navigation_black.svg';
+import GuesthouseIconFilled from '@assets/images/navigation_fill_black.svg';
 import HomeIcon from '@assets/images/wa_home_gray.svg';
 import HomeIconFilled from '@assets/images/wa_home_orange.svg';
 import MeetIcon from '@assets/images/event_black.svg';
@@ -16,6 +16,7 @@ import HeartIcon from '@assets/images/heart_black.svg';
 import HeartIconFilled from '@assets/images/heart_fill_black.svg';
 
 import {Guesthouse, Home, Meet, My, Favorite} from '@screens';
+import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
 
@@ -68,7 +69,10 @@ const BottomTabs = () => (
         listeners={({navigation}) => ({
           tabPress: e => {
             e.preventDefault();
-            navigation.navigate('검색', {screen: 'GuesthouseSearch'});
+            navigation.navigate('검색', {
+              screen: 'GuesthouseList',
+              params: getDefaultGuesthouseListParams(),
+            });
           },
         })}
       />

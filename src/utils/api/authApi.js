@@ -47,13 +47,13 @@ const authApi = {
     api.post('/auth/user/verify-ci', {niceAuthToken}, {
       withAuth: true, // 로그인 상태에서 호출, 토큰 포함
     }),
-    
+
   // 소셜 회원가입 완료
   completeSocialSignUp: body =>
     api.post('/auth/user/signup/social/complete', body, {
       withAuth: false,
     }),
-  
+
   //휴대폰 인증
   sendSms: (phoneNum, userRole) =>
     api.post('/auth/sms/send', null, {
@@ -109,7 +109,7 @@ const authApi = {
       {provider: 'KAKAO', accessToken},
       {withAuth: false},
     ),
-    
+
   //닉네임 중복 확인
   checkNickname: nickname =>
     api.get('/auth/user/nickname/check', {
@@ -137,12 +137,15 @@ const authApi = {
   //비밀번호 찾기
   findPassword: body =>
     api.post('/auth/find/password', body, {withAuth: false}),
-  
+
   //로그아웃
   logout: refreshToken => api.post('/auth/logout', {refreshToken}),
 
   //회원 탈퇴
   withdrawal: () => api.post('/auth/user/withdrawal'),
+
+  // 사용자 활동 heartbeat
+  heartbeat: () => api.post('/presence/heartbeat'),
 };
 
 export default authApi;

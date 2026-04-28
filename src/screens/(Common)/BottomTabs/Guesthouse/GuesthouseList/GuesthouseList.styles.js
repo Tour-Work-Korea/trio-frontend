@@ -74,6 +74,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flex: 1,
   },
+  guesthouseMapContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    flex: 1,
+  },
   guesthouseListHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -249,6 +253,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  mapButtonOnMap: {
+    marginBottom: 180,
   },
   mapButtonText: {
     marginLeft: 8,

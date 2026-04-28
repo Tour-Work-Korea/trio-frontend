@@ -44,17 +44,6 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_600,
   },
 
-  // 검색 필터
-  conditionRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-    paddingVertical: 12,
-  },
-  conditionText: {
-    color: COLORS.grayscale_900,
-  },
-
   filterHeader: {
     flexDirection: 'row',
     alignItems: 'center',
