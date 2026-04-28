@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
   },
   scrollContent: {
     paddingHorizontal: 20,
-    paddingBottom: 60,
+    paddingBottom: 120,
   },
   devide: {
     width: '100%',
@@ -34,17 +34,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 6,
   },
-  eventPriceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  priceDevide: {
-    width: 1,
-    backgroundColor: COLORS.grayscale_900,
-    height: 10,
-  },
-
   // 예약자 정보
   section: {
     gap: 12,
@@ -64,82 +53,6 @@ const styles = StyleSheet.create({
   },
   userInfoTitle: {
     color: COLORS.grayscale_600,
-  },
-
-  // 방 이름, 가격
-  meetNameText: {},
-  meetPriceText: {
-    color: COLORS.grayscale_600,
-  },
-  couponBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  selectedCouponDiscountText: {
-    color: COLORS.primary_orange,
-  },
-  couponBanner: {
-    alignSelf: 'center',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.grayscale_100,
-    borderRadius: 4,
-    width: '100%',
-    paddingVertical: 8,
-  },
-  couponBannerText: {
-    color: COLORS.semantic_red,
-  },
-  selectedCouponBanner: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    backgroundColor: COLORS.grayscale_100,
-    borderRadius: 4,
-    width: '100%',
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    gap: 12,
-  },
-  selectedCouponNameText: {
-    flex: 1,
-    color: COLORS.grayscale_400,
-  },
-  selectedCouponAmountText: {
-    color: COLORS.grayscale_400,
-  },
-  pointSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-  },
-  pointInput: {
-    width: 120,
-    padding: 8,
-    borderColor: COLORS.grayscale_200,
-    borderWidth: 1,
-    borderRadius: 4,
-    textAlign: 'right',
-  },
-  pointBtn: {
-    borderColor: COLORS.grayscale_200,
-    borderRadius: 20,
-    borderWidth: 1,
-    padding: 8,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  pointText: {
-    color: COLORS.grayscale_600,
-    alignSelf: 'flex-end',
-    marginTop: -8,
-    paddingRight: 8,
-  },
-  pointWarningText: {
-    color: COLORS.semantic_red,
-    alignSelf: 'flex-end',
-    paddingRight: 8,
   },
 
   // 요청 사항
@@ -203,29 +116,116 @@ const styles = StyleSheet.create({
   seeMoreText: {
     color: COLORS.primary_blue,
   },
-  button: {
-    marginHorizontal: 12,
-    // marginBottom: 20,
+  fixedButton: {
+    position: 'absolute',
+    left: 20,
+    right: 20,
+    bottom: 34,
   },
-  discountBanner: {
+  // 신청 안내 단계
+  guideContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  guideProgressTrack: {
+    height: 1,
+    backgroundColor: COLORS.grayscale_200,
+  },
+  guideProgressFill: {
+    height: 1,
+    backgroundColor: COLORS.primary_orange,
+  },
+  guideContent: {
+    flex: 1,
+    paddingHorizontal: 20,
+    paddingTop: 40,
+  },
+  guideTitle: {
+    marginTop: 18,
+    color: COLORS.grayscale_900,
+    lineHeight: 23,
+  },
+  guideRuleList: {
+    marginTop: 36,
+    gap: 28,
+  },
+  guideRuleRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 12,
+  },
+  guideRuleNumber: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.grayscale_100,
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 4,
-    marginBottom: 8,
-    paddingTop: 4,
   },
-  discountBannerText: {
-    color: COLORS.primary_orange,
+  guideRuleNumberText: {
+    color: COLORS.grayscale_600,
   },
-
-  // 하단 요약정보
-  bottomInfoRow: {
+  guideRuleText: {
+    flex: 1,
+    color: COLORS.grayscale_800,
+    lineHeight: 21,
+  },
+  guideAgreeBox: {
+    marginTop: 32,
+    minHeight: 44,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_100,
     flexDirection: 'row',
     alignItems: 'center',
-    justifyContent: 'space-between',
-    marginTop: 44,
+    paddingHorizontal: 14,
+    gap: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_100,
   },
+  guideAgreeBoxActive: {
+    borderColor: COLORS.semantic_red,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  guideUncheckedCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.grayscale_200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideCheckedCircle: {
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: COLORS.secondary_red,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideAgreeText: {
+    color: COLORS.grayscale_400,
+  },
+  guideAgreeTextActive: {
+    color: COLORS.semantic_red,
+  },
+  guideBottomButtonWrap: {
+    paddingHorizontal: 20,
+    paddingBottom: 34,
+  },
+  guideNextButton: {
+    height: 48,
+    borderRadius: 8,
+    backgroundColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  guideNextButtonDisabled: {
+    backgroundColor: COLORS.grayscale_300,
+  },
+  guideNextButtonText: {
+    color: COLORS.grayscale_0,
+  },
+
 });
 
 export default styles;
