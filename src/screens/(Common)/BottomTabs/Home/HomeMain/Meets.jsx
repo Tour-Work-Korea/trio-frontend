@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -22,6 +22,8 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 export default function Meets({events = [], setEventList}) {
   const navigation = useNavigation();
   const [selectedChip, setSelectedChip] = useState('guesthouseParty');
+  const listRef = useRef(null);
+  const scrollOffsetRef = useRef(0);
 
   const moveToDetail = partyId => {
     navigation.navigate('MeetDetail', {partyId});
@@ -42,6 +44,16 @@ export default function Meets({events = [], setEventList}) {
       );
     }
   };
+
+  const handleHorizontalScroll = useCallback(event => {
+    scrollOffsetRef.current = event.nativeEvent.contentOffset.x;
+  }, []);
+
+  const stopHorizontalMomentum = useCallback(event => {
+    const offset = event.nativeEvent.contentOffset.x;
+    scrollOffsetRef.current = offset;
+    listRef.current?.scrollToOffset({offset, animated: false});
+  }, []);
 
   const renderEvents = item => {
     const isFav = !!item.isLiked;
@@ -122,7 +134,7 @@ export default function Meets({events = [], setEventList}) {
             <Chevron_right_gray width={24} height={24} />
           </TouchableOpacity>
         </View>
-        <View style={localStyles.meetChipRow}>
+        {/* <View style={localStyles.meetChipRow}>
           <TouchableOpacity
             style={[
               localStyles.meetChip,
@@ -138,7 +150,7 @@ export default function Meets({events = [], setEventList}) {
               ]}>
               게하 파티
             </Text>
-          </TouchableOpacity>
+          </TouchableOpacity> */}
           {/* <TouchableOpacity
             style={[
               localStyles.meetChip,
@@ -155,7 +167,7 @@ export default function Meets({events = [], setEventList}) {
             </Text>
           </TouchableOpacity> */}
           {/* 임시 */}
-          <View
+          {/* <View
             style={[
               localStyles.meetChip,
               selectedChip === 'event' && localStyles.meetChipActive,
@@ -170,14 +182,20 @@ export default function Meets({events = [], setEventList}) {
               이벤트
             </Text>
           </View>
-        </View>
+        </View> */}
       </View>
 
       <FlatList
+        ref={listRef}
         data={visibleEvents}
         horizontal
-        nestedScrollEnabled
+        directionalLockEnabled
+        nestedScrollEnabled={false}
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
+        scrollEventThrottle={16}
+        onScroll={handleHorizontalScroll}
+        onScrollEndDrag={stopHorizontalMomentum}
         keyExtractor={item => String(item.partyId)}
         renderItem={({item}) => renderEvents(item)}
         ItemSeparatorComponent={() => <View style={{width: 12}} />}

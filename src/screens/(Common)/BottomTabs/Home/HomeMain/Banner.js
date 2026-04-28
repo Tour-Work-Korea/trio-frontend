@@ -5,8 +5,7 @@ import {
   Dimensions,
   TouchableOpacity,
   Linking,
-  Animated,
-  Easing,
+  ScrollView,
 } from 'react-native';
 import styles from './Home.styles';
 
@@ -16,7 +15,6 @@ const BANNER_HEIGHT = 120;
 
 export default function Banner({banners = []}) {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const scrollX = useRef(new Animated.Value(0)).current;
   const scrollRef = useRef(null);
 
   const openBannerLink = useCallback(async url => {
@@ -37,33 +35,30 @@ export default function Banner({banners = []}) {
     }
 
     const AUTO_SLIDE_INTERVAL = 4000; // 4초마다 슬라이드
-    const SLIDE_DURATION = 1000; // 전환 애니메이션 1초
 
     const timer = setInterval(() => {
       setCurrentIndex(prev => {
         const next = (prev + 1) % banners.length;
-
-        Animated.timing(scrollX, {
-          toValue: next * width,
-          duration: SLIDE_DURATION,
-          easing: Easing.out(Easing.cubic),
-          useNativeDriver: false,
-        }).start();
-
+        scrollRef.current?.scrollTo({x: next * width, animated: true});
         return next;
       });
     }, AUTO_SLIDE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [banners.length, scrollX]);
+  }, [banners.length]);
 
-  // 애니메이션된 스크롤 동기화
-  useEffect(() => {
-    const listener = scrollX.addListener(({value}) => {
-      scrollRef.current?.scrollTo({x: value, animated: false});
-    });
-    return () => scrollX.removeListener(listener);
-  }, [scrollX]);
+  const handleScrollEnd = useCallback(event => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const nextIndex = Math.round(offsetX / width);
+    setCurrentIndex(nextIndex);
+  }, []);
+
+  const stopHorizontalMomentum = useCallback(event => {
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const nextIndex = Math.round(offsetX / width);
+    setCurrentIndex(nextIndex);
+    scrollRef.current?.scrollTo({x: nextIndex * width, animated: false});
+  }, []);
 
   if (!banners.length) {
     return null;
@@ -71,12 +66,17 @@ export default function Banner({banners = []}) {
 
   return (
     <View style={styles.bannerContainer}>
-      <Animated.ScrollView
+      <ScrollView
         ref={scrollRef}
         horizontal
         pagingEnabled
+        directionalLockEnabled
+        nestedScrollEnabled={false}
+        decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
+        onScrollEndDrag={stopHorizontalMomentum}
+        onMomentumScrollEnd={handleScrollEnd}
         style={{width}}>
         {banners.map((item, index) => (
           <View
@@ -103,7 +103,7 @@ export default function Banner({banners = []}) {
             </TouchableOpacity>
           </View>
         ))}
-      </Animated.ScrollView>
+      </ScrollView>
 
       <View style={styles.indicatorRow}>
         {banners.map((_, index) => (
