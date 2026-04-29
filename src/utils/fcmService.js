@@ -37,6 +37,8 @@ const requestAndroidNotificationPermission = async () => {
   }
 };
 
+import { Alert } from 'react-native';
+
 export const requestUserPermission = async () => {
   try {
     const androidGranted = await requestAndroidNotificationPermission();
@@ -45,7 +47,12 @@ export const requestUserPermission = async () => {
     }
 
     if (Platform.OS === 'ios') {
-      await messaging().registerDeviceForRemoteMessages();
+      try {
+        await messaging().registerDeviceForRemoteMessages();
+      } catch (err) {
+        Alert.alert('FCM 에러', 'APNs 등록 중 무한 대기 또는 에러 발생!');
+        return false;
+      }
     }
 
     const authStatus = await messaging().requestPermission();
@@ -58,6 +65,7 @@ export const requestUserPermission = async () => {
     }
     return enabled;
   } catch (error) {
+    Alert.alert('FCM 에러', `권한 요청 중 에러: ${error?.message}`);
     log.error('FCM permission rejection:', error);
     return false;
   }
@@ -66,11 +74,15 @@ export const requestUserPermission = async () => {
 export const syncFcmToken = async () => {
   try {
     const hasPermission = await requestUserPermission();
-    if (!hasPermission) return;
+    if (!hasPermission) {
+      Alert.alert('FCM 중단 (1/3)', '푸시 권한이 거절되었거나, APNs 등록에 실패했습니다.');
+      return;
+    }
 
     // FCM 토큰 가져오기
     const fcmToken = await messaging().getToken();
     if (!fcmToken) {
+      Alert.alert('FCM 중단 (2/3)', 'Firebase가 토큰을 주지 않습니다. (설정 파일 깨짐 의심)');
       log.warn('FCM token not available');
       return;
     }
@@ -79,9 +91,15 @@ export const syncFcmToken = async () => {
 
     log.info('📤 syncFcmToken:', { deviceId, fcmToken });
 
-    await notificationApi.registerToken(deviceId, fcmToken);
+    try {
+      await notificationApi.registerToken(deviceId, fcmToken);
+      Alert.alert('FCM 성공!', '백엔드로 완벽하게 토큰을 쐈습니다!');
+    } catch (apiErr) {
+      Alert.alert('FCM 에러 (3/3)', `백엔드 전송 실패: ${apiErr?.message}`);
+    }
 
   } catch (error) {
+    Alert.alert('FCM 에러 (알 수 없음)', error?.message);
     log.error('FCM sync error:', error);
   }
 };
