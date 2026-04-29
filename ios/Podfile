@@ -59,6 +59,17 @@ target 'trioFrontendApp' do
       # :ccache_enabled => true
     )
 
+    fmt_base_header = File.join(__dir__, 'Pods/fmt/include/fmt/base.h')
+    if File.exist?(fmt_base_header)
+      text = File.read(fmt_base_header)
+      text = text.gsub(
+        '#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L',
+        '#elif defined(__apple_build_version__)'
+      )
+      File.chmod(0o644, fmt_base_header)
+      File.write(fmt_base_header, text)
+    end
+
     # ───────────────────────────────────────────────────────────────────
     # ② Pods 프로젝트 내부 모든 타겟에 대해 코드 서명 비활성화
     installer.pods_project.targets.each do |target|

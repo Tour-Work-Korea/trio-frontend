@@ -2396,8 +2396,10 @@ DEPENDENCIES:
   - FirebaseABTesting
   - FirebaseCore
   - FirebaseCoreExtension
+  - FirebaseCoreInternal
   - FirebaseInstallations
   - FirebaseRemoteConfig
+  - FirebaseRemoteConfigInterop
   - FirebaseSharedSwift
   - fmt (from `../node_modules/react-native/third-party-podspecs/fmt.podspec`)
   - glog (from `../node_modules/react-native/third-party-podspecs/glog.podspec`)
@@ -2407,6 +2409,7 @@ DEPENDENCIES:
   - "kakao-login (from `../node_modules/@react-native-seoul/kakao-login`)"
   - lottie-react-native (from `../node_modules/lottie-react-native`)
   - nanopb
+  - PromisesObjC
   - RCT-Folly (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCT-Folly/Fabric (from `../node_modules/react-native/third-party-podspecs/RCT-Folly.podspec`)
   - RCTDeprecation (from `../node_modules/react-native/ReactApple/Libraries/RCTFoundation/RCTDeprecation`)
@@ -2822,10 +2825,10 @@ SPEC CHECKSUMS:
   RNCPicker: 43a6a73efbb33d71640146070cc1720f1f75f5d6
   RNDateTimePicker: 43ee3de2bc639bc0d9b77564961060a54dfc7111
   RNDeviceInfo: 4c852998208b60dc192ae3529e5867817719ad1e
-  RNFBApp: 90cf0209fb8f0460ab069a7de857d7ec851c8476
-  RNFBCrashlytics: f9c67f58b800bbb713a14286243cd8fa3a3c43f8
-  RNFBMessaging: 37dd861b8600ec2ae9a06ba42ae4285cb707a731
-  RNFBRemoteConfig: 22b1ab608e4cdb0400bba19085688eddeaa33f75
+  RNFBApp: 12884d3bf9b3a0223efe4a0adce516edf72c4102
+  RNFBCrashlytics: ea81b9ceb43e2e9268342d456546cf014c096b10
+  RNFBMessaging: e954bfb053a5c6bb10b26bae4bbc58a4edd41131
+  RNFBRemoteConfig: ad6565913fcb361e3bd41636b869fa2cf0e02955
   RNGestureHandler: ebef699ea17e7c0006c1074e1e423ead60ce0121
   RNReanimated: 2313402fe27fecb7237619e9c6fcee3177f08a65
   RNScreens: 5621e3ad5a329fbd16de683344ac5af4192b40d3
@@ -2834,6 +2837,6 @@ SPEC CHECKSUMS:
   SocketRocket: d4aabe649be1e368d1318fdf28a022d714d65748
   Yoga: d15f5aa644c466e917569ac43b19cbf17975239a
 
-PODFILE CHECKSUM: 38af40562434d3db184145eab74d54d04957d70e
+PODFILE CHECKSUM: 550f0c2d59a2adbdc0e3709bd19a11d8ea38728e
 
 COCOAPODS: 1.15.2
