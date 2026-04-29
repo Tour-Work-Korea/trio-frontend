@@ -165,3 +165,33 @@ jobs:
           releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
           track: internal  
           status: completed 
+
+      - name: Notify Discord (Android)
+        if: always()
+        run: |
+          BRANCH="${GITHUB_REF##*/}"
+      
+          if [ "$BRANCH" = "develop" ]; then
+            ENV_NAME="🧪 DEV"
+          else
+            ENV_NAME="🚀 PROD"
+          fi
+      
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993
+            MSG="🤖 Android 빌드 성공"
+          else
+            COLOR=15158332
+            MSG="❌ Android 빌드 실패"
+          fi
+      
+          curl -H "Content-Type: application/json" \
+          -X POST \
+          -d "{
+            \"embeds\": [{
+              \"title\": \"$MSG\",
+              \"description\": \"환경: $ENV_NAME\n브랜치: $BRANCH\n작성자: ${{ github.actor }}\n링크: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
+              \"color\": $COLOR
+            }]
+          }" \
+          ${{ secrets.DISCORD_WEBHOOK_URL }}

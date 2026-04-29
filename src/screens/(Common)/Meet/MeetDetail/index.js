@@ -6,19 +6,17 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
+  ActivityIndicator,
 } from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
-import Clipboard from '@react-native-clipboard/clipboard';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
-import ButtonScarlet from '@components/ButtonScarlet';
 import Avatar from '@components/Avatar';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -28,7 +26,6 @@ import {
   partyDetailDeeplink,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
-import { trimJejuPrefix } from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
 
@@ -38,6 +35,8 @@ import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyIcon from '@assets/images/meet_reservation_success.svg';
+import CalendarIcon from '@assets/images/calendar_gray.svg';
+import BellIcon from '@assets/images/warning_alarm_orange.svg';
 
 const TABS = [
   {key: 'intro', label: '이벤트 소개'},
@@ -63,12 +62,29 @@ const PARKING_TAG_LABEL = {
   PARTY_NO_PARKING: '주차 불가',
 };
 
+const PARTY_STATUS_LABEL = {
+  RECRUIT_BEFORE: '모집 예정',
+  RECRUIT: '신청하기',
+  RECRUIT_END: '모집 마감',
+  PARTY_END: '종료된 파티',
+  CANCELED: '취소된 파티',
+  DELETED: '삭제된 파티',
+};
+
+const toArray = value => {
+  if (Array.isArray(value)) {
+    return value;
+  }
+  if (value == null) {
+    return [];
+  }
+  return [value];
+};
+
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {partyId} = route.params ?? {};
-
-  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
@@ -117,12 +133,6 @@ const MeetDetail = () => {
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
-  const formatDateWithDay = dateStr => {
-    if (!dateStr) return '-';
-    const date = dayjs(dateStr);
-    if (!date.isValid()) return '-';
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
-  };
 
   // 이벤트 상세 데이터
   useEffect(() => {
@@ -149,8 +159,9 @@ const MeetDetail = () => {
   const {
     guesthouseName,
     hostProfileImage,
-    guesthouseAddress,
     partyTitle,
+    partyTags,
+    partyAnnouncements,
     description,
     events,
     partySchedule,
@@ -161,28 +172,16 @@ const MeetDetail = () => {
     trafficInfo,
     parkingTag,
     parkingPlace,
-    location,
     // partyInfo,
     partyStartDateTime,
     partyStartTime,
     partyEndTime,
-    numOfAttendance,
-    maxAttendance,
+    partyStatus,
     amount, // 숙박객 남자
-    femaleAmount, // 숙박객 여자
     maleNonAmount, // 비숙박객 남자
-    femaleNonAmount, // 비숙박객 여자
-    // partyEvents,
     partyImages,
-    coordinate, // 백엔드 확장 시 { latitude, longitude } 형태로 받을 것을 가정
-    isGuest,
+    profileSummary,
   } = detail ?? {};
-
-  // 날짜/시간 파생 (끝나는 날짜는 시작 날짜와 동일하다고 가정)
-  const checkInDate = partyStartDateTime || null;
-  const checkInTime = partyStartTime || partyStartDateTime || null;
-  const checkOutDate = partyStartDateTime || null;
-  const checkOutTime = partyEndTime || null;
 
   // 썸네일/갤러리
   const thumbnailSource = useMemo(() => {
@@ -192,38 +191,35 @@ const MeetDetail = () => {
     if (partyImages?.[0]?.imageUrl) return {uri: partyImages[0].imageUrl};
   }, [partyImages]);
 
-  const gallery = useMemo(
-    () => partyImages?.map(p => ({uri: p.imageUrl})) ?? [],
-    [partyImages],
-  );
+  const tagList = useMemo(() => {
+    const tags = Array.isArray(partyTags) ? partyTags : `${partyTags ?? ''}`.split(/\s+/);
+    return tags
+      .map(tag => tag.trim())
+      .map(tag => tag.replace(/^#+/, ''))
+      .filter(Boolean)
+      .filter(tag => tag !== '#');
+  }, [partyTags]);
 
-  // 가격(라벨 매핑)
-  const priceBox = useMemo(
-    () => ({
-      guest: {
-        female: femaleAmount ?? null,
-        male: amount ?? null,
-      },
-      nonGuest: {
-        female: femaleNonAmount ?? null,
-        male: maleNonAmount ?? null,
-      },
-    }),
-    [amount, femaleAmount, femaleNonAmount, maleNonAmount],
-  );
+  const displayGuesthouseName =
+    guesthouseName ?? profileSummary?.guesthouseName ?? '게스트하우스';
+  const displayHostImage =
+    hostProfileImage ?? profileSummary?.ownerProfileImageUrl;
+  const eventList = useMemo(() => toArray(events), [events]);
+  const ruleList = useMemo(() => toArray(rules), [rules]);
+  const trafficInfoList = useMemo(() => toArray(trafficInfo), [trafficInfo]);
+  const parkingPlaceList = useMemo(() => toArray(parkingPlace), [parkingPlace]);
 
-  const bottomPriceRangeText = useMemo(() => {
-    const guestPrice = Number(priceBox.guest.male || 0);
-    const nonGuestPrice = Number(priceBox.nonGuest.male || 0);
-
-    if (isGuest) {
-      return `${guestPrice.toLocaleString()} ~ ${guestPrice.toLocaleString()}원`;
-    }
-
-    const minPrice = Math.min(guestPrice, nonGuestPrice);
-    const maxPrice = Math.max(guestPrice, nonGuestPrice);
-    return `${minPrice.toLocaleString()} ~ ${maxPrice.toLocaleString()}원`;
-  }, [isGuest, priceBox]);
+  const scheduleText = useMemo(() => {
+    const date = dayjs(partyStartDateTime);
+    const dateLabel = date.isValid()
+      ? `${date.format('MM.DD')} ${
+          date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
+        }`
+      : '-';
+    return `${dateLabel} ${formatTime(partyStartTime)}~${formatTime(partyEndTime)}`;
+  }, [partyStartDateTime, partyStartTime, partyEndTime]);
+  const isRecruiting = partyStatus === 'RECRUIT';
+  const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
 
   // 이벤트 좋아요 토글
   const onToggleLike = async () => {
@@ -254,18 +250,11 @@ const MeetDetail = () => {
     });
   };
 
-  const handleCopyText = (text) => {
-    Clipboard.setString(text ?? '');
-
-    Toast.show({
-      type: 'success',
-      text1: '복사되었어요!',
-      position: 'top',
-      visibilityTime: 2000,
-    });
-  };
-
   const handlePressReservation = () => {
+    if (!isRecruiting) {
+      return;
+    }
+
     const role = useUserStore.getState().userRole;
 
     if (role !== 'USER') {
@@ -288,56 +277,44 @@ const MeetDetail = () => {
       amount,
       maleNonAmount,
       thumbnailUrl: thumbnailSource?.uri,
+      partyAnnouncements,
     });
-  };
-
-  // 가격 설정
-  const renderPrice = (value) => {
-    // 0, null, undefined → 무료
-    if (!value || Number(value) === 0) {
-      return (
-        <Text style={[FONTS.fs_14_semibold, { color: COLORS.primary_orange }]}>
-          무료
-        </Text>
-      );
-    }
-
-    // 정상 가격
-    return (
-      <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
-        {Number(value).toLocaleString()}원
-      </Text>
-    );
   };
 
   // 음료 음식 태그
   const snackTagTexts = useMemo(() => {
-    return snackTags
-      ?.map(tag => SNACK_TAG_LABEL[tag])
+    return toArray(snackTags)
+      .map(tag => SNACK_TAG_LABEL[tag])
       ?.filter(Boolean); // 혹시 모를 undefined 제거
   }, [snackTags]);
 
   // 이용 규칙 제목
   const ruleTitleLine = useMemo(() => {
-    return rules?.map(r => r.title)?.filter(Boolean)?.join(' · ') ?? '';
-  }, [rules]);
+    return ruleList.map(r => r.title).filter(Boolean).join(' · ');
+  }, [ruleList]);
 
   // 교통 정보 제목
   const trafficTitleLine = useMemo(() => {
-    return trafficInfo?.map(t => t.title)?.filter(Boolean)?.join(' · ') ?? '';
-  }, [trafficInfo]);
+    return trafficInfoList.map(t => t.title).filter(Boolean).join(' · ');
+  }, [trafficInfoList]);
 
   // 주차 내용
   const parkingContentText = useMemo(() => {
-    return parkingPlace
-      ?.map(p => `• ${p.title}\n${p.content}`)
-      ?.join('\n\n') ?? '';
-  }, [parkingPlace]);
+    return parkingPlaceList
+      .map(p => {
+        if (typeof p === 'string') {
+          return p;
+        }
+        return `• ${p.title ?? ''}\n${p.content ?? ''}`.trim();
+      })
+      .filter(Boolean)
+      .join('\n\n');
+  }, [parkingPlaceList]);
 
   // 주차 태그
   const parkingTagTexts = useMemo(() => {
-    return parkingTag
-      ?.map(tag => PARKING_TAG_LABEL[tag])
+    return toArray(parkingTag)
+      .map(tag => PARKING_TAG_LABEL[tag])
       ?.filter(Boolean);
   }, [parkingTag]);
 
@@ -348,33 +325,27 @@ const MeetDetail = () => {
       <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
         더 궁금하신 점은 업체로 문의해 주세요
       </Text>
-      {/* 전화번호 */}
-      {/* {!!guesthouseAddress && (
-        <Text style={[FONTS.fs_14_medium, styles.emptySubText]}>
-          {guesthouseAddress}
-        </Text>
-      )} */}
     </View>
   );
 
   // 오시는길 값 유무
   const isEmptyWayInfo =
     !meetingPlace &&
-    !(trafficInfo?.length > 0) &&
+    !(trafficInfoList.length > 0) &&
     !parkingContentText;
 
   const renderTabContent = tabKey => {
     if (tabKey === 'intro') {
       return (
         <View style={styles.tabContent}>
-          {!events || events.length === 0 ? (
+          {eventList.length === 0 ? (
             renderEmptyInfo()
           ) : (
-            events?.map(ev => {
-              const images = ev.partyEventImageUrls ?? [];
+            eventList.map((ev, evIndex) => {
+              const images = toArray(ev.partyEventImageUrls);
 
               return (
-                <View key={ev.id} style={{marginBottom: 20}}>
+                <View key={ev.id ?? evIndex} style={{marginBottom: 20}}>
                   {images.length > 0 && (
                     <ScrollView
                       horizontal
@@ -445,7 +416,7 @@ const MeetDetail = () => {
               </View>
             </View>
           )}
-          {rules?.length > 0 && (
+          {ruleList.length > 0 && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
               <View style={styles.detailInfoText}>
@@ -462,7 +433,7 @@ const MeetDetail = () => {
                   onPress={() =>
                     openSectionModal(
                       '이용규칙',
-                      (rules ?? []).map(r => ({
+                      ruleList.map(r => ({
                         subtitle: r.title,
                         body: r.content,
                       })),
@@ -492,7 +463,7 @@ const MeetDetail = () => {
                 만나는 장소 : {meetingPlace}
               </Text>
             )}
-            {trafficInfo?.length > 0 && (
+            {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
                 <View style={styles.detailInfoText}>
@@ -509,7 +480,7 @@ const MeetDetail = () => {
                     onPress={() =>
                       openSectionModal(
                         '교통 정보',
-                        (trafficInfo ?? []).map(it => ({
+                        trafficInfoList.map(it => ({
                           subtitle: it.title,
                           body: it.content,
                         })),
@@ -558,135 +529,76 @@ const MeetDetail = () => {
     );
   };
 
+  if (loading && !detail) {
+    return (
+      <View style={styles.loadingContainer}>
+        <ActivityIndicator />
+      </View>
+    );
+  }
+
   return (
-    <View style={{flex: 1}}>
+    <View style={styles.rootContainer}>
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* 헤더 */}
       <View style={styles.header}>
-        {/* 썸네일 */}
-        <Image source={thumbnailSource} style={styles.thumbnail} />
+        <Image source={thumbnailSource} style={styles.thumbnail} resizeMode="cover" />
         <View style={styles.headerContainer}>
           <TouchableOpacity
             style={styles.backButton}
             onPress={() => navigation.goBack()}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
+          <TouchableOpacity style={styles.shareButton} onPress={handleCopyLink}>
+            <ShareIcon width={20} height={20} />
+          </TouchableOpacity>
+          {tagList.length > 0 && (
+            <View style={styles.heroTagRow}>
+              {tagList.map(tag => (
+                <View key={tag} style={styles.heroTagChip}>
+                  <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+              <View style={styles.heroTagChip}>
+                <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>#</Text>
+              </View>
+            </View>
+          )}
         </View>
       </View>
 
       {/* 본문 */}
       <View style={styles.contentContainer}>
-        {/* 제목 */}
-        <View style={styles.titleRow}>
+        <View style={styles.summaryCard}>
+          <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
+          <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
+            {displayGuesthouseName}
+          </Text>
           <Text
             style={[FONTS.fs_20_semibold, styles.titleText]}
             numberOfLines={2}
             ellipsizeMode="tail">
             {partyTitle}
           </Text>
-          <View style={styles.shareHeartContainer}>
-            <TouchableOpacity onPress={handleCopyLink}>
-              <ShareIcon width={20} height={20} />
-            </TouchableOpacity>
-            <TouchableOpacity onPress={onToggleLike} style={{marginLeft: 12}}>
-              {liked ? (
-                <HeartFilled width={20} height={20} />
-              ) : (
-                <HeartEmpty width={20} height={20} />
-              )}
-            </TouchableOpacity>
-          </View>
         </View>
 
-        <View style={styles.addressCapacityContainer}>
-          {/* 주소 */}
-          <TouchableOpacity
-            style={styles.addressCopyButton}
-            activeOpacity={0.7}
-            onPress={() => handleCopyText(location)}>
-            <Text
-              style={[FONTS.fs_14_regular, styles.addressText, styles.copyableText]}
-              numberOfLines={1}
-              ellipsizeMode="tail">
-              {trimJejuPrefix(location)}
-            </Text>
-          </TouchableOpacity>
-          {/* 인원수 */}
-          <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
-            {numOfAttendance}/{maxAttendance}명
+        <View style={styles.scheduleBar}>
+          <CalendarIcon width={18} height={18} />
+          <Text style={[FONTS.fs_14_regular, styles.scheduleText]}>
+            {scheduleText}
           </Text>
         </View>
 
-
-        {/* 이벤트금액 */}
-        <View style={styles.priceBox}>
-          <View style={styles.priceRow}>
-            {/* 숙박객 */}
-            <View style={[styles.priceSection, {marginBottom: 8}]}>
-              <Text
-                style={[
-                  FONTS.fs_14_regular,
-                  styles.priceSectionTitle,
-                ]}>
-                숙박객
-              </Text>
-              <View style={styles.priceTextRow}>
-                <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
-                  {renderPrice(priceBox.guest.male)}
-                </Text>
-              </View>
-            </View>
-
-            {/* 비숙박객 */}
-            <View style={styles.priceSection}>
-              <Text
-                style={[
-                  FONTS.fs_14_regular,
-                  styles.priceSectionTitle,
-                ]}>
-                비숙박객
-              </Text>
-              {isGuest ? (
-                <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
-                  참여 불가
-                </Text>
-              ) : (
-                <View style={styles.priceTextRow}>
-                  <Text style={[FONTS.fs_14_semibold, styles.priceText]}>
-                    {renderPrice(priceBox.nonGuest.male)}
-                  </Text>
-                </View>
-              )}
-            </View>
-          </View>
-        </View>
-
-        <View style={styles.devide}/>
-
-        {/* 사장님 계정 */}
-        <TouchableOpacity 
-          style={styles.profileBox}
-          onPress={() =>
-            navigation.navigate('GuesthouseDetail', {
-              id: detail?.guesthouseId ?? detail?.profileSummary?.guesthouseId,
-            })
-          }
-        >
-          <Avatar uri={hostProfileImage} size={36} iconSize={16} style={styles.profileImage} />
-          <View style={styles.profileTextBox}>
-            <Text style={[FONTS.fs_14_semibold]}>{guesthouseName}</Text>
-            <Text style={[FONTS.fs_14_regular, styles.profileAddr]}>
-              {trimJejuPrefix(guesthouseAddress)}
-            </Text>
-          </View>
-        </TouchableOpacity>
-
         {/* 설명 */}
-        <View style={styles.descriptionContainer}>
+        {!!description && (
+          <View style={styles.descriptionContainer}>
           <Text style={[FONTS.fs_14_regular, styles.description]}>
             {description}
           </Text>
-        </View>
+          </View>
+        )}
 
         {/* 하단 탭 */}
         <View style={styles.tabContainer}>
@@ -730,23 +642,35 @@ const MeetDetail = () => {
         </ScrollView>
       </View>
 
-    </ScrollView>
+      </ScrollView>
 
-    {/* 하단 고정 영역 */}
-    <View style={styles.fixedBottomBar}>
-      <View style={styles.bottomLeft}>
-        <Text style={[FONTS.fs_16_semibold, styles.bottomPrice]}>
-          {bottomPriceRangeText}
-        </Text>
-        <Text style={[FONTS.fs_14_regular, styles.bottomDate]}>
-          {formatDateWithDay(checkInDate)}   {formatTime(checkInTime)}~{formatTime(checkOutTime)}
+      <View style={styles.fixedNotice}>
+        <BellIcon width={20} height={20} />
+        <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
+          게스트하우스 파티는 당일에만 참여 신청이 가능해요!
         </Text>
       </View>
 
+    {/* 하단 고정 영역 */}
+    <View style={styles.fixedBottomBar}>
+      <TouchableOpacity style={styles.bottomLikeButton} onPress={onToggleLike}>
+        {liked ? (
+          <HeartFilled width={28} height={28} />
+        ) : (
+          <HeartEmpty width={28} height={28} />
+        )}
+      </TouchableOpacity>
+
       <TouchableOpacity
-        style={styles.bottomButton}
+        style={[
+          styles.bottomButton,
+          !isRecruiting && styles.bottomButtonDisabled,
+        ]}
+        disabled={!isRecruiting}
         onPress={handlePressReservation}>
-        <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>참여하기</Text>
+        <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>
+          {reservationButtonText}
+        </Text>
       </TouchableOpacity>
     </View>
 

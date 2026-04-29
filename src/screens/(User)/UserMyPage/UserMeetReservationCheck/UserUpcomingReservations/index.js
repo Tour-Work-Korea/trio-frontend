@@ -145,6 +145,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
                   partyImage: item.partyImage,
                   guesthouseName: item.guesthouseName,
                   startDateTime: item.startDateTime,
+                  endDateTime: item.endDateTime,
                   partyLocation: item.guesthouseAddress,
                   ...(typeof item.amount === 'number'
                     ? {paidAmount: item.amount}

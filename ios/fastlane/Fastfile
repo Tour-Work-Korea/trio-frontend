@@ -50,6 +50,7 @@ platform :ios do
 
     match(
       type: "appstore",
+      app_identifier: "com.haneul.workaway",
       readonly: ENV["CI"] == "true",
       git_url: ENV["MATCH_GIT_URL"],
       username: ENV["APPLE_ID"],

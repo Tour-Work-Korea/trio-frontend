@@ -15,7 +15,6 @@ import {FONTS} from '@constants/fonts';
 import styles from './MeetMain.styles';
 import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
-import MeetSearchConditionModal from '@components/modals/Meet/MeetSearchConditionModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 
@@ -25,7 +24,6 @@ import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import ChevronRightBlue from '@assets/images/chevron_right_blue.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
-import MapPinIcon from '@assets/images/map_pin_black.svg';
 import PeopleIcon from '@assets/images/people_gray.svg';
 
 import {meetScales, stayTypes} from '@constants/meetOptions';
@@ -35,15 +33,7 @@ const MeetMain = () => {
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
-  const [conditionModalVisible, setConditionModalVisible] = useState(false);
   const [sortOption, setSortOption] = useState('RECOMMEND');
-  const [searchCondition, setSearchCondition] = useState({
-    location: '제주도',
-    checkInDate: dayjs().format('YYYY-MM-DD'),
-    checkOutDate: dayjs().add(1, 'day').format('YYYY-MM-DD'),
-    adultCount: 1,
-    childCount: 0,
-  });
 
   const [scaleId, setScaleId] = useState(null);
   const [stayId, setStayId] = useState(null);
@@ -86,26 +76,8 @@ const MeetMain = () => {
     fetchRecent();
   }, [fetchRecent]);
 
-  const filteredMeets = useMemo(() => {
-    if (!searchCondition.checkInDate || !searchCondition.checkOutDate) {
-      return meets;
-    }
-
-    const start = dayjs(searchCondition.checkInDate).startOf('day');
-    const end = dayjs(searchCondition.checkOutDate).endOf('day');
-
-    return meets.filter(item => {
-      const target = dayjs(item.partyStartDateTime);
-      return (
-        target.isValid() &&
-        (target.isSame(start) || target.isAfter(start)) &&
-        (target.isSame(end) || target.isBefore(end))
-      );
-    });
-  }, [meets, searchCondition.checkInDate, searchCondition.checkOutDate]);
-
   const groupedGuesthouses = useMemo(() => {
-    const sorted = [...filteredMeets].sort(
+    const sorted = [...meets].sort(
       (a, b) => dayjs(a.partyStartDateTime).valueOf() - dayjs(b.partyStartDateTime).valueOf(),
     );
     const grouped = sorted.reduce((acc, party) => {
@@ -123,15 +95,7 @@ const MeetMain = () => {
       return acc;
     }, {});
     return Object.values(grouped);
-  }, [filteredMeets]);
-
-  const conditionLabel = useMemo(() => {
-    const totalGuest = searchCondition.adultCount + searchCondition.childCount;
-    const dateLabel = `${dayjs(searchCondition.checkInDate).format('M/D')} ~ ${dayjs(
-      searchCondition.checkOutDate,
-    ).format('M/D')}`;
-    return `${searchCondition.location}, ${dateLabel}, ${totalGuest}명`;
-  }, [searchCondition]);
+  }, [meets]);
 
   function formatWhenTime(isoStr) {
     const d = dayjs(isoStr);
@@ -202,9 +166,9 @@ const MeetMain = () => {
       }
       navigation.navigate('GuesthouseDetail', {
         id: item.guesthouseId,
-        checkIn: searchCondition.checkInDate,
-        checkOut: searchCondition.checkOutDate,
-        guestCount: searchCondition.adultCount + searchCondition.childCount,
+        checkIn: dayjs().format('YYYY-MM-DD'),
+        checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+        guestCount: 1,
       });
     };
 
@@ -225,7 +189,7 @@ const MeetMain = () => {
           </TouchableOpacity>
         </View>
 
-        <View style={styles.chipRow}>
+        {/* <View style={styles.chipRow}>
           <View style={[styles.countChip, styles.partyCountChip]}>
             <Text style={[FONTS.fs_12_medium, styles.partyCountText]}>
               게하 파티 {item.parties.length}
@@ -234,7 +198,7 @@ const MeetMain = () => {
           <View style={styles.countChip}>
             <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>이벤트 0</Text>
           </View>
-        </View>
+        </View> */}
 
         <View style={styles.partyList}>{item.parties.map(renderPartyItem)}</View>
       </View>
@@ -272,15 +236,6 @@ const MeetMain = () => {
           showsVerticalScrollIndicator={false}
           ListHeaderComponent={
             <View>
-              <TouchableOpacity
-                style={styles.conditionRow}
-                onPress={() => setConditionModalVisible(true)}>
-                <MapPinIcon width={24} height={24} />
-                <Text style={[FONTS.fs_16_medium, styles.conditionText]}>
-                  {conditionLabel}
-                </Text>
-              </TouchableOpacity>
-
               {/* 검색 필터 */}
               <View style={styles.filterHeader}>
                 <View style={styles.filterRow}>
@@ -344,19 +299,6 @@ const MeetMain = () => {
         onSelect={value => {
           setSortOption(value);
           setSortModalVisible(false);
-        }}
-      />
-
-      <MeetSearchConditionModal
-        visible={conditionModalVisible}
-        onClose={() => setConditionModalVisible(false)}
-        initialLocation={searchCondition.location}
-        initialCheckInDate={searchCondition.checkInDate}
-        initialCheckOutDate={searchCondition.checkOutDate}
-        initialAdultCount={searchCondition.adultCount}
-        initialChildCount={searchCondition.childCount}
-        onApply={next => {
-          setSearchCondition(next);
         }}
       />
     </View>

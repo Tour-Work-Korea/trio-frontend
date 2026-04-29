@@ -66,6 +66,9 @@ export default function MeetCancelledReceipt() {
   const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
     reservationDetail?.startDateTime,
   );
+  const endFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+    reservationDetail?.endDateTime,
+  );
   const cancelledFormatted = formatLocalDateTimeToDotAndTimeWithDay(
     reservationDetail?.cancelledAt,
   );
@@ -137,6 +140,7 @@ export default function MeetCancelledReceipt() {
             <Text style={[FONTS.fs_14_medium, styles.label]}>시간</Text>
             <Text style={[FONTS.fs_14_medium, styles.value]}>
               {startFormatted.time}
+              {endFormatted.time ? ` ~ ${endFormatted.time}` : ''}
             </Text>
           </View>
 
@@ -154,7 +158,7 @@ export default function MeetCancelledReceipt() {
           </Text>
 
           {/* 취소 정보 */}
-          <View style={styles.paymentBox}>
+          {/* <View style={styles.paymentBox}>
             <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
               취소/환불 정보
             </Text>
@@ -224,7 +228,7 @@ export default function MeetCancelledReceipt() {
               </Text>
             </View>
           </View>
-          
+           */}
           <View>
             <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
               취소 사유
@@ -236,9 +240,15 @@ export default function MeetCancelledReceipt() {
 
         </View>
 
-        <View style={styles.warningBox}>
+        {/* <View style={styles.warningBox}>
           <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
             예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.
+          </Text>
+        </View> */}
+
+        <View style={styles.warningBox}>
+          <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
+            예약취소 되었습니다
           </Text>
         </View>
         </>

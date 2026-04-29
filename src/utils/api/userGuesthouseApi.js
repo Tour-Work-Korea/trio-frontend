@@ -23,6 +23,10 @@ const userGuesthouseApi = {
     keyword,
     keywordId,
     regionIds,
+    swLat,
+    swLng,
+    neLat,
+    neLng,
     page,
     size = 10,
     sortBy,
@@ -30,6 +34,8 @@ const userGuesthouseApi = {
     maxPrice,
     hashtagIds,
     amenityIds,
+    roomMaxCapacity,
+    femaleOnly,
     availableOnly,
   }) =>
     api.get('/user/guesthouses', {
@@ -40,6 +46,10 @@ const userGuesthouseApi = {
         keyword,
         keywordId,
         regionIds,
+        swLat,
+        swLng,
+        neLat,
+        neLng,
         page,
         size,
         sortBy,
@@ -47,6 +57,8 @@ const userGuesthouseApi = {
         maxPrice,
         hashtagIds,
         amenityIds,
+        roomMaxCapacity,
+        femaleOnly,
         availableOnly,
       },
       withAuth: false,
@@ -98,6 +110,51 @@ const userGuesthouseApi = {
   getPopularGuesthouses: ({ page, size = 10 } = {}) =>
     api.get('/user/guesthouses/popular', {
       params: { page, size },
+      withAuth: false,
+    }),
+
+  getGuesthouseAmenities: () =>
+    api.get('/user/guesthouses/amenities', {
+      withAuth: false,
+    }),
+
+  getGuesthouseMap: ({
+    checkIn,
+    checkOut,
+    guestCount,
+    swLat,
+    swLng,
+    neLat,
+    neLng,
+    limit = 200,
+    sortBy = 'RECOMMEND',
+    minPrice,
+    maxPrice,
+    hashtagIds,
+    amenityIds,
+    roomMaxCapacity,
+    femaleOnly,
+    availableOnly,
+  }) =>
+    api.get('/user/guesthouses/map', {
+      params: {
+        checkIn,
+        checkOut,
+        guestCount,
+        swLat,
+        swLng,
+        neLat,
+        neLng,
+        limit,
+        sortBy,
+        minPrice,
+        maxPrice,
+        hashtagIds,
+        amenityIds,
+        roomMaxCapacity,
+        femaleOnly,
+        availableOnly,
+      },
       withAuth: false,
     }),
 };

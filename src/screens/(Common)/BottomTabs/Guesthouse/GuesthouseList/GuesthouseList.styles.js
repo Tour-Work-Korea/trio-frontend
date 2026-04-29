@@ -74,6 +74,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     flex: 1,
   },
+  guesthouseMapContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    flex: 1,
+  },
   guesthouseListHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -156,12 +160,24 @@ const styles = StyleSheet.create({
   },
   cardContent: {
     flex: 1,
+    justifyContent: 'space-between',
+  },
+  cardInfoPressable: {
+    flex: 1,
     justifyContent: 'space-evenly',
   },
   tagRow: {
     flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 8,
+  },
+  tagScroll: {
+    flex: 1,
+    marginRight: 8,
+  },
+  tagScrollContent: {
     gap: 4,
+    paddingRight: 4,
   },
   tagContainer: {
     backgroundColor: COLORS.grayscale_100,
@@ -190,8 +206,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_300,
   },
   heartIcon: {
-    position: 'absolute',
-    right: 0,
+    width: 24,
+    alignItems: 'flex-end',
+    justifyContent: 'center',
   },
 
   // 선택후 날짜, 인원, 객실 출력 디자인
@@ -236,6 +253,9 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.1,
     shadowRadius: 2,
     elevation: 2,
+  },
+  mapButtonOnMap: {
+    marginBottom: 180,
   },
   mapButtonText: {
     marginLeft: 8,

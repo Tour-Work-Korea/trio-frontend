@@ -85,6 +85,46 @@ const styles = StyleSheet.create({
   userInfoTitle: {
     color: COLORS.grayscale_600,
   },
+  actualGuestToggle: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 24,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
+    marginTop: 4,
+  },
+  actualGuestToggleText: {
+    color: COLORS.grayscale_700,
+  },
+  actualGuestForm: {
+    gap: 14,
+    marginTop: 4,
+  },
+  actualGuestGuide: {
+    color: COLORS.grayscale_700,
+  },
+  actualGuestInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 24,
+  },
+  actualGuestLabel: {
+    width: 64,
+    color: COLORS.grayscale_800,
+  },
+  actualGuestInput: {
+    flex: 1,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 12,
+    paddingVertical: 11,
+    paddingHorizontal: 16,
+    color: COLORS.grayscale_800,
+  },
 
   // 방 이름, 가격
   roomNameText: {

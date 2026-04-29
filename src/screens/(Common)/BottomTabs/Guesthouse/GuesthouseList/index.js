@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,6 @@ import {
 } from 'react-native';
 import {
   useNavigation,
-  useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -22,15 +21,15 @@ import Person from '@assets/images/person20_gray.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
-import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import MapIcon from '@assets/images/map_black.svg';
+import ListIcon from '@assets/images/bullet_list_black.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
 
 import styles from './GuesthouseList.styles';
+import GuesthouseListMap from '../GuesthouseListMap';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import {guesthouseTags} from '@constants/guesthouseTags';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
@@ -39,10 +38,17 @@ import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';
+import {
+  GUESTHOUSE_MAP_BOUNDS,
+  getGuesthouseMapBoundsByRegionIds,
+} from '@constants/guesthouseMapRegions';
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const defaultDisplayDate = `${dayjs().format('M.D dd')} - ${dayjs()
+    .add(1, 'day')
+    .format('M.D dd')}`;
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -51,31 +57,33 @@ const GuesthouseList = () => {
   const [error, setError] = useState(false);
 
   const {
-    displayDate: routeDisplayDate,
-    adultCount: routeAdultCount,
-    childCount: routeChildCount,
-    keyword: initialKeyword = null,
-    searchText,
+    displayDate: routeDisplayDate = defaultDisplayDate,
+    adultCount: routeAdultCount = 1,
+    childCount: routeChildCount = 0,
+    searchText = '',
     regionIds = [],
+    regionBounds: initialRegionBounds = null,
+    initialMapView = false,
   } = route.params || {};
 
-  // 지역을 눌러서 왔는지 검색어로 왔는지 구분
-  const [keyword] = useState(initialKeyword);
-  const isKeywordSearch = !!keyword;
-  const isRegionSearch = regionIds.length > 0;
+  const regionBounds = useMemo(
+    () =>
+      initialRegionBounds
+        ?? getGuesthouseMapBoundsByRegionIds(regionIds)
+        ?? GUESTHOUSE_MAP_BOUNDS.ALL,
+    [initialRegionBounds, regionIds],
+  );
 
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-
-  // 태그 선택 데이터 (필터에서 온)
-  const [selectedTags, setSelectedTags] = useState(guesthouseTags); // 처음엔 전체 선택
-  const [tempSelectedTags, setTempSelectedTags] = useState([]);
+  const [isMapView, setIsMapView] = useState(initialMapView);
+  const [availableTags, setAvailableTags] = useState([]);
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    tags: guesthouseTags, // id, hashtag 전체 선택
+    tags: [],
     minPrice: 10000,
     maxPrice: 10000000,
     roomType: [], // 제외 (아직 API 미사용)
@@ -86,9 +94,13 @@ const GuesthouseList = () => {
 
   const isInitialLoading = loading && guesthouses.length === 0;
 
-  // id 값 추출
-  const getHashtagIds = selectedTags => selectedTags.map(tag => tag.id);
   const getAmenityIds = facilities => [...facilities];
+  const filteredGuesthouses =
+    filterOptions.tags.length > 0
+      ? guesthouses.filter(item =>
+          item.hashtags?.some(tag => filterOptions.tags.includes(tag))
+        )
+      : guesthouses;
 
   // 정렬 기본 추천순
   const [selectedSort, setSelectedSort] = useState('RECOMMEND');
@@ -97,6 +109,16 @@ const GuesthouseList = () => {
   const [adultCount, setAdultCount] = useState(routeAdultCount || 1);
   const [childCount, setChildCount] = useState(routeChildCount || 0);
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
+
+  useEffect(() => {
+    setDisplayDateState(routeDisplayDate);
+    setAdultCount(routeAdultCount);
+    setChildCount(routeChildCount);
+
+    if (initialMapView) {
+      setIsMapView(true);
+    }
+  }, [initialMapView, routeAdultCount, routeChildCount, routeDisplayDate]);
 
   // api 보낼 날짜 데이터
   const year = dayjs().year();
@@ -112,6 +134,29 @@ const GuesthouseList = () => {
     dayjs(`${year}-${endMonthInit}-${endDayInit}`).format('YYYY-MM-DD'),
   );
 
+  useEffect(() => {
+    const [nextStart, nextEnd] = routeDisplayDate.split(' - ');
+    const [nextStartMonth, nextStartDay] = nextStart
+      .split(' ')[0]
+      .split('.')
+      .map(Number);
+    const [nextEndMonth, nextEndDay] = nextEnd
+      .split(' ')[0]
+      .split('.')
+      .map(Number);
+
+    setCheckIn(
+      dayjs(`${year}-${nextStartMonth}-${nextStartDay}`).format('YYYY-MM-DD'),
+    );
+    setCheckOut(
+      dayjs(`${year}-${nextEndMonth}-${nextEndDay}`).format('YYYY-MM-DD'),
+    );
+    setPage(0);
+    setIsLast(false);
+    setGuesthouses([]);
+    setError(false);
+  }, [regionBounds, routeAdultCount, routeChildCount, routeDisplayDate, year]);
+
   // 모달 열기 전 값 저장(닫을 때 변경 감지용)
   const [tempDateGuest, setTempDateGuest] = useState({
     checkIn,
@@ -122,7 +167,7 @@ const GuesthouseList = () => {
   const [sortBy, setSortBy] = useState('RECOMMEND');
 
   // 게하 불러오기
-  const fetchGuesthouses = async (pageToFetch = 0) => {
+  const fetchGuesthouses = useCallback(async (pageToFetch = 0) => {
     if (loading || isLast || error) return;
     setLoading(true);
 
@@ -138,26 +183,17 @@ const GuesthouseList = () => {
         sortBy,
       };
 
-      // 키워드 검색인 경우
-      if (isKeywordSearch) {
-        params.keyword = keyword.keyword;
-        params.keywordId = keyword.id;
-      }
-
-      // 지역 검색인 경우
-      if (isRegionSearch) {
-        params.regionIds = regionIds;
+      if (regionBounds) {
+        params.swLat = regionBounds.swLat;
+        params.swLng = regionBounds.swLng;
+        params.neLat = regionBounds.neLat;
+        params.neLng = regionBounds.neLng;
       }
 
       // 필터 적용 시 조건 분기
       if (filterApplied) {
-        const allTagsSelected =
-          filterOptions.tags.length === guesthouseTags.length;
         const allFacilitiesSelected = filterOptions.facility.length === 0;
 
-        if (!allTagsSelected) {
-          params.hashtagIds = getHashtagIds(filterOptions.tags);
-        }
         if (!allFacilitiesSelected) {
           params.amenityIds = getAmenityIds(filterOptions.facility);
         }
@@ -176,6 +212,20 @@ const GuesthouseList = () => {
         isLiked: !!it.isFavorite,
       }));
 
+      const nextAvailableTags = Array.from(
+        new Set(
+          normalized.flatMap(item =>
+            Array.isArray(item.hashtags) ? item.hashtags : []
+          )
+        )
+      );
+
+      setAvailableTags(prev =>
+        pageToFetch === 0
+          ? nextAvailableTags
+          : Array.from(new Set([...prev, ...nextAvailableTags]))
+      );
+
       setGuesthouses(prev =>
         pageToFetch === 0 ? normalized : [...prev, ...normalized]
       );
@@ -187,21 +237,23 @@ const GuesthouseList = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [
+    adultCount,
+    childCount,
+    checkIn,
+    checkOut,
+    error,
+    filterApplied,
+    filterOptions,
+    isLast,
+    loading,
+    regionBounds,
+    sortBy,
+  ]);
 
   useEffect(() => {
     fetchGuesthouses(page);
-  }, [
-    page,
-    keyword,
-    sortBy,
-    filterOptions,
-    filterApplied,
-    checkIn,
-    checkOut,
-    adultCount,
-    childCount,
-  ]);
+  }, [fetchGuesthouses, page]);
 
   const handleEndReached = () => {
     if (loading) return;
@@ -219,6 +271,42 @@ const GuesthouseList = () => {
     });
   };
 
+  const handlePressGuesthouse = (item) => {
+    navigation.navigate('GuesthouseDetail', {
+      id: item.id,
+      checkIn,
+      checkOut,
+      guestCount: adultCount + childCount,
+      onLikeChange: (id, nextIsLiked) => {
+        setGuesthouses(prev =>
+          prev.map(g =>
+            g.id === id
+              ? { ...g, isLiked: nextIsLiked }
+              : g
+          )
+        );
+      },
+      onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
+        // 디테일 화면에서 날짜, 인원 변경 시 반영
+        const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+        const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
+        setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
+        setAdultCount(adults);
+        setChildCount(children);
+
+        // API용 날짜 state도 같이 업데이트
+        setCheckIn(dayjs(checkIn).format('YYYY-MM-DD'));
+        setCheckOut(dayjs(checkOut).format('YYYY-MM-DD'));
+
+        // 리스트 리로드
+        setPage(0);
+        setIsLast(false);
+        setGuesthouses([]);
+        setError(false);
+      },
+    });
+  };
+
   const renderItem = ({item}) => {
     // 별점 0 이거나 이상한 값 오면 안보이게 처리
     const ratingNumber = Number(item.averageRating);
@@ -227,43 +315,11 @@ const GuesthouseList = () => {
     const displayRating = hasValidRating ? ratingNumber.toFixed(1) : null;
 
     return (
-      <TouchableOpacity
-        onPress={() =>
-          navigation.navigate('GuesthouseDetail', {
-            id: item.id,
-            checkIn,
-            checkOut,
-            guestCount: adultCount + childCount,
-            onLikeChange: (id, nextIsLiked) => {
-              setGuesthouses(prev =>
-                prev.map(g =>
-                  g.id === id
-                    ? { ...g, isLiked: nextIsLiked }
-                    : g
-                )
-              );
-            },
-            onDateGuestChange: ({checkIn, checkOut, adults, children}) => {
-              // 디테일 화면에서 날짜, 인원 변경 시 반영
-              const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
-              const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
-              setDisplayDateState(`${formattedCheckIn} - ${formattedCheckOut}`);
-              setAdultCount(adults);
-              setChildCount(children);
-
-              // API용 날짜 state도 같이 업데이트
-              setCheckIn(dayjs(checkIn).format('YYYY-MM-DD'));
-              setCheckOut(dayjs(checkOut).format('YYYY-MM-DD'));
-
-              // 리스트 리로드
-              setPage(0);
-              setIsLast(false);
-              setGuesthouses([]);
-              setError(false);
-            },
-          })
-        }>
-        <View style={styles.card}>
+      <View style={styles.card}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => handlePressGuesthouse(item)}
+        >
           <View style={styles.imgRatingContainer}>
             {/* 이미지 데이터 없을 때 */}
             {item.thumbnailImgUrl ? (
@@ -282,27 +338,39 @@ const GuesthouseList = () => {
               </View>
             )}
           </View>
-          <View style={styles.cardContent}>
-            <View style={styles.tagRow}>
+        </TouchableOpacity>
+        <View style={styles.cardContent}>
+          <View style={styles.tagRow}>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.tagScrollContent}
+              style={styles.tagScroll}
+            >
               {item.hashtags &&
                 item.hashtags.map((tag, index) => (
-                  <View style={styles.tagContainer}>
-                    <Text key={index} style={[FONTS.fs_body, styles.tagText]}>
-                      {tag}
-                    </Text>
+                  <View key={`${tag}-${index}`} style={styles.tagContainer}>
+                    <Text style={[FONTS.fs_body, styles.tagText]}>{tag}</Text>
                   </View>
                 ))}
-              <TouchableOpacity
-                style={styles.heartIcon}
-                onPress={() => handleToggleFavorite(item)}
-              >
-                {item.isLiked ? (
-                  <FillHeart width={20} height={20} />
-                ) : (
-                  <EmptyHeart width={20} height={20} />
-                )}
-              </TouchableOpacity>
-            </View>
+            </ScrollView>
+            <TouchableOpacity
+              style={styles.heartIcon}
+              onPress={() => handleToggleFavorite(item)}
+            >
+              {item.isLiked ? (
+                <FillHeart width={20} height={20} />
+              ) : (
+                <EmptyHeart width={20} height={20} />
+              )}
+            </TouchableOpacity>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.cardInfoPressable}
+            onPress={() => handlePressGuesthouse(item)}
+          >
             <Text style={[FONTS.fs_16_medium, styles.name]} numberOfLines={1}>
               {item.name}
             </Text>
@@ -320,9 +388,9 @@ const GuesthouseList = () => {
                 </Text>
               )}
             </View>
-          </View>
+          </TouchableOpacity>
         </View>
-      </TouchableOpacity>
+      </View>
     );
   };
 
@@ -332,48 +400,6 @@ const GuesthouseList = () => {
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
           게스트 하우스
         </Text>
-        <TouchableOpacity
-          style={styles.backButton}
-          // onPress={() => {
-          //   navigation.navigate("GuesthouseSearch", {
-          //     displayDate: displayDateState,
-          //     adultCount,
-          //     childCount,
-          //     searchText,
-          //   });
-          // }}
-          onPress={() => {
-            navigation.reset({
-              index: 0,
-              routes: [
-                {
-                  name: 'MainTabs',
-                  state: {
-                    routes: [
-                      {
-                        name: '게하',
-                        state: {
-                          routes: [
-                            {
-                              name: 'GuesthouseSearch',
-                              params: {
-                                displayDate: displayDateState,
-                                adultCount,
-                                childCount,
-                                // searchText,
-                              },
-                            },
-                          ],
-                        },
-                      },
-                    ],
-                  },
-                },
-              ],
-            });
-          }}>
-          <LeftChevron width={24} height={24} />
-        </TouchableOpacity>
       </View>
       <TouchableOpacity
         style={styles.searchContainer}
@@ -420,79 +446,94 @@ const GuesthouseList = () => {
         </TouchableOpacity>
       </View>
 
-      <View style={styles.guesthouseListContainer}>
-        <View style={styles.guesthouseListHeader}>
-          <View style={styles.filterContainer}>
-            <TouchableOpacity
-              style={styles.filterButtonContainer}
-              onPress={() => {
-                // 현재 선택된 태그를 임시 상태로 저장
-                setTempSelectedTags([...selectedTags]);
-                setFilterModalVisible(true);
-              }}>
-              <FilterIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
-            </TouchableOpacity>
-            {/* 필터 선택 내용 */}
-            <ScrollView
-              horizontal
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.selectFilterContainer}>
-              {selectedTags.map((tag, index) => (
-                <View key={index} style={styles.selectFilter}>
-                  <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
-                    {tag.hashtag}
-                  </Text>
-                </View>
-              ))}
-            </ScrollView>
-          </View>
-          <TouchableOpacity
-            style={styles.sortContainer}
-            onPress={() => setSortModalVisible(true)}>
-            <SortIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
-          </TouchableOpacity>
+      {isMapView ? (
+        <View style={styles.guesthouseMapContainer}>
+          <GuesthouseListMap
+            embedded
+            guesthouses={filteredGuesthouses}
+            checkIn={checkIn}
+            checkOut={checkOut}
+            guestCount={adultCount + childCount}
+            regionIds={regionIds}
+            regionBounds={regionBounds}
+            onPressListToggle={() => setIsMapView(false)}
+          />
         </View>
+      ) : (
+        <View style={styles.guesthouseListContainer}>
+          <View style={styles.guesthouseListHeader}>
+            <View style={styles.filterContainer}>
+              <TouchableOpacity
+                style={styles.filterButtonContainer}
+                onPress={() => {
+                  setFilterModalVisible(true);
+                }}>
+                <FilterIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
+              </TouchableOpacity>
+              <ScrollView
+                horizontal
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.selectFilterContainer}>
+                {filterOptions.tags.map((tag, index) => (
+                  <View key={`${tag}-${index}`} style={styles.selectFilter}>
+                    <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
+                      {tag}
+                    </Text>
+                  </View>
+                ))}
+              </ScrollView>
+            </View>
+            <TouchableOpacity
+              style={styles.sortContainer}
+              onPress={() => setSortModalVisible(true)}>
+              <SortIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
+            </TouchableOpacity>
+          </View>
 
-        {isInitialLoading ? (
-          <Loading title="숙소를 불러오는 중이에요" />
-        ) : guesthouses.length === 0 ? (
-          <EmptyState
-            icon={SearchEmpty}
-            iconSize={{width: 120, height: 120}}
-            title="앗, 찾는 결과가 없어요"
-          />
-        ) : (
-          <FlatList
-            data={guesthouses}
-            keyExtractor={item => String(item.id)}
-            renderItem={renderItem}
-            contentContainerStyle={styles.listContent}
-            onEndReached={handleEndReached}
-            onEndReachedThreshold={0.7}
-            ListFooterComponent={
-              loading ? <ActivityIndicator size="small" color="gray" /> : null
-            }
-            maintainVisibleContentPosition={{
-              minIndexForVisible: 0,
-            }}
-            removeClippedSubviews={false}
-          />
-        )}
-      </View>
+          {isInitialLoading ? (
+            <Loading title="숙소를 불러오는 중이에요" />
+          ) : filteredGuesthouses.length === 0 ? (
+            <EmptyState
+              icon={SearchEmpty}
+              iconSize={{width: 120, height: 120}}
+              title="앗, 찾는 결과가 없어요"
+            />
+          ) : (
+            <FlatList
+              data={filteredGuesthouses}
+              keyExtractor={item => String(item.id)}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              onEndReached={handleEndReached}
+              onEndReachedThreshold={0.7}
+              ListFooterComponent={
+                loading ? <ActivityIndicator size="small" color="gray" /> : null
+              }
+              maintainVisibleContentPosition={{
+                minIndexForVisible: 0,
+              }}
+              removeClippedSubviews={false}
+            />
+          )}
+        </View>
+      )}
 
       {/* 지도 버튼 */}
-      {/* 지도 임시 제외 */}
-      {/* <View style={styles.mapButtonContainer}>
-        <TouchableOpacity
-          style={styles.mapButton}
-          onPress={() => navigation.navigate('GuesthouseMap')}
-        >
-          <MapIcon width={20} height={20} />
-          <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>지도</Text>
-        </TouchableOpacity>
-      </View> */}
+      {!isMapView && (
+        <View style={styles.mapButtonContainer}>
+          <TouchableOpacity
+            style={styles.mapButton}
+            onPress={() => setIsMapView(true)}
+          >
+            <MapIcon width={20} height={20} />
+            <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>
+              지도
+            </Text>
+          </TouchableOpacity>
+        </View>
+      )}
 
       {/* 인원, 날짜 선택 모달 */}
       <DateGuestModal
@@ -545,11 +586,16 @@ const GuesthouseList = () => {
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filterOptions}
+        availableTags={availableTags}
         onApply={filters => {
-          console.log('[필터 적용됨] 받은 filters:', filters);
-          setSelectedTags(filters.tags);
           setFilterOptions(filters);
-          setFilterApplied(true);
+          setFilterApplied(
+            filters.tags.length > 0 ||
+            filters.facility.length > 0 ||
+            filters.onlyAvailable ||
+            filters.minPrice !== 10000 ||
+            filters.maxPrice !== 10000000
+          );
           setFilterModalVisible(false);
 
           setPage(0);
