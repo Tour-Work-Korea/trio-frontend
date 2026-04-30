@@ -266,8 +266,9 @@ const styles = StyleSheet.create({
   },
   roomHeaderRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    minWidth: 0,
+    width: '100%',
     marginBottom: 4,
   },
   roomInfoRow: {
@@ -283,10 +284,17 @@ const styles = StyleSheet.create({
   },
   roomNameTextWrapper: {
     flex: 1,
+    width: 0,
     minWidth: 0,
+    marginRight: 4,
+    overflow: 'hidden',
   },
   roomType: {
     color: COLORS.grayscale_800,
+  },
+  roomNameText: {
+    flexShrink: 1,
+    width: '100%',
   },
   checkTimeContainer: {
     flexDirection: 'row',
@@ -298,6 +306,7 @@ const styles = StyleSheet.create({
   roomPrice: {
     color: COLORS.grayscale_800,
     flexShrink: 0,
+    textAlign: 'right',
   },
 
   // 룸 디테일 버튼

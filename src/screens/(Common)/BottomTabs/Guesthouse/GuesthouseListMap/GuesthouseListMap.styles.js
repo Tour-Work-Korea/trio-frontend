@@ -264,18 +264,16 @@ const styles = StyleSheet.create({
     right: 12,
     bottom: 12,
   },
-  cardSwitchContainer: {
-    position: 'absolute',
-    right: 8,
-    top: -36,
+  imageSwitchContainer: {
     flexDirection: 'row',
-    gap: 8,
-    zIndex: 21,
+    justifyContent: 'flex-end',
+    gap: 6,
+    marginBottom: 8,
   },
-  cardSwitchButton: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
+  imageSwitchButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     backgroundColor: COLORS.grayscale_0,
     alignItems: 'center',
     justifyContent: 'center',
@@ -342,6 +340,7 @@ const styles = StyleSheet.create({
   },
   imageRow: {
     flexDirection: 'row',
+    gap: 8,
   },
   detailImage: {
     width: 108,

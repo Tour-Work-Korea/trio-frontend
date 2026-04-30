@@ -3,9 +3,11 @@ import {
   ActivityIndicator,
   Alert,
   Image,
+  Linking,
   PanResponder,
   PermissionsAndroid,
   Platform,
+  ScrollView,
   Text,
   TouchableOpacity,
   View,
@@ -44,6 +46,7 @@ const CLUSTER_DISTANCE_PX = 28;
 const MARKER_BUBBLE_WIDTH = 232;
 const CURRENT_LOCATION_ANIMATION_MS = 1;
 const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
+const DETAIL_IMAGE_SCROLL_STEP = 116;
 
 const normalizeGuesthouses = guesthouses =>
   (Array.isArray(guesthouses) ? guesthouses : []).map(item => ({
@@ -84,7 +87,10 @@ const getGuesthouseResponseItems = data => {
 
 const getGuesthouseImageUrls = item => {
   const imageUrls = Array.isArray(item?.guesthouseImages)
-    ? item.guesthouseImages
+    ? [...item.guesthouseImages]
+      .sort((a, b) =>
+        a?.isThumbnail === b?.isThumbnail ? 0 : a?.isThumbnail ? -1 : 1,
+      )
       .map(image => image?.guesthouseImageUrl)
       .filter(Boolean)
     : [];
@@ -344,15 +350,39 @@ const groupGuesthouses = (guesthouses, region, mapSize) => {
 
 const requestLocationPermission = async () => {
   if (Platform.OS === 'ios') {
-    const status = await Geolocation.requestAuthorization?.('whenInUse');
-    return status === 'granted';
+    return true;
+  }
+
+  const hasPermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  );
+
+  if (hasPermission) {
+    return true;
   }
 
   const granted = await PermissionsAndroid.request(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    {
+      title: '위치 권한이 필요해요',
+      message: '현재 위치로 지도를 이동하기 위해 위치 접근 권한이 필요합니다.',
+      buttonPositive: '허용',
+      buttonNegative: '거부',
+    },
   );
 
   return granted === PermissionsAndroid.RESULTS.GRANTED;
+};
+
+const showLocationPermissionAlert = () => {
+  Alert.alert(
+    '위치 권한이 필요해요',
+    '현재 위치를 사용하려면 설정에서 위치 접근 권한을 허용해주세요.',
+    [
+      {text: '취소', style: 'cancel'},
+      {text: '설정 열기', onPress: () => Linking.openSettings()},
+    ],
+  );
 };
 
 const GuesthouseListMap = ({
@@ -393,6 +423,7 @@ const GuesthouseListMap = ({
   );
 
   const mapRef = useRef(null);
+  const imageScrollRef = useRef(null);
   const initialRegion = useMemo(
     () => presetRegion ?? getRegionFromGuesthouses(sourceGuesthouses),
     [presetRegion, sourceGuesthouses],
@@ -409,6 +440,7 @@ const GuesthouseListMap = ({
   const [showResearchButton, setShowResearchButton] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(initialRegion);
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const clusters = useMemo(
     () => groupGuesthouses(mapGuesthouses, currentRegion, mapSize),
@@ -448,15 +480,6 @@ const GuesthouseListMap = ({
       ?? null
     );
   }, [selectedCluster, selectedGuesthouseId]);
-  const selectedItemIndex = useMemo(() => {
-    if (!selectedCluster || !selectedItem) {
-      return -1;
-    }
-
-    return selectedCluster.items.findIndex(
-      item => String(item.id) === String(selectedItem.id),
-    );
-  }, [selectedCluster, selectedItem]);
   const selectedGlobalIndex = useMemo(() => {
     if (!selectedItem) {
       return -1;
@@ -466,6 +489,10 @@ const GuesthouseListMap = ({
       item => String(item.id) === String(selectedItem.id),
     );
   }, [mapGuesthouses, selectedItem]);
+  const selectedImageUrls = useMemo(
+    () => getGuesthouseImageUrls(selectedItem),
+    [selectedItem],
+  );
   const markerBubblePosition = useMemo(() => {
     const point = getMapPointFromCoordinate(
       selectedCluster?.coordinate,
@@ -534,6 +561,11 @@ const GuesthouseListMap = ({
     initialPresetFetchDoneRef.current = false;
     setHasFetchedMapGuesthouses(false);
   }, [presetBounds]);
+
+  useEffect(() => {
+    setSelectedImageIndex(0);
+    imageScrollRef.current?.scrollTo?.({x: 0, animated: false});
+  }, [selectedItem?.id]);
 
   const getCurrentBounds = useCallback(async () => {
     const boundaries = await mapRef.current?.getMapBoundaries?.();
@@ -664,11 +696,16 @@ const GuesthouseListMap = ({
     );
   }, []);
 
+  const handleClearSelection = useCallback(() => {
+    setSelectedClusterKey(null);
+    setSelectedGuesthouseId(null);
+  }, []);
+
   const moveToCurrentLocation = useCallback(async () => {
     const granted = await requestLocationPermission();
 
     if (!granted) {
-      Alert.alert('위치 권한이 필요해요');
+      showLocationPermissionAlert();
       return;
     }
 
@@ -702,6 +739,11 @@ const GuesthouseListMap = ({
       },
       error => {
         console.warn('현재 위치 조회 실패', error);
+        if (Platform.OS === 'ios' && error?.code === 1) {
+          showLocationPermissionAlert();
+          return;
+        }
+
         Alert.alert('현재 위치를 가져오지 못했어요');
       },
       {
@@ -712,11 +754,6 @@ const GuesthouseListMap = ({
     );
   }, [handleClearSelection]);
 
-  const handleClearSelection = useCallback(() => {
-    setSelectedClusterKey(null);
-    setSelectedGuesthouseId(null);
-  }, []);
-
   const handlePressMarker = useCallback(cluster => {
     setSelectedClusterKey(cluster.key);
     setSelectedGuesthouseId(cluster.primaryItem?.id ?? null);
@@ -726,32 +763,6 @@ const GuesthouseListMap = ({
     setSelectedClusterKey(cluster.key);
     setSelectedGuesthouseId(item.id);
   }, []);
-
-  const handlePressPrevCard = useCallback(() => {
-    if (!selectedCluster || selectedCluster.items.length <= 1) {
-      return;
-    }
-
-    const nextIndex =
-      selectedItemIndex <= 0
-        ? selectedCluster.items.length - 1
-        : selectedItemIndex - 1;
-
-    setSelectedGuesthouseId(selectedCluster.items[nextIndex]?.id ?? null);
-  }, [selectedCluster, selectedItemIndex]);
-
-  const handlePressNextCard = useCallback(() => {
-    if (!selectedCluster || selectedCluster.items.length <= 1) {
-      return;
-    }
-
-    const nextIndex =
-      selectedItemIndex >= selectedCluster.items.length - 1
-        ? 0
-        : selectedItemIndex + 1;
-
-    setSelectedGuesthouseId(selectedCluster.items[nextIndex]?.id ?? null);
-  }, [selectedCluster, selectedItemIndex]);
 
   const handleSelectGuesthouseFromGlobalList = useCallback(guesthouse => {
     if (!guesthouse) {
@@ -779,6 +790,46 @@ const GuesthouseListMap = ({
 
     handleSelectGuesthouseFromGlobalList(mapGuesthouses[nextIndex]);
   }, [handleSelectGuesthouseFromGlobalList, mapGuesthouses, selectedGlobalIndex]);
+
+  const scrollToImageIndex = useCallback(index => {
+    if (selectedImageUrls.length <= 1) {
+      return;
+    }
+
+    const maxIndex = selectedImageUrls.length - 1;
+    const nextIndex = index < 0 ? maxIndex : index > maxIndex ? 0 : index;
+
+    setSelectedImageIndex(nextIndex);
+    imageScrollRef.current?.scrollTo?.({
+      x: nextIndex * DETAIL_IMAGE_SCROLL_STEP,
+      animated: true,
+    });
+  }, [selectedImageUrls.length]);
+
+  const handlePressPrevImage = useCallback(event => {
+    event?.stopPropagation?.();
+    scrollToImageIndex(selectedImageIndex - 1);
+  }, [scrollToImageIndex, selectedImageIndex]);
+
+  const handlePressNextImage = useCallback(event => {
+    event?.stopPropagation?.();
+    scrollToImageIndex(selectedImageIndex + 1);
+  }, [scrollToImageIndex, selectedImageIndex]);
+
+  const handleImageScrollEnd = useCallback(event => {
+    if (selectedImageUrls.length <= 1) {
+      return;
+    }
+
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const maxIndex = selectedImageUrls.length - 1;
+    const nextIndex = Math.min(
+      Math.max(Math.round(offsetX / DETAIL_IMAGE_SCROLL_STEP), 0),
+      maxIndex,
+    );
+
+    setSelectedImageIndex(nextIndex);
+  }, [selectedImageUrls.length]);
 
   const handleSwipeNextCard = useCallback(() => {
     if (mapGuesthouses.length <= 1 || selectedGlobalIndex < 0) {
@@ -1061,22 +1112,6 @@ const GuesthouseListMap = ({
                 </Text>
               </TouchableOpacity>
             </View>
-            {selectedCluster?.count > 1 && (
-              <View style={styles.cardSwitchContainer}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.cardSwitchButton}
-                  onPress={handlePressPrevCard}>
-                  <ChevronLeft width={16} height={16} />
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.cardSwitchButton}
-                  onPress={handlePressNextCard}>
-                  <ChevronRight width={16} height={16} />
-                </TouchableOpacity>
-              </View>
-            )}
             <View {...cardPanResponder.panHandlers}>
               <TouchableOpacity
                 activeOpacity={0.92}
@@ -1125,16 +1160,48 @@ const GuesthouseListMap = ({
                   ))}
                 </View>
 
-              <View style={styles.imageRow}>
-                {getGuesthouseImageUrls(selectedItem).length > 0 ? (
-                  <Image
-                    source={{uri: getGuesthouseImageUrls(selectedItem)[0]}}
-                    style={styles.detailImage}
-                  />
-                ) : (
-                  <View style={[styles.detailImage, styles.detailImagePlaceholder]} />
+                {selectedImageUrls.length > 1 && (
+                  <View style={styles.imageSwitchContainer}>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      style={styles.imageSwitchButton}
+                      onPress={handlePressPrevImage}>
+                      <ChevronLeft width={14} height={14} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      style={styles.imageSwitchButton}
+                      onPress={handlePressNextImage}>
+                      <ChevronRight width={14} height={14} />
+                    </TouchableOpacity>
+                  </View>
                 )}
-              </View>
+
+                <ScrollView
+                  ref={imageScrollRef}
+                  horizontal
+                  nestedScrollEnabled
+                  showsHorizontalScrollIndicator={false}
+                  onMomentumScrollEnd={handleImageScrollEnd}
+                  onScrollEndDrag={handleImageScrollEnd}
+                  contentContainerStyle={styles.imageRow}>
+                  {selectedImageUrls.length > 0 ? (
+                    selectedImageUrls.map((imageUrl, index) => (
+                      <Image
+                        key={`${imageUrl}-${index}`}
+                        source={{uri: imageUrl}}
+                        style={styles.detailImage}
+                      />
+                    ))
+                  ) : (
+                    <View
+                      style={[
+                        styles.detailImage,
+                        styles.detailImagePlaceholder,
+                      ]}
+                    />
+                  )}
+                </ScrollView>
               </TouchableOpacity>
             </View>
           </View>
