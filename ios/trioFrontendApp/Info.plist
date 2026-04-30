@@ -122,13 +122,13 @@
 		<true/>
 	</dict>
 	<key>NSCameraUsageDescription</key>
-	<string>workaway에서 사진 촬영 및 업로드를 위해 카메라 접근 권한이 필요합니다.</string>
+	<string>게딱지에서 사진 촬영 및 업로드를 위해 카메라 접근 권한이 필요합니다.</string>
 	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-	<string>workaway에서 현재 위치 기반 서비스를 제공하기 위해 위치 정보 접근 권한이 필요합니다.</string>
+	<string>게딱지에서 현재 위치 기반 서비스를 제공하기 위해 위치 정보 접근 권한이 필요합니다.</string>
 	<key>NSLocationWhenInUseUsageDescription</key>
-	<string>workaway에서 현재 위치 기반 서비스를 제공하기 위해 위치 정보 접근 권한이 필요합니다.</string>
+	<string>게딱지에서 현재 위치 기반 서비스를 제공하기 위해 위치 정보 접근 권한이 필요합니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
-	<string>workaway에서 사진 촬영 및 업로드를 위해 앨범 접근 권한이 필요합니다.</string>
+	<string>게딱지에서 사진 촬영 및 업로드를 위해 앨범 접근 권한이 필요합니다.</string>
 	<key>UIAppFonts</key>
 	<array>
 		<string>Pretendard-Black.otf</string>

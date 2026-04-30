@@ -1,5 +1,12 @@
 import api from './axiosInstance';
 
+const normalizeMyProfilePayload = draft => ({
+  nickname: draft?.nickname ?? '',
+  photoUrl: draft?.photoUrl ?? '',
+  mbti: draft?.mbti ?? '',
+  instagramId: draft?.instagramId ?? '',
+});
+
 const userMyApi = {
   // 유저 프로필 정보 조회
   getMyProfile: () => api.get('/user/my'),
@@ -33,14 +40,8 @@ const userMyApi = {
   deleteReview: reviewId => api.delete(`/user/reviews/${reviewId}`),
 
   //유저 프로필 정보 수정
-  // updateMyProfile: async (field, value) => {
-  //   const config = userFieldMap[field];
-  //   if (!config) throw new Error('지원하지 않는 필드');
-
-  //   const body = {[config.key]: value};
-  //   return api.put(`/user/my/${config.path}`, body);
-  // },
-  updateMyProfile: draft => api.put('/user/my', draft),
+  updateMyProfile: draft =>
+    api.put('/user/my', normalizeMyProfilePayload(draft)),
   updateNickname: data => api.put('/user/my/nickname', data),
   updateMbti: data => api.put('/user/my/mbti', data),
   updateInstagram: data => api.put('/user/my/instagram', data),
@@ -79,12 +80,3 @@ const userMyApi = {
 };
 
 export default userMyApi;
-
-const userFieldMap = {
-  name: {path: 'nickname', key: 'name'},
-  email: {path: 'email', key: 'email'},
-  phone: {path: 'phone', key: 'phoneNumber'},
-  mbti: {path: 'mbti', key: 'mbti'},
-  instagramId: {path: 'instagram', key: 'instagramId'},
-  photoUrl: {path: 'photo', key: 'photoUrl'},
-};

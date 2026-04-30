@@ -1,6 +1,7 @@
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import DeviceInfo from 'react-native-device-info';
 
 import Header from '@components/Header';
 import AlertModal from '@components/modals/AlertModal';
@@ -22,6 +23,7 @@ const Settings = () => {
   const accountName = accountProfile?.name;
   const accountEmail = accountProfile?.email;
   const accountPhone = accountProfile?.phone;
+  const appVersion = DeviceInfo.getVersion();
 
   const handleLogout = async () => {
     await tryLogout();
@@ -94,7 +96,7 @@ const Settings = () => {
           <View style={styles.menuContainer}>
             <View style={styles.menuRow}>
               <Text style={styles.menuText}>버전 정보</Text>
-              <Text style={styles.versionText}>ver.1</Text>
+              <Text style={styles.versionText}>ver.{appVersion}</Text>
             </View>
             <TouchableOpacity
               style={styles.menuRow}
