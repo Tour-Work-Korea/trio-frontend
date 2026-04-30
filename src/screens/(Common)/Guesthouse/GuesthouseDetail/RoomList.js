@@ -168,10 +168,14 @@ const RoomList = ({
 
           <View style={styles.roomInfo}>
             <View style={styles.roomNameDescContainer}>
-              <View style={[styles.roomHeaderRow, {gap: 4}]}>
+              <View style={styles.roomHeaderRow}>
                 <View style={styles.roomNameTextWrapper}>
                   <Text
-                    style={[FONTS.fs_16_semibold, styles.roomType]}
+                    style={[
+                      FONTS.fs_16_semibold,
+                      styles.roomType,
+                      styles.roomNameText,
+                    ]}
                     numberOfLines={1}
                     ellipsizeMode="tail"
                   >

@@ -113,8 +113,6 @@ export default function Meets({events = [], setEventList}) {
     );
   };
 
-  if (!events.length) return null;
-
   const guesthousePartyEvents = events;
   const visibleEvents =
     selectedChip === 'guesthouseParty' ? guesthousePartyEvents.slice(0, 3) : [];

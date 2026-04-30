@@ -662,7 +662,9 @@ const GuesthouseDetail = ({route}) => {
           />
         )}
 
-        {/* 날짜, 인원 모달 */}
+      </ScrollView>
+      {/* 날짜, 인원 모달 */}
+      {dateGuestModalVisible && (
         <DateGuestModal
           visible={dateGuestModalVisible}
           onClose={() => setDateGuestModalVisible(false)}
@@ -681,7 +683,7 @@ const GuesthouseDetail = ({route}) => {
           initAdultGuestCount={localAdults}
           initChildGuestCount={localChildren}
         />
-      </ScrollView>
+      )}
       <ServiceInfoModal
         visible={modalVisible}
         onClose={() => setModalVisible(false)}

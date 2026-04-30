@@ -221,7 +221,7 @@ const HomeMain = () => {
         backgroundColor: COLORS.grayscale_0,
         position: 'relative',
         zIndex: 30,
-        elevation: 30,
+        elevation: Platform.OS === 'android' ? 0 : 30,
       }}>
       <Header />
 
@@ -229,6 +229,7 @@ const HomeMain = () => {
         <View
           style={[
             styles.searchBox,
+            Platform.OS === 'android' && styles.searchBoxAndroid,
             isSearchDropdownVisible && styles.searchBoxConnected,
           ]}>
           <SearchIcon width={20} height={20} />
@@ -241,6 +242,7 @@ const HomeMain = () => {
             style={[
               FONTS.fs_14_regular,
               styles.searchInput,
+              Platform.OS === 'android' && styles.searchInputAndroid,
             ]}
             returnKeyType="search"
           />
@@ -455,7 +457,7 @@ const headerStyles = {
     justifyContent: 'space-between',
     position: 'relative',
     zIndex: 1,
-    elevation: 1,
+    elevation: Platform.OS === 'android' ? 0 : 1,
   },
   tabBarLeft: {
     flexDirection: 'row',

@@ -1,7 +1,8 @@
 import api from './axiosInstance';
+import {API_BASE_URL} from '@env';
 
 // baseURL에서 /api/v1 제거
-const API_ORIGIN = (process.env.API_BASE_URL || '').replace(/\/api\/v1\/?$/, '');
+const API_ORIGIN = (API_BASE_URL || '').replace(/\/api\/v1\/?$/, '');
 
 const adminApi = {
   // 메인 화면 배너 이미지 3개 조회
