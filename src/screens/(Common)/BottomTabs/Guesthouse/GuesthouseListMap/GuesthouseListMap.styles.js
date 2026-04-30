@@ -32,9 +32,7 @@ const styles = StyleSheet.create({
   },
   markerBubbleOverlay: {
     position: 'absolute',
-    bottom: 42,
-    left: 0,
-    right: 0,
+    width: 232,
     alignItems: 'center',
     zIndex: 30,
     elevation: 30,
@@ -66,9 +64,9 @@ const styles = StyleSheet.create({
     transform: [{rotate: '45deg'}],
   },
   clusterList: {
-    minWidth: 120,
-    maxWidth: 160,
-    gap: 8,
+    minWidth: 200,
+    maxWidth: 200,
+    gap: 12,
   },
   clusterListItem: {
     flexDirection: 'row',
@@ -308,16 +306,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
   },
   detailTitle: {
+    flex: 1,
+    minWidth: 0,
     color: COLORS.grayscale_900,
   },
   detailAddress: {
+    flex: 1,
+    minWidth: 0,
     color: COLORS.grayscale_500,
   },
   favoriteButton: {
+    flexShrink: 0,
   },
   detailPrice: {
+    flexShrink: 0,
     color: COLORS.grayscale_900,
   },
   tagRow: {

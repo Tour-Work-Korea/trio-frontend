@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -43,6 +43,8 @@ import {
   getGuesthouseMapBoundsByRegionIds,
 } from '@constants/guesthouseMapRegions';
 
+const EMPTY_REGION_IDS = [];
+
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -55,13 +57,16 @@ const GuesthouseList = () => {
   const [isLast, setIsLast] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(false);
+  const loadingRef = useRef(false);
+  const isLastRef = useRef(false);
+  const errorRef = useRef(false);
 
   const {
     displayDate: routeDisplayDate = defaultDisplayDate,
     adultCount: routeAdultCount = 1,
     childCount: routeChildCount = 0,
     searchText = '',
-    regionIds = [],
+    regionIds = EMPTY_REGION_IDS,
     regionBounds: initialRegionBounds = null,
     initialMapView = false,
   } = route.params || {};
@@ -151,7 +156,11 @@ const GuesthouseList = () => {
     setCheckOut(
       dayjs(`${year}-${nextEndMonth}-${nextEndDay}`).format('YYYY-MM-DD'),
     );
+    loadingRef.current = false;
+    isLastRef.current = false;
+    errorRef.current = false;
     setPage(0);
+    setLoading(false);
     setIsLast(false);
     setGuesthouses([]);
     setError(false);
@@ -166,9 +175,22 @@ const GuesthouseList = () => {
   });
   const [sortBy, setSortBy] = useState('RECOMMEND');
 
+  const resetListState = useCallback(() => {
+    loadingRef.current = false;
+    isLastRef.current = false;
+    errorRef.current = false;
+    setPage(0);
+    setLoading(false);
+    setIsLast(false);
+    setGuesthouses([]);
+    setError(false);
+  }, []);
+
   // 게하 불러오기
   const fetchGuesthouses = useCallback(async (pageToFetch = 0) => {
-    if (loading || isLast || error) return;
+    if (loadingRef.current || isLastRef.current || errorRef.current) return;
+
+    loadingRef.current = true;
     setLoading(true);
 
     try {
@@ -229,12 +251,16 @@ const GuesthouseList = () => {
       setGuesthouses(prev =>
         pageToFetch === 0 ? normalized : [...prev, ...normalized]
       );
+      isLastRef.current = last;
       setIsLast(last);
     } catch (e) {
+      errorRef.current = true;
+      isLastRef.current = true;
       setError(true); // 한번이라도 실패하면 더이상 호출X
       setIsLast(true); // (추가) 무한호출도 막음
       console.warn('게스트하우스 조회 실패', e);
     } finally {
+      loadingRef.current = false;
       setLoading(false);
     }
   }, [
@@ -242,21 +268,22 @@ const GuesthouseList = () => {
     childCount,
     checkIn,
     checkOut,
-    error,
     filterApplied,
     filterOptions,
-    isLast,
-    loading,
     regionBounds,
     sortBy,
   ]);
 
   useEffect(() => {
+    if (isMapView) {
+      return;
+    }
+
     fetchGuesthouses(page);
-  }, [fetchGuesthouses, page]);
+  }, [fetchGuesthouses, isMapView, page]);
 
   const handleEndReached = () => {
-    if (loading) return;
+    if (loadingRef.current || isLastRef.current || errorRef.current) return;
     // 마지막이 아니라면 현재 페이지 계속
     setPage(prev => prev + 1);
   };
@@ -299,10 +326,7 @@ const GuesthouseList = () => {
         setCheckOut(dayjs(checkOut).format('YYYY-MM-DD'));
 
         // 리스트 리로드
-        setPage(0);
-        setIsLast(false);
-        setGuesthouses([]);
-        setError(false);
+        resetListState();
       },
     });
   };
@@ -574,10 +598,7 @@ const GuesthouseList = () => {
           setSortBy(option);
 
           // 새로 fetch
-          setPage(0);
-          setIsLast(false);
-          setGuesthouses([]);
-          setError(false);
+          resetListState();
         }}
       />
 
@@ -598,10 +619,7 @@ const GuesthouseList = () => {
           );
           setFilterModalVisible(false);
 
-          setPage(0);
-          setIsLast(false);
-          setGuesthouses([]);
-          setError(false);
+          resetListState();
         }}
       />
     </View>

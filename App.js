@@ -29,6 +29,7 @@ import LogoOrange from '@assets/images/meet_reservation_success.svg';
 import useUserStore from '@stores/userStore';
 import authApi from '@utils/api/authApi';
 import { checkForceUpdate, openAppStoreForUpdate } from '@utils/appUpdate';
+import { API_BASE_URL } from '@env';
 
 
 const toastConfig = {
@@ -70,7 +71,7 @@ function AppContent() {
   const accessToken = useUserStore(state => state.accessToken);
 
   useEffect(() => {
-    console.log('🚨 API_BASE_URL (runtime):', process.env.API_BASE_URL);
+    console.log('🚨 API_BASE_URL (runtime):', API_BASE_URL);
 
     const syncForceUpdateState = async () => {
       const result = await checkForceUpdate();

@@ -41,6 +41,9 @@ const DEFAULT_REGION = {
   longitudeDelta: 0.12,
 };
 const CLUSTER_DISTANCE_PX = 28;
+const MARKER_BUBBLE_WIDTH = 232;
+const CURRENT_LOCATION_ANIMATION_MS = 1;
+const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 
 const normalizeGuesthouses = guesthouses =>
   (Array.isArray(guesthouses) ? guesthouses : []).map(item => ({
@@ -162,6 +165,45 @@ const getClusterKey = items =>
     .map(item => String(item.id ?? item.guesthouseId))
     .sort()
     .join(':');
+
+const getMapPointFromCoordinate = (coordinate, region, mapSize) => {
+  if (
+    !coordinate
+    || !region
+    || !mapSize?.width
+    || !mapSize?.height
+    || !Number.isFinite(region.latitudeDelta)
+    || !Number.isFinite(region.longitudeDelta)
+  ) {
+    return null;
+  }
+
+  const longitudeDelta = Math.max(region.longitudeDelta, 0.000001);
+  const latitudeDelta = Math.max(region.latitudeDelta, 0.000001);
+
+  return {
+    x:
+      ((coordinate.longitude - (region.longitude - longitudeDelta / 2))
+        / longitudeDelta)
+      * mapSize.width,
+    y:
+      (((region.latitude + latitudeDelta / 2) - coordinate.latitude)
+        / latitudeDelta)
+      * mapSize.height,
+  };
+};
+
+const getMarkerBubbleHeight = cluster => {
+  if (!cluster) {
+    return 0;
+  }
+
+  if (cluster.count <= 1) {
+    return 74;
+  }
+
+  return cluster.items.length * 28 + 24;
+};
 
 const groupGuesthouses = (guesthouses, region, mapSize) => {
   const map = new Map();
@@ -424,6 +466,22 @@ const GuesthouseListMap = ({
       item => String(item.id) === String(selectedItem.id),
     );
   }, [mapGuesthouses, selectedItem]);
+  const markerBubblePosition = useMemo(() => {
+    const point = getMapPointFromCoordinate(
+      selectedCluster?.coordinate,
+      currentRegion,
+      mapSize,
+    );
+
+    if (!point || !selectedCluster) {
+      return null;
+    }
+
+    return {
+      left: point.x - MARKER_BUBBLE_WIDTH / 2,
+      top: point.y - getMarkerBubbleHeight(selectedCluster) - 12,
+    };
+  }, [currentRegion, mapSize, selectedCluster]);
 
   useEffect(() => {
     setMapGuesthouses(sourceGuesthouses);
@@ -556,12 +614,26 @@ const GuesthouseListMap = ({
   }, [fetchMapGuesthouses, getCurrentBounds, presetBounds]);
 
   useEffect(() => {
-    if (!mapReady || !checkIn || !checkOut) {
+    if (!checkIn || !checkOut) {
+      return;
+    }
+
+    const canFetchWithPresetBounds =
+      !initialPresetFetchDoneRef.current && presetBounds;
+
+    if (!mapReady && !canFetchWithPresetBounds) {
       return;
     }
 
     fetchUsingCurrentBounds();
-  }, [mapReady, checkIn, checkOut, guestCount, fetchUsingCurrentBounds]);
+  }, [
+    mapReady,
+    checkIn,
+    checkOut,
+    guestCount,
+    presetBounds,
+    fetchUsingCurrentBounds,
+  ]);
 
   const handleRegionChangeComplete = useCallback(async region => {
     setCurrentRegion(region);
@@ -620,10 +692,13 @@ const GuesthouseListMap = ({
             },
             zoom: 14,
           },
-          {duration: 400},
+          {duration: CURRENT_LOCATION_ANIMATION_MS},
         );
 
-        mapRef.current?.animateToRegion(nextRegion, 400);
+        mapRef.current?.animateToRegion(
+          nextRegion,
+          CURRENT_LOCATION_ANIMATION_MS,
+        );
       },
       error => {
         console.warn('현재 위치 조회 실패', error);
@@ -642,17 +717,14 @@ const GuesthouseListMap = ({
     setSelectedGuesthouseId(null);
   }, []);
 
-  const handleMapPress = useCallback(event => {
-    if (event?.nativeEvent?.action === 'marker-press') {
-      return;
-    }
-
-    handleClearSelection();
-  }, [handleClearSelection]);
-
   const handlePressMarker = useCallback(cluster => {
     setSelectedClusterKey(cluster.key);
     setSelectedGuesthouseId(cluster.primaryItem?.id ?? null);
+  }, []);
+
+  const handlePressClusterListItem = useCallback((cluster, item) => {
+    setSelectedClusterKey(cluster.key);
+    setSelectedGuesthouseId(item.id);
   }, []);
 
   const handlePressPrevCard = useCallback(() => {
@@ -731,16 +803,16 @@ const GuesthouseListMap = ({
       return;
     }
 
-    mapRef.current.animateToRegion(
-      {
-        latitude: guesthouse.lat,
-        longitude: guesthouse.lng,
-        latitudeDelta: currentRegion?.latitudeDelta ?? DEFAULT_REGION.latitudeDelta,
-        longitudeDelta:
-          currentRegion?.longitudeDelta ?? DEFAULT_REGION.longitudeDelta,
-      },
-      280,
-    );
+    const nextRegion = {
+      latitude: guesthouse.lat,
+      longitude: guesthouse.lng,
+      latitudeDelta: currentRegion?.latitudeDelta ?? DEFAULT_REGION.latitudeDelta,
+      longitudeDelta:
+        currentRegion?.longitudeDelta ?? DEFAULT_REGION.longitudeDelta,
+    };
+
+    setCurrentRegion(nextRegion);
+    mapRef.current.animateToRegion(nextRegion, GUESTHOUSE_FOCUS_ANIMATION_MS);
   }, [currentRegion]);
 
   useEffect(() => {
@@ -836,7 +908,6 @@ const GuesthouseListMap = ({
           onLayout={handleMapLayout}
           onMapReady={() => setMapReady(true)}
           onPanDrag={handleClearSelection}
-          onPress={handleMapPress}
           onRegionChangeComplete={handleRegionChangeComplete}
           showsUserLocation
           showsMyLocationButton={false}>
@@ -850,52 +921,6 @@ const GuesthouseListMap = ({
                 anchor={{x: 0.5, y: 1}}
                 zIndex={isSelected ? 999 : 1}>
                 <View style={styles.markerWrap} pointerEvents="box-none">
-                  <View style={styles.markerBubbleOverlay}>
-                    {isSelected && (
-                      <View style={styles.markerBubble}>
-                        {cluster.count > 1 ? (
-                          <View style={styles.clusterList}>
-                            {cluster.items.map(item => (
-                              <View
-                                key={String(item.id)}
-                                style={styles.clusterListItem}>
-                                <View style={styles.clusterListIcon}>
-                                  <HomeIcon width={10} height={10} />
-                                </View>
-                                <Text
-                                  numberOfLines={1}
-                                  style={[FONTS.fs_12_medium, styles.clusterListName]}>
-                                  {item.name}
-                                </Text>
-                                <Text
-                                  style={[FONTS.fs_12_medium, styles.clusterListPrice]}>
-                                  {getPriceLabel(item)}
-                                </Text>
-                              </View>
-                            ))}
-                          </View>
-                        ) : (
-                          <View style={styles.singleMarkerContent}>
-                            <View style={styles.homeMarker}>
-                              <HomeIcon width={18} height={18} />
-                            </View>
-                            <View style={styles.singleMarkerTextWrap}>
-                              <Text
-                                numberOfLines={1}
-                                style={[FONTS.fs_12_medium, styles.singleMarkerName]}>
-                                {cluster.primaryItem.name}
-                              </Text>
-                              <Text
-                                style={[FONTS.fs_12_medium, styles.singleMarkerPrice]}>
-                                {getPriceLabel(cluster.primaryItem)}
-                              </Text>
-                            </View>
-                          </View>
-                        )}
-                        <View style={styles.markerBubbleTail} />
-                      </View>
-                    )}
-                  </View>
                   <TouchableOpacity
                     activeOpacity={0.9}
                     style={styles.markerContainer}
@@ -921,6 +946,59 @@ const GuesthouseListMap = ({
             );
           })}
         </MapView>
+
+        {selectedCluster && markerBubblePosition && (
+          <View
+            pointerEvents="box-none"
+            style={[styles.markerBubbleOverlay, markerBubblePosition]}>
+            <View style={styles.markerBubble}>
+              {selectedCluster.count > 1 ? (
+                <View style={styles.clusterList}>
+                  {selectedCluster.items.map(item => (
+                    <TouchableOpacity
+                      activeOpacity={0.8}
+                      key={String(item.id)}
+                      style={styles.clusterListItem}
+                      onPress={() =>
+                        handlePressClusterListItem(selectedCluster, item)
+                      }>
+                      <View style={styles.clusterListIcon}>
+                        <HomeIcon width={10} height={10} />
+                      </View>
+                      <Text
+                        numberOfLines={1}
+                        style={[FONTS.fs_12_medium, styles.clusterListName]}>
+                        {item.name}
+                      </Text>
+                      <Text
+                        style={[FONTS.fs_12_medium, styles.clusterListPrice]}>
+                        {getPriceLabel(item)}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <View style={styles.singleMarkerContent}>
+                  <View style={styles.homeMarker}>
+                    <HomeIcon width={18} height={18} />
+                  </View>
+                  <View style={styles.singleMarkerTextWrap}>
+                    <Text
+                      numberOfLines={1}
+                      style={[FONTS.fs_12_medium, styles.singleMarkerName]}>
+                      {selectedCluster.primaryItem.name}
+                    </Text>
+                    <Text
+                      style={[FONTS.fs_12_medium, styles.singleMarkerPrice]}>
+                      {getPriceLabel(selectedCluster.primaryItem)}
+                    </Text>
+                  </View>
+                </View>
+              )}
+              <View style={styles.markerBubbleTail} />
+            </View>
+          </View>
+        )}
 
         {showResearchButton && (
           <View style={styles.researchButtonContainer}>
