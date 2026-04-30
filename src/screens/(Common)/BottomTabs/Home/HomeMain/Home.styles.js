@@ -44,7 +44,6 @@ export default StyleSheet.create({
   },
   searchBoxAndroid: {
     paddingVertical: 0,
-    marginBottom: 12,
     zIndex: 101,
   },
   searchBoxConnected: {
@@ -55,6 +54,11 @@ export default StyleSheet.create({
   searchInput: {
     flex: 1,
     color: COLORS.grayscale_800,
+  },
+  searchInputAndroid: {
+    height: 40,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
   },
   searchPlaceholder: {
     color: COLORS.grayscale_600,

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import {
   Modal,
   View,
@@ -7,7 +7,6 @@ import {
   StyleSheet,
   LayoutAnimation,
   Platform,
-  UIManager,
   Dimensions,
   ScrollView,
 } from "react-native";
@@ -30,10 +29,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 
-// 안드로이드 LayoutAnimation 활성화
-if (Platform.OS === 'android' && UIManager.setLayoutAnimationEnabledExperimental) {
-  UIManager.setLayoutAnimationEnabledExperimental(true);
-}
+const isLayoutAnimationSupported = Platform.OS !== 'android';
 
 const DateGuestModal = ({
   visible,
@@ -57,7 +53,13 @@ const DateGuestModal = ({
     setCheckOutDate(initCheckOutDate);
     setAdultCount(initAdultGuestCount);
     setChildCount(initChildGuestCount);
-  }, [visible]);
+  }, [
+    visible,
+    initCheckInDate,
+    initCheckOutDate,
+    initAdultGuestCount,
+    initChildGuestCount,
+  ]);
 
   const onDayPress = (day) => {
     if (!checkInDate || (checkInDate && checkOutDate)) {
@@ -76,26 +78,41 @@ const DateGuestModal = ({
     }
   };
 
-  const markedDates = {};
-  if (checkInDate && !checkOutDate) {
-    markedDates[checkInDate] = { startingDay: true, endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
-  }
-  if (checkInDate && checkOutDate) {
-    let current = dayjs(checkInDate);
-    const end = dayjs(checkOutDate);
-
-    while (current.isSameOrBefore(end)) {
-        const dateStr = current.format("YYYY-MM-DD");
-        if (dateStr === checkInDate) {
-            markedDates[dateStr] = { startingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
-        } else if (dateStr === checkOutDate) {
-            markedDates[dateStr] = { endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
-        } else {
-            markedDates[dateStr] = { color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
-        }
-        current = current.add(1, "day");
+  const markedDates = useMemo(() => {
+    if (!visible) {
+      return {};
     }
-  }
+
+    const marked = {};
+    if (checkInDate && !checkOutDate) {
+      marked[checkInDate] = { startingDay: true, endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+      return marked;
+    }
+
+    if (checkInDate && checkOutDate) {
+      let current = dayjs(checkInDate);
+      const end = dayjs(checkOutDate);
+      const nights = end.diff(current, 'day');
+
+      if (!current.isValid() || !end.isValid() || nights < 0 || nights > 60) {
+        return marked;
+      }
+
+      while (current.isSameOrBefore(end)) {
+          const dateStr = current.format("YYYY-MM-DD");
+          if (dateStr === checkInDate) {
+              marked[dateStr] = { startingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          } else if (dateStr === checkOutDate) {
+              marked[dateStr] = { endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          } else {
+              marked[dateStr] = { color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          }
+          current = current.add(1, "day");
+      }
+    }
+
+    return marked;
+  }, [checkInDate, checkOutDate, visible]);
 
   const [currentMonth, setCurrentMonth] = useState(dayjs().format("YYYY-MM-DD"));
 
@@ -128,18 +145,29 @@ const DateGuestModal = ({
   const [isDateOpen, setIsDateOpen] = useState(false);
 
   const toggleGuestSection = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isLayoutAnimationSupported) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     setIsGuestOpen(!isGuestOpen);
   };
 
   const toggleDateSection = () => {
-    LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    if (isLayoutAnimationSupported) {
+      LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+    }
     setIsDateOpen(!isDateOpen);
   };
 
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <View style={styles.overlay}>
+  if (Platform.OS === 'android' && !visible) {
+    return null;
+  }
+
+  const content = (
+      <View
+        style={[
+          styles.overlay,
+          Platform.OS === 'android' && styles.androidOverlay,
+        ]}>
         <View style={styles.modal}>
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold, styles.title]}>날짜, 인원 선택</Text>
@@ -255,6 +283,19 @@ const DateGuestModal = ({
           </View>
         </View>
       </View>
+  );
+
+  if (Platform.OS === 'android') {
+    return content;
+  }
+
+  return (
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}>
+      {content}
     </Modal>
   );
 };
@@ -266,6 +307,11 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.modal_background,
     justifyContent: "flex-end",
+  },
+  androidOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999,
+    elevation: 9999,
   },
   modal: {
     backgroundColor: COLORS.grayscale_0,

@@ -970,12 +970,22 @@ const GuesthouseListMap = ({
                 key={cluster.key}
                 coordinate={cluster.coordinate}
                 anchor={{x: 0.5, y: 1}}
-                zIndex={isSelected ? 999 : 1}>
+                zIndex={isSelected ? 999 : 1}
+                onPress={
+                  Platform.OS === 'android'
+                    ? () => handlePressMarker(cluster)
+                    : undefined
+                }>
                 <View style={styles.markerWrap} pointerEvents="box-none">
                   <TouchableOpacity
                     activeOpacity={0.9}
                     style={styles.markerContainer}
-                    onPress={() => handlePressMarker(cluster)}>
+                    disabled={Platform.OS === 'android'}
+                    onPress={
+                      Platform.OS === 'android'
+                        ? undefined
+                        : () => handlePressMarker(cluster)
+                    }>
                     {isSelected ? (
                       <View style={styles.selectedMarkerDot} />
                     ) : (

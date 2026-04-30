@@ -314,6 +314,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignSelf: 'flex-start',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   roomDetailBtnText: {
     color: COLORS.semantic_blue,
