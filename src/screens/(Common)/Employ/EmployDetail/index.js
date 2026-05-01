@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {View, ScrollView} from 'react-native';
 
@@ -27,11 +27,7 @@ const EmployDetail = ({route}) => {
     buttonText: '',
   });
 
-  useEffect(() => {
-    tryFetchRecruitById();
-  }, []);
-
-  const tryFetchRecruitById = async () => {
+  const tryFetchRecruitById = useCallback(async () => {
     try {
       let response;
       if (fromHost) {
@@ -47,7 +43,11 @@ const EmployDetail = ({route}) => {
         buttonText: '확인',
       });
     }
-  };
+  }, [fromHost, id, userRole]);
+
+  useEffect(() => {
+    tryFetchRecruitById();
+  }, [tryFetchRecruitById]);
 
   const handleFavorite = async isLiked => {
     toggleFavorite({
@@ -101,6 +101,8 @@ const EmployDetail = ({route}) => {
                 } else {
                   navigation.navigate('ApplicantForm', {
                     recruitId: recruit?.recruitId,
+                    entryStartDate: recruit?.entryStartDate,
+                    entryEndDate: recruit?.entryEndDate,
                   });
                 }
               }}
