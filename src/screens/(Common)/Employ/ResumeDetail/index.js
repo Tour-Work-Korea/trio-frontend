@@ -127,11 +127,7 @@ const ResumeDetail = ({route}) => {
           icon={EmploySuccessIcon}
           iconSize={{width: 224, height: 171}}
           title="이력서 작성 완성!"
-          description="알바 지원하러 가볼까요?"
-          buttonText="알바 보러가기"
-          onPressButton={() =>
-            navigation.navigate('MainTabs', {screen: '채용'})
-          }
+          description="공고 지원하러 가볼까요?"
         />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>

@@ -96,7 +96,7 @@ export default StyleSheet.create({
   addButtonLocation: {
     position: 'absolute',
     right: 20,
-    bottom: 20,
+    bottom: 28,
   },
   addButtonText: {
     color: COLORS.grayscale_0,
