@@ -87,6 +87,31 @@ const MyResumeList = () => {
     });
   };
 
+  const handleAddResume = () => {
+    if (noResumeState) {
+      navigation.navigate('ProfileUpdate');
+      return;
+    }
+
+    navigation.navigate('ResumeDetail', {
+      isEditable: true,
+      role: 'USER',
+      isNew: true,
+      headerTitle: '이력서 작성',
+    });
+  };
+
+  const renderAddResumeButton = () => (
+    <TouchableOpacity
+      style={[styles.addButton, styles.addButtonLocation]}
+      onPress={handleAddResume}>
+      <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
+        이력서 추가하기
+      </Text>
+      <PlusIcon width={24} height={24} />
+    </TouchableOpacity>
+  );
+
   const renderResumeSelection = () => (
     <ScrollView contentContainerStyle={styles.section}>
       {resumes?.map(item => (
@@ -155,47 +180,27 @@ const MyResumeList = () => {
       {loading ? (
         <></>
       ) : resumes?.length === 0 ? (
-        noResumeState ? (
-          <EmployEmpty
-            title={'아직 정보가 부족해요'}
-            subTitle={'이력서를 완성하러 가볼까요?'}
-            buttonText={'이력서 작성하러 가기'}
-            onPress={() => {
-              navigation.navigate('ProfileUpdate');
-            }}
-          />
-        ) : (
-          <EmployEmpty
-            title={'작성하신 이력서가 없습니다'}
-            buttonText={'이력서 작성하러 가기'}
-            onPress={() => {
-              navigation.navigate('ResumeDetail', {
-                isEditable: true,
-                role: 'USER',
-                isNew: true,
-                headerTitle: '이력서 작성',
-              });
-            }}
-          />
-        )
+        <View style={styles.body}>
+          {noResumeState ? (
+            <EmployEmpty
+              title={'아직 정보가 부족해요'}
+              subTitle={'이력서를 완성하러 가볼까요?'}
+              buttonText={'이력서 작성하러 가기'}
+              onPress={handleAddResume}
+            />
+          ) : (
+            <EmployEmpty
+              title={'작성하신 이력서가 없습니다'}
+              buttonText={'이력서 작성하러 가기'}
+              onPress={handleAddResume}
+            />
+          )}
+          {renderAddResumeButton()}
+        </View>
       ) : (
         <View style={styles.body}>
           {renderResumeSelection()}
-          <TouchableOpacity
-            style={[styles.addButton, styles.addButtonLocation]}
-            onPress={() =>
-              navigation.navigate('ResumeDetail', {
-                isEditable: true,
-                role: 'USER',
-                isNew: true,
-                headerTitle: '이력서 작성',
-              })
-            }>
-            <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-              이력서 추가하기
-            </Text>
-            <PlusIcon width={24} height={24} />
-          </TouchableOpacity>
+          {renderAddResumeButton()}
         </View>
       )}
       <AlertModal
