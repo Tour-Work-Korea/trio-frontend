@@ -1,5 +1,5 @@
 import React, {useCallback} from 'react';
-import {Alert} from 'react-native';
+import {Alert, Linking, Platform} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
@@ -73,8 +73,45 @@ const GuesthousePayment = ({route}) => {
     paymentQuery.append('pointUsed', String(pointUsed));
   }
 
+  const onShouldStartLoadWithRequest = request => {
+    const {url} = request;
+
+    if (Platform.OS === 'android' && url.startsWith('intent:')) {
+      const schemeMatch = url.match(/scheme=([^;]+)/);
+      const packageMatch = url.match(/package=([^;]+)/);
+      
+      if (schemeMatch && schemeMatch[1]) {
+        const scheme = schemeMatch[1];
+        const appUrl = url.replace('intent://', `${scheme}://`).split('#Intent')[0];
+        
+        Linking.openURL(appUrl).catch(() => {
+          if (packageMatch && packageMatch[1]) {
+            Linking.openURL(`market://details?id=${packageMatch[1]}`);
+          }
+        });
+      } else {
+        Linking.openURL(url).catch(() => {
+          if (packageMatch && packageMatch[1]) {
+            Linking.openURL(`market://details?id=${packageMatch[1]}`);
+          }
+        });
+      }
+      return false;
+    }
+    
+    if (Platform.OS === 'ios' && !url.startsWith('http') && !url.startsWith('about:blank')) {
+      Linking.openURL(url).catch(() => {
+        Alert.alert('알림', '해당 앱이 설치되어 있지 않습니다.');
+      });
+      return false;
+    }
+    
+    return true;
+  };
+
   return (
     <WebView
+      originWhitelist={['*']}
       source={{
         // 결제 페이지 진입
         uri: `${WEB_BASE_URL}/payments/toss/request/reservation?${paymentQuery.toString()}`,
@@ -85,6 +122,7 @@ const GuesthousePayment = ({route}) => {
       javaScriptEnabled
       domStorageEnabled
       onMessage={handleMessage}
+      onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       startInLoadingState
       javaScriptCanOpenWindowsAutomatically
       setSupportMultipleWindows
