@@ -7,7 +7,7 @@ import userMyApi from '@utils/api/userMyApi';
 import { log, mask } from '@utils/logger';
 import { navigate } from '@utils/navigationService';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
-import { syncFcmToken } from '@utils/fcmService';
+import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 
 const REFRESH_KEY = 'refresh-token';
@@ -188,7 +188,8 @@ export const tryLogout = async () => {
   log.info('🚪 tryLogout');
   try {
     try {
-      await notificationApi.logoutToken();
+      const deviceId = await getDeviceId();
+      await notificationApi.logoutToken(deviceId);
     } catch (e) {
       log.warn('FCM 토큰 로그아웃 실패:', e?.message);
     }

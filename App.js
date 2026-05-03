@@ -42,7 +42,8 @@ function SplashOverlay({ onFinish }) {
     <View style={styles.splashOverlay}>
       <LottieView
         source={require('@assets/lottie/splash.json')}
-        style={{ width: 180, height: 153 }}
+        style={styles.splashAnimation}
+        resizeMode="cover"
         autoPlay
         loop={false}
         onAnimationFinish={onFinish}
@@ -280,5 +281,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
     backgroundColor: COLORS.white,
+  },
+  splashAnimation: {
+    width: '100%',
+    height: '100%',
   },
 });
