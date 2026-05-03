@@ -651,18 +651,17 @@ const GuesthouseDetail = ({route}) => {
         </ScrollView>
       </View>
 
-        {/* 이미지 모달 */}
-        {hasImages && (
-          <ImageModal
-            visible={imageModalVisible}
-            title={detail.guesthouseName}
-            images={modalImages}
-            selectedImageIndex={imageIndex}
-            onClose={() => setImageModalVisible(false)}
-          />
-        )}
-
       </ScrollView>
+      {/* 이미지 모달 */}
+      {hasImages && (
+        <ImageModal
+          visible={imageModalVisible}
+          title={detail.guesthouseName}
+          images={modalImages}
+          selectedImageIndex={imageIndex}
+          onClose={() => setImageModalVisible(false)}
+        />
+      )}
       {/* 날짜, 인원 모달 */}
       {dateGuestModalVisible && (
         <DateGuestModal

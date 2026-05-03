@@ -34,8 +34,28 @@ export default StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     marginLeft: 12,
+    position: 'relative',
   },
-  
+  unreadBadge: {
+    position: 'absolute',
+    top: -8,
+    right: -10,
+    width: 18,
+    height: 18,
+    borderRadius: 100,
+    backgroundColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadBadgeText: {
+    color: COLORS.grayscale_0,
+    fontSize: 10,
+    fontWeight: '600',
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
+
   // 헤더
   headerText: {
     color: COLORS.grayscale_800,
@@ -125,7 +145,7 @@ export default StyleSheet.create({
     elevation: 4,
   },
   promoSection: {
-    alignItems: 'center', 
+    alignItems: 'center',
     gap: 4,
   },
   promoSectionText: {
@@ -140,6 +160,9 @@ export default StyleSheet.create({
     borderRadius: 8,
   },
   section: {},
+  staffSection: {
+    marginBottom: 16,
+  },
   sectionTitle: {
     marginBottom: 16,
     color: COLORS.grayscale_800,

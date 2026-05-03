@@ -16,7 +16,7 @@ const notificationApi = {
   },
 
   // 내 알림 조회
-  getMyNotifications: (page = 0, size = 10) => {
+  getMyNotifications: (page = 0, size = 50) => {
     return api.get('/notifications/me', {
       params: { page, size, sort: 'createdAt,desc' },
     });
@@ -32,8 +32,16 @@ const notificationApi = {
     return api.get(`/notifications/${notificationId}`);
   },
 
+  getDetail: notificationId => {
+    return api.get(`/notifications/${notificationId}`);
+  },
+
   // 전체 알림 읽음 처리
   markAllAsRead: () => {
+    return api.patch('/notifications/read-all');
+  },
+
+  readAll: () => {
     return api.patch('/notifications/read-all');
   },
 };

@@ -56,7 +56,10 @@ const resetToGuesthouseReservationFlow = reservationId => {
       },
     },
     {name: 'UserReservationCheck'},
-    {name: 'GuesthousePaymentReceipt', params: {reservationId}},
+    {
+      name: 'GuesthousePaymentReceipt',
+      params: {reservationId, isFromDeeplink: true},
+    },
   ]);
 };
 
@@ -70,7 +73,48 @@ const resetToPartyReservationFlow = reservationId => {
       },
     },
     {name: 'UserMeetReservationCheck'},
-    {name: 'MeetPaymentReceipt', params: {reservationId}},
+    {
+      name: 'MeetPaymentReceipt',
+      params: {reservationId, isFromDeeplink: true},
+    },
+  ]);
+};
+
+const resetToEventThenDetail = (name, params) => {
+  reset([
+    {
+      name: 'MainTabs',
+      params: {
+        screen: '콘텐츠',
+        params: {screen: 'MeetMain'},
+      },
+    },
+    {
+      name,
+      params: {
+        ...params,
+        isFromDeeplink: true,
+      },
+    },
+  ]);
+};
+
+const resetToHomeThenDetail = (name, params) => {
+  reset([
+    {
+      name: 'MainTabs',
+      params: {
+        screen: '홈',
+        params: {screen: 'HomeMain'},
+      },
+    },
+    {
+      name,
+      params: {
+        ...params,
+        isFromDeeplink: true,
+      },
+    },
   ]);
 };
 
@@ -156,6 +200,15 @@ const DeeplinkHandler = () => {
       else if (parts[0] === 'exDeeplink' && parts[1]) {
         navigate('EXHome');
       }
+      // 스탭 공고 디테일 화면 (로그인 불필요)
+      else if (parts[0] === 'employ' && parts[1]) {
+        const employId = parts[1];
+
+        resetToHomeThenDetail('EmployDetail', {
+          id: employId,
+        });
+        console.log('스탭 공고 디테일 화면으로 이동');
+      }
       // 이벤트 디테일 화면 (로그인 불필요)
       else if (parts[0] === 'party' && parts[1]) {
         const partyId =
@@ -168,9 +221,8 @@ const DeeplinkHandler = () => {
           return;
         }
 
-        navigate('MeetDetail', {
-          partyId: partyId,
-          isFromDeeplink: true,
+        resetToEventThenDetail('MeetDetail', {
+          partyId,
         });
         console.log('이벤트 디테일 화면으로 이동');
       }

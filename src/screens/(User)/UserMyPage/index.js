@@ -6,7 +6,6 @@ import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
-import MeetReservationCheckIcon from '@assets/images/user-meet-reservation-check-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 import SettingIcon from '@assets/images/settings_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
@@ -18,14 +17,19 @@ import Avatar from '@components/Avatar';
 import styles from './UserMyPage.styles';
 import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
-import {COLORS} from '@constants/colors';
 import userMyApi from '@utils/api/userMyApi';
+import notificationApi from '@utils/api/notificationApi';
+import {isUserNotification} from '@utils/notifications';
+
+const extractNotificationItems = data =>
+  Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 
 const UserMyPage = () => {
   const navigation = useNavigation();
   const [reviewCount, setReviewCount] = useState(0);
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
+  const [unreadCount, setUnreadCount] = useState(0);
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
@@ -56,14 +60,18 @@ const UserMyPage = () => {
     useCallback(() => {
       let isActive = true;
 
-      const fetchPromoData = async () => {
+      const fetchMyPageData = async () => {
         try {
-          const [reviewsRes, couponsRes, pointRes] = await Promise.all([
-            userMyApi.getMyReviews(),
-            userMyApi.getMyCoupons(),
-            userMyApi.getPointBalance(),
-          ]);
-          if (!isActive) return;
+          const [reviewsRes, couponsRes, pointRes, notificationsRes] =
+            await Promise.all([
+              userMyApi.getMyReviews(),
+              userMyApi.getMyCoupons(),
+              userMyApi.getPointBalance(),
+              notificationApi.getMyNotifications(0, 100),
+            ]);
+          if (!isActive) {
+            return;
+          }
 
           setReviewCount(
             Array.isArray(reviewsRes.data) ? reviewsRes.data.length : 0,
@@ -72,16 +80,24 @@ const UserMyPage = () => {
             Array.isArray(couponsRes.data) ? couponsRes.data.length : 0,
           );
           setPointBalance(pointRes?.data?.currentPoints ?? 0);
+          setUnreadCount(
+            extractNotificationItems(notificationsRes.data).filter(
+              item => isUserNotification(item) && !item?.isRead,
+            ).length,
+          );
         } catch (error) {
-          if (!isActive) return;
-          console.warn('리뷰/쿠폰/포인트 조회 실패:', error);
+          if (!isActive) {
+            return;
+          }
+          console.warn('마이페이지 데이터 조회 실패:', error);
           setReviewCount(0);
           setCouponCount(0);
           setPointBalance(0);
+          setUnreadCount(0);
         }
       };
 
-      fetchPromoData();
+      fetchMyPageData();
 
       return () => {
         isActive = false;
@@ -97,9 +113,16 @@ const UserMyPage = () => {
         <View style={styles.topBarRightIcons}>
           <TouchableOpacity
             style={styles.topBarIconButton}
-            onPress={() => {}}
+            onPress={() => navigation.navigate('NotificationCenter')}
             activeOpacity={0.8}>
             <BellIcon width={20} height={20} />
+            {unreadCount > 0 ? (
+              <View style={styles.unreadBadge}>
+                <Text style={styles.unreadBadgeText}>
+                  {unreadCount > 99 ? '99+' : unreadCount}
+                </Text>
+              </View>
+            ) : null}
           </TouchableOpacity>
           <TouchableOpacity
             style={styles.topBarIconButton}
@@ -166,7 +189,7 @@ const UserMyPage = () => {
 
           {/* 유저 프로모션 섹션 */}
           <View style={styles.promoContainer}>
-            <TouchableOpacity 
+            <TouchableOpacity
               style={styles.promoSection}
               onPress={() => navigation.navigate('UserGuesthouseReview')}
             >
@@ -210,7 +233,7 @@ const UserMyPage = () => {
                 <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={GuesthouseReviewIcon}
-                  label="이벤트"
+                  label="콘텐츠"
                   onPress={() =>
                     navigation.navigate('UserMeetReservationCheck')
                   }
@@ -222,7 +245,7 @@ const UserMyPage = () => {
             <View style={styles.devide} />
 
             {/* 공고 섹션 */}
-            <View style={[styles.section, {marginBottom: 16}]}>
+            <View style={[styles.section, styles.staffSection]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
                 스탭
               </Text>

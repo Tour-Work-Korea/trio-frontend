@@ -95,6 +95,7 @@ const GuesthouseReservation = ({ route }) => {
   const [isSameDayNoticeVisible, setSameDayNoticeVisible] = useState(false);
   const [isRequestConfirmationNoticeVisible, setRequestConfirmationNoticeVisible] =
     useState(false);
+  const [reservationErrorMessage, setReservationErrorMessage] = useState('');
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
@@ -359,7 +360,9 @@ const GuesthouseReservation = ({ route }) => {
       });
 
     } catch (err) {
-      Alert.alert('예약 실패', err.response.data.message);
+      setReservationErrorMessage(
+        err?.response?.data?.message || '예약 처리 중 문제가 발생했습니다.',
+      );
     }
   };
 
@@ -727,6 +730,15 @@ const GuesthouseReservation = ({ route }) => {
             setConfirmVisible(true);
           }}
           onPress2={() => setRequestConfirmationNoticeVisible(false)}
+        />
+
+        <AlertModal
+          visible={!!reservationErrorMessage}
+          title="예약 실패"
+          message={reservationErrorMessage}
+          buttonText="확인"
+          onPress={() => setReservationErrorMessage('')}
+          onRequestClose={() => setReservationErrorMessage('')}
         />
 
         {/* 약관동의 모달 */}

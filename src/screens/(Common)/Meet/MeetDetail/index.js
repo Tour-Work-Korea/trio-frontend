@@ -7,11 +7,15 @@ import {
   ScrollView,
   Pressable,
   ActivityIndicator,
+  Dimensions,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
+import Carousel from 'react-native-reanimated-carousel';
+import MapView, {Marker} from 'react-native-maps';
+
 dayjs.locale('ko');
 
 import {FONTS} from '@constants/fonts';
@@ -28,6 +32,7 @@ import {
 } from '@utils/deeplinkGenerator';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
+import ImageModal from '@components/modals/ImageModal';
 
 import ChevronLeft from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_gray.svg';
@@ -62,6 +67,9 @@ const PARKING_TAG_LABEL = {
   PARTY_NO_PARKING: '주차 불가',
 };
 
+const {width: SCREEN_W} = Dimensions.get('window');
+const IMAGE_H = 280;
+
 const PARTY_STATUS_LABEL = {
   RECRUIT_BEFORE: '모집 예정',
   RECRUIT: '신청하기',
@@ -89,6 +97,8 @@ const MeetDetail = () => {
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [imageIndex, setImageIndex] = useState(0);
 
   // 모달
   const [infoModalVisible, setInfoModalVisible] = useState(false);
@@ -168,6 +178,9 @@ const MeetDetail = () => {
     snackTags,
     snackInfo,
     rules,
+    guesthouseAddress,
+    latitude,
+    longitude,
     meetingPlace,
     trafficInfo,
     parkingTag,
@@ -184,12 +197,38 @@ const MeetDetail = () => {
   } = detail ?? {};
 
   // 썸네일/갤러리
-  const thumbnailSource = useMemo(() => {
-    const th = partyImages?.find(i => i.isThumbnail);
-    if (th?.imageUrl) return {uri: th.imageUrl};
-    // 응답에 없다면 첫 이미지
-    if (partyImages?.[0]?.imageUrl) return {uri: partyImages[0].imageUrl};
+  const sortedImages = useMemo(() => {
+    return [...toArray(partyImages)]
+      .filter(img => !!img?.imageUrl)
+      .sort((a, b) =>
+        a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
+      );
   }, [partyImages]);
+  const hasImages = sortedImages.length > 0;
+  const thumbnailIndex = Math.max(
+    sortedImages.findIndex(i => i?.isThumbnail),
+    0,
+  );
+  const modalImages = useMemo(
+    () =>
+      sortedImages.map((img, index) => ({
+        id: img.id ?? `${img.imageUrl}-${index}`,
+        imageUrl: img.imageUrl,
+      })),
+    [sortedImages],
+  );
+  const thumbnailSource = useMemo(() => {
+    if (sortedImages[thumbnailIndex]?.imageUrl) {
+      return {uri: sortedImages[thumbnailIndex].imageUrl};
+    }
+    if (sortedImages[0]?.imageUrl) {
+      return {uri: sortedImages[0].imageUrl};
+    }
+  }, [sortedImages, thumbnailIndex]);
+
+  useEffect(() => {
+    setImageIndex(thumbnailIndex);
+  }, [thumbnailIndex]);
 
   const tagList = useMemo(() => {
     const tags = Array.isArray(partyTags) ? partyTags : `${partyTags ?? ''}`.split(/\s+/);
@@ -317,6 +356,53 @@ const MeetDetail = () => {
       .map(tag => PARKING_TAG_LABEL[tag])
       ?.filter(Boolean);
   }, [parkingTag]);
+  const mapCoordinate = useMemo(() => {
+    const lat = Number(latitude);
+    const lng = Number(longitude);
+
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+
+    return {
+      latitude: lat,
+      longitude: lng,
+    };
+  }, [latitude, longitude]);
+  const mapRegion = useMemo(() => {
+    if (!mapCoordinate) {
+      return null;
+    }
+
+    return {
+      ...mapCoordinate,
+      latitudeDelta: 0.006,
+      longitudeDelta: 0.006,
+    };
+  }, [mapCoordinate]);
+  const renderLocationMap = () => {
+    if (!mapCoordinate || !mapRegion) {
+      return null;
+    }
+
+    return (
+      <View style={styles.locationMapContainer}>
+        <MapView
+          style={styles.locationMap}
+          initialRegion={mapRegion}
+          scrollEnabled={false}
+          zoomEnabled={false}
+          rotateEnabled={false}
+          pitchEnabled={false}>
+          <Marker
+            coordinate={mapCoordinate}
+            title={meetingPlace || displayGuesthouseName}
+            description={guesthouseAddress}
+          />
+        </MapView>
+      </View>
+    );
+  };
 
   // 빈 값일때
   const renderEmptyInfo = () => (
@@ -454,7 +540,10 @@ const MeetDetail = () => {
     return (
       <View style={styles.tabContent}>
         {isEmptyWayInfo ? (
-          renderEmptyInfo()
+          <>
+            {renderLocationMap()}
+            {renderEmptyInfo()}
+          </>
         ) : (
           <>
             <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
@@ -463,6 +552,7 @@ const MeetDetail = () => {
                 만나는 장소 : {meetingPlace}
               </Text>
             )}
+            {renderLocationMap()}
             {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
@@ -542,7 +632,32 @@ const MeetDetail = () => {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       {/* 헤더 */}
       <View style={styles.header}>
-        <Image source={thumbnailSource} style={styles.thumbnail} resizeMode="cover" />
+        {hasImages ? (
+          <Carousel
+            width={SCREEN_W}
+            height={IMAGE_H}
+            data={sortedImages}
+            defaultIndex={thumbnailIndex}
+            loop={false}
+            autoPlay={false}
+            pagingEnabled
+            onSnapToItem={idx => setImageIndex(idx)}
+            renderItem={({item}) => (
+              <TouchableOpacity
+                style={styles.thumbnail}
+                activeOpacity={0.9}
+                onPress={() => setImageModalVisible(true)}>
+                <Image
+                  source={{uri: item.imageUrl}}
+                  style={styles.thumbnail}
+                  resizeMode="cover"
+                />
+              </TouchableOpacity>
+            )}
+          />
+        ) : (
+          <View style={styles.thumbnail} />
+        )}
         <View style={styles.headerContainer}>
           <TouchableOpacity
             style={styles.backButton}
@@ -684,6 +799,15 @@ const MeetDetail = () => {
         content={infoModalContent}
         sections={infoModalSections}
       />
+      {hasImages && (
+        <ImageModal
+          visible={imageModalVisible}
+          title={partyTitle}
+          images={modalImages}
+          selectedImageIndex={imageIndex}
+          onClose={() => setImageModalVisible(false)}
+        />
+      )}
     </View>
   );
 };

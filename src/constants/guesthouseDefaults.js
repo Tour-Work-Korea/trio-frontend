@@ -13,5 +13,6 @@ export const getDefaultGuesthouseListParams = () => {
     regionBounds: GUESTHOUSE_MAP_BOUNDS.ALL,
     searchText: '',
     initialMapView: true,
+    mapResetKey: Date.now(),
   };
 };
