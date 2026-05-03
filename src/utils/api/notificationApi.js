@@ -6,12 +6,13 @@ const notificationApi = {
     return api.post('/notifications/token', {
       deviceId,
       fcmToken,
+      appType: 'USER',
     });
   },
 
   // 기기 토큰 연결 끊기 (로그아웃 시)
-  logoutToken: () => {
-    return api.post('/notifications/token/logout');
+  logoutToken: (deviceId) => {
+    return api.post('/notifications/token/logout', { deviceId, appType: 'USER' });
   },
 
   // 내 알림 조회
