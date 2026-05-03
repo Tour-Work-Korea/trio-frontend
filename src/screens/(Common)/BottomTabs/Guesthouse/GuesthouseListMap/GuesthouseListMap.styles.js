@@ -206,6 +206,9 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 3,
   },
+  currentLocationButtonDisabled: {
+    opacity: 0.6,
+  },
   listToggleButton: {
     flexDirection: 'row',
     alignItems: 'center',

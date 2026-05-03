@@ -17,7 +17,7 @@ import AlertModal from '@components/modals/AlertModal';
 export default function MeetPaymentReceipt() {
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId} = route.params ?? {};
+  const {reservationId, isFromDeeplink = false} = route.params ?? {};
   const [reservationDetail, setReservationDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelUnavailableOpen, setCancelUnavailableOpen] = useState(false);
@@ -31,10 +31,25 @@ export default function MeetPaymentReceipt() {
       setReservationDetail(data);
     } catch (e) {
       console.log('파티 예약 상세 불러오기 실패', e);
+      if (isFromDeeplink) {
+        navigation.reset({
+          index: 1,
+          routes: [
+            {
+              name: 'MainTabs',
+              params: {
+                screen: '마이',
+                params: {screen: 'UserMyPage'},
+              },
+            },
+            {name: 'UserMeetReservationCheck'},
+          ],
+        });
+      }
     } finally {
       setLoading(false);
     }
-  }, [reservationId]);
+  }, [isFromDeeplink, navigation, reservationId]);
 
   useEffect(() => {
     fetchReservationDetail();
