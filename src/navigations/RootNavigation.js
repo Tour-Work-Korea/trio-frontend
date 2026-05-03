@@ -61,6 +61,7 @@ import {
   MeetCancelConfirm,
   MeetCancelSuccess,
   NotificationCenter,
+  NotificationSettings,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -135,6 +136,10 @@ const RootNavigation = () => {
         <Stack.Screen
           name="NotificationCenter"
           component={NotificationCenter}
+        />
+        <Stack.Screen
+          name="NotificationSettings"
+          component={NotificationSettings}
         />
         <Stack.Screen name="UserEditInfo" component={UserEditInfo} />
         <Stack.Screen

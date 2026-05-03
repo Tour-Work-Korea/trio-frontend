@@ -10,8 +10,14 @@ import Logo from '@assets/images/logo_orange.svg';
 // - title이 있으면 중앙 제목 헤더, 없으면 중앙 로고 헤더를 렌더링
 // - showBackButton이 true면 왼쪽 뒤로가기 버튼을 표시
 // - onPress를 넘기면 뒤로가기 대신 해당 콜백을 실행
+// - rightComponent를 넘기면 제목 헤더 오른쪽에 렌더링
 
-const Header = ({title, onPress = null, showBackButton = true}) => {
+const Header = ({
+  title,
+  onPress = null,
+  showBackButton = true,
+  rightComponent = null,
+}) => {
   const navigation = useNavigation();
   const handleOnPress = () => {
     if (onPress) {
@@ -33,6 +39,9 @@ const Header = ({title, onPress = null, showBackButton = true}) => {
             ) : null}
           </View>
           <Text style={[styles.subTitle]}>{title}</Text>
+          <View style={[styles.sideSlot, styles.rightContainer]}>
+            {rightComponent}
+          </View>
         </View>
       ) : (
         <View style={styles.logoWrapper}>
@@ -60,6 +69,9 @@ const styles = StyleSheet.create({
   },
   leftContainer: {
     left: 20,
+  },
+  rightContainer: {
+    right: 20,
   },
   iconButton: {
     width: 28,

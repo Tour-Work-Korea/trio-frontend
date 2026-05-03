@@ -30,6 +30,7 @@ import useUserStore from '@stores/userStore';
 import authApi from '@utils/api/authApi';
 import { checkForceUpdate, openAppStoreForUpdate } from '@utils/appUpdate';
 import { API_BASE_URL } from '@env';
+import mobileAds from 'react-native-google-mobile-ads';
 
 
 const toastConfig = {
@@ -72,6 +73,7 @@ function AppContent() {
   const accessToken = useUserStore(state => state.accessToken);
 
   useEffect(() => {
+    mobileAds().initialize();
     console.log('🚨 API_BASE_URL (runtime):', API_BASE_URL);
 
     const syncForceUpdateState = async () => {

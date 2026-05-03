@@ -1,6 +1,11 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
@@ -23,6 +28,13 @@ import {isUserNotification} from '@utils/notifications';
 
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
+
+const myPageBannerAdUnitId = __DEV__
+  ? TestIds.BANNER
+  : Platform.select({
+      ios: 'ca-app-pub-6098454400067335/4619471702',
+      android: 'ca-app-pub-6098454400067335/5920208998',
+    });
 
 const UserMyPage = () => {
   const navigation = useNavigation();
@@ -265,6 +277,12 @@ const UserMyPage = () => {
           </View>
         </View>
       </ScrollView>
+      <View style={styles.adBannerContainer}>
+        <BannerAd
+          unitId={myPageBannerAdUnitId}
+          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+        />
+      </View>
     </View>
   );
 };

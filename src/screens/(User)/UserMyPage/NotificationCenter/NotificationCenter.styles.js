@@ -7,6 +7,12 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
   },
+  headerIconButton: {
+    width: 28,
+    height: 28,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   chipRow: {
     flexDirection: 'row',
     alignItems: 'center',

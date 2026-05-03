@@ -3,49 +3,27 @@ import {Pressable, ScrollView, Text, View} from 'react-native';
 
 import {FONTS} from '@constants/fonts';
 
-import GuesthouseIcon from '@assets/images/guesthouse_blue.svg';
-import MeetIcon from '@assets/images/meet_orange.svg';
-import NoticeIcon from '@assets/images/notice_bubble_orange.svg';
-import CancelIcon from '@assets/images/cancel_reservation.svg';
-import PendingIcon from '@assets/images/clock_gray.svg';
+import GuesthouseCancelledIcon from '@assets/images/noti_guesthouse_cancelled.svg';
+import GuesthouseConfirmedIcon from '@assets/images/noti_guesthouse_confirmed.svg';
+import PartyCancelledIcon from '@assets/images/noti_party_cancelled.svg';
+import PartyConfirmedIcon from '@assets/images/noti_party_confirmed.svg';
 
 import styles from './NotificationCenter.styles';
 
 const renderLeadingIcon = item => {
   const isCancelled = item.status === 'cancelled';
-  const isPending = item.status === 'pending';
-
-  if (item.type === 'notice') {
-    return (
-      <View style={styles.iconWrap}>
-        <NoticeIcon width={24} height={24} />
-      </View>
-    );
-  }
-
-  if (isCancelled) {
-    return (
-      <View style={styles.iconWrap}>
-        <CancelIcon width={24} height={24} />
-      </View>
-    );
-  }
-
-  if (isPending) {
-    return (
-      <View style={styles.iconWrap}>
-        <PendingIcon width={24} height={24} />
-      </View>
-    );
-  }
+  const isParty = item.type === 'partyReservation';
+  const Icon = isParty
+    ? isCancelled
+      ? PartyCancelledIcon
+      : PartyConfirmedIcon
+    : isCancelled
+    ? GuesthouseCancelledIcon
+    : GuesthouseConfirmedIcon;
 
   return (
     <View style={styles.iconWrap}>
-      {item.type === 'partyReservation' ? (
-        <MeetIcon width={24} height={24} />
-      ) : (
-        <GuesthouseIcon width={24} height={24} />
-      )}
+      <Icon width={24} height={24} />
     </View>
   );
 };

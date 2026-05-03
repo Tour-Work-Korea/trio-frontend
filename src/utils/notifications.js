@@ -47,6 +47,10 @@ export const openNotificationTarget = async notification => {
   const reservationId = notification?.reservationId;
   const guesthouseId = notification?.guesthouseId;
   const partyId = notification?.partyId;
+  const isGuesthouseCancellation =
+    type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
+    type === 'GUESTHOUSE_RESERVATION_USER_REFUND';
+  const isPartyCancellation = type === 'PARTY_RESERVATION_USER_CANCELLED';
 
   if (
     type.startsWith('GUESTHOUSE_RESERVATION_USER_') ||
@@ -54,6 +58,11 @@ export const openNotificationTarget = async notification => {
     type === 'GUESTHOUSE_TODAY_CHECKIN_USER'
   ) {
     if (reservationId) {
+      if (isGuesthouseCancellation) {
+        navigate('GuesthouseCancelledReceipt', {reservationId});
+        return;
+      }
+
       navigate('GuesthousePaymentReceipt', {reservationId});
       return;
     }
@@ -68,6 +77,11 @@ export const openNotificationTarget = async notification => {
     type === 'PARTY_CHECKIN_INFO'
   ) {
     if (reservationId) {
+      if (isPartyCancellation) {
+        navigate('MeetCancelledReceipt', {reservationId});
+        return;
+      }
+
       navigate('MeetPaymentReceipt', {reservationId});
       return;
     }

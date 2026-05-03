@@ -1,12 +1,13 @@
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, Text, TouchableOpacity, View} from 'react-native';
-import {useFocusEffect} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
 import notificationApi from '@utils/api/notificationApi';
 import {isUserNotification, openNotificationTarget} from '@utils/notifications';
+import SettingIcon from '@assets/images/settings_gray.svg';
 
 import NotificationList from './NotificationList';
 import styles from './NotificationCenter.styles';
@@ -119,6 +120,7 @@ const mapNotificationItem = item => ({
 });
 
 const NotificationCenter = () => {
+  const navigation = useNavigation();
   const [selectedFilter, setSelectedFilter] = useState(FILTER_CHIPS[0].key);
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -201,7 +203,17 @@ const NotificationCenter = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="알림함" />
+      <Header
+        title="알림함"
+        rightComponent={
+          <TouchableOpacity
+            style={styles.headerIconButton}
+            activeOpacity={0.8}
+            onPress={() => navigation.navigate('NotificationSettings')}>
+            <SettingIcon width={22} height={22} />
+          </TouchableOpacity>
+        }
+      />
 
       <View style={styles.chipRow}>
         {FILTER_CHIPS.map(chip => {

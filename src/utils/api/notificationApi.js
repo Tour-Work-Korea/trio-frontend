@@ -27,6 +27,19 @@ const notificationApi = {
     return api.get('/notifications/unread-count');
   },
 
+  // 알림 설정 조회
+  getSettings: () => {
+    return api.get('/notifications/settings');
+  },
+
+  // 알림 설정 변경
+  updateSettings: ({isPushEnabled, isEventEnabled}) => {
+    return api.put('/notifications/settings', {
+      isPushEnabled,
+      isEventEnabled,
+    });
+  },
+
   // 알림 단건 조회
   getNotification: (notificationId) => {
     return api.get(`/notifications/${notificationId}`);

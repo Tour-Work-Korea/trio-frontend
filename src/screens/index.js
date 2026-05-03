@@ -80,6 +80,7 @@ export {default as MeetCancelSuccess} from './(User)/Meet/MeetCancelConfirm/Meet
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
 export {default as NotificationCenter} from './(User)/UserMyPage/NotificationCenter';
+export {default as NotificationSettings} from './(User)/UserMyPage/NotificationSettings';
 // 프로필
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserEditInfo} from './(User)/UserMyPage/UserEditInfo';
