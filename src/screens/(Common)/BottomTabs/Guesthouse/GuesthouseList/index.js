@@ -69,6 +69,7 @@ const GuesthouseList = () => {
     regionIds = EMPTY_REGION_IDS,
     regionBounds: initialRegionBounds = null,
     initialMapView = false,
+    mapResetKey = 0,
   } = route.params || {};
 
   const regionBounds = useMemo(
@@ -473,6 +474,7 @@ const GuesthouseList = () => {
       {isMapView ? (
         <View style={styles.guesthouseMapContainer}>
           <GuesthouseListMap
+            key={`guesthouse-list-map-${mapResetKey}`}
             embedded
             guesthouses={filteredGuesthouses}
             checkIn={checkIn}
@@ -480,6 +482,7 @@ const GuesthouseList = () => {
             guestCount={adultCount + childCount}
             regionIds={regionIds}
             regionBounds={regionBounds}
+            resetKey={mapResetKey}
             onPressListToggle={() => setIsMapView(false)}
           />
         </View>

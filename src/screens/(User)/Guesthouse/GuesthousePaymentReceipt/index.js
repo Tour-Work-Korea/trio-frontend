@@ -275,6 +275,7 @@ const GuesthousePaymentReceipt = () => {
   const checkOut = route?.params?.checkOut ?? null;
   const checkInTime = route?.params?.checkInTime ?? null;
   const checkOutTime = route?.params?.checkOutTime ?? null;
+  const isFromDeeplink = route?.params?.isFromDeeplink ?? false;
   const isFromPaymentFlow = route?.params?.isFromPaymentFlow ?? Boolean(receiptContext);
 
   const [dto, setDto] = useState(null);
@@ -369,13 +370,28 @@ const GuesthousePaymentReceipt = () => {
         );
         setDto(res?.data);
       } catch (e) {
+        if (isFromDeeplink) {
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: 'MainTabs',
+                params: {
+                  screen: '마이',
+                  params: {screen: 'UserMyPage'},
+                },
+              },
+              {name: 'UserReservationCheck'},
+            ],
+          });
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetail();
-  }, [reservationId]);
+  }, [isFromDeeplink, navigation, reservationId]);
 
   // 복사
   const handleCopy = (text) => {

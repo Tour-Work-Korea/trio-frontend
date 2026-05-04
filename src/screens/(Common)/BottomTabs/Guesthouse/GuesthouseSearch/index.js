@@ -161,6 +161,7 @@ const GuesthouseSearch = () => {
       childCount,
       regionBounds: bounds,
       searchText: '',
+      mapResetKey: Date.now(),
     });
   };
 
@@ -291,6 +292,7 @@ const GuesthouseSearch = () => {
                 childCount,
                 regionBounds: getGuesthouseMapBoundsByRegionIds([1, 2, 3, 4]),
                 searchText: '',
+                mapResetKey: Date.now(),
               })
             }>
             <View style={styles.resultIconBox}>

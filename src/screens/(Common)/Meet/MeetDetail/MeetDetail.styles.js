@@ -216,6 +216,15 @@ const styles = StyleSheet.create({
   detailInfoBtnText: {
     color: COLORS.grayscale_400,
   },
+  locationMapContainer: {
+    height: 180,
+    borderRadius: 8,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_100,
+  },
+  locationMap: {
+    flex: 1,
+  },
 
   // 이벤트 소개
   eventItem: {

@@ -36,6 +36,13 @@ import ChevronLeft from '@assets/images/chevron_left_black.svg';
 import ListIcon from '@assets/images/bullet_list_black.svg';
 import styles from './GuesthouseListMap.styles';
 
+if (Platform.OS === 'android') {
+  Geolocation.setRNConfiguration({
+    locationProvider: 'playServices',
+    skipPermissionRequests: true,
+  });
+}
+
 const DEFAULT_REGION = {
   latitude: 33.4996,
   longitude: 126.5312,
@@ -44,6 +51,10 @@ const DEFAULT_REGION = {
 };
 const CLUSTER_DISTANCE_PX = 28;
 const MARKER_BUBBLE_WIDTH = 232;
+const MARKER_ANCHOR = Platform.select({
+  android: {x: 0.5, y: 0.5},
+  default: {x: 0.5, y: 1},
+});
 const CURRENT_LOCATION_ANIMATION_MS = 1;
 const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 const DETAIL_IMAGE_SCROLL_STEP = 116;
@@ -353,25 +364,38 @@ const requestLocationPermission = async () => {
     return true;
   }
 
-  const hasPermission = await PermissionsAndroid.check(
+  const hasFinePermission = await PermissionsAndroid.check(
     PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
   );
+  const hasCoarsePermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  );
 
-  if (hasPermission) {
-    return true;
+  if (hasFinePermission || hasCoarsePermission) {
+    return {
+      granted: true,
+      enableHighAccuracy: hasFinePermission,
+    };
   }
 
-  const granted = await PermissionsAndroid.request(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-    {
-      title: '위치 권한이 필요해요',
-      message: '현재 위치로 지도를 이동하기 위해 위치 접근 권한이 필요합니다.',
-      buttonPositive: '허용',
-      buttonNegative: '거부',
-    },
+  const granted = await PermissionsAndroid.requestMultiple(
+    [
+      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+    ],
   );
 
-  return granted === PermissionsAndroid.RESULTS.GRANTED;
+  const fineGranted =
+    granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
+    === PermissionsAndroid.RESULTS.GRANTED;
+  const coarseGranted =
+    granted[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION]
+    === PermissionsAndroid.RESULTS.GRANTED;
+
+  return {
+    granted: fineGranted || coarseGranted,
+    enableHighAccuracy: fineGranted,
+  };
 };
 
 const showLocationPermissionAlert = () => {
@@ -385,6 +409,31 @@ const showLocationPermissionAlert = () => {
   );
 };
 
+const getCurrentPositionAsync = options =>
+  new Promise((resolve, reject) => {
+    Geolocation.getCurrentPosition(resolve, reject, options);
+  });
+
+const getAndroidCurrentPosition = async () => {
+  try {
+    return await getCurrentPositionAsync({
+      enableHighAccuracy: false,
+      timeout: 3000,
+      maximumAge: 5 * 60 * 1000,
+    });
+  } catch (error) {
+    if (error?.code !== 3) {
+      throw error;
+    }
+
+    return getCurrentPositionAsync({
+      enableHighAccuracy: false,
+      timeout: 60000,
+      maximumAge: 0,
+    });
+  }
+};
+
 const GuesthouseListMap = ({
   route,
   guesthouses,
@@ -394,6 +443,7 @@ const GuesthouseListMap = ({
   guestCount: guestCountProp,
   regionIds: regionIdsProp,
   regionBounds: regionBoundsProp,
+  resetKey,
   onPressListToggle,
 }) => {
   const navigation = useNavigation();
@@ -424,6 +474,7 @@ const GuesthouseListMap = ({
 
   const mapRef = useRef(null);
   const imageScrollRef = useRef(null);
+  const currentLocationRequestRef = useRef(false);
   const initialRegion = useMemo(
     () => presetRegion ?? getRegionFromGuesthouses(sourceGuesthouses),
     [presetRegion, sourceGuesthouses],
@@ -441,6 +492,7 @@ const GuesthouseListMap = ({
   const [currentRegion, setCurrentRegion] = useState(initialRegion);
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [isCurrentLocationLoading, setIsCurrentLocationLoading] = useState(false);
 
   const clusters = useMemo(
     () => groupGuesthouses(mapGuesthouses, currentRegion, mapSize),
@@ -519,6 +571,14 @@ const GuesthouseListMap = ({
   }, [initialRegion]);
 
   useEffect(() => {
+    if (!mapReady || !initialRegion) {
+      return;
+    }
+
+    mapRef.current?.animateToRegion(initialRegion, 1);
+  }, [initialRegion, mapReady]);
+
+  useEffect(() => {
     if (!selectedClusterKey) {
       return;
     }
@@ -561,6 +621,24 @@ const GuesthouseListMap = ({
     initialPresetFetchDoneRef.current = false;
     setHasFetchedMapGuesthouses(false);
   }, [presetBounds]);
+
+  useEffect(() => {
+    if (!resetKey) {
+      return;
+    }
+
+    initialPresetFetchDoneRef.current = false;
+    setHasFetchedMapGuesthouses(false);
+    setPendingBounds(null);
+    setShowResearchButton(false);
+    setSelectedClusterKey(null);
+    setSelectedGuesthouseId(null);
+    setCurrentRegion(initialRegion);
+
+    if (mapReady && initialRegion) {
+      mapRef.current?.animateToRegion(initialRegion, 1);
+    }
+  }, [initialRegion, mapReady, resetKey]);
 
   useEffect(() => {
     setSelectedImageIndex(0);
@@ -664,6 +742,7 @@ const GuesthouseListMap = ({
     checkOut,
     guestCount,
     presetBounds,
+    resetKey,
     fetchUsingCurrentBounds,
   ]);
 
@@ -702,56 +781,61 @@ const GuesthouseListMap = ({
   }, []);
 
   const moveToCurrentLocation = useCallback(async () => {
-    const granted = await requestLocationPermission();
-
-    if (!granted) {
-      showLocationPermissionAlert();
+    if (currentLocationRequestRef.current) {
       return;
     }
 
-    Geolocation.getCurrentPosition(
-      position => {
-        const nextRegion = {
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-          latitudeDelta: 0.02,
-          longitudeDelta: 0.02,
-        };
+    currentLocationRequestRef.current = true;
+    setIsCurrentLocationLoading(true);
 
-        setCurrentRegion(nextRegion);
-        handleClearSelection();
+    try {
+      const permission = await requestLocationPermission();
+      const granted =
+        typeof permission === 'boolean' ? permission : permission.granted;
+      const enableHighAccuracy =
+        Platform.OS === 'ios'
+          && (typeof permission === 'boolean'
+            ? permission
+            : permission.enableHighAccuracy);
 
-        mapRef.current?.animateCamera?.(
-          {
-            center: {
-              latitude: position.coords.latitude,
-              longitude: position.coords.longitude,
-            },
-            zoom: 14,
-          },
-          {duration: CURRENT_LOCATION_ANIMATION_MS},
-        );
+      if (!granted) {
+        showLocationPermissionAlert();
+        return;
+      }
 
-        mapRef.current?.animateToRegion(
-          nextRegion,
-          CURRENT_LOCATION_ANIMATION_MS,
-        );
-      },
-      error => {
-        console.warn('현재 위치 조회 실패', error);
-        if (Platform.OS === 'ios' && error?.code === 1) {
-          showLocationPermissionAlert();
-          return;
-        }
+      const position =
+        Platform.OS === 'android'
+          ? await getAndroidCurrentPosition()
+          : await getCurrentPositionAsync({
+            enableHighAccuracy,
+            timeout: 10000,
+            maximumAge: 30000,
+          });
+      const nextRegion = {
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+        latitudeDelta: 0.02,
+        longitudeDelta: 0.02,
+      };
 
-        Alert.alert('현재 위치를 가져오지 못했어요');
-      },
-      {
-        enableHighAccuracy: true,
-        timeout: 10000,
-        maximumAge: 10000,
-      },
-    );
+      setCurrentRegion(nextRegion);
+      handleClearSelection();
+      mapRef.current?.animateToRegion(
+        nextRegion,
+        CURRENT_LOCATION_ANIMATION_MS,
+      );
+    } catch (error) {
+      console.warn('현재 위치 조회 실패', error);
+      if (Platform.OS === 'ios' && error?.code === 1) {
+        showLocationPermissionAlert();
+        return;
+      }
+
+      Alert.alert('현재 위치를 가져오지 못했어요');
+    } finally {
+      currentLocationRequestRef.current = false;
+      setIsCurrentLocationLoading(false);
+    }
   }, [handleClearSelection]);
 
   const handlePressMarker = useCallback(cluster => {
@@ -960,8 +1044,9 @@ const GuesthouseListMap = ({
           onMapReady={() => setMapReady(true)}
           onPanDrag={handleClearSelection}
           onRegionChangeComplete={handleRegionChangeComplete}
-          showsUserLocation
-          showsMyLocationButton={false}>
+          showsUserLocation={Platform.OS !== 'android'}
+          showsMyLocationButton={false}
+          toolbarEnabled={false}>
           {orderedClusters.map(cluster => {
             const isSelected = cluster.key === selectedCluster?.key;
 
@@ -969,7 +1054,7 @@ const GuesthouseListMap = ({
               <Marker
                 key={cluster.key}
                 coordinate={cluster.coordinate}
-                anchor={{x: 0.5, y: 1}}
+                anchor={MARKER_ANCHOR}
                 zIndex={isSelected ? 999 : 1}
                 onPress={
                   Platform.OS === 'android'
@@ -1076,7 +1161,12 @@ const GuesthouseListMap = ({
         {!selectedItem && (
           <View style={styles.bottomControlRow}>
             <TouchableOpacity
-              style={styles.currentLocationButton}
+              disabled={isCurrentLocationLoading}
+              style={[
+                styles.currentLocationButton,
+                isCurrentLocationLoading
+                  && styles.currentLocationButtonDisabled,
+              ]}
               onPress={moveToCurrentLocation}>
               <TargetIcon width={20} height={20} />
             </TouchableOpacity>
@@ -1109,7 +1199,12 @@ const GuesthouseListMap = ({
           <View style={styles.cardArea}>
             <View style={styles.cardTopControlRow}>
               <TouchableOpacity
-                style={styles.currentLocationButton}
+                disabled={isCurrentLocationLoading}
+                style={[
+                  styles.currentLocationButton,
+                  isCurrentLocationLoading
+                    && styles.currentLocationButtonDisabled,
+                ]}
                 onPress={moveToCurrentLocation}>
                 <TargetIcon width={20} height={20} />
               </TouchableOpacity>

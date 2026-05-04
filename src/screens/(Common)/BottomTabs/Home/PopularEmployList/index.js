@@ -18,7 +18,6 @@ import {COLORS} from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
 
 import HeaderImg from '@assets/images/employ_popular_header.svg';
-import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
@@ -191,7 +190,6 @@ const PopularEmployList = () => {
           </Text>
         </View>
         <View style={styles.headerSubtitle}>
-          <Workaways />
           <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
             가장 인기 있는 공고들만 모아봤어요
           </Text>
@@ -199,7 +197,7 @@ const PopularEmployList = () => {
       </View>
 
       <View style={styles.bodyContainer}>
-        <Text style={[FONTS.fs_16_semibold, styles.title]}>게하 스텝 후기</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.title]}>게하 스탭 후기</Text>
         <FlatList
           ref={flatListRef}
           data={reviews?.slice(0, 3)}

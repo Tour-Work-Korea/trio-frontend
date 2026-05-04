@@ -12,8 +12,8 @@ import Loading from '@components/Loading';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 const TABS = [
-  {key: 'upcoming', label: '다가오는 이벤트'},
-  {key: 'past', label: '지난 이벤트'},
+  {key: 'upcoming', label: '다가오는 콘텐츠'},
+  {key: 'past', label: '지난 콘텐츠'},
 ];
 
 const UserMeetReservationCheck = () => {
@@ -93,7 +93,7 @@ const UserMeetReservationCheck = () => {
   return (
     <View style={styles.container}>
       <Header
-        title="이벤트 예약내역"
+        title="콘텐츠 예약내역"
         onPress={fromPaymentSuccess ? handleBackPress : null}
       />
 

@@ -90,7 +90,7 @@ export default function UserPastReservations({data}) {
         style={styles.cancelledBtn}
         onPress={() => navigation.navigate('UserMeetReservationCancelled')}
       >
-        <Text style={[FONTS.fs_12_medium, styles.cancelledBtnText]}>취소된 이벤트 보기</Text>
+        <Text style={[FONTS.fs_12_medium, styles.cancelledBtnText]}>취소된 콘텐츠 보기</Text>
         <ChevronRight width={12} height={12} />
       </TouchableOpacity>
       <FlatList

@@ -21,7 +21,6 @@ import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
-import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
@@ -303,7 +302,6 @@ const PopularGuesthouseList = () => {
             </View>
 
             <View style={styles.headerSubtitle}>
-              <Workaways />
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
                 가장 인기 있는 게스트하우스들만 모아봤어요
               </Text>
