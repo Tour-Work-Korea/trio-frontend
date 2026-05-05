@@ -1,7 +1,6 @@
+import {useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
-import {useNavigation} from '@react-navigation/native';
-
-import ButtonScarlet from '@components/ButtonScarlet';
+import {CommonActions, useNavigation} from '@react-navigation/native';
 
 import LogoBlue from '@assets/images/wa_blue_apply.svg';
 import {COLORS} from '@constants/colors';
@@ -9,6 +8,20 @@ import {FONTS} from '@constants/fonts';
 
 const ApplySuccess = () => {
   const navigation = useNavigation();
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+        }),
+      );
+    }, 2000);
+
+    return () => clearTimeout(timer);
+  }, [navigation]);
+
   return (
     <View style={styles.signin}>
       <View style={styles.view}>
@@ -19,10 +32,6 @@ const ApplySuccess = () => {
             <Text style={styles.titleText}>다른 게하들도 둘러볼까요?</Text>
           </View>
         </View>
-        <ButtonScarlet
-          title="더 둘러볼래요"
-          onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
-        />
       </View>
     </View>
   );

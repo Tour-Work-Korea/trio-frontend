@@ -8,9 +8,6 @@ require Pod::Executable.execute_command('node', ['-p',
     {paths: [process.argv[1]]},
   )', __dir__]).strip
 
-# Firebase static framework 설정 (빌드 오류 방지용)
-$RNFirebaseAsStaticFramework = true
-
 platform :ios, '15.1'
 
 
@@ -26,6 +23,16 @@ end
 target 'trioFrontendApp' do
   config = use_native_modules!
 
+  pod 'GoogleUtilities', :modular_headers => true
+  pod 'FirebaseCoreInternal', :modular_headers => true
+  pod 'FirebaseCoreExtension', :modular_headers => true
+  pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseABTesting', :modular_headers => true
+  pod 'FirebaseRemoteConfigInterop', :modular_headers => true
+  pod 'GoogleDataTransport', :modular_headers => true
+  pod 'nanopb', :modular_headers => true
+  pod 'PromisesObjC', :modular_headers => true
+
   use_react_native!(
     :path => config[:reactNativePath],
     # An absolute path to your application root.
@@ -36,6 +43,9 @@ target 'trioFrontendApp' do
   pod 'FirebaseCore', :modular_headers => true
   pod 'FirebaseCoreExtension', :modular_headers => true
   pod 'FirebaseInstallations', :modular_headers => true
+  pod 'FirebaseABTesting', :modular_headers => true
+  pod 'FirebaseRemoteConfig', :modular_headers => true
+  pod 'FirebaseSharedSwift', :modular_headers => true
   pod 'GoogleDataTransport', :modular_headers => true
   pod 'GoogleUtilities', :modular_headers => true
   pod 'nanopb', :modular_headers => true
@@ -48,6 +58,17 @@ target 'trioFrontendApp' do
       :mac_catalyst_enabled => false,
       # :ccache_enabled => true
     )
+
+    fmt_base_header = File.join(__dir__, 'Pods/fmt/include/fmt/base.h')
+    if File.exist?(fmt_base_header)
+      text = File.read(fmt_base_header)
+      text = text.gsub(
+        '#elif defined(__apple_build_version__) && __apple_build_version__ < 14000029L',
+        '#elif defined(__apple_build_version__)'
+      )
+      File.chmod(0o644, fmt_base_header)
+      File.write(fmt_base_header, text)
+    end
 
     # ───────────────────────────────────────────────────────────────────
     # ② Pods 프로젝트 내부 모든 타겟에 대해 코드 서명 비활성화

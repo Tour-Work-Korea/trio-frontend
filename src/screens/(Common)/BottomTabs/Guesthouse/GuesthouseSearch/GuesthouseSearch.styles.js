@@ -10,7 +10,6 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     lineHeight: 28,
     textAlign: 'center',
-    marginTop: 13,
   },
   searchBar: {
     flexDirection: 'row',
@@ -145,6 +144,10 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
+  },
+  resultSubText: {
+    color: COLORS.grayscale_500,
+    marginTop: 2,
   },
   resultIconBox: {
     padding: 4,

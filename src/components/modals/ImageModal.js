@@ -1,13 +1,15 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   Modal,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
+  Pressable,
   Image,
   ScrollView,
-  Dimensions,
+  Platform,
+  useWindowDimensions,
 } from 'react-native';
 import XBtn from '@assets/images/x_gray.svg';
 import {FONTS} from '@constants/fonts';
@@ -16,85 +18,117 @@ import {COLORS} from '@constants/colors';
 // 이미지 크게 보기 모달
 // ex) 공고 상세에서 이미지 모달
 
-const screenWidth = Dimensions.get('window').width;
-const imageSize = screenWidth * 0.8 - 40; // 80% 너비에서 패딩 20*2 제외
-
 const ImageModal = ({visible, title, images, onClose, selectedImageIndex}) => {
+  const {width: screenWidth} = useWindowDimensions();
+  const modalWidth = Math.min(screenWidth * 0.8, 360);
+  const imageSize = modalWidth - 40; // 모달 패딩 20*2 제외
+  const imageList = useMemo(
+    () => (Array.isArray(images) ? images : []),
+    [images],
+  );
   const [currentImage, setCurrentImage] = useState(() => {
-    const imageItem = images?.[selectedImageIndex];
+    const imageItem = imageList?.[selectedImageIndex];
     return {
       id: imageItem?.id ?? selectedImageIndex,
-      imageUrl: imageItem?.imageUrl ?? '',
+      imageUrl: imageItem?.imageUrl ?? imageItem ?? '',
     };
   });
 
   useEffect(() => {
-    if (visible && images[selectedImageIndex]) {
+    if (visible && imageList[selectedImageIndex]) {
+      const imageItem = imageList[selectedImageIndex];
       setCurrentImage({
-        id: images[selectedImageIndex]?.id ?? selectedImageIndex,
-        imageUrl:
-          images[selectedImageIndex]?.imageUrl ?? images[selectedImageIndex],
+        id: imageItem?.id ?? selectedImageIndex,
+        imageUrl: imageItem?.imageUrl ?? imageItem,
       });
     }
-  }, [visible, selectedImageIndex, images]);
-  return (
-    <Modal transparent={true} animationType="fade" visible={visible}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
-          <View style={styles.header}>
-            <Text
-              style={[FONTS.fs_16_semibold, styles.headerTitle]}
-              numberOfLines={1}
-              ellipsizeMode="tail">
-              {title}
-            </Text>
-            <TouchableOpacity
-              onPress={onClose}
-              style={styles.headerClose}
-              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
-              <XBtn width={24} height={24} />
-            </TouchableOpacity>
-          </View>
-          {/* 확대 이미지 */}
-          <Image
-            source={{uri: currentImage.imageUrl}}
-            style={[
-              styles.mainImageContainer,
-              {width: imageSize, height: imageSize}, // 가변 사이즈 적용
-            ]}
-          />
+  }, [visible, selectedImageIndex, imageList]);
 
-          {/* 이미지 리스트 */}
-          <ScrollView
-            horizontal
-            showsHorizontalScrollIndicator={false}
-            style={styles.imageScroll}>
-            {images?.map(item => (
-              <TouchableOpacity
-                key={item.id}
-                onPress={() =>
-                  setCurrentImage({
-                    id: item.id,
-                    imageUrl: item.imageUrl,
-                  })
-                }>
-                <Image
-                  source={{uri: item.imageUrl}}
-                  style={[
-                    styles.image,
-                    currentImage.id === item.id ? styles.selectedImage : null,
-                  ]}
-                />
-              </TouchableOpacity>
-            ))}
-          </ScrollView>
+  const content = (
+    <Pressable style={styles.overlay} onPress={onClose}>
+      <Pressable style={[styles.container, {width: modalWidth}]}>
+        <View style={styles.header}>
+          <Text
+            style={[FONTS.fs_16_semibold, styles.headerTitle]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {title}
+          </Text>
+          <TouchableOpacity
+            onPress={onClose}
+            style={styles.headerClose}
+            hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
+            <XBtn width={24} height={24} />
+          </TouchableOpacity>
         </View>
-      </View>
+        {/* 확대 이미지 */}
+        <Image
+          source={{uri: currentImage.imageUrl}}
+          style={[
+            styles.mainImageContainer,
+            {width: imageSize, height: imageSize}, // 가변 사이즈 적용
+          ]}
+          resizeMode="cover"
+        />
+
+        {/* 이미지 리스트 */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          style={styles.imageScroll}
+          contentContainerStyle={styles.imageScrollContent}>
+          {imageList.map((item, index) => (
+            <TouchableOpacity
+              key={item.id ?? `${item.imageUrl ?? item}-${index}`}
+              onPress={() =>
+                setCurrentImage({
+                  id: item.id ?? index,
+                  imageUrl: item.imageUrl ?? item,
+                })
+              }>
+              <Image
+                source={{uri: item.imageUrl ?? item}}
+                style={[
+                  styles.image,
+                  currentImage.id === (item.id ?? index)
+                    ? styles.selectedImage
+                    : null,
+                ]}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      </Pressable>
+    </Pressable>
+  );
+
+  if (Platform.OS === 'android') {
+    if (!visible) {
+      return null;
+    }
+
+    return <View style={styles.androidOverlayHost}>{content}</View>;
+  }
+
+  return (
+    <Modal
+      transparent={true}
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onClose}
+      hardwareAccelerated>
+      {content}
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
+  androidOverlayHost: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999,
+    elevation: 9999,
+  },
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
@@ -104,10 +138,8 @@ const styles = StyleSheet.create({
   container: {
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 16,
-    width: '80%',
     alignItems: 'center',
     flexDirection: 'column',
-    gap: 20,
     padding: 20,
   },
   header: {
@@ -134,9 +166,15 @@ const styles = StyleSheet.create({
   },
   mainImageContainer: {
     borderRadius: 19.76,
-    resizeMode: 'cover',
+    marginTop: 20,
   },
-  imageScroll: {},
+  imageScroll: {
+    width: '100%',
+    marginTop: 20,
+  },
+  imageScrollContent: {
+    alignItems: 'center',
+  },
   image: {
     width: 60,
     height: 60,

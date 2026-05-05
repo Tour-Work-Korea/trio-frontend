@@ -16,13 +16,11 @@ const { width: SCREEN_WIDTH } = Dimensions.get('window');
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
-import { guesthouseTags } from '@constants/guesthouseTags';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
-import Workaways from '@assets/images/workaways_text_white.svg';
 import StarIcon from '@assets/images/star_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
@@ -45,12 +43,14 @@ const PopularGuesthouseList = () => {
   const scrollViewRef = useRef(null);
   const loadingMoreRef = useRef(false);
 
-  const tagNameById = Object.fromEntries(
-    guesthouseTags.map(t => [t.id, t.hashtag]),
-  );
-
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
+
+  const getTagLabels = item =>
+    (Array.isArray(item.hashtags) ? item.hashtags : [])
+      .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
+      .filter(Boolean)
+      .slice(0, 3);
 
   const getRatingInfo = (avgRating) => {
     const num = Number(avgRating);
@@ -178,9 +178,9 @@ const PopularGuesthouseList = () => {
 
         <View style={styles.trendingTag}>
           <View style={styles.tags}>
-            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-              <Text key={id} style={styles.tag}>
-                {tagNameById[id] ?? `#${id}`}
+            {getTagLabels(item).map((tag, index) => (
+              <Text key={`${tag}-${index}`} style={styles.tag}>
+                {tag}
               </Text>
             ))}
           </View>
@@ -228,10 +228,10 @@ const PopularGuesthouseList = () => {
 
         <View style={styles.popularInfo}>
           <View style={styles.tagRow}>
-            {(item.hashtagIds ?? []).slice(0, 3).map((id) => (
-              <View key={id} style={styles.tagContainer}>
+            {getTagLabels(item).map((tag, index) => (
+              <View key={`${tag}-${index}`} style={styles.tagContainer}>
                 <Text style={[FONTS.fs_body, styles.tagText]}>
-                  {tagNameById[id] ?? `#${id}`}
+                  {tag}
                 </Text>
               </View>
             ))}
@@ -302,7 +302,6 @@ const PopularGuesthouseList = () => {
             </View>
 
             <View style={styles.headerSubtitle}>
-              <Workaways />
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
                 가장 인기 있는 게스트하우스들만 모아봤어요
               </Text>

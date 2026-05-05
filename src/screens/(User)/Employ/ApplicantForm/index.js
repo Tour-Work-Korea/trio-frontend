@@ -23,10 +23,19 @@ import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
 import useUserStore from '@stores/userStore';
 
+const parseRecruitDate = date => {
+  if (!date) {
+    return null;
+  }
+
+  return date.split('T')[0];
+};
+
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {recruitId} = route.params;
+  const {recruitId, entryStartDate = null, entryEndDate = null} =
+    route.params ?? {};
 
   const [resumes, setResumes] = useState();
   const [applicant, setApplicant] = useState({
@@ -42,26 +51,33 @@ const ApplicantForm = () => {
     message: '',
     buttonText: '',
   });
-  const [footerHeight, setFooterHeight] = useState(0);
+  const [footerHeight] = useState(0);
   const userProfile = useUserStore(state => state.userProfile);
   const noResumeState =
     userProfile?.mbti === 'DEFAULT' ||
     userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
 
-  useEffect(() => {
-    const allRequired = agreements
-      .filter(item => item.isRequired)
-      .every(item => item.isAgree);
-    setApplicant(prev => ({...prev, personalInfoConsent: allRequired}));
-  }, [agreements]);
+  const tryFetchRecruitApplyDates = useCallback(async () => {
+    try {
+      const response = await userEmployApi.getRecruitById(recruitId, true);
+      const recruit = response.data;
+      setApplicant(prev => ({
+        ...prev,
+        startDate: parseRecruitDate(
+          recruit.entryStartDate ?? recruit.workStartDate,
+        ),
+        endDate: parseRecruitDate(recruit.entryEndDate ?? recruit.workEndDate),
+      }));
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        message: '공고 근무 날짜를 가져오는데 실패했습니다',
+        buttonText: '확인',
+      });
+    }
+  }, [recruitId]);
 
-  useFocusEffect(
-    useCallback(() => {
-      tryFetchResumeList();
-    }, [navigation]),
-  );
-
-  const tryFetchResumeList = async () => {
+  const tryFetchResumeList = useCallback(async () => {
     try {
       const response = await userEmployApi.getResumes();
       setResumes(response.data);
@@ -75,7 +91,36 @@ const ApplicantForm = () => {
         buttonText: '확인',
       });
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const allRequired = agreements
+      .filter(item => item.isRequired)
+      .every(item => item.isAgree);
+    setApplicant(prev => ({...prev, personalInfoConsent: allRequired}));
+  }, [agreements]);
+
+  useEffect(() => {
+    const initialStartDate = parseRecruitDate(entryStartDate);
+    const initialEndDate = parseRecruitDate(entryEndDate);
+
+    if (initialStartDate && initialEndDate) {
+      setApplicant(prev => ({
+        ...prev,
+        startDate: initialStartDate,
+        endDate: initialEndDate,
+      }));
+      return;
+    }
+
+    tryFetchRecruitApplyDates();
+  }, [entryEndDate, entryStartDate, tryFetchRecruitApplyDates]);
+
+  useFocusEffect(
+    useCallback(() => {
+      tryFetchResumeList();
+    }, [tryFetchResumeList]),
+  );
 
   const handleEditResume = id => {
     navigation.navigate('ResumeDetail', {
@@ -100,8 +145,8 @@ const ApplicantForm = () => {
     try {
       const parsedData = {
         message: '열심히 하겠습니다.',
-        startDate: '2026-01-01',
-        endDate: '2026-12-25',
+        startDate: applicant.startDate,
+        endDate: applicant.endDate,
         personalInfoConsent: applicant.personalInfoConsent,
         resumeId: applicant.resumeId,
       };
@@ -282,7 +327,12 @@ const ApplicantForm = () => {
           <ButtonScarlet
             title="지원하기"
             onPress={handleSubmit}
-            disabled={!applicant.personalInfoConsent || !applicant.resumeId}
+            disabled={
+              !applicant.personalInfoConsent ||
+              !applicant.resumeId ||
+              !applicant.startDate ||
+              !applicant.endDate
+            }
           />
         </View>
       </View>

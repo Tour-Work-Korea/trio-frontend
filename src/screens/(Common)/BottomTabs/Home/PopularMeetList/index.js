@@ -21,7 +21,6 @@ import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
 
 import HeaderImg from '@assets/images/meet_popular_header.svg';
-import Workaways from '@assets/images/workaways_text_white.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
@@ -292,20 +291,19 @@ const PopularMeetList = () => {
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>
-                인기 이벤트
+                인기 콘텐츠
               </Text>
             </View>
 
             <View style={styles.headerSubtitle}>
-              <Workaways />
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
-                가장 인기 있는 이벤트들만 모아봤어요
+                가장 인기 있는 콘텐츠들만 모아봤어요
               </Text>
             </View>
           </View>
 
           {/* 지금 뜨는 이벤트 */}
-          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 이벤트</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 콘텐츠</Text>
 
           <ScrollView
             horizontal
@@ -357,7 +355,7 @@ const PopularMeetList = () => {
 
           {/* 추천 이벤트 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
-            추천 이벤트
+            추천 콘텐츠
           </Text>
 
           {restList.map((item) => (

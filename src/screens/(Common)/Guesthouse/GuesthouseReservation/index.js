@@ -9,7 +9,6 @@ import {
   KeyboardAvoidingView,
   Platform,
   Keyboard,
-  TouchableWithoutFeedback,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -24,15 +23,19 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import userMyApi from '@utils/api/userMyApi';
 import { getUsableCouponCount } from '@utils/coupon/couponUtils';
+import { applyRefundPoliciesToAgreementHtml } from '@utils/refundPolicyAgreement';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
+import AlertModal from '@components/modals/AlertModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import DiscountArrow from '@assets/images/discount_arrow.svg';
+import ChevronDown from '@assets/images/chevron_down_black.svg';
+import ChevronUp from '@assets/images/chevron_up_black.svg';
 
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = (phone) => {
@@ -68,6 +71,8 @@ const GuesthouseReservation = ({ route }) => {
     roomMaxCapacity,
     femaleOnly,
     selectedCoupon,
+    refundPolicies,
+    reservationPolicy,
   } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
@@ -79,11 +84,18 @@ const GuesthouseReservation = ({ route }) => {
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
   const [requestMessage, setRequestMessage] = useState('');
+  const [isActualGuestExpanded, setActualGuestExpanded] = useState(false);
+  const [actualGuestName, setActualGuestName] = useState('');
+  const [actualGuestPhone, setActualGuestPhone] = useState('');
   const [pointValue, setPointValue] = useState('');
   const [pointBalance, setPointBalance] = useState(0);
   const [coupons, setCoupons] = useState([]);
 
   const [isConfirmVisible, setConfirmVisible] = useState(false);
+  const [isSameDayNoticeVisible, setSameDayNoticeVisible] = useState(false);
+  const [isRequestConfirmationNoticeVisible, setRequestConfirmationNoticeVisible] =
+    useState(false);
+  const [reservationErrorMessage, setReservationErrorMessage] = useState('');
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
@@ -121,6 +133,18 @@ const GuesthouseReservation = ({ route }) => {
   );
   const finalPaymentAmount = Math.max(priceAfterCoupon - appliedPointAmount, 0);
   const totalDiscountAmount = couponDiscountAmount + appliedPointAmount;
+  const isSameDayReservation = dayjs(checkIn).isSame(dayjs(), 'day');
+  const isSameDayInstantReservation =
+    reservationPolicy?.mode === 'INSTANT_CONFIRMATION' &&
+    isSameDayReservation;
+  const isRequestConfirmationReservation =
+    reservationPolicy?.mode === 'REQUEST_CONFIRMATION';
+  const requestConfirmationNoticeTitle = isSameDayReservation
+    ? '당일 예약 전 꼭 확인해 주세요!'
+    : '예약 전 꼭 확인해 주세요!';
+  const requestConfirmationNoticeMessage = isSameDayReservation
+    ? '사장님 승인 후 확정되는 숙소입니다\n사장님 거절 시 100% 환불해 드리니 안심하세요!\n(단, 당일 예약이라 결제 후 취소나 환불은 불가능합니다)'
+    : '사장님 승인 후 확정되는 숙소입니다\n사장님 거절 시 100% 환불해 드리니 안심하고 예약하세요!';
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
@@ -148,7 +172,7 @@ const GuesthouseReservation = ({ route }) => {
     if (allChecked !== agreeAll) {
       setAgreeAll(allChecked);
     }
-  }, [agreements]);
+  }, [agreeAll, agreements]);
 
   useEffect(() => {
     let isActive = true;
@@ -207,7 +231,14 @@ const GuesthouseReservation = ({ route }) => {
     /{{guesthouseName}}/g,
     guesthouseName || '해당 게스트하우스',
   );
-  const selectedAgreementHtml = (selectedAgreementDoc?.detailHtml || '').replace(
+  const selectedAgreementBaseHtml =
+    selectedTerm === 'terms'
+      ? applyRefundPoliciesToAgreementHtml(
+          selectedAgreementDoc?.detailHtml || '',
+          refundPolicies,
+        )
+      : selectedAgreementDoc?.detailHtml || '';
+  const selectedAgreementHtml = selectedAgreementBaseHtml.replace(
     /{{guesthouseName}}/g,
     guesthouseName || '해당 게스트하우스',
   );
@@ -238,18 +269,52 @@ const GuesthouseReservation = ({ route }) => {
     setPointValue(numericText);
   };
 
+  const handlePressPayment = () => {
+    if (isRequestConfirmationReservation) {
+      setRequestConfirmationNoticeVisible(true);
+      return;
+    }
+
+    if (isSameDayInstantReservation) {
+      setSameDayNoticeVisible(true);
+      return;
+    }
+
+    setConfirmVisible(true);
+  };
+
   // 예약 호출
   const handleReservation = async () => {
     if (!isAllRequiredAgreed) return;
 
     try {
+      const trimmedActualGuestName = actualGuestName.trim();
+      const trimmedActualGuestPhone = actualGuestPhone.trim();
+      const hasActualGuestInfo =
+        trimmedActualGuestName.length > 0 || trimmedActualGuestPhone.length > 0;
+
+      if (
+        isActualGuestExpanded &&
+        hasActualGuestInfo &&
+        (!trimmedActualGuestName || !trimmedActualGuestPhone)
+      ) {
+        Alert.alert('방문자 정보 확인', '실제 방문자 이름과 연락처를 모두 입력해주세요.');
+        return;
+      }
+
       const body = {
         checkIn,
         checkOut,
         guestCount,
         amount: totalPrice,
         request: requestMessage,
+        isActualGuestDifferent: isActualGuestExpanded && hasActualGuestInfo,
       };
+
+      if (body.isActualGuestDifferent) {
+        body.actualGuestName = trimmedActualGuestName;
+        body.actualGuestPhone = trimmedActualGuestPhone;
+      }
 
       const res = await reservationPaymentApi.createRoomReservation(roomId, body);
 
@@ -284,6 +349,9 @@ const GuesthouseReservation = ({ route }) => {
           roomPrice,
           totalPrice,
           selectedCoupon,
+          refundPolicies,
+          reservationPolicy,
+          request: requestMessage,
           pointUsed: appliedPointAmount,
           finalPaymentAmount,
           userName: name,
@@ -292,7 +360,9 @@ const GuesthouseReservation = ({ route }) => {
       });
 
     } catch (err) {
-      Alert.alert('예약 실패', err.response.data.message);
+      setReservationErrorMessage(
+        err?.response?.data?.message || '예약 처리 중 문제가 발생했습니다.',
+      );
     }
   };
 
@@ -371,6 +441,55 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
                   <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
               </View>
+
+              <TouchableOpacity
+                style={styles.actualGuestToggle}
+                activeOpacity={0.8}
+                onPress={() => setActualGuestExpanded(prev => !prev)}>
+                <Text style={[FONTS.fs_14_medium, styles.actualGuestToggleText]}>
+                  {isActualGuestExpanded
+                    ? '방문자 정보 접기'
+                    : '실제 방문자가 다르다면 정보를 추가해주세요'}
+                </Text>
+                {isActualGuestExpanded ? (
+                  <ChevronUp width={18} height={18} />
+                ) : (
+                  <ChevronDown width={18} height={18} />
+                )}
+              </TouchableOpacity>
+
+              {isActualGuestExpanded ? (
+                <View style={styles.actualGuestForm}>
+                  <Text style={[FONTS.fs_14_regular, styles.actualGuestGuide]}>
+                    실제 방문하실 분의 정보를 입력하세요.
+                  </Text>
+                  <View style={styles.actualGuestInputRow}>
+                    <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                      이름
+                    </Text>
+                    <TextInput
+                      style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                      placeholder="이름을 입력해주세요."
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={actualGuestName}
+                      onChangeText={setActualGuestName}
+                    />
+                  </View>
+                  <View style={styles.actualGuestInputRow}>
+                    <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                      연락처
+                    </Text>
+                    <TextInput
+                      style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                      placeholder="연락처를 입력해주세요."
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={actualGuestPhone}
+                      onChangeText={setActualGuestPhone}
+                      keyboardType="phone-pad"
+                    />
+                  </View>
+                </View>
+              ) : null}
           </View>
 
           <View style={styles.devide}/>
@@ -580,10 +699,47 @@ const GuesthouseReservation = ({ route }) => {
           ) : null}
           <ButtonScarlet
             title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
-            onPress={() => setConfirmVisible(true)}
+            onPress={handlePressPayment}
             disabled={!isAllRequiredAgreed || isPointOverBalance}
           />
         </View>
+
+        <AlertModal
+          visible={isSameDayNoticeVisible}
+          title="당일 예약 전 꼭 확인해 주세요!"
+          message={'오늘 입실하는 예약은 결제 즉시 확정되며,\n이후 단순 변심으로 인한 취소나 환불이 불가능합니다'}
+          highlightText="불가능"
+          buttonText="확인"
+          buttonText2="취소"
+          onPress={() => {
+            setSameDayNoticeVisible(false);
+            setConfirmVisible(true);
+          }}
+          onPress2={() => setSameDayNoticeVisible(false)}
+        />
+
+        <AlertModal
+          visible={isRequestConfirmationNoticeVisible}
+          title={requestConfirmationNoticeTitle}
+          message={requestConfirmationNoticeMessage}
+          highlightText="100% 환불"
+          buttonText="예약하기"
+          buttonText2="취소"
+          onPress={() => {
+            setRequestConfirmationNoticeVisible(false);
+            setConfirmVisible(true);
+          }}
+          onPress2={() => setRequestConfirmationNoticeVisible(false)}
+        />
+
+        <AlertModal
+          visible={!!reservationErrorMessage}
+          title="예약 실패"
+          message={reservationErrorMessage}
+          buttonText="확인"
+          onPress={() => setReservationErrorMessage('')}
+          onRequestClose={() => setReservationErrorMessage('')}
+        />
 
         {/* 약관동의 모달 */}
         <TermsModal

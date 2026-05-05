@@ -1,7 +1,7 @@
 import messaging from '@react-native-firebase/messaging';
 import { Platform, PermissionsAndroid } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { v4 as uuidv4 } from 'uuid';
+import DeviceInfo from 'react-native-device-info';
 import { log } from '@utils/logger';
 import notificationApi from '@utils/api/notificationApi';
 
@@ -11,13 +11,13 @@ export const getDeviceId = async () => {
   try {
     let deviceId = await AsyncStorage.getItem(DEVICE_ID_KEY);
     if (!deviceId) {
-      deviceId = `device-${uuidv4()}`;
+      deviceId = await DeviceInfo.getUniqueId();
       await AsyncStorage.setItem(DEVICE_ID_KEY, deviceId);
     }
     return deviceId;
   } catch (error) {
     log.error('Error getting/generating device ID', error);
-    return `device-${uuidv4()}`; // fallback
+    return await DeviceInfo.getUniqueId(); // fallback
   }
 };
 
@@ -36,6 +36,8 @@ const requestAndroidNotificationPermission = async () => {
     return false;
   }
 };
+
+
 
 export const requestUserPermission = async () => {
   try {

@@ -15,6 +15,7 @@ import {useRoute, useNavigation, StackActions} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import AlertModal from '@components/modals/AlertModal';
 import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
+import {normalizeRefundPolicies} from '@utils/refundPolicyAgreement';
 
 import styles from './GuesthousePaymentReceipt.styles';
 import {FONTS} from '@constants/fonts';
@@ -118,6 +119,22 @@ const buildPaymentTotalSuffix = (ctx, nights) => {
   return nights > 0 ? ` (${nights}박)` : '';
 };
 
+const getPaymentPaidAt = (dto, fallback) => {
+  if (dto.approvedAt) return dto.approvedAt;
+  if (dto.paidAt) return dto.paidAt;
+  if (dto.paymentApprovedAt) return dto.paymentApprovedAt;
+  if (fallback?.paidAt) return fallback.paidAt;
+
+  if (dto.approvalDeadlineAt) {
+    const deadline = dayjs(dto.approvalDeadlineAt);
+    return deadline.isValid()
+      ? deadline.subtract(1, 'day').format('YYYY-MM-DDTHH:mm:ss')
+      : '';
+  }
+
+  return '';
+};
+
 const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
   if (!dto) return null;
 
@@ -130,6 +147,8 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
       name: dto.guesthouse ?? fallback?.guesthouseName ?? '',
       address: dto.address ?? fallbackAddress ?? '',
       phone: dto.guesthousePhoneNum ?? fallback?.guesthousePhone ?? '',
+      latitude: dto.lat ?? fallback?.lat ?? fallback?.latitude ?? null,
+      longitude: dto.lng ?? fallback?.lng ?? fallback?.longitude ?? null,
     },
 
     stay: {
@@ -173,10 +192,18 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
             : '',
       name: dto.userName ?? fallback?.userName ?? '',
       phone: dto.phoneNum ?? fallback?.userPhone ?? '',
+      status: dto.reservationStatus ?? fallback?.reservationStatus ?? '',
+      approvalStatus: dto.approvalStatus ?? fallback?.approvalStatus ?? '',
+      isActualGuestDifferent: Boolean(
+        dto.isActualGuestDifferent ?? fallback?.isActualGuestDifferent,
+      ),
+      actualGuestName: dto.actualGuestName ?? fallback?.actualGuestName ?? '',
+      actualGuestPhone: dto.actualGuestPhone ?? fallback?.actualGuestPhone ?? '',
+      request: dto.request ?? fallback?.request ?? '',
     },
 
     payment: {
-      paidAt: dto.approvedAt ?? '',
+      paidAt: getPaymentPaidAt(dto, fallback),
 
       unitPriceLabel: '객실 가격',
       totalLabel: '총 가격',
@@ -227,7 +254,13 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
     },
 
     cancelPolicy: {
-      notice: '예약 후 10분 이내에는 무료 취소가 가능합니다. \n단, 체크인 시간 이후에는 취소가 불가합니다.',
+      notice:
+        dto.reservationStatus === 'PENDING' || dto.approvalStatus === 'WAITING_HOST'
+          ? '사장님이 확인하기 전까지는 100% 환불 및 취소가 가능합니다.'
+          : '예약 후 10분 이내에는 무료 취소가 가능합니다. \n단, 체크인 당일에는 환불이 불가합니다.',
+      refundPolicies: normalizeRefundPolicies(
+        dto.refundPolicy?.policies ?? dto.refundPolicies ?? fallback?.refundPolicies,
+      ),
     },
   };
 };
@@ -242,6 +275,7 @@ const GuesthousePaymentReceipt = () => {
   const checkOut = route?.params?.checkOut ?? null;
   const checkInTime = route?.params?.checkInTime ?? null;
   const checkOutTime = route?.params?.checkOutTime ?? null;
+  const isFromDeeplink = route?.params?.isFromDeeplink ?? false;
   const isFromPaymentFlow = route?.params?.isFromPaymentFlow ?? Boolean(receiptContext);
 
   const [dto, setDto] = useState(null);
@@ -295,6 +329,9 @@ const GuesthousePaymentReceipt = () => {
     () => buildPaymentTotalSuffix(mergedContext, nights),
     [mergedContext, nights],
   );
+  const isPendingReservation =
+    data?.reservation?.status === 'PENDING' ||
+    data?.reservation?.approvalStatus === 'WAITING_HOST';
 
   // 뒤로가기
   const handleClose = () => {
@@ -333,13 +370,28 @@ const GuesthousePaymentReceipt = () => {
         );
         setDto(res?.data);
       } catch (e) {
+        if (isFromDeeplink) {
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: 'MainTabs',
+                params: {
+                  screen: '마이',
+                  params: {screen: 'UserMyPage'},
+                },
+              },
+              {name: 'UserReservationCheck'},
+            ],
+          });
+        }
       } finally {
         setLoading(false);
       }
     };
 
     fetchDetail();
-  }, [reservationId]);
+  }, [isFromDeeplink, navigation, reservationId]);
 
   // 복사
   const handleCopy = (text) => {
@@ -393,11 +445,11 @@ const GuesthousePaymentReceipt = () => {
 
   // 지도보기
   const handleOpenMap = async () => {
-    Toast.show({
-      type: 'success',
-      text1: '준비중인 기능이에요',
-      position: 'top',
-      visibilityTime: 2000,
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: data?.guesthouse?.name,
+      guesthouseAddress: trimJejuPrefix(data?.guesthouse?.address),
+      latitude: data?.guesthouse?.latitude,
+      longitude: data?.guesthouse?.longitude,
     });
   };
 
@@ -486,7 +538,14 @@ const GuesthousePaymentReceipt = () => {
         </TouchableOpacity>
         {/* 타이틀 */}
         <View style={styles.title}>
-          <Text style={[FONTS.fs_20_bold]}>예약확정</Text>
+          <Text style={[FONTS.fs_20_bold]}>
+            {isPendingReservation ? '승인 대기 중' : '예약내역'}
+          </Text>
+          {isPendingReservation ? (
+            <Text style={[FONTS.fs_12_medium, styles.pendingNotice]}>
+              사장님이 예약을 확인 중이에요. 확정되면 바로 알려드릴게요!
+            </Text>
+          ) : null}
           <Text style={[FONTS.fs_18_semibold, styles.guesthouseName]}>
             {data.guesthouse.name}
           </Text>
@@ -600,6 +659,41 @@ const GuesthousePaymentReceipt = () => {
               {data.reservation.phone}
             </Text>
           </View>
+
+          {data.reservation.isActualGuestDifferent ? (
+            <View style={styles.actualGuestBox}>
+              <Text style={[FONTS.fs_14_semibold, styles.actualGuestTitle]}>
+                실제 방문자 정보
+              </Text>
+              <View style={styles.row}>
+                <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+                  이름
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
+                  {data.reservation.actualGuestName}
+                </Text>
+              </View>
+              <View style={styles.row}>
+                <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+                  전화번호
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
+                  {data.reservation.actualGuestPhone}
+                </Text>
+              </View>
+            </View>
+          ) : null}
+
+          {data.reservation.request ? (
+            <View style={styles.requestBox}>
+              <Text style={[FONTS.fs_14_semibold, styles.requestTitle]}>
+                요청 사항
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.requestText]}>
+                {data.reservation.request}
+              </Text>
+            </View>
+          ) : null}
         </View>
 
         <View style={[styles.divider, {marginTop: 16}]}/>
@@ -730,6 +824,7 @@ const GuesthousePaymentReceipt = () => {
                       ? `${data.payment.method} 환불`
                       : '환불',
                     freeCancelUntil,
+                    refundPolicies: data.cancelPolicy.refundPolicies,
                   },
                 });
               }}

@@ -12,8 +12,9 @@ export {default as ApplySuccess} from './(User)/Employ/ApplySuccess';
 // 게하
 export {default as Guesthouse} from './(Common)/BottomTabs/Guesthouse';
 export {default as GuesthouseDetail} from './(Common)/Guesthouse/GuesthouseDetail';
+export {default as GuesthouseMap} from './(Common)/Guesthouse/GuesthouseMap';
 export {default as GuesthouseList} from './(Common)/BottomTabs/Guesthouse/GuesthouseList';
-export {default as GuesthouseMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseMap';
+export {default as GuesthouseListMap} from './(Common)/BottomTabs/Guesthouse/GuesthouseListMap';
 export {default as GuesthouseReview} from './(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/GuesthouseSearch';
 export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
@@ -78,6 +79,8 @@ export {default as MeetCancelConfirm} from './(User)/Meet/MeetCancelConfirm';
 export {default as MeetCancelSuccess} from './(User)/Meet/MeetCancelConfirm/MeetCancelSuccess';
 // 마이 페이지
 export {default as UserMyPage} from './(User)/UserMyPage';
+export {default as NotificationCenter} from './(User)/UserMyPage/NotificationCenter';
+export {default as NotificationSettings} from './(User)/UserMyPage/NotificationSettings';
 // 프로필
 export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserEditInfo} from './(User)/UserMyPage/UserEditInfo';

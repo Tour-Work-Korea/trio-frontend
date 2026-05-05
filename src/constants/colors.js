@@ -2,11 +2,12 @@ export const COLORS = {
     primary_orange: '#FE4401',
     primary_blue: '#5361DB',
 
-    secondary_blue: '#CFDDFF',
+    secondary_blue: '#E3EBFF',
     Secondary_khaki: '#87986C',
     secondary_red: '#FEE9E8',
     secondary_yellow: '#FDF6E7',
     secondary_green: '#DBFFED',
+    secondary_pink: '#FAE5EE',
 
     neutral_black: '#121212',
     neutral_gray: '#FAFAFC',

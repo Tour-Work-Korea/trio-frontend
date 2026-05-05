@@ -1,10 +1,11 @@
 import qs from 'qs';
 import axios from 'axios';
+import {API_BASE_URL as ENV_API_BASE_URL} from '@env';
 import useUserStore from '@stores/userStore';
 import {log, mask} from '@utils/logger';
 import {tryRefresh} from '@utils/auth/login';
 
-const API_BASE_URL = process.env.API_BASE_URL ?? '';
+const API_BASE_URL = ENV_API_BASE_URL ?? '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,

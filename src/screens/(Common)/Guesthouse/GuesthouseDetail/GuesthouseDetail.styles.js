@@ -1,6 +1,5 @@
 import { StyleSheet } from 'react-native';
 import { COLORS } from '@constants/colors';
-import Phone from '@components/Certificate/UserPhone';
 
 const styles = StyleSheet.create({
   container: {
@@ -46,7 +45,7 @@ const styles = StyleSheet.create({
   // 이름부터 탭들 위쪽까지
   contentTopWrapper: {
   },
-  
+
   nameIconContainer: {
     justifyContent: 'space-between',
     flexDirection: 'row',
@@ -61,13 +60,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 12,
   },
-  
-  address: {
+
+  addressSection: {
+    alignSelf: 'flex-start',
+    flexDirection: 'row',
+    alignItems: 'center',
     marginBottom: 4,
+    gap: 2,
+    maxWidth: '100%',
   },
-  phone: {
-    
+  address: {
+    color: COLORS.grayscale_600,
+    flexShrink: 1,
   },
+  phoneButton: {
+    alignSelf: 'flex-start',
+  },
+  phone: {},
   copyableText: {
     textDecorationLine: 'underline',
   },
@@ -124,7 +133,7 @@ const styles = StyleSheet.create({
   shortIntroText: {
     color: COLORS.grayscale_700,
   },
-  
+
   // 객실 서비스
   iconServiceContainer: {
     marginBottom: 28,
@@ -154,7 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-    iconServiceText: {  
+    iconServiceText: {
   },
   readMoreButton: {
     alignItems: 'center',
@@ -202,18 +211,22 @@ const styles = StyleSheet.create({
 
   // 탭 디자인
   tabMenuWrapper: {
+    marginHorizontal: -20,
+  },
+  tabMenuContent: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
+    gap: 8,
+    paddingHorizontal: 20,
   },
   tabButton: {
     alignItems: 'center',
     height: 24,
-    width: 75,
+    minWidth: 75,
   },
   tabUnderline: {
     marginTop: 4,
     height: 1,
-    width: 75,
+    width: '100%',
     backgroundColor: COLORS.primary_blue,
   },
   tabPager: {
@@ -251,6 +264,13 @@ const styles = StyleSheet.create({
     marginTop: 12,
     marginBottom: 8,
   },
+  roomHeaderRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+    width: '100%',
+    marginBottom: 4,
+  },
   roomInfoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
@@ -264,10 +284,17 @@ const styles = StyleSheet.create({
   },
   roomNameTextWrapper: {
     flex: 1,
+    width: 0,
     minWidth: 0,
+    marginRight: 4,
+    overflow: 'hidden',
   },
   roomType: {
     color: COLORS.grayscale_800,
+  },
+  roomNameText: {
+    flexShrink: 1,
+    width: '100%',
   },
   checkTimeContainer: {
     flexDirection: 'row',
@@ -279,6 +306,7 @@ const styles = StyleSheet.create({
   roomPrice: {
     color: COLORS.grayscale_800,
     flexShrink: 0,
+    textAlign: 'right',
   },
 
   // 룸 디테일 버튼
@@ -286,6 +314,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
     alignSelf: 'flex-start',
     flexDirection: 'row',
+    alignItems: 'center',
   },
   roomDetailBtnText: {
     color: COLORS.semantic_blue,
@@ -322,7 +351,7 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 20,
   },
-  
+
   // 긴 소개
   introductionContainer: {
     marginBottom: 16,
@@ -335,6 +364,37 @@ const styles = StyleSheet.create({
   introductionText: {
     lineHeight: 20,
     color: COLORS.grayscale_700,
+  },
+
+  // 취소규정
+  refundPolicyContainer: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_200,
+  },
+  refundPolicyRow: {
+    minHeight: 44,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.grayscale_200,
+  },
+  refundPolicyText: {
+    flex: 1,
+    textAlign: 'center',
+    color: COLORS.grayscale_600,
+  },
+  refundRateText: {
+    flex: 0.5,
+    textAlign: 'center',
+    color: COLORS.grayscale_700,
+  },
+  refundEmptyBox: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 16,
+    borderRadius: 8,
+  },
+  refundEmptyText: {
+    color: COLORS.grayscale_600,
   },
 });
 
