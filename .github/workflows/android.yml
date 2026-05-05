@@ -107,7 +107,12 @@ jobs:
 
       - name: Decode Secrets (Keystore & Google Services)
         run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          BRANCH="${GITHUB_REF##*/}"
+          if [ "$BRANCH" = "develop" ]; then
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+          else
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 }}" | base64 --decode > android/app/google-services.json
+          fi
           echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/test-release-key.jks
 
       - name: Set CI app version
@@ -117,9 +122,6 @@ jobs:
           echo "CI_VERSION_CODE=$(($VERSION_OFFSET + ${{ github.run_number }}))" >> $GITHUB_ENV
           echo "CI_VERSION_NAME=${APP_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
-      - name: Decode google-services.json
-        run: |
-          echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
 
       - name: Set keystore env
         run: |
