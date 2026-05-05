@@ -7,6 +7,8 @@ import {
   Keyboard,
   Modal,
   ActivityIndicator,
+  Platform,
+  Linking,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
@@ -121,15 +123,56 @@ const UserPhone = ({onPress}) => {
   };
 
   const handleShouldStartLoadWithRequest = request => {
-    const token = extractNiceTokenFromUrl(request?.url);
-    if (!token) {
+    const url = request?.url;
+    if (!url) {
       return true;
     }
 
-    setShowWebView(false);
-    setAuthUrl('');
-    onPress(token);
-    return false;
+    const token = extractNiceTokenFromUrl(url);
+    if (token) {
+      setShowWebView(false);
+      setAuthUrl('');
+      onPress(token);
+      return false;
+    }
+
+    // Android 앱 스킴 (PASS 앱 등) 처리
+    if (Platform.OS === 'android') {
+      if (
+        url.startsWith('http://') ||
+        url.startsWith('https://') ||
+        url.startsWith('about:blank')
+      ) {
+        return true; // 일반 웹 URL은 그대로 로드
+      }
+
+      // 1. intent:// 로 시작하는 경우 파싱
+      if (url.startsWith('intent:')) {
+        const schemeMatch = url.match(/scheme=([^;]+)/);
+        const packageMatch = url.match(/package=([^;]+)/);
+        
+        if (schemeMatch) {
+          const scheme = schemeMatch[1];
+          const newUrl = url.replace('intent://', `${scheme}://`);
+          
+          Linking.openURL(newUrl).catch(() => {
+            // 앱이 안 깔려있으면 플레이스토어로 이동
+            if (packageMatch) {
+              Linking.openURL(`market://details?id=${packageMatch[1]}`);
+            }
+          });
+          return false;
+        }
+      }
+
+      // 2. 그 외의 커스텀 스킴 (tauthlink:// 등)
+      Linking.openURL(url).catch(() => {
+        console.warn('앱을 열 수 없습니다:', url);
+      });
+      return false; // WebView 자체에서 열지 못하게 막음 (ERR_UNKNOWN_URL_SCHEME 방지)
+    }
+
+    return true;
   };
 
   // WebView 닫기 (사용자가 중간에 닫는 경우)
