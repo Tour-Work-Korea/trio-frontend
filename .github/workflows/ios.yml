@@ -150,7 +150,12 @@ jobs:
 
       - name: Decode GoogleService-Info.plist
         run: |
-          echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
+          BRANCH="${GITHUB_REF##*/}"
+          if [ "$BRANCH" = "develop" ]; then
+            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
+          else
+            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_PROD_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
+          fi
 
       # --------------------------------
       # Build & Upload
