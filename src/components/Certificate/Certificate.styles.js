@@ -20,6 +20,12 @@ export default StyleSheet.create({
     minHeightL: '100%',
     paddingHorizontal: 20,
   },
+  viewFlexBoxSpaceBetween: {
+    justifyContent: 'space-between',
+  },
+  flexBox: {
+    flex: 1,
+  },
   groupParent: {
     paddingVertical: 0,
     gap: 12,
@@ -53,6 +59,11 @@ export default StyleSheet.create({
   inputGroup: {
     marginTop: 40,
     gap: 20,
+  },
+  phoneIntroInputGroup: {
+    flex: 1,
+    justifyContent: 'center',
+    marginTop: -80,
   },
   inputContainer: {
     flexDirection: 'column',
@@ -122,5 +133,32 @@ export default StyleSheet.create({
     flexDirection: 'row',
     width: '100%',
     justifyContent: 'flex-end',
+  },
+  authWebViewContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  authWebViewHeader: {
+    paddingTop: 50,
+    paddingHorizontal: 16,
+    paddingBottom: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  authWebViewTitle: {
+    fontSize: 16,
+    fontWeight: '600',
+    color: COLORS.grayscale_900,
+  },
+  authWebViewCloseText: {
+    fontSize: 14,
+    color: COLORS.grayscale_600,
+  },
+  authWebView: {
+    flex: 1,
+  },
+  loadingIndicatorWrap: {
+    marginTop: 14,
   },
 });

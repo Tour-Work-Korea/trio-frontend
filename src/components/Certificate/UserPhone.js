@@ -9,6 +9,7 @@ import {
   ActivityIndicator,
   Platform,
   Linking,
+  NativeModules,
 } from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
@@ -37,6 +38,8 @@ const extractNiceTokenFromUrl = url => {
   }
 };
 
+const {SoftInputMode} = NativeModules;
+
 const UserPhone = ({onPress}) => {
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
@@ -47,6 +50,22 @@ const UserPhone = ({onPress}) => {
     message: '',
     buttonText: '',
   });
+
+  React.useEffect(() => {
+    if (Platform.OS !== 'android' || !SoftInputMode) {
+      return undefined;
+    }
+
+    if (showWebView) {
+      SoftInputMode.setAdjustResize();
+    } else {
+      SoftInputMode.setAdjustPan();
+    }
+
+    return () => {
+      SoftInputMode.setAdjustPan();
+    };
+  }, [showWebView]);
 
   // 화면 다시 들어올 때 초기화
   useFocusEffect(
@@ -76,7 +95,7 @@ const UserPhone = ({onPress}) => {
       }
 
       setAuthUrl(nextAuthUrl);
-      setShowWebView(true); // 모달 열기
+      setShowWebView(true);
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -150,11 +169,11 @@ const UserPhone = ({onPress}) => {
       if (url.startsWith('intent:')) {
         const schemeMatch = url.match(/scheme=([^;]+)/);
         const packageMatch = url.match(/package=([^;]+)/);
-        
+
         if (schemeMatch) {
           const scheme = schemeMatch[1];
           const newUrl = url.replace('intent://', `${scheme}://`);
-          
+
           Linking.openURL(newUrl).catch(() => {
             // 앱이 안 깔려있으면 플레이스토어로 이동
             if (packageMatch) {
@@ -181,25 +200,53 @@ const UserPhone = ({onPress}) => {
     setAuthUrl('');
   };
 
+  const renderNiceAuthWebView = () => (
+    <View style={styles.authWebViewContainer}>
+      {/* 상단바 (닫기) */}
+      <View style={styles.authWebViewHeader}>
+        <Text style={styles.authWebViewTitle}>본인 인증 진행</Text>
+
+        <TouchableOpacity onPress={closeWebView}>
+          <Text style={styles.authWebViewCloseText}>닫기</Text>
+        </TouchableOpacity>
+      </View>
+
+      {/* WebView: init 응답 authUrl 로드 */}
+      <WebView
+        source={{uri: authUrl}}
+        javaScriptEnabled={true}
+        originWhitelist={['*']}
+        onMessage={handleWebViewMessage}
+        onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
+        setSupportMultipleWindows={false}
+        style={styles.authWebView}
+      />
+    </View>
+  );
+
+  if (Platform.OS === 'android' && showWebView) {
+    return renderNiceAuthWebView();
+  }
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <View style={[styles.viewFlexBox, {justifyContent: 'space-between'}]}>
-          <View style={{flex: 1}}>
+        <View style={[styles.viewFlexBox, styles.viewFlexBoxSpaceBetween]}>
+          <View style={styles.flexBox}>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
               <LogoOrange width={60} height={29} />
               <Text style={[styles.titleText]}>본인 인증</Text>
             </View>
 
-            <View style={[styles.inputGroup, {flex: 1, justifyContent: 'center', marginTop: -80,}]}>
+            <View style={[styles.inputGroup, styles.phoneIntroInputGroup]}>
               <View style={[styles.inputContainer]}>
                 <Text style={styles.inputContainerText}>
                   더 안전한 서비스 이용을 위해{'\n'}본인 인증이 필요합니다.
                 </Text>
                 {loading ? (
                   // init 요청 중
-                  <View style={{marginTop: 14}}>
+                  <View style={styles.loadingIndicatorWrap}>
                     <ActivityIndicator />
                   </View>
                 ) : (
@@ -217,38 +264,7 @@ const UserPhone = ({onPress}) => {
 
         {/* NICE 인증 WebView 모달 */}
         <Modal visible={showWebView} animationType="slide">
-          <View style={{flex: 1, backgroundColor: COLORS.grayscale_0}}>
-            {/* 상단바 (닫기) */}
-            <View
-              style={{
-                paddingTop: 50,
-                paddingHorizontal: 16,
-                paddingBottom: 12,
-                flexDirection: 'row',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}>
-              <Text style={{fontSize: 16, fontWeight: '600'}}>
-                본인 인증 진행
-              </Text>
-
-              <TouchableOpacity onPress={closeWebView}>
-                <Text style={{fontSize: 14, color: COLORS.grayscale_600}}>
-                  닫기
-                </Text>
-              </TouchableOpacity>
-            </View>
-
-            {/* WebView: init 응답 authUrl 로드 */}
-            <WebView
-              source={{uri: authUrl}}
-              javaScriptEnabled={true}
-              originWhitelist={['*']}
-              onMessage={handleWebViewMessage}
-              onShouldStartLoadWithRequest={handleShouldStartLoadWithRequest}
-              style={{flex: 1}}
-            />
-          </View>
+          {renderNiceAuthWebView()}
         </Modal>
 
         {/* 에러 모달 */}
