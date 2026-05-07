@@ -4,7 +4,10 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {subscribeForegroundNotification} from '@utils/notifications';
+import {
+  openNotificationTarget,
+  subscribeForegroundNotification,
+} from '@utils/notifications';
 
 const AUTO_HIDE_MS = 3200;
 
@@ -150,7 +153,15 @@ export default function InAppNotificationBanner() {
     <Animated.View
       pointerEvents="box-none"
       style={[styles.overlay, {top: topOffset, transform: [{translateY}]}]}>
-      <Pressable style={styles.card} onPress={hideBanner}>
+      <Pressable
+        style={styles.card}
+        onPress={() => {
+          const remoteMessage = message?.remoteMessage;
+          hideBanner();
+          requestAnimationFrame(() => {
+            openNotificationTarget(remoteMessage?.data || {});
+          });
+        }}>
         <BannerBadge type={content.type} status={content.status} />
 
         <View style={styles.content}>

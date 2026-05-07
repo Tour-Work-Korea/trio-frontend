@@ -26,6 +26,7 @@ export default function Guesthouses({guesthouses}) {
 
   const renderGuesthouse = ({item}) => (
     <TouchableOpacity
+      activeOpacity={1}
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
           id: item.guesthouseId,
@@ -107,6 +108,7 @@ export default function Guesthouses({guesthouses}) {
           <Text style={{color: COLORS.primary_orange}}>게딱지</Text> 추천 게하
         </Text>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularGuesthouseList', {

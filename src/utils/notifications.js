@@ -1,4 +1,6 @@
 import {navigate} from '@utils/navigationService';
+import {showErrorModal} from '@utils/loginModalHub';
+import useUserStore from '@stores/userStore';
 
 const foregroundListeners = new Set();
 
@@ -42,7 +44,117 @@ export const isUserNotification = notification => {
   return USER_NOTIFICATION_TYPES.has(type);
 };
 
+const getQueryParam = (searchParams, keys) => {
+  for (const key of keys) {
+    const value = searchParams.get(key);
+    if (value) {
+      return value;
+    }
+  }
+
+  return null;
+};
+
+const parseDeeplink = url => {
+  const normalized = String(url || '').trim();
+  const withoutScheme = normalized.replace(
+    /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//,
+    '',
+  );
+  const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
+  const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
+  const parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
+  const searchParams = new URLSearchParams(queryPart);
+
+  return {parts, searchParams};
+};
+
+const isLoggedInUser = () => {
+  const {accessToken, userRole} = useUserStore.getState();
+  return Boolean(accessToken && userRole === 'USER');
+};
+
+const showLoginRequiredModal = (
+  message = '서비스 이용을 위해 로그인 해주세요.',
+) => {
+  showErrorModal({
+    title: '로그인이 필요합니다',
+    message,
+    buttonText: '확인',
+    buttonText2: '취소',
+    onPress: () => navigate('Login'),
+  });
+};
+
+const openDeeplinkTarget = url => {
+  const {parts, searchParams} = parseDeeplink(url);
+
+  if (
+    parts[0] === 'reservation' &&
+    parts[1] === 'guesthouse' &&
+    parts[2] === 'detail'
+  ) {
+    const reservationId = getQueryParam(searchParams, ['reservationId', 'id']);
+    if (reservationId) {
+      if (!isLoggedInUser()) {
+        showLoginRequiredModal();
+        return true;
+      }
+
+      navigate('GuesthousePaymentReceipt', {
+        reservationId,
+        isFromDeeplink: true,
+      });
+      return true;
+    }
+  }
+
+  if (
+    parts[0] === 'reservation' &&
+    parts[1] === 'party' &&
+    parts[2] === 'detail'
+  ) {
+    const reservationId = getQueryParam(searchParams, ['reservationId', 'id']);
+    if (reservationId) {
+      if (!isLoggedInUser()) {
+        showLoginRequiredModal();
+        return true;
+      }
+
+      navigate('MeetPaymentReceipt', {
+        reservationId,
+        isFromDeeplink: true,
+      });
+      return true;
+    }
+  }
+
+  if (parts[0] === 'party' && parts[1]) {
+    const partyId =
+      parts[1] === 'detail'
+        ? getQueryParam(searchParams, ['partyId', 'id'])
+        : parts[1];
+
+    if (partyId) {
+      navigate('MeetDetail', {partyId, isFromDeeplink: true});
+      return true;
+    }
+  }
+
+  return false;
+};
+
 export const openNotificationTarget = async notification => {
+  const deeplink =
+    notification?.deeplink ||
+    notification?.deepLink ||
+    notification?.link ||
+    notification?.url;
+
+  if (deeplink && openDeeplinkTarget(deeplink)) {
+    return;
+  }
+
   const type = String(notification?.type || '').toUpperCase();
   const reservationId = notification?.reservationId;
   const guesthouseId = notification?.guesthouseId;
@@ -57,6 +169,11 @@ export const openNotificationTarget = async notification => {
     type === 'GUESTHOUSE_CHECKIN_INFO' ||
     type === 'GUESTHOUSE_TODAY_CHECKIN_USER'
   ) {
+    if (!isLoggedInUser()) {
+      showLoginRequiredModal();
+      return;
+    }
+
     if (reservationId) {
       if (isGuesthouseCancellation) {
         navigate('GuesthouseCancelledReceipt', {reservationId});
@@ -76,6 +193,11 @@ export const openNotificationTarget = async notification => {
     type === 'PARTY_INVITATION' ||
     type === 'PARTY_CHECKIN_INFO'
   ) {
+    if (!isLoggedInUser()) {
+      showLoginRequiredModal();
+      return;
+    }
+
     if (reservationId) {
       if (isPartyCancellation) {
         navigate('MeetCancelledReceipt', {reservationId});

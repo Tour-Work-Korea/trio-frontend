@@ -96,6 +96,7 @@ const UserReservationCheck = () => {
       <View style={styles.tabContainer}>
         {TABS.map(tab => (
           <TouchableOpacity
+            activeOpacity={1}
             key={tab.key}
             style={styles.tabButton}
             onPress={() => setActiveTab(tab.key)}

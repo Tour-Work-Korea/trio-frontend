@@ -55,6 +55,7 @@ const PopularEmployList = () => {
 
   const renderTrendingCard = item => (
     <TouchableOpacity
+      activeOpacity={1}
       key={item.id}
       style={[styles.trendingCard, {width: SCREEN_WIDTH * 0.9}]}
       onPress={() => {
@@ -181,6 +182,7 @@ const PopularEmployList = () => {
         <HeaderImg style={styles.headerImg} />
         <View style={styles.headerTitle}>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.backButton}
             onPress={() => navigation.goBack()}>
             <LeftChevron width={28} height={28} />

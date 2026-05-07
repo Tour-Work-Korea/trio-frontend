@@ -63,6 +63,7 @@ export default function UserPastReservations({ data }) {
           <View style={styles.titleRow}>
             <Text style={[FONTS.fs_16_semibold, styles.titleText]}>이용 완료</Text>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.detailButton}
               onPress={() =>
                 navigation.navigate('GuesthousePaymentReceipt', {

@@ -137,6 +137,7 @@ const MeetSearch = () => {
 
     return (
       <TouchableOpacity
+        activeOpacity={1}
         style={styles.itemWrap}
         onPress={() => navigation.navigate('MeetDetail', {partyId: item.id})}>
         <View style={styles.itemTopWrap}>
@@ -148,7 +149,8 @@ const MeetSearch = () => {
                 numberOfLines={1}>
                 {item.placeName}
               </Text>
-              <TouchableOpacity onPress={() => toggleFavorite(item.id)}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={() => toggleFavorite(item.id)}>
                 {isFav ? (
                   <HeartFilled width={20} height={20} />
                 ) : (
@@ -194,6 +196,7 @@ const MeetSearch = () => {
       {/* 헤더 */}
       <View style={styles.header}>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.backButton}
           onPress={() => navigation.goBack()}>
           <ChevronLeft width={24} height={24} />

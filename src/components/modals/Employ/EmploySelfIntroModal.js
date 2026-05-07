@@ -40,7 +40,8 @@ export default function EmploySelfIntroModal({
               <View style={styles.header}>
                 <View />
                 <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
-                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <TouchableOpacity
+                  activeOpacity={1} style={styles.xBtn} onPress={onClose}>
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -75,7 +76,8 @@ export default function EmploySelfIntroModal({
                       textAlignVertical="top"
                     />
                   </View>
-                  <TouchableOpacity onPress={() => setSelfIntro('')}>
+                  <TouchableOpacity
+                    activeOpacity={1} onPress={() => setSelfIntro('')}>
                     <Text style={styles.resetText}>다시쓰기</Text>
                   </TouchableOpacity>
                 </View>

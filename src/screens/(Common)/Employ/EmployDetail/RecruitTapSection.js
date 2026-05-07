@@ -98,6 +98,7 @@ export default function RecruitTapSection({recruit}) {
               style={styles.photoScroll}>
               {recruit?.recruitImages?.map((item, idx) => (
                 <TouchableOpacity
+                  activeOpacity={1}
                   key={idx}
                   onPress={() => {
                     setSelectedImageId(idx);
@@ -128,6 +129,7 @@ export default function RecruitTapSection({recruit}) {
       {/* 탭 메뉴 */}
       <View style={styles.tabContainer}>
         <TouchableOpacity
+          activeOpacity={1}
           style={[styles.tab, activeTab === '모집조건' && styles.activeTab]}
           onPress={() => handleTabPress('모집조건')}>
           <Text
@@ -140,6 +142,7 @@ export default function RecruitTapSection({recruit}) {
         </TouchableOpacity>
 
         <TouchableOpacity
+          activeOpacity={1}
           style={[styles.tab, activeTab === '근무조건' && styles.activeTab]}
           onPress={() => handleTabPress('근무조건')}>
           <Text
@@ -152,6 +155,7 @@ export default function RecruitTapSection({recruit}) {
         </TouchableOpacity>
 
         <TouchableOpacity
+          activeOpacity={1}
           style={[styles.tab, activeTab === '근무지정보' && styles.activeTab]}
           onPress={() => handleTabPress('근무지정보')}>
           <Text

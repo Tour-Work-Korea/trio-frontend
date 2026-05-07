@@ -342,7 +342,7 @@ const GuesthouseList = () => {
     return (
       <View style={styles.card}>
         <TouchableOpacity
-          activeOpacity={0.8}
+          activeOpacity={1}
           onPress={() => handlePressGuesthouse(item)}
         >
           <View style={styles.imgRatingContainer}>
@@ -381,6 +381,7 @@ const GuesthouseList = () => {
                 ))}
             </ScrollView>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.heartIcon}
               onPress={() => handleToggleFavorite(item)}
             >
@@ -392,7 +393,7 @@ const GuesthouseList = () => {
             </TouchableOpacity>
           </View>
           <TouchableOpacity
-            activeOpacity={0.8}
+            activeOpacity={1}
             style={styles.cardInfoPressable}
             onPress={() => handlePressGuesthouse(item)}
           >
@@ -427,6 +428,7 @@ const GuesthouseList = () => {
         </Text>
       </View>
       <TouchableOpacity
+        activeOpacity={1}
         style={styles.searchContainer}
         onPress={() => {
           navigation.navigate('GuesthouseSearch', {
@@ -446,6 +448,7 @@ const GuesthouseList = () => {
 
       <View style={styles.selectRow}>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.dateContainer}
           onPress={() => {
             setTempDateGuest({checkIn, checkOut, adultCount, childCount});
@@ -457,6 +460,7 @@ const GuesthouseList = () => {
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.personRoomContainer}
           onPress={() => {
             setTempDateGuest({checkIn, checkOut, adultCount, childCount});
@@ -464,9 +468,7 @@ const GuesthouseList = () => {
           }}>
           <Person width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
-            {childCount > 0
-              ? `성인 ${adultCount}, 아동 ${childCount}`
-              : `인원 ${adultCount}`}
+            {`인원 ${adultCount + childCount}`}
           </Text>
         </TouchableOpacity>
       </View>
@@ -491,6 +493,7 @@ const GuesthouseList = () => {
           <View style={styles.guesthouseListHeader}>
             <View style={styles.filterContainer}>
               <TouchableOpacity
+                activeOpacity={1}
                 style={styles.filterButtonContainer}
                 onPress={() => {
                   setFilterModalVisible(true);
@@ -512,6 +515,7 @@ const GuesthouseList = () => {
               </ScrollView>
             </View>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.sortContainer}
               onPress={() => setSortModalVisible(true)}>
               <SortIcon width={20} height={20} />
@@ -551,6 +555,7 @@ const GuesthouseList = () => {
       {!isMapView && (
         <View style={styles.mapButtonContainer}>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.mapButton}
             onPress={() => setIsMapView(true)}
           >

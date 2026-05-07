@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { 
-  View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder, 
+import {
+  View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder,
   Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -49,7 +49,7 @@ const UserGuesthouseReviewForm = () => {
   const starSpacing = 8; // 별 사이 간격(px)
   const totalStars = 5;
   const [rating, setRating] = useState(0);
-  
+
   const [containerX, setContainerX] = useState(0);
   const ratingContainerRef = useRef(null);
 
@@ -119,8 +119,8 @@ const UserGuesthouseReviewForm = () => {
   };
 
   return (
-    <KeyboardAvoidingView 
-      style={{ flex: 1 }} 
+    <KeyboardAvoidingView
+      style={{ flex: 1 }}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 80 : 0}
     >
@@ -184,7 +184,8 @@ const UserGuesthouseReviewForm = () => {
             directionalLockEnabled
           >
             {images.length < 5 && (
-              <TouchableOpacity style={styles.uploadBtn} onPress={handleAddImage}>
+              <TouchableOpacity
+                activeOpacity={1} style={styles.uploadBtn} onPress={handleAddImage}>
                 <PlusImg width={28} height={28} />
               </TouchableOpacity>
             )}
@@ -195,7 +196,8 @@ const UserGuesthouseReviewForm = () => {
                   source={{ uri: img }}
                   style={styles.reviewImage}
                 />
-                <TouchableOpacity 
+                <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.xbutton}
                   onPress={() => {
                     setImages(prev => prev.filter((_, i) => i !== idx));
@@ -203,7 +205,7 @@ const UserGuesthouseReviewForm = () => {
                 >
                   <XBtn width={18} height={18}/>
                 </TouchableOpacity>
-              </View>    
+              </View>
             ))}
           </ScrollView>
         </View>
@@ -225,7 +227,8 @@ const UserGuesthouseReviewForm = () => {
             value={reviewText}
             onChangeText={setReviewText}
           />
-          <TouchableOpacity onPress={() => setReviewText('')}>
+          <TouchableOpacity
+            activeOpacity={1} onPress={() => setReviewText('')}>
             <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
           </TouchableOpacity>
         </View>

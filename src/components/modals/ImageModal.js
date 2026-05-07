@@ -55,6 +55,7 @@ const ImageModal = ({visible, title, images, onClose, selectedImageIndex}) => {
             {title}
           </Text>
           <TouchableOpacity
+            activeOpacity={1}
             onPress={onClose}
             style={styles.headerClose}
             hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
@@ -79,6 +80,7 @@ const ImageModal = ({visible, title, images, onClose, selectedImageIndex}) => {
           contentContainerStyle={styles.imageScrollContent}>
           {imageList.map((item, index) => (
             <TouchableOpacity
+              activeOpacity={1}
               key={item.id ?? `${item.imageUrl ?? item}-${index}`}
               onPress={() =>
                 setCurrentImage({

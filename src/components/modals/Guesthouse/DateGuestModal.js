@@ -31,6 +31,16 @@ import { COLORS } from '@constants/colors';
 
 const isLayoutAnimationSupported = Platform.OS !== 'android';
 
+const getInitialGuestCount = (adultCount, childCount) => {
+  const adult = Number(adultCount);
+  const child = Number(childCount);
+  const total =
+    (Number.isFinite(adult) ? adult : 1)
+    + (Number.isFinite(child) ? child : 0);
+
+  return Math.max(1, total);
+};
+
 const DateGuestModal = ({
   visible,
   onClose,
@@ -41,8 +51,9 @@ const DateGuestModal = ({
   initChildGuestCount,
 }) => {
   // 인원
-  const [adultCount, setAdultCount] = useState(initAdultGuestCount);
-  const [childCount, setChildCount] = useState(initChildGuestCount);
+  const [guestCount, setGuestCount] = useState(
+    getInitialGuestCount(initAdultGuestCount, initChildGuestCount),
+  );
   // 달력
   const [checkInDate, setCheckInDate] = useState(initCheckInDate);
   const [checkOutDate, setCheckOutDate] = useState(initCheckOutDate);
@@ -51,8 +62,9 @@ const DateGuestModal = ({
   useEffect(() => {
     setCheckInDate(initCheckInDate);
     setCheckOutDate(initCheckOutDate);
-    setAdultCount(initAdultGuestCount);
-    setChildCount(initChildGuestCount);
+    setGuestCount(
+      getInitialGuestCount(initAdultGuestCount, initChildGuestCount),
+    );
   }, [
     visible,
     initCheckInDate,
@@ -124,21 +136,16 @@ const DateGuestModal = ({
     setCurrentMonth(dayjs(currentMonth).add(1, 'month').format("YYYY-MM-DD"));
   };
 
-  // 날짜 텍스트 출력 
+  // 날짜 텍스트 출력
   const formattedSelectedText = checkInDate && checkOutDate
   ? `${dayjs(checkInDate).format("M.D(dd)")} - ${dayjs(checkOutDate).format("M.D(dd)")}, ${dayjs(checkOutDate).diff(dayjs(checkInDate), "day")}박`
   : "날짜를 선택해주세요";
 
   // 인원
-  const increaseAdult = () => setAdultCount(adultCount + 1);
-  const decreaseAdult = () => setAdultCount(Math.max(1, adultCount - 1));
+  const increaseGuest = () => setGuestCount(guestCount + 1);
+  const decreaseGuest = () => setGuestCount(Math.max(1, guestCount - 1));
 
-  const increaseChild = () => setChildCount(childCount + 1);
-  const decreaseChild = () => setChildCount(Math.max(0, childCount - 1));
-
-  const formattedGuestText = childCount > 0
-  ? `성인 ${adultCount}, 아동 ${childCount}`
-  : `성인 ${adultCount}`;
+  const formattedGuestText = `인원 ${guestCount}`;
 
   // 아코디언 효과
   const [isGuestOpen, setIsGuestOpen] = useState(false);
@@ -171,7 +178,8 @@ const DateGuestModal = ({
         <View style={styles.modal}>
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold, styles.title]}>날짜, 인원 선택</Text>
-            <TouchableOpacity 
+            <TouchableOpacity
+              activeOpacity={1}
               onPress={onClose}
               style={styles.closeButton}
             >
@@ -183,6 +191,7 @@ const DateGuestModal = ({
           {/* 날짜 */}
           <View style={styles.section}>
             <TouchableOpacity
+              activeOpacity={1}
                 style={styles.sectionText}
                 onPress={toggleDateSection}
             >
@@ -193,11 +202,13 @@ const DateGuestModal = ({
               <View style={styles.selectContainer}>
                 <View style={styles.calendarHeader}>
                     <View style={styles.calendarHeaderText}>
-                        <TouchableOpacity onPress={goPrevMonth}>
+                        <TouchableOpacity
+                          activeOpacity={1} onPress={goPrevMonth}>
                             <LeftArrowIcon />
                         </TouchableOpacity>
                         <Text style={[FONTS.fs_16_semibold, styles.monthText]}>{dayjs(currentMonth).format("YYYY년 M월")}</Text>
-                        <TouchableOpacity onPress={goNextMonth}>
+                        <TouchableOpacity
+                          activeOpacity={1} onPress={goNextMonth}>
                             <RightArrowIcon />
                         </TouchableOpacity>
                     </View>
@@ -217,7 +228,7 @@ const DateGuestModal = ({
                     current={currentMonth}
                     renderHeader={() => null}
                     key={currentMonth}
-                    hideArrows={true}        
+                    hideArrows={true}
                     theme={{
                         textDayFontFamily: 'Pretendard-Medium',
                         textDayFontSize: 14,
@@ -231,6 +242,7 @@ const DateGuestModal = ({
           {/* 인원 */}
           <View style={styles.section}>
             <TouchableOpacity
+              activeOpacity={1}
                 style={styles.sectionText}
                 onPress={toggleGuestSection}
             >
@@ -240,29 +252,17 @@ const DateGuestModal = ({
             {isGuestOpen && (
               <View style={styles.selectContainer}>
                   <View style={styles.guestContainer}>
-                      <Text style={FONTS.fs_16_semibold}>성인</Text>
+                      <Text style={FONTS.fs_16_semibold}>인원</Text>
                       <View style={styles.selectGuest}>
-                          <TouchableOpacity style={styles.pmIconContainer} onPress={decreaseAdult}>
+                          <TouchableOpacity
+                            activeOpacity={1} style={styles.pmIconContainer} onPress={decreaseGuest}>
                               <MinusIcon width={24} height={24}/>
                           </TouchableOpacity>
                           <View style={styles.guestText}>
-                              <Text style={FONTS.fs_14_medium}>{adultCount}</Text>
+                              <Text style={FONTS.fs_14_medium}>{guestCount}</Text>
                           </View>
-                          <TouchableOpacity style={styles.pmIconContainer} onPress={increaseAdult}>
-                              <PlusIcon width={24} height={24}/>
-                          </TouchableOpacity>
-                      </View>
-                  </View>
-                  <View style={styles.guestContainer}>
-                      <Text style={FONTS.fs_16_semibold}>아동</Text>
-                      <View style={styles.selectGuest}>
-                          <TouchableOpacity style={styles.pmIconContainer} onPress={decreaseChild}>
-                              <MinusIcon width={24} height={24}/>
-                          </TouchableOpacity>
-                          <View style={styles.guestText}>
-                              <Text style={FONTS.fs_14_medium}>{childCount}</Text>
-                          </View>
-                          <TouchableOpacity style={styles.pmIconContainer} onPress={increaseChild}>
+                          <TouchableOpacity
+                            activeOpacity={1} style={styles.pmIconContainer} onPress={increaseGuest}>
                               <PlusIcon width={24} height={24}/>
                           </TouchableOpacity>
                       </View>
@@ -274,10 +274,10 @@ const DateGuestModal = ({
 
           {/* 적용 버튼 */}
           <View style={styles.applyButton}>
-            <ButtonScarlet 
-                title="적용하기" 
+            <ButtonScarlet
+                title="적용하기"
                 onPress={() => {
-                    onApply(checkInDate, checkOutDate, adultCount, childCount);
+                    onApply(checkInDate, checkOutDate, guestCount, 0);
                 }}
             />
           </View>
@@ -357,7 +357,7 @@ const styles = StyleSheet.create({
   selectedText: {
     color: COLORS.primary_blue,
   },
-  
+
   // 선택
   panel: {
     // overflow: 'hidden',
@@ -404,7 +404,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calendarHeaderText: {
-    flexDirection: "row", 
+    flexDirection: "row",
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
@@ -413,7 +413,7 @@ const styles = StyleSheet.create({
   monthText: {
   },
   dayTextContainer: {
-    flexDirection: "row", 
+    flexDirection: "row",
     alignSelf: 'center',
     width: '95%',
   },
@@ -422,7 +422,7 @@ const styles = StyleSheet.create({
     textAlign: "center",
     color: COLORS.grayscale_400,
   },
-  
+
   applyButton: {
     position: 'absolute',
     bottom: 40,

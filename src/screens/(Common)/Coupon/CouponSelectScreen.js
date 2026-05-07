@@ -145,7 +145,7 @@ const CouponSelectScreen = ({route}) => {
                   styles.couponCard,
                   isSelected && styles.selectedCouponCard,
                 ]}
-                activeOpacity={0.9}
+                activeOpacity={1}
                 onPress={() => handleSelectCoupon(coupon)}>
                 <View style={styles.cardTopRow}>
                   <View

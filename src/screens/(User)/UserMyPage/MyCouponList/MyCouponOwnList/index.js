@@ -78,7 +78,7 @@ const MyCouponOwnList = () => {
           </Text>
           <TouchableOpacity
             style={styles.registerButton}
-            activeOpacity={0.85}
+            activeOpacity={1}
             onPress={() => navigation.navigate('MyCouponRegister')}
           >
             <PlusIcon width={16} height={16}/>
@@ -108,7 +108,7 @@ const MyCouponOwnList = () => {
         </Text>
         <TouchableOpacity
           style={styles.registerButton}
-          activeOpacity={0.85}
+          activeOpacity={1}
           onPress={() => navigation.navigate('MyCouponRegister')}
         >
           <PlusIcon width={16} height={16}/>

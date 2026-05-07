@@ -11,17 +11,19 @@ import {
   Platform,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {
+  BannerAd,
+  BannerAdSize,
+  TestIds,
+} from 'react-native-google-mobile-ads';
 
 import styles from './Home.styles';
 import Banner from './Banner';
 import Guesthouses from './Guesthouses';
-import Employ from './Employs';
 import TodayGuesthouses from './TodayGuesthouses';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import userEmployApi from '@utils/api/userEmployApi';
 import adminApi from '@utils/api/adminApi';
-import useUserStore from '@stores/userStore';
 import {COLORS} from '@constants/colors';
 import Meets from './Meets';
 import userMeetApi from '@utils/api/userMeetApi';
@@ -40,32 +42,32 @@ const TABS = [
   // 임시
   {key: 'STAY', label: '게하'},
   {key: 'MEET', label: '콘텐츠'},
-  
-  {key: 'EMPLOY', label: '스탭'},
 ];
 const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
+const mainPageBannerAdUnitId = __DEV__
+  ? TestIds.BANNER
+  : Platform.select({
+      ios: 'ca-app-pub-6098454400067335/4619471702',
+      android: 'ca-app-pub-6098454400067335/5920208998',
+    });
+
 const HomeMain = () => {
   const navigation = useNavigation();
   const [activeTab, setActiveTab] = useState(TABS[0].key);
 
   const [guesthouseList, setGuesthouseList] = useState([]);
-  const [employList, setEmployList] = useState([]);
   const [eventList, setEventList] = useState([]);
   const [bannerList, setBannerList] = useState([]);
 
   const [isGHLoading, setIsGHLoading] = useState(true);
-  const [isEmLoading, setIsEmLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [isMeetLoading, setIsMeetLoading] = useState(true);
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchedGuesthouses, setSearchedGuesthouses] = useState([]);
   const [isSearchFocused, setIsSearchFocused] = useState(false);
 
-  const userRole = useUserStore.getState()?.userRole;
-
   const scrollRef = useRef(null);
   const stayYRef = useRef(0);
-  const employYRef = useRef(0);
   const meetYRef = useRef(0);
   const searchDebounceRef = useRef(null);
   const searchRequestIdRef = useRef(0);
@@ -74,15 +76,6 @@ const HomeMain = () => {
     Keyboard.dismiss();
     setIsSearchFocused(false);
   }, []);
-
-  useFocusEffect(
-    useCallback(() => {
-      tryFetchEmploys();
-      tryFetchGuesthouses();
-      tryFetchBanners();
-      tryFetchMeets();
-    }, []),
-  );
 
   const tryFetchBanners = useCallback(async () => {
     try {
@@ -108,21 +101,6 @@ const HomeMain = () => {
     }
   }, []);
 
-  const tryFetchEmploys = useCallback(async () => {
-    try {
-      const response = await userEmployApi.getRecruits(
-        {page: 0, size: 3},
-        // userRole === 'USER',
-      );
-      setEmployList(response.data.content || []);
-    } catch (error) {
-      console.warn('공고 조회 실패', error);
-      setEmployList([]);
-    } finally {
-      setIsEmLoading(false);
-    }
-  }, []);
-
   const tryFetchMeets = useCallback(async () => {
     try {
       const {data} = await userMeetApi.getPopularParties();
@@ -137,6 +115,14 @@ const HomeMain = () => {
       setIsMeetLoading(false);
     }
   }, []);
+
+  useFocusEffect(
+    useCallback(() => {
+      tryFetchGuesthouses();
+      tryFetchBanners();
+      tryFetchMeets();
+    }, [tryFetchBanners, tryFetchGuesthouses, tryFetchMeets]),
+  );
 
   useEffect(() => {
     return () => {
@@ -209,7 +195,6 @@ const HomeMain = () => {
     requestAnimationFrame(() => {
       if (tabKey === 'MEET') scrollToY(meetYRef.current);
       if (tabKey === 'STAY') scrollToY(stayYRef.current);
-      if (tabKey === 'EMPLOY') scrollToY(employYRef.current);
     });
   };
 
@@ -263,7 +248,7 @@ const HomeMain = () => {
                   return (
                     <TouchableOpacity
                       key={key}
-                      activeOpacity={0.8}
+                      activeOpacity={1}
                       onPress={() => {
                         const guesthouseId =
                           guesthouse?.id || guesthouse?.guesthouseId;
@@ -334,9 +319,9 @@ const HomeMain = () => {
 
             return (
               <TouchableOpacity
+                activeOpacity={1}
                 key={t.key}
                 onPress={() => handleTabPress(t.key)}
-                activeOpacity={0.8}
                 style={[headerStyles.tabBtn, isActive && headerStyles.tabBtnActive]}>
                 <Text
                   style={[
@@ -350,9 +335,9 @@ const HomeMain = () => {
           })}
         </View>
         <TouchableOpacity
+          activeOpacity={1}
           key={today.key}
           onPress={() => handleTabPress(today.key)}
-          activeOpacity={0.8}
           style={[
             headerStyles.tabBtn,
             activeTab === today.key && headerStyles.tabBtnActive,
@@ -369,7 +354,7 @@ const HomeMain = () => {
     </View>
   );
 
-  if (isBannerLoading || isEmLoading || isMeetLoading || isGHLoading) {
+  if (isBannerLoading || isMeetLoading || isGHLoading) {
     return <Loading />;
   }
   return (
@@ -429,13 +414,11 @@ const HomeMain = () => {
                 <Meets events={eventList} setEventList={setEventList} />
               </View>
 
-              {/* 채용 섹션 */}
-              <View
-                onLayout={e => {
-                  employYRef.current = e.nativeEvent.layout.y;
-                }}
-                style={styles.boxContainer}>
-                <Employ jobs={employList} setEmployList={setEmployList} />
+              <View style={styles.adBannerContainer}>
+                <BannerAd
+                  unitId={mainPageBannerAdUnitId}
+                  size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                />
               </View>
             </>
           </ScrollView>

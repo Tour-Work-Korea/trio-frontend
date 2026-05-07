@@ -154,7 +154,8 @@ const GuesthouseFilterModal = ({
           {/* 헤더 */}
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold]}>필터</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+            <TouchableOpacity
+              activeOpacity={1} style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24}/>
             </TouchableOpacity>
           </View>
@@ -163,6 +164,7 @@ const GuesthouseFilterModal = ({
           <View style={styles.tabRow}>
             {tabList.map((tab) => (
               <TouchableOpacity
+                activeOpacity={1}
                 key={tab.key}
                 onPress={() => handleTabPress(tab.key)}
               >
@@ -249,6 +251,7 @@ const GuesthouseFilterModal = ({
                     const isSelected = selectedTags.includes(tag);
                     return (
                         <TouchableOpacity
+                          activeOpacity={1}
                           key={tag}
                           onPress={() => {
                               if (isSelected) {
@@ -293,6 +296,7 @@ const GuesthouseFilterModal = ({
                 const isSelected = selectedRoomType.includes(room);
                 return (
                     <TouchableOpacity
+                      activeOpacity={1}
                     key={room}
                     onPress={() => {
                         if (isSelected) {
@@ -339,6 +343,7 @@ const GuesthouseFilterModal = ({
                 const isSelected = selectedFacilityIds.includes(facility.id);
                 return (
                     <TouchableOpacity
+                      activeOpacity={1}
                       key={facility.id}
                       onPress={() => {
                           if (isSelected) {
@@ -371,6 +376,7 @@ const GuesthouseFilterModal = ({
             {/* 예약 가능 게하 보기 */}
             <View style={styles.checkBoxSection}>
                 <TouchableOpacity
+                  activeOpacity={1}
                     onPress={() => {
                     setOnlyAvailable(prev => !prev);
                     setIsDirty(true);

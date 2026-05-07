@@ -120,7 +120,7 @@ const MeetMain = () => {
     const isFav = !!item.isLiked;
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={1}
         key={String(item.partyId)}
         style={styles.partyCard}
         onPress={() =>
@@ -135,7 +135,8 @@ const MeetMain = () => {
                 numberOfLines={1}>
                 {item.partyTitle}
               </Text>
-              <TouchableOpacity onPress={() => handleToggleFavorite(item)}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={() => handleToggleFavorite(item)}>
                 {isFav ? (
                   <HeartFilled width={20} height={20} />
                 ) : (
@@ -180,7 +181,7 @@ const MeetMain = () => {
           </Text>
           <TouchableOpacity
             style={styles.moveGuesthouseButton}
-            activeOpacity={0.7}
+            activeOpacity={1}
             onPress={handleMoveGuesthouse}>
             <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
               게하 보러가기
@@ -216,7 +217,7 @@ const MeetMain = () => {
         </Text>
         <TouchableOpacity
           style={styles.searchBox}
-          activeOpacity={0.8}
+          activeOpacity={1}
           onPress={() => navigation.navigate('MeetSearch')}>
           <SearchIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_regular, styles.searchPlaceholder]}>
@@ -240,6 +241,7 @@ const MeetMain = () => {
               <View style={styles.filterHeader}>
                 <View style={styles.filterRow}>
                   <TouchableOpacity
+                    activeOpacity={1}
                     style={styles.filterButton}
                     onPress={() => setFilterModalVisible(true)}>
                     <FilterIcon width={18} height={18} />
@@ -260,6 +262,7 @@ const MeetMain = () => {
                   </ScrollView>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.sortButton}
                   onPress={() => setSortModalVisible(true)}>
                   <SortIcon width={20} height={20} />

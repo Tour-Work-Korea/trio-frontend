@@ -43,7 +43,7 @@ const Favorite = () => {
           return (
             <TouchableOpacity
               key={tab.key}
-              activeOpacity={0.8}
+              activeOpacity={1}
               style={[styles.tabButton, active && styles.tabButtonActive]}
               onPress={() => onTabPress(index)}>
               <Text

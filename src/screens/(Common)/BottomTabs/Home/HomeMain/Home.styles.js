@@ -12,6 +12,13 @@ export default StyleSheet.create({
   boxContainer: {
     marginVertical: 2,
   },
+  adBannerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 12,
+    paddingBottom: 16,
+  },
   todayContainer: {
     flex: 1,
     marginVertical: 2,
