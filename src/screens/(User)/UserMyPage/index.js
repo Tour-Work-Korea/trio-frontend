@@ -1,11 +1,6 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {
-  BannerAd,
-  BannerAdSize,
-  TestIds,
-} from 'react-native-google-mobile-ads';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
@@ -28,13 +23,6 @@ import {isUserNotification} from '@utils/notifications';
 
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
-
-const myPageBannerAdUnitId = __DEV__
-  ? TestIds.BANNER
-  : Platform.select({
-      ios: 'ca-app-pub-6098454400067335/4619471702',
-      android: 'ca-app-pub-6098454400067335/5920208998',
-    });
 
 const UserMyPage = () => {
   const navigation = useNavigation();
@@ -124,9 +112,10 @@ const UserMyPage = () => {
 
         <View style={styles.topBarRightIcons}>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.topBarIconButton}
             onPress={() => navigation.navigate('NotificationCenter')}
-            activeOpacity={0.8}>
+          >
             <BellIcon width={20} height={20} />
             {unreadCount > 0 ? (
               <View style={styles.unreadBadge}>
@@ -137,9 +126,10 @@ const UserMyPage = () => {
             ) : null}
           </TouchableOpacity>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.topBarIconButton}
             onPress={() => navigation.navigate('Setting')}
-            activeOpacity={0.8}>
+          >
             <SettingIcon width={22} height={22} />
           </TouchableOpacity>
         </View>
@@ -188,6 +178,7 @@ const UserMyPage = () => {
                     </View>
                   </View>
                   <TouchableOpacity
+                    activeOpacity={1}
                     style={styles.profileEdit}
                     onPress={goToEditProfile}>
                     <Text style={[FONTS.fs_14_medium, styles.profileEditText]}>
@@ -202,6 +193,7 @@ const UserMyPage = () => {
           {/* 유저 프로모션 섹션 */}
           <View style={styles.promoContainer}>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.promoSection}
               onPress={() => navigation.navigate('UserGuesthouseReview')}
             >
@@ -212,6 +204,7 @@ const UserMyPage = () => {
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.promoSection}
               onPress={() => navigation.navigate('MyCouponList')}
             >
@@ -277,18 +270,13 @@ const UserMyPage = () => {
           </View>
         </View>
       </ScrollView>
-      <View style={styles.adBannerContainer}>
-        <BannerAd
-          unitId={myPageBannerAdUnitId}
-          size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-        />
-      </View>
     </View>
   );
 };
 
 const MenuItem = ({IconComponent, label, onPress}) => (
-  <TouchableOpacity style={styles.menuItem} onPress={onPress}>
+  <TouchableOpacity
+    activeOpacity={1} style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={20} height={20} />

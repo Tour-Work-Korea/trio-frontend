@@ -88,6 +88,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
               {getReservationStatusTitle(item)}
             </Text>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.detailButton}
               onPress={() =>
                 navigation.navigate('GuesthousePaymentReceipt', {

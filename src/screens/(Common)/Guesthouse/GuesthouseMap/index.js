@@ -74,7 +74,7 @@ const GuesthouseMap = ({route}) => {
         </MapView>
 
         <TouchableOpacity
-          activeOpacity={0.8}
+          activeOpacity={1}
           style={styles.addressCard}
           onPress={handleCopyAddress}>
           <CopyIcon width={24} height={24} />

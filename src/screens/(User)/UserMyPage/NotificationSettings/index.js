@@ -100,7 +100,7 @@ const NotificationSettings = () => {
 
         <TouchableOpacity
           style={styles.benefitRow}
-          activeOpacity={0.8}
+          activeOpacity={1}
           disabled={submitting}
           onPress={() => toggleSetting('isEventEnabled')}>
           <Text style={styles.benefitTitle}>이벤트/혜택 알림</Text>

@@ -289,6 +289,7 @@ const MeetCancelConfirm = () => {
             <Text style={[FONTS.fs_16_semibold, {marginTop: 12}]}>취소 사유</Text>
 
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.dropdown}
               onPress={() => setReasonOpen(!reasonOpen)}
             >
@@ -312,6 +313,7 @@ const MeetCancelConfirm = () => {
                 {reasons.map((r, index) => (
                   <React.Fragment key={r}>
                     <TouchableOpacity
+                      activeOpacity={1}
                       style={styles.dropdownItem}
                       onPress={() => {
                         setSelectedReason(r);
@@ -347,6 +349,7 @@ const MeetCancelConfirm = () => {
           {/* 약관 동의 */}
           {/* <View style={styles.agreeRow}>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.agreeBox}
               onPress={() => setChecked(!checked)}
             >
@@ -371,7 +374,8 @@ const MeetCancelConfirm = () => {
                 규정에 동의합니다.
               </Text>
             </TouchableOpacity>
-            <TouchableOpacity onPress={() => setTermsOpen(true)}>
+            <TouchableOpacity
+              activeOpacity={1} onPress={() => setTermsOpen(true)}>
               <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
             </TouchableOpacity>
           </View> */}
@@ -389,6 +393,7 @@ const MeetCancelConfirm = () => {
 
           {/* 하단 버튼 */}
           <TouchableOpacity
+            activeOpacity={1}
             style={[
               styles.submitButton,
               (!selectedReason || cancelSubmitting) && {

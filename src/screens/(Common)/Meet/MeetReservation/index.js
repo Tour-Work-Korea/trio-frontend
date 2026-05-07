@@ -297,7 +297,7 @@ const MeetReservation = () => {
                 styles.guideAgreeBox,
                 checked && styles.guideAgreeBoxActive,
               ]}
-              activeOpacity={0.8}
+              activeOpacity={1}
               onPress={handleToggleGuideAgreement}>
               {checked ? (
                 <View style={styles.guideCheckedCircle}>
@@ -406,7 +406,8 @@ const MeetReservation = () => {
 
           {/* 약관 동의 */}
           <View style={styles.agreeRowContainer}>
-            <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
+            <TouchableOpacity
+              activeOpacity={1} onPress={toggleAll} style={styles.agreeRowTitle}>
               {agreeAll ? (
                 <View style={styles.checkedBox}>
                   {' '}
@@ -424,6 +425,7 @@ const MeetReservation = () => {
             <View style={styles.agreeRowConent}>
               <View style={styles.agreeRow}>
                 <TouchableOpacity
+                  activeOpacity={1}
                   onPress={() => toggleAgreement('personalInfo')}
                   style={styles.agreeRow}>
                   {agreements.personalInfo ? (
@@ -445,6 +447,7 @@ const MeetReservation = () => {
                   개인정보 수집 및 이용에 동의합니다.
                 </Text>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.seeMore}
                   onPress={() => openTermModal('personalInfo')}>
                   <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
@@ -455,6 +458,7 @@ const MeetReservation = () => {
 
               <View style={styles.agreeRow}>
                 <TouchableOpacity
+                  activeOpacity={1}
                   onPress={() => toggleAgreement('thirdParty')}
                   style={styles.agreeRow}>
                   {agreements.thirdParty ? (
@@ -476,6 +480,7 @@ const MeetReservation = () => {
                   개인정보 제3자 제공에 동의합니다.
                 </Text>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.seeMore}
                   onPress={() => openTermModal('thirdParty')}>
                   <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>

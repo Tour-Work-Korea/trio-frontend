@@ -91,7 +91,8 @@ const UserGuesthouseReviewList = () => {
               <StarIcon width={14} height={14} />
               <Text style={[FONTS.fs_14_semibold, {color: COLORS.grayscale_0}]}>{item.reviewRating}</Text>
             </View>
-            <TouchableOpacity onPress={() => handleDeleteReview(item.reviewId)}>
+            <TouchableOpacity
+              activeOpacity={1} onPress={() => handleDeleteReview(item.reviewId)}>
               <TrashIcon width={24} height={24} />
             </TouchableOpacity>
           </View>

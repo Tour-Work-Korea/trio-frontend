@@ -44,6 +44,8 @@ const regionIcons = {
   제주서부: JejuWest,
 };
 
+const getRegionDisplayName = regionName => regionName.replace('제주', '');
+
 const GuesthouseSearch = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -239,7 +241,7 @@ const GuesthouseSearch = () => {
           </View>
         )}
         <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
-          {subRegion.name}
+          {getRegionDisplayName(subRegion.name)}
         </Text>
       </TouchableOpacity>
     );
@@ -338,9 +340,7 @@ const GuesthouseSearch = () => {
             onPress={() => setDateGuestModalVisible(true)}>
             <Person width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.personText]}>
-              {childCount > 0
-                ? `성인 ${adultCount}, 아동 ${childCount}`
-                : `인원 ${adultCount}`}
+              {`인원 ${adultCount + childCount}`}
             </Text>
           </TouchableOpacity>
         </View>

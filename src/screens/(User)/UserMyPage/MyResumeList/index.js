@@ -103,6 +103,7 @@ const MyResumeList = () => {
 
   const renderAddResumeButton = () => (
     <TouchableOpacity
+      activeOpacity={1}
       style={[styles.addButton, styles.addButtonLocation]}
       onPress={handleAddResume}>
       <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
@@ -116,6 +117,7 @@ const MyResumeList = () => {
     <ScrollView contentContainerStyle={styles.section}>
       {resumes?.map(item => (
         <TouchableOpacity
+          activeOpacity={1}
           key={item.resumeId}
           style={styles.resumeItem}
           onPress={() => {
@@ -142,6 +144,7 @@ const MyResumeList = () => {
               </View>
               <View style={styles.editContainer}>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.editButton}
                   onPress={() =>
                     navigation.navigate('ResumeDetail', {
@@ -157,6 +160,7 @@ const MyResumeList = () => {
                   />
                 </TouchableOpacity>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.editButton}
                   onPress={() => handleDeletePosting(item.resumeId)}>
                   <TrashIcon

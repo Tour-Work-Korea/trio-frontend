@@ -83,7 +83,8 @@ export default function EmployExperienceModal({
               <View style={styles.header}>
                 <View />
                 <Text style={[FONTS.fs_20_semibold]}>경력</Text>
-                <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+                <TouchableOpacity
+                  activeOpacity={1} style={styles.xBtn} onPress={onClose}>
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -124,6 +125,7 @@ export default function EmployExperienceModal({
                     </View>
                     <View style={styles.dateInputBox}>
                       <TouchableOpacity
+                        activeOpacity={1}
                         style={[styles.inputBox, {flex: 1}]}
                         onPress={() => handleDateInputPress('startDate')}>
                         <Text style={styles.textInput}>
@@ -132,6 +134,7 @@ export default function EmployExperienceModal({
                         <Calendar width={24} />
                       </TouchableOpacity>
                       <TouchableOpacity
+                        activeOpacity={1}
                         style={[styles.inputBox, {flex: 1}]}
                         onPress={() => handleDateInputPress('endDate')}>
                         <Text style={styles.textInput}>

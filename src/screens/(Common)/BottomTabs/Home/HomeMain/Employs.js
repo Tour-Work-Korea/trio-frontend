@@ -21,6 +21,7 @@ export default function Employs({jobs = [], setEmployList}) {
       <View style={[styles.titleSection, {marginBottom: 10}]}>
         <Text style={styles.sectionTitle}>추천 일자리</Text>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularEmployList');

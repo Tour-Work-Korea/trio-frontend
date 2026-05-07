@@ -61,6 +61,7 @@ export default function UserCancelledReservations({ data }) {
           <View style={styles.titleRow}>
             <Text style={[FONTS.fs_16_semibold, styles.titleText]}>예약 취소</Text>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.detailButton}
               onPress={() =>
                 navigation.navigate('GuesthouseCancelledReceipt', {

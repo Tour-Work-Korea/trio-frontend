@@ -531,6 +531,7 @@ const GuesthousePaymentReceipt = () => {
     <View style={styles.container}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content}>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.xBtn}
           onPress={handleClose}
         >
@@ -556,22 +557,26 @@ const GuesthousePaymentReceipt = () => {
 
         {/* 액션 버튼 4개 */}
         <View style={styles.actionRow}>
-          <TouchableOpacity style={styles.actionBtn} onPress={handleCall}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.actionBtn} onPress={handleCall}>
             <PhoneIcon width={20} height={20}/>
             <Text style={[FONTS.fs_12_medium, styles.actionText]}>숙소문의</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn} onPress={handleCopyAddress}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.actionBtn} onPress={handleCopyAddress}>
             <CopyIcon width={20} height={20}/>
             <Text style={[FONTS.fs_12_medium, styles.actionText]}>주소복사</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn} onPress={handleOpenMap}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.actionBtn} onPress={handleOpenMap}>
             <MapIcon width={20} height={20}/>
             <Text style={[FONTS.fs_12_medium, styles.actionText]}>지도보기</Text>
           </TouchableOpacity>
 
-          <TouchableOpacity style={styles.actionBtn} onPress={handleFindWay}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.actionBtn} onPress={handleFindWay}>
             <RouteIcon width={20} height={20}/>
             <Text style={[FONTS.fs_12_medium, styles.actionText]}>길찾기</Text>
           </TouchableOpacity>
@@ -637,6 +642,7 @@ const GuesthousePaymentReceipt = () => {
                 {data.reservation.number}
               </Text>
               <TouchableOpacity
+                activeOpacity={1}
                 style={styles.copyBtn}
                 onPress={() => handleCopy(data.reservation.number, '예약번호 복사했어')}>
                 <Text style={[FONTS.fs_12_medium, styles.copyBtnText]}>

@@ -59,7 +59,7 @@ const UserMeetReservationCancelled = () => {
       <View style={styles.listStylesContainer}>
         <TouchableOpacity
           style={styles.card}
-          activeOpacity={0.9}
+          activeOpacity={1}
           onPress={() =>
             navigation.navigate('MeetCancelledReceipt', {
               reservationId: item.reservationId,

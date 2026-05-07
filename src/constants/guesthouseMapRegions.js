@@ -2,9 +2,9 @@ export const GUESTHOUSE_MAP_BOUNDS = {
   ALL: {
     id: 0,
     name: '제주전체',
-    swLat: 33.1,
+    swLat: 32.98,
     swLng: 126.08,
-    neLat: 34.0,
+    neLat: 33.86,
     neLng: 127.0,
   },
   NORTH: {

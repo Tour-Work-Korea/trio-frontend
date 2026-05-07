@@ -202,6 +202,7 @@ const ApplicantForm = () => {
           <View style={styles.body}>
             {resumes?.map(item => (
               <TouchableOpacity
+                activeOpacity={1}
                 key={item.resumeId}
                 style={styles.resumeItem}
                 onPress={() => {
@@ -244,6 +245,7 @@ const ApplicantForm = () => {
                       </Text>
                     </View>
                     <TouchableOpacity
+                      activeOpacity={1}
                       style={styles.editButton}
                       onPress={() => handleEditResume(item.resumeId)}>
                       <EditIcon
@@ -266,12 +268,14 @@ const ApplicantForm = () => {
     <View>
       {isChecked ? (
         <TouchableOpacity
+          activeOpacity={1}
           style={[styles.checkbox, styles.checked]}
           onPress={onPress}>
           <CheckOrange width={24} height={24} />
         </TouchableOpacity>
       ) : (
-        <TouchableOpacity style={styles.checkbox} onPress={onPress}>
+        <TouchableOpacity
+          activeOpacity={1} style={styles.checkbox} onPress={onPress}>
           <CheckGray width={24} height={24} />
         </TouchableOpacity>
       )}
@@ -294,7 +298,8 @@ const ApplicantForm = () => {
                 ) : null}
                 <Text style={styles.textAgreeTitle}>{item.title}</Text>
               </View>
-              <TouchableOpacity onPress={() => handleAgreeDetail(item.id)}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={() => handleAgreeDetail(item.id)}>
                 <Text style={[styles.textSmall, styles.textBlue]}>보기</Text>
               </TouchableOpacity>
             </View>

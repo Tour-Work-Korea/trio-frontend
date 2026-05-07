@@ -125,7 +125,8 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
                 contentContainerStyle={{ flexDirection: 'row', marginBottom: 6, gap: 4 }}
               >
                 {item.imgUrls.map((imgUrl, i) => (
-                  <TouchableOpacity key={i} onPress={() => openImageModal(item.imgUrls, i)}>
+                  <TouchableOpacity
+                    activeOpacity={1} key={i} onPress={() => openImageModal(item.imgUrls, i)}>
                     <Image source={{ uri: imgUrl }} style={styles.reviewImage} />
                   </TouchableOpacity>
                 ))}

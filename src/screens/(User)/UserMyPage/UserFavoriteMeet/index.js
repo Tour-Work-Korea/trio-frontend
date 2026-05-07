@@ -94,7 +94,8 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
       : `${dt.format('D일, A h:mm')}`; // 예: 13일, 오전 9:00
 
     return (
-      <TouchableOpacity 
+      <TouchableOpacity
+        activeOpacity={1}
         style={styles.row}
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.id })}
       >
@@ -110,7 +111,8 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
                   ellipsizeMode="tail">
                   {item.guesthouseName}
                 </Text>
-                <TouchableOpacity onPress={() => handleUnfavorite(item.id)}>
+                <TouchableOpacity
+                  activeOpacity={1} onPress={() => handleUnfavorite(item.id)}>
                   <FillHeart width={20} height={20} />
                 </TouchableOpacity>
               </View>

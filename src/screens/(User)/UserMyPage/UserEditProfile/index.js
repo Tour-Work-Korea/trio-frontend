@@ -222,6 +222,7 @@ const UserEditProfile = () => {
                 style={styles.profileImage}
               />
               <TouchableOpacity
+                activeOpacity={1}
                 style={styles.plusButton}
                 onPress={handleEditProfileImage}>
                 <PlusIcon width={20} height={20} />
@@ -303,6 +304,7 @@ const UserEditProfile = () => {
                       'ENFP',
                     ].map(type => (
                       <TouchableOpacity
+                        activeOpacity={1}
                         key={type}
                         style={[
                           styles.mbtiButton,
@@ -350,7 +352,8 @@ const UserEditProfile = () => {
         </View>
 
       </ScrollView>
-      <TouchableOpacity style={styles.saveButton} onPress={updateMyProfile}>
+      <TouchableOpacity
+        activeOpacity={1} style={styles.saveButton} onPress={updateMyProfile}>
         <Text style={[FONTS.fs_16_medium, styles.saveButtonText]}>
           적용
         </Text>

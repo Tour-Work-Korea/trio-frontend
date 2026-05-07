@@ -110,7 +110,8 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
           {/* 헤더 */}
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold]}>필터</Text>
-            <TouchableOpacity style={styles.xBtn} onPress={onClose}>
+            <TouchableOpacity
+              activeOpacity={1} style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -119,6 +120,7 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
           <View style={styles.tabRow}>
             {tabList.map(tab => (
               <TouchableOpacity
+                activeOpacity={1}
                 key={tab.key}
                 onPress={() => handleTabPress(tab.key)}>
                 <Text
@@ -207,6 +209,7 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
               <View style={styles.optionRow}>
                 {meetScales.map(opt => (
                   <TouchableOpacity
+                    activeOpacity={1}
                     key={opt.id}
                     style={[
                       styles.optionBox,
@@ -242,6 +245,7 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
               <View style={styles.optionRow}>
                 {stayTypes.map(opt => (
                   <TouchableOpacity
+                    activeOpacity={1}
                     key={opt.id}
                     style={styles.optionBox}
                     onPress={() => setSelectedStay(opt.id)}>
@@ -276,6 +280,7 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
                   const isSelected = selectedTags.includes(tag.id);
                   return (
                     <TouchableOpacity
+                      activeOpacity={1}
                       key={tag.id}
                       style={styles.optionBox}
                       onPress={() => toggleTag(tag.id)}>

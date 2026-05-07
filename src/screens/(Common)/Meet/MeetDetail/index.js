@@ -486,6 +486,7 @@ const MeetDetail = () => {
                   </Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.detailInfoBtn}
                   onPress={() =>
                     openTagModal(
@@ -515,6 +516,7 @@ const MeetDetail = () => {
                   </Text>
                 </View>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.detailInfoBtn}
                   onPress={() =>
                     openSectionModal(
@@ -566,6 +568,7 @@ const MeetDetail = () => {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    activeOpacity={1}
                     style={styles.detailInfoBtn}
                     onPress={() =>
                       openSectionModal(
@@ -597,6 +600,7 @@ const MeetDetail = () => {
                     </Text>
                   </View>
                   <TouchableOpacity
+                    activeOpacity={1}
                     style={styles.detailInfoBtn}
                     onPress={() =>
                       openTagModal(
@@ -645,7 +649,7 @@ const MeetDetail = () => {
             renderItem={({item}) => (
               <TouchableOpacity
                 style={styles.thumbnail}
-                activeOpacity={0.9}
+                activeOpacity={1}
                 onPress={() => setImageModalVisible(true)}>
                 <Image
                   source={{uri: item.imageUrl}}
@@ -660,11 +664,13 @@ const MeetDetail = () => {
         )}
         <View style={styles.headerContainer}>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.backButton}
             onPress={() => navigation.goBack()}>
             <ChevronLeft width={28} height={28} />
           </TouchableOpacity>
-          <TouchableOpacity style={styles.shareButton} onPress={handleCopyLink}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.shareButton} onPress={handleCopyLink}>
             <ShareIcon width={20} height={20} />
           </TouchableOpacity>
           {tagList.length > 0 && (
@@ -768,7 +774,8 @@ const MeetDetail = () => {
 
     {/* 하단 고정 영역 */}
     <View style={styles.fixedBottomBar}>
-      <TouchableOpacity style={styles.bottomLikeButton} onPress={onToggleLike}>
+      <TouchableOpacity
+        activeOpacity={1} style={styles.bottomLikeButton} onPress={onToggleLike}>
         {liked ? (
           <HeartFilled width={28} height={28} />
         ) : (
@@ -777,6 +784,7 @@ const MeetDetail = () => {
       </TouchableOpacity>
 
       <TouchableOpacity
+        activeOpacity={1}
         style={[
           styles.bottomButton,
           !isRecruiting && styles.bottomButtonDisabled,

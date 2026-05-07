@@ -11,6 +11,7 @@ export default function Buttons() {
   return (
     <View style={styles.buttonContainer}>
       <TouchableOpacity
+        activeOpacity={1}
         onPress={() => {
           navigation.navigate('MainTabs', {screen: '게하'});
         }}
@@ -20,6 +21,7 @@ export default function Buttons() {
       </TouchableOpacity>
 
       <TouchableOpacity
+        activeOpacity={1}
         onPress={() => {
           navigation.navigate('MainTabs', {screen: '채용'});
         }}
@@ -29,6 +31,7 @@ export default function Buttons() {
       </TouchableOpacity>
 
       <TouchableOpacity
+        activeOpacity={1}
         onPress={() => {
           navigation.navigate('MainTabs', {screen: '이벤트'});
         }}

@@ -117,7 +117,8 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
           <Text style={[FONTS.fs_20_semibold, styles.title]}>
             편의시설 및 서비스
           </Text>
-          <TouchableOpacity style={styles.XButton} onPress={onClose}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.XButton} onPress={onClose}>
             <XBtn width={24} height={24}/>
           </TouchableOpacity>
         </View>

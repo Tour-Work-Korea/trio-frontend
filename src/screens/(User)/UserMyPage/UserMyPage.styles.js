@@ -8,14 +8,6 @@ export default StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
   },
-  adBannerContainer: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: COLORS.grayscale_0,
-    paddingTop: 8,
-    paddingBottom: 8,
-  },
-
   topBarContainer: {
     padding: 16,
     backgroundColor: COLORS.grayscale_0,

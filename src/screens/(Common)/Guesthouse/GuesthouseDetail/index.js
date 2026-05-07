@@ -380,7 +380,7 @@ const GuesthouseDetail = ({route}) => {
             onSnapToItem={idx => setImageIndex(idx)}
             renderItem={({item}) => (
               <TouchableOpacity
-                activeOpacity={0.9}
+                activeOpacity={1}
                 onPress={() => setImageModalVisible(true)}
               >
                 <Image
@@ -397,6 +397,7 @@ const GuesthouseDetail = ({route}) => {
         )}
 
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.backButton}
           // onPress={() => {
           //   console.log('isFromDeeplink:', isFromDeeplink);
@@ -468,6 +469,7 @@ const GuesthouseDetail = ({route}) => {
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
             <TouchableOpacity
+              activeOpacity={1}
               onPress={() =>
                 navigation.navigate('GuesthousePost', {
                   guesthouseId: id,
@@ -479,10 +481,12 @@ const GuesthouseDetail = ({route}) => {
               </Text>
             </TouchableOpacity>
             <View style={styles.topIcons}>
-              <TouchableOpacity onPress={handleCopyLink}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={handleCopyLink}>
                 <ShareIcon width={20} height={20} />
               </TouchableOpacity>
-              <TouchableOpacity onPress={handleToggleFavorite}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={handleToggleFavorite}>
                 {detail?.isLiked ? (
                   <FilledHeart width={20} height={20} />
                 ) : (
@@ -493,7 +497,7 @@ const GuesthouseDetail = ({route}) => {
           </View>
 
           <TouchableOpacity
-            activeOpacity={0.7}
+            activeOpacity={1}
             onPress={handlePressAddress}
             style={styles.addressSection}
           >
@@ -506,7 +510,7 @@ const GuesthouseDetail = ({route}) => {
 
           {is050Number(detail.guesthousePhone) && (
             <TouchableOpacity
-              activeOpacity={0.7}
+              activeOpacity={1}
               onPress={handleCopyPhone}
               style={styles.phoneButton}>
               <Text style={[FONTS.fs_14_regular, styles.phone]}>
@@ -571,6 +575,7 @@ const GuesthouseDetail = ({route}) => {
               )}
 
               <TouchableOpacity
+                activeOpacity={1}
                 onPress={() => setModalVisible(true)}
                 style={styles.iconWrapper}>
                 <View style={styles.iconServiceWrapper}>
@@ -586,6 +591,7 @@ const GuesthouseDetail = ({route}) => {
           <View style={styles.devide} />
 
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.displayDateGuestRow}
             onPress={() => setDateGuestModalVisible(true)}>
             <View style={styles.dateInfoContainer}>
@@ -612,7 +618,8 @@ const GuesthouseDetail = ({route}) => {
           contentContainerStyle={styles.tabMenuContent}
         >
           {TAB_OPTIONS.map((tab, index) => (
-            <TouchableOpacity key={tab.key} onPress={() => onTabPress(index)}>
+            <TouchableOpacity
+              activeOpacity={1} key={tab.key} onPress={() => onTabPress(index)}>
               <View style={styles.tabButton}>
                 <Text
                   style={[

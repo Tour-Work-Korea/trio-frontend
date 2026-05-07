@@ -208,7 +208,7 @@ const NotificationCenter = () => {
         rightComponent={
           <TouchableOpacity
             style={styles.headerIconButton}
-            activeOpacity={0.8}
+            activeOpacity={1}
             onPress={() => navigation.navigate('NotificationSettings')}>
             <SettingIcon width={22} height={22} />
           </TouchableOpacity>
@@ -223,7 +223,7 @@ const NotificationCenter = () => {
             <TouchableOpacity
               key={chip.key}
               style={[styles.chip, isSelected && styles.chipActive]}
-              activeOpacity={0.8}
+              activeOpacity={1}
               onPress={() => setSelectedFilter(chip.key)}>
               <Text
                 style={[
@@ -241,7 +241,7 @@ const NotificationCenter = () => {
       <View style={styles.actionRow}>
         <TouchableOpacity
           style={styles.actionButton}
-          activeOpacity={0.8}
+          activeOpacity={1}
           onPress={handleReadAll}>
           <Text style={[FONTS.fs_12_medium, styles.actionButtonText]}>
             {markingAllRead ? '처리 중' : '전체 읽음'}
