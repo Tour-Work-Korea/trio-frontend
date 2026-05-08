@@ -118,7 +118,7 @@ jobs:
       - name: Set CI app version
         run: |
           APP_VERSION=$(node -p "require('./package.json').version")
-          VERSION_OFFSET=3000
+          VERSION_OFFSET=3500
           echo "CI_VERSION_CODE=$(($VERSION_OFFSET + ${{ github.run_number }}))" >> $GITHUB_ENV
           echo "CI_VERSION_NAME=${APP_VERSION}.${{ github.run_number }}" >> $GITHUB_ENV
 
