@@ -31,7 +31,7 @@ const BottomTabs = () => (
         tabBarIcon: ({focused}) => {
           const iconProps = {width: 24, height: 24};
           const map = {
-            검색: focused ? GuesthouseIconFilled : GuesthouseIcon,
+            지도: focused ? GuesthouseIconFilled : GuesthouseIcon,
             찜: focused ? HeartIconFilled : HeartIcon,
             홈: focused ? HomeIconFilled : HomeIcon,
             콘텐츠: focused ? MeetIconFilled : MeetIcon,
@@ -64,12 +64,12 @@ const BottomTabs = () => (
       <Tab.Screen name="홈" component={Home} />
       <Tab.Screen name="콘텐츠" component={Meet} />
       <Tab.Screen
-        name="검색"
+        name="지도"
         component={Guesthouse}
         listeners={({navigation}) => ({
           tabPress: e => {
             e.preventDefault();
-            navigation.navigate('검색', {
+            navigation.navigate('지도', {
               screen: 'GuesthouseList',
               params: getDefaultGuesthouseListParams(),
             });

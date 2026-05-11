@@ -86,6 +86,7 @@ const MyApplicantList = () => {
     <View>
       <View style={styles.RecruitCard}>
         <TouchableOpacity
+          activeOpacity={1}
           onPress={() =>
             navigation.navigate('EmployDetail', {id: item.recruitId})
           }>
@@ -122,6 +123,7 @@ const MyApplicantList = () => {
           </View>
         </TouchableOpacity>
         <TouchableOpacity
+          activeOpacity={1}
           onPress={() =>
             navigation.navigate('ResumeDetail', {
               id: item.resumeId,

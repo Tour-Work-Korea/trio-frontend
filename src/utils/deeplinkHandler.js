@@ -1,7 +1,8 @@
 import {useCallback, useEffect, useRef} from 'react';
-import {Linking, Alert} from 'react-native';
+import {Linking} from 'react-native';
 import {navigate, reset, navigationRef} from './navigationService';
 import useUserStore from '@stores/userStore';
+import {showErrorModal} from '@utils/loginModalHub';
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
 
@@ -118,9 +119,7 @@ const resetToHomeThenDetail = (name, params) => {
   ]);
 };
 
-const DeeplinkHandler = () => {
-  const accessToken = useUserStore(state => state.accessToken);
-  const userRole = useUserStore(state => state.userRole);
+const DeeplinkHandler = ({enabled = true}) => {
   const promptingRef = useRef(false); // 중복 알림/네비게이션 가드
 
   const promptLogin = useCallback((message = '서비스 이용을 위해 로그인 해주세요.') => {
@@ -129,25 +128,19 @@ const DeeplinkHandler = () => {
     }
 
     promptingRef.current = true;
-    Alert.alert(
-      '로그인이 필요합니다',
+    showErrorModal({
+      title: '로그인이 필요합니다',
       message,
-      [
-        {
-          text: '확인',
-          onPress: () => {
-            navigate('Login');
-            promptingRef.current = false;
-          },
-        },
-      ],
-      {
-        cancelable: true,
-        onDismiss: () => {
-          promptingRef.current = false;
-        },
+      buttonText: '확인',
+      buttonText2: '취소',
+      onPress: () => {
+        navigate('Login');
+        promptingRef.current = false;
       },
-    );
+      onPress2: () => {
+        promptingRef.current = false;
+      },
+    });
   }, []);
 
   const handleUrl = useCallback(async url => {
@@ -161,11 +154,15 @@ const DeeplinkHandler = () => {
       }
 
       const {parts, searchParams} = parseDeeplink(url);
+      const currentUser = useUserStore.getState();
 
       // 경로별 로그인 필요 여부 분리
-      if (shouldRequireLogin(parts) && (!accessToken || userRole !== 'USER')) {
+      if (
+        shouldRequireLogin(parts) &&
+        (!currentUser.accessToken || currentUser.userRole !== 'USER')
+      ) {
         const message =
-          !accessToken
+          !currentUser.accessToken
             ? '서비스 이용을 위해 로그인 해주세요.'
             : '유저 계정으로 로그인 후 이용해주세요.';
         promptLogin(message);
@@ -232,7 +229,10 @@ const DeeplinkHandler = () => {
         parts[1] === 'guesthouse' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = searchParams.get('reservationId');
+        const reservationId = getQueryParam(searchParams, [
+          'reservationId',
+          'id',
+        ]);
         if (!reservationId) {
           console.warn('reservationId 누락', url);
           return;
@@ -245,20 +245,29 @@ const DeeplinkHandler = () => {
         parts[1] === 'party' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = searchParams.get('reservationId');
+        const reservationId = getQueryParam(searchParams, [
+          'reservationId',
+          'id',
+        ]);
         if (!reservationId) {
           console.warn('reservationId 누락', url);
           return;
         }
         resetToPartyReservationFlow(reservationId);
+      } else {
+        console.warn('지원하지 않는 딥링크 경로', url, parts);
       }
     } catch (e) {
       console.warn('딥링크 파싱 실패', e);
     }
-  }, [accessToken, promptLogin, userRole]);
+  }, [promptLogin]);
 
   // 최초 실행시 (앱이 딥링크로 켜질 때)
   useEffect(() => {
+    if (!enabled) {
+      return undefined;
+    }
+
     const checkInitialUrl = async () => {
       const initialUrl = await Linking.getInitialURL();
       if (initialUrl) {
@@ -276,7 +285,7 @@ const DeeplinkHandler = () => {
     return () => {
       subscription.remove();
     };
-  }, [handleUrl]);
+  }, [enabled, handleUrl]);
 
   // 화면에 아무것도 렌더링 안 함
   return null;

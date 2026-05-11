@@ -127,6 +127,7 @@ const PopularGuesthouseList = () => {
     const { hasRating, text } = getRatingInfo(item.avgRating);
     return (
       <TouchableOpacity
+        activeOpacity={1}
         style={[
           styles.trendingCard,
           { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
@@ -202,6 +203,7 @@ const PopularGuesthouseList = () => {
 
     return (
       <TouchableOpacity
+        activeOpacity={1}
         style={styles.popularCard}
         onPress={() =>
           navigation.navigate('GuesthouseDetail', {
@@ -235,7 +237,7 @@ const PopularGuesthouseList = () => {
                 </Text>
               </View>
             ))}
-            <TouchableOpacity style={styles.heartIcon} onPress={handleToggleFavorite}>
+            <TouchableOpacity activeOpacity={1} style={styles.heartIcon} onPress={handleToggleFavorite}>
               {item.isLiked ? (
                 <FillHeart width={20} height={20} />
               ) : (
@@ -293,7 +295,7 @@ const PopularGuesthouseList = () => {
           <View style={styles.headerContainer}>
             <HeaderImg style={styles.headerImg} />
             <View style={styles.headerTitle}>
-              <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <TouchableOpacity activeOpacity={1} style={styles.backButton} onPress={() => navigation.goBack()}>
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>

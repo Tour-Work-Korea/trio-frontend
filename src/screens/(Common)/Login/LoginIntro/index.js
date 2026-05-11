@@ -9,6 +9,7 @@ import styles from './LoginIntro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
 import MailGray from '@assets/images/mail_fill_gray.svg';
 import LogoWithText from '@assets/images/logo_orange_with_text.svg';
+import LogoIcon from '@assets/images/logo_orange.svg';
 import { COLORS } from '@constants/colors';
 
 import { tryKakaoLoginNative } from '@utils/auth/login';
@@ -65,7 +66,7 @@ const LoginIntro = () => {
     <View style={styles.signin}>
       <View style={styles.view}>
         <View style={styles.logoParent}>
-          <LogoWithText width={143} />
+          <LogoIcon width={120} height={120}/>
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>

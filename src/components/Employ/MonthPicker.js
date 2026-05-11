@@ -19,11 +19,13 @@ const MonthPicker = ({selectedDate, onChange}) => {
     <View style={styles.container}>
       {/* 연도 이동 */}
       <View style={styles.yearHeader}>
-        <TouchableOpacity onPress={handlePrevYear}>
+        <TouchableOpacity
+          activeOpacity={1} onPress={handlePrevYear}>
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={styles.yearText}>{currentYear}</Text>
-        <TouchableOpacity onPress={handleNextYear}>
+        <TouchableOpacity
+          activeOpacity={1} onPress={handleNextYear}>
           <RightChevron width={24} />
         </TouchableOpacity>
       </View>
@@ -36,6 +38,7 @@ const MonthPicker = ({selectedDate, onChange}) => {
 
           return (
             <TouchableOpacity
+              activeOpacity={1}
               key={month}
               style={[styles.monthButton, isSelected && styles.selectedMonth]}
               onPress={() => onChange({year: currentYear, month: month})}>

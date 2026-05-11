@@ -147,6 +147,7 @@ const PopularMeetList = () => {
   const TrendingCard = ({ item, style }) => {
     return (
       <TouchableOpacity
+        activeOpacity={1}
         style={[
           styles.trendingCard,
           { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
@@ -201,7 +202,7 @@ const PopularMeetList = () => {
 
     return (
       <TouchableOpacity
-        activeOpacity={0.8}
+        activeOpacity={1}
         style={styles.meetItemContainer}
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
         <View style={styles.meetTopContainer}>
@@ -220,7 +221,7 @@ const PopularMeetList = () => {
                 {item.guesthouseName}
               </Text>
               <View style={styles.meetPlaceSpacer} />
-              <TouchableOpacity onPress={handleToggleFavorite}>
+              <TouchableOpacity activeOpacity={1} onPress={handleToggleFavorite}>
                 {item.isLiked ? (
                   <FillHeart width={20} height={20} />
                 ) : (
@@ -287,7 +288,7 @@ const PopularMeetList = () => {
           <View style={styles.headerContainer}>
             <HeaderImg style={styles.headerImg} />
             <View style={styles.headerTitle}>
-              <TouchableOpacity style={styles.backButton} onPress={() => navigation.goBack()}>
+              <TouchableOpacity activeOpacity={1} style={styles.backButton} onPress={() => navigation.goBack()}>
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>

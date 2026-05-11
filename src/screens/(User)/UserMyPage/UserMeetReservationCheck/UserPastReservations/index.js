@@ -48,7 +48,7 @@ export default function UserPastReservations({data}) {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.card}
-          activeOpacity={0.9}
+          activeOpacity={1}
           // onPress={() => openModal(item.reservationId)}
         >
           {/* 상단 날짜/시간 */}
@@ -87,6 +87,7 @@ export default function UserPastReservations({data}) {
   return (
     <>
       <TouchableOpacity
+        activeOpacity={1}
         style={styles.cancelledBtn}
         onPress={() => navigation.navigate('UserMeetReservationCancelled')}
       >

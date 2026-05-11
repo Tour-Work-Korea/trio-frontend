@@ -87,7 +87,7 @@ export default function Banner({banners = []}) {
               justifyContent: 'center',
             }}>
             <TouchableOpacity
-              activeOpacity={0.9}
+              activeOpacity={1}
               onPress={() => openBannerLink(item?.link)}
               style={{
                 width: BANNER_WIDTH,

@@ -51,6 +51,9 @@ const styles = StyleSheet.create({
     elevation: 31,
     position: 'relative',
   },
+  markerBubbleReserved: {
+    borderColor: COLORS.grayscale_400,
+  },
   markerBubbleTail: {
     position: 'absolute',
     bottom: -8,
@@ -62,6 +65,9 @@ const styles = StyleSheet.create({
     borderBottomWidth: 2,
     borderColor: COLORS.primary_orange,
     transform: [{rotate: '45deg'}],
+  },
+  markerBubbleTailReserved: {
+    borderColor: COLORS.grayscale_400,
   },
   clusterList: {
     minWidth: 200,
@@ -82,29 +88,40 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     flexShrink: 0,
   },
+  clusterListIconReserved: {
+    backgroundColor: COLORS.grayscale_400,
+  },
   clusterListName: {
     flex: 1,
+    minWidth: 0,
     color: COLORS.grayscale_900,
   },
   clusterListPrice: {
     color: COLORS.grayscale_900,
     flexShrink: 0,
   },
+  reservedPriceText: {
+    color: COLORS.grayscale_400,
+  },
   singleMarkerContent: {
-    minWidth: 100,
-    maxWidth: 120,
+    minWidth: 120,
+    maxWidth: 160,
     alignItems: 'center',
     flexDirection: 'row',
     gap: 8,
+    overflow: 'hidden',
   },
   singleMarkerName: {
     color: COLORS.grayscale_900,
+    flexShrink: 1,
   },
   singleMarkerPrice: {
     color: COLORS.grayscale_900,
     fontSize: 14,
   },
   singleMarkerTextWrap: {
+    flex: 1,
+    minWidth: 0,
     gap: 2,
   },
   markerContainer: {
@@ -125,6 +142,9 @@ const styles = StyleSheet.create({
     borderWidth: 2,
     borderColor: COLORS.grayscale_0,
   },
+  homeMarkerReserved: {
+    backgroundColor: COLORS.grayscale_400,
+  },
   selectedMarkerDot: {
     width: 14,
     height: 14,
@@ -132,6 +152,9 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.primary_orange,
     borderWidth: 2,
     borderColor: COLORS.grayscale_0,
+  },
+  selectedMarkerDotReserved: {
+    backgroundColor: COLORS.grayscale_400,
   },
   markerCountBadge: {
     position: 'absolute',
@@ -150,6 +173,44 @@ const styles = StyleSheet.create({
   markerCountText: {
     color: COLORS.grayscale_0,
     fontSize: 10,
+  },
+  currentLocationMarkerWrap: {
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currentLocationMarkerOverlay: {
+    position: 'absolute',
+    width: 44,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 25,
+    elevation: 25,
+  },
+  currentLocationMarkerPulse: {
+    position: 'absolute',
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: COLORS.primary_blue,
+  },
+  currentLocationMarkerOuter: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: 'rgba(83, 97, 219, 0.2)',
+    borderWidth: 2,
+    borderColor: COLORS.grayscale_0,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  currentLocationMarkerInner: {
+    width: 10,
+    height: 10,
+    borderRadius: 5,
+    backgroundColor: COLORS.primary_blue,
   },
 
   // 지도 위 고정 버튼

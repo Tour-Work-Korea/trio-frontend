@@ -15,7 +15,10 @@ import LottieView from 'lottie-react-native';
 import { navigationRef } from '@utils/navigationService';
 import messaging from '@react-native-firebase/messaging';
 import { syncFcmToken, setupTokenRefreshListener } from '@utils/fcmService';
-import { publishForegroundNotification } from '@utils/notifications';
+import {
+  openNotificationTarget,
+  publishForegroundNotification,
+} from '@utils/notifications';
 
 import crashlytics from '@react-native-firebase/crashlytics';
 import {
@@ -147,13 +150,7 @@ function AppContent() {
         tries++;
       }
 
-      const { type } = remoteMessage.data || {};
-
-      if (type === 'GUESTHOUSE_RESERVATION') {
-        navigationRef.navigate('UserReservationCheck');
-      } else if (type === 'PARTY_RESERVATION') {
-        navigationRef.navigate('UserMeetReservationCheck');
-      }
+      await openNotificationTarget(remoteMessage.data || {});
     };
 
     return () => {
@@ -238,7 +235,9 @@ function AppContent() {
         />
 
         <RootNavigation />
-        <DeeplinkHandler />
+        <DeeplinkHandler
+          enabled={appLoaded && !forceUpdateState.visible}
+        />
       </SafeAreaView>
 
       {!appLoaded && (

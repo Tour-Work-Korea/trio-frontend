@@ -60,7 +60,7 @@ export default function Meets({events = [], setEventList}) {
 
     return (
       <TouchableOpacity
-        activeOpacity={0.85}
+        activeOpacity={1}
         style={localStyles.cardButton}
         onPress={() => moveToDetail(item.partyId)}>
         <View style={localStyles.card}>
@@ -71,7 +71,7 @@ export default function Meets({events = [], setEventList}) {
             <View style={localStyles.heartWrapper}>
               <TouchableOpacity
                 style={localStyles.heartButton}
-                activeOpacity={0.8}
+                activeOpacity={1}
                 onPress={e => {
                   e.stopPropagation(); // 카드 onPress로 이벤트 전파 막기
                   handleToggleFavorite(item);
@@ -123,6 +123,7 @@ export default function Meets({events = [], setEventList}) {
         <View style={[styles.titleSection]}>
           <Text style={styles.sectionTitle}>인기 게하 콘텐츠</Text>
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.seeMoreButton}
             onPress={() => {
               navigation.navigate('PopularMeetList');
@@ -138,7 +139,7 @@ export default function Meets({events = [], setEventList}) {
               localStyles.meetChip,
               selectedChip === 'guesthouseParty' && localStyles.meetChipActive,
             ]}
-            activeOpacity={0.85}
+            activeOpacity={1}
             onPress={() => setSelectedChip('guesthouseParty')}>
             <Text
               style={[
@@ -154,7 +155,7 @@ export default function Meets({events = [], setEventList}) {
               localStyles.meetChip,
               selectedChip === 'event' && localStyles.meetChipActive,
             ]}
-            activeOpacity={0.85}
+            activeOpacity={1}
             onPress={() => setSelectedChip('event')}>
             <Text
               style={[
@@ -170,7 +171,7 @@ export default function Meets({events = [], setEventList}) {
               localStyles.meetChip,
               selectedChip === 'event' && localStyles.meetChipActive,
             ]}
-            activeOpacity={0.85}
+            activeOpacity={1}
             onPress={() => setSelectedChip('event')}>
             <Text
               style={[

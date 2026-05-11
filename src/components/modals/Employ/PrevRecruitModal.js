@@ -32,6 +32,7 @@ const PrevRecruitModal = ({visible, items = [], onClose, onPick}) => {
 
   const renderItem = ({item}) => (
     <TouchableOpacity
+      activeOpacity={1}
       onPress={() => handleSelectItem(item.recruitId)}
       style={[
         styles.itemBox,

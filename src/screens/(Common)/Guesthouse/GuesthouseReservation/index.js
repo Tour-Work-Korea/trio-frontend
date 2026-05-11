@@ -444,7 +444,7 @@ const GuesthouseReservation = ({ route }) => {
 
               <TouchableOpacity
                 style={styles.actualGuestToggle}
-                activeOpacity={0.8}
+                activeOpacity={1}
                 onPress={() => setActualGuestExpanded(prev => !prev)}>
                 <Text style={[FONTS.fs_14_medium, styles.actualGuestToggleText]}>
                   {isActualGuestExpanded
@@ -520,6 +520,7 @@ const GuesthouseReservation = ({ route }) => {
                   쿠폰 할인
                 </Text>
                 <TouchableOpacity
+                  activeOpacity={1}
                   style={styles.couponBtn}
                   onPress={() =>
                     navigation.navigate('CouponSelect', {
@@ -588,6 +589,7 @@ const GuesthouseReservation = ({ route }) => {
                     placeholderTextColor={COLORS.grayscale_400}
                   />
                   <TouchableOpacity
+                    activeOpacity={1}
                     style={styles.pointBtn}
                     onPress={() => setPointValue(String(pointBalance || 0))}>
                     <Text style={FONTS.fs_14_regular}>전액사용</Text>
@@ -634,7 +636,8 @@ const GuesthouseReservation = ({ route }) => {
 
           {/* 약관 동의 */}
           <View style={styles.agreeRowContainer}>
-              <TouchableOpacity onPress={toggleAll} style={styles.agreeRowTitle}>
+              <TouchableOpacity
+                activeOpacity={1} onPress={toggleAll} style={styles.agreeRowTitle}>
               {agreeAll ?
               <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
               <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
@@ -643,7 +646,8 @@ const GuesthouseReservation = ({ route }) => {
 
               <View style={styles.agreeRowConent}>
                 <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('terms')}>
+                  <TouchableOpacity
+                    activeOpacity={1} onPress={() => toggleAgreement('terms')}>
                   {agreements.terms ?
                     <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
                     <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
@@ -651,13 +655,15 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('terms')}>
+                  <TouchableOpacity
+                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('terms')}>
                     <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
+                  <TouchableOpacity
+                    activeOpacity={1} onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
                   {agreements.personalInfo ?
                     <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
                     <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
@@ -665,13 +671,15 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
+                  <TouchableOpacity
+                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
                     <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>
 
                 <View style={styles.agreeRow}>
-                  <TouchableOpacity onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
+                  <TouchableOpacity
+                    activeOpacity={1} onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
                   {agreements.thirdParty ?
                     <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
                     <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
@@ -679,7 +687,8 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
                     <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
                   </Text>
-                  <TouchableOpacity style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
+                  <TouchableOpacity
+                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
                     <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
                   </TouchableOpacity>
                 </View>

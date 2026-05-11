@@ -89,8 +89,9 @@ const UserGuesthouseReviewWrite = () => {
           </View>
         </View>
 
-        <TouchableOpacity 
-          style={styles.reviewButton} 
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.reviewButton}
           onPress={() => {
             if (!item.reviewed) {
               const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
@@ -114,7 +115,7 @@ const UserGuesthouseReviewWrite = () => {
         >
           <Text style={[FONTS.fs_16_semibold, styles.reviewText]}>리뷰 작성하기</Text>
         </TouchableOpacity>
-  
+
         {index !== reservations.length - 1 && <View style={styles.devide} />}
       </View>
     );
@@ -160,7 +161,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,
-  },  
+  },
 
   // 리스트
   card: {

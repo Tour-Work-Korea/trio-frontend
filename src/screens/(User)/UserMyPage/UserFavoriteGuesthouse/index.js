@@ -49,7 +49,8 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
   };
 
   const renderItem = ({ item }) => (
-    <TouchableOpacity 
+    <TouchableOpacity
+      activeOpacity={1}
       style={styles.card}
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
@@ -83,7 +84,8 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
               </View>
             ))}
           </View>
-          <TouchableOpacity style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
+          <TouchableOpacity
+            activeOpacity={1} style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
             <FillHeart width={18} height={18} />
           </TouchableOpacity>
         </View>
@@ -91,7 +93,7 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
         <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
         <Text style={[FONTS.fs_18_semibold, styles.price]}>{item.minPrice.toLocaleString()}원 ~</Text>
       </View>
-      
+
     </TouchableOpacity>
   );
 
@@ -109,7 +111,7 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
             description='마음에 드는 게스트 하우스를 찾으러 가볼까요?'
             buttonText="게하 찾으러 가기"
             onPressButton={() =>
-              navigation.navigate('MainTabs', {screen: '검색'})
+              navigation.navigate('MainTabs', {screen: '지도'})
             }
           />
         </View>

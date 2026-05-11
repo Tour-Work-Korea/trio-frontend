@@ -295,6 +295,7 @@ const UserRegisterProfile = () => {
                     maxLength={10}
                   />
                   <TouchableOpacity
+                    activeOpacity={1}
                     disabled={
                       !formValid.nickname?.hasNoSpecialChars ||
                       !formValid.nickname?.isLengthValid
@@ -375,6 +376,7 @@ const UserRegisterProfile = () => {
                     autoCapitalize="none"
                   />
                   <TouchableOpacity
+                    activeOpacity={1}
                     onPress={() => setIsPasswordVisible(prev => !prev)}>
                     {isPasswordVisible ? (
                       <HidePassword width={24} hide={24} />
@@ -431,6 +433,7 @@ const UserRegisterProfile = () => {
                     secureTextEntry={!isPasswordCheckVisible}
                   />
                   <TouchableOpacity
+                    activeOpacity={1}
                     onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
                     {isPasswordCheckVisible ? (
                       <HidePassword width={24} hide={24} />

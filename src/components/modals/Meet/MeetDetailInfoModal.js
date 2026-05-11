@@ -32,7 +32,8 @@ const MeetDetailInfoModal = ({
           {/* 헤더 */}
           <View style={styles.headerRow}>
             <Text style={[FONTS.fs_18_bold, styles.headerTitle]}>{title}</Text>
-            <TouchableOpacity onPress={onClose}>
+            <TouchableOpacity
+              activeOpacity={1} onPress={onClose}>
               <XBtn width={22} height={22} />
             </TouchableOpacity>
           </View>

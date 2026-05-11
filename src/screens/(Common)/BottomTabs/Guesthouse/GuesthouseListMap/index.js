@@ -2,6 +2,7 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Alert,
+  Animated,
   Image,
   Linking,
   PanResponder,
@@ -66,7 +67,13 @@ const normalizeGuesthouses = guesthouses =>
     lat: Number(item?.lat ?? item?.latitude),
     lng: Number(item?.lng ?? item?.longitude),
     isLiked: Boolean(item?.isLiked ?? item?.isFavorite),
+    isReserved: Boolean(item?.isReserved),
   }));
+
+const isGuesthouseReserved = item => Boolean(item?.isReserved);
+
+const isClusterReserved = cluster =>
+  (cluster?.items ?? []).every(isGuesthouseReserved);
 
 const getGuesthouseResponseItems = data => {
   if (Array.isArray(data)) {
@@ -398,6 +405,21 @@ const requestLocationPermission = async () => {
   };
 };
 
+const checkLocationPermission = async () => {
+  if (Platform.OS === 'ios') {
+    return true;
+  }
+
+  const hasFinePermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+  );
+  const hasCoarsePermission = await PermissionsAndroid.check(
+    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  );
+
+  return hasFinePermission || hasCoarsePermission;
+};
+
 const showLocationPermissionAlert = () => {
   Alert.alert(
     '위치 권한이 필요해요',
@@ -475,6 +497,7 @@ const GuesthouseListMap = ({
   const mapRef = useRef(null);
   const imageScrollRef = useRef(null);
   const currentLocationRequestRef = useRef(false);
+  const currentLocationPulse = useRef(new Animated.Value(0)).current;
   const initialRegion = useMemo(
     () => presetRegion ?? getRegionFromGuesthouses(sourceGuesthouses),
     [presetRegion, sourceGuesthouses],
@@ -493,6 +516,10 @@ const GuesthouseListMap = ({
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isCurrentLocationLoading, setIsCurrentLocationLoading] = useState(false);
+  const [hasLocationPermission, setHasLocationPermission] = useState(
+    Platform.OS === 'ios',
+  );
+  const [currentLocation, setCurrentLocation] = useState(null);
 
   const clusters = useMemo(
     () => groupGuesthouses(mapGuesthouses, currentRegion, mapSize),
@@ -561,10 +588,80 @@ const GuesthouseListMap = ({
       top: point.y - getMarkerBubbleHeight(selectedCluster) - 12,
     };
   }, [currentRegion, mapSize, selectedCluster]);
+  const currentLocationMarkerPosition = useMemo(() => {
+    const point = getMapPointFromCoordinate(
+      currentLocation,
+      currentRegion,
+      mapSize,
+    );
+
+    if (!point) {
+      return null;
+    }
+
+    return {
+      left: point.x - 22,
+      top: point.y - 22,
+    };
+  }, [currentLocation, currentRegion, mapSize]);
+  const currentLocationPulseStyle = useMemo(
+    () => ({
+      opacity: currentLocationPulse.interpolate({
+        inputRange: [0, 0.7, 1],
+        outputRange: [0.35, 0.16, 0],
+      }),
+      transform: [
+        {
+          scale: currentLocationPulse.interpolate({
+            inputRange: [0, 1],
+            outputRange: [0.65, 1.7],
+          }),
+        },
+      ],
+    }),
+    [currentLocationPulse],
+  );
 
   useEffect(() => {
     setMapGuesthouses(sourceGuesthouses);
   }, [sourceGuesthouses]);
+
+  useEffect(() => {
+    const animation = Animated.loop(
+      Animated.timing(currentLocationPulse, {
+        toValue: 1,
+        duration: 1800,
+        useNativeDriver: true,
+      }),
+    );
+
+    animation.start();
+
+    return () => {
+      animation.stop();
+      currentLocationPulse.setValue(0);
+    };
+  }, [currentLocationPulse]);
+
+  useEffect(() => {
+    let isMounted = true;
+
+    checkLocationPermission()
+      .then(granted => {
+        if (isMounted) {
+          setHasLocationPermission(granted);
+        }
+      })
+      .catch(() => {
+        if (isMounted) {
+          setHasLocationPermission(Platform.OS === 'ios');
+        }
+      });
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     setCurrentRegion(initialRegion);
@@ -803,6 +900,8 @@ const GuesthouseListMap = ({
         return;
       }
 
+      setHasLocationPermission(true);
+
       const position =
         Platform.OS === 'android'
           ? await getAndroidCurrentPosition()
@@ -818,6 +917,10 @@ const GuesthouseListMap = ({
         longitudeDelta: 0.02,
       };
 
+      setCurrentLocation({
+        latitude: position.coords.latitude,
+        longitude: position.coords.longitude,
+      });
       setCurrentRegion(nextRegion);
       handleClearSelection();
       mapRef.current?.animateToRegion(
@@ -1044,11 +1147,12 @@ const GuesthouseListMap = ({
           onMapReady={() => setMapReady(true)}
           onPanDrag={handleClearSelection}
           onRegionChangeComplete={handleRegionChangeComplete}
-          showsUserLocation={Platform.OS !== 'android'}
+          showsUserLocation={Platform.OS === 'ios' && hasLocationPermission}
           showsMyLocationButton={false}
           toolbarEnabled={false}>
           {orderedClusters.map(cluster => {
             const isSelected = cluster.key === selectedCluster?.key;
+            const isSoldOutCluster = isClusterReserved(cluster);
 
             return (
               <Marker
@@ -1063,7 +1167,7 @@ const GuesthouseListMap = ({
                 }>
                 <View style={styles.markerWrap} pointerEvents="box-none">
                   <TouchableOpacity
-                    activeOpacity={0.9}
+                    activeOpacity={1}
                     style={styles.markerContainer}
                     disabled={Platform.OS === 'android'}
                     onPress={
@@ -1072,9 +1176,18 @@ const GuesthouseListMap = ({
                         : () => handlePressMarker(cluster)
                     }>
                     {isSelected ? (
-                      <View style={styles.selectedMarkerDot} />
+                      <View
+                        style={[
+                          styles.selectedMarkerDot,
+                          isSoldOutCluster && styles.selectedMarkerDotReserved,
+                        ]}
+                      />
                     ) : (
-                      <View style={styles.homeMarker}>
+                      <View
+                        style={[
+                          styles.homeMarker,
+                          isSoldOutCluster && styles.homeMarkerReserved,
+                        ]}>
                         <HomeIcon width={18} height={18} />
                       </View>
                     )}
@@ -1093,39 +1206,80 @@ const GuesthouseListMap = ({
           })}
         </MapView>
 
+        {currentLocationMarkerPosition && (
+          <View
+            pointerEvents="none"
+            style={[
+              styles.currentLocationMarkerOverlay,
+              currentLocationMarkerPosition,
+            ]}>
+            <Animated.View
+              style={[
+                styles.currentLocationMarkerPulse,
+                currentLocationPulseStyle,
+              ]}
+            />
+            <View style={styles.currentLocationMarkerOuter}>
+              <View style={styles.currentLocationMarkerInner} />
+            </View>
+          </View>
+        )}
+
         {selectedCluster && markerBubblePosition && (
           <View
             pointerEvents="box-none"
             style={[styles.markerBubbleOverlay, markerBubblePosition]}>
-            <View style={styles.markerBubble}>
+            <View
+              style={[
+                styles.markerBubble,
+                isClusterReserved(selectedCluster)
+                  && styles.markerBubbleReserved,
+              ]}>
               {selectedCluster.count > 1 ? (
                 <View style={styles.clusterList}>
-                  {selectedCluster.items.map(item => (
-                    <TouchableOpacity
-                      activeOpacity={0.8}
-                      key={String(item.id)}
-                      style={styles.clusterListItem}
-                      onPress={() =>
-                        handlePressClusterListItem(selectedCluster, item)
-                      }>
-                      <View style={styles.clusterListIcon}>
-                        <HomeIcon width={10} height={10} />
-                      </View>
-                      <Text
-                        numberOfLines={1}
-                        style={[FONTS.fs_12_medium, styles.clusterListName]}>
-                        {item.name}
-                      </Text>
-                      <Text
-                        style={[FONTS.fs_12_medium, styles.clusterListPrice]}>
-                        {getPriceLabel(item)}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                  {selectedCluster.items.map(item => {
+                    const isReserved = isGuesthouseReserved(item);
+
+                    return (
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        key={String(item.id)}
+                        style={styles.clusterListItem}
+                        onPress={() =>
+                          handlePressClusterListItem(selectedCluster, item)
+                        }>
+                        <View
+                          style={[
+                            styles.clusterListIcon,
+                            isReserved && styles.clusterListIconReserved,
+                          ]}>
+                          <HomeIcon width={10} height={10} />
+                        </View>
+                        <Text
+                          numberOfLines={1}
+                          style={[FONTS.fs_12_medium, styles.clusterListName]}>
+                          {item.name}
+                        </Text>
+                        <Text
+                          style={[
+                            FONTS.fs_12_medium,
+                            styles.clusterListPrice,
+                            isReserved && styles.reservedPriceText,
+                          ]}>
+                          {getPriceLabel(item)}
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
                 </View>
               ) : (
                 <View style={styles.singleMarkerContent}>
-                  <View style={styles.homeMarker}>
+                  <View
+                    style={[
+                      styles.homeMarker,
+                      isGuesthouseReserved(selectedCluster.primaryItem)
+                        && styles.homeMarkerReserved,
+                    ]}>
                     <HomeIcon width={18} height={18} />
                   </View>
                   <View style={styles.singleMarkerTextWrap}>
@@ -1135,13 +1289,24 @@ const GuesthouseListMap = ({
                       {selectedCluster.primaryItem.name}
                     </Text>
                     <Text
-                      style={[FONTS.fs_12_medium, styles.singleMarkerPrice]}>
+                      style={[
+                        FONTS.fs_12_medium,
+                        styles.singleMarkerPrice,
+                        isGuesthouseReserved(selectedCluster.primaryItem)
+                          && styles.reservedPriceText,
+                      ]}>
                       {getPriceLabel(selectedCluster.primaryItem)}
                     </Text>
                   </View>
                 </View>
               )}
-              <View style={styles.markerBubbleTail} />
+              <View
+                style={[
+                  styles.markerBubbleTail,
+                  isClusterReserved(selectedCluster)
+                    && styles.markerBubbleTailReserved,
+                ]}
+              />
             </View>
           </View>
         )}
@@ -1149,6 +1314,7 @@ const GuesthouseListMap = ({
         {showResearchButton && (
           <View style={styles.researchButtonContainer}>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.researchButton}
               onPress={() => fetchMapGuesthouses(pendingBounds)}>
               <Text style={[FONTS.fs_12_medium, styles.researchButtonText]}>
@@ -1161,6 +1327,7 @@ const GuesthouseListMap = ({
         {!selectedItem && (
           <View style={styles.bottomControlRow}>
             <TouchableOpacity
+              activeOpacity={1}
               disabled={isCurrentLocationLoading}
               style={[
                 styles.currentLocationButton,
@@ -1171,6 +1338,7 @@ const GuesthouseListMap = ({
               <TargetIcon width={20} height={20} />
             </TouchableOpacity>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.listToggleButton}
               onPress={onPressListToggle}>
               <ListIcon width={20} height={20} />
@@ -1199,6 +1367,7 @@ const GuesthouseListMap = ({
           <View style={styles.cardArea}>
             <View style={styles.cardTopControlRow}>
               <TouchableOpacity
+                activeOpacity={1}
                 disabled={isCurrentLocationLoading}
                 style={[
                   styles.currentLocationButton,
@@ -1209,6 +1378,7 @@ const GuesthouseListMap = ({
                 <TargetIcon width={20} height={20} />
               </TouchableOpacity>
               <TouchableOpacity
+                activeOpacity={1}
                 style={styles.listToggleButton}
                 onPress={onPressListToggle}>
                 <ListIcon width={20} height={20} />
@@ -1219,7 +1389,7 @@ const GuesthouseListMap = ({
             </View>
             <View {...cardPanResponder.panHandlers}>
               <TouchableOpacity
-                activeOpacity={0.92}
+                activeOpacity={1}
                 style={styles.detailCard}
                 onPress={handlePressCard}>
                 <View style={styles.detailHeader}>
@@ -1230,6 +1400,7 @@ const GuesthouseListMap = ({
                       {selectedItem.name}
                     </Text>
                     <TouchableOpacity
+                      activeOpacity={1}
                       hitSlop={8}
                       style={styles.favoriteButton}
                       onPress={event => {
@@ -1249,7 +1420,13 @@ const GuesthouseListMap = ({
                       style={[FONTS.fs_12_medium, styles.detailAddress]}>
                       {trimJejuPrefix(selectedItem.address)}
                     </Text>
-                    <Text style={[FONTS.fs_18_semibold, styles.detailPrice]}>
+                    <Text
+                      style={[
+                        FONTS.fs_18_semibold,
+                        styles.detailPrice,
+                        (selectedItem.isReserved || selectedItem.minPrice == null)
+                          && styles.reservedPriceText,
+                      ]}>
                       {selectedItem.isReserved || selectedItem.minPrice == null
                         ? '예약마감'
                         : `${selectedItem.minPrice.toLocaleString()}원 ~`}
@@ -1268,13 +1445,13 @@ const GuesthouseListMap = ({
                 {selectedImageUrls.length > 1 && (
                   <View style={styles.imageSwitchContainer}>
                     <TouchableOpacity
-                      activeOpacity={0.8}
+                      activeOpacity={1}
                       style={styles.imageSwitchButton}
                       onPress={handlePressPrevImage}>
                       <ChevronLeft width={14} height={14} />
                     </TouchableOpacity>
                     <TouchableOpacity
-                      activeOpacity={0.8}
+                      activeOpacity={1}
                       style={styles.imageSwitchButton}
                       onPress={handlePressNextImage}>
                       <ChevronRight width={14} height={14} />

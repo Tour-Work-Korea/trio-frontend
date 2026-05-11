@@ -126,6 +126,7 @@ export default function TodayGuesthouses() {
             {/* 게하이름 + 좋아요 */}
             <View style={styles.bottomRow}>
               <TouchableOpacity
+                activeOpacity={1}
                 onPress={() =>
                   navigation.navigate('GuesthouseDetail', {
                     id: item.guesthouseId,

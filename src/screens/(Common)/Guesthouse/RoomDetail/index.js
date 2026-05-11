@@ -116,7 +116,7 @@ const RoomDetail = ({route}) => {
               onSnapToItem={idx => setImageIndex(idx)}
               renderItem={({item}) => (
                 <TouchableOpacity
-                  activeOpacity={0.9}
+                  activeOpacity={1}
                   onPress={() => setImageModalVisible(true)}>
                   <Image
                     source={{uri: item.roomImageUrl}}
@@ -131,6 +131,7 @@ const RoomDetail = ({route}) => {
             />
           )}
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.backButton}
             onPress={() => navigation.goBack()}>
             <LeftArrow width={28} height={28} />

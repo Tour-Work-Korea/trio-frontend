@@ -25,7 +25,7 @@ const MyCouponList = () => {
           <TouchableOpacity
             key={tab.key}
             style={styles.tabButton}
-            activeOpacity={0.8}
+            activeOpacity={1}
             onPress={() => setActiveTab(tab.key)}>
             <Text
               style={[

@@ -72,7 +72,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
       <View style={styles.container}>
         <TouchableOpacity
           style={styles.card}
-          activeOpacity={0.9}
+          activeOpacity={1}
           onPress={() =>
             navigation.navigate('MeetPaymentReceipt', {
               reservationId: item.reservationId,
@@ -110,7 +110,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           {/* 예약취소 */}
           <TouchableOpacity
             style={styles.cancelBtn}
-            activeOpacity={0.7}
+            activeOpacity={1}
             onPress={() => {
               const {
                 result,

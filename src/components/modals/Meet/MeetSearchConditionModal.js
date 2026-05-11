@@ -319,7 +319,7 @@ const MeetSearchConditionModal = ({
                     <TouchableOpacity
                       key={label}
                       style={styles.tabItem}
-                      activeOpacity={0.8}
+                      activeOpacity={1}
                       onPress={() => setStep(idx)}>
                       <Text
                         style={[

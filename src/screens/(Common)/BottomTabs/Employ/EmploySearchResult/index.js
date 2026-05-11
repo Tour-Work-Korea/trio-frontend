@@ -213,6 +213,7 @@ const EmploySearchResult = ({route}) => {
         <View style={styles.recruitListHeader}>
           <View style={styles.filterContainer}>
             <TouchableOpacity
+              activeOpacity={1}
               style={styles.filterButtonContainer}
               onPress={() => setFilterModalVisible(true)}>
               <FilterIcon width={20} height={20} />
@@ -233,6 +234,7 @@ const EmploySearchResult = ({route}) => {
           </View>
 
           <TouchableOpacity
+            activeOpacity={1}
             style={styles.sortContainer}
             onPress={() => setSortModalVisible(true)}>
             <SortIcon width={20} height={20} />

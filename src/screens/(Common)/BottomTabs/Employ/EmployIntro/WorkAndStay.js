@@ -13,6 +13,7 @@ export default function WorkAndStay({guesthouses}) {
 
   const renderGuesthouse = ({item}) => (
     <TouchableOpacity
+      activeOpacity={1}
       onPress={() => {
         navigation.navigate('GuesthouseDetail', {
           id: item.id,
@@ -77,6 +78,7 @@ export default function WorkAndStay({guesthouses}) {
           번에
         </Text>
         <TouchableOpacity
+          activeOpacity={1}
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularGuesthouseList');

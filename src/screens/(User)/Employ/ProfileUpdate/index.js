@@ -132,6 +132,7 @@ const ProfileUpdate = () => {
                     'ENFP',
                   ].map(type => (
                     <TouchableOpacity
+                      activeOpacity={1}
                       key={type}
                       style={[
                         styles.mbtiButton,
