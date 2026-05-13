@@ -16,7 +16,7 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
 
-  // 이벤트 제목, 사진
+  // 콘텐츠 제목, 사진
   card: {
     alignItems: 'center',
   },
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
 
-  // 이벤트 정보
+  // 콘텐츠 정보
   infoRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',

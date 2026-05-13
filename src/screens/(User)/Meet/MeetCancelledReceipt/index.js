@@ -113,7 +113,7 @@ export default function MeetCancelledReceipt() {
       ) : (
         <>
         <View style={styles.body}>
-          {/* 이벤트 제목, 사진 */}
+          {/* 콘텐츠 제목, 사진 */}
           <View style={styles.card}>
             <Text style={[FONTS.fs_18_medium, styles.title]}>
               {reservationDetail?.partyTitle || '-'}

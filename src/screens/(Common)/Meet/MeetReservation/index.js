@@ -96,7 +96,7 @@ const MeetReservation = () => {
         }
         Toast.show({
           type: 'error',
-          text1: '이벤트 참가 정보를 불러오지 못했어요.',
+          text1: '콘텐츠 참가 정보를 불러오지 못했어요.',
           position: 'top',
         });
         navigation.goBack();
@@ -348,7 +348,7 @@ const MeetReservation = () => {
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled">
 
-          {/* 이벤트 정보 */}
+          {/* 콘텐츠 정보 */}
           <View style={styles.eventInfoRow}>
             {eventThumbnailSource && (
               <Image
@@ -507,7 +507,7 @@ const MeetReservation = () => {
           onClose={() => setModalVisible(false)}
           title={
             selectedTerm === 'terms'
-              ? '이벤트 취소/환불 규정'
+              ? '콘텐츠 취소/환불 규정'
               : selectedTerm === 'personalInfo'
               ? '개인정보 수집 및 이용'
               : selectedTerm === 'thirdParty'

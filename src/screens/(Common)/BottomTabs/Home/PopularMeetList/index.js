@@ -303,7 +303,7 @@ const PopularMeetList = () => {
             </View>
           </View>
 
-          {/* 지금 뜨는 이벤트 */}
+          {/* 지금 뜨는 콘텐츠 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 콘텐츠</Text>
 
           <ScrollView
@@ -354,7 +354,7 @@ const PopularMeetList = () => {
             ))}
           </View>
 
-          {/* 추천 이벤트 */}
+          {/* 추천 콘텐츠 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
             추천 콘텐츠
           </Text>

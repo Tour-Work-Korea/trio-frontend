@@ -44,7 +44,7 @@ import CalendarIcon from '@assets/images/calendar_gray.svg';
 import BellIcon from '@assets/images/warning_alarm_orange.svg';
 
 const TABS = [
-  {key: 'intro', label: '이벤트 소개'},
+  {key: 'intro', label: '콘텐츠 소개'},
   {key: 'detail', label: '상세 안내'},
   {key: 'way', label: '오시는 길'},
 ];
@@ -144,7 +144,7 @@ const MeetDetail = () => {
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
 
-  // 이벤트 상세 데이터
+  // 콘텐츠 상세 데이터
   useEffect(() => {
     let mounted = true;
     const fetchDetail = async () => {
@@ -260,7 +260,7 @@ const MeetDetail = () => {
   const isRecruiting = partyStatus === 'RECRUIT';
   const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
 
-  // 이벤트 좋아요 토글
+  // 콘텐츠 좋아요 토글
   const onToggleLike = async () => {
     try {
       await toggleFavorite({
@@ -298,7 +298,7 @@ const MeetDetail = () => {
 
     if (role !== 'USER') {
       showErrorModal({
-        message: '이벤트는\n 로그인 후 사용해주세요',
+        message: '콘텐츠는\n 로그인 후 사용해주세요',
         buttonText2: '취소',
         buttonText: '로그인하기',
         onPress: () => navigation.navigate('Login'),

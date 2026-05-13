@@ -1,4 +1,4 @@
-import React, {useMemo, useState, useEffect, useCallback} from 'react';
+import React, {useMemo, useState, useCallback} from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   ActivityIndicator,
 } from 'react-native';
 import dayjs from 'dayjs';
-import {useNavigation} from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
 import styles from './MeetMain.styles';
@@ -72,9 +72,11 @@ const MeetMain = () => {
     }
   }, [sortOption, scaleId, stayId, isBigById, isGuestById]);
 
-  useEffect(() => {
-    fetchRecent();
-  }, [fetchRecent]);
+  useFocusEffect(
+    useCallback(() => {
+      fetchRecent();
+    }, [fetchRecent]),
+  );
 
   const groupedGuesthouses = useMemo(() => {
     const sorted = [...meets].sort(
@@ -197,7 +199,7 @@ const MeetMain = () => {
             </Text>
           </View>
           <View style={styles.countChip}>
-            <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>이벤트 0</Text>
+            <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>콘텐츠 0</Text>
           </View>
         </View> */}
 

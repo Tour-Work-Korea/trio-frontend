@@ -100,7 +100,7 @@ const UserMeetReservationCancelled = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="취소된 이벤트" />
+      <Header title="취소된 콘텐츠" />
       <View style={styles.content}>
         {loading ? (
           <Loading title="예약 목록을 불러오고 있어요." />
@@ -121,10 +121,10 @@ const UserMeetReservationCancelled = () => {
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
                   title="취소내역이 없어요"
-                  description="이벤트을 예약하러 가볼까요?"
-                  buttonText="이벤트 찾아보기"
+                  description="콘텐츠를 예약하러 가볼까요?"
+                  buttonText="콘텐츠 찾아보기"
                   onPressButton={() =>
-                    navigation.navigate('MainTabs', {screen: '이벤트'})
+                    navigation.navigate('MainTabs', {screen: '콘텐츠'})
                   }
                 />
               }

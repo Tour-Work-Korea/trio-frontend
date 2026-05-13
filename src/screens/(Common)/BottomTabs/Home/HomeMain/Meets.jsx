@@ -39,7 +39,7 @@ export default function Meets({events = [], setEventList}) {
       });
     } catch (error) {
       console.warn(
-        '홈 인기 이벤트 즐겨찾기 토글 실패',
+        '홈 인기 콘텐츠 즐겨찾기 토글 실패',
         error?.response?.data?.message,
       );
     }
@@ -73,7 +73,7 @@ export default function Meets({events = [], setEventList}) {
                 style={localStyles.heartButton}
                 activeOpacity={1}
                 onPress={e => {
-                  e.stopPropagation(); // 카드 onPress로 이벤트 전파 막기
+                  e.stopPropagation(); // 카드 onPress로 콘텐츠 전파 막기
                   handleToggleFavorite(item);
                 }}>
                 {isFav ? (
@@ -162,7 +162,7 @@ export default function Meets({events = [], setEventList}) {
                 localStyles.meetChipText,
                 selectedChip === 'event' && localStyles.meetChipTextActive,
               ]}>
-              이벤트
+              콘텐츠
             </Text>
           </TouchableOpacity> */}
           {/* 임시 */}
@@ -178,7 +178,7 @@ export default function Meets({events = [], setEventList}) {
                 localStyles.meetChipText,
                 selectedChip === 'event' && localStyles.meetChipTextActive,
               ]}>
-              이벤트
+              콘텐츠
             </Text>
           </View>
         </View> */}

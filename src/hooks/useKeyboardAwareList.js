@@ -28,7 +28,7 @@ export default function useKeyboardAwareList(options = {}) {
   // 키보드가 올라왔을 때 높이를 저장
   const [keyboardHeight, setKeyboardHeight] = useState(0);
 
-  // 키보드 이벤트 구독
+  // 키보드 콘텐츠 구독
   useEffect(() => {
     if (iosOnly && Platform.OS !== 'ios') return;
 

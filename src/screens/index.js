@@ -95,9 +95,9 @@ export {default as MyCouponRegister} from './(User)/UserMyPage/MyCouponList/MyCo
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
-// 좋아하는 이벤트
+// 좋아하는 콘텐츠
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';
-// 이벤트 예약내역
+// 콘텐츠 예약내역
 export {default as UserMeetReservationCheck} from './(User)/UserMyPage/UserMeetReservationCheck';
 export {default as UserMeetReservationCancelled} from './(User)/UserMyPage/UserMeetReservationCancelled';
 

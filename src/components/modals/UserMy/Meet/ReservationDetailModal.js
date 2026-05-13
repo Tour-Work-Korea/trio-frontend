@@ -141,7 +141,7 @@ export default function ReservationDetailModal({
                 </View>
                 <View style={styles.row}>
                   <Text style={[FONTS.fs_14_medium, styles.label]}>
-                    참여 이벤트
+                    참여 콘텐츠
                   </Text>
                   <Text style={[FONTS.fs_14_medium, styles.value]}>
                     {reservation.partyTitle}
