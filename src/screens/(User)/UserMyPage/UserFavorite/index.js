@@ -7,7 +7,11 @@ import {
   View,
 } from 'react-native';
 
-import {MyLikeRecruitList, UserFavoriteGuesthouse, UserFavoriteMeet} from '@screens';
+import {
+  MyLikeRecruitList,
+  UserFavoriteGuesthouse,
+  UserFavoriteMeet,
+} from '@screens';
 import Header from '@components/Header';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -19,7 +23,7 @@ const TAB_ITEMS = [
   {key: 'recruit', label: '스탭'},
 ];
 
-const Favorite = () => {
+const UserFavorite = () => {
   const {
     pagerRef,
     isActive,
@@ -34,7 +38,7 @@ const Favorite = () => {
 
   return (
     <View style={styles.container}>
-      <Header title='찜' showBackButton={false} />
+      <Header title="찜" />
 
       <View style={styles.tabBar}>
         {TAB_ITEMS.map((tab, index) => {
@@ -118,4 +122,4 @@ const styles = StyleSheet.create({
   },
 });
 
-export default Favorite;
+export default UserFavorite;

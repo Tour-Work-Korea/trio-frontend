@@ -73,7 +73,7 @@ const MeetSearch = () => {
     return {isToday, label};
   };
 
-  // 이벤트 데이터 로더
+  // 콘텐츠 데이터 로더
   const fetchPage = useCallback(
     async (nextPage, reset = false) => {
       if (isFetching) return;
@@ -130,7 +130,7 @@ const MeetSearch = () => {
     fetchPage(page + 1, false);
   };
 
-  // 이벤트 리스트
+  // 콘텐츠 리스트
   const renderItem = ({item}) => {
     const when = formatWhen(item.startAt);
     const isFav = favorites[item.id] ?? item.isLiked;
@@ -201,14 +201,14 @@ const MeetSearch = () => {
           onPress={() => navigation.goBack()}>
           <ChevronLeft width={24} height={24} />
         </TouchableOpacity>
-        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>이벤트</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>콘텐츠</Text>
       </View>
 
       {/* 검색창 */}
       <View style={styles.searchBox}>
         <SearchIcon width={24} height={24} />
         <TextInput
-          placeholder="찾는 이벤트가 있으신가요?"
+          placeholder="찾는 콘텐츠가 있으신가요?"
           style={[FONTS.fs_14_regular, styles.input]}
           placeholderTextColor={COLORS.grayscale_600}
           value={keyword}
@@ -218,10 +218,10 @@ const MeetSearch = () => {
         />
       </View>
 
-      {/* 이벤트 리스트 */}
+      {/* 콘텐츠 리스트 */}
       <View style={styles.meetListContainer}>
         <Text style={[FONTS.fs_14_medium, styles.sectionTitle]}>
-          이벤트 중인 게스트하우스
+          콘텐츠 중인 게스트하우스
         </Text>
 
         <FlatList
@@ -246,8 +246,8 @@ const MeetSearch = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="조건에 맞는 이벤트가 없어요"
-                  description="마음에 드는 이벤트를 찾으러 가볼까요?"
+                  title="조건에 맞는 콘텐츠가 없어요"
+                  description="마음에 드는 콘텐츠를 찾으러 가볼까요?"
                 />
               </View>
             ) : null

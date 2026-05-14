@@ -28,6 +28,7 @@ export {default as HomeMain} from './(Common)/BottomTabs/Home/HomeMain';
 export {default as PopularGuesthouseList} from './(Common)/BottomTabs/Home/PopularGuesthouseList';
 export {default as PopularEmployList} from './(Common)/BottomTabs/Home/PopularEmployList';
 export {default as PopularMeetList} from './(Common)/BottomTabs/Home/PopularMeetList';
+export {default as TemporaryEventBanner} from './(Common)/BottomTabs/Home/TemporaryEventBanner';
 // 동행
 export {default as Meet} from './(Common)/BottomTabs/Meet';
 export {default as MeetMain} from './(Common)/BottomTabs/Meet/MeetMain';
@@ -42,8 +43,9 @@ export {default as GuesthousePost} from './(Common)/GuesthousePost';
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
-// 찜
-export {default as Favorite} from './(Common)/BottomTabs/Favorite';
+// 커뮤니티
+export {default as Community} from './(Common)/BottomTabs/Community';
+export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
@@ -86,6 +88,7 @@ export {default as UserEditProfile} from './(User)/UserMyPage/UserEditProfile';
 export {default as UserEditInfo} from './(User)/UserMyPage/UserEditInfo';
 // 좋아하는 게하 숙박
 export {default as UserFavoriteGuesthouse} from './(User)/UserMyPage/UserFavoriteGuesthouse';
+export {default as UserFavorite} from './(User)/UserMyPage/UserFavorite';
 // 게하 예약 목록
 export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservationCheck';
 // 게하 리뷰
@@ -95,9 +98,9 @@ export {default as MyCouponRegister} from './(User)/UserMyPage/MyCouponList/MyCo
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
-// 좋아하는 이벤트
+// 좋아하는 콘텐츠
 export {default as UserFavoriteMeet} from './(User)/UserMyPage/UserFavoriteMeet';
-// 이벤트 예약내역
+// 콘텐츠 예약내역
 export {default as UserMeetReservationCheck} from './(User)/UserMyPage/UserMeetReservationCheck';
 export {default as UserMeetReservationCancelled} from './(User)/UserMyPage/UserMeetReservationCancelled';
 

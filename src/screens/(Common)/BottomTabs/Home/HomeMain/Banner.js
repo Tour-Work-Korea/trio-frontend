@@ -7,6 +7,7 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import styles from './Home.styles';
 
 const {width} = Dimensions.get('window');
@@ -14,20 +15,33 @@ const BANNER_WIDTH = width * 0.9;
 const BANNER_HEIGHT = 120;
 
 export default function Banner({banners = []}) {
+  const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef(null);
 
-  const openBannerLink = useCallback(async url => {
-    if (!url || typeof url !== 'string') return;
+  const handlePressBanner = useCallback(async item => {
+    if (Number(item?.id) === 22) {
+      navigation.navigate('TemporaryEventBanner', {banner: item});
+      return;
+    }
+
+    const url = item?.link;
+    if (!url || typeof url !== 'string') {
+      return;
+    }
     const safeUrl = url.trim();
-    if (!/^https?:\/\//i.test(safeUrl)) return;
+    if (!/^https?:\/\//i.test(safeUrl)) {
+      return;
+    }
     try {
       const can = await Linking.canOpenURL(safeUrl);
-      if (can) await Linking.openURL(safeUrl);
+      if (can) {
+        await Linking.openURL(safeUrl);
+      }
     } catch {
       console.warn('링크 열기 실패');
     }
-  }, []);
+  }, [navigation]);
 
   useEffect(() => {
     if (banners.length <= 1) {
@@ -88,7 +102,7 @@ export default function Banner({banners = []}) {
             }}>
             <TouchableOpacity
               activeOpacity={1}
-              onPress={() => openBannerLink(item?.link)}
+              onPress={() => handlePressBanner(item)}
               style={{
                 width: BANNER_WIDTH,
                 height: BANNER_HEIGHT,

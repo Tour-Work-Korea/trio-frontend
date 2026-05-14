@@ -12,6 +12,7 @@ import BellIcon from '@assets/images/bell_gray.svg';
 import CommentIcon from '@assets/images/comment_black.svg';
 import CouponIcon from '@assets/images/coupon_black.svg';
 import PointIcon from '@assets/images/point_black.svg';
+import HeartIcon from '@assets/images/heart_black.svg';
 import Avatar from '@components/Avatar';
 
 import styles from './UserMyPage.styles';
@@ -30,6 +31,7 @@ const UserMyPage = () => {
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const favoriteCount = 0;
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
@@ -221,6 +223,17 @@ const UserMyPage = () => {
                 {formattedPointBalance}
               </Text>
             </View>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('UserFavorite')}
+            >
+              <HeartIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium]}>찜</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                {favoriteCount}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSection}>

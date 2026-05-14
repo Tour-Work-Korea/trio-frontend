@@ -34,7 +34,7 @@ const MeetCancelSuccess = () => {
           취소가 완료되었어요
         </Text>
         <Text style={[FONTS.fs_16_medium, styles.desc]}>
-          새로운 이벤트를 참여하고 싶을 때 다시 찾아주세요
+          새로운 콘텐츠에 참여하고 싶을 때 다시 찾아주세요
         </Text>
       </View>
     </SafeAreaView>

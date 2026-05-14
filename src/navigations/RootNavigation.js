@@ -62,6 +62,7 @@ import {
   MeetCancelSuccess,
   NotificationCenter,
   NotificationSettings,
+  CommunityDetail,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -189,6 +190,7 @@ const RootNavigation = () => {
         <Stack.Screen name="MeetPayment" component={MeetPayment} />
 
         <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
+        <Stack.Screen name="CommunityDetail" component={CommunityDetail} />
       </Stack.Navigator>
     </NavigationContainer>
   );

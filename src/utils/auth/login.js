@@ -5,12 +5,26 @@ import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { log, mask } from '@utils/logger';
-import { navigate } from '@utils/navigationService';
+import { reset } from '@utils/navigationService';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 
 const REFRESH_KEY = 'refresh-token';
+
+const clearAuthSession = async ({ silent = false } = {}) => {
+  try {
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+  } catch (storageErr) {
+    log.warn('🧹 remove refresh failed:', storageErr?.message);
+  }
+
+  useUserStore.getState().clearUser();
+
+  if (!silent) {
+    reset([{ name: 'Login', params: { reason: 'refresh_failed' } }]);
+  }
+};
 
 export const tryKakaoLoginNative = async (userRole) => {
   log.info('tryKakaoLoginNative: role=', userRole);
@@ -157,6 +171,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');
+      await clearAuthSession({ silent });
       return false;
     }
     const res = await authApi.refreshToken(storedRefresh);
@@ -174,12 +189,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     return true;
   } catch (error) {
     log.warn('❌ tryRefresh failed:', error?.response?.status, error?.message);
-    await EncryptedStorage.removeItem(REFRESH_KEY);
-    useUserStore.getState().clearUser();
-
-    if (!silent) {
-      navigate('Login', { reason: 'refresh_failed' });
-    }
+    await clearAuthSession({ silent });
     return false;
   }
 };

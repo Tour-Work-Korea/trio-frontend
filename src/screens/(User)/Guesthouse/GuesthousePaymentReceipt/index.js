@@ -63,6 +63,31 @@ const formatPaidAt = paidAt => {
   return date.isValid() ? date.format('YYYY.MM.DD (dd) HH:mm') : paidAt;
 };
 
+const firstNonEmpty = (...values) =>
+  values.find(value => value !== undefined && value !== null && value !== '');
+
+const getStayDateLabel = (...values) => {
+  const value = firstNonEmpty(...values);
+  return value ? formatDateWithDay(value) : '';
+};
+
+const getCalendarNightCount = (checkIn, checkOut) => {
+  if (!checkIn || !checkOut) {
+    return 0;
+  }
+
+  const checkInDate = dayjs(checkIn);
+  const checkOutDate = dayjs(checkOut);
+  if (!checkInDate.isValid() || !checkOutDate.isValid()) {
+    return 0;
+  }
+
+  return Math.max(
+    0,
+    checkOutDate.startOf('day').diff(checkInDate.startOf('day'), 'day'),
+  );
+};
+
 const buildPurchaseSubtitle = ctx => {
   if (!ctx) return '';
   const isDormitory = ctx.roomType === 'DORMITORY';
@@ -97,10 +122,7 @@ const buildPurchaseTitle = ctx => {
   if (!ctx?.roomName) return '';
   if (!ctx.checkIn || !ctx.checkOut) return ctx.roomName;
 
-  const nights = Math.max(
-    0,
-    dayjs(ctx.checkOut).diff(dayjs(ctx.checkIn), 'day'),
-  );
+  const nights = getCalendarNightCount(ctx.checkIn, ctx.checkOut);
   return nights > 0 ? `${ctx.roomName} / ${nights}박` : ctx.roomName;
 };
 
@@ -152,10 +174,11 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
     },
 
     stay: {
-      checkIn:
-        dto.checkIn ??
-        formatDateWithDay(stayOverride?.checkIn) ??
-        formatDateWithDay(fallback?.checkIn),
+      checkIn: getStayDateLabel(
+        dto.checkIn,
+        stayOverride?.checkIn,
+        fallback?.checkIn,
+      ),
       checkInTime: formatTime(
         dto.checkInTime ??
           stayOverride?.checkInTime ??
@@ -164,10 +187,11 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
           stayOverride?.checkIn ??
           fallback?.checkIn
       ),
-      checkOut:
-        dto.checkOut ??
-        formatDateWithDay(stayOverride?.checkOut) ??
-        formatDateWithDay(fallback?.checkOut),
+      checkOut: getStayDateLabel(
+        dto.checkOut,
+        stayOverride?.checkOut,
+        fallback?.checkOut,
+      ),
       checkOutTime: formatTime(
         dto.checkOutTime ??
           stayOverride?.checkOutTime ??
@@ -316,10 +340,11 @@ const GuesthousePaymentReceipt = () => {
     return base.isValid() ? base.add(10, 'minute').toISOString() : null;
   }, [data]);
   const nights = useMemo(() => {
-    const checkIn = dto?.checkIn ?? receiptContext?.checkIn ?? stayOverride?.checkIn;
-    const checkOut = dto?.checkOut ?? receiptContext?.checkOut ?? stayOverride?.checkOut;
-    if (!checkIn || !checkOut) return 0;
-    return Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day'));
+    const checkInValue =
+      dto?.checkIn ?? receiptContext?.checkIn ?? stayOverride?.checkIn;
+    const checkOutValue =
+      dto?.checkOut ?? receiptContext?.checkOut ?? stayOverride?.checkOut;
+    return getCalendarNightCount(checkInValue, checkOutValue);
   }, [receiptContext, stayOverride, dto]);
   const unitPriceSuffix = useMemo(
     () => buildPaymentUnitSuffix(mergedContext),

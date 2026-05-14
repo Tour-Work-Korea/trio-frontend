@@ -9,7 +9,7 @@
 //   return (
 //     <View style={styles.container}>
 //       <ComingSoonImg />
-//       <Text style={[FONTS.fs_18_bold, styles.headerText]}>이벤트 서비스는 ver.2 런칭 예정 ⚙️</Text>
+//       <Text style={[FONTS.fs_18_bold, styles.headerText]}>콘텐츠 서비스는 ver.2 런칭 예정 ⚙️</Text>
 //       <Text style={[FONTS.fs_18_regular, styles.text]}>
 //         지금은 수리 중이에요{'\n'}
 //         조금만 기다려주세요!

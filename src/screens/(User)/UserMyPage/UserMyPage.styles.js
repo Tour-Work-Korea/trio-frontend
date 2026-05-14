@@ -132,7 +132,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: 40,
+    paddingHorizontal: 28,
     paddingVertical: 12,
     marginVertical: 16,
     borderRadius: 10,

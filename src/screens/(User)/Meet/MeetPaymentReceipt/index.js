@@ -131,7 +131,7 @@ export default function MeetPaymentReceipt() {
           <Loading title="예약 정보를 불러오고 있어요." />
         ) : (
           <View style={styles.body}>
-          {/* 이벤트 제목, 사진 */}
+          {/* 콘텐츠 제목, 사진 */}
           <View style={styles.card}>
             <Text style={[FONTS.fs_18_medium, styles.title]}>
               {reservationDetail?.partyTitle || '-'}
