@@ -94,7 +94,7 @@ const openDeeplinkTarget = url => {
     parts[1] === 'guesthouse' &&
     parts[2] === 'detail'
   ) {
-    const reservationId = getQueryParam(searchParams, ['reservationId', 'id']);
+    const reservationId = parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
         showLoginRequiredModal();
@@ -114,7 +114,7 @@ const openDeeplinkTarget = url => {
     parts[1] === 'party' &&
     parts[2] === 'detail'
   ) {
-    const reservationId = getQueryParam(searchParams, ['reservationId', 'id']);
+    const reservationId = parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
         showLoginRequiredModal();

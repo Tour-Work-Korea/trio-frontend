@@ -229,7 +229,7 @@ const DeeplinkHandler = ({enabled = true}) => {
         parts[1] === 'guesthouse' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = getQueryParam(searchParams, [
+        const reservationId = parts[3] || getQueryParam(searchParams, [
           'reservationId',
           'id',
         ]);
@@ -245,7 +245,7 @@ const DeeplinkHandler = ({enabled = true}) => {
         parts[1] === 'party' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = getQueryParam(searchParams, [
+        const reservationId = parts[3] || getQueryParam(searchParams, [
           'reservationId',
           'id',
         ]);
