@@ -1,10 +1,16 @@
 import React, {useCallback, useMemo} from 'react';
-import {Alert, View} from 'react-native';
+import {View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 
 import styles from './TemporaryEventBanner.styles';
 import {COUPON_EVENT_HTML_FRAGMENT} from './couponEventHtml';
+import AlertModal from '@components/modals/AlertModal';
+import useUserStore from '@stores/userStore';
+import userMyApi from '@utils/api/userMyApi';
+import {showErrorModal} from '@utils/loginModalHub';
+
+const TARGET_COUPON_NAME = '신규회원 전용 20% 할인 쿠폰';
 
 const FALLBACK_HTML_FRAGMENT = `
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
@@ -178,6 +184,14 @@ const createHtmlDocument = fragment => `<!doctype html>
 
 const TemporaryEventBanner = () => {
   const navigation = useNavigation();
+  const userRole = useUserStore(state => state.userRole);
+  const accessToken = useUserStore(state => state.accessToken);
+  const [issuing, setIssuing] = React.useState(false);
+  const [alertState, setAlertState] = React.useState({
+    visible: false,
+    message: '',
+    navigateOnConfirm: false,
+  });
 
   useFocusEffect(
     useCallback(() => {
@@ -196,6 +210,97 @@ const TemporaryEventBanner = () => {
     [],
   );
 
+  const closeAlert = useCallback(() => {
+    const shouldNavigate = alertState.navigateOnConfirm;
+
+    setAlertState(prev => ({
+      ...prev,
+      visible: false,
+      navigateOnConfirm: false,
+    }));
+
+    if (shouldNavigate) {
+      navigation.navigate('MyCouponList');
+    }
+  }, [alertState.navigateOnConfirm, navigation]);
+
+  const showCouponAlert = useCallback((message, navigateOnConfirm = false) => {
+    setAlertState({
+      visible: true,
+      message,
+      navigateOnConfirm,
+    });
+  }, []);
+
+  const showLoginRequiredModal = useCallback(() => {
+    showErrorModal({
+      message: '로그인 후 다운로드 가능합니다',
+      buttonText2: '취소',
+      buttonText: '로그인하기',
+      onPress: () => navigation.navigate('Login'),
+      onPress2: () => {},
+    });
+  }, [navigation]);
+
+  const handleIssueCoupon = useCallback(async () => {
+    if (issuing) {
+      return;
+    }
+
+    if (!accessToken || userRole !== 'USER') {
+      showLoginRequiredModal();
+      return;
+    }
+
+    setIssuing(true);
+
+    try {
+      const {data} = await userMyApi.getAvailableCoupons();
+      const coupons = Array.isArray(data?.coupons)
+        ? data.coupons
+        : Array.isArray(data)
+          ? data
+          : [];
+      const targetCoupon = coupons.find(
+        coupon => coupon?.name === TARGET_COUPON_NAME,
+      );
+
+      if (!targetCoupon) {
+        showCouponAlert('해당 쿠폰 다운로드 대상이 아닙니다');
+        return;
+      }
+
+      if (targetCoupon.isIssued) {
+        showCouponAlert('이미 발급된 쿠폰입니다');
+        return;
+      }
+
+      await userMyApi.issueCouponByTemplate(targetCoupon.couponId);
+      showCouponAlert('쿠폰 발급이 완료되었습니다', true);
+    } catch (error) {
+      const status = error?.response?.status;
+      const message =
+        error?.response?.data?.message ||
+        (status === 401
+          ? '로그인 후 다운로드 가능합니다'
+          : '쿠폰 발급에 실패했습니다');
+
+      if (status === 401) {
+        showLoginRequiredModal();
+      } else {
+        showCouponAlert(message);
+      }
+    } finally {
+      setIssuing(false);
+    }
+  }, [
+    accessToken,
+    issuing,
+    showCouponAlert,
+    showLoginRequiredModal,
+    userRole,
+  ]);
+
   const handleMessage = event => {
     const message = event.nativeEvent.data;
 
@@ -205,7 +310,7 @@ const TemporaryEventBanner = () => {
     }
 
     if (message === 'coupon') {
-      Alert.alert('쿠폰', '쿠폰 발급 API 연결 전 임시 버튼입니다.');
+      handleIssueCoupon();
     }
   };
 
@@ -221,6 +326,13 @@ const TemporaryEventBanner = () => {
         showsVerticalScrollIndicator={false}
         bounces={false}
         mixedContentMode="always"
+      />
+      <AlertModal
+        visible={alertState.visible}
+        message={alertState.message}
+        buttonText="확인"
+        onPress={closeAlert}
+        onRequestClose={closeAlert}
       />
     </View>
   );

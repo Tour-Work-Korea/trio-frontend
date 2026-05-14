@@ -45,6 +45,7 @@ export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
 // 커뮤니티
 export {default as Community} from './(Common)/BottomTabs/Community';
+export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
