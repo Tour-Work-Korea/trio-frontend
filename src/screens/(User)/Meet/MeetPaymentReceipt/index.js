@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, ScrollView} from 'react-native';
+import {View, Text, Image, ScrollView, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
@@ -17,7 +17,7 @@ import AlertModal from '@components/modals/AlertModal';
 export default function MeetPaymentReceipt() {
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId, isFromDeeplink = false} = route.params ?? {};
+  const {reservationId, isFromDeeplink = false, partyId} = route.params ?? {};
   const [reservationDetail, setReservationDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelUnavailableOpen, setCancelUnavailableOpen] = useState(false);
@@ -138,10 +138,20 @@ export default function MeetPaymentReceipt() {
             </Text>
 
             {reservationDetail?.partyImage ? (
-              <Image
-                source={{uri: reservationDetail.partyImage}}
-                style={styles.image}
-              />
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  const targetPartyId = reservationDetail?.partyId || partyId;
+                  if (targetPartyId) {
+                    navigation.navigate('MeetDetail', { partyId: targetPartyId });
+                  }
+                }}
+              >
+                <Image
+                  source={{uri: reservationDetail.partyImage}}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
             ) : null}
           </View>
 

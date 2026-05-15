@@ -76,6 +76,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           onPress={() =>
             navigation.navigate('MeetPaymentReceipt', {
               reservationId: item.reservationId,
+              partyId: item.partyId,
             })
           }
         >
