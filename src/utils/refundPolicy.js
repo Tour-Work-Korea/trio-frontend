@@ -19,21 +19,21 @@ export const REFUND_POLICY_RESULT = {
 // 환불 불가 모달
 export const REFUND_POLICY_MESSAGE = {
   [REFUND_POLICY_RESULT.CHECKIN_DAY]: {
-    title: '예약을 취소하시겠습니까?',
+    title: '신청을 취소하시겠습니까?',
     highlightText: '',
-    buttonText: '예약 취소하기',
+    buttonText: '신청 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.AFTER_CHECKIN_TIME]: {
-    title: '예약을 취소하시겠습니까?',
+    title: '신청을 취소하시겠습니까?',
     highlightText: '',
-    buttonText: '예약 취소하기',
+    buttonText: '신청 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.FREE_CANCEL_EXPIRED]: {
-    title: '예약을 취소하시겠습니까?',
+    title: '신청을 취소하시겠습니까?',
     highlightText: '',
-    buttonText: '예약 취소하기',
+    buttonText: '신청 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.INVALID_DATA]: {

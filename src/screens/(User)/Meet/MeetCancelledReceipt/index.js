@@ -104,12 +104,12 @@ export default function MeetCancelledReceipt() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Header
-        title="예약 취소"
+        title="신청 취소"
         onPress={fromCancelSuccess ? handleBackPress : null}
       />
 
       {loading ? (
-        <Loading title="예약 정보를 불러오고 있어요." />
+        <Loading title="신청 정보를 불러오고 있어요." />
       ) : (
         <>
         <View style={styles.body}>
@@ -248,7 +248,7 @@ export default function MeetCancelledReceipt() {
 
         <View style={styles.warningBox}>
           <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
-            예약취소 되었습니다
+            신청취소 되었습니다
           </Text>
         </View>
         </>

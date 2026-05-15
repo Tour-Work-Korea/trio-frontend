@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -9,23 +9,23 @@ import {
   ActivityIndicator,
   Dimensions,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import Carousel from 'react-native-reanimated-carousel';
-import MapView, {Marker} from 'react-native-maps';
+import MapView, { Marker } from 'react-native-maps';
 
 dayjs.locale('ko');
 
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import styles from './MeetDetail.styles';
 import Avatar from '@components/Avatar';
 import userMeetApi from '@utils/api/userMeetApi';
-import {toggleFavorite} from '@utils/toggleFavorite';
+import { toggleFavorite } from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
-import {showErrorModal} from '@utils/loginModalHub';
+import { showErrorModal } from '@utils/loginModalHub';
 import {
   partyDetailDeeplink,
   copyDeeplinkToClipboard,
@@ -44,9 +44,9 @@ import CalendarIcon from '@assets/images/calendar_gray.svg';
 import BellIcon from '@assets/images/warning_alarm_orange.svg';
 
 const TABS = [
-  {key: 'intro', label: '콘텐츠 소개'},
-  {key: 'detail', label: '상세 안내'},
-  {key: 'way', label: '오시는 길'},
+  { key: 'intro', label: '콘텐츠 소개' },
+  { key: 'detail', label: '상세 안내' },
+  { key: 'way', label: '오시는 길' },
 ];
 
 const SNACK_TAG_LABEL = {
@@ -67,7 +67,7 @@ const PARKING_TAG_LABEL = {
   PARTY_NO_PARKING: '주차 불가',
 };
 
-const {width: SCREEN_W} = Dimensions.get('window');
+const { width: SCREEN_W } = Dimensions.get('window');
 const IMAGE_H = 280;
 
 const PARTY_STATUS_LABEL = {
@@ -92,7 +92,7 @@ const toArray = value => {
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {partyId} = route.params ?? {};
+  const { partyId } = route.params ?? {};
 
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
@@ -150,7 +150,7 @@ const MeetDetail = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const {data} = await userMeetApi.getPartyDetail(partyId);
+        const { data } = await userMeetApi.getPartyDetail(partyId);
         if (!mounted) return;
         setDetail(data);
         setLiked(!!data?.isLiked);
@@ -219,10 +219,10 @@ const MeetDetail = () => {
   );
   const thumbnailSource = useMemo(() => {
     if (sortedImages[thumbnailIndex]?.imageUrl) {
-      return {uri: sortedImages[thumbnailIndex].imageUrl};
+      return { uri: sortedImages[thumbnailIndex].imageUrl };
     }
     if (sortedImages[0]?.imageUrl) {
-      return {uri: sortedImages[0].imageUrl};
+      return { uri: sortedImages[0].imageUrl };
     }
   }, [sortedImages, thumbnailIndex]);
 
@@ -251,9 +251,8 @@ const MeetDetail = () => {
   const scheduleText = useMemo(() => {
     const date = dayjs(partyStartDateTime);
     const dateLabel = date.isValid()
-      ? `${date.format('MM.DD')} ${
-          date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
-        }`
+      ? `${date.format('MM.DD')} ${date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
+      }`
       : '-';
     return `${dateLabel} ${formatTime(partyStartTime)}~${formatTime(partyEndTime)}`;
   }, [partyStartDateTime, partyStartTime, partyEndTime]);
@@ -302,7 +301,7 @@ const MeetDetail = () => {
         buttonText2: '취소',
         buttonText: '로그인하기',
         onPress: () => navigation.navigate('Login'),
-        onPress2: () => {},
+        onPress2: () => { },
       });
       return;
     }
@@ -431,7 +430,7 @@ const MeetDetail = () => {
               const images = toArray(ev.partyEventImageUrls);
 
               return (
-                <View key={ev.id ?? evIndex} style={{marginBottom: 20}}>
+                <View key={ev.id ?? evIndex} style={{ marginBottom: 20 }}>
                   {images.length > 0 && (
                     <ScrollView
                       horizontal
@@ -441,7 +440,7 @@ const MeetDetail = () => {
                       {images.map((url, idx) => (
                         <Image
                           key={`${ev.id}-${idx}`}
-                          source={{uri: url}}
+                          source={{ uri: url }}
                           style={styles.eventImageBlog}
                           resizeMode="cover"
                         />
@@ -633,169 +632,169 @@ const MeetDetail = () => {
 
   return (
     <View style={styles.rootContainer}>
-    <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
-      {/* 헤더 */}
-      <View style={styles.header}>
-        {hasImages ? (
-          <Carousel
-            width={SCREEN_W}
-            height={IMAGE_H}
-            data={sortedImages}
-            defaultIndex={thumbnailIndex}
-            loop={false}
-            autoPlay={false}
-            pagingEnabled
-            onSnapToItem={idx => setImageIndex(idx)}
-            renderItem={({item}) => (
-              <TouchableOpacity
-                style={styles.thumbnail}
-                activeOpacity={1}
-                onPress={() => setImageModalVisible(true)}>
-                <Image
-                  source={{uri: item.imageUrl}}
+      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+        {/* 헤더 */}
+        <View style={styles.header}>
+          {hasImages ? (
+            <Carousel
+              width={SCREEN_W}
+              height={IMAGE_H}
+              data={sortedImages}
+              defaultIndex={thumbnailIndex}
+              loop={false}
+              autoPlay={false}
+              pagingEnabled
+              onSnapToItem={idx => setImageIndex(idx)}
+              renderItem={({ item }) => (
+                <TouchableOpacity
                   style={styles.thumbnail}
-                  resizeMode="cover"
-                />
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          <View style={styles.thumbnail} />
-        )}
-        <View style={styles.headerContainer}>
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.backButton}
-            onPress={() => navigation.goBack()}>
-            <ChevronLeft width={28} height={28} />
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={1} style={styles.shareButton} onPress={handleCopyLink}>
-            <ShareIcon width={20} height={20} />
-          </TouchableOpacity>
-          {tagList.length > 0 && (
-            <View style={styles.heroTagRow}>
-              {tagList.map(tag => (
-                <View key={tag} style={styles.heroTagChip}>
-                  <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>
-                    {tag}
-                  </Text>
+                  activeOpacity={1}
+                  onPress={() => setImageModalVisible(true)}>
+                  <Image
+                    source={{ uri: item.imageUrl }}
+                    style={styles.thumbnail}
+                    resizeMode="cover"
+                  />
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <View style={styles.thumbnail} />
+          )}
+          <View style={styles.headerContainer}>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.backButton}
+              onPress={() => navigation.goBack()}>
+              <ChevronLeft width={28} height={28} />
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={1} style={styles.shareButton} onPress={handleCopyLink}>
+              <ShareIcon width={20} height={20} />
+            </TouchableOpacity>
+            {tagList.length > 0 && (
+              <View style={styles.heroTagRow}>
+                {tagList.map(tag => (
+                  <View key={tag} style={styles.heroTagChip}>
+                    <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>
+                      {tag}
+                    </Text>
+                  </View>
+                ))}
+                <View style={styles.heroTagChip}>
+                  <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>#</Text>
                 </View>
-              ))}
-              <View style={styles.heroTagChip}>
-                <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>#</Text>
               </View>
+            )}
+          </View>
+        </View>
+
+        {/* 본문 */}
+        <View style={styles.contentContainer}>
+          <View style={styles.summaryCard}>
+            <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
+            <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
+              {displayGuesthouseName}
+            </Text>
+            <Text
+              style={[FONTS.fs_20_semibold, styles.titleText]}
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {partyTitle}
+            </Text>
+          </View>
+
+          <View style={styles.scheduleBar}>
+            <CalendarIcon width={18} height={18} />
+            <Text style={[FONTS.fs_14_regular, styles.scheduleText]}>
+              {scheduleText}
+            </Text>
+          </View>
+
+          {/* 설명 */}
+          {!!description && (
+            <View style={styles.descriptionContainer}>
+              <Text style={[FONTS.fs_14_regular, styles.description]}>
+                {description}
+              </Text>
             </View>
           )}
-        </View>
-      </View>
 
-      {/* 본문 */}
-      <View style={styles.contentContainer}>
-        <View style={styles.summaryCard}>
-          <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
-          <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
-            {displayGuesthouseName}
-          </Text>
-          <Text
-            style={[FONTS.fs_20_semibold, styles.titleText]}
-            numberOfLines={2}
-            ellipsizeMode="tail">
-            {partyTitle}
-          </Text>
-        </View>
-
-        <View style={styles.scheduleBar}>
-          <CalendarIcon width={18} height={18} />
-          <Text style={[FONTS.fs_14_regular, styles.scheduleText]}>
-            {scheduleText}
-          </Text>
-        </View>
-
-        {/* 설명 */}
-        {!!description && (
-          <View style={styles.descriptionContainer}>
-          <Text style={[FONTS.fs_14_regular, styles.description]}>
-            {description}
-          </Text>
-          </View>
-        )}
-
-        {/* 하단 탭 */}
-        <View style={styles.tabContainer}>
-          {TABS.map((tab, index) => (
-            <Pressable
-              key={tab.key}
-              style={[
-                styles.tabButton,
-                isActive(tab.key) && styles.tabButtonActive,
-              ]}
-              onPress={() => onTabPress(index)}>
-              <Text
+          {/* 하단 탭 */}
+          <View style={styles.tabContainer}>
+            {TABS.map((tab, index) => (
+              <Pressable
+                key={tab.key}
                 style={[
-                  FONTS.fs_14_medium,
-                  styles.tabText,
-                  isActive(tab.key) && styles.tabTextActive,
-                  isActive(tab.key) && FONTS.fs_14_semibold,
-                ]}>
-                {tab.label}
-              </Text>
-            </Pressable>
-          ))}
+                  styles.tabButton,
+                  isActive(tab.key) && styles.tabButtonActive,
+                ]}
+                onPress={() => onTabPress(index)}>
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.tabText,
+                    isActive(tab.key) && styles.tabTextActive,
+                    isActive(tab.key) && FONTS.fs_14_semibold,
+                  ]}>
+                  {tab.label}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            onLayout={onPagerLayout}
+            onMomentumScrollEnd={onMomentumScrollEnd}
+            style={styles.tabPager}>
+            {TABS.map(tab => (
+              <View
+                key={tab.key}
+                style={[styles.tabPage, pageWidth > 0 && { width: pageWidth }]}>
+                {renderTabContent(tab.key)}
+              </View>
+            ))}
+          </ScrollView>
         </View>
-        <ScrollView
-          ref={pagerRef}
-          horizontal
-          pagingEnabled
-          nestedScrollEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          onLayout={onPagerLayout}
-          onMomentumScrollEnd={onMomentumScrollEnd}
-          style={styles.tabPager}>
-          {TABS.map(tab => (
-            <View
-              key={tab.key}
-              style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
-              {renderTabContent(tab.key)}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
 
       </ScrollView>
 
       <View style={styles.fixedNotice}>
         <BellIcon width={20} height={20} />
         <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
-          게스트하우스 파티는 당일에만 참여 신청이 가능해요!
+          게스트하우스 파티는 당일에만 신청이 가능해요!
         </Text>
       </View>
 
-    {/* 하단 고정 영역 */}
-    <View style={styles.fixedBottomBar}>
-      <TouchableOpacity
-        activeOpacity={1} style={styles.bottomLikeButton} onPress={onToggleLike}>
-        {liked ? (
-          <HeartFilled width={28} height={28} />
-        ) : (
-          <HeartEmpty width={28} height={28} />
-        )}
-      </TouchableOpacity>
+      {/* 하단 고정 영역 */}
+      <View style={styles.fixedBottomBar}>
+        <TouchableOpacity
+          activeOpacity={1} style={styles.bottomLikeButton} onPress={onToggleLike}>
+          {liked ? (
+            <HeartFilled width={28} height={28} />
+          ) : (
+            <HeartEmpty width={28} height={28} />
+          )}
+        </TouchableOpacity>
 
-      <TouchableOpacity
-        activeOpacity={1}
-        style={[
-          styles.bottomButton,
-          !isRecruiting && styles.bottomButtonDisabled,
-        ]}
-        disabled={!isRecruiting}
-        onPress={handlePressReservation}>
-        <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>
-          {reservationButtonText}
-        </Text>
-      </TouchableOpacity>
-    </View>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={[
+            styles.bottomButton,
+            !isRecruiting && styles.bottomButtonDisabled,
+          ]}
+          disabled={!isRecruiting}
+          onPress={handlePressReservation}>
+          <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_0 }]}>
+            {reservationButtonText}
+          </Text>
+        </TouchableOpacity>
+      </View>
 
       {/* 모달 */}
       <MeetDetailInfoModal

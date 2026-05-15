@@ -107,8 +107,8 @@ export default function UserPastReservations({data}) {
           <EmptyState
             icon={SearchEmpty}
             iconSize={{width: 120, height: 120}}
-            title="예약내역이 없어요"
-            description="콘텐츠 예약하러 가볼까요?"
+            title="신청내역이 없어요"
+            description="콘텐츠 신청하러 가볼까요?"
             buttonText="콘텐츠 찾아보기"
             onPressButton={() =>
               navigation.navigate('MainTabs', {screen: '콘텐츠'})
