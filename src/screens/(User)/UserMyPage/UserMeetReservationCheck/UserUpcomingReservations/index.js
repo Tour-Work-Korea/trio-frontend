@@ -8,55 +8,16 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import Toast from 'react-native-toast-message';
+
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
-import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
-import AlertModal from '@components/modals/AlertModal';
-import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
-
-  // 예약 취소 모달
-  const [refundModalOpen, setRefundModalOpen] = useState(false);
-  const [refundModalContent, setRefundModalContent] = useState({
-    title: '',
-    message: '',
-    highlightText: '',
-    buttonText: '확인',
-    buttonText2: null,
-  });
-  const [refundReservationId, setRefundReservationId] = useState(null);
-
-  const handleRefundlessCancel = async reservationId => {
-    if (!reservationId) return;
-    try {
-      await reservationPaymentApi.cancelReservation(
-        reservationId,
-        'PARTY',
-        '사용자 요청 취소',
-      );
-      Toast.show({
-        type: 'success',
-        text1: '취소 되었어요!',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-      await onRefresh?.();
-    } catch (error) {
-      Toast.show({
-        type: 'error',
-        text1: '예약 취소에 실패했습니다.',
-        position: 'top',
-        visibilityTime: 2000,
-      });
-    }
-  };
 
   const renderItem = ({item, index}) => {
     const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
@@ -111,34 +72,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           {/* 예약취소 */}
           <TouchableOpacity
             style={styles.cancelBtn}
-            activeOpacity={1}
             onPress={() => {
-              const {
-                result,
-                message,
-                description,
-                title,
-                buttonText,
-                buttonText2,
-                highlightText,
-              } = getRefundPolicyModalContent({
-                checkInDate: startFormatted.date,
-                checkInTime: startFormatted.time,
-              });
-
-              if (result && result !== REFUND_POLICY_RESULT.OK) {
-                setRefundModalContent({
-                  title: title || '',
-                  message: message || description || '',
-                  highlightText: highlightText || '',
-                  buttonText: buttonText || '확인',
-                  buttonText2: buttonText2 || null,
-                });
-                setRefundReservationId(item.reservationId);
-                setRefundModalOpen(true);
-                return;
-              }
-
               navigation.navigate('MeetCancelConfirm', {
                 reservationId: item.reservationId,
                 cancelContext: {
@@ -196,22 +130,6 @@ export default function UserUpcomingReservations({data, onRefresh}) {
             }
           />
         }
-      />
-
-      {/* 환불 없이 취소 모달 */}
-      <AlertModal
-        visible={refundModalOpen}
-        title={refundModalContent.title}
-        message={refundModalContent.message}
-        highlightText={refundModalContent.highlightText}
-        buttonText={refundModalContent.buttonText}
-        buttonText2={refundModalContent.buttonText2}
-        onPress={async () => {
-          await handleRefundlessCancel(refundReservationId);
-          setRefundModalOpen(false);
-          setRefundReservationId(null);
-        }}
-        onPress2={() => setRefundModalOpen(false)}
       />
     </>
   );
