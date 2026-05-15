@@ -83,23 +83,27 @@ export const storeLoginTokens = async ({
   );
 
   const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
-  setTokens({ accessToken });
-  setUserRole(userRole);
+  if (accessToken) setTokens({ accessToken });
+  if (userRole) setUserRole(userRole);
 
   // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
   if (setIsVerified) {
     setIsVerified(needVerification !== "true");
   }
 
-  await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
-  const check = await EncryptedStorage.getItem(REFRESH_KEY);
-  log.info('🔐 saved refresh?', !!check);
+  if (refreshToken) {
+    await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🔐 saved refresh?', !!check);
+  }
 
-  await updateProfile(userRole);
+  if (accessToken) {
+    await updateProfile(userRole);
+  }
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const { accessToken, refreshToken, needVerification } = res.data;
+  const { accessToken, refreshToken, needVerification } = res.data || {};
 
   await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification });
 };
