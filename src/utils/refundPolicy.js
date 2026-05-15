@@ -19,21 +19,21 @@ export const REFUND_POLICY_RESULT = {
 // 환불 불가 모달
 export const REFUND_POLICY_MESSAGE = {
   [REFUND_POLICY_RESULT.CHECKIN_DAY]: {
-    message: '체크인 당일에는 환불 없이 예약 취소만 가능합니다.\n예약을 취소하시겠습니까?',
-    highlightText: '환불 없이',
-    buttonText: '환불 없이 취소하기',
+    title: '예약을 취소하시겠습니까?',
+    highlightText: '',
+    buttonText: '예약 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.AFTER_CHECKIN_TIME]: {
-    message: '체크인 시간 이후에는 환불 없이 예약 취소만 가능합니다.\n예약을 취소하시겠습니까? ',
-    highlightText: '환불 없이',
-    buttonText: '환불 없이 취소하기',
+    title: '예약을 취소하시겠습니까?',
+    highlightText: '',
+    buttonText: '예약 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.FREE_CANCEL_EXPIRED]: {
-    message: '무료 취소 기한이 지나 환불 없이 예약 취소만 가능합니다.\n예약을 취소하시겠습니까? ',
-    highlightText: '환불 없이',
-    buttonText: '환불 없이 취소하기',
+    title: '예약을 취소하시겠습니까?',
+    highlightText: '',
+    buttonText: '예약 취소하기',
     buttonText2: '유지하기',
   },
   [REFUND_POLICY_RESULT.INVALID_DATA]: {
