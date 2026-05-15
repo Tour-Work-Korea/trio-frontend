@@ -46,7 +46,7 @@
 			<string>Editor</string>
 			<key>CFBundleURLSchemes</key>
 			<array>
-				<string>kakao$(KAKAO_NATIVEAPP_KEY)</string>
+				<string>kakao3b6c98b0e2a9e4d3ccdb9b453ccb27b8</string>
 			</array>
 		</dict>
 	</array>
@@ -55,7 +55,7 @@
 	<key>ITSAppUsesNonExemptEncryption</key>
 	<false/>
 	<key>KAKAO_APP_KEY</key>
-	<string>$(KAKAO_NATIVEAPP_KEY)</string>
+	<string>3b6c98b0e2a9e4d3ccdb9b453ccb27b8</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kftc-bankpay</string>
