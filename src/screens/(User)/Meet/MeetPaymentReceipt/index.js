@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, ScrollView} from 'react-native';
+import {View, Text, Image, ScrollView, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import Toast from 'react-native-toast-message';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -17,7 +18,7 @@ import AlertModal from '@components/modals/AlertModal';
 export default function MeetPaymentReceipt() {
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId, isFromDeeplink = false} = route.params ?? {};
+  const {reservationId, isFromDeeplink = false, partyId} = route.params ?? {};
   const [reservationDetail, setReservationDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelUnavailableOpen, setCancelUnavailableOpen] = useState(false);
@@ -28,6 +29,32 @@ export default function MeetPaymentReceipt() {
       setLoading(true);
       const {data} =
         await reservationPaymentApi.getPartyReservationDetail(reservationId);
+      
+      if (data?.reservationStatus === 'CANCELLED') {
+        Toast.show({
+          type: 'error',
+          text1: '이미 취소된 신청 건입니다.',
+        });
+        if (isFromDeeplink || !navigation.canGoBack()) {
+          navigation.reset({
+            index: 1,
+            routes: [
+              {
+                name: 'MainTabs',
+                params: {
+                  screen: '마이',
+                  params: {screen: 'UserMyPage'},
+                },
+              },
+              {name: 'UserMeetReservationCheck'},
+            ],
+          });
+        } else {
+          navigation.goBack();
+        }
+        return;
+      }
+
       setReservationDetail(data);
     } catch (e) {
       console.log('파티 예약 상세 불러오기 실패', e);
@@ -125,7 +152,7 @@ export default function MeetPaymentReceipt() {
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Header title="예약 확정" />
+        <Header title="신청 확정" />
 
         {loading ? (
           <Loading title="예약 정보를 불러오고 있어요." />
@@ -138,10 +165,20 @@ export default function MeetPaymentReceipt() {
             </Text>
 
             {reservationDetail?.partyImage ? (
-              <Image
-                source={{uri: reservationDetail.partyImage}}
-                style={styles.image}
-              />
+              <TouchableOpacity
+                activeOpacity={0.8}
+                onPress={() => {
+                  const targetPartyId = reservationDetail?.partyId || partyId;
+                  if (targetPartyId) {
+                    navigation.navigate('MeetDetail', { partyId: targetPartyId });
+                  }
+                }}
+              >
+                <Image
+                  source={{uri: reservationDetail.partyImage}}
+                  style={styles.image}
+                />
+              </TouchableOpacity>
             ) : null}
           </View>
 
@@ -248,7 +285,7 @@ export default function MeetPaymentReceipt() {
 
           {/* 예약 취소 버튼 */}
           <ButtonWhite
-            title="예약취소"
+            title="신청취소"
             backgroundColor={COLORS.secondary_red}
             textColor={COLORS.semantic_red}
             onPress={handlePressCancel}

@@ -1,6 +1,8 @@
 import {navigate} from '@utils/navigationService';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import Toast from 'react-native-toast-message';
 
 const foregroundListeners = new Set();
 
@@ -202,6 +204,21 @@ export const openNotificationTarget = async notification => {
       if (isPartyCancellation) {
         navigate('MeetCancelledReceipt', {reservationId});
         return;
+      }
+
+      try {
+        const {data} = await reservationPaymentApi.getPartyReservationDetail(
+          reservationId,
+        );
+        if (data?.reservationStatus === 'CANCELLED') {
+          Toast.show({
+            type: 'error',
+            text1: '이미 취소된 신청 건입니다.',
+          });
+          return;
+        }
+      } catch (e) {
+        console.log('파티 예약 상태 확인 실패', e);
       }
 
       navigate('MeetPaymentReceipt', {reservationId});

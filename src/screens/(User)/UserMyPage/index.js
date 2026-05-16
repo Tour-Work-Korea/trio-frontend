@@ -20,6 +20,8 @@ import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import notificationApi from '@utils/api/notificationApi';
+import userEmployApi from '@utils/api/userEmployApi';
+import userMeetApi from '@utils/api/userMeetApi';
 import {isUserNotification} from '@utils/notifications';
 
 const extractNotificationItems = data =>
@@ -31,7 +33,7 @@ const UserMyPage = () => {
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
-  const favoriteCount = 0;
+  const [favoriteCount, setFavoriteCount] = useState(0);
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
@@ -64,12 +66,15 @@ const UserMyPage = () => {
 
       const fetchMyPageData = async () => {
         try {
-          const [reviewsRes, couponsRes, pointRes, notificationsRes] =
+          const [reviewsRes, couponsRes, pointRes, notificationsRes, favoritesRes, favoritePartiesRes, favoriteRecruitsRes] =
             await Promise.all([
               userMyApi.getMyReviews(),
               userMyApi.getMyCoupons(),
               userMyApi.getPointBalance(),
               notificationApi.getMyNotifications(0, 100),
+              userMyApi.getMyFavoriteGuesthouses(),
+              userMeetApi.getFavoriteParties(),
+              userEmployApi.getLikeRecruits(),
             ]);
           if (!isActive) {
             return;
@@ -87,6 +92,13 @@ const UserMyPage = () => {
               item => isUserNotification(item) && !item?.isRead,
             ).length,
           );
+
+          const totalFavorites = 
+            (Array.isArray(favoritesRes.data) ? favoritesRes.data.length : 0) +
+            (Array.isArray(favoritePartiesRes.data) ? favoritePartiesRes.data.length : 0) +
+            (Array.isArray(favoriteRecruitsRes.data) ? favoriteRecruitsRes.data.length : 0);
+
+          setFavoriteCount(totalFavorites);
         } catch (error) {
           if (!isActive) {
             return;
@@ -96,6 +108,7 @@ const UserMyPage = () => {
           setCouponCount(0);
           setPointBalance(0);
           setUnreadCount(0);
+          setFavoriteCount(0);
         }
       };
 

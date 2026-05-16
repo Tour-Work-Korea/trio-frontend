@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   View,
   Text,
@@ -9,7 +9,7 @@ import {
   Platform,
   Image,
 } from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -17,7 +17,7 @@ dayjs.locale('ko');
 
 import Header from '@components/Header';
 import styles from './MeetReservation.styles';
-import {FONTS} from '@constants/fonts';
+import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
@@ -50,10 +50,10 @@ const MeetReservation = () => {
   } = route.params ?? {};
   const announcementItems = Array.isArray(partyAnnouncements)
     ? partyAnnouncements
-        .map(item =>
-          typeof item === 'string' ? item : item?.announcement,
-        )
-        .filter(Boolean)
+      .map(item =>
+        typeof item === 'string' ? item : item?.announcement,
+      )
+      .filter(Boolean)
     : [];
   const hasAnnouncementGuide = announcementItems.length > 0;
   const [step, setStep] = useState(
@@ -73,7 +73,7 @@ const MeetReservation = () => {
     if (!partyId) return;
     const run = async () => {
       try {
-        const {data} = await userMeetApi.joinParty(partyId);
+        const { data } = await userMeetApi.joinParty(partyId);
         setReservationInfo(data);
       } catch (e) {
         const msg = e?.response?.data?.message || e?.message;
@@ -135,7 +135,7 @@ const MeetReservation = () => {
   const eventDateTimeText =
     eventDateText === '-' ? eventTimeText : `${eventDateText} ${eventTimeText}`;
   const eventThumbnailSource = routeThumbnailUrl
-    ? {uri: routeThumbnailUrl}
+    ? { uri: routeThumbnailUrl }
     : null;
   const [agreeAll, setAgreeAll] = useState(false);
 
@@ -198,7 +198,7 @@ const MeetReservation = () => {
 
     try {
       const requestText = requestMessage?.trim() || '';
-      const {data} = await reservationPaymentApi.createPartyReservation(
+      const { data } = await reservationPaymentApi.createPartyReservation(
         partyId,
         {
           amount: Number(reservationInfo?.amount ?? 0),
@@ -230,7 +230,7 @@ const MeetReservation = () => {
       console.log('createPartyReservation error', e);
       const msg =
         e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
-      Toast.show({type: 'error', text1: msg, position: 'top'});
+      Toast.show({ type: 'error', text1: msg, position: 'top' });
     }
   };
 
@@ -263,7 +263,7 @@ const MeetReservation = () => {
           <View
             style={[
               styles.guideProgressFill,
-              {width: '50%'},
+              { width: '50%' },
             ]}
           />
         </View>
@@ -341,7 +341,7 @@ const MeetReservation = () => {
       style={styles.container}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
       keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
-      <View style={{flex: 1}}>
+      <View style={{ flex: 1 }}>
         <Header title="예약" onPress={handleBackPress} />
         <ScrollView
           contentContainerStyle={styles.scrollContent}
@@ -509,19 +509,19 @@ const MeetReservation = () => {
             selectedTerm === 'terms'
               ? '콘텐츠 취소/환불 규정'
               : selectedTerm === 'personalInfo'
-              ? '개인정보 수집 및 이용'
-              : selectedTerm === 'thirdParty'
-              ? '개인정보 제3자 제공'
-              : ''
+                ? '개인정보 수집 및 이용'
+                : selectedTerm === 'thirdParty'
+                  ? '개인정보 제3자 제공'
+                  : ''
           }
           content={
             selectedTerm === 'terms'
               ? '취소 환불 규정 내용 ...'
               : selectedTerm === 'personalInfo'
-              ? '개인정보 수집 이용 동의 내용 ...'
-              : selectedTerm === 'thirdParty'
-              ? '개인정보 제3자 제공 동의 내용 ...'
-              : ''
+                ? '개인정보 수집 이용 동의 내용 ...'
+                : selectedTerm === 'thirdParty'
+                  ? '개인정보 제3자 제공 동의 내용 ...'
+                  : ''
           }
           onAgree={handleAgreeModal}
         />

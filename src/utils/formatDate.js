@@ -38,7 +38,8 @@ export const formatLocalDateToDot = localDate => {
 export const formatLocalDateToDotWithDay = localDate => {
   if (!localDate) return '날짜 없음';
   const date = new Date(localDate);
-  const [year, month, day] = localDate.split('-');
+  const [year, month, dayWithTime] = localDate.split('-');
+  const day = dayWithTime.split('T')[0];
   const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
   const weekDay = weekNames[date.getDay()];
   return `${year}.${month}.${day} (${weekDay})`;
