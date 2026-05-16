@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {
   Modal,
   View,
@@ -11,6 +11,8 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
 import ButtonScarlet from '@components/ButtonScarlet';
+import ChevronUp from '@assets/images/chevron_up_gray.svg';
+import ChevronDown from '@assets/images/chevron_down_gray.svg';
 
 const ReservationCancelConfirmModal = ({
   visible,
@@ -18,6 +20,7 @@ const ReservationCancelConfirmModal = ({
   onConfirm,
   data,
 }) => {
+  const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
   const info = data || {
     paidAmount: 0,
     cancelFee: 0,
@@ -64,6 +67,53 @@ const ReservationCancelConfirmModal = ({
                 {formatWon(info.paidAmount)}
               </Text>
             </View>
+
+            {!!info.appliedPolicyText && (
+              <>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    적용 규정
+                  </Text>
+                  {info.dailyInfo ? (
+                    <TouchableOpacity 
+                      style={{flexDirection: 'row', alignItems: 'center'}}
+                      onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}
+                    >
+                      <Text style={[FONTS.fs_14_medium, {color: COLORS.semantic_red, marginRight: 4}]}>
+                        {info.appliedPolicyText}
+                      </Text>
+                      {isPolicyExpanded ? <ChevronUp width={16} height={16} /> : <ChevronDown width={16} height={16} />}
+                    </TouchableOpacity>
+                  ) : (
+                    <Text style={[FONTS.fs_14_medium, {color: COLORS.semantic_red}]}>
+                      {info.appliedPolicyText}
+                    </Text>
+                  )}
+                </View>
+
+                {isPolicyExpanded && info.dailyInfo && (
+                  <View style={styles.dailyPolicyContainer}>
+                    {info.dailyInfo.map((infoItem, idx) => (
+                      <View key={idx} style={[styles.dailyPolicyRow, idx !== 0 && styles.dailyPolicyBorder]}>
+                        <View>
+                          <Text style={[FONTS.fs_14_semibold, styles.dailyPolicyTitle]}>
+                            {infoItem.nightIndex}차 ({infoItem.dateStr})
+                          </Text>
+                          <Text style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
+                            {infoItem.daysBeforeLabel}
+                          </Text>
+                        </View>
+                        <Text style={[FONTS.fs_14_medium, styles.dailyPolicyAmount]}>
+                          {infoItem.rate === 0 
+                            ? `환불 금액 없음 (0원)` 
+                            : `${infoItem.rate}% 환불 (${formatWon(infoItem.refundAmt)})`}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+              </>
+            )}
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>
@@ -195,5 +245,35 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     marginTop: 8,
     gap: 20,
+  },
+
+  // 차등수수료 내역
+  dailyPolicyContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    padding: 16,
+    marginTop: 12,
+  },
+  dailyPolicyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dailyPolicyBorder: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_100,
+  },
+  dailyPolicyTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+  },
+  dailyPolicySub: {
+    color: COLORS.grayscale_400,
+  },
+  dailyPolicyAmount: {
+    color: COLORS.grayscale_900,
   },
 });

@@ -103,7 +103,36 @@ export default StyleSheet.create({
     color: COLORS.primary_orange,
   },
   refundAmount: {
-    color: COLORS.primary_orange,
+    color: COLORS.grayscale_900,
+  },
+
+  dailyPolicyContainer: {
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    padding: 16,
+    marginBottom: 12,
+  },
+  dailyPolicyRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingVertical: 12,
+  },
+  dailyPolicyBorder: {
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_100,
+  },
+  dailyPolicyTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+  },
+  dailyPolicySub: {
+    color: COLORS.grayscale_400,
+  },
+  dailyPolicyAmount: {
+    color: COLORS.grayscale_900,
   },
 
   // 취소 사유
