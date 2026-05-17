@@ -6,6 +6,8 @@ import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
+import FavoritePostIcon from '@assets/images/user-favorite-post-icon.svg';
+import FavoriteMeetIcon from '@assets/images/user-favorite-meet-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 import SettingIcon from '@assets/images/settings_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
@@ -277,6 +279,27 @@ const UserMyPage = () => {
                   IconComponent={ApplicationStatusIcon}
                   label="지원 현황"
                   onPress={() => navigation.navigate('MyApplicantList')}
+                />
+              </View>
+            </View>
+
+            <View style={styles.devide} />
+
+            {/* 커뮤니티 섹션 */}
+            <View style={[styles.section]}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                커뮤니티
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={FavoritePostIcon}
+                  label="내가 쓴 글"
+                  onPress={() => navigation.navigate('MyCommunityPostList')}
+                />
+                <MenuItem
+                  IconComponent={FavoriteMeetIcon}
+                  label="내가 쓴 댓글"
+                  onPress={() => navigation.navigate('MyCommunityCommentList')}
                 />
               </View>
             </View>

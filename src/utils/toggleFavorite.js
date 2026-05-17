@@ -7,10 +7,11 @@ import userEmployApi from './api/userEmployApi';
 import userMeetApi from '@utils/api/userMeetApi';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import postApi from './api/postApi';
+import communityApi from './api/communityApi';
 
 /**
  * 통합 즐겨찾기 토글
- * @param {'recruit'|'party'|'guesthouse'} type
+ * @param {'recruit'|'party'|'guesthouse'|'post'|'communityPost'} type
  * @param {number} id
  * @param {boolean} isLiked
  * @param {Function|null} setList
@@ -45,6 +46,11 @@ export const toggleFavorite = async ({
       like: () => postApi.likeIntro(id),
       unlike: () => postApi.unlikeIntro(id),
       listIdKey: 'guesthouseId',
+    },
+    communityPost: {
+      like: () => communityApi.likePost(id),
+      unlike: () => communityApi.unlikePost(id),
+      listIdKey: 'postId',
     },
   };
   const conf = apiMap[type];
