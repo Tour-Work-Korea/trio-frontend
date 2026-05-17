@@ -11,6 +11,11 @@ const styles = StyleSheet.create({
     paddingTop: 24,
     paddingBottom: 96,
   },
+  staffHeader: {
+    paddingTop: 24,
+    backgroundColor: COLORS.grayscale_0,
+    zIndex: 1,
+  },
   title: {
     color: COLORS.grayscale_900,
     marginHorizontal: 24,
@@ -145,6 +150,14 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: COLORS.grayscale_900,
+  },
+  emptyText: {
+    color: COLORS.grayscale_500,
+    textAlign: 'center',
+    marginTop: 80,
+  },
+  footerLoading: {
+    marginVertical: 16,
   },
   writeButton: {
     position: 'absolute',

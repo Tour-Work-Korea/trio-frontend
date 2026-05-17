@@ -36,6 +36,8 @@ import {
   MyResumeList,
   MyCouponList,
   MyCouponRegister,
+  MyCommunityPostList,
+  MyCommunityCommentList,
   UserEditProfile,
   UserEditInfo,
   Setting,
@@ -63,6 +65,8 @@ import {
   NotificationCenter,
   NotificationSettings,
   CommunityDetail,
+  CommunityWrite,
+  CommunityStaffDetail,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -161,6 +165,14 @@ const RootNavigation = () => {
         />
         <Stack.Screen name="MyCouponList" component={MyCouponList} />
         <Stack.Screen name="MyCouponRegister" component={MyCouponRegister} />
+        <Stack.Screen
+          name="MyCommunityPostList"
+          component={MyCommunityPostList}
+        />
+        <Stack.Screen
+          name="MyCommunityCommentList"
+          component={MyCommunityCommentList}
+        />
         <Stack.Screen name="MyLikeRecruitList" component={MyLikeRecruitList} />
         <Stack.Screen name="MyApplicantList" component={MyApplicantList} />
         <Stack.Screen name="MyResumeList" component={MyResumeList} />
@@ -191,6 +203,11 @@ const RootNavigation = () => {
 
         <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
         <Stack.Screen name="CommunityDetail" component={CommunityDetail} />
+        <Stack.Screen name="CommunityWrite" component={CommunityWrite} />
+        <Stack.Screen
+          name="CommunityStaffDetail"
+          component={CommunityStaffDetail}
+        />
       </Stack.Navigator>
     </NavigationContainer>
   );

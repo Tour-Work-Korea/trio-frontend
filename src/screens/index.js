@@ -46,6 +46,8 @@ export {default as Terms} from './(Common)/Setting/Terms';
 // 커뮤니티
 export {default as Community} from './(Common)/BottomTabs/Community';
 export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
+export {default as CommunityWrite} from './(Common)/Community/CommunityWrite';
+export {default as CommunityStaffDetail} from './(Common)/Community/CommunityStaffDetail';
 
 //로그인, 회원가입
 export {default as Register} from './(Common)/Register';
@@ -95,6 +97,8 @@ export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservati
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
 export {default as MyCouponList} from './(User)/UserMyPage/MyCouponList';
 export {default as MyCouponRegister} from './(User)/UserMyPage/MyCouponList/MyCouponRegister';
+export {default as MyCommunityPostList} from './(User)/UserMyPage/MyCommunityPostList';
+export {default as MyCommunityCommentList} from './(User)/UserMyPage/MyCommunityCommentList';
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
 //
 export {default as UserRegisterProfile} from './(User)/UserRegister/UserRegisterProfile';
