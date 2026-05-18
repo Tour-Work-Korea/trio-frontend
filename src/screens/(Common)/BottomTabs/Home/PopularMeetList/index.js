@@ -42,11 +42,7 @@ const PopularMeetList = () => {
   const scrollViewRef = useRef(null);
   const loadingMoreRef = useRef(false);
 
-  const formatPrice = (price) => {
-    const num = Number(price || 0);
-    if (num === 0) return '무료';
-    return `${num.toLocaleString('ko-KR')}원`;
-  };
+
 
   const formatWhenTime = (isoStr) => {
     const d = dayjs(isoStr);
@@ -168,11 +164,7 @@ const PopularMeetList = () => {
               ellipsizeMode="tail">
               {item.partyTitle}
             </Text>
-            <Text
-              style={[FONTS.fs_16_semibold, styles.trendingPriceText]}
-            >
-              {formatPrice(item.amount)}
-            </Text>
+
           </View>
           <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
             <Text
@@ -242,11 +234,7 @@ const PopularMeetList = () => {
               </Text>
             </View>
 
-            <View style={styles.meetBottomRow}>
-              <Text style={[FONTS.fs_18_semibold, styles.price]}>
-                {Number(item.amount || 0).toLocaleString()}원
-              </Text>
-            </View>
+
           </View>
         </View>
         <View style={styles.meetBottomContainer}>
