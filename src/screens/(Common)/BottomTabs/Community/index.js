@@ -156,11 +156,23 @@ const Community = () => {
       } catch (error) {
         setHasNext(false);
         console.warn('fetchCommunityPosts 실패:', error);
-        setErrorModal({
-          visible: true,
-          message: '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
-        });
+        
+        const role = useUserStore.getState().userRole;
+        if (role !== 'USER') {
+          showErrorModal({
+            message: '커뮤니티는\n로그인 후 이용할 수 있어요',
+            buttonText2: '취소',
+            buttonText: '로그인하기',
+            onPress: () => navigation.navigate('Login'),
+            onPress2: () => {},
+          });
+        } else {
+          setErrorModal({
+            visible: true,
+            message: '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+            buttonText: '확인',
+          });
+        }
       } finally {
         if (isLoadMore) {
           setIsMoreLoading(false);
