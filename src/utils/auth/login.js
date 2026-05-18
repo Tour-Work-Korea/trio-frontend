@@ -5,12 +5,26 @@ import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { log, mask } from '@utils/logger';
-import { navigate } from '@utils/navigationService';
+import { reset } from '@utils/navigationService';
 import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 
 const REFRESH_KEY = 'refresh-token';
+
+const clearAuthSession = async ({ silent = false } = {}) => {
+  try {
+    await EncryptedStorage.removeItem(REFRESH_KEY);
+  } catch (storageErr) {
+    log.warn('🧹 remove refresh failed:', storageErr?.message);
+  }
+
+  useUserStore.getState().clearUser();
+
+  if (!silent) {
+    reset([{ name: 'Login', params: { reason: 'refresh_failed' } }]);
+  }
+};
 
 export const tryKakaoLoginNative = async (userRole) => {
   log.info('tryKakaoLoginNative: role=', userRole);
@@ -83,23 +97,27 @@ export const storeLoginTokens = async ({
   );
 
   const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
-  setTokens({ accessToken });
-  setUserRole(userRole);
+  if (accessToken) setTokens({ accessToken });
+  if (userRole) setUserRole(userRole);
 
   // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
   if (setIsVerified) {
     setIsVerified(needVerification !== "true");
   }
 
-  await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
-  const check = await EncryptedStorage.getItem(REFRESH_KEY);
-  log.info('🔐 saved refresh?', !!check);
+  if (refreshToken) {
+    await EncryptedStorage.setItem(REFRESH_KEY, refreshToken);
+    const check = await EncryptedStorage.getItem(REFRESH_KEY);
+    log.info('🔐 saved refresh?', !!check);
+  }
 
-  await updateProfile(userRole);
+  if (accessToken) {
+    await updateProfile(userRole);
+  }
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const { accessToken, refreshToken, needVerification } = res.data;
+  const { accessToken, refreshToken, needVerification } = res.data || {};
 
   await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification });
 };
@@ -157,6 +175,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');
+      await clearAuthSession({ silent });
       return false;
     }
     const res = await authApi.refreshToken(storedRefresh);
@@ -174,12 +193,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     return true;
   } catch (error) {
     log.warn('❌ tryRefresh failed:', error?.response?.status, error?.message);
-    await EncryptedStorage.removeItem(REFRESH_KEY);
-    useUserStore.getState().clearUser();
-
-    if (!silent) {
-      navigate('Login', { reason: 'refresh_failed' });
-    }
+    await clearAuthSession({ silent });
     return false;
   }
 };

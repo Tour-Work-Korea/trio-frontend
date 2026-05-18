@@ -12,7 +12,7 @@ const adminApi = {
       withAuth: false,
     }),
 
-  // 이벤트 화면 배너 이미지 3개 조회
+  // 콘텐츠 화면 배너 이미지 3개 조회
   getMeetAdminBanners: () =>
     api.get('/admin/partyBanner-list', {
       baseURL: API_ORIGIN,

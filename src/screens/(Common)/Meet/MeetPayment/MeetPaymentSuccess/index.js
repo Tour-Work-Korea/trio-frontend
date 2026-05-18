@@ -58,8 +58,8 @@ const MeetPaymentSuccess = () => {
     <View style={styles.container}>
       <Logo />
       <Text style={[FONTS.fs_20_semibold, styles.text]}>
-        예약 완료되었어요! {'\n'}
-        이제 이벤트를 즐기러 가볼까요?
+        신청 완료되었어요! {'\n'}
+        이제 콘텐츠를 즐기러 가볼까요?
       </Text>
 
       <View style={styles.bottomRow}>
@@ -75,7 +75,7 @@ const MeetPaymentSuccess = () => {
           )}
           <View style={styles.infoText}>
             <Text style={[FONTS.fs_16_medium, styles.titleText]}>
-              {partyTitle || '이벤트'}
+              {partyTitle || '콘텐츠'}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.timeText]}>
               {eventDateTimeText}
@@ -84,7 +84,7 @@ const MeetPaymentSuccess = () => {
         </View>
 
         <View style={styles.button}>
-          <ButtonScarlet title={'예약내역 확인하기'} onPress={handleGoHome} />
+          <ButtonScarlet title={'신청내역 확인하기'} onPress={handleGoHome} />
         </View>
 
       </View>

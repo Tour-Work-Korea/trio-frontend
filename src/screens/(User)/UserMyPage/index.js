@@ -6,12 +6,15 @@ import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
 import MyApplicationIcon from '@assets/images/user-my-application-icon.svg';
 import ApplicationStatusIcon from '@assets/images/user-application-status-icon.svg';
+import FavoritePostIcon from '@assets/images/user-favorite-post-icon.svg';
+import FavoriteMeetIcon from '@assets/images/user-favorite-meet-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 import SettingIcon from '@assets/images/settings_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
 import CommentIcon from '@assets/images/comment_black.svg';
 import CouponIcon from '@assets/images/coupon_black.svg';
 import PointIcon from '@assets/images/point_black.svg';
+import HeartIcon from '@assets/images/heart_black.svg';
 import Avatar from '@components/Avatar';
 
 import styles from './UserMyPage.styles';
@@ -19,6 +22,8 @@ import {FONTS} from '@constants/fonts';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import notificationApi from '@utils/api/notificationApi';
+import userEmployApi from '@utils/api/userEmployApi';
+import userMeetApi from '@utils/api/userMeetApi';
 import {isUserNotification} from '@utils/notifications';
 
 const extractNotificationItems = data =>
@@ -30,6 +35,7 @@ const UserMyPage = () => {
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [favoriteCount, setFavoriteCount] = useState(0);
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
@@ -62,12 +68,15 @@ const UserMyPage = () => {
 
       const fetchMyPageData = async () => {
         try {
-          const [reviewsRes, couponsRes, pointRes, notificationsRes] =
+          const [reviewsRes, couponsRes, pointRes, notificationsRes, favoritesRes, favoritePartiesRes, favoriteRecruitsRes] =
             await Promise.all([
               userMyApi.getMyReviews(),
               userMyApi.getMyCoupons(),
               userMyApi.getPointBalance(),
               notificationApi.getMyNotifications(0, 100),
+              userMyApi.getMyFavoriteGuesthouses(),
+              userMeetApi.getFavoriteParties(),
+              userEmployApi.getLikeRecruits(),
             ]);
           if (!isActive) {
             return;
@@ -85,6 +94,13 @@ const UserMyPage = () => {
               item => isUserNotification(item) && !item?.isRead,
             ).length,
           );
+
+          const totalFavorites = 
+            (Array.isArray(favoritesRes.data) ? favoritesRes.data.length : 0) +
+            (Array.isArray(favoritePartiesRes.data) ? favoritePartiesRes.data.length : 0) +
+            (Array.isArray(favoriteRecruitsRes.data) ? favoriteRecruitsRes.data.length : 0);
+
+          setFavoriteCount(totalFavorites);
         } catch (error) {
           if (!isActive) {
             return;
@@ -94,6 +110,7 @@ const UserMyPage = () => {
           setCouponCount(0);
           setPointBalance(0);
           setUnreadCount(0);
+          setFavoriteCount(0);
         }
       };
 
@@ -221,6 +238,17 @@ const UserMyPage = () => {
                 {formattedPointBalance}
               </Text>
             </View>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('UserFavorite')}
+            >
+              <HeartIcon width={20} height={20}/>
+              <Text style={[FONTS.fs_14_medium]}>찜</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                {favoriteCount}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           <View style={styles.bottomSection}>
@@ -264,6 +292,27 @@ const UserMyPage = () => {
                   IconComponent={ApplicationStatusIcon}
                   label="지원 현황"
                   onPress={() => navigation.navigate('MyApplicantList')}
+                />
+              </View>
+            </View>
+
+            <View style={styles.devide} />
+
+            {/* 커뮤니티 섹션 */}
+            <View style={[styles.section]}>
+              <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                커뮤니티
+              </Text>
+              <View style={styles.menuContainer}>
+                <MenuItem
+                  IconComponent={FavoritePostIcon}
+                  label="내가 쓴 글"
+                  onPress={() => navigation.navigate('MyCommunityPostList')}
+                />
+                <MenuItem
+                  IconComponent={FavoriteMeetIcon}
+                  label="내가 쓴 댓글"
+                  onPress={() => navigation.navigate('MyCommunityCommentList')}
                 />
               </View>
             </View>

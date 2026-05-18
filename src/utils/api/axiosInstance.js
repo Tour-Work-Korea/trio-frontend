@@ -111,7 +111,7 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    if (status === 403 && !original._retry) {
+    if (original && (status === 401 || status === 403) && !original._retry) {
       log.info(`🔁 [${id}] accessToken expired → refresh flow`);
       original._retry = true;
 
@@ -120,6 +120,7 @@ api.interceptors.response.use(
         return new Promise((resolve, reject) => {
           queue.push({resolve, reject});
         }).then(token => {
+          original.headers = original.headers || {};
           original.headers.Authorization = `Bearer ${token}`;
           return api(original);
         });
@@ -135,6 +136,7 @@ api.interceptors.response.use(
 
         const newAccess = useUserStore.getState().accessToken;
         resolveQueue(null, newAccess);
+        original.headers = original.headers || {};
         original.headers.Authorization = `Bearer ${newAccess}`;
         return api(original);
       } catch (e) {

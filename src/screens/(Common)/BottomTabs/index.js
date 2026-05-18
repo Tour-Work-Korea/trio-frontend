@@ -12,10 +12,10 @@ import MeetIcon from '@assets/images/event_black.svg';
 import MeetIconFilled from '@assets/images/event_black_filled.svg';
 import MyIcon from '@assets/images/person_black.svg';
 import MyIconFilled from '@assets/images/person_black_filled.svg';
-import HeartIcon from '@assets/images/heart_black.svg';
-import HeartIconFilled from '@assets/images/heart_fill_black.svg';
+import CommunityIcon from '@assets/images/community_black.svg';
+import CommunityIconFilled from '@assets/images/community_black_filled.svg';
 
-import {Guesthouse, Home, Meet, My, Favorite} from '@screens';
+import {Community, Guesthouse, Home, Meet, My} from '@screens';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
@@ -32,7 +32,7 @@ const BottomTabs = () => (
           const iconProps = {width: 24, height: 24};
           const map = {
             지도: focused ? GuesthouseIconFilled : GuesthouseIcon,
-            찜: focused ? HeartIconFilled : HeartIcon,
+            커뮤니티: focused ? CommunityIconFilled : CommunityIcon,
             홈: focused ? HomeIconFilled : HomeIcon,
             콘텐츠: focused ? MeetIconFilled : MeetIcon,
             마이: focused ? MyIconFilled : MyIcon,
@@ -62,7 +62,7 @@ const BottomTabs = () => (
         headerShown: false,
       })}>
       <Tab.Screen name="홈" component={Home} />
-      <Tab.Screen name="콘텐츠" component={Meet} />
+      <Tab.Screen name="커뮤니티" component={Community} />
       <Tab.Screen
         name="지도"
         component={Guesthouse}
@@ -76,25 +76,7 @@ const BottomTabs = () => (
           },
         })}
       />
-      <Tab.Screen
-        name="찜"
-        component={Favorite}
-        listeners={({navigation}) => ({
-          tabPress: e => {
-            const role = useUserStore.getState().userRole;
-            if (role !== 'USER') {
-              e.preventDefault();
-              showErrorModal({
-                message: '찜 목록은\n 로그인 후 사용해주세요',
-                buttonText2: '취소',
-                buttonText: '로그인하기',
-                onPress: () => navigation.navigate('Login'),
-                onPress2: () => {},
-              });
-            }
-          },
-        })}
-      />
+      <Tab.Screen name="콘텐츠" component={Meet} />
       <Tab.Screen
         name="마이"
         component={My}

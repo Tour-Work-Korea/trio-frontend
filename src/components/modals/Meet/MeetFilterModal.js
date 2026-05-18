@@ -312,7 +312,7 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
             </View>
             <View style={styles.confirmButton}>
               <ButtonScarlet
-                title="이벤트 보기"
+                title="콘텐츠 보기"
                 onPress={() => {
                   const next = {
                     priceRange,

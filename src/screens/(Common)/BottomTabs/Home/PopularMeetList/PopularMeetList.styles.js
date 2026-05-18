@@ -101,7 +101,7 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
 
-  // 하단 인기 이벤트용
+  // 하단 인기 콘텐츠용
   meetItemContainer: {
     paddingHorizontal: 20,
     marginBottom: 16,

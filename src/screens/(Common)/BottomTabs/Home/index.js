@@ -1,7 +1,13 @@
 import React from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 
-import {HomeMain, PopularGuesthouseList, PopularEmployList, PopularMeetList} from '@screens';
+import {
+  HomeMain,
+  PopularGuesthouseList,
+  PopularEmployList,
+  PopularMeetList,
+  TemporaryEventBanner,
+} from '@screens';
 
 const Stack = createNativeStackNavigator();
 
@@ -12,6 +18,7 @@ const Home = () => {
       <Stack.Screen name="PopularGuesthouseList" component={PopularGuesthouseList} />
       <Stack.Screen name="PopularEmployList" component={PopularEmployList} />
       <Stack.Screen name="PopularMeetList" component={PopularMeetList} />
+      <Stack.Screen name="TemporaryEventBanner" component={TemporaryEventBanner} />
     </Stack.Navigator>
   );
 };

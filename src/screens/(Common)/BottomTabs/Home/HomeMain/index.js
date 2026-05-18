@@ -1,21 +1,17 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, /* useEffect, */ useRef, useState} from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
-  TextInput,
-  TouchableWithoutFeedback,
-  Keyboard,
-  Pressable,
+  // TextInput,
+  // TouchableWithoutFeedback,
+  // Keyboard,
+  // Pressable,
   Platform,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {
-  BannerAd,
-  BannerAdSize,
-  TestIds,
-} from 'react-native-google-mobile-ads';
+import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import styles from './Home.styles';
 import Banner from './Banner';
@@ -30,11 +26,11 @@ import userMeetApi from '@utils/api/userMeetApi';
 import {FONTS} from '@constants/fonts';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
-import { trimJejuPrefix } from '@utils/formatAddress';
+// import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
-import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
-import ChevronRight from '@assets/images/chevron_right_gray.svg';
+// import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
+// import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
 const TABS = [
   // {key: 'MEET', label: '콘텐츠'},
@@ -62,20 +58,20 @@ const HomeMain = () => {
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [isMeetLoading, setIsMeetLoading] = useState(true);
-  const [searchKeyword, setSearchKeyword] = useState('');
-  const [searchedGuesthouses, setSearchedGuesthouses] = useState([]);
-  const [isSearchFocused, setIsSearchFocused] = useState(false);
+  // const [searchKeyword, setSearchKeyword] = useState('');
+  // const [searchedGuesthouses, setSearchedGuesthouses] = useState([]);
+  // const [isSearchFocused, setIsSearchFocused] = useState(false);
 
   const scrollRef = useRef(null);
   const stayYRef = useRef(0);
   const meetYRef = useRef(0);
-  const searchDebounceRef = useRef(null);
-  const searchRequestIdRef = useRef(0);
+  // const searchDebounceRef = useRef(null);
+  // const searchRequestIdRef = useRef(0);
 
-  const dismissSearchUI = useCallback(() => {
-    Keyboard.dismiss();
-    setIsSearchFocused(false);
-  }, []);
+  // const dismissSearchUI = useCallback(() => {
+  //   Keyboard.dismiss();
+  //   setIsSearchFocused(false);
+  // }, []);
 
   const tryFetchBanners = useCallback(async () => {
     try {
@@ -109,7 +105,7 @@ const HomeMain = () => {
         : data?.content || (data ? [data] : []);
       setEventList(list);
     } catch (error) {
-      console.warn('이벤트 조회 실패', error);
+      console.warn('콘텐츠 조회 실패', error);
       setEventList([]);
     } finally {
       setIsMeetLoading(false);
@@ -124,59 +120,66 @@ const HomeMain = () => {
     }, [tryFetchBanners, tryFetchGuesthouses, tryFetchMeets]),
   );
 
-  useEffect(() => {
-    return () => {
-      if (searchDebounceRef.current) {
-        clearTimeout(searchDebounceRef.current);
-      }
-    };
-  }, []);
+  // useEffect(() => {
+  //   return () => {
+  //     if (searchDebounceRef.current) {
+  //       clearTimeout(searchDebounceRef.current);
+  //     }
+  //   };
+  // }, []);
 
-  const fetchGuesthouseByName = useCallback(async guesthouseName => {
-    const trimmedName = guesthouseName.trim();
-    if (!trimmedName) {
-      setSearchedGuesthouses([]);
-      return;
-    }
+  // const fetchGuesthouseByName = useCallback(async guesthouseName => {
+  //   const trimmedName = guesthouseName.trim();
+  //   if (!trimmedName) {
+  //     setSearchedGuesthouses([]);
+  //     return;
+  //   }
 
-    const requestId = Date.now();
-    searchRequestIdRef.current = requestId;
+  //   const requestId = Date.now();
+  //   searchRequestIdRef.current = requestId;
 
-    try {
-      const {data} = await userGuesthouseApi.searchGuesthouseByName(trimmedName);
-      const nextList = Array.isArray(data)
-        ? data
-        : data?.guesthouses ||
-          data?.content ||
-          data?.data ||
-          (data ? [data] : []);
+  //   try {
+  //     const {data} = await userGuesthouseApi.searchGuesthouseByName(trimmedName);
+  //     const nextList = Array.isArray(data)
+  //       ? data
+  //       : data?.guesthouses ||
+  //         data?.content ||
+  //         data?.data ||
+  //         (data ? [data] : []);
 
-      if (searchRequestIdRef.current === requestId) {
-        setSearchedGuesthouses(nextList);
-      }
-    } catch (error) {
-      if (searchRequestIdRef.current === requestId) {
-        setSearchedGuesthouses([]);
-      }
-      console.warn('게스트하우스 이름 검색 실패', error);
-    }
-  }, []);
+  //     if (searchRequestIdRef.current === requestId) {
+  //       setSearchedGuesthouses(nextList);
+  //     }
+  //   } catch (error) {
+  //     if (searchRequestIdRef.current === requestId) {
+  //       setSearchedGuesthouses([]);
+  //     }
+  //     console.warn('게스트하우스 이름 검색 실패', error);
+  //   }
+  // }, []);
 
-  const handleChangeSearchKeyword = text => {
-    setSearchKeyword(text);
+  // const handleChangeSearchKeyword = text => {
+  //   setSearchKeyword(text);
 
-    if (searchDebounceRef.current) {
-      clearTimeout(searchDebounceRef.current);
-    }
+  //   if (searchDebounceRef.current) {
+  //     clearTimeout(searchDebounceRef.current);
+  //   }
 
-    if (!text.trim()) {
-      setSearchedGuesthouses([]);
-      return;
-    }
+  //   if (!text.trim()) {
+  //     setSearchedGuesthouses([]);
+  //     return;
+  //   }
 
-    searchDebounceRef.current = setTimeout(() => {
-      fetchGuesthouseByName(text);
-    }, 300);
+  //   searchDebounceRef.current = setTimeout(() => {
+  //     fetchGuesthouseByName(text);
+  //   }, 300);
+  // };
+
+  const handlePressSearchBox = () => {
+    navigation.navigate('지도', {
+      screen: 'GuesthouseSearch',
+      params: {searchText: ''},
+    });
   };
 
   const scrollToY = y => {
@@ -198,7 +201,7 @@ const HomeMain = () => {
     });
   };
 
-  const isSearchDropdownVisible = isSearchFocused && searchKeyword.trim().length > 0;
+  // const isSearchDropdownVisible = isSearchFocused && searchKeyword.trim().length > 0;
 
   const StickyHeader = (
     <View
@@ -211,14 +214,16 @@ const HomeMain = () => {
       <Header />
 
       <View style={styles.searchArea}>
-        <View
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={handlePressSearchBox}
           style={[
             styles.searchBox,
             Platform.OS === 'android' && styles.searchBoxAndroid,
-            isSearchDropdownVisible && styles.searchBoxConnected,
+            // isSearchDropdownVisible && styles.searchBoxConnected,
           ]}>
           <SearchIcon width={20} height={20} />
-          <TextInput
+          {/* <TextInput
             value={searchKeyword}
             onChangeText={handleChangeSearchKeyword}
             onFocus={() => setIsSearchFocused(true)}
@@ -230,10 +235,19 @@ const HomeMain = () => {
               Platform.OS === 'android' && styles.searchInputAndroid,
             ]}
             returnKeyType="search"
-          />
-        </View>
+          /> */}
+          <Text
+            style={[
+              FONTS.fs_14_regular,
+              styles.searchInput,
+              styles.searchPlaceholder,
+              Platform.OS === 'android' && styles.searchInputAndroid,
+            ]}>
+            찾는 게하가 있으신가요?
+          </Text>
+        </TouchableOpacity>
 
-        {isSearchDropdownVisible && (
+        {/* {isSearchDropdownVisible && (
           <View style={styles.searchResultDropdown}>
             {searchedGuesthouses.length > 0 ? (
               <ScrollView
@@ -308,7 +322,7 @@ const HomeMain = () => {
               </Text>
             )}
           </View>
-        )}
+        )} */}
       </View>
 
       {/* 탭바 */}
@@ -322,7 +336,10 @@ const HomeMain = () => {
                 activeOpacity={1}
                 key={t.key}
                 onPress={() => handleTabPress(t.key)}
-                style={[headerStyles.tabBtn, isActive && headerStyles.tabBtnActive]}>
+                style={[
+                  headerStyles.tabBtn,
+                  isActive && headerStyles.tabBtnActive,
+                ]}>
                 <Text
                   style={[
                     headerStyles.tabText,
@@ -358,32 +375,35 @@ const HomeMain = () => {
     return <Loading />;
   }
   return (
-    <TouchableWithoutFeedback onPress={dismissSearchUI} accessible={false}>
-      <View style={styles.container}>
-        {StickyHeader}
-        {activeTab === 'TODAY' ? (
-          <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
-            <TodayGuesthouses />
-          </Pressable>
-        ) : (
-          <ScrollView
-            ref={scrollRef}
-            style={styles.container}
-            showsVerticalScrollIndicator={false}
-            keyboardShouldPersistTaps="handled"
-            keyboardDismissMode="on-drag"
-            onScrollBeginDrag={dismissSearchUI}>
-            <>
+    // <TouchableWithoutFeedback onPress={dismissSearchUI} accessible={false}>
+    <View style={styles.container}>
+      {StickyHeader}
+      {activeTab === 'TODAY' ? (
+        // <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
+        <View style={styles.todayContainer}>
+          <TodayGuesthouses />
+        </View>
+      ) : (
+        // </Pressable>
+        <ScrollView
+          ref={scrollRef}
+          style={styles.container}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode="on-drag"
+          // onScrollBeginDrag={dismissSearchUI}
+        >
+          <>
             {/* 임시 */}
-              <View
-                onLayout={e => {
-                  stayYRef.current = e.nativeEvent.layout.y;
-                }}
-                style={styles.boxContainer}>
-                <Guesthouses guesthouses={guesthouseList} />
-              </View>
-              {/* 이벤트(콘텐츠) 섹션 */}
-              {/* <View
+            <View
+              onLayout={e => {
+                stayYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              <Guesthouses guesthouses={guesthouseList} />
+            </View>
+            {/* 콘텐츠 섹션 */}
+            {/* <View
                 onLayout={e => {
                   meetYRef.current = e.nativeEvent.layout.y;
                 }}
@@ -391,13 +411,13 @@ const HomeMain = () => {
                 <Meets events={eventList} setEventList={setEventList} />
               </View> */}
 
-              {/* 배너 */}
-              <View style={styles.boxContainer}>
-                <Banner banners={bannerList} />
-              </View>
+            {/* 배너 */}
+            <View style={styles.boxContainer}>
+              <Banner banners={bannerList} />
+            </View>
 
-              {/* 숙박 섹션 */}
-              {/* <View
+            {/* 숙박 섹션 */}
+            {/* <View
                 onLayout={e => {
                   stayYRef.current = e.nativeEvent.layout.y;
                 }}
@@ -405,26 +425,26 @@ const HomeMain = () => {
                 <Guesthouses guesthouses={guesthouseList} />
               </View> */}
 
-              {/* 임시 */}
-              <View
-                onLayout={e => {
-                  meetYRef.current = e.nativeEvent.layout.y;
-                }}
-                style={styles.boxContainer}>
-                <Meets events={eventList} setEventList={setEventList} />
-              </View>
+            {/* 임시 */}
+            <View
+              onLayout={e => {
+                meetYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              <Meets events={eventList} setEventList={setEventList} />
+            </View>
 
-              <View style={styles.adBannerContainer}>
-                <BannerAd
-                  unitId={mainPageBannerAdUnitId}
-                  size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                />
-              </View>
-            </>
-          </ScrollView>
-        )}
-      </View>
-    </TouchableWithoutFeedback>
+            <View style={styles.adBannerContainer}>
+              <BannerAd
+                unitId={mainPageBannerAdUnitId}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+              />
+            </View>
+          </>
+        </ScrollView>
+      )}
+    </View>
+    // </TouchableWithoutFeedback>
   );
 };
 

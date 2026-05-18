@@ -103,7 +103,7 @@ const NotificationSettings = () => {
           activeOpacity={1}
           disabled={submitting}
           onPress={() => toggleSetting('isEventEnabled')}>
-          <Text style={styles.benefitTitle}>이벤트/혜택 알림</Text>
+          <Text style={styles.benefitTitle}>콘텐츠/혜택 알림</Text>
           <View
             style={[
               styles.checkbox,

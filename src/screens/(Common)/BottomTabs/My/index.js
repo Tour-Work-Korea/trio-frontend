@@ -2,7 +2,7 @@ import React, {useCallback} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useFocusEffect} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
-import {UserMyPage} from '@screens';
+import {UserFavorite, UserMyPage} from '@screens';
 
 const Stack = createNativeStackNavigator();
 
@@ -29,6 +29,7 @@ export default function My() {
       initialRouteName="MyGate">
       <Stack.Screen name="MyGate" component={MyGate} />
       <Stack.Screen name="UserMyPage" component={UserMyPage} />
+      <Stack.Screen name="UserFavorite" component={UserFavorite} />
     </Stack.Navigator>
   );
 }

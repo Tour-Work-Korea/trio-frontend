@@ -30,7 +30,7 @@ export default function useKeyboardAwareScrollView(options = {}) {
   // key(예: 'title', 'tags') -> y
   const positionsRef = useRef({});
 
-  // 키보드 이벤트 구독
+  // 키보드 콘텐츠 구독
   useEffect(() => {
     if (iosOnly && Platform.OS !== 'ios') return;
 

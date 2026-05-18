@@ -33,7 +33,7 @@ export default function Buttons() {
       <TouchableOpacity
         activeOpacity={1}
         onPress={() => {
-          navigation.navigate('MainTabs', {screen: '이벤트'});
+          navigation.navigate('MainTabs', {screen: '콘텐츠'});
         }}
         style={styles.button}>
         <Party_btn />

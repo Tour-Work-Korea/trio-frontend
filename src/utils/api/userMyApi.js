@@ -63,6 +63,9 @@ const userMyApi = {
   // 내 쿠폰 조회
   getMyCoupons: () => api.get('/coupons/my'),
 
+  // 다운로드 가능한 쿠폰 조회
+  getAvailableCoupons: () => api.get('/coupons/available'),
+
   // 쿠폰 템플릿 발급
   issueCouponByTemplate: templateId =>
     api.post(`/coupons/${templateId}/issue`),

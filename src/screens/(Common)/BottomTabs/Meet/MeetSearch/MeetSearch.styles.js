@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
   },
 
-  // 이벤트 리스트
+  // 콘텐츠 리스트
   meetListContainer: {
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 16,

@@ -1,8 +1,10 @@
 import React from 'react';
-import {FlatList, View} from 'react-native';
+import {FlatList, StyleSheet, View} from 'react-native';
 import RecruitCard from './RecruitCard';
 import Loading from '@components/Loading';
 import {toggleFavorite} from '@utils/toggleFavorite';
+
+const ItemSeparator = () => <View style={styles.itemSeparator} />;
 
 const RecruitList = ({
   data,
@@ -13,15 +15,11 @@ const RecruitList = ({
   scrollEnabled = true,
   ListFooterComponent = null,
   ListHeaderComponent = null,
+  contentContainerStyle = null,
 }) => {
   if (loading) {
     return (
-      <View
-        style={{
-          flex: 1,
-          justifyContent: 'center',
-          alignItems: 'center',
-        }}>
+      <View style={styles.loadingContainer}>
         <Loading title={'공고를 불러오는 중입니다'} />
       </View>
     );
@@ -47,11 +45,23 @@ const RecruitList = ({
       )}
       onEndReached={onEndReached}
       onEndReachedThreshold={0.5}
-      ItemSeparatorComponent={() => <View style={{height: 16}} />}
+      ItemSeparatorComponent={ItemSeparator}
       ListFooterComponent={ListFooterComponent}
       ListHeaderComponent={ListHeaderComponent}
+      contentContainerStyle={contentContainerStyle}
     />
   );
 };
+
+const styles = StyleSheet.create({
+  loadingContainer: {
+    flex: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  itemSeparator: {
+    height: 16,
+  },
+});
 
 export default RecruitList;

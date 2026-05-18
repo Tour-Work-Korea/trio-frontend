@@ -93,7 +93,7 @@ const UserMeetReservationCheck = () => {
   return (
     <View style={styles.container}>
       <Header
-        title="콘텐츠 예약내역"
+        title="콘텐츠 신청내역"
         onPress={fromPaymentSuccess ? handleBackPress : null}
       />
 

@@ -1,0 +1,580 @@
+import React, {useEffect, useRef, useState} from 'react';
+import {
+  Alert,
+  Image,
+  Keyboard,
+  Modal,
+  Platform,
+  ScrollView,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import {launchImageLibrary} from 'react-native-image-picker';
+import ImageResizer from 'react-native-image-resizer';
+
+import Header from '@components/Header';
+import {FONTS} from '@constants/fonts';
+import communityApi from '@utils/api/communityApi';
+import styles from './CommunityWrite.styles';
+import ChevronDown from '@assets/images/chevron_down_gray.svg';
+import ChevronUp from '@assets/images/chevron_up_gray.svg';
+import PhotoIcon from '@assets/images/add_image_gray.svg';
+// import LocationIcon from '@assets/images/map_pin_gray.svg';
+import KeyboardHideIcon from '@assets/images/keyboard_hide_gray.svg';
+import XIcon from '@assets/images/x_gray.svg';
+
+const TITLE_MAX_LENGTH = 40;
+const BODY_MAX_LENGTH = 2000;
+const MB = 1024 * 1024;
+const JPEG_CONTENT_TYPE = 'image/jpeg';
+export const COMMENT_MAX_LENGTH = 300;
+export const COMMUNITY_IMAGE_LIMITS = {
+  maxCount: 10,
+  maxSingleFileSizeMb: 20,
+  maxTotalFileSizeMb: 100,
+};
+
+const defaultCategories = [
+  {
+    id: 'GUESTHOUSE_RECOMMEND',
+    code: 'GUESTHOUSE_RECOMMEND',
+    displayName: '게하추천',
+    contentType: 'COMMUNITY',
+  },
+  {id: 'FOOD', code: 'FOOD', displayName: '맛집', contentType: 'COMMUNITY'},
+  {id: 'CAFE', code: 'CAFE', displayName: '카페', contentType: 'COMMUNITY'},
+  {
+    id: 'COMPANION',
+    code: 'COMPANION',
+    displayName: '동행',
+    contentType: 'COMMUNITY',
+  },
+];
+
+const CommunityWrite = () => {
+  const navigation = useNavigation();
+  const titleInputRef = useRef(null);
+  const bodyInputRef = useRef(null);
+  const scrollFocusTimerRef = useRef(null);
+  const [categories, setCategories] = useState(defaultCategories);
+  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [categoryVisible, setCategoryVisible] = useState(false);
+  const [title, setTitle] = useState('');
+  const [body, setBody] = useState('');
+  const [bodyInputHeight, setBodyInputHeight] = useState(160);
+  const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [images, setImages] = useState([]);
+  const [previewImageUri, setPreviewImageUri] = useState(null);
+  const [inputsEditable, setInputsEditable] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const canSubmit =
+    selectedCategory?.code &&
+    title.trim().length > 0 &&
+    body.trim().length > 0 &&
+    !isSubmitting;
+
+  useEffect(() => {
+    const showEvent =
+      Platform.OS === 'ios' ? 'keyboardWillShow' : 'keyboardDidShow';
+    const hideEvent =
+      Platform.OS === 'ios' ? 'keyboardWillHide' : 'keyboardDidHide';
+
+    const showSubscription = Keyboard.addListener(showEvent, event => {
+      setKeyboardHeight(event.endCoordinates.height);
+    });
+    const hideSubscription = Keyboard.addListener(hideEvent, () => {
+      setKeyboardHeight(0);
+    });
+
+    return () => {
+      showSubscription.remove();
+      hideSubscription.remove();
+      if (scrollFocusTimerRef.current) {
+        clearTimeout(scrollFocusTimerRef.current);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        const response = await communityApi.getCategories();
+        const communityCategories = Array.isArray(response.data)
+          ? response.data.filter(category => category.contentType === 'COMMUNITY')
+          : defaultCategories;
+
+        setCategories(
+          communityCategories.length > 0
+            ? communityCategories
+            : defaultCategories,
+        );
+      } catch (error) {
+        console.warn('fetchCommunityWriteCategories 실패:', error);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  const unlockInputsAfterScroll = () => {
+    if (scrollFocusTimerRef.current) {
+      clearTimeout(scrollFocusTimerRef.current);
+    }
+
+    scrollFocusTimerRef.current = setTimeout(() => {
+      setInputsEditable(true);
+    }, 180);
+  };
+
+  const handleScrollStart = () => {
+    if (scrollFocusTimerRef.current) {
+      clearTimeout(scrollFocusTimerRef.current);
+    }
+
+    setInputsEditable(false);
+    titleInputRef.current?.blur();
+    bodyInputRef.current?.blur();
+    Keyboard.dismiss();
+  };
+
+  const handleToggleCategory = () => {
+    Keyboard.dismiss();
+    setCategoryVisible(prev => !prev);
+  };
+
+  const handleSelectCategory = category => {
+    Keyboard.dismiss();
+    setSelectedCategory(category);
+    setCategoryVisible(false);
+  };
+
+  const normalizeImageToJpeg = async (asset, index) => {
+    try {
+      const resizedImage = await ImageResizer.createResizedImage(
+        asset.uri,
+        1600,
+        1600,
+        'JPEG',
+        90,
+      );
+
+      return {
+        id: `${Date.now()}-${index}`,
+        uri: resizedImage.uri,
+        fileName: `community-${Date.now()}-${index}.jpg`,
+        fileSize: resizedImage.size || asset.fileSize || 1,
+        type: JPEG_CONTENT_TYPE,
+      };
+    } catch (error) {
+      console.warn('community image convert 실패:', error);
+
+      return {
+        id: `${Date.now()}-${index}`,
+        uri: asset.uri,
+        fileName: `community-${Date.now()}-${index}.jpg`,
+        fileSize: asset.fileSize || 1,
+        type: JPEG_CONTENT_TYPE,
+      };
+    }
+  };
+
+  const handleAddImages = async () => {
+    const remainingCount = COMMUNITY_IMAGE_LIMITS.maxCount - images.length;
+
+    if (remainingCount <= 0) {
+      Alert.alert(`이미지는 최대 ${COMMUNITY_IMAGE_LIMITS.maxCount}장까지 추가할 수 있습니다.`);
+      return;
+    }
+
+    const result = await new Promise(resolve =>
+      launchImageLibrary(
+        {
+          mediaType: 'photo',
+          selectionLimit: remainingCount,
+        },
+        response => resolve(response),
+      ),
+    );
+
+    if (result.didCancel || result.errorCode || !result.assets?.length) {
+      return;
+    }
+
+    const selectedAssets = result.assets.filter(asset => asset.uri);
+    const oversizedAsset = selectedAssets.find(
+      asset =>
+        Number(asset.fileSize || 0) >
+        COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb * MB,
+    );
+
+    if (oversizedAsset) {
+      Alert.alert(
+        `이미지는 한 장당 최대 ${COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+      );
+      return;
+    }
+
+    const currentTotalSize = images.reduce(
+      (total, image) => total + Number(image.fileSize || 0),
+      0,
+    );
+    const selectedTotalSize = selectedAssets.reduce(
+      (total, asset) => total + Number(asset.fileSize || 0),
+      0,
+    );
+
+    if (
+      currentTotalSize + selectedTotalSize >
+      COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb * MB
+    ) {
+      Alert.alert(
+        `이미지 전체 용량은 최대 ${COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb}MB까지 업로드할 수 있습니다.`,
+      );
+      return;
+    }
+
+    const nextImages = await Promise.all(
+      selectedAssets.map((asset, index) => normalizeImageToJpeg(asset, index)),
+    );
+    const convertedOversizedImage = nextImages.find(
+      image =>
+        Number(image.fileSize || 0) >
+        COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb * MB,
+    );
+
+    if (convertedOversizedImage) {
+      Alert.alert(
+        `이미지는 한 장당 최대 ${COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+      );
+      return;
+    }
+
+    const nextTotalSize = nextImages.reduce(
+      (total, image) => total + Number(image.fileSize || 0),
+      0,
+    );
+
+    if (
+      currentTotalSize + nextTotalSize >
+      COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb * MB
+    ) {
+      Alert.alert(
+        `이미지 전체 용량은 최대 ${COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb}MB까지 업로드할 수 있습니다.`,
+      );
+      return;
+    }
+
+    setImages(prev => [...prev, ...nextImages]);
+  };
+
+  const handleRemoveImage = imageId => {
+    setImages(prev => prev.filter(image => image.id !== imageId));
+  };
+
+  const uploadImageToS3 = async ({presignedUrl, uri, contentType}) => {
+    const fileResponse = await fetch(uri);
+    const blob = await fileResponse.blob();
+
+    await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: {'Content-Type': contentType},
+      body: blob,
+    });
+  };
+
+  const getImageFilename = (image, index) => {
+    if (image.fileName?.toLowerCase().endsWith('.jpg')) {
+      return image.fileName;
+    }
+
+    return `community-${Date.now()}-${index}.jpg`;
+  };
+
+  const handleSubmit = async () => {
+    if (!canSubmit) {
+      return;
+    }
+
+    Keyboard.dismiss();
+
+    try {
+      setIsSubmitting(true);
+
+      const draftResponse = await communityApi.createDraft({
+        categoryCode: selectedCategory.code,
+        title: title.trim(),
+        content: body.trim(),
+        tags: [],
+      });
+      const postId = draftResponse.data?.postId;
+
+      if (!postId) {
+        throw new Error('postId가 없습니다.');
+      }
+
+      let uploadedImages = [];
+
+      if (images.length > 0) {
+        const presignTargets = images.map((image, index) => ({
+          filename: getImageFilename(image, index),
+          contentType: JPEG_CONTENT_TYPE,
+          imageOrder: index,
+          fileSizeBytes: Number(image.fileSize || 1),
+        }));
+        const presignedResponse = await communityApi.getImagePresignedUrls(
+          postId,
+          presignTargets,
+        );
+        const presignedImages = presignedResponse.data ?? [];
+
+        await Promise.all(
+          presignedImages.map(presignedImage => {
+            const sourceImage = images[presignedImage.imageOrder];
+
+            return uploadImageToS3({
+              presignedUrl: presignedImage.presignedUrl,
+              uri: sourceImage.uri,
+              contentType: JPEG_CONTENT_TYPE,
+            });
+          }),
+        );
+
+        uploadedImages = presignedImages.map(image => ({
+          objectKey: image.objectKey,
+          imageOrder: image.imageOrder,
+          fileSizeBytes: image.fileSizeBytes,
+        }));
+      }
+
+      await communityApi.publishPost(postId, {
+        location: {},
+        images: uploadedImages,
+      });
+
+      navigation.goBack();
+    } catch (error) {
+      console.warn('createCommunityPost 실패:', error);
+      Alert.alert('게시글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <View style={styles.container}>
+      <Header
+        title="글쓰기"
+        onPress={() => navigation.goBack()}
+        rightComponent={
+          <TouchableOpacity
+            activeOpacity={canSubmit ? 0.8 : 1}
+            style={[
+              styles.submitButton,
+              canSubmit && styles.submitButtonActive,
+            ]}
+            onPress={handleSubmit}>
+            <Text
+              style={[
+                FONTS.fs_14_semibold,
+                styles.submitButtonText,
+                canSubmit && styles.submitButtonTextActive,
+              ]}>
+              {isSubmitting ? '등록중' : '등록'}
+            </Text>
+          </TouchableOpacity>
+        }
+      />
+
+      <ScrollView
+        style={styles.content}
+        contentContainerStyle={styles.contentContainer}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        onScrollBeginDrag={handleScrollStart}
+        onScrollEndDrag={unlockInputsAfterScroll}
+        onMomentumScrollEnd={unlockInputsAfterScroll}
+        onStartShouldSetResponderCapture={() => {
+          Keyboard.dismiss();
+          return false;
+        }}
+        showsVerticalScrollIndicator={false}>
+        <View style={styles.categoryWrapper}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.categoryButton}
+            onPress={handleToggleCategory}>
+            <Text
+              style={[
+                FONTS.fs_14_regular,
+                styles.categoryButtonText,
+                selectedCategory && styles.selectedCategoryButtonText,
+              ]}>
+              {selectedCategory?.displayName || '카테고리를 선택해주세요'}
+            </Text>
+            {categoryVisible ? (
+              <ChevronUp width={16} height={16} />
+            ) : (
+              <ChevronDown width={16} height={16} />
+            )}
+          </TouchableOpacity>
+
+          {categoryVisible ? (
+            <View style={styles.categoryMenu}>
+              {categories.map(category => (
+                <TouchableOpacity
+                  key={category.id ?? category.code}
+                  activeOpacity={0.8}
+                  style={styles.categoryMenuItem}
+                  onPress={() => handleSelectCategory(category)}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_regular,
+                      styles.categoryMenuText,
+                      selectedCategory?.code === category.code &&
+                        styles.selectedCategoryMenuText,
+                    ]}>
+                    {category.displayName}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.divider} />
+
+        <TextInput
+          ref={titleInputRef}
+          value={title}
+          editable={inputsEditable}
+          onChangeText={setTitle}
+          maxLength={TITLE_MAX_LENGTH}
+          style={[FONTS.fs_16_regular, styles.titleInput]}
+          placeholder="제목을 입력하세요."
+          placeholderTextColor="#CDD2D8"
+        />
+
+        {images.length > 0 ? (
+          <View style={styles.imagePreviewSection}>
+            <View style={styles.imagePreviewHeader}>
+              <Text style={[FONTS.fs_14_medium, styles.imagePreviewTitle]}>
+                사진
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.imagePreviewCount]}>
+                {images.length}/{COMMUNITY_IMAGE_LIMITS.maxCount}
+              </Text>
+            </View>
+            <ScrollView
+              horizontal
+              nestedScrollEnabled
+              directionalLockEnabled
+              showsHorizontalScrollIndicator={false}
+              contentContainerStyle={styles.imagePreviewList}>
+              {images.map(image => (
+                <TouchableOpacity
+                  key={image.id}
+                  activeOpacity={0.9}
+                  style={styles.imagePreviewItem}
+                  onPress={() => setPreviewImageUri(image.uri)}>
+                  <Image
+                    source={{uri: image.uri}}
+                    style={styles.imagePreview}
+                    resizeMode="cover"
+                  />
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.imageRemoveButton}
+                    onPress={() => handleRemoveImage(image.id)}>
+                    <XIcon width={16} height={16} />
+                  </TouchableOpacity>
+                </TouchableOpacity>
+              ))}
+            </ScrollView>
+          </View>
+        ) : null}
+
+        <TextInput
+          ref={bodyInputRef}
+          value={body}
+          editable={inputsEditable}
+          onChangeText={setBody}
+          maxLength={BODY_MAX_LENGTH}
+          onContentSizeChange={event => {
+            setBodyInputHeight(
+              Math.max(160, event.nativeEvent.contentSize.height + 24),
+            );
+          }}
+          style={[
+            FONTS.fs_14_regular,
+            styles.bodyInput,
+            {height: bodyInputHeight},
+          ]}
+          placeholder="내용을 입력해주세요."
+          placeholderTextColor="#CDD2D8"
+          multiline
+          scrollEnabled={false}
+          textAlignVertical="top"
+        />
+      </ScrollView>
+
+      <View
+        style={[
+          styles.bottomToolbar,
+          keyboardHeight > 0
+            ? {bottom: keyboardHeight}
+            : styles.bottomToolbarDetached,
+        ]}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.toolbarButton}
+          onPress={handleAddImages}>
+          <PhotoIcon width={18} height={18} />
+          <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
+            사진
+          </Text>
+        </TouchableOpacity>
+        {/* 지도 교체 전까지 장소 버튼 임시 숨김 */}
+        {/* <TouchableOpacity activeOpacity={0.8} style={styles.toolbarButton}>
+          <LocationIcon width={22} height={22} />
+          <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
+            장소
+          </Text>
+        </TouchableOpacity> */}
+        {keyboardHeight > 0 ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.keyboardHideButton}
+            onPress={Keyboard.dismiss}>
+            <KeyboardHideIcon width={22} height={22} />
+          </TouchableOpacity>
+        ) : null}
+      </View>
+
+      <Modal
+        visible={Boolean(previewImageUri)}
+        transparent
+        animationType="fade"
+        onRequestClose={() => setPreviewImageUri(null)}>
+        <View style={styles.imageModalContainer}>
+          <TouchableOpacity
+            activeOpacity={0.9}
+            style={styles.imageModalCloseArea}
+            onPress={() => setPreviewImageUri(null)}>
+            {previewImageUri ? (
+              <Image
+                source={{uri: previewImageUri}}
+                style={styles.imageModalImage}
+                resizeMode="contain"
+              />
+            ) : null}
+          </TouchableOpacity>
+        </View>
+      </Modal>
+    </View>
+  );
+};
+
+export default CommunityWrite;

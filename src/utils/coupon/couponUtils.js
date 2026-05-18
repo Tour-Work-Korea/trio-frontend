@@ -11,14 +11,16 @@ export const getMinimumOrderAmount = coupon =>
     coupon?.minimumOrderAmount ??
       coupon?.minOrderAmount ??
       coupon?.minimumPaymentAmount ??
+      coupon?.minOrderPrice ??
       coupon?.minAmount ??
       0,
   );
 
 export const getMaximumDiscountAmount = coupon =>
   Number(
-    coupon?.maximumDiscountAmount ??
+      coupon?.maximumDiscountAmount ??
       coupon?.maxDiscountAmount ??
+      coupon?.maxDiscountPrice ??
       coupon?.maxAmount ??
       0,
   );
@@ -82,7 +84,11 @@ export const getCouponConditionText = coupon => {
 };
 
 export const getExpiryDate = coupon =>
-  coupon?.expiredAt || coupon?.expiresAt || coupon?.endAt || coupon?.validTo;
+  coupon?.expiredAt ||
+  coupon?.expiresAt ||
+  coupon?.endAt ||
+  coupon?.validTo ||
+  coupon?.validUntil;
 
 export const getRemainingDaysText = coupon => {
   const expiryDate = getExpiryDate(coupon);

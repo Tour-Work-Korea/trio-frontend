@@ -8,8 +8,12 @@ import {COLORS} from '@constants/colors';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import dayjs from 'dayjs';
+import {normalizeRefundPolicies} from '@utils/refundPolicyAgreement';
 
 import XBtn from '@assets/images/x_gray.svg';
+import ChevronDown from '@assets/images/chevron_down_gray.svg';
+import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
 const GuesthouseCancelledReceipt = () => {
   const navigation = useNavigation();
@@ -17,6 +21,7 @@ const GuesthouseCancelledReceipt = () => {
   const reservationId = route?.params?.reservationId ?? null;
   const reservationItem = route?.params?.reservationItem ?? null;
   const [dto, setDto] = useState(null);
+  const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
 
   const genderMap = {
     MIXED: '혼숙',
@@ -49,8 +54,110 @@ const GuesthouseCancelledReceipt = () => {
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
-  const data = useMemo(
-    () => ({
+  const data = useMemo(() => {
+    const cancelPolicyInfo = (() => {
+      const appliedRate = dto?.refundRateApplied;
+      if (typeof appliedRate !== 'number') return { text: '-', dailyInfo: null, totalNights: 1 };
+
+      const freeCancelDeadline = dto?.freeCancelDeadlineAt ?? reservationItem?.freeCancelDeadlineAt;
+      const cancelTimeStr = dto?.cancelledAt ?? new Date().toISOString();
+      const isFreeCancel = freeCancelDeadline && dayjs(cancelTimeStr).isBefore(dayjs(freeCancelDeadline).add(1, 'minute'));
+
+      let checkInDateObj = null;
+      let checkOutDateObj = null;
+      const checkInStr = dto?.checkIn ?? reservationItem?.checkIn;
+      const checkOutStr = dto?.checkOut ?? reservationItem?.checkOut;
+
+      if (checkInStr) {
+        checkInDateObj = dayjs(checkInStr.replace(/\. /g, '-').replace(/\./g, '-')).startOf('day');
+      }
+      if (checkOutStr) {
+        checkOutDateObj = dayjs(checkOutStr.replace(/\. /g, '-').replace(/\./g, '-')).startOf('day');
+      }
+      const cancelDateObj = dayjs(cancelTimeStr).startOf('day');
+
+      const totalNights = (checkInDateObj && checkOutDateObj) ? checkOutDateObj.diff(checkInDateObj, 'day') : 1;
+
+      if (totalNights <= 1 || isFreeCancel) {
+        let diffDays = checkInDateObj ? checkInDateObj.diff(cancelDateObj, 'day') : null;
+        let text = `취소 (${appliedRate}% 환불)`;
+        if (isFreeCancel) {
+          text = `무료 취소 기한 내 취소 (${appliedRate}% 환불)`;
+        } else if (diffDays !== null) {
+          if (diffDays <= 0) text = `체크인 당일 취소 (${appliedRate}% 환불)`;
+          else text = `${diffDays}일 전 취소 (${appliedRate}% 환불)`;
+        }
+        return { text, dailyInfo: null, totalNights };
+      }
+
+      const policyData = dto?.refundPolicy;
+      const policies = normalizeRefundPolicies(policyData?.policies ?? []);
+
+      const dailyInfo = [];
+      const totalPaid = typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
+      const basePrice = Math.round(totalPaid / totalNights);
+      let accumulatedPrice = 0;
+      let totalFrontendRefundAmount = 0;
+
+      for (let i = 0; i < totalNights; i++) {
+        const currentNightDate = checkInDateObj.add(i, 'day');
+        const diffDays = currentNightDate.diff(cancelDateObj, 'day');
+        
+        let rate = 0;
+        let label = '';
+        if (isFreeCancel) {
+          rate = 100;
+          label = '무료 취소 기한 내 취소';
+        } else if (diffDays <= 0) {
+          rate = policyData?.sameDayRefundRate ?? 0;
+          label = '체크인 당일 취소';
+        } else {
+          if (policies.length > 0 && diffDays > policies[0].daysBeforeCheckin) {
+            rate = policyData?.defaultRefundRate ?? 100;
+          } else {
+            const matched = policies.find(p => p.daysBeforeCheckin <= diffDays);
+            if (matched) rate = matched.refundRate;
+            else rate = policyData?.sameDayRefundRate ?? 0;
+          }
+          label = `${diffDays}일 전 취소`;
+        }
+
+        let dailyAmount = basePrice;
+        if (i === totalNights - 1) {
+          dailyAmount = totalPaid - accumulatedPrice;
+        }
+        accumulatedPrice += dailyAmount;
+
+        const refundAmt = Math.floor(dailyAmount * (rate / 100));
+        totalFrontendRefundAmount += refundAmt;
+
+        dailyInfo.push({
+          nightIndex: i + 1,
+          dateStr: currentNightDate.format('MM.DD'),
+          daysBeforeLabel: label,
+          rate,
+          refundAmt
+        });
+      }
+
+      return {
+        text: '차등 수수료 적용',
+        dailyInfo,
+        totalNights,
+        totalFrontendRefundAmount
+      };
+    })();
+
+    const totalAmount = typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
+    let refundAmount = typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0;
+    
+    if (cancelPolicyInfo.dailyInfo) {
+      refundAmount = cancelPolicyInfo.totalFrontendRefundAmount;
+    }
+    
+    const cancelFee = Math.max(totalAmount - refundAmount, 0);
+
+    return {
       statusMessage:
         '예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.',
       guesthouseName:
@@ -88,8 +195,7 @@ const GuesthouseCancelledReceipt = () => {
         );
         return `취소일시 ${date} ${time}`;
       })(),
-      paidAmount:
-        typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0,
+      paidAmount: totalAmount,
       couponDiscountAmount:
         typeof dto?.couponDiscountAmount === 'number'
           ? dto.couponDiscountAmount
@@ -98,24 +204,17 @@ const GuesthouseCancelledReceipt = () => {
         typeof dto?.pointDiscountAmount === 'number'
           ? dto.pointDiscountAmount
           : 0,
-      cancelFee: (() => {
-        const totalAmount =
-          typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
-        const cancelledAmount =
-          typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0;
-        return Math.max(totalAmount - cancelledAmount, 0);
-      })(),
+      cancelFee,
       refundMethod: (() => {
         const method =
           (dto?.paymentType && PAYMENT_TYPE_LABEL[dto.paymentType]) ?? '';
         return method ? `${method} 환불` : '';
       })(),
-      refundAmount:
-        typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0,
+      refundAmount,
       cancelReason: dto?.cancelReason ?? '',
-    }),
-    [dto, reservationItem],
-  );
+      cancelPolicyInfo,
+    };
+  }, [dto, reservationItem]);
 
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
@@ -229,6 +328,47 @@ const GuesthouseCancelledReceipt = () => {
           </View>
 
           <View style={styles.row}>
+            <Text style={[FONTS.fs_14_medium, styles.label]}>적용 규정</Text>
+            {data.cancelPolicyInfo.dailyInfo ? (
+              <TouchableOpacity 
+                style={{flexDirection: 'row', alignItems: 'center'}}
+                onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}
+              >
+                <Text style={[FONTS.fs_14_semibold, styles.value, {color: COLORS.semantic_red, marginRight: 4}]}>
+                  {data.cancelPolicyInfo.text}
+                </Text>
+                {isPolicyExpanded ? <ChevronUp width={16} height={16} /> : <ChevronDown width={16} height={16} />}
+              </TouchableOpacity>
+            ) : (
+              <Text style={[FONTS.fs_14_semibold, styles.value, {color: COLORS.semantic_red}]}>
+                {data.cancelPolicyInfo.text}
+              </Text>
+            )}
+          </View>
+
+          {isPolicyExpanded && data.cancelPolicyInfo.dailyInfo && (
+            <View style={styles.dailyPolicyContainer}>
+              {data.cancelPolicyInfo.dailyInfo.map((info, idx) => (
+                <View key={idx} style={[styles.dailyPolicyRow, idx !== 0 && styles.dailyPolicyBorder]}>
+                  <View>
+                    <Text style={[FONTS.fs_14_semibold, styles.dailyPolicyTitle]}>
+                      {info.nightIndex}차 ({info.dateStr})
+                    </Text>
+                    <Text style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
+                      {info.daysBeforeLabel}
+                    </Text>
+                  </View>
+                  <Text style={[FONTS.fs_14_medium, styles.dailyPolicyAmount]}>
+                    {info.rate === 0 
+                      ? `환불 금액 없음 (0원)` 
+                      : `${info.rate}% 환불 (${formatPrice(info.refundAmt)})`}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          <View style={styles.row}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
             <Text style={[FONTS.fs_14_semibold, styles.value]}>
               {formatPrice(data.couponDiscountAmount)}
@@ -244,7 +384,7 @@ const GuesthouseCancelledReceipt = () => {
 
           <View style={styles.row}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>취소 수수료</Text>
-            <Text style={[FONTS.fs_14_semibold, styles.value]}>
+            <Text style={[FONTS.fs_14_semibold, styles.value, {color: COLORS.semantic_red}]}>
               {formatPrice(data.cancelFee)}
             </Text>
           </View>

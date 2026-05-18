@@ -7,7 +7,10 @@ import { COLORS } from '@constants/colors';
 import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {
+  formatLocalDateTimeToDotAndTimeWithDay,
+  formatLocalTimeToKorean12Hour,
+} from '@utils/formatDate';
 
 import StarIcon from '@assets/images/star_white.svg';
 import TrashIcon from '@assets/images/delete_gray.svg';
@@ -65,54 +68,61 @@ const UserGuesthouseReviewList = () => {
   };
 
   const renderReviewItem = ({ item, index }) => {
-    // const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkIn);
-    // const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.checkOut);
     const isLastItem = index === reviews.length - 1;
+    const createdAtFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.createdAt);
+    const checkInFormatted = formatLocalTimeToKorean12Hour(item.checkIn);
+    const checkOutFormatted = formatLocalTimeToKorean12Hour(item.checkOut);
 
     return (
       <View style={styles.card}>
-        {/* 상단: 이미지 + 기본정보 */}
-        <View style={styles.topRow}>
-          <Image source={{ uri: item.reviewImageUrls[0] }} style={styles.thumbnail} />
-          <View style={styles.topInfoRow}>
-            <Text style={[FONTS.fs_16_semibold]}>{item.guesthouseName}</Text>
-            {/* <Text style={[FONTS.fs_14_medium]}>룸이름</Text> */}
-            {/* <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_500}]}>주소</Text> */}
-            <Text style={[FONTS.fs_12_medium, { color: COLORS.grayscale_500 }]}>
-              {item.checkIn} ~ {item.checkOut}
+        <View style={styles.cardHeader}>
+          <View style={styles.guesthouseInfo}>
+            <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
+              {item.guesthouseName}
+            </Text>
+            <Text style={[FONTS.fs_12_medium, styles.metaText]}>
+              작성일 {createdAtFormatted.date}
+            </Text>
+            <Text style={[FONTS.fs_12_medium, styles.metaText]}>
+              체크인 {checkInFormatted} · 체크아웃 {checkOutFormatted}
             </Text>
           </View>
-        </View>
 
-        <View style={styles.bottomRow}>
-          {/* 평점 */}
-          <View style={styles.ratingRow}>
+          <View style={styles.headerActions}>
             <View style={styles.ratingBox}>
               <StarIcon width={14} height={14} />
-              <Text style={[FONTS.fs_14_semibold, {color: COLORS.grayscale_0}]}>{item.reviewRating}</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.ratingText]}>
+                {item.reviewRating}
+              </Text>
             </View>
             <TouchableOpacity
-              activeOpacity={1} onPress={() => handleDeleteReview(item.reviewId)}>
+              activeOpacity={0.7}
+              onPress={() => handleDeleteReview(item.reviewId)}
+              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+            >
               <TrashIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
+        </View>
+
+        <View style={styles.reviewBox}>
+          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>
+            {item.reviewDetail}
+          </Text>
 
           {/* 리뷰 이미지 목록 */}
           {item.reviewImageUrls?.length > 0 && (
-            <ScrollView 
+            <ScrollView
               style={styles.imageRow}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: 12 }}
+              contentContainerStyle={styles.imageRowContent}
             >
               {item.reviewImageUrls.map((img, idx) => (
                 <Image key={idx} source={{ uri: img }} style={styles.reviewImage} />
               ))}
             </ScrollView>
           )}
-
-          {/* 리뷰 내용 */}
-          <Text style={[FONTS.fs_14_regular, { marginTop: 10 }]}>{item.reviewDetail}</Text>
 
           {/* 사장님 한마디 */}
           {item.replies?.length > 0 && (
@@ -128,8 +138,12 @@ const UserGuesthouseReviewList = () => {
     );
   };
 
-  if (loading) return <Loading title={'리뷰를 불러오는 중이에요'} />;
-  if (!reviews || reviews.length === 0) return <EmptyState icon={NoReview} title={'아직 작성된 리뷰가 없어요'} description={'첫 리뷰를 남겨주세요!'} iconSize={{ width: 100, height: 60 }}/>;
+  if (loading) {
+    return <Loading title={'리뷰를 불러오는 중이에요'} />;
+  }
+  if (!reviews || reviews.length === 0) {
+    return <EmptyState icon={NoReview} title={'아직 작성된 리뷰가 없어요'} description={'첫 리뷰를 남겨주세요!'} iconSize={{ width: 100, height: 60 }}/>;
+  }
 
   return (
     <View style={styles.container}>
@@ -155,39 +169,39 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     height: 0.4,
     backgroundColor: COLORS.grayscale_300,
-  },  
+  },
 
   // 리스트
   card: {
   },
   // 게하 정보
-  topRow: {
+  cardHeader: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    gap: 12,
   },
-  thumbnail: {
-    width: 100,
-    height: 100,
-    borderRadius: 4,
-    marginRight: 12,
-  },
-  topInfoRow: {
+  guesthouseInfo: {
     flex: 1,
-    paddingVertical: 4,
     gap: 4,
+  },
+  guesthouseName: {
+    color: COLORS.grayscale_900,
+  },
+  metaText: {
+    color: COLORS.grayscale_500,
+  },
+  headerActions: {
+    alignItems: 'flex-end',
+    gap: 12,
   },
 
   // 리뷰
-  bottomRow: {
+  reviewBox: {
     backgroundColor: COLORS.grayscale_100,
-    padding: 8,
+    padding: 12,
     borderRadius: 8,
-    marginTop: 8,
-  },
-  // 평점
-  ratingRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    marginTop: 12,
   },
   ratingBox: {
     flexDirection: 'row',
@@ -199,10 +213,20 @@ const styles = StyleSheet.create({
     borderRadius: 100,
     gap: 4,
   },
+  ratingText: {
+    color: COLORS.grayscale_0,
+  },
+  reviewText: {
+    color: COLORS.grayscale_800,
+    lineHeight: 20,
+  },
 
   // 리뷰 이미지
   imageRow: {
-    marginTop: 10,
+    marginTop: 12,
+  },
+  imageRowContent: {
+    gap: 12,
   },
   reviewImage: {
     width: 80,

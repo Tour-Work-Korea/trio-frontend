@@ -370,7 +370,7 @@ const MeetCancelConfirm = () => {
                 )}
               </View>
               <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
-                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 이벤트 취소 / 환불
+                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 콘텐츠 취소 / 환불
                 규정에 동의합니다.
               </Text>
             </TouchableOpacity>
@@ -386,7 +386,7 @@ const MeetCancelConfirm = () => {
           <TermsModal
             visible={termsOpen}
             onClose={() => setTermsOpen(false)}
-            title="이벤트 취소 / 환불 규정"
+            title="콘텐츠 취소 / 환불 규정"
             content="약관 내용은 준비 중입니다."
             onAgree={() => setTermsOpen(false)}
           />

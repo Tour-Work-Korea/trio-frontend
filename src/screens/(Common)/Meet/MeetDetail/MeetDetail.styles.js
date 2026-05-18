@@ -226,7 +226,7 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  // 이벤트 소개
+  // 콘텐츠 소개
   eventItem: {
     backgroundColor: COLORS.grayscale_100,
     paddingVertical: 8,
@@ -264,7 +264,7 @@ const styles = StyleSheet.create({
   },
 
 
-  // 이벤트 사진
+  // 콘텐츠 사진
   mainImageContainer: {
     width: 280,
     height: 280,

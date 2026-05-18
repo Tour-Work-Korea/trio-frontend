@@ -17,7 +17,7 @@ const styles = StyleSheet.create({
     marginVertical: 24,
   },
 
-  // 이벤트 정보
+  // 콘텐츠 정보
   eventInfoRow: {
     flexDirection: 'row',
     alignItems: 'center',

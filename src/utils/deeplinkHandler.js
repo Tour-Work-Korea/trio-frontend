@@ -206,7 +206,7 @@ const DeeplinkHandler = ({enabled = true}) => {
         });
         console.log('스탭 공고 디테일 화면으로 이동');
       }
-      // 이벤트 디테일 화면 (로그인 불필요)
+      // 콘텐츠 디테일 화면 (로그인 불필요)
       else if (parts[0] === 'party' && parts[1]) {
         const partyId =
           parts[1] === 'detail'
@@ -221,7 +221,7 @@ const DeeplinkHandler = ({enabled = true}) => {
         resetToEventThenDetail('MeetDetail', {
           partyId,
         });
-        console.log('이벤트 디테일 화면으로 이동');
+        console.log('콘텐츠 디테일 화면으로 이동');
       }
       // 게하 예약내역 상세 (로그인 필요)
       else if (
@@ -229,7 +229,7 @@ const DeeplinkHandler = ({enabled = true}) => {
         parts[1] === 'guesthouse' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = getQueryParam(searchParams, [
+        const reservationId = parts[3] || getQueryParam(searchParams, [
           'reservationId',
           'id',
         ]);
@@ -239,13 +239,13 @@ const DeeplinkHandler = ({enabled = true}) => {
         }
         resetToGuesthouseReservationFlow(reservationId);
       }
-      // 이벤트 예약내역 상세 (로그인 필요)
+      // 콘텐츠 예약내역 상세 (로그인 필요)
       else if (
         parts[0] === 'reservation' &&
         parts[1] === 'party' &&
         parts[2] === 'detail'
       ) {
-        const reservationId = getQueryParam(searchParams, [
+        const reservationId = parts[3] || getQueryParam(searchParams, [
           'reservationId',
           'id',
         ]);
