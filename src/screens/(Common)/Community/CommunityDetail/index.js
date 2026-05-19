@@ -24,8 +24,8 @@ import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import styles from './CommunityDetail.styles';
 import HeartIcon from '@assets/images/heart_black.svg';
+import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import CommentIcon from '@assets/images/chat_black.svg';
-import PhotoIcon from '@assets/images/add_image_gray.svg';
 import {COLORS} from '@constants/colors';
 
 const COMMENT_MAX_LENGTH = 300;
@@ -74,6 +74,9 @@ const formatRelativeTime = dateTime => {
 const CommunityDetail = ({route}) => {
   const navigation = useNavigation();
   const {postId} = route.params ?? {};
+  const currentUserPhotoUrl = useUserStore(
+    state => state.userProfile?.photoUrl,
+  );
   const commentInputRef = useRef(null);
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -86,6 +89,7 @@ const CommunityDetail = ({route}) => {
   const [replyTarget, setReplyTarget] = useState(null);
   const [commentValue, setCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+  const [isTogglingLike, setIsTogglingLike] = useState(false);
   const shouldShowAd = useMemo(() => Math.random() < 0.25, []);
   const hasCommentValue = commentValue.trim().length > 0;
 
@@ -224,6 +228,80 @@ const CommunityDetail = ({route}) => {
     }
   };
 
+  const handleToggleLike = async () => {
+    if (!postId || !post || isTogglingLike) {
+      return;
+    }
+
+    const role = useUserStore.getState().userRole;
+
+    if (role !== 'USER') {
+      showErrorModal({
+        message: '좋아요 기능은\n 로그인 후 사용해주세요',
+        buttonText: '로그인하기',
+        buttonText2: '취소',
+        onPress: () => navigation.navigate('Login'),
+        onPress2: () => {},
+      });
+      return;
+    }
+
+    const wasLiked = Boolean(post.isLiked);
+    const previousLikeCount = Number(post.likeCount || 0);
+    const nextLikeCount = Math.max(
+      0,
+      previousLikeCount + (wasLiked ? -1 : 1),
+    );
+
+    setPost(prev =>
+      prev
+        ? {
+            ...prev,
+            isLiked: !wasLiked,
+            likeCount: nextLikeCount,
+          }
+        : prev,
+    );
+
+    try {
+      setIsTogglingLike(true);
+      if (wasLiked) {
+        await communityApi.unlikePost(postId);
+      } else {
+        await communityApi.likePost(postId);
+      }
+    } catch (error) {
+      setPost(prev =>
+        prev
+          ? {
+              ...prev,
+              isLiked: wasLiked,
+              likeCount: previousLikeCount,
+            }
+          : prev,
+      );
+
+      const status = error?.response?.status;
+      if (status === 401 || status === 403) {
+        showErrorModal({
+          message: '좋아요 기능은\n 로그인 후 사용해주세요',
+          buttonText: '로그인하기',
+          buttonText2: '취소',
+          onPress: () => navigation.navigate('Login'),
+          onPress2: () => {},
+        });
+        return;
+      }
+
+      console.warn(
+        'toggleCommunityPostLike 실패:',
+        error?.response?.data || error?.message,
+      );
+    } finally {
+      setIsTogglingLike(false);
+    }
+  };
+
   const handleLoadMoreComments = async () => {
     if (isMoreCommentsLoading || commentsLast || !postId) {
       return;
@@ -312,27 +390,52 @@ const CommunityDetail = ({route}) => {
     );
   };
 
-  const renderActionRow = (item, {showComment = true, compact = false} = {}) => (
-    <View style={[styles.actionRow, compact && styles.commentActionRow]}>
-      <View style={styles.actionItem}>
-        <HeartIcon width={22} height={22} />
-        <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-          {item.likeCount ?? 0}
-        </Text>
+  const renderActionRow = (
+    item,
+    {
+      showLike = true,
+      showComment = true,
+      compact = false,
+      likeable = false,
+    } = {},
+  ) => {
+    if (!showLike && !showComment) {
+      return null;
+    }
+
+    return (
+      <View style={[styles.actionRow, compact && styles.commentActionRow]}>
+        {/* 댓글 좋아요 API 연동 전까지 숨김 */}
+        {showLike ? (
+          <TouchableOpacity
+            activeOpacity={likeable ? 0.8 : 1}
+            disabled={!likeable}
+            style={styles.actionItem}
+            onPress={handleToggleLike}>
+            {likeable && item.isLiked ? (
+              <FilledHeartIcon width={22} height={22} />
+            ) : (
+              <HeartIcon width={22} height={22} />
+            )}
+            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+              {item.likeCount ?? 0}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
+        {showComment ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.actionItem}
+            onPress={() => handlePressComment(item)}>
+            <CommentIcon width={22} height={22} />
+            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+              {item.commentCount ?? item.replyCount ?? 0}
+            </Text>
+          </TouchableOpacity>
+        ) : null}
       </View>
-      {showComment ? (
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.actionItem}
-          onPress={() => handlePressComment(item)}>
-          <CommentIcon width={22} height={22} />
-          <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-            {item.commentCount ?? item.replyCount ?? 0}
-          </Text>
-        </TouchableOpacity>
-      ) : null}
-    </View>
-  );
+    );
+  };
 
   const renderComment = comment => (
     <View key={comment.commentId} style={styles.commentBlock}>
@@ -360,7 +463,7 @@ const CommunityDetail = ({route}) => {
           <Text style={[FONTS.fs_16_regular, styles.commentText]}>
             {comment.content}
           </Text>
-          {renderActionRow(comment, {compact: true})}
+          {renderActionRow(comment, {showLike: false, compact: true})}
         </View>
       </View>
 
@@ -387,7 +490,11 @@ const CommunityDetail = ({route}) => {
                   <Text style={[FONTS.fs_16_regular, styles.commentText]}>
                     {reply.content}
                   </Text>
-                  {renderActionRow(reply, {showComment: false, compact: true})}
+                  {renderActionRow(reply, {
+                    showLike: false,
+                    showComment: false,
+                    compact: true,
+                  })}
                 </View>
               </View>
             ))}
@@ -450,7 +557,7 @@ const CommunityDetail = ({route}) => {
           </Text>
 
           {renderPostImages(post.images)}
-          {renderActionRow(post)}
+          {renderActionRow(post, {likeable: true})}
 
           {shouldShowAd ? (
             <View style={styles.adBannerContainer}>
@@ -499,7 +606,7 @@ const CommunityDetail = ({route}) => {
             keyboardHeight > 0 && styles.commentInputBarFocused,
           ]}>
           {!isCommentFocused ? (
-            <Avatar uri={post?.author?.profileImageUrl} size={32} iconSize={14} />
+            <Avatar uri={currentUserPhotoUrl} size={32} iconSize={14} />
           ) : null}
           <TextInput
             ref={commentInputRef}
@@ -521,11 +628,7 @@ const CommunityDetail = ({route}) => {
                 ↑
               </Text>
             </TouchableOpacity>
-          ) : (
-            <TouchableOpacity activeOpacity={0.8} style={styles.photoButton}>
-              <PhotoIcon width={20} height={20} />
-            </TouchableOpacity>
-          )}
+          ) : null /* 댓글 사진 API 연동 전까지 사진 버튼 숨김 */}
         </View>
       </View>
     </KeyboardAvoidingView>

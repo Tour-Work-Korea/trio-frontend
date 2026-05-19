@@ -26,11 +26,9 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
     paddingLeft: 16,
     marginBottom: 28,
-    zIndex: 1,
   },
   sortWrapper: {
     marginRight: 8,
-    zIndex: 2,
   },
   sortChip: {
     paddingHorizontal: 12,
@@ -44,10 +42,14 @@ const styles = StyleSheet.create({
   sortChipText: {
     color: COLORS.grayscale_800,
   },
-  sortMenu: {
+  sortOverlay: {
+    flex: 1,
+  },
+  sortOverlayBackdrop: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  floatingSortMenu: {
     position: 'absolute',
-    top: 42,
-    left: 0,
     width: 128,
     borderRadius: 16,
     paddingVertical: 8,
@@ -58,7 +60,7 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.08,
     shadowOffset: {width: 0, height: 4},
     shadowRadius: 12,
-    elevation: 4,
+    elevation: 20,
   },
   sortMenuItem: {
     paddingHorizontal: 18,
@@ -73,6 +75,9 @@ const styles = StyleSheet.create({
   categoryChipContainer: {
     paddingRight: 16,
     gap: 8,
+  },
+  categoryScroll: {
+    flexShrink: 1,
   },
   chip: {
     paddingHorizontal: 12,
