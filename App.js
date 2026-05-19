@@ -196,7 +196,9 @@ function AppContent() {
   }, [appState, accessToken]);
 
   useEffect(() => {
-    if (appState !== 'active') {
+    // 앱이 처음 켜질 때 bootstrap()과 동시에 fetch가 일어나지 않도록,
+    // appLoaded가 true인 상태(부팅 완료 후)에서만 foreground 전환 시 체크하도록 합니다.
+    if (appState !== 'active' || !appLoaded) {
       return undefined;
     }
 
@@ -218,7 +220,7 @@ function AppContent() {
     return () => {
       cancelled = true;
     };
-  }, [appState]);
+  }, [appState, appLoaded]);
 
   return (
     <>
