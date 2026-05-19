@@ -22,11 +22,16 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import { AGREEMENT_CONTENT } from '@data/agreeContents';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
 import WarningAlarm from '@assets/images/notice_bubble_orange.svg';
 import { COLORS } from '@constants/colors';
+
+const TERM_DOCUMENT_MAP = {
+  personalInfo: 'GUESTHOUSE_RESERVATION_PRIVACY_POLICY',
+};
 
 const formatPhoneNumber = phone => {
   if (!phone || phone.length !== 11) {
@@ -137,17 +142,12 @@ const MeetReservation = () => {
   const eventThumbnailSource = routeThumbnailUrl
     ? { uri: routeThumbnailUrl }
     : null;
-  const [agreeAll, setAgreeAll] = useState(false);
-
   const [agreements, setAgreements] = useState({
-    terms: false,
     personalInfo: false,
-    thirdParty: false,
   });
 
   // 유효성 검사
-  const isAllRequiredAgreed =
-    agreements.terms && agreements.personalInfo && agreements.thirdParty;
+  const isAllRequiredAgreed = agreements.personalInfo;
 
   const toggleAgreement = key => {
     setAgreements(prev => ({
@@ -156,26 +156,12 @@ const MeetReservation = () => {
     }));
   };
 
-  const toggleAll = () => {
-    const newValue = !agreeAll;
-    setAgreeAll(newValue);
-    setAgreements({
-      terms: newValue,
-      personalInfo: newValue,
-      thirdParty: newValue,
-    });
-  };
-
-  useEffect(() => {
-    const allChecked =
-      agreements.terms && agreements.personalInfo && agreements.thirdParty;
-    if (allChecked !== agreeAll) {
-      setAgreeAll(allChecked);
-    }
-  }, [agreements, agreeAll]);
-
   const [isModalVisible, setModalVisible] = useState(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
+  const selectedAgreementDoc =
+    selectedTerm && TERM_DOCUMENT_MAP[selectedTerm]
+      ? AGREEMENT_CONTENT.USER?.[TERM_DOCUMENT_MAP[selectedTerm]]
+      : null;
 
   const openTermModal = key => {
     setSelectedTerm(key);
@@ -406,22 +392,6 @@ const MeetReservation = () => {
 
           {/* 약관 동의 */}
           <View style={styles.agreeRowContainer}>
-            <TouchableOpacity
-              activeOpacity={1} onPress={toggleAll} style={styles.agreeRowTitle}>
-              {agreeAll ? (
-                <View style={styles.checkedBox}>
-                  {' '}
-                  <Checked width={24} height={24} />{' '}
-                </View>
-              ) : (
-                <View style={styles.uncheckedBox}>
-                  {' '}
-                  <Unchecked width={24} height={24} />{' '}
-                </View>
-              )}
-              <Text style={FONTS.fs_14_semibold}>전체 동의</Text>
-            </TouchableOpacity>
-
             <View style={styles.agreeRowConent}>
               <View style={styles.agreeRow}>
                 <TouchableOpacity
@@ -455,39 +425,6 @@ const MeetReservation = () => {
                   </Text>
                 </TouchableOpacity>
               </View>
-
-              <View style={styles.agreeRow}>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => toggleAgreement('thirdParty')}
-                  style={styles.agreeRow}>
-                  {agreements.thirdParty ? (
-                    <View style={styles.checkedBox}>
-                      {' '}
-                      <Checked width={24} height={24} />{' '}
-                    </View>
-                  ) : (
-                    <View style={styles.uncheckedBox}>
-                      {' '}
-                      <Unchecked width={24} height={24} />{' '}
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
-                    [필수]
-                  </Text>{' '}
-                  개인정보 제3자 제공에 동의합니다.
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.seeMore}
-                  onPress={() => openTermModal('thirdParty')}>
-                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
-                    보기
-                  </Text>
-                </TouchableOpacity>
-              </View>
             </View>
           </View>
 
@@ -505,24 +442,9 @@ const MeetReservation = () => {
         <TermsModal
           visible={isModalVisible}
           onClose={() => setModalVisible(false)}
-          title={
-            selectedTerm === 'terms'
-              ? '콘텐츠 취소/환불 규정'
-              : selectedTerm === 'personalInfo'
-                ? '개인정보 수집 및 이용'
-                : selectedTerm === 'thirdParty'
-                  ? '개인정보 제3자 제공'
-                  : ''
-          }
-          content={
-            selectedTerm === 'terms'
-              ? '취소 환불 규정 내용 ...'
-              : selectedTerm === 'personalInfo'
-                ? '개인정보 수집 이용 동의 내용 ...'
-                : selectedTerm === 'thirdParty'
-                  ? '개인정보 제3자 제공 동의 내용 ...'
-                  : ''
-          }
+          title={selectedAgreementDoc?.title || ''}
+          content={selectedAgreementDoc?.detail || ''}
+          contentHtml={selectedAgreementDoc?.detailHtml || ''}
           onAgree={handleAgreeModal}
         />
       </View>

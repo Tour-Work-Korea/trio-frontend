@@ -9,6 +9,16 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
   },
+  list: {
+    flex: 1,
+  },
+  listContent: {
+    flexGrow: 1,
+    paddingVertical: 20,
+  },
+  emptyListContent: {
+    justifyContent: 'center',
+  },
 
   listStylesContainer: {
     paddingHorizontal: 20,

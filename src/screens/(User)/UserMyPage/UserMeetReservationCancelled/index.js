@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   Image,
-  StyleSheet,
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -14,7 +13,6 @@ import Loading from '@components/Loading';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import styles from './UserMeetReservationCancelled.styles';
 import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
 import EmptyState from '@components/EmptyState';
@@ -107,15 +105,16 @@ const UserMeetReservationCancelled = () => {
         ) : (
           <>
             <FlatList
+              style={styles.list}
               data={cancelledReservations}
               keyExtractor={item => item.reservationId.toString()}
               renderItem={renderItem}
-              contentContainerStyle={{
-                flexGrow: 1,
-                justifyContent:
-                  cancelledReservations.length === 0 ? 'center' : 'flex-start',
-                paddingVertical: 20,
-              }}
+              scrollEnabled
+              contentContainerStyle={[
+                styles.listContent,
+                cancelledReservations.length === 0 &&
+                  styles.emptyListContent,
+              ]}
               ListEmptyComponent={
                 <EmptyState
                   icon={SearchEmpty}
