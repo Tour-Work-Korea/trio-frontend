@@ -1,8 +1,10 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
   Image,
+  Modal,
+  Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -30,7 +32,14 @@ import CommentIcon from '@assets/images/chat_black.svg';
 
 const PAGE_SIZE = 10;
 const sortChips = ['최신순', '등록순'];
+const allCategory = {
+  id: 'ALL',
+  code: null,
+  displayName: '전체',
+  contentType: 'COMMUNITY',
+};
 const defaultCategories = [
+  allCategory,
   {
     id: 'GUESTHOUSE_RECOMMEND',
     code: 'GUESTHOUSE_RECOMMEND',
@@ -52,6 +61,11 @@ const sortCodeMap = {
   최신순: 'LATEST',
   등록순: 'OLDEST',
 };
+
+const withAllCategory = categories => [
+  allCategory,
+  ...categories.filter(category => category.code !== allCategory.code),
+];
 
 const formatRelativeTime = dateTime => {
   if (!dateTime) {
@@ -88,10 +102,15 @@ const formatRelativeTime = dateTime => {
 
 const Community = () => {
   const navigation = useNavigation();
+  const sortButtonRef = useRef(null);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState(defaultCategories[0]);
   const [sortVisible, setSortVisible] = useState(false);
+  const [sortMenuPosition, setSortMenuPosition] = useState({
+    top: 116,
+    left: 16,
+  });
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -109,7 +128,7 @@ const Community = () => {
       try {
         const response = await communityApi.getCategories();
         const nextCategories = Array.isArray(response.data)
-          ? response.data
+          ? withAllCategory(response.data)
           : defaultCategories;
 
         setCategories(nextCategories);
@@ -142,7 +161,9 @@ const Community = () => {
         }
 
         const response = await communityApi.getPosts({
-          categoryCode: selectedCategory?.code,
+          ...(selectedCategory?.code
+            ? {categoryCode: selectedCategory.code}
+            : {}),
           sort: sortCodeMap[selectedSort],
           page: pageToFetch,
           size: PAGE_SIZE,
@@ -156,7 +177,7 @@ const Community = () => {
       } catch (error) {
         setHasNext(false);
         console.warn('fetchCommunityPosts 실패:', error);
-        
+
         const role = useUserStore.getState().userRole;
         if (role !== 'USER') {
           showErrorModal({
@@ -181,7 +202,7 @@ const Community = () => {
         }
       }
     },
-    [selectedCategory, selectedSort],
+    [navigation, selectedCategory, selectedSort],
   );
 
   useFocusEffect(
@@ -203,6 +224,21 @@ const Community = () => {
   const handleSelectSort = sort => {
     setSelectedSort(sort);
     setSortVisible(false);
+  };
+
+  const handleToggleSortMenu = () => {
+    if (sortVisible) {
+      setSortVisible(false);
+      return;
+    }
+
+    sortButtonRef.current?.measureInWindow?.((x, y, width, height) => {
+      setSortMenuPosition({
+        top: y + height + 6,
+        left: x,
+      });
+    });
+    setSortVisible(true);
   };
 
   const handleEndReached = () => {
@@ -303,7 +339,7 @@ const Community = () => {
           <Avatar
             uri={item.author?.profileImageUrl}
             size={30}
-            iconSize={30}
+            iconSize={16}
             style={styles.avatar}
           />
           <Text style={[FONTS.fs_16_medium, styles.nickname]}>
@@ -358,9 +394,10 @@ const Community = () => {
       <View style={styles.filterRow}>
         <View style={styles.sortWrapper}>
           <TouchableOpacity
+            ref={sortButtonRef}
             activeOpacity={0.8}
             style={styles.sortChip}
-            onPress={() => setSortVisible(prev => !prev)}>
+            onPress={handleToggleSortMenu}>
             <Text style={[FONTS.fs_14_medium, styles.sortChipText]}>
               {selectedSort}
             </Text>
@@ -370,30 +407,10 @@ const Community = () => {
               <ChevronDown width={16} height={16} />
             )}
           </TouchableOpacity>
-
-          {sortVisible && (
-            <View style={styles.sortMenu}>
-              {sortChips.map(sort => (
-                <TouchableOpacity
-                  key={sort}
-                  activeOpacity={0.8}
-                  style={styles.sortMenuItem}
-                  onPress={() => handleSelectSort(sort)}>
-                  <Text
-                    style={[
-                      FONTS.fs_16_medium,
-                      styles.sortMenuText,
-                      selectedSort === sort && styles.selectedSortMenuText,
-                    ]}>
-                    {sort}
-                  </Text>
-                </TouchableOpacity>
-              ))}
-            </View>
-          )}
         </View>
 
         <ScrollView
+          style={styles.categoryScroll}
           horizontal
           showsHorizontalScrollIndicator={false}
           contentContainerStyle={styles.categoryChipContainer}>
@@ -471,6 +488,37 @@ const Community = () => {
           </Text>
         </TouchableOpacity>
       )}
+
+      <Modal
+        visible={sortVisible}
+        transparent
+        animationType="none"
+        onRequestClose={() => setSortVisible(false)}>
+        <View style={styles.sortOverlay}>
+          <Pressable
+            style={styles.sortOverlayBackdrop}
+            onPress={() => setSortVisible(false)}
+          />
+          <View style={[styles.floatingSortMenu, sortMenuPosition]}>
+            {sortChips.map(sort => (
+              <TouchableOpacity
+                key={sort}
+                activeOpacity={0.8}
+                style={styles.sortMenuItem}
+                onPress={() => handleSelectSort(sort)}>
+                <Text
+                  style={[
+                    FONTS.fs_16_medium,
+                    styles.sortMenuText,
+                    selectedSort === sort && styles.selectedSortMenuText,
+                  ]}>
+                  {sort}
+                </Text>
+              </TouchableOpacity>
+            ))}
+          </View>
+        </View>
+      </Modal>
 
       <AlertModal
         visible={errorModal.visible}

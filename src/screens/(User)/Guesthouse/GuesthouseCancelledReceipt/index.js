@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, TouchableOpacity} from 'react-native';
+import {View, Text, Image, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 import styles from './GuesthouseCancelledReceipt.styles';
@@ -15,6 +15,34 @@ import XBtn from '@assets/images/x_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
+const genderMap = {
+  MIXED: '혼숙',
+  FEMALE_ONLY: '여성전용',
+  MALE_ONLY: '남성전용',
+};
+
+const buildRoomDetailText = item => {
+  if (!item) return '';
+  const isDormitory = item.roomType === 'DORMITORY';
+  const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
+
+  if (isDormitory) {
+    const genderText = genderMap[item.dormitoryGenderType] || '';
+    const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+    if (genderText && item.dormitoryGenderType !== 'MIXED') {
+      return `${base}, ${genderText}`;
+    }
+    return base;
+  }
+
+  const maxCapacityText = item.roomMaxCapacity
+    ? `(최대 ${item.roomMaxCapacity}인)`
+    : '';
+  const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+  const base = `${basePrefix}${maxCapacityText}`;
+  return item.femaleOnly ? `${base}, 여성 전용` : base;
+};
+
 const GuesthouseCancelledReceipt = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -22,34 +50,6 @@ const GuesthouseCancelledReceipt = () => {
   const reservationItem = route?.params?.reservationItem ?? null;
   const [dto, setDto] = useState(null);
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
-
-  const genderMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
-  };
-
-  const buildRoomDetailText = item => {
-    if (!item) return '';
-    const isDormitory = item.roomType === 'DORMITORY';
-    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
-
-    if (isDormitory) {
-      const genderText = genderMap[item.dormitoryGenderType] || '';
-      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
-      if (genderText && item.dormitoryGenderType !== 'MIXED') {
-        return `${base}, ${genderText}`;
-      }
-      return base;
-    }
-
-    const maxCapacityText = item.roomMaxCapacity
-      ? `(최대 ${item.roomMaxCapacity}인)`
-      : '';
-    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
-    const base = `${basePrefix}${maxCapacityText}`;
-    return item.femaleOnly ? `${base}, 여성 전용` : base;
-  };
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
@@ -235,7 +235,10 @@ const GuesthouseCancelledReceipt = () => {
   }, [reservationId]);
 
   return (
-    <View style={styles.container}>
+    <ScrollView
+      style={styles.container}
+      contentContainerStyle={styles.contentContainer}
+      scrollEnabled>
         <TouchableOpacity
           style={styles.xBtn}
           onPress={() => navigation.goBack()}
@@ -419,7 +422,7 @@ const GuesthouseCancelledReceipt = () => {
             </Text>
           </View>
         </View>
-    </View>
+    </ScrollView>
   );
 };
 

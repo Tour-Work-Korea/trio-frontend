@@ -360,6 +360,14 @@ const GuesthousePaymentReceipt = () => {
 
   // 뒤로가기
   const handleClose = () => {
+    if (isFromPaymentFlow) {
+      navigation.reset({
+        index: 0,
+        routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+      });
+      return;
+    }
+
     if (receiptContext?.guesthouseId) {
       const checkIn = receiptContext?.checkIn
         ? dayjs(receiptContext.checkIn).format('YYYY-MM-DD')
