@@ -19,12 +19,15 @@ import StarHalf from '@assets/images/star_half.svg';
 import StarEmpty from '@assets/images/star_empty.svg';
 import PlusImg from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
+import ReviewPointIcon from '@assets/images/review_point_orange.svg';
 
 const noticeList = [
   '작성한 리뷰는 닉네임, 프로필 이미지와 함께 누구나 볼 수 있습니다.\n리뷰 내용에 개인정보가 포함되지 않도록 조심해주세요.',
   '솔직한 리뷰는 게스트하우스 이용객 분들께 큰 도움이 됩니다.\n다만 허위사실이나 명예훼손, 비방, 모욕 글 등 선량한 게스트하우스 사장님이나 제 3자의 권리를 침해하는 게시물은 서비스 이용약관이나 관련 법률에 따라 제재를 받을 수 있습니다.',
   '리뷰에 따른 책임은 작성자에게 있고, 워커웨이는 이에 대한 법적 책임을 지지 않습니다.'
 ];
+
+const MIN_REVIEW_LENGTH = 10;
 
 const UserGuesthouseReviewForm = () => {
   const route = useRoute();
@@ -43,6 +46,9 @@ const UserGuesthouseReviewForm = () => {
   const [reviewText, setReviewText] = useState('');
   const [modalVisible, setModalVisible] = useState(false); // 확인 모달
   const [successModalVisible, setSuccessModalVisible] = useState(false); // 성공 모달
+  const trimmedReviewLength = reviewText.trim().length;
+  const isReviewTooShort = trimmedReviewLength > 0 && trimmedReviewLength < MIN_REVIEW_LENGTH;
+  const isSubmitDisabled = rating === 0 || trimmedReviewLength < MIN_REVIEW_LENGTH;
 
   // 별점 터치
   const starSize = 40; // 별 아이콘 가로 크기(px)
@@ -153,6 +159,15 @@ const UserGuesthouseReviewForm = () => {
           </View>
         </View>
 
+        {/* 포인트 안내 */}
+        <View style={styles.pointNoticeRow}>
+          <ReviewPointIcon width={28} height={28}/>
+          <View style={styles.pointNoticeTextRow}>
+            <Text style={[FONTS.fs_14_medium, styles.pointNoticeText1]}>사진 리뷰 1,000P · 글 리뷰 300P 적립!</Text>
+            <Text style={[FONTS.fs_12_medium, styles.pointNoticeText2]}>생생한 후기로 포인트를 받아보세요.</Text>
+          </View>
+        </View>
+
         {/* 별점 */}
         <View style={styles.reviewRow}>
           <Text style={[FONTS.fs_14_medium, styles.rowTitle]}>게스트하우스에 대한 만족도</Text>
@@ -203,7 +218,7 @@ const UserGuesthouseReviewForm = () => {
                     setImages(prev => prev.filter((_, i) => i !== idx));
                   }}
                 >
-                  <XBtn width={18} height={18}/>
+            <XBtn width={18} height={18}/>
                 </TouchableOpacity>
               </View>
             ))}
@@ -219,7 +234,7 @@ const UserGuesthouseReviewForm = () => {
             </Text>
           </View>
           <TextInput
-            style={[FONTS.fs_14_regular, styles.textArea]}
+            style={[FONTS.fs_14_regular, styles.textArea, isReviewTooShort && styles.textAreaError]}
             placeholder="게스트하우스에 대한 리뷰를 작성해주세요"
             placeholderTextColor={COLORS.grayscale_400}
             multiline
@@ -231,6 +246,13 @@ const UserGuesthouseReviewForm = () => {
             activeOpacity={1} onPress={() => setReviewText('')}>
             <Text style={[FONTS.fs_12_medium, styles.rewriteText]}>다시쓰기</Text>
           </TouchableOpacity>
+          <Text style={[
+            FONTS.fs_12_light,
+            styles.reviewLengthGuide,
+            isReviewTooShort && styles.reviewLengthGuideError,
+          ]}>
+            최소 {MIN_REVIEW_LENGTH}자 이상 작성해주세요.
+          </Text>
         </View>
 
         <Text style={[FONTS.fs_12_light, { color: COLORS.grayscale_600, marginTop: 4 }]}>
@@ -249,7 +271,7 @@ const UserGuesthouseReviewForm = () => {
         {/* 버튼 */}
         <View style={styles.submitBtn}>
           <ButtonScarlet
-            disabled={rating === 0 || reviewText.trim().length === 0}
+            disabled={isSubmitDisabled}
             title={'리뷰 등록하기'}
             onPress={() => setModalVisible(true)}
           />
@@ -276,6 +298,7 @@ const UserGuesthouseReviewForm = () => {
         {/* 리뷰 등록 성공 모달 */}
         <ReviewSuccessModal
           visible={successModalVisible}
+          hasPhotoReview={images.length > 0}
           onClose={() => {
             setSuccessModalVisible(false);
             navigation.goBack();

@@ -17,9 +17,6 @@ export default StyleSheet.create({
 
   // 숙소 정보
   infoBox: {
-    borderBottomWidth: 0.4,
-    borderBottomColor: COLORS.grayscale_300,
-    paddingBottom: 16,
     marginBottom: 16,
   },
   nameText: {
@@ -51,6 +48,28 @@ export default StyleSheet.create({
   devideText: {
     marginHorizontal: 16,
     alignSelf: 'center',
+  },
+
+  // 포인트 안내
+  pointNoticeRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    borderWidth: 1,
+    borderColor: COLORS.primary_orange,
+    borderRadius: 12,
+    padding: 16,
+    marginBottom: 16,
+    backgroundColor: COLORS.secondary_orange,
+  },
+  pointNoticeTextRow: {
+    gap: 2,
+  },
+  pointNoticeText1: {
+    color: COLORS.grayscale_700,
+  },
+  pointNoticeText2: {
+    color: COLORS.grayscale_500,
   },
 
   // 작성 폼
@@ -114,12 +133,22 @@ export default StyleSheet.create({
     minHeight: 200,
     lineHeight: 20,
   },
+  textAreaError: {
+    borderColor: COLORS.semantic_red,
+  },
+  reviewLengthGuide: {
+    color: COLORS.grayscale_500,
+    marginTop: 4,
+  },
+  reviewLengthGuideError: {
+    color: COLORS.semantic_red,
+  },
   rewriteText: {
     alignSelf: 'flex-end',
     color: COLORS.grayscale_500,
     marginTop: 4,
   },
-  
+
   // 유의 문구
   noticeWrapper: {
     marginTop: 12,
