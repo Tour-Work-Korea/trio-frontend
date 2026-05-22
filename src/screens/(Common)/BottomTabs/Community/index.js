@@ -102,7 +102,11 @@ const formatRelativeTime = dateTime => {
 
 const Community = () => {
   const navigation = useNavigation();
+  const listRef = useRef(null);
   const sortButtonRef = useRef(null);
+  const queryKeyRef = useRef('');
+  const postsLengthRef = useRef(0);
+  const pageRef = useRef(0);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState(defaultCategories[0]);
@@ -122,6 +126,15 @@ const Community = () => {
     buttonText: '',
   });
   const isStaffSelected = selectedCategory?.contentType === 'RECRUIT';
+  const queryKey = `${selectedCategory?.code ?? 'ALL'}:${selectedSort}`;
+
+  useEffect(() => {
+    postsLengthRef.current = posts.length;
+  }, [posts.length]);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -148,16 +161,22 @@ const Community = () => {
   }, []);
 
   const fetchPosts = useCallback(
-    async (pageToFetch = 0, isLoadMore = false) => {
+    async (
+      pageToFetch = 0,
+      isLoadMore = false,
+      {silent = false, replace = false} = {},
+    ) => {
       if (selectedCategory?.contentType === 'RECRUIT') {
         return;
       }
 
       try {
-        if (isLoadMore) {
-          setIsMoreLoading(true);
-        } else {
-          setIsInitialLoading(true);
+        if (!silent) {
+          if (isLoadMore) {
+            setIsMoreLoading(true);
+          } else {
+            setIsInitialLoading(true);
+          }
         }
 
         const response = await communityApi.getPosts({
@@ -171,9 +190,12 @@ const Community = () => {
         const {content = [], last = true, number = pageToFetch} =
           response.data ?? {};
 
-        setPosts(prev => (pageToFetch === 0 ? content : [...prev, ...content]));
+        setPosts(prev =>
+          pageToFetch === 0 || replace ? content : [...prev, ...content],
+        );
         setPage(number);
         setHasNext(!last);
+        return {content, last, number};
       } catch (error) {
         setHasNext(false);
         console.warn('fetchCommunityPosts 실패:', error);
@@ -195,15 +217,47 @@ const Community = () => {
           });
         }
       } finally {
-        if (isLoadMore) {
-          setIsMoreLoading(false);
-        } else {
-          setIsInitialLoading(false);
+        if (!silent) {
+          if (isLoadMore) {
+            setIsMoreLoading(false);
+          } else {
+            setIsInitialLoading(false);
+          }
         }
       }
     },
     [navigation, selectedCategory, selectedSort],
   );
+
+  const refreshVisiblePosts = useCallback(async () => {
+    const lastLoadedPage = pageRef.current;
+    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
+
+    try {
+      const results = await Promise.all(
+        pages.map(pageToFetch =>
+          communityApi.getPosts({
+            ...(selectedCategory?.code
+              ? {categoryCode: selectedCategory.code}
+              : {}),
+            sort: sortCodeMap[selectedSort],
+            page: pageToFetch,
+            size: PAGE_SIZE,
+          }),
+        ),
+      );
+      const nextPosts = results.flatMap(
+        response => response.data?.content ?? [],
+      );
+      const lastPageData = results[results.length - 1]?.data;
+
+      setPosts(nextPosts);
+      setPage(lastPageData?.number ?? lastLoadedPage);
+      setHasNext(!lastPageData?.last);
+    } catch (error) {
+      console.warn('refreshCommunityVisiblePosts 실패:', error);
+    }
+  }, [selectedCategory, selectedSort]);
 
   useFocusEffect(
     useCallback(() => {
@@ -211,14 +265,29 @@ const Community = () => {
         setPosts([]);
         setHasNext(false);
         setPage(0);
+        queryKeyRef.current = queryKey;
         return;
       }
 
-      setPosts([]);
-      setHasNext(true);
-      setPage(0);
-      fetchPosts(0, false);
-    }, [fetchPosts, isStaffSelected]),
+      const shouldReset = queryKeyRef.current !== queryKey;
+      queryKeyRef.current = queryKey;
+
+      if (shouldReset || postsLengthRef.current === 0) {
+        setPosts([]);
+        setHasNext(true);
+        setPage(0);
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+        fetchPosts(0, false, {replace: true});
+        return;
+      }
+
+      refreshVisiblePosts();
+    }, [
+      fetchPosts,
+      isStaffSelected,
+      queryKey,
+      refreshVisiblePosts,
+    ]),
   );
 
   const handleSelectSort = sort => {
@@ -448,6 +517,7 @@ const Community = () => {
         </>
       ) : (
         <FlatList
+          ref={listRef}
           data={posts}
           keyExtractor={item => item.postId.toString()}
           renderItem={renderPost}
