@@ -3,6 +3,22 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 export default StyleSheet.create({
+  loginStackContainer: {
+    flex: 1,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  loginCloseButton: {
+    position: 'absolute',
+    top: 20,
+    right: 18,
+    zIndex: 10,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_0,
+  },
   container: {
     backgroundColor: COLORS.grayscale_0,
     flex: 1,

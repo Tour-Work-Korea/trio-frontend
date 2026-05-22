@@ -14,7 +14,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {FONTS} from '@constants/fonts';
 import Avatar from '@components/Avatar';
 import AlertModal from '@components/modals/AlertModal';
-import FullScreenImageModal from '@components/modals/FullScreenImageModal';
+import CommunityImageModal from '@components/modals/CommunityImageModal';
 import Loading from '@components/Loading';
 import communityApi from '@utils/api/communityApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -341,10 +341,10 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
 
-      <FullScreenImageModal
+      <CommunityImageModal
         visible={imageModalVisible}
         images={modalImages}
-        initialIndex={selectedImageIndex}
+        selectedImageIndex={selectedImageIndex}
         onClose={() => setImageModalVisible(false)}
       />
     </View>

@@ -54,8 +54,24 @@ const defaultCategories = [
   },
 ];
 
-const CommunityWrite = () => {
+const normalizeExistingImages = post =>
+  [...(post?.images ?? [])]
+    .sort((a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0))
+    .map((image, index) => ({
+      id: `existing-${image.imageId ?? image.objectKey ?? index}`,
+      uri: image.imageUrl,
+      imageUrl: image.imageUrl,
+      objectKey: image.objectKey,
+      fileSize: image.fileSizeBytes ?? image.fileSize ?? 1,
+      fileSizeBytes: image.fileSizeBytes ?? image.fileSize ?? 1,
+      isExisting: true,
+    }))
+    .filter(image => image.uri);
+
+const CommunityWrite = ({route}) => {
   const navigation = useNavigation();
+  const {mode, post: editingPost} = route?.params ?? {};
+  const isEditMode = mode === 'edit' && Boolean(editingPost?.postId);
   const titleInputRef = useRef(null);
   const bodyInputRef = useRef(null);
   const scrollFocusTimerRef = useRef(null);
@@ -66,10 +82,13 @@ const CommunityWrite = () => {
   const [body, setBody] = useState('');
   const [bodyInputHeight, setBodyInputHeight] = useState(160);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
-  const [images, setImages] = useState([]);
+  const [images, setImages] = useState(() =>
+    isEditMode ? normalizeExistingImages(editingPost) : [],
+  );
   const [previewImageUri, setPreviewImageUri] = useState(null);
   const [inputsEditable, setInputsEditable] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [imagesChanged, setImagesChanged] = useState(false);
   const canSubmit =
     selectedCategory?.code &&
     title.trim().length > 0 &&
@@ -103,7 +122,11 @@ const CommunityWrite = () => {
       try {
         const response = await communityApi.getCategories();
         const communityCategories = Array.isArray(response.data)
-          ? response.data.filter(category => category.contentType === 'COMMUNITY')
+          ? response.data.filter(
+              category =>
+                category.contentType === 'COMMUNITY' &&
+                category.code !== 'STAFF',
+            )
           : defaultCategories;
 
         setCategories(
@@ -111,13 +134,34 @@ const CommunityWrite = () => {
             ? communityCategories
             : defaultCategories,
         );
+        if (isEditMode) {
+          const matchedCategory = communityCategories.find(
+            category => category.code === editingPost.categoryCode,
+          );
+          setSelectedCategory(matchedCategory ?? null);
+        }
       } catch (error) {
         console.warn('fetchCommunityWriteCategories 실패:', error);
       }
     };
 
     fetchCategories();
-  }, []);
+  }, [editingPost?.categoryCode, isEditMode]);
+
+  useEffect(() => {
+    if (!isEditMode) {
+      return;
+    }
+
+    setSelectedCategory(
+      defaultCategories.find(category => category.code === editingPost.categoryCode) ??
+        null,
+    );
+    setTitle(editingPost.title ?? '');
+    setBody(editingPost.content ?? '');
+    setImages(normalizeExistingImages(editingPost));
+    setImagesChanged(false);
+  }, [editingPost, isEditMode]);
 
   const unlockInputsAfterScroll = () => {
     if (scrollFocusTimerRef.current) {
@@ -268,10 +312,12 @@ const CommunityWrite = () => {
     }
 
     setImages(prev => [...prev, ...nextImages]);
+    setImagesChanged(true);
   };
 
   const handleRemoveImage = imageId => {
     setImages(prev => prev.filter(image => image.id !== imageId));
+    setImagesChanged(true);
   };
 
   const uploadImageToS3 = async ({presignedUrl, uri, contentType}) => {
@@ -293,6 +339,80 @@ const CommunityWrite = () => {
     return `community-${Date.now()}-${index}.jpg`;
   };
 
+  const buildUploadedImages = async postId => {
+    if (images.length === 0) {
+      return [];
+    }
+
+    const newImages = images
+      .map((image, finalIndex) => ({...image, finalIndex}))
+      .filter(image => !image.isExisting);
+
+    const uploadedImageMap = new Map();
+
+    if (newImages.length > 0) {
+      const presignTargets = newImages.map(image => ({
+        filename: getImageFilename(image, image.finalIndex),
+        contentType: JPEG_CONTENT_TYPE,
+        imageOrder: image.finalIndex,
+        fileSizeBytes: Number(image.fileSize || 1),
+      }));
+      const presignedResponse = await communityApi.getImagePresignedUrls(
+        postId,
+        presignTargets,
+      );
+      const presignedImages = presignedResponse.data ?? [];
+
+      await Promise.all(
+        presignedImages.map(presignedImage => {
+          const sourceImage = newImages.find(
+            image => image.finalIndex === presignedImage.imageOrder,
+          );
+
+          if (!sourceImage) {
+            throw new Error('PRESIGNED_IMAGE_SOURCE_MISSING');
+          }
+
+          return uploadImageToS3({
+            presignedUrl: presignedImage.presignedUrl,
+            uri: sourceImage.uri,
+            contentType: JPEG_CONTENT_TYPE,
+          });
+        }),
+      );
+
+      presignedImages.forEach(image => {
+        uploadedImageMap.set(image.imageOrder, image);
+      });
+    }
+
+    return images.map((image, index) => {
+      if (image.isExisting) {
+        if (!image.objectKey) {
+          throw new Error('EXISTING_IMAGE_OBJECT_KEY_MISSING');
+        }
+
+        return {
+          objectKey: image.objectKey,
+          imageOrder: index,
+          fileSizeBytes: Number(image.fileSizeBytes || image.fileSize || 1),
+        };
+      }
+
+      const uploadedImage = uploadedImageMap.get(index);
+
+      if (!uploadedImage) {
+        throw new Error('PRESIGNED_IMAGE_RESULT_MISSING');
+      }
+
+      return {
+        objectKey: uploadedImage.objectKey,
+        imageOrder: index,
+        fileSizeBytes: uploadedImage.fileSizeBytes,
+      };
+    });
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit) {
       return;
@@ -302,6 +422,30 @@ const CommunityWrite = () => {
 
     try {
       setIsSubmitting(true);
+
+      if (isEditMode) {
+        const uploadedImages = imagesChanged
+          ? await buildUploadedImages(editingPost.postId)
+          : null;
+
+        await communityApi.updatePost(editingPost.postId, {
+          categoryCode: selectedCategory.code,
+          title: title.trim(),
+          content: body.trim(),
+          location: editingPost.location ?? {},
+          tags: (editingPost.tags ?? [])
+            .map(tag =>
+              typeof tag === 'string'
+                ? tag
+                : tag.name ?? tag.tagName ?? tag.content,
+            )
+            .filter(Boolean),
+          images: uploadedImages,
+        });
+
+        navigation.goBack();
+        return;
+      }
 
       const draftResponse = await communityApi.createDraft({
         categoryCode: selectedCategory.code,
@@ -318,35 +462,7 @@ const CommunityWrite = () => {
       let uploadedImages = [];
 
       if (images.length > 0) {
-        const presignTargets = images.map((image, index) => ({
-          filename: getImageFilename(image, index),
-          contentType: JPEG_CONTENT_TYPE,
-          imageOrder: index,
-          fileSizeBytes: Number(image.fileSize || 1),
-        }));
-        const presignedResponse = await communityApi.getImagePresignedUrls(
-          postId,
-          presignTargets,
-        );
-        const presignedImages = presignedResponse.data ?? [];
-
-        await Promise.all(
-          presignedImages.map(presignedImage => {
-            const sourceImage = images[presignedImage.imageOrder];
-
-            return uploadImageToS3({
-              presignedUrl: presignedImage.presignedUrl,
-              uri: sourceImage.uri,
-              contentType: JPEG_CONTENT_TYPE,
-            });
-          }),
-        );
-
-        uploadedImages = presignedImages.map(image => ({
-          objectKey: image.objectKey,
-          imageOrder: image.imageOrder,
-          fileSizeBytes: image.fileSizeBytes,
-        }));
+        uploadedImages = await buildUploadedImages(postId);
       }
 
       await communityApi.publishPost(postId, {
@@ -356,8 +472,21 @@ const CommunityWrite = () => {
 
       navigation.goBack();
     } catch (error) {
-      console.warn('createCommunityPost 실패:', error);
-      Alert.alert('게시글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.');
+      console.warn(
+        isEditMode ? 'updateCommunityPost 실패:' : 'createCommunityPost 실패:',
+        error,
+      );
+      if (error?.message === 'EXISTING_IMAGE_OBJECT_KEY_MISSING') {
+        Alert.alert(
+          '기존 이미지 정보를 확인할 수 없어 이미지 목록을 변경할 수 없어요.',
+        );
+      } else {
+        Alert.alert(
+          isEditMode
+            ? '게시글 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
+            : '게시글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.',
+        );
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -366,7 +495,7 @@ const CommunityWrite = () => {
   return (
     <View style={styles.container}>
       <Header
-        title="글쓰기"
+        title={isEditMode ? '글 수정' : '글쓰기'}
         onPress={() => navigation.goBack()}
         rightComponent={
           <TouchableOpacity
@@ -382,7 +511,13 @@ const CommunityWrite = () => {
                 styles.submitButtonText,
                 canSubmit && styles.submitButtonTextActive,
               ]}>
-              {isSubmitting ? '등록중' : '등록'}
+              {isSubmitting
+                ? isEditMode
+                  ? '수정중'
+                  : '등록중'
+                : isEditMode
+                  ? '수정'
+                  : '등록'}
             </Text>
           </TouchableOpacity>
         }
