@@ -60,8 +60,13 @@ const styles = StyleSheet.create({
   postActions: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 18,
+    justifyContent: 'space-between',
     marginTop: 14,
+  },
+  postStats: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 18,
   },
   actionItem: {
     flexDirection: 'row',
@@ -70,6 +75,32 @@ const styles = StyleSheet.create({
   },
   actionText: {
     color: COLORS.grayscale_900,
+  },
+  manageActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minHeight: 32,
+    paddingHorizontal: 4,
+    borderRadius: 16,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  manageButton: {
+    minWidth: 44,
+    height: 32,
+    paddingHorizontal: 10,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  manageButtonText: {
+    color: COLORS.grayscale_600,
+  },
+  manageDivider: {
+    width: 1,
+    height: 14,
+    backgroundColor: COLORS.grayscale_300,
+  },
+  deleteButtonText: {
+    color: COLORS.semantic_red,
   },
   emptyText: {
     color: COLORS.grayscale_500,

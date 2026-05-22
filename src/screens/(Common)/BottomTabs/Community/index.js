@@ -55,10 +55,14 @@ const withAllCategory = categories => [
 
 const Community = () => {
   const navigation = useNavigation();
+  const listRef = useRef(null);
   const sortButtonRef = useRef(null);
   const categoryScrollRef = useRef(null);
   const chipLayouts = useRef([]);
 
+  const queryKeyRef = useRef('');
+  const postsLengthRef = useRef(0);
+  const pageRef = useRef(0);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState(defaultCategories[0]);
@@ -71,6 +75,15 @@ const Community = () => {
   const [scrollWidth, setScrollWidth] = useState(0);
 
   const isStaffSelected = selectedCategory?.contentType === 'RECRUIT';
+  const queryKey = `${selectedCategory?.code ?? 'ALL'}:${selectedSort}`;
+
+  useEffect(() => {
+    postsLengthRef.current = posts.length;
+  }, [posts.length]);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   const tabs = useMemo(
     () => categories.map(cat => ({...cat, key: cat.id ?? cat.code})),
@@ -115,6 +128,136 @@ const Community = () => {
 
     fetchCategories();
   }, []);
+
+  const fetchPosts = useCallback(
+    async (
+      pageToFetch = 0,
+      isLoadMore = false,
+      {silent = false, replace = false} = {},
+    ) => {
+      if (selectedCategory?.contentType === 'RECRUIT') {
+        return;
+      }
+
+      try {
+        if (!silent) {
+          if (isLoadMore) {
+            setIsMoreLoading(true);
+          } else {
+            setIsInitialLoading(true);
+          }
+        }
+
+        const response = await communityApi.getPosts({
+          ...(selectedCategory?.code
+            ? {categoryCode: selectedCategory.code}
+            : {}),
+          sort: sortCodeMap[selectedSort],
+          page: pageToFetch,
+          size: PAGE_SIZE,
+        });
+        const {content = [], last = true, number = pageToFetch} =
+          response.data ?? {};
+
+        setPosts(prev =>
+          pageToFetch === 0 || replace ? content : [...prev, ...content],
+        );
+        setPage(number);
+        setHasNext(!last);
+        return {content, last, number};
+      } catch (error) {
+        setHasNext(false);
+        console.warn('fetchCommunityPosts 실패:', error);
+
+        const role = useUserStore.getState().userRole;
+        if (role !== 'USER') {
+          showErrorModal({
+            message: '커뮤니티는\n로그인 후 이용할 수 있어요',
+            buttonText2: '취소',
+            buttonText: '로그인하기',
+            onPress: () => navigation.navigate('Login'),
+            onPress2: () => {},
+          });
+        } else {
+          setErrorModal({
+            visible: true,
+            message: '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+            buttonText: '확인',
+          });
+        }
+      } finally {
+        if (!silent) {
+          if (isLoadMore) {
+            setIsMoreLoading(false);
+          } else {
+            setIsInitialLoading(false);
+          }
+        }
+      }
+    },
+    [navigation, selectedCategory, selectedSort],
+  );
+
+  const refreshVisiblePosts = useCallback(async () => {
+    const lastLoadedPage = pageRef.current;
+    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
+
+    try {
+      const results = await Promise.all(
+        pages.map(pageToFetch =>
+          communityApi.getPosts({
+            ...(selectedCategory?.code
+              ? {categoryCode: selectedCategory.code}
+              : {}),
+            sort: sortCodeMap[selectedSort],
+            page: pageToFetch,
+            size: PAGE_SIZE,
+          }),
+        ),
+      );
+      const nextPosts = results.flatMap(
+        response => response.data?.content ?? [],
+      );
+      const lastPageData = results[results.length - 1]?.data;
+
+      setPosts(nextPosts);
+      setPage(lastPageData?.number ?? lastLoadedPage);
+      setHasNext(!lastPageData?.last);
+    } catch (error) {
+      console.warn('refreshCommunityVisiblePosts 실패:', error);
+    }
+  }, [selectedCategory, selectedSort]);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (isStaffSelected) {
+        setPosts([]);
+        setHasNext(false);
+        setPage(0);
+        queryKeyRef.current = queryKey;
+        return;
+      }
+
+      const shouldReset = queryKeyRef.current !== queryKey;
+      queryKeyRef.current = queryKey;
+
+      if (shouldReset || postsLengthRef.current === 0) {
+        setPosts([]);
+        setHasNext(true);
+        setPage(0);
+        listRef.current?.scrollToOffset({offset: 0, animated: false});
+        fetchPosts(0, false, {replace: true});
+        return;
+      }
+
+      refreshVisiblePosts();
+    }, [
+      fetchPosts,
+      isStaffSelected,
+      queryKey,
+      refreshVisiblePosts,
+    ]),
+  );
 
   const handleSelectSort = sort => {
     setSelectedSort(sort);

@@ -11,7 +11,7 @@ import communityApi from './api/communityApi';
 
 /**
  * 통합 즐겨찾기 토글
- * @param {'recruit'|'party'|'guesthouse'|'post'|'communityPost'} type
+ * @param {'recruit'|'party'|'guesthouse'|'post'|'communityPost'|'communityComment'} type
  * @param {number} id
  * @param {boolean} isLiked
  * @param {Function|null} setList
@@ -52,6 +52,11 @@ export const toggleFavorite = async ({
       unlike: () => communityApi.unlikePost(id),
       listIdKey: 'postId',
     },
+    communityComment: {
+      like: () => communityApi.likeComment(id),
+      unlike: () => communityApi.unlikeComment(id),
+      listIdKey: 'commentId',
+    },
   };
   const conf = apiMap[type];
   if (!conf) {
@@ -74,7 +79,9 @@ export const toggleFavorite = async ({
   }
   if (setItem) {
     setItem(prev => {
-      if (!prev) return prev;
+      if (!prev) {
+        return prev;
+      }
 
       const hasIs = Object.prototype.hasOwnProperty.call(prev, 'isLiked');
       const hasLd = Object.prototype.hasOwnProperty.call(prev, 'liked');
@@ -88,8 +95,12 @@ export const toggleFavorite = async ({
 
   try {
     // API 호출 (로그인 아니어도 시도 -> 실패 시 catch)
-    if (isLiked) await conf.unlike();
-    else await conf.like();
+    if (isLiked) {
+      await conf.unlike();
+    } else {
+      await conf.like();
+    }
+    return true;
   } catch (error) {
     // 실패하면 롤백
     if (setList) {
@@ -112,11 +123,13 @@ export const toggleFavorite = async ({
         buttonText: '로그인하기',
         buttonText2: '취소',
         onPress: () => {
-          if (navigationRef.isReady?.()) navigationRef.navigate('Login');
+          if (navigationRef.isReady?.()) {
+            navigationRef.navigate('Login');
+          }
         },
         onPress2: () => {},
       });
-      return;
+      return false;
     }
 
     console.warn(
@@ -128,5 +141,6 @@ export const toggleFavorite = async ({
       error?.response?.data?.error ||
       error?.message;
     Alert.alert(serverMessage || '좋아요 처리 중 오류가 발생했습니다.');
+    return false;
   }
 };
