@@ -354,7 +354,7 @@ const UserEditProfile = () => {
       </ScrollView>
       <TouchableOpacity
         activeOpacity={1} style={styles.saveButton} onPress={updateMyProfile}>
-        <Text style={[FONTS.fs_16_medium, styles.saveButtonText]}>
+        <Text style={[FONTS.fs_16_semibold, styles.saveButtonText]}>
           적용
         </Text>
       </TouchableOpacity>

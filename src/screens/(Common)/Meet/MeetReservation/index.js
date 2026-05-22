@@ -75,7 +75,7 @@ const MeetReservation = () => {
 
   // 예약 정보
   useEffect(() => {
-    if (!partyId) return;
+    if (!partyId) {return;}
     const run = async () => {
       try {
         const { data } = await userMeetApi.joinParty(partyId);
@@ -124,14 +124,14 @@ const MeetReservation = () => {
   const [requestMessage, setRequestMessage] = useState('');
 
   const formatTime = timeStr => {
-    if (!timeStr) return '시간 없음';
+    if (!timeStr) {return '시간 없음';}
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
   const formatDateWithDay = dateStr => {
-    if (!dateStr) return '-';
+    if (!dateStr) {return '-';}
     const date = dayjs(dateStr);
-    if (!date.isValid()) return '-';
+    if (!date.isValid()) {return '-';}
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
 
@@ -180,14 +180,15 @@ const MeetReservation = () => {
 
   // 예약 생성
   const handleCreateReservation = async () => {
-    if (!partyId || !reservationInfo) return;
+    if (!partyId || !reservationInfo) {return;}
 
     try {
       const requestText = requestMessage?.trim() || '';
+      const amount = Number(reservationInfo?.amount ?? 0);
       const { data } = await reservationPaymentApi.createPartyReservation(
         partyId,
         {
-          amount: Number(reservationInfo?.amount ?? 0),
+          amount,
           request: requestText,
         },
       );
@@ -201,17 +202,29 @@ const MeetReservation = () => {
         throw new Error('예약 ID가 없습니다.');
       }
 
-      // 결제로 이동 (amount는 joinParty 응답의 금액 사용)
-      navigation.navigate('MeetPayment', {
-        amount: 0,
-        reservationId,
-        partyTitle: title,
-        partyStartDateTime: checkInDate,
-        partyStartTime: checkInTime,
-        partyEndTime: checkOutTime,
-        thumbnailUrl: routeThumbnailUrl,
-        pointUsed: 0,
-      });
+      if (amount === 0) {
+        // 0원 결제인 경우 결제창(웹뷰) 및 requestPayment 호출을 거치지 않고 바로 성공 화면으로 이동
+        navigation.replace('MeetPaymentSuccess', {
+          reservationId,
+          partyTitle: title,
+          partyStartDateTime: checkInDate,
+          partyStartTime: checkInTime,
+          partyEndTime: checkOutTime,
+          thumbnailUrl: routeThumbnailUrl,
+        });
+      } else {
+        // 유료 결제인 경우 결제 웹뷰로 이동
+        navigation.navigate('MeetPayment', {
+          amount,
+          reservationId,
+          partyTitle: title,
+          partyStartDateTime: checkInDate,
+          partyStartTime: checkInTime,
+          partyEndTime: checkOutTime,
+          thumbnailUrl: routeThumbnailUrl,
+          pointUsed: 0,
+        });
+      }
     } catch (e) {
       console.log('createPartyReservation error', e);
       const msg =

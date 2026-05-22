@@ -163,6 +163,8 @@ const CommunityDetail = ({route}) => {
   const shouldShowAd = useMemo(() => Math.random() < 0.25, []);
   const hasCommentValue = commentValue.trim().length > 0;
   const hasCommentImages = commentImages.length > 0;
+  const canWriteComment =
+    currentUserRole === 'USER' || currentUserRole === 'ADMIN';
 
   useEffect(() => {
     const resolveCommentAnchor = async () => {
@@ -306,7 +308,31 @@ const CommunityDetail = ({route}) => {
     [post],
   );
 
+  const showCommentLoginModal = () => {
+    commentInputRef.current?.blur();
+    showErrorModal({
+      message: '댓글 작성은\n 로그인 후 사용해주세요',
+      buttonText: '로그인하기',
+      buttonText2: '취소',
+      onPress: () => navigation.navigate('Login'),
+      onPress2: () => {},
+    });
+  };
+
+  const requireCommentLogin = () => {
+    if (canWriteComment) {
+      return true;
+    }
+
+    showCommentLoginModal();
+    return false;
+  };
+
   const handleFocusInput = () => {
+    if (!requireCommentLogin()) {
+      return;
+    }
+
     if (editingTarget) {
       setIsCommentFocused(true);
       return;
@@ -319,6 +345,10 @@ const CommunityDetail = ({route}) => {
   };
 
   const handlePressComment = item => {
+    if (!requireCommentLogin()) {
+      return;
+    }
+
     setEditingTarget(null);
     setReplyTarget({
       type: 'comment',
@@ -1435,7 +1465,13 @@ const CommunityDetail = ({route}) => {
             placeholderTextColor={COLORS.grayscale_400}
             value={commentValue}
             maxLength={COMMENT_MAX_LENGTH}
+            editable={canWriteComment}
             onChangeText={setCommentValue}
+            onPressIn={() => {
+              if (!canWriteComment) {
+                showCommentLoginModal();
+              }
+            }}
             onFocus={handleFocusInput}
             onBlur={() => setIsCommentFocused(false)}
           />

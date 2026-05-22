@@ -215,7 +215,7 @@ const MyCommunityCommentList = () => {
             <Avatar
               uri={post?.author?.profileImageUrl}
               size={30}
-              iconSize={30}
+              iconSize={16}
               style={styles.avatar}
             />
             <Text style={[FONTS.fs_16_medium, styles.nickname]}>

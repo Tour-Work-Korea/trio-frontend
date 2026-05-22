@@ -258,7 +258,9 @@ const GuesthouseDetail = ({route}) => {
 
   // 객실 서비스
   const amenityNames = detail.amenities.map(a => a.amenityName);
-  const refundPolicies = detail?.refundPolicies ?? [];
+  const refundPolicies = [...(detail?.refundPolicies ?? [])].sort(
+    (a, b) => a.daysBeforeCheckin - b.daysBeforeCheckin,
+  );
 
   const renderTabContent = tabKey => {
     if (tabKey === 'room') {

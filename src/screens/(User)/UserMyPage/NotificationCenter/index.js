@@ -16,6 +16,7 @@ const FILTER_CHIPS = [
   {key: 'all', label: '전체'},
   {key: 'roomReservation', label: '숙소'},
   {key: 'partyReservation', label: '콘텐츠'},
+  {key: 'community', label: '커뮤니티'},
 ];
 
 const extractItems = data =>
@@ -69,6 +70,10 @@ const normalizeType = type => {
     return 'partyReservation';
   }
 
+  if (rawType.startsWith('COMMUNITY_')) {
+    return 'community';
+  }
+
   return 'roomReservation';
 };
 
@@ -77,6 +82,10 @@ const normalizeStatus = type => {
 
   if (rawType.includes('CANCELLED') || rawType.includes('REFUND')) {
     return 'cancelled';
+  }
+
+  if (rawType.startsWith('COMMUNITY_') || rawType.startsWith('REVIEW_')) {
+    return 'confirmed';
   }
 
   if (rawType.includes('NEW') || rawType.includes('PENDING')) {
