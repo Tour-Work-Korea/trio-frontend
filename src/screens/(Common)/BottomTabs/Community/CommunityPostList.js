@@ -14,6 +14,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {FONTS} from '@constants/fonts';
 import Avatar from '@components/Avatar';
 import AlertModal from '@components/modals/AlertModal';
+import FullScreenImageModal from '@components/modals/FullScreenImageModal';
 import Loading from '@components/Loading';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
@@ -79,6 +80,9 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
     message: '',
     buttonText: '',
   });
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [modalImages, setModalImages] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   const fetchPosts = useCallback(
     async (pageToFetch = 0, isLoadMore = false, isRefresh = false) => {
@@ -189,7 +193,20 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
     );
   };
 
-  const renderPostImages = images => {
+  const handleOpenImageModal = (postItem, index) => {
+    const sortedImages = [...(postItem.images ?? [])].sort(
+      (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
+    );
+    const mappedImages = sortedImages.map(img => ({
+      id: img.imageId ?? img.id,
+      imageUrl: img.imageUrl,
+    }));
+    setModalImages(mappedImages);
+    setSelectedImageIndex(index);
+    setImageModalVisible(true);
+  };
+
+  const renderPostImages = (images, postItem) => {
     if (!images?.length) {
       return null;
     }
@@ -199,11 +216,15 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
 
     if (sortedImages.length === 1) {
       return (
-        <Image
-          source={{uri: sortedImages[0].imageUrl}}
-          style={styles.singlePostImage}
-          resizeMode="cover"
-        />
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => handleOpenImageModal(postItem, 0)}>
+          <Image
+            source={{uri: sortedImages[0].imageUrl}}
+            style={styles.singlePostImage}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       );
     }
 
@@ -215,12 +236,16 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.multiImageContainer}>
         {sortedImages.map((image, index) => (
-          <Image
+          <TouchableOpacity
             key={image.imageId ?? index}
-            source={{uri: image.imageUrl}}
-            style={styles.multiPostImage}
-            resizeMode="cover"
-          />
+            activeOpacity={0.9}
+            onPress={() => handleOpenImageModal(postItem, index)}>
+            <Image
+              source={{uri: image.imageUrl}}
+              style={styles.multiPostImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         ))}
       </ScrollView>
     );
@@ -259,7 +284,7 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
         </Text>
       </TouchableOpacity>
 
-      {renderPostImages(item.images)}
+      {renderPostImages(item.images, item)}
 
       <View style={styles.postActions}>
         <TouchableOpacity
@@ -327,6 +352,13 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
         title={errorModal.message}
         buttonText={errorModal.buttonText}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+      />
+
+      <FullScreenImageModal
+        visible={imageModalVisible}
+        images={modalImages}
+        initialIndex={selectedImageIndex}
+        onClose={() => setImageModalVisible(false)}
       />
     </View>
   );

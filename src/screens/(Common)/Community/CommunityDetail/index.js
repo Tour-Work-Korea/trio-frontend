@@ -18,6 +18,7 @@ import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 import Avatar from '@components/Avatar';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
+import FullScreenImageModal from '@components/modals/FullScreenImageModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
@@ -90,6 +91,9 @@ const CommunityDetail = ({route}) => {
   const [commentValue, setCommentValue] = useState('');
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isTogglingLike, setIsTogglingLike] = useState(false);
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const [modalImages, setModalImages] = useState([]);
+  const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const shouldShowAd = useMemo(() => Math.random() < 0.25, []);
   const hasCommentValue = commentValue.trim().length > 0;
 
@@ -355,6 +359,22 @@ const CommunityDetail = ({route}) => {
     }
   };
 
+  const handleOpenImageModal = index => {
+    if (!post?.images) {
+      return;
+    }
+    const sortedImages = [...post.images].sort(
+      (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
+    );
+    const mappedImages = sortedImages.map(img => ({
+      id: img.imageId ?? img.id,
+      imageUrl: img.imageUrl,
+    }));
+    setModalImages(mappedImages);
+    setSelectedImageIndex(index);
+    setImageModalVisible(true);
+  };
+
   const renderPostImages = images => {
     if (!images?.length) {
       return null;
@@ -365,11 +385,15 @@ const CommunityDetail = ({route}) => {
 
     if (sortedImages.length === 1) {
       return (
-        <Image
-          source={{uri: sortedImages[0].imageUrl}}
-          style={styles.singlePostImage}
-          resizeMode="cover"
-        />
+        <TouchableOpacity
+          activeOpacity={0.9}
+          onPress={() => handleOpenImageModal(0)}>
+          <Image
+            source={{uri: sortedImages[0].imageUrl}}
+            style={styles.singlePostImage}
+            resizeMode="cover"
+          />
+        </TouchableOpacity>
       );
     }
 
@@ -379,12 +403,16 @@ const CommunityDetail = ({route}) => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.multiImageContainer}>
         {sortedImages.map((image, index) => (
-          <Image
+          <TouchableOpacity
             key={image.imageId ?? index}
-            source={{uri: image.imageUrl}}
-            style={styles.multiPostImage}
-            resizeMode="cover"
-          />
+            activeOpacity={0.9}
+            onPress={() => handleOpenImageModal(index)}>
+            <Image
+              source={{uri: image.imageUrl}}
+              style={styles.multiPostImage}
+              resizeMode="cover"
+            />
+          </TouchableOpacity>
         ))}
       </ScrollView>
     );
@@ -631,6 +659,13 @@ const CommunityDetail = ({route}) => {
           ) : null /* 댓글 사진 API 연동 전까지 사진 버튼 숨김 */}
         </View>
       </View>
+
+      <FullScreenImageModal
+        visible={imageModalVisible}
+        images={modalImages}
+        initialIndex={selectedImageIndex}
+        onClose={() => setImageModalVisible(false)}
+      />
     </KeyboardAvoidingView>
   );
 };
