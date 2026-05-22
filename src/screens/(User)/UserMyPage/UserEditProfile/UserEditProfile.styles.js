@@ -156,9 +156,18 @@ export default StyleSheet.create({
     bottom: 40,
     right: 16,
     backgroundColor: COLORS.primary_orange,
-    paddingVertical: 4,
-    paddingHorizontal: 12,
+    paddingVertical: 12,
+    paddingHorizontal: 28,
     borderRadius: 100,
+    // 그림자 효과 추가로 플로팅 버튼 강조 및 터치 유도
+    shadowColor: '#000',
+    shadowOffset: {
+      width: 0,
+      height: 4,
+    },
+    shadowOpacity: 0.15,
+    shadowRadius: 6,
+    elevation: 5,
   },
   saveButtonText: {
     color: COLORS.grayscale_0,
