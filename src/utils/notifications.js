@@ -19,9 +19,13 @@ const USER_NOTIFICATION_TYPES = new Set([
   'PARTY_CHECKIN_INFO',
   'PARTY_RESERVATION_USER_CONFIRMED',
   'PARTY_RESERVATION_USER_CANCELLED',
+  'PARTY_CANCELLED_BY_HOST',
   'REVIEW_COMMENT_NEW',
   'REVIEW_SUB_COMMENT_NEW',
+  'COMMUNITY_COMMENT_NEW',
+  'COMMUNITY_REPLY_NEW',
 ]);
+
 
 export const subscribeForegroundNotification = listener => {
   foregroundListeners.add(listener);
@@ -164,7 +168,9 @@ export const openNotificationTarget = async notification => {
   const isGuesthouseCancellation =
     type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
     type === 'GUESTHOUSE_RESERVATION_USER_REFUND';
-  const isPartyCancellation = type === 'PARTY_RESERVATION_USER_CANCELLED';
+  const isPartyCancellation =
+    type === 'PARTY_RESERVATION_USER_CANCELLED' ||
+    type === 'PARTY_CANCELLED_BY_HOST';
 
   if (
     type.startsWith('GUESTHOUSE_RESERVATION_USER_') ||
@@ -193,7 +199,8 @@ export const openNotificationTarget = async notification => {
   if (
     type.startsWith('PARTY_RESERVATION_USER_') ||
     type === 'PARTY_INVITATION' ||
-    type === 'PARTY_CHECKIN_INFO'
+    type === 'PARTY_CHECKIN_INFO' ||
+    type === 'PARTY_CANCELLED_BY_HOST'
   ) {
     if (!isLoggedInUser()) {
       showLoginRequiredModal();
