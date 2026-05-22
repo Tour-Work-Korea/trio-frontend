@@ -152,6 +152,20 @@ const CommunityDetail = ({route}) => {
   );
 
   const handleFocusInput = () => {
+    const role = useUserStore.getState().userRole;
+
+    if (role !== 'USER') {
+      commentInputRef.current?.blur();
+      showErrorModal({
+        message: '댓글 작성은\n 로그인 후 사용해주세요',
+        buttonText: '로그인하기',
+        buttonText2: '취소',
+        onPress: () => navigation.navigate('Login'),
+        onPress2: () => {},
+      });
+      return;
+    }
+
     if (!replyTarget) {
       setReplyTarget(postReplyTarget);
     }
@@ -159,6 +173,19 @@ const CommunityDetail = ({route}) => {
   };
 
   const handlePressComment = item => {
+    const role = useUserStore.getState().userRole;
+
+    if (role !== 'USER') {
+      showErrorModal({
+        message: '댓글 작성은\n 로그인 후 사용해주세요',
+        buttonText: '로그인하기',
+        buttonText2: '취소',
+        onPress: () => navigation.navigate('Login'),
+        onPress2: () => {},
+      });
+      return;
+    }
+
     setReplyTarget({
       type: 'comment',
       parentCommentId: item.commentId,
