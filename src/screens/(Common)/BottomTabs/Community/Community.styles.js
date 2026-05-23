@@ -17,9 +17,15 @@ const styles = StyleSheet.create({
   pagerContent: {
     flexGrow: 1,
   },
+  page: {
+    flex: 1,
+  },
   listContent: {
     paddingTop: 24,
     paddingBottom: 96,
+  },
+  pageListContent: {
+    paddingTop: 0,
   },
   staffHeader: {
     paddingTop: 24,

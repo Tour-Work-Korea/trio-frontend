@@ -25,24 +25,18 @@ import LeftChevron from '@assets/images/chevron_left_white.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 
-const PAGE_SIZE = 10;
 const TRENDING_CARD_WIDTH = SCREEN_WIDTH * 0.9;
 const TRENDING_CARD_GAP = 16;
 const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
+const POPULAR_PARTY_SIZE = 50;
 
 const PopularMeetList = () => {
   const navigation = useNavigation();
   const [parties, setParties] = useState([]);
-  const [page, setPage] = useState(0);
-  const [hasNext, setHasNext] = useState(true);
-  const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
 
   const scrollViewRef = useRef(null);
-  const loadingMoreRef = useRef(false);
-
-
 
   const formatWhenTime = (isoStr) => {
     const d = dayjs(isoStr);
@@ -71,48 +65,20 @@ const PopularMeetList = () => {
     [],
   );
 
-  // ScrollView용 무한스크롤 로딩
-  const loadMore = async () => {
-    if (!hasNext || loading || loadingMoreRef.current) return;
-
-    loadingMoreRef.current = true;
-    setLoading(true);
-
-    try {
-      const { data } = await userMeetApi.searchParties({
-        page: page + 1,
-        size: PAGE_SIZE,
-        // isGuest: false,
-      });
-
-      const normalized = normalizeParties(data?.content ?? []);
-      setParties(prev => [...prev, ...normalized]);
-      setPage(page + 1);
-      setHasNext(!data?.last);
-    } catch (e) {
-      console.warn('추가 로딩 실패', e);
-    } finally {
-      setLoading(false);
-      loadingMoreRef.current = false;
-    }
-  };
-
   // 최초 로딩
   const fetchInitial = useCallback(async () => {
     setInitialLoading(true);
 
     try {
-      const { data } = await userMeetApi.searchParties({
-        page: 0,
-        size: PAGE_SIZE,
-        // isGuest: false,
+      const { data } = await userMeetApi.getPopularParties({
+        size: POPULAR_PARTY_SIZE,
       });
-
-      const normalized = normalizeParties(data?.content ?? []);
+      const list = Array.isArray(data)
+        ? data
+        : data?.content || (data ? [data] : []);
+      const normalized = normalizeParties(list);
 
       setParties(normalized);
-      setPage(0);
-      setHasNext(!data?.last);
     } catch (e) {
       console.warn('초기 로딩 실패', e);
       setParties([]);
@@ -262,13 +228,6 @@ const PopularMeetList = () => {
       ) : (
         <ScrollView
           ref={scrollViewRef}
-          onScroll={({ nativeEvent }) => {
-            const bottomReached =
-              nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
-              nativeEvent.contentSize.height - 200;
-
-            if (bottomReached) loadMore();
-          }}
           scrollEventThrottle={16}
           showsVerticalScrollIndicator={false}
         >
@@ -350,13 +309,6 @@ const PopularMeetList = () => {
           {restList.map((item) => (
             <PopularCard key={item.partyId} item={item} />
           ))}
-
-          {/* --- 하단 로딩 --- */}
-          {loading && hasNext && (
-            <View style={{ paddingVertical: 20 }}>
-              <ActivityIndicator size="small" color={COLORS.grayscale_400} />
-            </View>
-          )}
         </ScrollView>
       )}
     </View>

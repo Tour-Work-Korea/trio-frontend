@@ -64,7 +64,12 @@ const formatRelativeTime = dateTime => {
   return `${month}.${day}`;
 };
 
-const CommunityPostList = ({category, selectedSort, isActive}) => {
+const CommunityPostList = ({
+  category,
+  selectedSort,
+  isActive,
+  contentContainerStyle,
+}) => {
   const navigation = useNavigation();
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
@@ -193,6 +198,13 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
     setImageModalVisible(true);
   };
 
+  const handlePressCommentCount = item => {
+    navigation.navigate('CommunityDetail', {
+      postId: item.postId,
+      focusCommentInput: true,
+    });
+  };
+
   const renderPostImages = (images, postItem) => {
     if (!images?.length) {
       return null;
@@ -287,12 +299,15 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
             {item.likeCount}
           </Text>
         </TouchableOpacity>
-        <View style={styles.actionItem}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.actionItem}
+          onPress={() => handlePressCommentCount(item)}>
           <CommentIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_regular, styles.actionText]}>
             {item.commentCount}
           </Text>
-        </View>
+        </TouchableOpacity>
       </View>
     </View>
   );
@@ -304,7 +319,7 @@ const CommunityPostList = ({category, selectedSort, isActive}) => {
         keyExtractor={item => item.postId.toString()}
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.listContent}
+        contentContainerStyle={[styles.listContent, contentContainerStyle]}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={

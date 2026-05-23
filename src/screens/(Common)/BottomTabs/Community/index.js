@@ -1,8 +1,5 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
-  ActivityIndicator,
-  FlatList,
-  Image,
   Modal,
   Pressable,
   ScrollView,
@@ -10,27 +7,21 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
-import Avatar from '@components/Avatar';
 import AlertModal from '@components/modals/AlertModal';
-import Loading from '@components/Loading';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
-import {toggleFavorite} from '@utils/toggleFavorite';
-import {COLORS} from '@constants/colors';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 import styles from './Community.styles';
 import Staff from './Staff';
+import CommunityPostList from './CommunityPostList';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
-import HeartIcon from '@assets/images/heart_black.svg';
-import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
-import CommentIcon from '@assets/images/chat_black.svg';
 
-const PAGE_SIZE = 10;
 const sortChips = ['최신순', '등록순'];
 const allCategory = {
   id: 'ALL',
@@ -57,84 +48,54 @@ const defaultCategories = [
   {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
 ];
 
-const sortCodeMap = {
-  최신순: 'LATEST',
-  등록순: 'OLDEST',
-};
-
 const withAllCategory = categories => [
   allCategory,
   ...categories.filter(category => category.code !== allCategory.code),
 ];
 
-const formatRelativeTime = dateTime => {
-  if (!dateTime) {
-    return '';
-  }
-
-  const createdTime = new Date(dateTime).getTime();
-  const diffMs = Date.now() - createdTime;
-  const diffMinutes = Math.floor(diffMs / 60000);
-
-  if (diffMinutes < 1) {
-    return '방금';
-  }
-
-  if (diffMinutes < 60) {
-    return `${diffMinutes}m`;
-  }
-
-  const diffHours = Math.floor(diffMinutes / 60);
-  if (diffHours < 24) {
-    return `${diffHours}h`;
-  }
-
-  const diffDays = Math.floor(diffHours / 24);
-  if (diffDays < 7) {
-    return `${diffDays}d`;
-  }
-
-  const date = new Date(dateTime);
-  const month = `${date.getMonth() + 1}`.padStart(2, '0');
-  const day = `${date.getDate()}`.padStart(2, '0');
-  return `${month}.${day}`;
-};
+const getCategoryKey = category =>
+  String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
 
 const Community = () => {
   const navigation = useNavigation();
-  const listRef = useRef(null);
   const sortButtonRef = useRef(null);
-  const queryKeyRef = useRef('');
-  const postsLengthRef = useRef(0);
-  const pageRef = useRef(0);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
-  const [selectedCategory, setSelectedCategory] = useState(defaultCategories[0]);
   const [sortVisible, setSortVisible] = useState(false);
   const [sortMenuPosition, setSortMenuPosition] = useState({
     top: 116,
     left: 16,
   });
-  const [posts, setPosts] = useState([]);
-  const [page, setPage] = useState(0);
-  const [hasNext, setHasNext] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
-  const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
     buttonText: '',
   });
-  const isStaffSelected = selectedCategory?.contentType === 'RECRUIT';
-  const queryKey = `${selectedCategory?.code ?? 'ALL'}:${selectedSort}`;
 
-  useEffect(() => {
-    postsLengthRef.current = posts.length;
-  }, [posts.length]);
+  const categoryTabs = useMemo(
+    () =>
+      categories.map(category => ({
+        ...category,
+        key: getCategoryKey(category),
+      })),
+    [categories],
+  );
 
-  useEffect(() => {
-    pageRef.current = page;
-  }, [page]);
+  const {
+    pagerRef,
+    activeIndex,
+    isActive,
+    onTabPress,
+    pageWidth,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs: categoryTabs,
+    initialKey: getCategoryKey(defaultCategories[0]),
+  });
+
+  const activeCategory = categoryTabs[activeIndex] ?? categoryTabs[0];
+  const isStaffSelected = activeCategory?.contentType === 'RECRUIT';
 
   useEffect(() => {
     const fetchCategories = async () => {
@@ -145,146 +106,25 @@ const Community = () => {
           : defaultCategories;
 
         setCategories(nextCategories);
-        setSelectedCategory(prev => {
-          const matchedCategory = nextCategories.find(
-            category => category.code === prev?.code,
-          );
-
-          return matchedCategory ?? nextCategories[0] ?? defaultCategories[0];
-        });
       } catch (error) {
         console.warn('fetchCommunityCategories 실패:', error);
+        setErrorModal({
+          visible: true,
+          message: '커뮤니티 카테고리를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+          buttonText: '확인',
+        });
       }
     };
 
     fetchCategories();
   }, []);
 
-  const fetchPosts = useCallback(
-    async (
-      pageToFetch = 0,
-      isLoadMore = false,
-      {silent = false, replace = false} = {},
-    ) => {
-      if (selectedCategory?.contentType === 'RECRUIT') {
-        return;
-      }
-
-      try {
-        if (!silent) {
-          if (isLoadMore) {
-            setIsMoreLoading(true);
-          } else {
-            setIsInitialLoading(true);
-          }
-        }
-
-        const response = await communityApi.getPosts({
-          ...(selectedCategory?.code
-            ? {categoryCode: selectedCategory.code}
-            : {}),
-          sort: sortCodeMap[selectedSort],
-          page: pageToFetch,
-          size: PAGE_SIZE,
-        });
-        const {content = [], last = true, number = pageToFetch} =
-          response.data ?? {};
-
-        setPosts(prev =>
-          pageToFetch === 0 || replace ? content : [...prev, ...content],
-        );
-        setPage(number);
-        setHasNext(!last);
-        return {content, last, number};
-      } catch (error) {
-        setHasNext(false);
-        console.warn('fetchCommunityPosts 실패:', error);
-
-        setErrorModal({
-          visible: true,
-          message: '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
-        });
-      } finally {
-        if (!silent) {
-          if (isLoadMore) {
-            setIsMoreLoading(false);
-          } else {
-            setIsInitialLoading(false);
-          }
-        }
-      }
-    },
-    [selectedCategory, selectedSort],
-  );
-
-  const refreshVisiblePosts = useCallback(async () => {
-    const lastLoadedPage = pageRef.current;
-    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
-
-    try {
-      const results = await Promise.all(
-        pages.map(pageToFetch =>
-          communityApi.getPosts({
-            ...(selectedCategory?.code
-              ? {categoryCode: selectedCategory.code}
-              : {}),
-            sort: sortCodeMap[selectedSort],
-            page: pageToFetch,
-            size: PAGE_SIZE,
-          }),
-        ),
-      );
-      const nextPosts = results.flatMap(
-        response => response.data?.content ?? [],
-      );
-      const lastPageData = results[results.length - 1]?.data;
-
-      setPosts(nextPosts);
-      setPage(lastPageData?.number ?? lastLoadedPage);
-      setHasNext(!lastPageData?.last);
-    } catch (error) {
-      console.warn('refreshCommunityVisiblePosts 실패:', error);
-    }
-  }, [selectedCategory, selectedSort]);
-
-  useFocusEffect(
-    useCallback(() => {
-      if (isStaffSelected) {
-        setPosts([]);
-        setHasNext(false);
-        setPage(0);
-        queryKeyRef.current = queryKey;
-        return;
-      }
-
-      const shouldReset = queryKeyRef.current !== queryKey;
-      queryKeyRef.current = queryKey;
-
-      if (shouldReset || postsLengthRef.current === 0) {
-        setPosts([]);
-        setHasNext(true);
-        setPage(0);
-        listRef.current?.scrollToOffset({offset: 0, animated: false});
-        fetchPosts(0, false, {replace: true});
-        return;
-      }
-
-      refreshVisiblePosts();
-    }, [
-      fetchPosts,
-      isStaffSelected,
-      queryKey,
-      refreshVisiblePosts,
-    ]),
-  );
-
   const handleSelectSort = sort => {
     setSelectedSort(sort);
     setSortVisible(false);
   };
 
-  const handleToggleSortMenu = () => {
+  const handleToggleSortMenu = useCallback(() => {
     if (sortVisible) {
       setSortVisible(false);
       return;
@@ -297,15 +137,7 @@ const Community = () => {
       });
     });
     setSortVisible(true);
-  };
-
-  const handleEndReached = () => {
-    if (isInitialLoading || isMoreLoading || !hasNext || isStaffSelected) {
-      return;
-    }
-
-    fetchPosts(page + 1, true);
-  };
+  }, [sortVisible]);
 
   const handlePressWrite = () => {
     const role = useUserStore.getState().userRole;
@@ -324,217 +156,100 @@ const Community = () => {
     navigation.navigate('CommunityWrite');
   };
 
-  const handleToggleLike = item => {
-    const nextLikeCount = Math.max(
-      0,
-      Number(item.likeCount || 0) + (item.isLiked ? -1 : 1),
-    );
+  const renderHeader = useCallback(
+    () => (
+      <View style={styles.headerContainer}>
+        <Text style={[FONTS.fs_20_semibold, styles.title]}>커뮤니티</Text>
 
-    toggleFavorite({
-      type: 'communityPost',
-      id: item.postId,
-      isLiked: item.isLiked,
-      setList: setPosts,
-    });
+        <View style={styles.filterRow}>
+          <View style={styles.sortWrapper}>
+            <TouchableOpacity
+              ref={sortButtonRef}
+              activeOpacity={0.8}
+              style={styles.sortChip}
+              onPress={handleToggleSortMenu}>
+              <Text style={[FONTS.fs_14_medium, styles.sortChipText]}>
+                {selectedSort}
+              </Text>
+              {sortVisible ? (
+                <ChevronUp width={16} height={16} />
+              ) : (
+                <ChevronDown width={16} height={16} />
+              )}
+            </TouchableOpacity>
+          </View>
 
-    setPosts(prev =>
-      prev?.map(post =>
-        post.postId === item.postId
-          ? {
-              ...post,
-              likeCount: nextLikeCount,
-            }
-          : post,
-      ),
-    );
-  };
+          <ScrollView
+            style={styles.categoryScroll}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.categoryChipContainer}>
+            {categoryTabs.map((category, index) => {
+              const selected = activeIndex === index;
 
-  const renderPostImages = images => {
-    if (!images?.length) {
-      return null;
-    }
-    const sortedImages = [...images].sort(
-      (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
-    );
-
-    if (sortedImages.length === 1) {
-      return (
-        <Image
-          source={{uri: sortedImages[0].imageUrl}}
-          style={styles.singlePostImage}
-          resizeMode="cover"
-        />
-      );
-    }
-
-    return (
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.multiImageContainer}>
-        {sortedImages.map((image, index) => (
-          <Image
-            key={image.imageId ?? index}
-            source={{uri: image.imageUrl}}
-            style={styles.multiPostImage}
-            resizeMode="cover"
-          />
-        ))}
-      </ScrollView>
-    );
-  };
-
-  const renderPost = ({item}) => (
-    <View style={styles.postContainer}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() =>
-          navigation.navigate('CommunityDetail', {postId: item.postId})
-        }>
-        <View style={styles.postHeader}>
-          <Avatar
-            uri={item.author?.profileImageUrl}
-            size={30}
-            iconSize={16}
-            style={styles.avatar}
-          />
-          <Text style={[FONTS.fs_16_medium, styles.nickname]}>
-            {item.author?.nickname}
-          </Text>
-          <Text style={[FONTS.fs_14_regular, styles.time]}>
-            {formatRelativeTime(item.createdAt)}
-          </Text>
-        </View>
-
-        <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-          {item.title}
-        </Text>
-        <Text
-          style={[FONTS.fs_16_regular, styles.postContent]}
-          numberOfLines={2}
-          ellipsizeMode="tail">
-          {item.content}
-        </Text>
-      </TouchableOpacity>
-
-      {renderPostImages(item.images)}
-
-      <View style={styles.postActions}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.actionItem}
-          onPress={() => handleToggleLike(item)}>
-          {item.isLiked ? (
-            <FilledHeartIcon width={20} height={20} />
-          ) : (
-            <HeartIcon width={20} height={20} />
-          )}
-          <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-            {item.likeCount}
-          </Text>
-        </TouchableOpacity>
-        <View style={styles.actionItem}>
-          <CommentIcon width={20} height={20} />
-          <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-            {item.commentCount}
-          </Text>
-        </View>
-      </View>
-    </View>
-  );
-
-  const renderHeader = () => (
-    <>
-      <Text style={[FONTS.fs_20_semibold, styles.title]}>커뮤니티</Text>
-
-      <View style={styles.filterRow}>
-        <View style={styles.sortWrapper}>
-          <TouchableOpacity
-            ref={sortButtonRef}
-            activeOpacity={0.8}
-            style={styles.sortChip}
-            onPress={handleToggleSortMenu}>
-            <Text style={[FONTS.fs_14_medium, styles.sortChipText]}>
-              {selectedSort}
-            </Text>
-            {sortVisible ? (
-              <ChevronUp width={16} height={16} />
-            ) : (
-              <ChevronDown width={16} height={16} />
-            )}
-          </TouchableOpacity>
-        </View>
-
-        <ScrollView
-          style={styles.categoryScroll}
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          contentContainerStyle={styles.categoryChipContainer}>
-          {categories.map(category => {
-            const selected = selectedCategory?.code === category.code;
-
-            return (
-              <TouchableOpacity
-                key={category.id ?? category.code}
-                activeOpacity={0.8}
-                onPress={() => setSelectedCategory(category)}
-                style={[styles.chip, selected && styles.selectedChip]}>
-                <Text
-                  style={[
-                    FONTS.fs_14_medium,
-                    styles.chipText,
-                    selected && styles.selectedChipText,
-                  ]}>
+              return (
+                <TouchableOpacity
+                  key={category.key}
+                  activeOpacity={0.8}
+                  onPress={() => onTabPress(index)}
+                  style={[styles.chip, selected && styles.selectedChip]}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.chipText,
+                      selected && styles.selectedChipText,
+                    ]}>
                     {category.displayName}
                   </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </ScrollView>
+                </TouchableOpacity>
+              );
+            })}
+          </ScrollView>
+        </View>
       </View>
-    </>
+    ),
+    [
+      activeIndex,
+      categoryTabs,
+      handleToggleSortMenu,
+      onTabPress,
+      selectedSort,
+      sortVisible,
+    ],
   );
 
   return (
     <View style={styles.container}>
-      {isStaffSelected ? (
-        <>
-          <View style={styles.staffHeader}>{renderHeader()}</View>
-          <Staff />
-        </>
-      ) : (
-        <FlatList
-          ref={listRef}
-          data={posts}
-          keyExtractor={item => item.postId.toString()}
-          renderItem={renderPost}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.listContent}
-          ListHeaderComponent={renderHeader}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.5}
-          ListEmptyComponent={
-            isInitialLoading ? (
-              <Loading title="커뮤니티 글을 불러오는 중입니다..." />
+      {renderHeader()}
+
+      <ScrollView
+        ref={pagerRef}
+        horizontal
+        pagingEnabled
+        nestedScrollEnabled
+        bounces={false}
+        showsHorizontalScrollIndicator={false}
+        onLayout={onPagerLayout}
+        onMomentumScrollEnd={onMomentumScrollEnd}
+        style={styles.pager}
+        contentContainerStyle={styles.pagerContent}>
+        {categoryTabs.map(category => (
+          <View
+            key={category.key}
+            style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+            {category.contentType === 'RECRUIT' ? (
+              <Staff isActive={isActive(category.key)} />
             ) : (
-              <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-                아직 등록된 글이 없어요.
-              </Text>
-            )
-          }
-          ListFooterComponent={
-            isMoreLoading ? (
-              <ActivityIndicator
-                size="small"
-                color={COLORS.grayscale_500}
-                style={styles.footerLoading}
+              <CommunityPostList
+                category={category}
+                selectedSort={selectedSort}
+                isActive={isActive(category.key)}
+                contentContainerStyle={styles.pageListContent}
               />
-            ) : null
-          }
-        />
-      )}
+            )}
+          </View>
+        ))}
+      </ScrollView>
 
       {!isStaffSelected && (
         <TouchableOpacity
