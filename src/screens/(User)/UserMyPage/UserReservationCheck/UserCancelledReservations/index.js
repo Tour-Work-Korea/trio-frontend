@@ -5,6 +5,7 @@ import dayjs from 'dayjs';
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
+import { getDefaultGuesthouseListParams } from '@constants/guesthouseDefaults';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 
@@ -151,7 +152,15 @@ export default function UserCancelledReservations({ data }) {
             title="취소내역이 없어요"
             description="게스트하우스를 예약하러 가볼까요?"
             buttonText="게스트하우스 찾아보기"
-            onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+            onPressButton={() =>
+              navigation.navigate('MainTabs', {
+                screen: '지도',
+                params: {
+                  screen: 'GuesthouseList',
+                  params: getDefaultGuesthouseListParams(),
+                },
+              })
+            }
           />
         }
       />

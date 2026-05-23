@@ -120,7 +120,8 @@ const isCommentEdited = item => {
 
 const CommunityDetail = ({route}) => {
   const navigation = useNavigation();
-  const {postId, commentAnchor, targetCommentId} = route.params ?? {};
+  const {postId, commentAnchor, targetCommentId, focusCommentInput} =
+    route.params ?? {};
   const currentUserPhotoUrl = useUserStore(
     state => state.userProfile?.photoUrl,
   );
@@ -307,6 +308,22 @@ const CommunityDetail = ({route}) => {
     }),
     [post],
   );
+
+  useEffect(() => {
+    if (!focusCommentInput || isLoading || !post || !canWriteComment) {
+      return;
+    }
+
+    setEditingTarget(null);
+    setReplyTarget(postReplyTarget);
+    setIsCommentFocused(true);
+
+    const focusTimer = setTimeout(() => {
+      commentInputRef.current?.focus();
+    }, 250);
+
+    return () => clearTimeout(focusTimer);
+  }, [canWriteComment, focusCommentInput, isLoading, post, postReplyTarget]);
 
   const showCommentLoginModal = () => {
     commentInputRef.current?.blur();

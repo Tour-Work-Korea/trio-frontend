@@ -73,8 +73,8 @@ const MyApplicantList = () => {
       visible: true,
       title:
         '지원 취소한 알바는\n다시 지원하기 어려워요\n알바 지원을 취소하시겠습니까?',
-      buttonText: '안할래요',
-      buttonText2: '취소하기',
+      buttonText: '닫기',
+      buttonText2: '지원 취소',
       onPress2: () => {
         tryDeleteApplicantById(id);
         setErrorModal(prev => ({...prev, visible: false}));

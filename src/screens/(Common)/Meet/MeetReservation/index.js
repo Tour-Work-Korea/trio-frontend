@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   Image,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -23,6 +22,7 @@ import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
+import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
@@ -122,6 +122,53 @@ const MeetReservation = () => {
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
   const [requestMessage, setRequestMessage] = useState('');
+  const {
+    scrollRef,
+    keyboardHeight,
+    contentContainerStyle: keyboardAwareContentStyle,
+  } = useKeyboardAwareScrollView({
+    basePaddingBottom: 120,
+    extraScrollOffset: 80,
+    scrollDelay: 160,
+    iosOnly: false,
+  });
+  const requestInputRef = useRef(null);
+  const keyboardHeightRef = useRef(0);
+  const scrollYRef = useRef(0);
+  const isKeyboardVisible = keyboardHeight > 0;
+
+  useEffect(() => {
+    keyboardHeightRef.current = keyboardHeight;
+  }, [keyboardHeight]);
+
+  const scrollRequestAboveKeyboard = useCallback(() => {
+    const keyboardOffset = keyboardHeightRef.current;
+
+    if (!requestInputRef.current || !keyboardOffset) {
+      return;
+    }
+
+    requestInputRef.current.measureInWindow((x, y, width, height) => {
+      const keyboardTop = Dimensions.get('window').height - keyboardOffset;
+      const fieldBottom = y + height;
+      const overlap = fieldBottom + 20 - keyboardTop;
+
+      if (overlap <= 0) {
+        return;
+      }
+
+      scrollRef.current?.scrollTo?.({
+        y: Math.max(0, scrollYRef.current + overlap),
+        animated: true,
+      });
+    });
+  }, [scrollRef]);
+
+  const handleFocusRequest = useCallback(() => {
+    requestAnimationFrame(scrollRequestAboveKeyboard);
+    setTimeout(scrollRequestAboveKeyboard, 320);
+    setTimeout(scrollRequestAboveKeyboard, 520);
+  }, [scrollRequestAboveKeyboard]);
 
   const formatTime = timeStr => {
     if (!timeStr) {return '시간 없음';}
@@ -336,14 +383,18 @@ const MeetReservation = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
-      <View style={{ flex: 1 }}>
+    <View style={styles.container}>
         <Header title="예약" onPress={handleBackPress} />
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollRef}
+          onScroll={e => {
+            scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+          }}
+          scrollEventThrottle={16}
+          contentContainerStyle={[
+            styles.scrollContent,
+            keyboardAwareContentStyle,
+          ]}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled">
 
@@ -386,7 +437,7 @@ const MeetReservation = () => {
           <View style={styles.devide} />
 
           {/* 요청사항 */}
-          <View style={styles.section}>
+          <View style={styles.section} ref={requestInputRef}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
               요청 사항 (선택)
             </Text>
@@ -397,6 +448,7 @@ const MeetReservation = () => {
                 placeholderTextColor={COLORS.grayscale_400}
                 value={requestMessage}
                 onChangeText={setRequestMessage}
+                onFocus={handleFocusRequest}
               />
             </View>
           </View>
@@ -443,13 +495,15 @@ const MeetReservation = () => {
 
         </ScrollView>
 
-        <View style={styles.fixedButton}>
-          <ButtonScarlet
-            title="신청하기"
-            disabled={!isAllRequiredAgreed}
-            onPress={handleCreateReservation}
-          />
-        </View>
+        {!isKeyboardVisible ? (
+          <View style={styles.fixedButton}>
+            <ButtonScarlet
+              title="신청하기"
+              disabled={!isAllRequiredAgreed}
+              onPress={handleCreateReservation}
+            />
+          </View>
+        ) : null}
 
         {/* 약관동의 모달 */}
         <TermsModal
@@ -460,8 +514,7 @@ const MeetReservation = () => {
           contentHtml={selectedAgreementDoc?.detailHtml || ''}
           onAgree={handleAgreeModal}
         />
-      </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 
