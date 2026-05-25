@@ -36,6 +36,7 @@ import {
   MyResumeList,
   MyCouponList,
   MyCouponRegister,
+  MyPoint,
   MyCommunityPostList,
   MyCommunityCommentList,
   UserEditProfile,
@@ -165,6 +166,7 @@ const RootNavigation = () => {
         />
         <Stack.Screen name="MyCouponList" component={MyCouponList} />
         <Stack.Screen name="MyCouponRegister" component={MyCouponRegister} />
+        <Stack.Screen name="MyPoint" component={MyPoint} />
         <Stack.Screen
           name="MyCommunityPostList"
           component={MyCommunityPostList}

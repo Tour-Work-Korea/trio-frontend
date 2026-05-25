@@ -23,12 +23,12 @@ import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
 
 const PAGE_SIZE = 8;
 
-const Staff = () => {
+const Staff = ({isActive}) => {
   const navigation = useNavigation();
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(true);
+  const [isInitialLoading, setIsInitialLoading] = useState(false);
   const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -78,11 +78,14 @@ const Staff = () => {
 
   useFocusEffect(
     useCallback(() => {
+      if (!isActive) {
+        return;
+      }
       setRecruitList([]);
       setHasNext(true);
       setPage(0);
       tryFetchRecruitList(0, false);
-    }, [tryFetchRecruitList]),
+    }, [tryFetchRecruitList, isActive]),
   );
 
   const handleEndReached = () => {

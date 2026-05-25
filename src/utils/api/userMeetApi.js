@@ -31,8 +31,8 @@ const userMeetApi = {
     api.post(`/order/payment/${reservationId}`, body),
 
   // 인기 콘텐츠 조회
-  getPopularParties: () =>
-    api.get('/user/parties/popular', {withAuth: false}),
+  getPopularParties: (params = {}) =>
+    api.get('/user/parties/popular', {params, withAuth: false}),
 };
 
 export default userMeetApi;

@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -57,11 +57,22 @@ const formatRelativeTime = dateTime => {
 
 const MyCommunityCommentList = () => {
   const navigation = useNavigation();
+  const listRef = useRef(null);
+  const commentsLengthRef = useRef(0);
+  const pageRef = useRef(0);
   const [comments, setComments] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
   const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isMoreLoading, setIsMoreLoading] = useState(false);
+
+  useEffect(() => {
+    commentsLengthRef.current = comments.length;
+  }, [comments.length]);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
 
   const fetchMyComments = useCallback(
     async (pageToFetch = 0, isLoadMore = false) => {
@@ -98,13 +109,43 @@ const MyCommunityCommentList = () => {
     [],
   );
 
+  const refreshVisibleMyComments = useCallback(async () => {
+    const lastLoadedPage = pageRef.current;
+    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
+
+    try {
+      const results = await Promise.all(
+        pages.map(pageToFetch =>
+          communityApi.getMyComments({
+            page: pageToFetch,
+            size: PAGE_SIZE,
+          }),
+        ),
+      );
+      const nextComments = results.flatMap(
+        response => response.data?.content ?? [],
+      );
+      const lastPageData = results[results.length - 1]?.data;
+
+      setComments(nextComments);
+      setPage(lastPageData?.number ?? lastLoadedPage);
+      setHasNext(!lastPageData?.last);
+    } catch (error) {
+      console.warn('refreshMyCommunityComments 실패:', error);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
-      setComments([]);
-      setHasNext(true);
-      setPage(0);
-      fetchMyComments(0, false);
-    }, [fetchMyComments]),
+      if (commentsLengthRef.current === 0) {
+        setHasNext(true);
+        setPage(0);
+        fetchMyComments(0, false);
+        return;
+      }
+
+      refreshVisibleMyComments();
+    }, [fetchMyComments, refreshVisibleMyComments]),
   );
 
   const handleEndReached = () => {
@@ -118,6 +159,7 @@ const MyCommunityCommentList = () => {
   const handlePressComment = item => {
     navigation.navigate('CommunityDetail', {
       postId: item.postSummary?.postId,
+      targetCommentId: item.commentId,
       commentAnchor: item.anchor,
     });
   };
@@ -173,7 +215,7 @@ const MyCommunityCommentList = () => {
             <Avatar
               uri={post?.author?.profileImageUrl}
               size={30}
-              iconSize={30}
+              iconSize={16}
               style={styles.avatar}
             />
             <Text style={[FONTS.fs_16_medium, styles.nickname]}>
@@ -240,6 +282,7 @@ const MyCommunityCommentList = () => {
     <View style={styles.container}>
       <Header title="내가 쓴 댓글" onPress={() => navigation.goBack()} />
       <FlatList
+        ref={listRef}
         data={comments}
         keyExtractor={item => item.commentId.toString()}
         renderItem={renderCommentItem}

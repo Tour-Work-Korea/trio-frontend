@@ -13,7 +13,8 @@ import styles from './NotificationCenter.styles';
 const renderLeadingIcon = item => {
   const isCancelled = item.status === 'cancelled';
   const isParty = item.type === 'partyReservation';
-  const Icon = isParty
+  const isCommunity = item.type === 'community';
+  const Icon = (isParty || isCommunity)
     ? isCancelled
       ? PartyCancelledIcon
       : PartyConfirmedIcon

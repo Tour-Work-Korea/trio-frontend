@@ -6,9 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  Keyboard,
+  Dimensions,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -25,6 +23,7 @@ import userMyApi from '@utils/api/userMyApi';
 import { getUsableCouponCount } from '@utils/coupon/couponUtils';
 import { applyRefundPoliciesToAgreementHtml } from '@utils/refundPolicyAgreement';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
+import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
@@ -96,6 +95,70 @@ const GuesthouseReservation = ({ route }) => {
   const [isRequestConfirmationNoticeVisible, setRequestConfirmationNoticeVisible] =
     useState(false);
   const [reservationErrorMessage, setReservationErrorMessage] = useState('');
+  const {
+    scrollRef,
+    keyboardHeight,
+    contentContainerStyle: keyboardAwareContentStyle,
+  } = useKeyboardAwareScrollView({
+    basePaddingBottom: 20,
+    extraScrollOffset: 80,
+    scrollDelay: 160,
+    iosOnly: false,
+  });
+  const inputRefs = useRef({});
+  const keyboardHeightRef = useRef(0);
+  const scrollYRef = useRef(0);
+  const isKeyboardVisible = keyboardHeight > 0;
+
+  useEffect(() => {
+    keyboardHeightRef.current = keyboardHeight;
+  }, [keyboardHeight]);
+
+  const setInputRef = useCallback(
+    key => node => {
+      if (node) {
+        inputRefs.current[key] = node;
+      }
+    },
+    [],
+  );
+
+  const scrollInputAboveKeyboard = useCallback(
+    key => {
+      const inputRef = inputRefs.current[key];
+      const keyboardOffset = keyboardHeightRef.current;
+
+      if (!inputRef || !keyboardOffset) {
+        return;
+      }
+
+      inputRef.measureInWindow((x, y, width, height) => {
+        const keyboardTop = Dimensions.get('window').height - keyboardOffset;
+        const fieldBottom = y + height;
+        const bottomSpacing = 20;
+        const overlap = fieldBottom + bottomSpacing - keyboardTop;
+
+        if (overlap <= 0) {
+          return;
+        }
+
+        scrollRef.current?.scrollTo?.({
+          y: Math.max(0, scrollYRef.current + overlap),
+          animated: true,
+        });
+      });
+    },
+    [scrollRef],
+  );
+
+  const focusInput = useCallback(
+    key => {
+      requestAnimationFrame(() => scrollInputAboveKeyboard(key));
+      setTimeout(() => scrollInputAboveKeyboard(key), 320);
+      setTimeout(() => scrollInputAboveKeyboard(key), 520);
+    },
+    [scrollInputAboveKeyboard],
+  );
 
   const formatTime = (timeStr) => {
     if (!timeStr) return '시간 없음';
@@ -367,15 +430,18 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}
-    >
-      <View style={{flex: 1}}>
+    <View style={styles.container}>
         <Header title="예약" />
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollRef}
+          onScroll={e => {
+            scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+          }}
+          scrollEventThrottle={16}
+          contentContainerStyle={[
+            styles.scrollContent,
+            keyboardAwareContentStyle,
+          ]}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled"
         >
@@ -463,30 +529,36 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_regular, styles.actualGuestGuide]}>
                     실제 방문하실 분의 정보를 입력하세요.
                   </Text>
-                  <View style={styles.actualGuestInputRow}>
-                    <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
-                      이름
-                    </Text>
-                    <TextInput
-                      style={[FONTS.fs_14_regular, styles.actualGuestInput]}
-                      placeholder="이름을 입력해주세요."
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={actualGuestName}
-                      onChangeText={setActualGuestName}
-                    />
+                  <View ref={setInputRef('actualGuestName')}>
+                    <View style={styles.actualGuestInputRow}>
+                      <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                        이름
+                      </Text>
+                      <TextInput
+                        style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                        placeholder="이름을 입력해주세요."
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={actualGuestName}
+                        onChangeText={setActualGuestName}
+                        onFocus={() => focusInput('actualGuestName')}
+                      />
+                    </View>
                   </View>
-                  <View style={styles.actualGuestInputRow}>
-                    <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
-                      연락처
-                    </Text>
-                    <TextInput
-                      style={[FONTS.fs_14_regular, styles.actualGuestInput]}
-                      placeholder="연락처를 입력해주세요."
-                      placeholderTextColor={COLORS.grayscale_400}
-                      value={actualGuestPhone}
-                      onChangeText={setActualGuestPhone}
-                      keyboardType="phone-pad"
-                    />
+                  <View ref={setInputRef('actualGuestPhone')}>
+                    <View style={styles.actualGuestInputRow}>
+                      <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                        연락처
+                      </Text>
+                      <TextInput
+                        style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                        placeholder="연락처를 입력해주세요."
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={actualGuestPhone}
+                        onChangeText={setActualGuestPhone}
+                        keyboardType="phone-pad"
+                        onFocus={() => focusInput('actualGuestPhone')}
+                      />
+                    </View>
                   </View>
                 </View>
               ) : null}
@@ -575,25 +647,28 @@ const GuesthouseReservation = ({ route }) => {
                 </View>
               )}
               {/* 포인트 */}
-              <View style={[styles.userInfo, {marginTop: 4}]}>
-                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  포인트
-                </Text>
-                <View style={styles.pointSection}>
-                  <TextInput
-                    style={[FONTS.fs_14_medium, styles.pointInput]}
-                    value={pointValue}
-                    onChangeText={handleChangePointValue}
-                    keyboardType="number-pad"
-                    placeholder="0"
-                    placeholderTextColor={COLORS.grayscale_400}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    style={styles.pointBtn}
-                    onPress={() => setPointValue(String(pointBalance || 0))}>
-                    <Text style={FONTS.fs_14_regular}>전액사용</Text>
-                  </TouchableOpacity>
+              <View ref={setInputRef('point')}>
+                <View style={[styles.userInfo, {marginTop: 4}]}>
+                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                    포인트
+                  </Text>
+                  <View style={styles.pointSection}>
+                    <TextInput
+                      style={[FONTS.fs_14_medium, styles.pointInput]}
+                      value={pointValue}
+                      onChangeText={handleChangePointValue}
+                      keyboardType="number-pad"
+                      placeholder="0"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      onFocus={() => focusInput('point')}
+                    />
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      style={styles.pointBtn}
+                      onPress={() => setPointValue(String(pointBalance || 0))}>
+                      <Text style={FONTS.fs_14_regular}>전액사용</Text>
+                    </TouchableOpacity>
+                  </View>
                 </View>
               </View>
               <Text style={[FONTS.fs_12_medium, styles.pointText]}>
@@ -619,7 +694,7 @@ const GuesthouseReservation = ({ route }) => {
           <View style={styles.devide}/>
 
           {/* 요청사항 */}
-          <View style={styles.section}>
+          <View style={styles.section} ref={setInputRef('request')}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>요청 사항 (선택)</Text>
             <View style={styles.inputWrapper}>
               <TextInput
@@ -628,6 +703,7 @@ const GuesthouseReservation = ({ route }) => {
                 placeholderTextColor={COLORS.grayscale_400}
                 value={requestMessage}
                 onChangeText={setRequestMessage}
+                onFocus={() => focusInput('request')}
               />
             </View>
           </View>
@@ -697,21 +773,23 @@ const GuesthouseReservation = ({ route }) => {
 
         </ScrollView>
 
-        <View style={styles.button}>
-          {totalDiscountAmount > 0 ? (
-            <View style={styles.discountBanner}>
-              <DiscountArrow width={18} height={18} />
-              <Text style={[FONTS.fs_14_semibold]}>
-                <Text style={styles.discountBannerText}>총 {totalDiscountAmount.toLocaleString()}원</Text> 할인 받았어요
-              </Text>
-            </View>
-          ) : null}
-          <ButtonScarlet
-            title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
-            onPress={handlePressPayment}
-            disabled={!isAllRequiredAgreed || isPointOverBalance}
-          />
-        </View>
+        {!isKeyboardVisible ? (
+          <View style={styles.button}>
+            {totalDiscountAmount > 0 ? (
+              <View style={styles.discountBanner}>
+                <DiscountArrow width={18} height={18} />
+                <Text style={[FONTS.fs_14_semibold]}>
+                  <Text style={styles.discountBannerText}>총 {totalDiscountAmount.toLocaleString()}원</Text> 할인 받았어요
+                </Text>
+              </View>
+            ) : null}
+            <ButtonScarlet
+              title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
+              onPress={handlePressPayment}
+              disabled={!isAllRequiredAgreed || isPointOverBalance}
+            />
+          </View>
+        ) : null}
 
         <AlertModal
           visible={isSameDayNoticeVisible}
@@ -779,7 +857,6 @@ const GuesthouseReservation = ({ route }) => {
           checkOutLabel={formatDateTime(checkOut, checkOutTime)}
         />
     </View>
-    </KeyboardAvoidingView>
   );
 };
 

@@ -95,7 +95,7 @@ const UserMyPage = () => {
             ).length,
           );
 
-          const totalFavorites = 
+          const totalFavorites =
             (Array.isArray(favoritesRes.data) ? favoritesRes.data.length : 0) +
             (Array.isArray(favoritePartiesRes.data) ? favoritePartiesRes.data.length : 0) +
             (Array.isArray(favoriteRecruitsRes.data) ? favoriteRecruitsRes.data.length : 0);
@@ -231,13 +231,17 @@ const UserMyPage = () => {
                 {couponCount}
               </Text>
             </TouchableOpacity>
-            <View style={styles.promoSection}>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.promoSection}
+              onPress={() => navigation.navigate('MyPoint')}
+            >
               <PointIcon width={20} height={20}/>
               <Text style={[FONTS.fs_14_medium]}>포인트</Text>
               <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                 {formattedPointBalance}
               </Text>
-            </View>
+            </TouchableOpacity>
             <TouchableOpacity
               activeOpacity={1}
               style={styles.promoSection}

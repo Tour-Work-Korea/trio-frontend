@@ -125,7 +125,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     color: COLORS.grayscale_800,
   },
-
   // 방 이름, 가격
   roomNameText: {
 

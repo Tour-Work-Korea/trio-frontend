@@ -18,6 +18,10 @@ const normalizeType = data => {
     return 'notice';
   }
 
+  if (rawType.startsWith('COMMUNITY_')) {
+    return 'community';
+  }
+
   if (rawType.includes('PARTY') || rawType.includes('MEET')) {
     return 'partyReservation';
   }
@@ -65,13 +69,15 @@ const BannerBadge = ({type, status}) => {
 
   const label = isNotice
     ? '공지'
-    : type === 'partyReservation'
-      ? isCancelled
-        ? '취소'
-        : '동행'
-      : isCancelled
-        ? '취소'
-        : '예약';
+    : type === 'community'
+      ? '커뮤니티'
+      : type === 'partyReservation'
+        ? isCancelled
+          ? '취소'
+          : '동행'
+        : isCancelled
+          ? '취소'
+          : '예약';
 
   const badgeStyle = isNotice
     ? styles.noticeBadge

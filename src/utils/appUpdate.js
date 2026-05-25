@@ -58,6 +58,14 @@ export async function checkForceUpdate() {
       };
     }
 
+    if (__DEV__) {
+      return {
+        currentVersion,
+        minVersion,
+        shouldUpdate: false,
+      };
+    }
+
     return {
       currentVersion,
       minVersion,

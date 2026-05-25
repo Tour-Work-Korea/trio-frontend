@@ -1,13 +1,12 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Text,
   TextInput,
   TouchableOpacity,
   ScrollView,
-  KeyboardAvoidingView,
-  Platform,
   Image,
+  Dimensions,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -23,6 +22,7 @@ import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
+import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
@@ -75,7 +75,7 @@ const MeetReservation = () => {
 
   // 예약 정보
   useEffect(() => {
-    if (!partyId) return;
+    if (!partyId) {return;}
     const run = async () => {
       try {
         const { data } = await userMeetApi.joinParty(partyId);
@@ -122,16 +122,63 @@ const MeetReservation = () => {
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
   const [requestMessage, setRequestMessage] = useState('');
+  const {
+    scrollRef,
+    keyboardHeight,
+    contentContainerStyle: keyboardAwareContentStyle,
+  } = useKeyboardAwareScrollView({
+    basePaddingBottom: 120,
+    extraScrollOffset: 80,
+    scrollDelay: 160,
+    iosOnly: false,
+  });
+  const requestInputRef = useRef(null);
+  const keyboardHeightRef = useRef(0);
+  const scrollYRef = useRef(0);
+  const isKeyboardVisible = keyboardHeight > 0;
+
+  useEffect(() => {
+    keyboardHeightRef.current = keyboardHeight;
+  }, [keyboardHeight]);
+
+  const scrollRequestAboveKeyboard = useCallback(() => {
+    const keyboardOffset = keyboardHeightRef.current;
+
+    if (!requestInputRef.current || !keyboardOffset) {
+      return;
+    }
+
+    requestInputRef.current.measureInWindow((x, y, width, height) => {
+      const keyboardTop = Dimensions.get('window').height - keyboardOffset;
+      const fieldBottom = y + height;
+      const overlap = fieldBottom + 20 - keyboardTop;
+
+      if (overlap <= 0) {
+        return;
+      }
+
+      scrollRef.current?.scrollTo?.({
+        y: Math.max(0, scrollYRef.current + overlap),
+        animated: true,
+      });
+    });
+  }, [scrollRef]);
+
+  const handleFocusRequest = useCallback(() => {
+    requestAnimationFrame(scrollRequestAboveKeyboard);
+    setTimeout(scrollRequestAboveKeyboard, 320);
+    setTimeout(scrollRequestAboveKeyboard, 520);
+  }, [scrollRequestAboveKeyboard]);
 
   const formatTime = timeStr => {
-    if (!timeStr) return '시간 없음';
+    if (!timeStr) {return '시간 없음';}
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
   const formatDateWithDay = dateStr => {
-    if (!dateStr) return '-';
+    if (!dateStr) {return '-';}
     const date = dayjs(dateStr);
-    if (!date.isValid()) return '-';
+    if (!date.isValid()) {return '-';}
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
 
@@ -180,14 +227,15 @@ const MeetReservation = () => {
 
   // 예약 생성
   const handleCreateReservation = async () => {
-    if (!partyId || !reservationInfo) return;
+    if (!partyId || !reservationInfo) {return;}
 
     try {
       const requestText = requestMessage?.trim() || '';
+      const amount = Number(reservationInfo?.amount ?? 0);
       const { data } = await reservationPaymentApi.createPartyReservation(
         partyId,
         {
-          amount: Number(reservationInfo?.amount ?? 0),
+          amount,
           request: requestText,
         },
       );
@@ -201,17 +249,29 @@ const MeetReservation = () => {
         throw new Error('예약 ID가 없습니다.');
       }
 
-      // 결제로 이동 (amount는 joinParty 응답의 금액 사용)
-      navigation.navigate('MeetPayment', {
-        amount: 0,
-        reservationId,
-        partyTitle: title,
-        partyStartDateTime: checkInDate,
-        partyStartTime: checkInTime,
-        partyEndTime: checkOutTime,
-        thumbnailUrl: routeThumbnailUrl,
-        pointUsed: 0,
-      });
+      if (amount === 0) {
+        // 0원 결제인 경우 결제창(웹뷰) 및 requestPayment 호출을 거치지 않고 바로 성공 화면으로 이동
+        navigation.replace('MeetPaymentSuccess', {
+          reservationId,
+          partyTitle: title,
+          partyStartDateTime: checkInDate,
+          partyStartTime: checkInTime,
+          partyEndTime: checkOutTime,
+          thumbnailUrl: routeThumbnailUrl,
+        });
+      } else {
+        // 유료 결제인 경우 결제 웹뷰로 이동
+        navigation.navigate('MeetPayment', {
+          amount,
+          reservationId,
+          partyTitle: title,
+          partyStartDateTime: checkInDate,
+          partyStartTime: checkInTime,
+          partyEndTime: checkOutTime,
+          thumbnailUrl: routeThumbnailUrl,
+          pointUsed: 0,
+        });
+      }
     } catch (e) {
       console.log('createPartyReservation error', e);
       const msg =
@@ -323,14 +383,18 @@ const MeetReservation = () => {
   }
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-      keyboardVerticalOffset={Platform.OS === 'ios' ? 20 : 0}>
-      <View style={{ flex: 1 }}>
+    <View style={styles.container}>
         <Header title="예약" onPress={handleBackPress} />
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          ref={scrollRef}
+          onScroll={e => {
+            scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+          }}
+          scrollEventThrottle={16}
+          contentContainerStyle={[
+            styles.scrollContent,
+            keyboardAwareContentStyle,
+          ]}
           keyboardDismissMode="on-drag"
           keyboardShouldPersistTaps="handled">
 
@@ -373,7 +437,7 @@ const MeetReservation = () => {
           <View style={styles.devide} />
 
           {/* 요청사항 */}
-          <View style={styles.section}>
+          <View style={styles.section} ref={requestInputRef}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
               요청 사항 (선택)
             </Text>
@@ -384,6 +448,7 @@ const MeetReservation = () => {
                 placeholderTextColor={COLORS.grayscale_400}
                 value={requestMessage}
                 onChangeText={setRequestMessage}
+                onFocus={handleFocusRequest}
               />
             </View>
           </View>
@@ -430,13 +495,15 @@ const MeetReservation = () => {
 
         </ScrollView>
 
-        <View style={styles.fixedButton}>
-          <ButtonScarlet
-            title="신청하기"
-            disabled={!isAllRequiredAgreed}
-            onPress={handleCreateReservation}
-          />
-        </View>
+        {!isKeyboardVisible ? (
+          <View style={styles.fixedButton}>
+            <ButtonScarlet
+              title="신청하기"
+              disabled={!isAllRequiredAgreed}
+              onPress={handleCreateReservation}
+            />
+          </View>
+        ) : null}
 
         {/* 약관동의 모달 */}
         <TermsModal
@@ -447,8 +514,7 @@ const MeetReservation = () => {
           contentHtml={selectedAgreementDoc?.detailHtml || ''}
           onAgree={handleAgreeModal}
         />
-      </View>
-    </KeyboardAvoidingView>
+    </View>
   );
 };
 

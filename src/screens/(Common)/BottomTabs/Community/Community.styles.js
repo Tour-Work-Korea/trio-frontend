@@ -7,9 +7,25 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
   },
+  headerContainer: {
+    paddingTop: 24,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  pager: {
+    flex: 1,
+  },
+  pagerContent: {
+    flexGrow: 1,
+  },
+  page: {
+    flex: 1,
+  },
   listContent: {
     paddingTop: 24,
     paddingBottom: 96,
+  },
+  pageListContent: {
+    paddingTop: 0,
   },
   staffHeader: {
     paddingTop: 24,

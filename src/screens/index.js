@@ -97,6 +97,7 @@ export {default as UserReservationCheck} from './(User)/UserMyPage/UserReservati
 export {default as UserGuesthouseReview} from './(User)/UserMyPage/UserGuesthouseReview';
 export {default as MyCouponList} from './(User)/UserMyPage/MyCouponList';
 export {default as MyCouponRegister} from './(User)/UserMyPage/MyCouponList/MyCouponRegister';
+export {default as MyPoint} from './(User)/UserMyPage/MyPoint';
 export {default as MyCommunityPostList} from './(User)/UserMyPage/MyCommunityPostList';
 export {default as MyCommunityCommentList} from './(User)/UserMyPage/MyCommunityCommentList';
 export {default as UserGuesthouseReviewForm} from './(User)/Guesthouse/UserGuesthouseReviewForm';
