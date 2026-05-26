@@ -11,64 +11,77 @@ import StarIcon from '@assets/images/star_white.svg';
 export default function WorkAndStay({guesthouses}) {
   const navigation = useNavigation();
 
-  const renderGuesthouse = ({item}) => (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPress={() => {
-        navigation.navigate('GuesthouseDetail', {
-          id: item.id,
-        });
-      }}>
-      <View style={styles.guesthouseCard}>
-        <View>
-          {item.thumbnailImgUrl ? (
-            <Image
-              source={{uri: item.thumbnailImgUrl}}
-              style={styles.guesthouseImage}
-            />
-          ) : (
-            <View
-              style={[
-                styles.guesthouseImage,
-                {backgroundColor: COLORS.grayscale_200},
-              ]}
-            />
-          )}
-          <View style={styles.ratingBox}>
-            <StarIcon width={14} height={14} />
-            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
-              {item.averageRating}
-            </Text>
+  const getDisplayRating = rating => {
+    const ratingNumber = Number(rating);
+    return Number.isFinite(ratingNumber) && ratingNumber > 0
+      ? ratingNumber.toFixed(1)
+      : null;
+  };
+
+  const renderGuesthouse = ({item}) => {
+    const displayRating = getDisplayRating(item.averageRating);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {
+          navigation.navigate('GuesthouseDetail', {
+            id: item.id,
+          });
+        }}>
+        <View style={styles.guesthouseCard}>
+          <View>
+            {item.thumbnailImgUrl ? (
+              <Image
+                source={{uri: item.thumbnailImgUrl}}
+                style={styles.guesthouseImage}
+              />
+            ) : (
+              <View
+                style={[
+                  styles.guesthouseImage,
+                  {backgroundColor: COLORS.grayscale_200},
+                ]}
+              />
+            )}
+            {displayRating && (
+              <View style={styles.ratingBox}>
+                <StarIcon width={14} height={14} />
+                <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
+                  {displayRating}
+                </Text>
+              </View>
+            )}
           </View>
-        </View>
-        <View style={[styles.titleSection, {marginBottom: 10}]}>
-          <Text
-            style={styles.guesthouseTitle}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {item.name}
-          </Text>
-          <View style={styles.guesthousePrice}>
-            <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-              최저가
+          <View style={[styles.titleSection, {marginBottom: 10}]}>
+            <Text
+              style={styles.guesthouseTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {item.name}
             </Text>
-            <Text style={FONTS.fs_16_semibold}>
-              {item.minPrice.toLocaleString()}원 ~
-            </Text>
-          </View>
-        </View>
-        <View style={styles.hashTagContainer}>
-          {item.hashtags.map((hashtag, idx) => (
-            <View style={styles.hashtagButton} key={idx}>
-              <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-                {hashtag}
+            <View style={styles.guesthousePrice}>
+              <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+                최저가
+              </Text>
+              <Text style={FONTS.fs_16_semibold}>
+                {item.minPrice.toLocaleString()}원 ~
               </Text>
             </View>
-          ))}
+          </View>
+          <View style={styles.hashTagContainer}>
+            {item.hashtags.map((hashtag, idx) => (
+              <View style={styles.hashtagButton} key={idx}>
+                <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
+                  {hashtag}
+                </Text>
+              </View>
+            ))}
+          </View>
         </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.guesthouseContainer}>

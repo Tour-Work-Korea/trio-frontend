@@ -153,10 +153,6 @@ const CommunityWrite = ({route}) => {
       return;
     }
 
-    setSelectedCategory(
-      defaultCategories.find(category => category.code === editingPost.categoryCode) ??
-        null,
-    );
     setTitle(editingPost.title ?? '');
     setBody(editingPost.content ?? '');
     setImages(normalizeExistingImages(editingPost));
@@ -229,7 +225,9 @@ const CommunityWrite = ({route}) => {
     const remainingCount = COMMUNITY_IMAGE_LIMITS.maxCount - images.length;
 
     if (remainingCount <= 0) {
-      Alert.alert(`이미지는 최대 ${COMMUNITY_IMAGE_LIMITS.maxCount}장까지 추가할 수 있습니다.`);
+      Alert.alert(
+        `이미지는 최대 ${COMMUNITY_IMAGE_LIMITS.maxCount}장까지 추가할 수 있습니다.`,
+      );
       return;
     }
 
@@ -516,8 +514,8 @@ const CommunityWrite = ({route}) => {
                   ? '수정중'
                   : '등록중'
                 : isEditMode
-                  ? '수정'
-                  : '등록'}
+                ? '수정'
+                : '등록'}
             </Text>
           </TouchableOpacity>
         }

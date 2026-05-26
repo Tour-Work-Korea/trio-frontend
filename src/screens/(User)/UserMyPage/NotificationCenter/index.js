@@ -188,9 +188,12 @@ const NotificationCenter = () => {
   };
 
   const handlePressItem = async item => {
+    let notificationDetail = null;
+
     if (item.notificationId) {
       try {
-        await notificationApi.getDetail(item.notificationId);
+        const {data} = await notificationApi.getDetail(item.notificationId);
+        notificationDetail = data;
       } catch (error) {
         console.warn(
           '[NotificationCenter] failed to fetch notification detail:',
@@ -207,7 +210,10 @@ const NotificationCenter = () => {
       ),
     );
 
-    await openNotificationTarget(item.rawItem);
+    await openNotificationTarget({
+      ...(item.rawItem ?? {}),
+      ...(notificationDetail ?? {}),
+    });
   };
 
   return (

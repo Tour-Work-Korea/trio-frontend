@@ -11,7 +11,7 @@ import {useNavigation} from '@react-navigation/native';
 import styles from './Home.styles';
 
 const {width} = Dimensions.get('window');
-const BANNER_WIDTH = width * 0.9;
+const BANNER_WIDTH = width - 32;
 const BANNER_HEIGHT = 120;
 
 export default function Banner({banners = []}) {

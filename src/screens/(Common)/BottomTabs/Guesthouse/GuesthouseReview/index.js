@@ -15,6 +15,11 @@ import Avatar from '@components/Avatar';
 const PAGE_SIZE = 10;
 const SORT = 'id';
 
+const getDisplayRating = rating => {
+  const ratingNumber = Number(rating);
+  return Number.isFinite(ratingNumber) ? ratingNumber.toFixed(1) : '0.0';
+};
+
 const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) => {
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(0);
@@ -98,6 +103,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const renderItem = useCallback(
     ({ item, index }) => {
       const hasImages = item.imgUrls && item.imgUrls.length > 0;
+      const displayRating = getDisplayRating(item.reviewRating);
 
       return (
         <View style={styles.reviewContainer}>
@@ -108,7 +114,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
             </View>
             <View style={styles.userRatingContainer}>
               <Star width={14} height={14} />
-              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{item.reviewRating}</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{displayRating}</Text>
             </View>
           </View>
 

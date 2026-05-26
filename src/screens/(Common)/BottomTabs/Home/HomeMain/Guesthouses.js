@@ -15,6 +15,13 @@ export default function Guesthouses({guesthouses}) {
   const listRef = useRef(null);
   const scrollOffsetRef = useRef(0);
 
+  const getDisplayRating = rating => {
+    const ratingNumber = Number(rating);
+    return Number.isFinite(ratingNumber) && ratingNumber > 0
+      ? ratingNumber.toFixed(1)
+      : null;
+  };
+
   const getTagLabels = item =>
     (Array.isArray(item.hashtags) ? item.hashtags : [])
       .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
@@ -24,72 +31,78 @@ export default function Guesthouses({guesthouses}) {
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
 
-  const renderGuesthouse = ({item}) => (
-    <TouchableOpacity
-      activeOpacity={1}
-      onPress={() => {
-        navigation.navigate('GuesthouseDetail', {
-          id: item.guesthouseId,
-          checkIn: today.format('YYYY-MM-DD'),
-          checkOut: tomorrow.format('YYYY-MM-DD'),
-          guestCount: 1,
-        });
-      }}
-    >
-      <View style={styles.guesthouseCard}>
-        <View>
-          {item.thumbnailUrl ? (
-            <Image
-              source={{ uri: item.thumbnailUrl }}
-              style={styles.guesthouseImage}
-            />
-          ) : (
-            <View style={[styles.guesthouseImage, { backgroundColor: COLORS.grayscale_200 }]} />
-          )}
-          <View style={styles.ratingBox}>
-            <Star width={14} height={14}/>
-            <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{item.avgRating}</Text>
+  const renderGuesthouse = ({item}) => {
+    const displayRating = getDisplayRating(item.avgRating);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => {
+          navigation.navigate('GuesthouseDetail', {
+            id: item.guesthouseId,
+            checkIn: today.format('YYYY-MM-DD'),
+            checkOut: tomorrow.format('YYYY-MM-DD'),
+            guestCount: 1,
+          });
+        }}
+      >
+        <View style={styles.guesthouseCard}>
+          <View>
+            {item.thumbnailUrl ? (
+              <Image
+                source={{ uri: item.thumbnailUrl }}
+                style={styles.guesthouseImage}
+              />
+            ) : (
+              <View style={[styles.guesthouseImage, { backgroundColor: COLORS.grayscale_200 }]} />
+            )}
+            {displayRating && (
+              <View style={styles.ratingBox}>
+                <Star width={14} height={14}/>
+                <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{displayRating}</Text>
+              </View>
+            )}
+          </View>
+          <View style={[styles.titleSection, {marginBottom: 10}]}>
+            <Text
+              style={styles.guesthouseTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail"
+            >
+              {item.guesthouseName}
+            </Text>
+            {Number(item.minAmount) > 0 ? (
+              // 정상 가격 노출
+              <View style={styles.guesthousePrice}>
+                <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+                  최저가
+                </Text>
+                <Text style={FONTS.fs_16_semibold}>
+                  {Number(item.minAmount).toLocaleString()}원 ~
+                </Text>
+              </View>
+            ) : (
+              // 예약 마감 노출
+              <View style={styles.guesthousePrice}>
+                <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
+                  다른 날짜 확인
+                </Text>
+              </View>
+            )}
+          </View>
+          <View style={styles.hashTagContainer}>
+            {getTagLabels(item).map((tag, index) => (
+              <View style={styles.hashtagButton} key={`${tag}-${index}`}>
+                <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
+                  {tag}
+                </Text>
+              </View>
+            ))}
           </View>
         </View>
-        <View style={[styles.titleSection, {marginBottom: 10}]}>
-          <Text
-            style={styles.guesthouseTitle}
-            numberOfLines={1}
-            ellipsizeMode="tail"
-          >
-            {item.guesthouseName}
-          </Text>
-          {Number(item.minAmount) > 0 ? (
-            // 정상 가격 노출
-            <View style={styles.guesthousePrice}>
-              <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-                최저가
-              </Text>
-              <Text style={FONTS.fs_16_semibold}>
-                {Number(item.minAmount).toLocaleString()}원 ~
-              </Text>
-            </View>
-          ) : (
-            // 예약 마감 노출
-            <View style={styles.guesthousePrice}>
-              <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
-                다른 날짜 확인
-              </Text>
-            </View>
-          )}
-        </View>
-        <View style={styles.hashTagContainer}>
-          {getTagLabels(item).map((tag, index) => (
-            <View style={styles.hashtagButton} key={`${tag}-${index}`}>
-              <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-                {tag}
-              </Text>
-            </View>
-          ))}
-        </View>
-      </View>
-    </TouchableOpacity>
-  );
+      </TouchableOpacity>
+    );
+  };
 
   const handleHorizontalScroll = useCallback(event => {
     scrollOffsetRef.current = event.nativeEvent.contentOffset.x;

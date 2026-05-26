@@ -78,6 +78,7 @@ export {default as GuesthousePaymentReceipt} from './(User)/Guesthouse/Guesthous
 export {default as GuesthouseCancelledReceipt} from './(User)/Guesthouse/GuesthouseCancelledReceipt';
 export {default as GuesthouseCancelConfirm} from './(User)/Guesthouse/GuesthouseCancelConfirm';
 export {default as GuesthouseCancelSuccess} from './(User)/Guesthouse/GuesthouseCancelConfirm/GuesthouseCancelSuccess';
+export {default as GuesthouseCheckInGuide} from './(User)/Guesthouse/GuesthouseCheckInGuide';
 export {default as MeetPaymentReceipt} from './(User)/Meet/MeetPaymentReceipt';
 export {default as MeetCancelledReceipt} from './(User)/Meet/MeetCancelledReceipt';
 export {default as MeetCancelConfirm} from './(User)/Meet/MeetCancelConfirm';

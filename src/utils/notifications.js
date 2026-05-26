@@ -2,6 +2,8 @@ import {navigate} from '@utils/navigationService';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import communityApi from '@utils/api/communityApi';
+import notificationApi from '@utils/api/notificationApi';
 import Toast from 'react-native-toast-message';
 
 const foregroundListeners = new Set();
@@ -25,7 +27,6 @@ const USER_NOTIFICATION_TYPES = new Set([
   'COMMUNITY_COMMENT_NEW',
   'COMMUNITY_REPLY_NEW',
 ]);
-
 
 export const subscribeForegroundNotification = listener => {
   foregroundListeners.add(listener);
@@ -61,12 +62,40 @@ const getQueryParam = (searchParams, keys) => {
   return null;
 };
 
+const getFirstValue = (source, keys) => {
+  for (const key of keys) {
+    const value = source?.[key];
+    if (value !== undefined && value !== null && value !== '') {
+      return value;
+    }
+  }
+
+  return null;
+};
+
+const getNestedFirstValue = (source, keys) => {
+  const candidates = [
+    source,
+    source?.data,
+    source?.payload,
+    source?.target,
+    source?.metadata,
+    source?.meta,
+  ];
+
+  for (const candidate of candidates) {
+    const value = getFirstValue(candidate, keys);
+    if (value !== null) {
+      return value;
+    }
+  }
+
+  return null;
+};
+
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
-  const withoutScheme = normalized.replace(
-    /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//,
-    '',
-  );
+  const withoutScheme = normalized.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
   const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
   const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
   const parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
@@ -100,7 +129,8 @@ const openDeeplinkTarget = url => {
     parts[1] === 'guesthouse' &&
     parts[2] === 'detail'
   ) {
-    const reservationId = parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
+    const reservationId =
+      parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
         showLoginRequiredModal();
@@ -120,7 +150,8 @@ const openDeeplinkTarget = url => {
     parts[1] === 'party' &&
     parts[2] === 'detail'
   ) {
-    const reservationId = parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
+    const reservationId =
+      parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
         showLoginRequiredModal();
@@ -147,6 +178,33 @@ const openDeeplinkTarget = url => {
     }
   }
 
+  if (
+    (parts[0] === 'community' || parts[0] === 'post') &&
+    (parts[1] ||
+      getQueryParam(searchParams, ['postId', 'communityPostId', 'id']))
+  ) {
+    const postId =
+      parts[0] === 'community' && parts[1] === 'posts'
+        ? parts[2] ||
+          getQueryParam(searchParams, ['postId', 'communityPostId', 'id'])
+        : parts[1] ||
+          getQueryParam(searchParams, ['postId', 'communityPostId', 'id']);
+    const targetCommentId = getQueryParam(searchParams, [
+      'targetCommentId',
+      'commentId',
+      'replyId',
+      'communityCommentId',
+    ]);
+
+    if (postId) {
+      navigate('CommunityDetail', {
+        postId,
+        ...(targetCommentId ? {targetCommentId} : {}),
+      });
+      return true;
+    }
+  }
+
   return false;
 };
 
@@ -165,6 +223,19 @@ export const openNotificationTarget = async notification => {
   const reservationId = notification?.reservationId;
   const guesthouseId = notification?.guesthouseId;
   const partyId = notification?.partyId;
+  let communityPostId = getNestedFirstValue(notification, [
+    'postId',
+    'communityPostId',
+    'targetPostId',
+    'articleId',
+  ]);
+  let communityCommentId = getNestedFirstValue(notification, [
+    'targetCommentId',
+    'commentId',
+    'communityCommentId',
+    'replyId',
+    'parentCommentId',
+  ]);
   const isGuesthouseCancellation =
     type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
     type === 'GUESTHOUSE_RESERVATION_USER_REFUND';
@@ -243,6 +314,82 @@ export const openNotificationTarget = async notification => {
 
   if (type === 'REVIEW_COMMENT_NEW' || type === 'REVIEW_SUB_COMMENT_NEW') {
     navigate('UserGuesthouseReview');
+    return;
+  }
+
+  if (type === 'COMMUNITY_COMMENT_NEW' || type === 'COMMUNITY_REPLY_NEW') {
+    if (!communityPostId && !communityCommentId) {
+      const notificationId = getFirstValue(notification, [
+        'notificationId',
+        'id',
+      ]);
+
+      if (notificationId) {
+        try {
+          const {data: notificationDetail} = await notificationApi.getDetail(
+            notificationId,
+          );
+          const mergedNotification = {
+            ...notification,
+            ...(notificationDetail ?? {}),
+          };
+          communityPostId = getNestedFirstValue(mergedNotification, [
+            'postId',
+            'communityPostId',
+            'targetPostId',
+            'articleId',
+          ]);
+          communityCommentId = getNestedFirstValue(mergedNotification, [
+            'targetCommentId',
+            'commentId',
+            'communityCommentId',
+            'replyId',
+            'parentCommentId',
+          ]);
+        } catch (error) {
+          console.warn('fetchCommunityNotificationDetail 실패:', error);
+        }
+      }
+    }
+
+    if (communityPostId) {
+      navigate('CommunityDetail', {
+        postId: communityPostId,
+        ...(communityCommentId ? {targetCommentId: communityCommentId} : {}),
+      });
+      return;
+    }
+
+    if (communityCommentId) {
+      try {
+        const {data: commentAnchor} = await communityApi.getCommentAnchor(
+          communityCommentId,
+        );
+        const anchorPostId = getFirstValue(commentAnchor, [
+          'postId',
+          'communityPostId',
+          'targetPostId',
+          'articleId',
+        ]);
+
+        if (anchorPostId) {
+          navigate('CommunityDetail', {
+            postId: anchorPostId,
+            targetCommentId: communityCommentId,
+            commentAnchor,
+          });
+          return;
+        }
+      } catch (error) {
+        console.warn('fetchCommunityNotificationAnchor 실패:', error);
+      }
+    }
+
+    navigate(
+      type === 'COMMUNITY_REPLY_NEW'
+        ? 'MyCommunityCommentList'
+        : 'MyCommunityPostList',
+    );
     return;
   }
 

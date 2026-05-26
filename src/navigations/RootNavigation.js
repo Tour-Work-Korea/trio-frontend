@@ -59,6 +59,7 @@ import {
   GuesthouseCancelledReceipt,
   GuesthouseCancelConfirm,
   GuesthouseCancelSuccess,
+  GuesthouseCheckInGuide,
   UserMeetReservationCancelled,
   MeetPaymentReceipt,
   MeetCancelledReceipt,
@@ -121,6 +122,10 @@ const RootNavigation = () => {
         <Stack.Screen
           name="GuesthouseCancelSuccess"
           component={GuesthouseCancelSuccess}
+        />
+        <Stack.Screen
+          name="GuesthouseCheckInGuide"
+          component={GuesthouseCheckInGuide}
         />
 
         <Stack.Screen name="EmployDetail" component={EmployDetail} />

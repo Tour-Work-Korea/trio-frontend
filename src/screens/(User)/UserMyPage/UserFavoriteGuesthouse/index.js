@@ -27,6 +27,13 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
     fetchFavoriteList();
   }, []);
 
+  const getDisplayRating = rating => {
+    const ratingNumber = Number(rating);
+    return Number.isFinite(ratingNumber) && ratingNumber > 0
+      ? ratingNumber.toFixed(1)
+      : null;
+  };
+
   const fetchFavoriteList = async () => {
     try {
       setLoading(true);
@@ -48,54 +55,60 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
     }
   };
 
-  const renderItem = ({ item }) => (
-    <TouchableOpacity
-      activeOpacity={1}
-      style={styles.card}
-      onPress={() => {
-        navigation.navigate('GuesthouseDetail', {
-          id: item.id,
-          isFromDeeplink: true,
-          checkIn: today.format('YYYY-MM-DD'),
-          checkOut: tomorrow.format('YYYY-MM-DD'),
-          guestCount: 1,
-        });
-      }}
-    >
-      <View>
-        <Image
-          source={{ uri: item.thumbnailImgUrl }}
-          style={styles.image}
-          resizeMode="cover"
-        />
-        <View style={styles.ratingBox}>
-          <Star width={14} height={14} />
-          <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
-            {item.averageRating}
-          </Text>
-        </View>
-      </View>
-      <View style={styles.content}>
-        <View style={styles.topContent}>
-          <View style={styles.hashtagContainer}>
-            {item.hashtags.map((tag, idx) => (
-              <View key={`${tag}-${idx}`} style={styles.hashtagBox}>
-                <Text style={[FONTS.fs_12_medium, styles.hashtag]}>#{tag}</Text>
-              </View>
-            ))}
-          </View>
-          <TouchableOpacity
-            activeOpacity={1} style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
-            <FillHeart width={18} height={18} />
-          </TouchableOpacity>
-        </View>
-        <Text style={[FONTS.fs_16_medium, styles.name]}>{item.name}</Text>
-        <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
-        <Text style={[FONTS.fs_18_semibold, styles.price]}>{item.minPrice.toLocaleString()}원 ~</Text>
-      </View>
+  const renderItem = ({ item }) => {
+    const displayRating = getDisplayRating(item.averageRating);
 
-    </TouchableOpacity>
-  );
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        style={styles.card}
+        onPress={() => {
+          navigation.navigate('GuesthouseDetail', {
+            id: item.id,
+            isFromDeeplink: true,
+            checkIn: today.format('YYYY-MM-DD'),
+            checkOut: tomorrow.format('YYYY-MM-DD'),
+            guestCount: 1,
+          });
+        }}
+      >
+        <View>
+          <Image
+            source={{ uri: item.thumbnailImgUrl }}
+            style={styles.image}
+            resizeMode="cover"
+          />
+          {displayRating && (
+            <View style={styles.ratingBox}>
+              <Star width={14} height={14} />
+              <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
+                {displayRating}
+              </Text>
+            </View>
+          )}
+        </View>
+        <View style={styles.content}>
+          <View style={styles.topContent}>
+            <View style={styles.hashtagContainer}>
+              {item.hashtags.map((tag, idx) => (
+                <View key={`${tag}-${idx}`} style={styles.hashtagBox}>
+                  <Text style={[FONTS.fs_12_medium, styles.hashtag]}>#{tag}</Text>
+                </View>
+              ))}
+            </View>
+            <TouchableOpacity
+              activeOpacity={1} style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
+              <FillHeart width={18} height={18} />
+            </TouchableOpacity>
+          </View>
+          <Text style={[FONTS.fs_16_medium, styles.name]}>{item.name}</Text>
+          <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.price]}>{item.minPrice.toLocaleString()}원 ~</Text>
+        </View>
+
+      </TouchableOpacity>
+    );
+  };
 
   return (
     <View style={styles.container}>

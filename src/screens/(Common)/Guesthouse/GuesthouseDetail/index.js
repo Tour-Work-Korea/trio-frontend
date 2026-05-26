@@ -100,6 +100,13 @@ const is050Number = phone => {
   return digits.startsWith('050');
 };
 
+const getDisplayRating = rating => {
+  const ratingNumber = Number(rating);
+  return Number.isFinite(ratingNumber) && ratingNumber > 0
+    ? ratingNumber.toFixed(1)
+    : null;
+};
+
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
@@ -275,6 +282,7 @@ const GuesthouseDetail = ({route}) => {
   const refundPolicies = [...(detail?.refundPolicies ?? [])].sort(
     (a, b) => a.daysBeforeCheckin - b.daysBeforeCheckin,
   );
+  const displayRating = getDisplayRating(detail.averageRating);
 
   const renderTabContent = tabKey => {
     if (tabKey === 'room') {
@@ -319,6 +327,18 @@ const GuesthouseDetail = ({route}) => {
     if (tabKey === 'refund') {
       return (
         <View style={styles.introductionContainer}>
+          {!!detail.refundPolicyAdditionalNotice && (
+            <>
+              <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+                추가 안내사항
+              </Text>
+              <View style={styles.longTextContainer}>
+                <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
+                  {detail.refundPolicyAdditionalNotice}
+                </Text>
+              </View>
+            </>
+          )}
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>취소 수수료</Text>
           {refundPolicies.length > 0 ? (
             <View style={styles.refundPolicyContainer}>
@@ -357,18 +377,20 @@ const GuesthouseDetail = ({route}) => {
       <View style={styles.introductionContainer}>
         <View style={styles.reviewRowContainer}>
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>리뷰</Text>
-          <View style={styles.reviewRow}>
-            <View style={styles.reviewBoxBlue}>
-              <Star width={14} height={14} />
-              <Text style={[FONTS.fs_12_medium, styles.rating]}>
-                {detail.averageRating?.toFixed(1) ?? '0.0'}
-              </Text>
-              <Text style={styles.ratingDevide}>·</Text>
-              <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                {detail.reviewCount} 리뷰
-              </Text>
+          {displayRating && (
+            <View style={styles.reviewRow}>
+              <View style={styles.reviewBoxBlue}>
+                <Star width={14} height={14} />
+                <Text style={[FONTS.fs_12_medium, styles.rating]}>
+                  {displayRating}
+                </Text>
+                <Text style={styles.ratingDevide}>·</Text>
+                <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+                  {detail.reviewCount} 리뷰
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
         </View>
         <GuesthouseReview
           guesthouseId={id}
@@ -535,18 +557,20 @@ const GuesthouseDetail = ({route}) => {
             </TouchableOpacity>
           )}
 
-          <View style={[styles.reviewRow, {marginTop: 20}]}>
-            <View style={styles.reviewBox}>
-              <Star width={14} height={14} />
-              <Text style={[FONTS.fs_12_medium, styles.rating]}>
-                {detail.averageRating?.toFixed(1) ?? '0.0'}
-              </Text>
-              <Text style={styles.ratingDevide}>·</Text>
-              <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                {detail.reviewCount} 리뷰
-              </Text>
+          {displayRating && (
+            <View style={[styles.reviewRow, {marginTop: 20}]}>
+              <View style={styles.reviewBox}>
+                <Star width={14} height={14} />
+                <Text style={[FONTS.fs_12_medium, styles.rating]}>
+                  {displayRating}
+                </Text>
+                <Text style={styles.ratingDevide}>·</Text>
+                <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+                  {detail.reviewCount} 리뷰
+                </Text>
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.shortIntroContainer}>
             <Text style={[FONTS.fs_14_regular, styles.shortIntroText]}>
