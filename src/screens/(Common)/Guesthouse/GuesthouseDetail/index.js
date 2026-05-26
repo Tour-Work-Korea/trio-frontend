@@ -30,6 +30,7 @@ import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
+import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 
 import RoomList from './RoomList';
 
@@ -171,6 +172,9 @@ const GuesthouseDetail = ({route}) => {
           ...data,
           isLiked: typeof data.isLiked === 'boolean' ? data.isLiked : !!data.isFavorite,
         });
+        addRecentGuesthouse({...data, guesthouseId: id}).catch(error => {
+          console.warn('최근 본 게하 저장 실패', error);
+        });
       } catch (e) {
         console.warn('게스트하우스 상세 조회 실패', e);
       }
@@ -203,11 +207,21 @@ const GuesthouseDetail = ({route}) => {
     const current = !!detail?.isLiked;
     const next = !current;
     try {
-      await toggleFavorite({
+      const success = await toggleFavorite({
         type: 'guesthouse',
         id,
         isLiked: current,
         setItem: setDetail,
+      });
+      if (success === false) {
+        return;
+      }
+      addRecentGuesthouse({
+        ...detail,
+        guesthouseId: id,
+        isLiked: next,
+      }).catch(error => {
+        console.warn('최근 본 게하 좋아요 저장 실패', error);
       });
       onLikeChange?.(id, next);
     } catch (e) {
