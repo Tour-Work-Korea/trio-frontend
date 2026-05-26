@@ -21,6 +21,7 @@ export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
 export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
 export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
 export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
+export {default as RecentGuesthouseList} from './(Common)/Guesthouse/RecentGuesthouseList';
 export {default as CouponSelectScreen} from './(Common)/Coupon/CouponSelectScreen';
 // 홈
 export {default as Home} from './(Common)/BottomTabs/Home';
@@ -77,6 +78,7 @@ export {default as GuesthousePaymentReceipt} from './(User)/Guesthouse/Guesthous
 export {default as GuesthouseCancelledReceipt} from './(User)/Guesthouse/GuesthouseCancelledReceipt';
 export {default as GuesthouseCancelConfirm} from './(User)/Guesthouse/GuesthouseCancelConfirm';
 export {default as GuesthouseCancelSuccess} from './(User)/Guesthouse/GuesthouseCancelConfirm/GuesthouseCancelSuccess';
+export {default as GuesthouseCheckInGuide} from './(User)/Guesthouse/GuesthouseCheckInGuide';
 export {default as MeetPaymentReceipt} from './(User)/Meet/MeetPaymentReceipt';
 export {default as MeetCancelledReceipt} from './(User)/Meet/MeetCancelledReceipt';
 export {default as MeetCancelConfirm} from './(User)/Meet/MeetCancelConfirm';
