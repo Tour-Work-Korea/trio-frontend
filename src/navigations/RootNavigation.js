@@ -23,6 +23,7 @@ import {
   CouponSelectScreen,
   GuesthousePayment,
   GuesthousePaymentSuccess,
+  RecentGuesthouseList,
   Login,
   RegisterIntro,
   RegisterAgree,
@@ -58,6 +59,7 @@ import {
   GuesthouseCancelledReceipt,
   GuesthouseCancelConfirm,
   GuesthouseCancelSuccess,
+  GuesthouseCheckInGuide,
   UserMeetReservationCancelled,
   MeetPaymentReceipt,
   MeetCancelledReceipt,
@@ -95,6 +97,10 @@ const RootNavigation = () => {
           name="GuesthouseReservation"
           component={GuesthouseReservation}
         />
+        <Stack.Screen
+          name="RecentGuesthouseList"
+          component={RecentGuesthouseList}
+        />
         <Stack.Screen name="CouponSelect" component={CouponSelectScreen} />
         <Stack.Screen name="GuesthousePayment" component={GuesthousePayment} />
         <Stack.Screen
@@ -116,6 +122,10 @@ const RootNavigation = () => {
         <Stack.Screen
           name="GuesthouseCancelSuccess"
           component={GuesthouseCancelSuccess}
+        />
+        <Stack.Screen
+          name="GuesthouseCheckInGuide"
+          component={GuesthouseCheckInGuide}
         />
 
         <Stack.Screen name="EmployDetail" component={EmployDetail} />

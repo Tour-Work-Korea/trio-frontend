@@ -32,6 +32,8 @@ const extractNotificationItems = data =>
 const UserMyPage = () => {
   const navigation = useNavigation();
   const [reviewCount, setReviewCount] = useState(0);
+  const [reviewableCount, setReviewableCount] = useState(0);
+  const [showReviewBubble, setShowReviewBubble] = useState(true);
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -55,6 +57,7 @@ const UserMyPage = () => {
       ? user.instagramId
       : `@${user.instagramId}`;
   const formattedPointBalance = Number(pointBalance || 0).toLocaleString('ko-KR');
+  const reviewRewardPoint = (reviewableCount * 1000).toLocaleString('ko-KR');
 
   const goToEditProfile = () => {
     navigation.navigate('UserEditProfile', {
@@ -82,8 +85,24 @@ const UserMyPage = () => {
             return;
           }
 
+          const reviewsData = reviewsRes.data;
+          const reviewedCount = Number(reviewsData?.reviewedCount);
+          const nextReviewableCount = Number(reviewsData?.reviewableCount);
+          const reviewItems = Array.isArray(reviewsData?.reviews)
+            ? reviewsData.reviews
+            : Array.isArray(reviewsData)
+              ? reviewsData
+              : [];
+
           setReviewCount(
-            Array.isArray(reviewsRes.data) ? reviewsRes.data.length : 0,
+            Number.isFinite(reviewedCount)
+              ? reviewedCount
+              : reviewItems.filter(item => item.isReviewed).length,
+          );
+          setReviewableCount(
+            Number.isFinite(nextReviewableCount)
+              ? nextReviewableCount
+              : reviewItems.filter(item => !item.isReviewed).length,
           );
           setCouponCount(
             Array.isArray(couponsRes.data) ? couponsRes.data.length : 0,
@@ -107,6 +126,7 @@ const UserMyPage = () => {
           }
           console.warn('마이페이지 데이터 조회 실패:', error);
           setReviewCount(0);
+          setReviewableCount(0);
           setCouponCount(0);
           setPointBalance(0);
           setUnreadCount(0);
@@ -209,17 +229,46 @@ const UserMyPage = () => {
 
           {/* 유저 프로모션 섹션 */}
           <View style={styles.promoContainer}>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.promoSection}
-              onPress={() => navigation.navigate('UserGuesthouseReview')}
-            >
-              <CommentIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium]}>내 리뷰</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
-                {reviewCount}
-              </Text>
-            </TouchableOpacity>
+            <View style={styles.reviewPromoWrapper}>
+              {reviewableCount > 0 && showReviewBubble ? (
+                <View style={styles.reviewBubble}>
+                  <View style={styles.reviewBubbleContent}>
+                    <Text
+                      style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
+                      numberOfLines={1}
+                    >
+                      리뷰 쓰면
+                    </Text>
+                    <Text
+                      style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
+                      numberOfLines={1}
+                    >
+                      {reviewRewardPoint}P 적립 가능!
+                    </Text>
+                  </View>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.reviewBubbleClose}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
+                    onPress={() => setShowReviewBubble(false)}
+                  >
+                    <Text style={styles.reviewBubbleCloseText}>X</Text>
+                  </TouchableOpacity>
+                  <View style={styles.reviewBubbleTail} />
+                </View>
+              ) : null}
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.promoSection}
+                onPress={() => navigation.navigate('UserGuesthouseReview')}
+              >
+                <CommentIcon width={20} height={20}/>
+                <Text style={[FONTS.fs_14_medium]}>내 리뷰</Text>
+                <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
+                  {reviewCount}
+                </Text>
+              </TouchableOpacity>
+            </View>
             <TouchableOpacity
               activeOpacity={1}
               style={styles.promoSection}

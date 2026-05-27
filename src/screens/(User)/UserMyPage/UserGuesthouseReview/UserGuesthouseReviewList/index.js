@@ -9,12 +9,17 @@ import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 import {
   formatLocalDateTimeToDotAndTimeWithDay,
-  formatLocalTimeToKorean12Hour,
+  formatLocalDateToDotWithDay,
 } from '@utils/formatDate';
 
 import StarIcon from '@assets/images/star_white.svg';
 import TrashIcon from '@assets/images/delete_gray.svg';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
+
+const getDisplayRating = rating => {
+  const ratingNumber = Number(rating);
+  return Number.isFinite(ratingNumber) ? ratingNumber.toFixed(1) : '0.0';
+};
 
 const UserGuesthouseReviewList = () => {
   const [reviews, setReviews] = useState([]);
@@ -24,7 +29,13 @@ const UserGuesthouseReviewList = () => {
     try {
       setLoading(true);
       const res = await userMyApi.getMyReviews();
-      setReviews(res.data);
+      const reviewItems = Array.isArray(res.data?.reviews)
+        ? res.data.reviews
+        : Array.isArray(res.data)
+          ? res.data
+          : [];
+
+      setReviews(reviewItems.filter(item => item.isReviewed));
     } catch (error) {
       console.log('리뷰 목록 불러오기 실패:', error);
     } finally {
@@ -70,8 +81,9 @@ const UserGuesthouseReviewList = () => {
   const renderReviewItem = ({ item, index }) => {
     const isLastItem = index === reviews.length - 1;
     const createdAtFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.createdAt);
-    const checkInFormatted = formatLocalTimeToKorean12Hour(item.checkIn);
-    const checkOutFormatted = formatLocalTimeToKorean12Hour(item.checkOut);
+    const checkInFormatted = formatLocalDateToDotWithDay(item.reservationCheckIn);
+    const checkOutFormatted = formatLocalDateToDotWithDay(item.reservationCheckOut);
+    const displayRating = getDisplayRating(item.reviewRating);
 
     return (
       <View style={styles.card}>
@@ -84,7 +96,7 @@ const UserGuesthouseReviewList = () => {
               작성일 {createdAtFormatted.date}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.metaText]}>
-              체크인 {checkInFormatted} · 체크아웃 {checkOutFormatted}
+              숙박 {checkInFormatted} - {checkOutFormatted}
             </Text>
           </View>
 
@@ -92,7 +104,7 @@ const UserGuesthouseReviewList = () => {
             <View style={styles.ratingBox}>
               <StarIcon width={14} height={14} />
               <Text style={[FONTS.fs_14_semibold, styles.ratingText]}>
-                {item.reviewRating}
+                {displayRating}
               </Text>
             </View>
             <TouchableOpacity
@@ -149,7 +161,7 @@ const UserGuesthouseReviewList = () => {
     <View style={styles.container}>
       <FlatList
         data={reviews}
-        keyExtractor={(item) => item.reviewId.toString()}
+        keyExtractor={(item) => String(item.reviewId ?? item.reservationId)}
         renderItem={renderReviewItem}
         contentContainerStyle={{}}
       />

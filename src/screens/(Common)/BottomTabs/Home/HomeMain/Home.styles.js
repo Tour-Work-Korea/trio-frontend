@@ -107,10 +107,6 @@ export default StyleSheet.create({
     borderBottomWidth: 0,
   },
   searchResultLeftIcon: {
-    // padding: 8,
-    // borderRadius: 100,
-    // borderColor: COLORS.grayscale_200,
-    // borderWidth: 1,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -206,6 +202,29 @@ export default StyleSheet.create({
   sectionTitle: {
     color: COLORS.grayscale_800,
     ...FONTS.fs_16_semibold,
+  },
+  recentGuesthouseContainer: {
+    flexDirection: 'column',
+    paddingVertical: 16,
+    paddingHorizontal: 16,
+    backgroundColor: COLORS.grayscale_0,
+    gap: 12,
+  },
+  recentGuesthouseCard: {
+    width: 82,
+  },
+  recentGuesthouseImage: {
+    width: 82,
+    height: 82,
+    borderRadius: 12,
+    marginBottom: 8,
+  },
+  recentGuesthouseName: {
+    color: COLORS.grayscale_800,
+    textAlign: 'center',
+  },
+  recentGuesthouseGap: {
+    width: 14,
   },
   // 게하 카드
   guesthouseCardContainer: {

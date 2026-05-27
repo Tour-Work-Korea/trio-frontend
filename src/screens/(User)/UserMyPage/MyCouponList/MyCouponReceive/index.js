@@ -184,10 +184,10 @@ const MyCouponReceive = () => {
                     isIssued && styles.issueButtonDisabled,
                   ]}
                   onPress={() => handleIssueCoupon(coupon)}>
-                  {!isIssued ? <DownloadIcon width={18} height={18} /> : null}
+                  {!isIssued ? <DownloadIcon width={14} height={14} /> : null}
                   <Text
                     style={[
-                      FONTS.fs_14_medium,
+                      FONTS.fs_12_medium,
                       styles.issueButtonText,
                       isIssued && styles.issueButtonTextDisabled,
                     ]}>

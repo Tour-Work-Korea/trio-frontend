@@ -32,6 +32,8 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const getReservationStatusTitle = item =>
     item?.reservationStatus === 'PENDING' ? '승인 대기 중' : '예약 확정';
   const isPendingReservation = item => item?.reservationStatus === 'PENDING';
+  const isCheckInToday = item =>
+    Boolean(item?.checkIn) && dayjs(item.checkIn).isSame(dayjs(), 'day');
 
   const handleCopyAddress = (address) => {
     Clipboard.setString(address ?? '');
@@ -45,7 +47,9 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   };
 
   const buildRoomDetailText = (item) => {
-    if (!item) return '';
+    if (!item) {
+      return '';
+    }
     const isDormitory = item.roomType === 'DORMITORY';
     const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
 
@@ -73,6 +77,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
     const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
       toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
     );
+    const showCheckInGuide = isCheckInToday(item);
 
     return (
       <View style={styles.container}>
@@ -155,29 +160,36 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
 
         <View style={styles.buttonRow}>
           <ButtonWhite
-            title='숙소 상세'
-            style={{flex:1}}
-            onPress={() =>
+            title={showCheckInGuide ? '체크인 안내' : '숙소 상세'}
+            style={styles.actionButton}
+            onPress={() => {
+              if (showCheckInGuide) {
+                navigation.navigate('GuesthouseCheckInGuide', {
+                  reservationId: item.reservationId,
+                });
+                return;
+              }
+
               navigation.navigate('GuesthouseDetail', {
                 id: item.guesthouseId,
                 isFromDeeplink: false,
                 checkIn: today.format('YYYY-MM-DD'),
                 checkOut: tomorrow.format('YYYY-MM-DD'),
                 guestCount: 1,
-              })
-            }
+              });
+            }}
             backgroundColor={COLORS.grayscale_100}
           />
           <ButtonWhite
-            title='주소 복사'
-            style={{flex:1}}
+            title="주소 복사"
+            style={styles.actionButton}
             onPress={() => handleCopyAddress(item.guesthouseAddress)}
             backgroundColor={COLORS.grayscale_100}
           />
         </View>
 
         <ButtonWhite
-          title='예약취소'
+          title="예약취소"
           backgroundColor={COLORS.secondary_red}
           textColor={COLORS.semantic_red}
           onPress={() => {
@@ -212,7 +224,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
             });
           }}
         />
-  
+
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
     );
@@ -224,11 +236,10 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
         data={data}
         keyExtractor={item => item.reservationId.toString()}
         renderItem={renderItem}
-        contentContainerStyle={{
-          flexGrow: 1,
-          justifyContent: data.length === 0 ? 'center' : 'flex-start',
-          paddingVertical: 24,
-        }}
+        contentContainerStyle={[
+          styles.listContent,
+          data.length === 0 && styles.emptyListContent,
+        ]}
         ListEmptyComponent={
           <EmptyState
             icon={SearchEmpty}
@@ -265,7 +276,7 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     height: 0.4,
     backgroundColor: COLORS.grayscale_200,
-  },  
+  },
 
   // 리스트
   card: {
@@ -347,5 +358,16 @@ const styles = StyleSheet.create({
     gap: 16,
     marginTop: 16,
     marginBottom: 8,
+  },
+  actionButton: {
+    flex: 1,
+  },
+  listContent: {
+    flexGrow: 1,
+    justifyContent: 'flex-start',
+    paddingVertical: 24,
+  },
+  emptyListContent: {
+    justifyContent: 'center',
   },
 });

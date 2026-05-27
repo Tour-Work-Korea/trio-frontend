@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {View} from 'react-native';
+import {Image, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 
@@ -11,6 +11,11 @@ import userMyApi from '@utils/api/userMyApi';
 import {showErrorModal} from '@utils/loginModalHub';
 
 const TARGET_COUPON_NAME = '신규회원 전용 20% 할인 쿠폰';
+const COUPON_EVENT_IMAGE_URL =
+  'https://api.builder.io/api/v1/image/assets/TEMP/6a48cec6e4bd9dfd0ff9e2d3b959f9e9be4ce6c1?width=648';
+const couponEventImageUri = Image.resolveAssetSource(
+  require('@assets/images/coupon_event_signup_202606.png'),
+)?.uri;
 
 const FALLBACK_HTML_FRAGMENT = `
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
@@ -206,7 +211,13 @@ const TemporaryEventBanner = () => {
   );
 
   const html = useMemo(
-    () => createHtmlDocument(COUPON_EVENT_HTML_FRAGMENT),
+    () =>
+      createHtmlDocument(
+        COUPON_EVENT_HTML_FRAGMENT.replace(
+          COUPON_EVENT_IMAGE_URL,
+          couponEventImageUri || COUPON_EVENT_IMAGE_URL,
+        ),
+      ),
     [],
   );
 

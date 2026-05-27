@@ -17,12 +17,14 @@ import styles from './Home.styles';
 import Banner from './Banner';
 import Guesthouses from './Guesthouses';
 import TodayGuesthouses from './TodayGuesthouses';
+import RecentGuesthouses from './RecentGuesthouses';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import adminApi from '@utils/api/adminApi';
 import {COLORS} from '@constants/colors';
 import Meets from './Meets';
 import userMeetApi from '@utils/api/userMeetApi';
+import {getRecentGuesthouses} from '@utils/recentGuesthouses';
 import {FONTS} from '@constants/fonts';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
@@ -54,6 +56,7 @@ const HomeMain = () => {
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [eventList, setEventList] = useState([]);
   const [bannerList, setBannerList] = useState([]);
+  const [recentGuesthouseList, setRecentGuesthouseList] = useState([]);
 
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
@@ -112,12 +115,28 @@ const HomeMain = () => {
     }
   }, []);
 
+  const tryLoadRecentGuesthouses = useCallback(async () => {
+    try {
+      const list = await getRecentGuesthouses();
+      setRecentGuesthouseList(list);
+    } catch (error) {
+      console.warn('최근 본 게하 조회 실패', error);
+      setRecentGuesthouseList([]);
+    }
+  }, []);
+
   useFocusEffect(
     useCallback(() => {
       tryFetchGuesthouses();
       tryFetchBanners();
       tryFetchMeets();
-    }, [tryFetchBanners, tryFetchGuesthouses, tryFetchMeets]),
+      tryLoadRecentGuesthouses();
+    }, [
+      tryFetchBanners,
+      tryFetchGuesthouses,
+      tryFetchMeets,
+      tryLoadRecentGuesthouses,
+    ]),
   );
 
   // useEffect(() => {
@@ -414,6 +433,10 @@ const HomeMain = () => {
             {/* 배너 */}
             <View style={styles.boxContainer}>
               <Banner banners={bannerList} />
+            </View>
+
+            <View style={styles.boxContainer}>
+              <RecentGuesthouses guesthouses={recentGuesthouseList} />
             </View>
 
             {/* 숙박 섹션 */}
