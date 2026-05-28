@@ -190,6 +190,7 @@ const MeetDetail = () => {
     partyStartTime,
     partyEndTime,
     partyStatus,
+    isApplyOpen,
     amount, // 숙박객 남자
     maleNonAmount, // 비숙박객 남자
     partyImages,
@@ -257,6 +258,7 @@ const MeetDetail = () => {
     return `${dateLabel} ${formatTime(partyStartTime)}~${formatTime(partyEndTime)}`;
   }, [partyStartDateTime, partyStartTime, partyEndTime]);
   const isRecruiting = partyStatus === 'RECRUIT';
+  const showReservationButton = isApplyOpen !== false;
   const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
 
   // 콘텐츠 좋아요 토글
@@ -289,7 +291,7 @@ const MeetDetail = () => {
   };
 
   const handlePressReservation = () => {
-    if (!isRecruiting) {
+    if (!isRecruiting || !showReservationButton) {
       return;
     }
 
@@ -764,12 +766,14 @@ const MeetDetail = () => {
 
       </ScrollView>
 
-      <View style={styles.fixedNotice}>
-        <BellIcon width={20} height={20} />
-        <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
-          게스트하우스 파티는 당일에만 신청이 가능해요!
-        </Text>
-      </View>
+      {isRecruiting && showReservationButton && (
+        <View style={styles.fixedNotice}>
+          <BellIcon width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
+            게스트하우스 파티는 당일에만 신청이 가능해요!
+          </Text>
+        </View>
+      )}
 
       {/* 하단 고정 영역 */}
       <View style={styles.fixedBottomBar}>
@@ -782,18 +786,20 @@ const MeetDetail = () => {
           )}
         </TouchableOpacity>
 
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[
-            styles.bottomButton,
-            !isRecruiting && styles.bottomButtonDisabled,
-          ]}
-          disabled={!isRecruiting}
-          onPress={handlePressReservation}>
-          <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_0 }]}>
-            {reservationButtonText}
-          </Text>
-        </TouchableOpacity>
+        {showReservationButton && (
+          <TouchableOpacity
+            activeOpacity={1}
+            style={[
+              styles.bottomButton,
+              !isRecruiting && styles.bottomButtonDisabled,
+            ]}
+            disabled={!isRecruiting}
+            onPress={handlePressReservation}>
+            <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_0 }]}>
+              {reservationButtonText}
+            </Text>
+          </TouchableOpacity>
+        )}
       </View>
 
       {/* 모달 */}

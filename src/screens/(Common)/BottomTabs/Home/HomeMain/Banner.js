@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Image,
@@ -7,21 +7,35 @@ import {
   Linking,
   ScrollView,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import { useNavigation } from '@react-navigation/native';
 import styles from './Home.styles';
 
-const {width} = Dimensions.get('window');
+const { width } = Dimensions.get('window');
 const BANNER_WIDTH = width - 32;
 const BANNER_HEIGHT = 120;
 
-export default function Banner({banners = []}) {
+export default function Banner({ banners = [] }) {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const scrollRef = useRef(null);
 
   const handlePressBanner = useCallback(async item => {
+    const detailHtml = item?.detailHtml;
+
+    if (
+      detailHtml &&
+      typeof detailHtml === 'string' &&
+      detailHtml.trim().length > 0
+    ) {
+      navigation.navigate('TemporaryEventBanner', {
+        bannerHtml: detailHtml,
+        banner: item,
+      });
+      return;
+    }
+
     if (Number(item?.id) === 22) {
-      navigation.navigate('TemporaryEventBanner', {banner: item});
+      navigation.navigate('TemporaryEventBanner', { banner: item });
       return;
     }
 
@@ -51,27 +65,18 @@ export default function Banner({banners = []}) {
     const AUTO_SLIDE_INTERVAL = 4000; // 4초마다 슬라이드
 
     const timer = setInterval(() => {
-      setCurrentIndex(prev => {
-        const next = (prev + 1) % banners.length;
-        scrollRef.current?.scrollTo({x: next * width, animated: true});
-        return next;
-      });
+      const next = (currentIndex + 1) % banners.length;
+      setCurrentIndex(next);
+      scrollRef.current?.scrollTo({ x: next * width, animated: true });
     }, AUTO_SLIDE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [banners.length]);
+  }, [banners.length, currentIndex]);
 
   const handleScrollEnd = useCallback(event => {
     const offsetX = event.nativeEvent.contentOffset.x;
     const nextIndex = Math.round(offsetX / width);
     setCurrentIndex(nextIndex);
-  }, []);
-
-  const stopHorizontalMomentum = useCallback(event => {
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const nextIndex = Math.round(offsetX / width);
-    setCurrentIndex(nextIndex);
-    scrollRef.current?.scrollTo({x: nextIndex * width, animated: false});
   }, []);
 
   if (!banners.length) {
@@ -89,9 +94,8 @@ export default function Banner({banners = []}) {
         decelerationRate="fast"
         showsHorizontalScrollIndicator={false}
         scrollEventThrottle={16}
-        onScrollEndDrag={stopHorizontalMomentum}
         onMomentumScrollEnd={handleScrollEnd}
-        style={{width}}>
+        style={{ width }}>
         {banners.map((item, index) => (
           <View
             key={item?.id ?? index}
@@ -110,8 +114,8 @@ export default function Banner({banners = []}) {
                 overflow: 'hidden',
               }}>
               <Image
-                source={{uri: item.url}}
-                style={{width: '100%', height: '100%'}}
+                source={{ uri: item.url }}
+                style={{ width: '100%', height: '100%' }}
                 resizeMode="cover"
               />
             </TouchableOpacity>

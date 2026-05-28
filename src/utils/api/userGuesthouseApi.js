@@ -61,7 +61,6 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
-      withAuth: false,
     }),
 
   // 유저 게스트하우스 상세 조회
@@ -72,7 +71,6 @@ const userGuesthouseApi = {
         checkOut,
         guestCount,
       },
-      withAuth: false,
     }),
 
   // 게스트하우스 좋아요
@@ -110,7 +108,6 @@ const userGuesthouseApi = {
   getPopularGuesthouses: ({ page, size = 10 } = {}) =>
     api.get('/user/guesthouses/popular', {
       params: { page, size },
-      withAuth: false,
     }),
 
   getGuesthouseAmenities: () =>
@@ -155,7 +152,6 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
-      withAuth: false,
     }),
 };
 

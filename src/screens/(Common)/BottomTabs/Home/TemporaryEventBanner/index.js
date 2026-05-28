@@ -1,14 +1,14 @@
-import React, {useCallback, useMemo} from 'react';
-import {Image, View} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
-import {WebView} from 'react-native-webview';
+import React, { useCallback, useMemo } from 'react';
+import { Image, View, Linking } from 'react-native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import { WebView } from 'react-native-webview';
 
 import styles from './TemporaryEventBanner.styles';
-import {COUPON_EVENT_HTML_FRAGMENT} from './couponEventHtml';
+import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
 import AlertModal from '@components/modals/AlertModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
-import {showErrorModal} from '@utils/loginModalHub';
+import { showErrorModal } from '@utils/loginModalHub';
 
 const TARGET_COUPON_NAME = '신규회원 전용 20% 할인 쿠폰';
 const COUPON_EVENT_IMAGE_URL =
@@ -189,6 +189,9 @@ const createHtmlDocument = fragment => `<!doctype html>
 
 const TemporaryEventBanner = () => {
   const navigation = useNavigation();
+  const route = useRoute();
+  const { bannerHtml, banner } = route.params ?? {};
+  const couponTemplateId = banner?.couponTemplateId;
   const userRole = useUserStore(state => state.userRole);
   const accessToken = useUserStore(state => state.accessToken);
   const [issuing, setIssuing] = React.useState(false);
@@ -202,24 +205,56 @@ const TemporaryEventBanner = () => {
     useCallback(() => {
       const tabNavigation = navigation.getParent();
 
-      tabNavigation?.setOptions({tabBarStyle: {display: 'none'}});
+      tabNavigation?.setOptions({ tabBarStyle: { display: 'none' } });
 
       return () => {
-        tabNavigation?.setOptions({tabBarStyle: undefined});
+        tabNavigation?.setOptions({ tabBarStyle: undefined });
       };
     }, [navigation]),
   );
 
-  const html = useMemo(
-    () =>
-      createHtmlDocument(
+  const webViewSource = useMemo(() => {
+    if (bannerHtml) {
+      return { html: createHtmlDocument(bannerHtml) };
+    }
+    return {
+      html: createHtmlDocument(
         COUPON_EVENT_HTML_FRAGMENT.replace(
           COUPON_EVENT_IMAGE_URL,
           couponEventImageUri || COUPON_EVENT_IMAGE_URL,
         ),
       ),
-    [],
-  );
+    };
+  }, [bannerHtml]);
+
+  const injectedJs = useMemo(() => {
+    const hasLink = !!(
+      banner?.link &&
+      typeof banner.link === 'string' &&
+      /^https?:\/\//i.test(banner.link.trim())
+    );
+    if (hasLink) {
+      return `
+        (function() {
+          function updateButton() {
+            var textSpan = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="쿠폰 받기"] span');
+            var svgIcon = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="Button"] svg');
+            if (textSpan && textSpan.textContent.trim() === '쿠폰 받기') {
+              textSpan.textContent = '참여하기';
+            }
+            if (svgIcon) {
+              svgIcon.style.display = 'none';
+            }
+          }
+          updateButton();
+          window.addEventListener('DOMContentLoaded', updateButton);
+          window.addEventListener('load', updateButton);
+        })();
+        true;
+      `;
+    }
+    return '';
+  }, [banner?.link]);
 
   const closeAlert = useCallback(() => {
     const shouldNavigate = alertState.navigateOnConfirm;
@@ -249,7 +284,7 @@ const TemporaryEventBanner = () => {
       buttonText2: '취소',
       buttonText: '로그인하기',
       onPress: () => navigation.navigate('Login'),
-      onPress2: () => {},
+      onPress2: () => { },
     });
   }, [navigation]);
 
@@ -266,7 +301,13 @@ const TemporaryEventBanner = () => {
     setIssuing(true);
 
     try {
-      const {data} = await userMyApi.getAvailableCoupons();
+      if (couponTemplateId) {
+        await userMyApi.issueCouponByTemplate(couponTemplateId);
+        showCouponAlert('쿠폰 발급이 완료되었습니다', true);
+        return;
+      }
+
+      const { data } = await userMyApi.getAvailableCoupons();
       const coupons = Array.isArray(data?.coupons)
         ? data.coupons
         : Array.isArray(data)
@@ -310,6 +351,7 @@ const TemporaryEventBanner = () => {
     showCouponAlert,
     showLoginRequiredModal,
     userRole,
+    couponTemplateId,
   ]);
 
   const handleMessage = event => {
@@ -321,6 +363,16 @@ const TemporaryEventBanner = () => {
     }
 
     if (message === 'coupon') {
+      const link = banner?.link;
+      if (link && typeof link === 'string') {
+        const safeUrl = link.trim();
+        if (/^https?:\/\//i.test(safeUrl)) {
+          Linking.openURL(safeUrl).catch(() => {
+            console.warn('링크 열기 실패');
+          });
+          return;
+        }
+      }
       handleIssueCoupon();
     }
   };
@@ -329,9 +381,10 @@ const TemporaryEventBanner = () => {
     <View style={styles.container}>
       <WebView
         originWhitelist={['*']}
-        source={{html}}
+        source={webViewSource}
         style={styles.webView}
         onMessage={handleMessage}
+        injectedJavaScript={injectedJs}
         javaScriptEnabled
         domStorageEnabled
         showsVerticalScrollIndicator={false}

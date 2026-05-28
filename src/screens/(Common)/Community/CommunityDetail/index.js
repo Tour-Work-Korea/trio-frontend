@@ -120,7 +120,13 @@ const isCommentEdited = item => {
 
 const CommunityDetail = ({route}) => {
   const navigation = useNavigation();
-  const {postId, commentAnchor, targetCommentId, focusCommentInput} =
+  const {
+    postId,
+    commentAnchor,
+    targetCommentId,
+    focusCommentInput,
+    fallbackRouteName,
+  } =
     route.params ?? {};
   const currentUserPhotoUrl = useUserStore(
     state => state.userProfile?.photoUrl,
@@ -236,6 +242,9 @@ const CommunityDetail = ({route}) => {
         setHighlightedCommentId(anchorCommentId);
       } catch (error) {
         console.warn('fetchCommunityPostDetail 실패:', error);
+        if (fallbackRouteName) {
+          navigation.navigate(fallbackRouteName);
+        }
       } finally {
         setIsLoading(false);
       }
@@ -244,7 +253,7 @@ const CommunityDetail = ({route}) => {
     if (postId) {
       fetchPostDetail();
     }
-  }, [commentAnchor, postId, targetCommentId]);
+  }, [commentAnchor, fallbackRouteName, navigation, postId, targetCommentId]);
 
   useEffect(() => {
     const showEvent =
