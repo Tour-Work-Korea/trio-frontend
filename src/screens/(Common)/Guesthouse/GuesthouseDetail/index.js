@@ -16,7 +16,6 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import styles from './GuesthouseDetail.styles';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import ServiceInfoModal from '@components/modals/Guesthouse/ServiceInfoModal';
 import ImageModal from '@components/modals/ImageModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
@@ -33,6 +32,7 @@ import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 
 import RoomList from './RoomList';
+import ServiceInfoContent from './ServiceInfoContent';
 
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import FilledHeart from '@assets/images/heart_filled.svg';
@@ -41,53 +41,14 @@ import ShareIcon from '@assets/images/share_gray.svg';
 import Star from '@assets/images/star_white.svg';
 import CalendarIcon from '@assets/images/calendar_white.svg';
 import PersonIcon from '@assets/images/person20_white.svg';
+import PeopleIcon from '@assets/images/people_gray.svg';
 import MapPinIcon from '@assets/images/map_pin_fill_black.svg';
 import RightChevronBlack from '@assets/images/chevron_right_black.svg';
-
-import WifiIcon from '@assets/images/wifi_black.svg';
-import UnWifiIcon from '@assets/images/wifi_gray.svg';
-import PetFriendlyIcon from '@assets/images/pet_friendly_black.svg';
-import UnPetFriendlyIcon from '@assets/images/pet_friendly_gray.svg';
-import LuggageIcon from '@assets/images/luggage_storage_black.svg';
-import UnLuggageIcon from '@assets/images/luggage_storage_gray.svg';
-import LoungeIcon from '@assets/images/shared_lounge_black.svg';
-import UnLoungeIcon from '@assets/images/shared_lounge_gray.svg';
-import RightChevron from '@assets/images/chevron_right_gray.svg';
-
-const serviceIcons = [
-  {
-    icon: WifiIcon,
-    label: '무선인터넷',
-    width: 26,
-    height: 26,
-    iconName: 'WIFI',
-  },
-  {
-    icon: PetFriendlyIcon,
-    label: '반려견동반',
-    width: 24,
-    height: 24,
-    iconName: 'PET_FRIENDLY',
-  },
-  {
-    icon: LuggageIcon,
-    label: '짐보관',
-    width: 24,
-    height: 24,
-    iconName: 'BAGGAGE_STORAGE',
-  },
-  {
-    icon: LoungeIcon,
-    label: '공용라운지',
-    width: 28,
-    height: 28,
-    iconName: 'LOUNGE',
-  },
-];
 
 const TAB_OPTIONS = [
   {key: 'room', label: '객실'},
   {key: 'intro', label: '소개'},
+  {key: 'service', label: '시설/서비스'},
   {key: 'rule', label: '이용규칙'},
   {key: 'review', label: '리뷰'},
   {key: 'refund', label: '취소규정'},
@@ -107,6 +68,17 @@ const getDisplayRating = rating => {
     : null;
 };
 
+const formatTodayPartyTime = startDateTime => {
+  const start = dayjs(startDateTime);
+
+  if (!start.isValid()) {
+    return '';
+  }
+
+  const meridiem = start.hour() < 12 ? '오전' : '오후';
+  return `${start.format('M/D')} 오늘, ${meridiem} ${start.format('h:mm')}`;
+};
+
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
@@ -124,7 +96,6 @@ const GuesthouseDetail = ({route}) => {
     initialKey: 'room',
   });
 
-  const [modalVisible, setModalVisible] = useState(false);
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
@@ -277,12 +248,61 @@ const GuesthouseDetail = ({route}) => {
     });
   };
 
-  // 객실 서비스
-  const amenityNames = detail.amenities.map(a => a.amenityName);
   const refundPolicies = [...(detail?.refundPolicies ?? [])].sort(
     (a, b) => a.daysBeforeCheckin - b.daysBeforeCheckin,
   );
   const displayRating = getDisplayRating(detail.averageRating);
+  const todayParties = Array.isArray(detail?.todayParties)
+    ? detail.todayParties
+    : [];
+
+  const renderTodayParty = party => {
+    const partyTime = formatTodayPartyTime(party.startDateTime);
+
+    return (
+      <TouchableOpacity
+        key={String(party.partyId)}
+        activeOpacity={1}
+        style={styles.todayPartyCard}
+        onPress={() => navigation.navigate('MeetDetail', {partyId: party.partyId})}
+      >
+        {party.partyImage ? (
+          <Image source={{uri: party.partyImage}} style={styles.todayPartyImage} />
+        ) : (
+          <View style={styles.todayPartyImagePlaceholder}>
+            <Text style={[FONTS.fs_12_medium, styles.todayPartyImageText]}>
+              콘텐츠
+            </Text>
+          </View>
+        )}
+
+        <View style={styles.todayPartyInfo}>
+          <View style={styles.todayPartyTopRow}>
+            <View style={styles.todayPartyTitleWrapper}>
+              <Text
+                style={[FONTS.fs_14_semibold, styles.todayPartyTitle]}
+                numberOfLines={2}
+              >
+                {party.partyTitle || '게스트하우스 콘텐츠'}
+              </Text>
+              <View style={styles.todayPartyPeopleRow}>
+                <PeopleIcon width={12} height={12} />
+                <Text style={[FONTS.fs_12_medium, styles.todayPartyPeopleText]}>
+                  최대인원 {party.maxAttendees ?? 0}명
+                </Text>
+              </View>
+            </View>
+          </View>
+
+          {!!partyTime && (
+            <Text style={[FONTS.fs_14_medium, styles.todayPartyTime]}>
+              {partyTime}
+            </Text>
+          )}
+        </View>
+      </TouchableOpacity>
+    );
+  };
 
   const renderTabContent = tabKey => {
     if (tabKey === 'room') {
@@ -322,6 +342,10 @@ const GuesthouseDetail = ({route}) => {
           </View>
         </View>
       );
+    }
+
+    if (tabKey === 'service') {
+      return <ServiceInfoContent selectedAmenities={detail.amenities} />;
     }
 
     if (tabKey === 'refund') {
@@ -506,18 +530,11 @@ const GuesthouseDetail = ({route}) => {
       <View style={styles.contentWrapper}>
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
-            <TouchableOpacity
-              activeOpacity={1}
-              onPress={() =>
-                navigation.navigate('GuesthousePost', {
-                  guesthouseId: id,
-                })
-              }
-            >
+            <View>
               <Text style={[FONTS.fs_20_semibold, styles.name]}>
                 {detail.guesthouseName}
               </Text>
-            </TouchableOpacity>
+            </View>
             <View style={styles.topIcons}>
               <TouchableOpacity
                 activeOpacity={1} onPress={handleCopyLink}>
@@ -578,55 +595,16 @@ const GuesthouseDetail = ({route}) => {
             </Text>
           </View>
 
-          {/* 객실 서비스 */}
-          <View style={styles.iconServiceContainer}>
-            <View style={styles.iconServiceRowWithMore}>
-              {serviceIcons.map(
-                ({icon: Icon, label, width, height, iconName}, i) => {
-                  const isEnabled = detail.amenities
-                    .map(a => a.amenityName)
-                    .includes(iconName);
-
-                  const GrayscaleIcon = {
-                    WIFI: UnWifiIcon,
-                    PET_FRIENDLY: UnPetFriendlyIcon,
-                    BAGGAGE_STORAGE: UnLuggageIcon,
-                    LOUNGE: UnLoungeIcon,
-                  }[iconName];
-
-                  const DisplayIcon = isEnabled ? Icon : GrayscaleIcon;
-
-                  return (
-                    <View key={i} style={styles.iconWrapper}>
-                      <View style={styles.iconServiceWrapper}>
-                        <DisplayIcon width={width} height={height} />
-                      </View>
-                      <Text
-                        style={[
-                          FONTS.fs_12_medium,
-                          styles.iconServiceText,
-                          !isEnabled && {color: COLORS.grayscale_400},
-                        ]}>
-                        {label}
-                      </Text>
-                    </View>
-                  );
-                },
-              )}
-
-              <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => setModalVisible(true)}
-                style={styles.iconWrapper}>
-                <View style={styles.iconServiceWrapper}>
-                  <RightChevron width={24} height={24} />
-                </View>
-                <Text style={[FONTS.fs_12_medium, styles.readMoreText]}>
-                  더보기
-                </Text>
-              </TouchableOpacity>
+          {todayParties.length > 0 && (
+            <View style={styles.todayPartiesContainer}>
+              <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
+                오늘의 콘텐츠
+              </Text>
+              <View style={styles.todayPartyList}>
+                {todayParties.map(renderTodayParty)}
+              </View>
             </View>
-          </View>
+          )}
 
           <View style={styles.devide} />
 
@@ -730,11 +708,6 @@ const GuesthouseDetail = ({route}) => {
           initChildGuestCount={localChildren}
         />
       )}
-      <ServiceInfoModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        selectedAmenities={detail.amenities}
-      />
     </View>
   );
 };

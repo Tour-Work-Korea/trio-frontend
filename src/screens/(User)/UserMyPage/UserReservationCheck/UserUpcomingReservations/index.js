@@ -32,8 +32,24 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   const getReservationStatusTitle = item =>
     item?.reservationStatus === 'PENDING' ? '승인 대기 중' : '예약 확정';
   const isPendingReservation = item => item?.reservationStatus === 'PENDING';
-  const isCheckInToday = item =>
-    Boolean(item?.checkIn) && dayjs(item.checkIn).isSame(dayjs(), 'day');
+  const isDuringStay = item => {
+    if (!item?.checkIn || !item?.checkOut) {
+      return false;
+    }
+
+    const currentDate = today.startOf('day');
+    const checkInDate = dayjs(item.checkIn).startOf('day');
+    const checkOutDate = dayjs(item.checkOut).startOf('day');
+
+    if (!checkInDate.isValid() || !checkOutDate.isValid()) {
+      return false;
+    }
+
+    return (
+      (currentDate.isSame(checkInDate) || currentDate.isAfter(checkInDate)) &&
+      (currentDate.isSame(checkOutDate) || currentDate.isBefore(checkOutDate))
+    );
+  };
 
   const handleCopyAddress = (address) => {
     Clipboard.setString(address ?? '');
@@ -77,7 +93,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
     const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
       toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
     );
-    const showCheckInGuide = isCheckInToday(item);
+    const showCheckInGuide = isDuringStay(item);
 
     return (
       <View style={styles.container}>
