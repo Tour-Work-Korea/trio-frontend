@@ -766,12 +766,14 @@ const MeetDetail = () => {
 
       </ScrollView>
 
-      <View style={styles.fixedNotice}>
-        <BellIcon width={20} height={20} />
-        <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
-          게스트하우스 파티는 당일에만 신청이 가능해요!
-        </Text>
-      </View>
+      {isRecruiting && showReservationButton && (
+        <View style={styles.fixedNotice}>
+          <BellIcon width={20} height={20} />
+          <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
+            게스트하우스 파티는 당일에만 신청이 가능해요!
+          </Text>
+        </View>
+      )}
 
       {/* 하단 고정 영역 */}
       <View style={styles.fixedBottomBar}>
