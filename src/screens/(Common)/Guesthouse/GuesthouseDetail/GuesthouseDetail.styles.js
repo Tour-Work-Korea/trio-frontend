@@ -134,43 +134,66 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_700,
   },
 
-  // 객실 서비스
-  iconServiceContainer: {
+  // 오늘의 콘텐츠
+  todayPartiesContainer: {
     marginBottom: 28,
   },
-  iconServiceRowWithMore: {
+  todayContentTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 8,
+  },
+  todayPartyList: {
+  },
+  todayPartyCard: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 12,
+    padding: 12,
     flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 20,
-    paddingBottom: 8,
-    paddingTop: 16,
-    borderRadius: 8,
-    backgroundColor: COLORS.grayscale_100,
+    gap: 12,
+    backgroundColor: COLORS.grayscale_0,
   },
-  // iconServiceRow: {
-  //   flexDirection: 'row',
-  //   flexWrap: 'wrap',
-  // },
-  iconWrapper: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    height: 52,
+  todayPartyImage: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    backgroundColor: COLORS.grayscale_200,
   },
-  iconServiceWrapper: {
-    height: 24,
-    width: 24,
+  todayPartyImagePlaceholder: {
+    width: 80,
+    height: 80,
+    borderRadius: 4,
+    backgroundColor: COLORS.grayscale_200,
     alignItems: 'center',
     justifyContent: 'center',
   },
-    iconServiceText: {
-  },
-  readMoreButton: {
-    alignItems: 'center',
-    marginLeft: 8,
-  },
-  readMoreText: {
+  todayPartyImageText: {
     color: COLORS.grayscale_400,
+  },
+  todayPartyInfo: {
+    flex: 1,
+    justifyContent: 'space-between',
+  },
+  todayPartyTopRow: {
+    flexDirection: 'row',
+  },
+  todayPartyTitleWrapper: {
+  },
+  todayPartyTitle: {
+    color: COLORS.grayscale_900,
+  },
+  todayPartyPeopleRow: {
+    marginTop: 4,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  todayPartyPeopleText: {
+    color: COLORS.grayscale_400,
+  },
+  todayPartyTime: {
+    color: COLORS.primary_orange,
+    alignSelf: 'flex-end',
   },
 
   devide: {

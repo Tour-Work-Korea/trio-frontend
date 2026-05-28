@@ -38,6 +38,12 @@ const reservationPaymentApi = {
       `/payments/toss/reservation/detail/${reservationId}`,
     ),
 
+  // 게하 체크인 안내
+  getRoomCheckInGuide: reservationId =>
+    api.get(
+      `/payments/toss/reservation/room/${reservationId}/checkin-guide`,
+    ),
+
   // 파티 예약 내역 조회
   getPartyReservationList: () =>
     api.get('/payments/toss/reservation/party'),

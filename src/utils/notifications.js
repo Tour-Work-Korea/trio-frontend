@@ -93,6 +93,17 @@ const getNestedFirstValue = (source, keys) => {
   return null;
 };
 
+const buildCommunityCommentAnchor = (commentId, parentCommentId) => {
+  if (!commentId && !parentCommentId) {
+    return null;
+  }
+
+  return {
+    commentId: commentId ?? parentCommentId,
+    ...(parentCommentId ? {parentCommentId} : {}),
+  };
+};
+
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
   const withoutScheme = normalized.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
@@ -195,11 +206,27 @@ const openDeeplinkTarget = url => {
       'replyId',
       'communityCommentId',
     ]);
+    const parentCommentId = getQueryParam(searchParams, [
+      'parentId',
+      'parentCommentId',
+      'rootCommentId',
+    ]);
 
     if (postId) {
       navigate('CommunityDetail', {
         postId,
         ...(targetCommentId ? {targetCommentId} : {}),
+        fallbackRouteName: targetCommentId
+          ? 'MyCommunityCommentList'
+          : 'MyCommunityPostList',
+        ...(parentCommentId
+          ? {
+              commentAnchor: buildCommunityCommentAnchor(
+                targetCommentId,
+                parentCommentId,
+              ),
+            }
+          : {}),
       });
       return true;
     }
@@ -234,7 +261,11 @@ export const openNotificationTarget = async notification => {
     'commentId',
     'communityCommentId',
     'replyId',
+  ]);
+  let communityParentCommentId = getNestedFirstValue(notification, [
+    'parentId',
     'parentCommentId',
+    'rootCommentId',
   ]);
   const isGuesthouseCancellation =
     type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
@@ -318,6 +349,11 @@ export const openNotificationTarget = async notification => {
   }
 
   if (type === 'COMMUNITY_COMMENT_NEW' || type === 'COMMUNITY_REPLY_NEW') {
+    const fallbackRouteName =
+      type === 'COMMUNITY_REPLY_NEW'
+        ? 'MyCommunityCommentList'
+        : 'MyCommunityPostList';
+
     if (!communityPostId && !communityCommentId) {
       const notificationId = getFirstValue(notification, [
         'notificationId',
@@ -344,7 +380,11 @@ export const openNotificationTarget = async notification => {
             'commentId',
             'communityCommentId',
             'replyId',
+          ]);
+          communityParentCommentId = getNestedFirstValue(mergedNotification, [
+            'parentId',
             'parentCommentId',
+            'rootCommentId',
           ]);
         } catch (error) {
           console.warn('fetchCommunityNotificationDetail 실패:', error);
@@ -352,10 +392,23 @@ export const openNotificationTarget = async notification => {
       }
     }
 
+    if (!communityCommentId && communityParentCommentId) {
+      communityCommentId = communityParentCommentId;
+    }
+
     if (communityPostId) {
       navigate('CommunityDetail', {
         postId: communityPostId,
         ...(communityCommentId ? {targetCommentId: communityCommentId} : {}),
+        fallbackRouteName,
+        ...(communityParentCommentId
+          ? {
+              commentAnchor: buildCommunityCommentAnchor(
+                communityCommentId,
+                communityParentCommentId,
+              ),
+            }
+          : {}),
       });
       return;
     }
@@ -386,9 +439,7 @@ export const openNotificationTarget = async notification => {
     }
 
     navigate(
-      type === 'COMMUNITY_REPLY_NEW'
-        ? 'MyCommunityCommentList'
-        : 'MyCommunityPostList',
+      fallbackRouteName,
     );
     return;
   }

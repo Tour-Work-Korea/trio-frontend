@@ -57,9 +57,11 @@ const MeetPaymentSuccess = () => {
   return (
     <View style={styles.container}>
       <Logo />
-      <Text style={[FONTS.fs_20_semibold, styles.text]}>
-        신청 완료되었어요! {'\n'}
-        이제 콘텐츠를 즐기러 가볼까요?
+      <Text style={[FONTS.fs_20_semibold, styles.commentTitle]}>신청 접수 완료!</Text>
+      <Text style={[FONTS.fs_16_medium, styles.text]}>
+        사장님이 확인 후 <Text style={{color: COLORS.semantic_red}}>최종 확정 알림</Text>을 
+        {'\n'}
+        보내드릴 예정입니다
       </Text>
 
       <View style={styles.bottomRow}>
@@ -102,6 +104,11 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingHorizontal: 20,
     backgroundColor: COLORS.grayscale_100,
+  },
+  commentTitle: {
+    marginTop: 20,
+    textAlign: 'center',
+    color: COLORS.grayscale_700,
   },
   text: {
     marginTop: 20,
