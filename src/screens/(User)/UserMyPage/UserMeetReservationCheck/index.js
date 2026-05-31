@@ -69,7 +69,9 @@ const UserMeetReservationCheck = () => {
 
   // 상태별로 분리
   const filteredReservations = {
-    upcoming: reservations.filter(r => r.reservationStatus === 'CONFIRMED'),
+    upcoming: reservations.filter(r =>
+      ['PENDING', 'CONFIRMED'].includes(r.reservationStatus),
+    ),
     past: reservations.filter(r => r.reservationStatus === 'COMPLETED'),
     cancelled: reservations.filter(r => r.reservationStatus === 'CANCELLED'),
   };
