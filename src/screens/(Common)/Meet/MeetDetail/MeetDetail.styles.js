@@ -88,6 +88,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     alignItems: 'center',
   },
+  guesthousePressArea: {
+    alignItems: 'center',
+    width: '100%',
+    marginTop: -18,
+    paddingTop: 18,
+  },
   summaryAvatar: {
     position: 'absolute',
     top: -24,

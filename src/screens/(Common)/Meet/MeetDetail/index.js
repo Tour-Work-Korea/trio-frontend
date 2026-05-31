@@ -290,6 +290,19 @@ const MeetDetail = () => {
     });
   };
 
+  const handlePressGuesthouse = () => {
+    const guesthouseId = detail?.guesthouseId ?? detail?.guesthouse?.id ?? detail?.profileSummary?.guesthouseId;
+    if (!guesthouseId) {
+      return;
+    }
+    navigation.navigate('GuesthouseDetail', {
+      id: guesthouseId,
+      checkIn: dayjs().format('YYYY-MM-DD'),
+      checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      guestCount: 1,
+    });
+  };
+
   const handlePressReservation = () => {
     if (!isRecruiting || !showReservationButton) {
       return;
@@ -694,10 +707,16 @@ const MeetDetail = () => {
         {/* 본문 */}
         <View style={styles.contentContainer}>
           <View style={styles.summaryCard}>
-            <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
-            <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
-              {displayGuesthouseName}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handlePressGuesthouse}
+              style={styles.guesthousePressArea}
+            >
+              <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
+              <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
+                {displayGuesthouseName}
+              </Text>
+            </TouchableOpacity>
             <Text
               style={[FONTS.fs_20_semibold, styles.titleText]}
               numberOfLines={2}
