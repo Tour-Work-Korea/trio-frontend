@@ -82,6 +82,7 @@ const GuesthouseList = () => {
 
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
+  const [modalInitialSection, setModalInitialSection] = useState('date');
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [isMapView, setIsMapView] = useState(initialMapView);
@@ -452,6 +453,7 @@ const GuesthouseList = () => {
           style={styles.dateContainer}
           onPress={() => {
             setTempDateGuest({checkIn, checkOut, adultCount, childCount});
+            setModalInitialSection('date');
             setDateGuestModalVisible(true);
           }}>
           <CalendarIcon width={20} height={20} />
@@ -464,6 +466,7 @@ const GuesthouseList = () => {
           style={styles.personRoomContainer}
           onPress={() => {
             setTempDateGuest({checkIn, checkOut, adultCount, childCount});
+            setModalInitialSection('guest');
             setDateGuestModalVisible(true);
           }}>
           <Person width={20} height={20} />
@@ -591,6 +594,7 @@ const GuesthouseList = () => {
         initCheckOutDate={checkOut}
         initAdultGuestCount={adultCount}
         initChildGuestCount={childCount}
+        initialSection={modalInitialSection}
       />
 
       {/* 정렬 모달 */}

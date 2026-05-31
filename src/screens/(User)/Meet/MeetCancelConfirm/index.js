@@ -22,6 +22,7 @@ import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import Toast from 'react-native-toast-message';
+import {log} from '@utils/logger';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckGray from '@assets/images/check_gray.svg';
@@ -169,11 +170,14 @@ const MeetCancelConfirm = () => {
         reservationItem,
       });
     } catch (error) {
+      // Extract server error message if available
+      const serverMessage = error?.response?.data?.message || error?.message;
+      log.error('Cancel reservation failed', error);
       Toast.show({
         type: 'error',
-        text1: '예약 취소에 실패했습니다.',
+        text1: serverMessage || '예약 취소에 실패했습니다.',
         position: 'top',
-        visibilityTime: 2000,
+        visibilityTime: 3000,
       });
     } finally {
       setCancelSubmitting(false);

@@ -67,6 +67,7 @@ const GuesthouseSearch = () => {
   const [childCount, setChildCount] = useState(0);
   // 인원, 날짜 선택 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
+  const [modalInitialSection, setModalInitialSection] = useState('date');
 
   // 날짜는 초기에 오늘~내일 날짜로 설정
   useEffect(() => {
@@ -168,15 +169,28 @@ const GuesthouseSearch = () => {
   };
 
   const getSearchDates = () => {
-    const year = dayjs().year();
-    const [startLabel, endLabel] = displayDate.split(' - ');
-    const [startMonth, startDay] = startLabel.split(' ')[0].split('.').map(Number);
-    const [endMonth, endDay] = endLabel.split(' ')[0].split('.').map(Number);
+    if (!displayDate || !displayDate.includes(' - ')) {
+      return {
+        checkIn: dayjs().format('YYYY-MM-DD'),
+        checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      };
+    }
+    try {
+      const year = dayjs().year();
+      const [startLabel, endLabel] = displayDate.split(' - ');
+      const [startMonth, startDay] = startLabel.split(' ')[0].split('.').map(Number);
+      const [endMonth, endDay] = endLabel.split(' ')[0].split('.').map(Number);
 
-    return {
-      checkIn: dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD'),
-      checkOut: dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD'),
-    };
+      return {
+        checkIn: dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD'),
+        checkOut: dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD'),
+      };
+    } catch (e) {
+      return {
+        checkIn: dayjs().format('YYYY-MM-DD'),
+        checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      };
+    }
   };
 
   const handlePressGuesthouseResult = guesthouse => {
@@ -328,7 +342,10 @@ const GuesthouseSearch = () => {
         <View style={styles.selectRow}>
           <TouchableOpacity
             style={styles.dateContainer}
-            onPress={() => setDateGuestModalVisible(true)}>
+            onPress={() => {
+              setModalInitialSection('date');
+              setDateGuestModalVisible(true);
+            }}>
             <CalendarIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.dateText]}>
               {displayDate}
@@ -337,7 +354,10 @@ const GuesthouseSearch = () => {
 
           <TouchableOpacity
             style={styles.personRoomContainer}
-            onPress={() => setDateGuestModalVisible(true)}>
+            onPress={() => {
+              setModalInitialSection('guest');
+              setDateGuestModalVisible(true);
+            }}>
             <Person width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.personText]}>
               {`인원 ${adultCount + childCount}`}
@@ -375,10 +395,11 @@ const GuesthouseSearch = () => {
 
             setDateGuestModalVisible(false);
           }}
-          initCheckInDate={dayjs().format('YYYY-MM-DD')}
-          initCheckOutDate={dayjs().add(1, 'day').format('YYYY-MM-DD')}
+          initCheckInDate={getSearchDates().checkIn}
+          initCheckOutDate={getSearchDates().checkOut}
           initAdultGuestCount={adultCount}
           initChildGuestCount={childCount}
+          initialSection={modalInitialSection}
         />
       </View>
     </TouchableWithoutFeedback>

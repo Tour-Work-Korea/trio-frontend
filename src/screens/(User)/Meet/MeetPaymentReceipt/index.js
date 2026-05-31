@@ -22,6 +22,7 @@ export default function MeetPaymentReceipt() {
   const [reservationDetail, setReservationDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelUnavailableOpen, setCancelUnavailableOpen] = useState(false);
+  const [contactGuesthouseOpen, setContactGuesthouseOpen] = useState(false);
 
   const fetchReservationDetail = useCallback(async () => {
     if (!reservationId) return;
@@ -149,10 +150,13 @@ export default function MeetPaymentReceipt() {
     });
   };
 
+  const isPending = reservationDetail?.reservationStatus === 'PENDING';
+  const headerTitle = isPending ? '신청 대기' : '신청 확정';
+
   return (
     <View style={styles.container}>
       <ScrollView showsVerticalScrollIndicator={false}>
-        <Header title="신청 확정" />
+        <Header title={headerTitle} />
 
         {loading ? (
           <Loading title="예약 정보를 불러오고 있어요." />
@@ -285,10 +289,10 @@ export default function MeetPaymentReceipt() {
 
           {/* 예약 취소 버튼 */}
           <ButtonWhite
-            title="신청취소"
-            backgroundColor={COLORS.secondary_red}
-            textColor={COLORS.semantic_red}
-            onPress={handlePressCancel}
+            title={isPending ? '신청취소' : '취소/ 환불 문의'}
+            backgroundColor={isPending ? COLORS.secondary_red : COLORS.grayscale_100}
+            textColor={isPending ? COLORS.semantic_red : COLORS.grayscale_600}
+            onPress={isPending ? handlePressCancel : () => setContactGuesthouseOpen(true)}
           />
           </View>
         )}
@@ -300,6 +304,14 @@ export default function MeetPaymentReceipt() {
         buttonText="닫기"
         onPress={() => setCancelUnavailableOpen(false)}
         onRequestClose={() => setCancelUnavailableOpen(false)}
+      />
+
+      <AlertModal
+        visible={contactGuesthouseOpen}
+        message={`신청이 확정된 콘텐츠입니다.\n취소 및 환불은 해당 게스트하우스로\n직접 문의해주세요.`}
+        buttonText="확인"
+        onPress={() => setContactGuesthouseOpen(false)}
+        onRequestClose={() => setContactGuesthouseOpen(false)}
       />
     </View>
   );

@@ -20,8 +20,8 @@ const couponEventImageUri = Image.resolveAssetSource(
 const FALLBACK_HTML_FRAGMENT = `
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
     <div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">쿠폰 상세</div>
-      <div style="font-size:14px;line-height:22px;color:#73787E;">쿠폰 화면을 불러오지 못했어요.</div>
+      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">이벤트 상세</div>
+      <div style="font-size:14px;line-height:22px;color:#73787E;">이벤트 화면을 불러오지 못했어요.</div>
     </div>
   </div>
 `;
@@ -215,7 +215,10 @@ const TemporaryEventBanner = () => {
 
   const webViewSource = useMemo(() => {
     if (bannerHtml) {
-      return { html: createHtmlDocument(bannerHtml) };
+      const processedHtml = typeof bannerHtml === 'string'
+        ? bannerHtml.replace(/쿠폰 상세/g, '이벤트 상세')
+        : bannerHtml;
+      return { html: createHtmlDocument(processedHtml) };
     }
     return {
       html: createHtmlDocument(
@@ -238,12 +241,27 @@ const TemporaryEventBanner = () => {
         (function() {
           function updateButton() {
             var textSpan = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="쿠폰 받기"] span');
-            var svgIcon = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="Button"] svg');
+            var svgIcons = document.querySelectorAll('[layer-name="Bottom Action Button"] [layer-name="Button"] svg');
             if (textSpan && textSpan.textContent.trim() === '쿠폰 받기') {
               textSpan.textContent = '참여하기';
             }
-            if (svgIcon) {
-              svgIcon.style.display = 'none';
+            if (svgIcons) {
+              svgIcons.forEach(function(icon) {
+                icon.style.display = 'none';
+              });
+            }
+            
+            // 헤더 우측의 외부 링크 관련 아이콘 제거
+            var header = document.querySelector('[layer-name="Header"]');
+            if (header) {
+              var children = header.children;
+              for (var i = 0; i < children.length; i++) {
+                var child = children[i];
+                var layerName = child.getAttribute('layer-name');
+                if (i > 0 && layerName !== 'Heading 1') {
+                  child.style.display = 'none';
+                }
+              }
             }
           }
           updateButton();
