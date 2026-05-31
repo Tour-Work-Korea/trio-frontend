@@ -172,7 +172,6 @@ export default function RecruitTapSection({recruit}) {
       {/* 이미지 선택 모달 */}
       <ImageModal
         visible={imageModalVisible}
-        title={recruit.guesthouseName}
         images={recruit?.recruitImages?.map((item, idx) => ({
           id: idx,
           imageUrl: item.recruitImageUrl,

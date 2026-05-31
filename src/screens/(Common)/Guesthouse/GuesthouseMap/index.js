@@ -7,6 +7,7 @@ import Toast from 'react-native-toast-message';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
+import {formatGuesthouseAddress} from '@utils/formatAddress';
 
 import CopyIcon from '@assets/images/copy_fill_black.svg';
 import HomeIcon from '@assets/images/home_white_filled.svg';
@@ -20,6 +21,7 @@ const GuesthouseMap = ({route}) => {
   const {
     guesthouseName,
     guesthouseAddress,
+    guesthouseAddressDetail,
     latitude,
     longitude,
     lat,
@@ -38,13 +40,17 @@ const GuesthouseMap = ({route}) => {
     latitudeDelta: 0.006,
     longitudeDelta: 0.006,
   };
+  const displayAddress = formatGuesthouseAddress(
+    guesthouseAddress,
+    guesthouseAddressDetail,
+  );
 
   const handleCopyAddress = () => {
-    if (!guesthouseAddress) {
+    if (!displayAddress) {
       return;
     }
 
-    Clipboard.setString(guesthouseAddress);
+    Clipboard.setString(displayAddress);
     Toast.show({
       type: 'success',
       text1: '주소를 복사했어요!',
@@ -82,7 +88,7 @@ const GuesthouseMap = ({route}) => {
             style={[FONTS.fs_16_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {guesthouseAddress || '주소 정보가 없어요'}
+            {displayAddress || '주소 정보가 없어요'}
           </Text>
         </TouchableOpacity>
       </View>

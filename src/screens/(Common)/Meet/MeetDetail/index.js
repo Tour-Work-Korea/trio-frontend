@@ -834,7 +834,6 @@ const MeetDetail = () => {
       {hasImages && (
         <ImageModal
           visible={imageModalVisible}
-          title={partyTitle}
           images={modalImages}
           selectedImageIndex={imageIndex}
           onClose={() => setImageModalVisible(false)}

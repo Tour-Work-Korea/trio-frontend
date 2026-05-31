@@ -49,16 +49,23 @@ const styles = StyleSheet.create({
   nameIconContainer: {
     justifyContent: 'space-between',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 4,
+  },
+  nameWrapper: {
+    flex: 1,
+    paddingRight: 12,
   },
   name: {
     lineHeight: 28,
+    flexShrink: 1,
   },
   // 공유, 좋아요 아이콘 박스
   topIcons: {
     flexDirection: 'row',
+    flexShrink: 0,
     gap: 12,
+    paddingTop: 4,
   },
 
   addressSection: {

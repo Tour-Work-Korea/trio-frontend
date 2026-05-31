@@ -44,10 +44,16 @@ const Header = ({
     </TouchableOpacity>
   ) : null);
 
+  const titleHorizontalPadding = rightElement ? 148 : 64;
+
   return (
     <View style={styles.container}>
       {title ? (
-        <View style={styles.subTitleWrapper}>
+        <View
+          style={[
+            styles.subTitleWrapper,
+            {paddingHorizontal: titleHorizontalPadding},
+          ]}>
           <View style={[styles.sideSlot, styles.leftContainer]}>
             {showBackButton ? (
               <TouchableOpacity style={styles.iconButton} onPress={handleOnPress}>
@@ -55,7 +61,12 @@ const Header = ({
               </TouchableOpacity>
             ) : null}
           </View>
-          <Text style={[styles.subTitle]}>{title}</Text>
+          <Text
+            style={[styles.subTitle]}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {title}
+          </Text>
         </View>
       ) : (
         <View style={styles.logoWrapper}>
@@ -108,6 +119,7 @@ const styles = StyleSheet.create({
   subTitle: {
     ...FONTS.fs_20_semibold,
     color: COLORS.grayscale_800,
+    maxWidth: '100%',
   },
   logoWrapper: {
     alignSelf: 'center', // 로고를 수평 가운데로

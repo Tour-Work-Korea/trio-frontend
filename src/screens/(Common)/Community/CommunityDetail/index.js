@@ -21,7 +21,7 @@ import Avatar from '@components/Avatar';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
 import AlertModal from '@components/modals/AlertModal';
-import CommunityImageModal from '@components/modals/CommunityImageModal';
+import ImageModal from '@components/modals/ImageModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
@@ -1534,7 +1534,7 @@ const CommunityDetail = ({route}) => {
         onRequestClose={closeCommentAlert}
       />
 
-      <CommunityImageModal
+      <ImageModal
         visible={imageModalVisible}
         images={modalImages}
         selectedImageIndex={selectedImageIndex}

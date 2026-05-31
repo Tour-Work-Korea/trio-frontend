@@ -27,7 +27,7 @@ import Loading from '@components/Loading';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import { toggleFavorite } from '@utils/toggleFavorite';
-import { trimJejuPrefix } from '@utils/formatAddress';
+import {formatGuesthouseAddress} from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 
@@ -228,10 +228,10 @@ const GuesthouseDetail = ({route}) => {
   const handlePressAddress = () => {
     navigation.navigate('GuesthouseLocationMap', {
       guesthouseName: detail?.guesthouseName,
-      guesthouseAddress: [
-        trimJejuPrefix(detail?.guesthouseAddress),
+      guesthouseAddress: formatGuesthouseAddress(
+        detail?.guesthouseAddress,
         detail?.guesthouseAddressDetail,
-      ].filter(Boolean).join(' '),
+      ),
       latitude: detail?.lat,
       longitude: detail?.lng,
     });
@@ -530,7 +530,7 @@ const GuesthouseDetail = ({route}) => {
       <View style={styles.contentWrapper}>
         <View style={styles.contentTopWrapper}>
           <View style={styles.nameIconContainer}>
-            <View>
+            <View style={styles.nameWrapper}>
               <Text style={[FONTS.fs_20_semibold, styles.name]}>
                 {detail.guesthouseName}
               </Text>
@@ -558,7 +558,10 @@ const GuesthouseDetail = ({route}) => {
           >
             <MapPinIcon width={20} height={20}/>
             <Text style={[FONTS.fs_14_regular, styles.address]}>
-              {trimJejuPrefix(detail.guesthouseAddress)} {detail.guesthouseAddressDetail}
+              {formatGuesthouseAddress(
+                detail.guesthouseAddress,
+                detail.guesthouseAddressDetail,
+              )}
             </Text>
             <RightChevronBlack width={12} height={12}/>
           </TouchableOpacity>
@@ -681,7 +684,6 @@ const GuesthouseDetail = ({route}) => {
       {hasImages && (
         <ImageModal
           visible={imageModalVisible}
-          title={detail.guesthouseName}
           images={modalImages}
           selectedImageIndex={imageIndex}
           onClose={() => setImageModalVisible(false)}
