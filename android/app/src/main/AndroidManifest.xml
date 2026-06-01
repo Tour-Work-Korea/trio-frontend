@@ -29,6 +29,7 @@
       <package android:name="kr.co.citibank.citimobile" />
       <package android:name="com.kakao.talk" />
       <package android:name="com.nhnent.payapp" />
+      <package android:name="com.nhn.android.nmap" />
       <package android:name="com.wooricard.smartapp" />
       <package android:name="com.wooribank.smart.npib" />
       <package android:name="viva.republica.toss" />
@@ -48,6 +49,10 @@
         <category android:name="android.intent.category.BROWSABLE" />
         <data android:scheme="https" />
       </intent>
+      <intent>
+        <action android:name="android.intent.action.VIEW" />
+        <data android:scheme="nmap" />
+      </intent>
     </queries>
 
     <application
@@ -64,6 +69,9 @@
       <meta-data
         android:name="com.google.android.geo.API_KEY"
         android:value="@string/google_maps_api_key" />
+      <meta-data
+        android:name="com.naver.maps.map.NCP_KEY_ID"
+        android:value="8bnkgnibz0" />
 
       <meta-data
         android:name="com.kakao.sdk.AppKey"

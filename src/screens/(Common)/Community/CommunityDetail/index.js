@@ -370,6 +370,14 @@ const CommunityDetail = ({route}) => {
     setIsCommentFocused(true);
   };
 
+  const handleChangeCommentText = text => {
+    if (!canWriteComment) {
+      return;
+    }
+
+    setCommentValue(text);
+  };
+
   const handlePressComment = item => {
     if (!requireCommentLogin()) {
       return;
@@ -514,6 +522,10 @@ const CommunityDetail = ({route}) => {
 
   const handleAddCommentImages = async () => {
     if (editingTarget) {
+      return;
+    }
+
+    if (!requireCommentLogin()) {
       return;
     }
 
@@ -1491,8 +1503,7 @@ const CommunityDetail = ({route}) => {
             placeholderTextColor={COLORS.grayscale_400}
             value={commentValue}
             maxLength={COMMENT_MAX_LENGTH}
-            editable={canWriteComment}
-            onChangeText={setCommentValue}
+            onChangeText={handleChangeCommentText}
             onPressIn={() => {
               if (!canWriteComment) {
                 showCommentLoginModal();

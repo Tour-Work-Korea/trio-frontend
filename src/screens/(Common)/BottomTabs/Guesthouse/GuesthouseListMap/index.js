@@ -14,7 +14,10 @@ import {
   View,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import MapView, {Marker} from 'react-native-maps';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
@@ -52,13 +55,41 @@ const DEFAULT_REGION = {
 };
 const CLUSTER_DISTANCE_PX = 28;
 const MARKER_BUBBLE_WIDTH = 232;
-const MARKER_ANCHOR = Platform.select({
-  android: {x: 0.5, y: 0.5},
-  default: {x: 0.5, y: 1},
-});
+const MARKER_ANCHOR = {x: 0.5, y: 0.5};
 const CURRENT_LOCATION_ANIMATION_MS = 1;
 const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 const DETAIL_IMAGE_SCROLL_STEP = 116;
+const centerRegionToNaverRegion = region => {
+  if (!region) {
+    return null;
+  }
+
+  return {
+    latitude: region.latitude - region.latitudeDelta / 2,
+    longitude: region.longitude - region.longitudeDelta / 2,
+    latitudeDelta: region.latitudeDelta,
+    longitudeDelta: region.longitudeDelta,
+  };
+};
+
+const getBoundsFromRegion = region => {
+  if (
+    !region
+    || !Number.isFinite(region.latitude)
+    || !Number.isFinite(region.longitude)
+    || !Number.isFinite(region.latitudeDelta)
+    || !Number.isFinite(region.longitudeDelta)
+  ) {
+    return null;
+  }
+
+  return {
+    swLat: region.latitude - region.latitudeDelta / 2,
+    swLng: region.longitude - region.longitudeDelta / 2,
+    neLat: region.latitude + region.latitudeDelta / 2,
+    neLng: region.longitude + region.longitudeDelta / 2,
+  };
+};
 
 const normalizeGuesthouses = guesthouses =>
   (Array.isArray(guesthouses) ? guesthouses : []).map(item => ({
@@ -405,21 +436,6 @@ const requestLocationPermission = async () => {
   };
 };
 
-const checkLocationPermission = async () => {
-  if (Platform.OS === 'ios') {
-    return true;
-  }
-
-  const hasFinePermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-  );
-  const hasCoarsePermission = await PermissionsAndroid.check(
-    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-  );
-
-  return hasFinePermission || hasCoarsePermission;
-};
-
 const showLocationPermissionAlert = () => {
   Alert.alert(
     '위치 권한이 필요해요',
@@ -516,9 +532,6 @@ const GuesthouseListMap = ({
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isCurrentLocationLoading, setIsCurrentLocationLoading] = useState(false);
-  const [hasLocationPermission, setHasLocationPermission] = useState(
-    Platform.OS === 'ios',
-  );
   const [currentLocation, setCurrentLocation] = useState(null);
 
   const clusters = useMemo(
@@ -644,26 +657,6 @@ const GuesthouseListMap = ({
   }, [currentLocationPulse]);
 
   useEffect(() => {
-    let isMounted = true;
-
-    checkLocationPermission()
-      .then(granted => {
-        if (isMounted) {
-          setHasLocationPermission(granted);
-        }
-      })
-      .catch(() => {
-        if (isMounted) {
-          setHasLocationPermission(Platform.OS === 'ios');
-        }
-      });
-
-    return () => {
-      isMounted = false;
-    };
-  }, []);
-
-  useEffect(() => {
     setCurrentRegion(initialRegion);
   }, [initialRegion]);
 
@@ -672,7 +665,10 @@ const GuesthouseListMap = ({
       return;
     }
 
-    mapRef.current?.animateToRegion(initialRegion, 1);
+    mapRef.current?.animateRegionTo({
+      ...centerRegionToNaverRegion(initialRegion),
+      duration: 1,
+    });
   }, [initialRegion, mapReady]);
 
   useEffect(() => {
@@ -733,7 +729,10 @@ const GuesthouseListMap = ({
     setCurrentRegion(initialRegion);
 
     if (mapReady && initialRegion) {
-      mapRef.current?.animateToRegion(initialRegion, 1);
+      mapRef.current?.animateRegionTo({
+        ...centerRegionToNaverRegion(initialRegion),
+        duration: 1,
+      });
     }
   }, [initialRegion, mapReady, resetKey]);
 
@@ -743,36 +742,8 @@ const GuesthouseListMap = ({
   }, [selectedItem?.id]);
 
   const getCurrentBounds = useCallback(async () => {
-    const boundaries = await mapRef.current?.getMapBoundaries?.();
-
-    if (!boundaries?.northEast || !boundaries?.southWest) {
-      return null;
-    }
-
-    const swLat = Math.min(
-      boundaries.southWest.latitude,
-      boundaries.northEast.latitude,
-    );
-    const neLat = Math.max(
-      boundaries.southWest.latitude,
-      boundaries.northEast.latitude,
-    );
-    const swLng = Math.min(
-      boundaries.southWest.longitude,
-      boundaries.northEast.longitude,
-    );
-    const neLng = Math.max(
-      boundaries.southWest.longitude,
-      boundaries.northEast.longitude,
-    );
-
-    return {
-      swLat,
-      swLng,
-      neLat,
-      neLng,
-    };
-  }, []);
+    return getBoundsFromRegion(currentRegion);
+  }, [currentRegion]);
 
   const fetchMapGuesthouses = useCallback(async bounds => {
     if (!checkIn || !checkOut || !bounds) {
@@ -846,7 +817,7 @@ const GuesthouseListMap = ({
   const handleRegionChangeComplete = useCallback(async region => {
     setCurrentRegion(region);
 
-    const bounds = await getCurrentBounds();
+    const bounds = getBoundsFromRegion(region);
 
     if (!bounds || !lastFetchedBounds) {
       return;
@@ -860,7 +831,20 @@ const GuesthouseListMap = ({
 
     setPendingBounds(null);
     setShowResearchButton(false);
-  }, [getCurrentBounds, lastFetchedBounds]);
+  }, [lastFetchedBounds]);
+
+  const handleCameraIdle = useCallback(params => {
+    const region = {
+      latitude: params.latitude,
+      longitude: params.longitude,
+      latitudeDelta:
+        params.region?.latitudeDelta ?? currentRegion.latitudeDelta,
+      longitudeDelta:
+        params.region?.longitudeDelta ?? currentRegion.longitudeDelta,
+    };
+
+    handleRegionChangeComplete(region);
+  }, [currentRegion, handleRegionChangeComplete]);
 
   const handleMapLayout = useCallback(event => {
     const {width, height} = event.nativeEvent.layout;
@@ -900,8 +884,6 @@ const GuesthouseListMap = ({
         return;
       }
 
-      setHasLocationPermission(true);
-
       const position =
         Platform.OS === 'android'
           ? await getAndroidCurrentPosition()
@@ -923,10 +905,10 @@ const GuesthouseListMap = ({
       });
       setCurrentRegion(nextRegion);
       handleClearSelection();
-      mapRef.current?.animateToRegion(
-        nextRegion,
-        CURRENT_LOCATION_ANIMATION_MS,
-      );
+      mapRef.current?.animateRegionTo({
+        ...centerRegionToNaverRegion(nextRegion),
+        duration: CURRENT_LOCATION_ANIMATION_MS,
+      });
     } catch (error) {
       console.warn('현재 위치 조회 실패', error);
       if (Platform.OS === 'ios' && error?.code === 1) {
@@ -1050,7 +1032,10 @@ const GuesthouseListMap = ({
     };
 
     setCurrentRegion(nextRegion);
-    mapRef.current.animateToRegion(nextRegion, GUESTHOUSE_FOCUS_ANIMATION_MS);
+    mapRef.current.animateRegionTo({
+      ...centerRegionToNaverRegion(nextRegion),
+      duration: GUESTHOUSE_FOCUS_ANIMATION_MS,
+    });
   }, [currentRegion]);
 
   useEffect(() => {
@@ -1139,42 +1124,40 @@ const GuesthouseListMap = ({
       )}
 
       <View style={styles.mapContainer}>
-        <MapView
+        <NaverMapView
           ref={mapRef}
           style={styles.map}
-          initialRegion={initialRegion}
+          initialRegion={centerRegionToNaverRegion(initialRegion)}
           onLayout={handleMapLayout}
-          onMapReady={() => setMapReady(true)}
-          onPanDrag={handleClearSelection}
-          onRegionChangeComplete={handleRegionChangeComplete}
-          showsUserLocation={Platform.OS === 'ios' && hasLocationPermission}
-          showsMyLocationButton={false}
-          toolbarEnabled={false}>
+          onInitialized={() => setMapReady(true)}
+          onCameraChanged={params => {
+            if (params.reason === 'Gesture') {
+              handleClearSelection();
+            }
+          }}
+          onCameraIdle={handleCameraIdle}>
           {orderedClusters.map(cluster => {
             const isSelected = cluster.key === selectedCluster?.key;
             const isSoldOutCluster = isClusterReserved(cluster);
 
             return (
-              <Marker
+              <NaverMapMarkerOverlay
                 key={cluster.key}
-                coordinate={cluster.coordinate}
+                latitude={cluster.coordinate.latitude}
+                longitude={cluster.coordinate.longitude}
                 anchor={MARKER_ANCHOR}
+                width={52}
+                height={52}
                 zIndex={isSelected ? 999 : 1}
-                onPress={
-                  Platform.OS === 'android'
-                    ? () => handlePressMarker(cluster)
-                    : undefined
-                }>
-                <View style={styles.markerWrap} pointerEvents="box-none">
+                onTap={() => handlePressMarker(cluster)}>
+                <View
+                  collapsable={false}
+                  style={styles.markerWrap}
+                  pointerEvents="box-none">
                   <TouchableOpacity
                     activeOpacity={1}
                     style={styles.markerContainer}
-                    disabled={Platform.OS === 'android'}
-                    onPress={
-                      Platform.OS === 'android'
-                        ? undefined
-                        : () => handlePressMarker(cluster)
-                    }>
+                    onPress={() => handlePressMarker(cluster)}>
                     {isSelected ? (
                       <View
                         style={[
@@ -1201,10 +1184,10 @@ const GuesthouseListMap = ({
                     )}
                   </TouchableOpacity>
                 </View>
-              </Marker>
+              </NaverMapMarkerOverlay>
             );
           })}
-        </MapView>
+        </NaverMapView>
 
         {currentLocationMarkerPosition && (
           <View

@@ -426,6 +426,33 @@ const styles = StyleSheet.create({
   refundEmptyText: {
     color: COLORS.grayscale_600,
   },
+  loginModalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.modal_background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  loginModalContainer: {
+    width: '90%',
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+  },
+  loginModalTitle: {
+    color: COLORS.grayscale_900,
+    textAlign: 'center',
+  },
+  loginModalButtonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 20,
+  },
+  loginModalButton: {
+    flex: 1,
+  },
 });
 
 export default styles;

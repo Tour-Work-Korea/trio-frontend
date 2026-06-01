@@ -4,7 +4,6 @@ import {
   Text,
   ScrollView,
   TouchableOpacity,
-  Alert,
   Linking,
   ActivityIndicator,
 } from 'react-native';
@@ -25,6 +24,7 @@ import ButtonWhite from '@components/ButtonWhite';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import {openNaverDirections} from '@utils/openNaverDirections';
 
 import XBtn from '@assets/images/x_gray.svg';
 import CopyIcon from '@assets/images/copy_fill_black.svg';
@@ -488,12 +488,30 @@ const GuesthousePaymentReceipt = () => {
 
   // 길찾기
   const handleFindWay = async () => {
-    Toast.show({
-      type: 'success',
-      text1: '준비중인 기능이에요',
-      position: 'top',
-      visibilityTime: 2000,
-    });
+    try {
+      const opened = await openNaverDirections({
+        latitude: data?.guesthouse?.latitude,
+        longitude: data?.guesthouse?.longitude,
+        name: data?.guesthouse?.name,
+        address: data?.guesthouse?.address,
+      });
+
+      if (!opened) {
+        Toast.show({
+          type: 'error',
+          text1: '길찾기를 열 수 있는 위치 정보가 없어요',
+          position: 'top',
+          visibilityTime: 2500,
+        });
+      }
+    } catch (error) {
+      Toast.show({
+        type: 'error',
+        text1: '길찾기를 열 수 없어요',
+        position: 'top',
+        visibilityTime: 2500,
+      });
+    }
   };
 
   const handleRefundlessCancel = async () => {

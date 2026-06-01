@@ -12,7 +12,6 @@ import Loading from '@components/Loading';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
-import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import AlertModal from '@components/modals/AlertModal';
 
 export default function MeetPaymentReceipt() {
@@ -25,12 +24,14 @@ export default function MeetPaymentReceipt() {
   const [contactGuesthouseOpen, setContactGuesthouseOpen] = useState(false);
 
   const fetchReservationDetail = useCallback(async () => {
-    if (!reservationId) return;
+    if (!reservationId) {
+      return;
+    }
     try {
       setLoading(true);
       const {data} =
         await reservationPaymentApi.getPartyReservationDetail(reservationId);
-      
+
       if (data?.reservationStatus === 'CANCELLED') {
         Toast.show({
           type: 'error',
@@ -89,30 +90,18 @@ export default function MeetPaymentReceipt() {
   const endFormatted = formatLocalDateTimeToDotAndTimeWithDay(
     reservationDetail?.endDateTime,
   );
-  const approvedFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-    reservationDetail?.approvedAt,
-  );
-  const formatPrice = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
-  const formatPoint = value => `${Number(value || 0).toLocaleString('ko-KR')}P`;
-  const couponDiscountAmount =
-    typeof reservationDetail?.couponDiscountAmount === 'number'
-      ? reservationDetail.couponDiscountAmount
-      : 0;
-  const pointDiscountAmount =
-    typeof reservationDetail?.pointDiscountAmount === 'number'
-      ? reservationDetail.pointDiscountAmount
-      : 0;
-  const finalAmount =
-    typeof reservationDetail?.totalAmount === 'number'
-      ? reservationDetail.totalAmount
-      : typeof reservationDetail?.amount === 'number'
-        ? reservationDetail.amount
-        : 0;
-  const originalAmount = finalAmount + couponDiscountAmount + pointDiscountAmount;
-  const paymentTypeText = useMemo(() => {
-    return PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] || '-';
-  }, [reservationDetail?.paymentType]);
   const partyDescription = reservationDetail?.partyDescription ?? '';
+  const partyAnnouncementItems = useMemo(() => {
+    const announcements = Array.isArray(reservationDetail?.partyAnnouncements)
+      ? reservationDetail.partyAnnouncements
+      : [];
+
+    return announcements
+      .map(item => (typeof item === 'string' ? item : item?.announcement))
+      .map(item => item?.trim())
+      .filter(Boolean);
+  }, [reservationDetail?.partyAnnouncements]);
+  const hasPartyAnnouncements = partyAnnouncementItems.length > 0;
   const reservationRequest = reservationDetail?.reservationRequest?.trim() ?? '';
   const handlePressCancel = () => {
     const startDate = reservationDetail?.startDateTime
@@ -214,9 +203,25 @@ export default function MeetPaymentReceipt() {
 
           {/* 안내 박스 */}
           <View style={styles.noticeBox}>
-            <Text style={[FONTS.fs_14_medium, styles.noticeText]}>
-              {partyDescription}
+            <Text style={[FONTS.fs_14_semibold, styles.noticeTitle]}>
+              안내 사항
             </Text>
+            {hasPartyAnnouncements ? (
+              partyAnnouncementItems.map((announcement, index) => (
+                <View
+                  key={`${announcement}-${index}`}
+                  style={styles.noticeItem}>
+                  <View style={styles.noticeBullet} />
+                  <Text style={[FONTS.fs_14_medium, styles.noticeText]}>
+                    {announcement}
+                  </Text>
+                </View>
+              ))
+            ) : (
+              <Text style={[FONTS.fs_14_medium, styles.noticeText]}>
+                {partyDescription || '등록된 안내 사항이 없습니다.'}
+              </Text>
+            )}
           </View>
 
           {reservationRequest ? (
@@ -308,7 +313,7 @@ export default function MeetPaymentReceipt() {
 
       <AlertModal
         visible={contactGuesthouseOpen}
-        message={`신청이 확정된 콘텐츠입니다.\n취소 및 환불은 해당 게스트하우스로\n직접 문의해주세요.`}
+        message={'신청이 확정된 콘텐츠입니다.\n취소 및 환불은 해당 게스트하우스로\n직접 문의해주세요.'}
         buttonText="확인"
         onPress={() => setContactGuesthouseOpen(false)}
         onRequestClose={() => setContactGuesthouseOpen(false)}

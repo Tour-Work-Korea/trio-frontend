@@ -30,6 +30,7 @@ import { toggleFavorite } from '@utils/toggleFavorite';
 import {formatGuesthouseAddress} from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
+import ButtonWhite from '@components/ButtonWhite';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
@@ -126,6 +127,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 날짜, 인원 변경
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
+  const [loginModalVisible, setLoginModalVisible] = useState(false);
   // 화면 내부 표시/전달용 로컬 상태
   const [localCheckIn, setLocalCheckIn] = useState(checkIn);
   const [localCheckOut, setLocalCheckOut] = useState(checkOut);
@@ -189,11 +191,19 @@ const GuesthouseDetail = ({route}) => {
         type: 'guesthouse',
         id,
         isLiked: current,
-        setItem: setDetail,
+        showLoginModal: () => setLoginModalVisible(true),
       });
       if (success === false) {
         return;
       }
+      setDetail(prev =>
+        prev
+          ? {
+              ...prev,
+              isLiked: next,
+            }
+          : prev,
+      );
       addRecentGuesthouse({
         ...detail,
         guesthouseId: id,
@@ -710,6 +720,32 @@ const GuesthouseDetail = ({route}) => {
           initChildGuestCount={localChildren}
         />
       )}
+      {loginModalVisible ? (
+        <View style={styles.loginModalOverlay}>
+          <View style={styles.loginModalContainer}>
+            <Text style={[FONTS.fs_18_semibold, styles.loginModalTitle]}>
+              좋아요 기능은{'\n'} 로그인 후 사용해주세요
+            </Text>
+            <View style={styles.loginModalButtonRow}>
+              <ButtonWhite
+                title="취소"
+                onPress={() => setLoginModalVisible(false)}
+                style={styles.loginModalButton}
+              />
+              <ButtonWhite
+                title="로그인하기"
+                backgroundColor={COLORS.primary_orange}
+                textColor={COLORS.grayscale_0}
+                onPress={() => {
+                  setLoginModalVisible(false);
+                  navigation.navigate('Login');
+                }}
+                style={styles.loginModalButton}
+              />
+            </View>
+          </View>
+        </View>
+      ) : null}
     </View>
   );
 };
