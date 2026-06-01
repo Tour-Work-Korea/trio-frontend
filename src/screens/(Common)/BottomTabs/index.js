@@ -90,7 +90,7 @@ const BottomTabs = () => (
                 buttonText2: '취소',
                 buttonText: '로그인하기',
                 onPress: () => navigation.navigate('Login'),
-                onPress2: () => navigation.navigate('MainTabs', {screen: '홈'}),
+                onPress2: () => {},
               });
             }
           },

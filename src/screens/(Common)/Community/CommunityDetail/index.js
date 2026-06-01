@@ -21,7 +21,7 @@ import Avatar from '@components/Avatar';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
 import AlertModal from '@components/modals/AlertModal';
-import CommunityImageModal from '@components/modals/CommunityImageModal';
+import ImageModal from '@components/modals/ImageModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
@@ -370,6 +370,14 @@ const CommunityDetail = ({route}) => {
     setIsCommentFocused(true);
   };
 
+  const handleChangeCommentText = text => {
+    if (!canWriteComment) {
+      return;
+    }
+
+    setCommentValue(text);
+  };
+
   const handlePressComment = item => {
     if (!requireCommentLogin()) {
       return;
@@ -514,6 +522,10 @@ const CommunityDetail = ({route}) => {
 
   const handleAddCommentImages = async () => {
     if (editingTarget) {
+      return;
+    }
+
+    if (!requireCommentLogin()) {
       return;
     }
 
@@ -1491,8 +1503,7 @@ const CommunityDetail = ({route}) => {
             placeholderTextColor={COLORS.grayscale_400}
             value={commentValue}
             maxLength={COMMENT_MAX_LENGTH}
-            editable={canWriteComment}
-            onChangeText={setCommentValue}
+            onChangeText={handleChangeCommentText}
             onPressIn={() => {
               if (!canWriteComment) {
                 showCommentLoginModal();
@@ -1534,7 +1545,7 @@ const CommunityDetail = ({route}) => {
         onRequestClose={closeCommentAlert}
       />
 
-      <CommunityImageModal
+      <ImageModal
         visible={imageModalVisible}
         images={modalImages}
         selectedImageIndex={selectedImageIndex}

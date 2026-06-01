@@ -57,9 +57,27 @@ const styles = StyleSheet.create({
     padding: 16,
     marginBottom: 20,
     marginTop: 12,
+    gap: 10,
+  },
+  noticeTitle: {
+    color: COLORS.grayscale_900,
+  },
+  noticeItem: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 8,
+  },
+  noticeBullet: {
+    width: 5,
+    height: 5,
+    borderRadius: 999,
+    backgroundColor: COLORS.primary_orange,
+    marginTop: 9,
   },
   noticeText: {
     lineHeight: 22,
+    color: COLORS.grayscale_700,
+    flex: 1,
   },
   requestBox: {
     borderWidth: 1,

@@ -323,7 +323,6 @@ const RoomDetail = ({route}) => {
       {hasImages && (
         <ImageModal
           visible={imageModalVisible}
-          title={roomName}
           images={modalImages}
           selectedImageIndex={imageIndex}
           onClose={() => setImageModalVisible(false)}

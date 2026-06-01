@@ -43,7 +43,9 @@ api.interceptors.request.use(
     if (config.withAuth !== false) {
       log.info(`🔑 [${id}] accessToken=`, mask(token));
     }
-    if (config.data) log.info(`📦 [${id}] body=`, config.data);
+    if (config.data) {
+      log.info(`📦 [${id}] body=`, config.data);
+    }
 
     return config;
   },
@@ -128,7 +130,7 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        const ok = await tryRefresh(); // ✅ 여기서 호출
+        const ok = await tryRefresh({silent: true}); // 호출한 화면에서 직접 처리하도록 자동 이동은 막는다.
         if (!ok) {
           resolveQueue(new Error('refresh failed'), null);
           return Promise.reject(err);

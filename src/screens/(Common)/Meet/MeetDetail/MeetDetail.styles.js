@@ -195,32 +195,43 @@ const styles = StyleSheet.create({
     paddingVertical: 12,
     paddingHorizontal: 8,
     borderRadius: 8,
+    overflow: 'hidden',
   },
   infoTitleText: {
     marginBottom: 8,
   },
   detailInfoText: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
     alignItems: 'center',
+    gap: 8,
+    width: '100%',
+    overflow: 'hidden',
   },
   tagWrapper: {
     flex: 1,
-    marginRight: 8,
+    flexBasis: 0,
+    flexShrink: 1,
     minWidth: 0,
+    overflow: 'hidden',
   },
   tagText: {
     color: COLORS.primary_blue,
     flexShrink: 1,
+    width: '100%',
   },
   detailInfoBtn: {
     alignItems: 'center',
     flexDirection: 'row',
     gap: 4,
+    width: 112,
     flexShrink: 0,
+    minWidth: 0,
   },
   detailInfoBtnText: {
     color: COLORS.grayscale_400,
+    flex: 1,
+    flexShrink: 1,
+    minWidth: 0,
   },
   locationMapContainer: {
     height: 180,
@@ -231,6 +242,26 @@ const styles = StyleSheet.create({
   locationMap: {
     flex: 1,
   },
+  markerContainer: {
+    alignItems: 'center',
+  },
+  homeMarker: {
+    width: 44,
+    height: 44,
+    borderRadius: 100,
+    backgroundColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.grayscale_0,
+  },
+  markerTail: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary_orange,
+    marginTop: 4,
+  },
 
   // 콘텐츠 소개
   eventItem: {
@@ -240,24 +271,17 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     flexDirection: 'row',
   },
-  // eventTitle: {
-  //   color: COLORS.grayscale_400,
-  //   marginRight: 40,
-  // },
   eventDesc: {},
   eventBlock: {
-    marginBottom: 18,
+    marginBottom: 20,
   },
   eventImageRow: {
     paddingBottom: 10,
     alignItems: 'center',
-    justifyContent: 'center',
-    flexGrow: 1,
+    gap: 8,
   },
   eventImageBlog: {
-    width: 340,
-    height: 300,
-    // marginRight: 10,
+    borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
   },
   eventTitle: {
@@ -265,7 +289,7 @@ const styles = StyleSheet.create({
   },
   eventBody: {
     marginTop: 6,
-    lineHeight: 20,
+    lineHeight: 24,
     color: COLORS.grayscale_700,
   },
 

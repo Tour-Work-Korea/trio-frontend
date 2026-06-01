@@ -1,11 +1,12 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native'; 
+import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import { useFocusEffect } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import styles from './UserReservationCheck.styles';
 import { FONTS } from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 
 import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
@@ -24,9 +25,19 @@ const UPCOMING_STATUS_ORDER = {
 };
 
 const UserReservationCheck = () => {
-  const [activeTab, setActiveTab] = useState('upcoming');
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const {
+    pagerRef,
+    isActive,
+    onTabPress,
+    pageWidth,
+    onPagerLayout,
+    onMomentumScrollEnd,
+  } = useSwipeTabs({
+    tabs: TABS,
+    initialKey: 'upcoming',
+  });
 
   useEffect(() => {
     fetchReservationList();
@@ -70,8 +81,8 @@ const UserReservationCheck = () => {
     cancelled: reservations.filter(r => r.reservationStatus === 'CANCELLED'),
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
+  const renderTabContent = tabKey => {
+    switch (tabKey) {
       case 'upcoming':
         return (
           <UserUpcomingReservations
@@ -94,19 +105,19 @@ const UserReservationCheck = () => {
 
       {/* 탭 버튼 */}
       <View style={styles.tabContainer}>
-        {TABS.map(tab => (
+        {TABS.map((tab, index) => (
           <TouchableOpacity
             activeOpacity={1}
             key={tab.key}
             style={styles.tabButton}
-            onPress={() => setActiveTab(tab.key)}
+            onPress={() => onTabPress(index)}
           >
             <Text
               style={[
                 styles.tabText,
                 FONTS.fs_14_regular,
-                activeTab === tab.key && styles.activeTabText,
-                activeTab === tab.key && FONTS.fs_14_semibold,
+                isActive(tab.key) && styles.activeTabText,
+                isActive(tab.key) && FONTS.fs_14_semibold,
               ]}
             >
               {tab.label}
@@ -120,7 +131,24 @@ const UserReservationCheck = () => {
         {loading ? (
           <Loading title="예약 목록을 불러오고 있어요." />
         ) : (
-          renderTabContent()
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            pagingEnabled
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            onLayout={onPagerLayout}
+            onMomentumScrollEnd={onMomentumScrollEnd}
+            style={styles.tabPager}>
+            {TABS.map(tab => (
+              <View
+                key={tab.key}
+                style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
+                {renderTabContent(tab.key)}
+              </View>
+            ))}
+          </ScrollView>
         )}
       </View>
 

@@ -49,16 +49,23 @@ const styles = StyleSheet.create({
   nameIconContainer: {
     justifyContent: 'space-between',
     flexDirection: 'row',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     marginBottom: 4,
+  },
+  nameWrapper: {
+    flex: 1,
+    paddingRight: 12,
   },
   name: {
     lineHeight: 28,
+    flexShrink: 1,
   },
   // 공유, 좋아요 아이콘 박스
   topIcons: {
     flexDirection: 'row',
+    flexShrink: 0,
     gap: 12,
+    paddingTop: 4,
   },
 
   addressSection: {
@@ -418,6 +425,33 @@ const styles = StyleSheet.create({
   },
   refundEmptyText: {
     color: COLORS.grayscale_600,
+  },
+  loginModalOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.modal_background,
+    justifyContent: 'center',
+    alignItems: 'center',
+    zIndex: 1000,
+    elevation: 1000,
+  },
+  loginModalContainer: {
+    width: '90%',
+    backgroundColor: COLORS.grayscale_0,
+    borderRadius: 16,
+    padding: 20,
+    alignItems: 'center',
+  },
+  loginModalTitle: {
+    color: COLORS.grayscale_900,
+    textAlign: 'center',
+  },
+  loginModalButtonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 20,
+  },
+  loginModalButton: {
+    flex: 1,
   },
 });
 

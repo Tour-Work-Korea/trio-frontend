@@ -185,7 +185,6 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
       {imageModalVisible && (
         <ImageModal
           visible={imageModalVisible}
-          title="리뷰 사진"
           images={modalImages}
           selectedImageIndex={modalIndex}
           onClose={() => setImageModalVisible(false)}
