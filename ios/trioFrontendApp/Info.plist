@@ -56,6 +56,8 @@
 	<false/>
 	<key>KAKAO_APP_KEY</key>
 	<string>3b6c98b0e2a9e4d3ccdb9b453ccb27b8</string>
+	<key>NMFNcpKeyId</key>
+	<string>8bnkgnibz0</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kftc-bankpay</string>
@@ -105,6 +107,7 @@
 		<string>NewSmartPib</string>
 		<string>supertoss</string>
 		<string>naversearchthirdlogin</string>
+		<string>nmap</string>
 		<string>kakaobank</string>
 		<string>v3mobileplusweb</string>
 		<string>line</string>

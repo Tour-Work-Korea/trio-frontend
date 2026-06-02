@@ -67,6 +67,9 @@ const AlertModal = ({
       transparent={true}
       animationType="fade"
       visible={visible}
+      presentationStyle="overFullScreen"
+      statusBarTranslucent
+      navigationBarTranslucent
       onRequestClose={onRequestClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
@@ -86,28 +89,28 @@ const AlertModal = ({
           {message ? renderMessage() : null}
 
           {buttonText2 ? (
-            <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>
+            <View style={styles.buttonRow}>
               <ButtonWhite
                 title={buttonText2}
                 onPress={onPress2}
-                style={{flex: 1}}
+                style={styles.button}
               />
               <ButtonWhite
                 title={buttonText}
                 backgroundColor={color}
                 textColor={COLORS.grayscale_0}
                 onPress={onPress}
-                style={{flex: 1}}
+                style={styles.button}
               />
             </View>
           ) : (
-            <View style={{flexDirection: 'row', gap: 8, marginTop: 12}}>
+            <View style={styles.buttonRow}>
               <ButtonWhite
                 title={buttonText}
                 backgroundColor={color}
                 textColor={COLORS.grayscale_0}
                 onPress={onPress}
-                style={{flex: 1}}
+                style={styles.button}
               />
             </View>
           )}
@@ -119,6 +122,7 @@ const AlertModal = ({
 
 const styles = StyleSheet.create({
   overlay: {
+    ...StyleSheet.absoluteFillObject,
     flex: 1,
     backgroundColor: COLORS.modal_background,
     justifyContent: 'center',
@@ -145,6 +149,14 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
     marginTop: 8,
     textAlign: 'center',
+  },
+  buttonRow: {
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 12,
+  },
+  button: {
+    flex: 1,
   },
 });
 

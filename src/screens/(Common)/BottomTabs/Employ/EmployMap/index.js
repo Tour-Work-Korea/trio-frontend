@@ -1,6 +1,9 @@
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import MapView, {Marker} from 'react-native-maps';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 
 import {COLORS} from '@constants/colors';
@@ -14,28 +17,32 @@ const EmployMap = () => {
   // 제주도 내 임의 좌표 두 개
   const marker1 = {latitude: 33.499621, longitude: 126.531188};
 
-  // 랜더링 될 때 기준 좌표
-  const region = {
+  // 렌더링 될 때 기준 좌표
+  const initialCamera = {
     // 좌표
     latitude: 33.4999,
     longitude: 126.53,
     // 줌 레벨
-    latitudeDelta: 0.01,
-    longitudeDelta: 0.01,
+    zoom: 15,
   };
 
   return (
     <View style={{flex: 1}}>
-      <MapView style={styles.map} region={region}>
+      <NaverMapView style={styles.map} initialCamera={initialCamera}>
         {/* 공고 마커 */}
-        <Marker coordinate={marker1}>
-          <View style={styles.priceMarker}>
+        <NaverMapMarkerOverlay
+          latitude={marker1.latitude}
+          longitude={marker1.longitude}
+          width={132}
+          height={40}
+          anchor={{x: 0.5, y: 1}}>
+          <View collapsable={false} style={styles.priceMarker}>
             <Text style={[FONTS.fs_14_medium, styles.priceText]}>
               게스트하우스 이름
             </Text>
           </View>
-        </Marker>
-      </MapView>
+        </NaverMapMarkerOverlay>
+      </NaverMapView>
 
       <View style={styles.mapButtonContainer}>
         <TouchableOpacity

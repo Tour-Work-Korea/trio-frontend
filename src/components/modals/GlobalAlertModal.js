@@ -26,7 +26,7 @@ export default function GlobalAlertModal() {
   }, []);
 
   const close = () => {
-    setState(prev => ({...prev, visible: false}));
+    setState(initialState);
   };
 
   const handlePress = () => {
@@ -55,6 +55,7 @@ export default function GlobalAlertModal() {
       imageUri={state.imageUri}
       imageSource={state.imageSource}
       iconElement={state.iconElement}
+      onRequestClose={handlePress2}
     />
   );
 }

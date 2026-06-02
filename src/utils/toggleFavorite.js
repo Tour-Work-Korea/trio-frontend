@@ -16,6 +16,7 @@ import communityApi from './api/communityApi';
  * @param {boolean} isLiked
  * @param {Function|null} setList
  * @param {Function|null} setItem
+ * @param {Function|null} showLoginModal
  */
 
 export const toggleFavorite = async ({
@@ -24,6 +25,7 @@ export const toggleFavorite = async ({
   isLiked,
   setList = null,
   setItem = null,
+  showLoginModal = null,
 }) => {
   // 타입별 API 매핑
   const apiMap = {
@@ -64,7 +66,31 @@ export const toggleFavorite = async ({
     return;
   }
 
-  const role = useUserStore.getState().userRole;
+  const {accessToken, userRole: role} = useUserStore.getState();
+
+  const showLoginRequiredModal = () => {
+    if (showLoginModal) {
+      showLoginModal();
+      return;
+    }
+
+    showErrorModal({
+      message: '좋아요 기능은\n 로그인 후 사용해주세요',
+      buttonText: '로그인하기',
+      buttonText2: '취소',
+      onPress: () => {
+        if (navigationRef.isReady?.()) {
+          navigationRef.navigate('Login');
+        }
+      },
+      onPress2: () => {},
+    });
+  };
+
+  if (!accessToken || role !== 'USER') {
+    showLoginRequiredModal();
+    return false;
+  }
 
   // UI 먼저 토글
   if (setList) {
@@ -118,17 +144,7 @@ export const toggleFavorite = async ({
     // 로그인 유도 (role 확인, 401/403 등)
     const status = error?.response?.status;
     if (role !== 'USER' || status === 401 || status === 403) {
-      showErrorModal({
-        message: '좋아요 기능은\n 로그인 후 사용해주세요',
-        buttonText: '로그인하기',
-        buttonText2: '취소',
-        onPress: () => {
-          if (navigationRef.isReady?.()) {
-            navigationRef.navigate('Login');
-          }
-        },
-        onPress2: () => {},
-      });
+      showLoginRequiredModal();
       return false;
     }
 

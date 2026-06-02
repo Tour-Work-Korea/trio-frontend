@@ -14,7 +14,10 @@ import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import Carousel from 'react-native-reanimated-carousel';
-import MapView, { Marker } from 'react-native-maps';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
 
 dayjs.locale('ko');
 
@@ -42,6 +45,7 @@ import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyIcon from '@assets/images/meet_reservation_success.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import BellIcon from '@assets/images/warning_alarm_orange.svg';
+import HomeIcon from '@assets/images/home_white_filled.svg';
 
 const TABS = [
   { key: 'intro', label: '콘텐츠 소개' },
@@ -51,12 +55,10 @@ const TABS = [
 
 const SNACK_TAG_LABEL = {
   PARTY_FOOD: '음식 제공',
-  PARTY_DRINK: '음료 제공',
-  PARTY_SNACK: '간식 제공',
   PARTY_ALCOHOL: '주류 제공',
   PARTY_INDIVIDUAL: '각자 준비',
-  PARTY_TOGETHER: '다함께 준비',
-  PARTY_NO_SMOKE: '금연',
+  PARTY_TOGETHER: '같이 준비',
+  PARTY_FREE: '자유',
 };
 
 const PARKING_TAG_LABEL = {
@@ -69,6 +71,7 @@ const PARKING_TAG_LABEL = {
 
 const { width: SCREEN_W } = Dimensions.get('window');
 const IMAGE_H = 280;
+const TAB_CONTENT_HORIZONTAL_PADDING = 20;
 
 const PARTY_STATUS_LABEL = {
   RECRUIT_BEFORE: '모집 예정',
@@ -87,6 +90,50 @@ const toArray = value => {
     return [];
   }
   return [value];
+};
+
+const PartyEventImage = ({ uri, width }) => {
+  const [aspectRatio, setAspectRatio] = useState(null);
+
+  useEffect(() => {
+    if (!uri) {
+      setAspectRatio(null);
+      return;
+    }
+
+    let mounted = true;
+    Image.getSize(
+      uri,
+      (imageWidth, imageHeight) => {
+        if (mounted && imageWidth > 0 && imageHeight > 0) {
+          setAspectRatio(imageWidth / imageHeight);
+        }
+      },
+      () => {
+        if (mounted) {
+          setAspectRatio(null);
+        }
+      },
+    );
+
+    return () => {
+      mounted = false;
+    };
+  }, [uri]);
+
+  return (
+    <Image
+      source={{ uri }}
+      style={[
+        styles.eventImageBlog,
+        {
+          width,
+          aspectRatio: aspectRatio || 1,
+        },
+      ]}
+      resizeMode="cover"
+    />
+  );
 };
 
 const MeetDetail = () => {
@@ -178,7 +225,6 @@ const MeetDetail = () => {
     snackTags,
     snackInfo,
     rules,
-    guesthouseAddress,
     latitude,
     longitude,
     meetingPlace,
@@ -370,6 +416,10 @@ const MeetDetail = () => {
       .map(tag => PARKING_TAG_LABEL[tag])
       ?.filter(Boolean);
   }, [parkingTag]);
+  const eventImageWidth = Math.max(
+    (pageWidth || SCREEN_W) - TAB_CONTENT_HORIZONTAL_PADDING * 2,
+    0,
+  );
   const mapCoordinate = useMemo(() => {
     const lat = Number(latitude);
     const lng = Number(longitude);
@@ -383,37 +433,46 @@ const MeetDetail = () => {
       longitude: lng,
     };
   }, [latitude, longitude]);
-  const mapRegion = useMemo(() => {
+  const mapCamera = useMemo(() => {
     if (!mapCoordinate) {
       return null;
     }
 
     return {
       ...mapCoordinate,
-      latitudeDelta: 0.006,
-      longitudeDelta: 0.006,
+      zoom: 16,
     };
   }, [mapCoordinate]);
   const renderLocationMap = () => {
-    if (!mapCoordinate || !mapRegion) {
+    if (!mapCoordinate || !mapCamera) {
       return null;
     }
 
     return (
       <View style={styles.locationMapContainer}>
-        <MapView
+        <NaverMapView
           style={styles.locationMap}
-          initialRegion={mapRegion}
-          scrollEnabled={false}
-          zoomEnabled={false}
-          rotateEnabled={false}
-          pitchEnabled={false}>
-          <Marker
-            coordinate={mapCoordinate}
-            title={meetingPlace || displayGuesthouseName}
-            description={guesthouseAddress}
-          />
-        </MapView>
+          initialCamera={mapCamera}
+          isScrollGesturesEnabled={false}
+          isZoomGesturesEnabled={false}
+          isRotateGesturesEnabled={false}
+          isTiltGesturesEnabled={false}>
+          <NaverMapMarkerOverlay
+            latitude={mapCoordinate.latitude}
+            longitude={mapCoordinate.longitude}
+            width={44}
+            height={56}
+            anchor={{x: 0.5, y: 1}}>
+            <View
+              collapsable={false}
+              style={styles.markerContainer}>
+              <View style={styles.homeMarker}>
+                <HomeIcon width={24} height={24} />
+              </View>
+              <View style={styles.markerTail} />
+            </View>
+          </NaverMapMarkerOverlay>
+        </NaverMapView>
       </View>
     );
   };
@@ -445,7 +504,7 @@ const MeetDetail = () => {
               const images = toArray(ev.partyEventImageUrls);
 
               return (
-                <View key={ev.id ?? evIndex} style={{ marginBottom: 20 }}>
+                <View key={ev.id ?? evIndex} style={styles.eventBlock}>
                   {images.length > 0 && (
                     <ScrollView
                       horizontal
@@ -453,20 +512,19 @@ const MeetDetail = () => {
                       showsHorizontalScrollIndicator={false}
                       contentContainerStyle={styles.eventImageRow}>
                       {images.map((url, idx) => (
-                        <Image
-                          key={`${ev.id}-${idx}`}
-                          source={{ uri: url }}
-                          style={styles.eventImageBlog}
-                          resizeMode="cover"
+                        <PartyEventImage
+                          key={`${ev.id ?? evIndex}-${idx}`}
+                          uri={url}
+                          width={eventImageWidth}
                         />
                       ))}
                     </ScrollView>
                   )}
-                  <Text style={[FONTS.fs_16_semibold, styles.eventTitle]}>
+                  <Text style={[FONTS.fs_18_semibold, styles.eventTitle]}>
                     {ev.eventName}
                   </Text>
                   {!!ev.eventDescription && (
-                    <Text style={[FONTS.fs_14_regular, styles.eventBody]}>
+                    <Text style={[FONTS.fs_16_regular, styles.eventBody]}>
                       {ev.eventDescription}
                     </Text>
                   )}
@@ -490,31 +548,18 @@ const MeetDetail = () => {
           {!!snackInfo && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {snackTagTexts?.map(tag => `#${tag}`).join('  ')}
-                  </Text>
+              {snackTagTexts.length > 0 && (
+                <View style={styles.tagChipRow}>
+                  {snackTagTexts.map((tag, idx) => (
+                    <View key={idx} style={styles.tagChip}>
+                      <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>{tag}</Text>
+                    </View>
+                  ))}
                 </View>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openTagModal(
-                      '음식 • 음료',
-                      snackTagTexts?.map(t => `#${t}`),
-                      snackInfo,
-                    )
-                  }>
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16} />
-                </TouchableOpacity>
-              </View>
+              )}
+              <Text style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                {snackInfo}
+              </Text>
             </View>
           )}
           {ruleList.length > 0 && (
@@ -541,7 +586,10 @@ const MeetDetail = () => {
                       })),
                     )
                   }>
-                  <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
                     내용 확인하기
                   </Text>
                   <ChevronRight width={16} height={16} />
@@ -593,7 +641,10 @@ const MeetDetail = () => {
                         })),
                       )
                     }>
-                    <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    <Text
+                      style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
                       내용 확인하기
                     </Text>
                     <ChevronRight width={16} height={16} />
@@ -623,7 +674,10 @@ const MeetDetail = () => {
                         parkingContentText,
                       )
                     }>
-                    <Text style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}>
+                    <Text
+                      style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
+                      numberOfLines={1}
+                      ellipsizeMode="tail">
                       내용 확인하기
                     </Text>
                     <ChevronRight width={16} height={16} />
@@ -834,7 +888,6 @@ const MeetDetail = () => {
       {hasImages && (
         <ImageModal
           visible={imageModalVisible}
-          title={partyTitle}
           images={modalImages}
           selectedImageIndex={imageIndex}
           onClose={() => setImageModalVisible(false)}

@@ -1,6 +1,6 @@
 {
   "name": "trioFrontendApp",
-  "version": "3.0.8",
+  "version": "3.0.9",
   "private": true,
   "scripts": {
     "android": "react-native run-android",
@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@actbase/react-daum-postcode": "^1.0.4",
+    "@mj-studio/react-native-naver-map": "^2.9.0",
     "@portone/react-native-sdk": "^0.4.2",
     "@ptomasroos/react-native-multi-slider": "^2.2.2",
     "@react-native-async-storage/async-storage": "^2.1.2",
@@ -50,7 +51,6 @@
     "react-native-image-picker": "^8.2.1",
     "react-native-image-resizer": "^1.4.5",
     "react-native-linear-gradient": "^2.8.3",
-    "react-native-maps": "^1.24.3",
     "react-native-reanimated": "^3.17.5",
     "react-native-reanimated-carousel": "^4.0.2",
     "react-native-safe-area-context": "^5.4.0",

@@ -31,6 +31,12 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
     paddingBottom: 20,
   },
+  tabPager: {
+    flex: 1,
+  },
+  tabPage: {
+    flex: 1,
+  },
 });
 
 export default styles;
