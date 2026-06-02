@@ -55,12 +55,10 @@ const TABS = [
 
 const SNACK_TAG_LABEL = {
   PARTY_FOOD: '음식 제공',
-  PARTY_DRINK: '음료 제공',
-  PARTY_SNACK: '간식 제공',
   PARTY_ALCOHOL: '주류 제공',
   PARTY_INDIVIDUAL: '각자 준비',
-  PARTY_TOGETHER: '다함께 준비',
-  PARTY_NO_SMOKE: '금연',
+  PARTY_TOGETHER: '같이 준비',
+  PARTY_FREE: '자유',
 };
 
 const PARKING_TAG_LABEL = {
@@ -550,34 +548,18 @@ const MeetDetail = () => {
           {!!snackInfo && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {snackTagTexts?.map(tag => `#${tag}`).join('  ')}
-                  </Text>
+              {snackTagTexts.length > 0 && (
+                <View style={styles.tagChipRow}>
+                  {snackTagTexts.map((tag, idx) => (
+                    <View key={idx} style={styles.tagChip}>
+                      <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>{tag}</Text>
+                    </View>
+                  ))}
                 </View>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openTagModal(
-                      '음식 • 음료',
-                      snackTagTexts?.map(t => `#${t}`),
-                      snackInfo,
-                    )
-                  }>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16} />
-                </TouchableOpacity>
-              </View>
+              )}
+              <Text style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                {snackInfo}
+              </Text>
             </View>
           )}
           {ruleList.length > 0 && (
