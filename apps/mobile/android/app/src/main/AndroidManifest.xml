@@ -71,7 +71,7 @@
         android:value="@string/google_maps_api_key" />
       <meta-data
         android:name="com.naver.maps.map.NCP_KEY_ID"
-        android:value="8bnkgnibz0" />
+        android:value="@string/naver_client_id" />
 
       <meta-data
         android:name="com.kakao.sdk.AppKey"

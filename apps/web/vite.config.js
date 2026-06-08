@@ -15,6 +15,7 @@ const exposedEnvKeys = [
   'KAKAO_NATIVEAPP_KEY',
   'KAKAO_REDIRECT_URI',
   'KAKAO_RESTAPI_KEY',
+  'NAVER_CLIENT_ID',
   'WEB_BASE_URL',
 ];
 

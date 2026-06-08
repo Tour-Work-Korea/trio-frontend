@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   Dimensions,
   Image,
+  Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -21,6 +22,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
 import {
   guesthouseDetailDeeplink,
+  guesthouseDetailShareUrl,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
 import Loading from '@components/Loading';
@@ -31,6 +33,8 @@ import {formatGuesthouseAddress} from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
+import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
+import {WEB_ROUTES} from '@web/routes';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
@@ -137,6 +141,53 @@ const GuesthouseDetail = ({route}) => {
   const [localChildren, setLocalChildren] = useState(0); // 기본 아이 0
   const [hasChanged, setHasChanged] = useState(false);
 
+  const navigateWebHome = useCallback(() => {
+    replaceWebPath(WEB_ROUTES.HOME);
+    navigation.navigate('MainTabs', {screen: '홈'});
+  }, [navigation]);
+
+  useEffect(() => {
+    if (
+      Platform.OS !== 'web'
+      || route.params?.webBackTo !== WEB_ROUTES.MAP
+      || typeof window === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const handleBrowserBackToMap = () => {
+      setTimeout(() => {
+        navigateWebBackToMap(navigation, route.params?.webBackParams);
+      }, 0);
+    };
+
+    window.addEventListener('popstate', handleBrowserBackToMap);
+
+    return () => {
+      window.removeEventListener('popstate', handleBrowserBackToMap);
+    };
+  }, [navigation, route.params?.webBackParams, route.params?.webBackTo]);
+
+  useEffect(() => {
+    if (
+      Platform.OS !== 'web'
+      || !route.params?.webBackToHome
+      || typeof window === 'undefined'
+    ) {
+      return undefined;
+    }
+
+    const handleBrowserBackToHome = () => {
+      setTimeout(navigateWebHome, 0);
+    };
+
+    window.addEventListener('popstate', handleBrowserBackToHome);
+
+    return () => {
+      window.removeEventListener('popstate', handleBrowserBackToHome);
+    };
+  }, [navigateWebHome, route.params?.webBackToHome]);
+
   // 게하 상세 정보 불러오기
   useEffect(() => {
     const fetchDetail = async () => {
@@ -224,8 +275,12 @@ const GuesthouseDetail = ({route}) => {
 
   //  공유 링크
   const handleCopyLink = () => {
-    const deepLinkUrl = guesthouseDetailDeeplink(id);
-    copyDeeplinkToClipboard(deepLinkUrl);
+    const shareUrl =
+      Platform.OS === 'web'
+        ? guesthouseDetailShareUrl(id)
+        : guesthouseDetailDeeplink(id);
+
+    copyDeeplinkToClipboard(shareUrl);
 
     Toast.show({
       type: 'success',
@@ -517,6 +572,20 @@ const GuesthouseDetail = ({route}) => {
                   adults: localAdults,
                   children: localChildren,
                 });
+              }
+              if (
+                Platform.OS === 'web'
+                && route.params?.webBackTo === WEB_ROUTES.MAP
+              ) {
+                navigateWebBackToMap(navigation, route.params?.webBackParams);
+                return;
+              }
+              if (
+                Platform.OS === 'web'
+                && route.params?.webBackToHome
+              ) {
+                navigateWebHome();
+                return;
               }
               navigation.goBack(); // 일반 뒤로가기
             }

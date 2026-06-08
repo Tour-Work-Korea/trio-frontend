@@ -30,6 +30,7 @@ import {
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import {navigateWebGuesthouseDetailFromMap} from '@web/navigation';
 
 import HomeIcon from '@assets/images/home_white_filled.svg';
 import TargetIcon from '@assets/images/target_black.svg';
@@ -59,6 +60,8 @@ const MARKER_ANCHOR = {x: 0.5, y: 0.5};
 const CURRENT_LOCATION_ANIMATION_MS = 1;
 const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 const DETAIL_IMAGE_SCROLL_STEP = 116;
+const WEB_CARD_PRESS_SUPPRESSION_MS = 500;
+const WEB_CARD_DRAG_THRESHOLD_PX = 2;
 const centerRegionToNaverRegion = region => {
   if (!region) {
     return null;
@@ -132,6 +135,21 @@ const getGuesthouseResponseItems = data => {
   }
 
   return [];
+};
+
+const hasValidGuesthouseCoordinate = item =>
+  Number.isFinite(item?.lat) && Number.isFinite(item?.lng);
+
+const getGuesthouseListFallbackItems = data => {
+  if (Array.isArray(data?.content)) {
+    return data.content;
+  }
+
+  if (Array.isArray(data?.data?.content)) {
+    return data.data.content;
+  }
+
+  return getGuesthouseResponseItems(data);
 };
 
 const getGuesthouseImageUrls = item => {
@@ -522,12 +540,14 @@ const GuesthouseListMap = ({
   const mapRef = useRef(null);
   const imageScrollRef = useRef(null);
   const currentLocationRequestRef = useRef(false);
-  const currentRegionRef = useRef(initialRegion);
+  const cardPointerStartRef = useRef(null);
+  const cardPressSuppressUntilRef = useRef(0);
   const currentLocationPulse = useRef(new Animated.Value(0)).current;
   const initialRegion = useMemo(
     () => presetRegion ?? getRegionFromGuesthouses(sourceGuesthouses),
     [presetRegion, sourceGuesthouses],
   );
+  const currentRegionRef = useRef(initialRegion);
 
   const [mapReady, setMapReady] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -775,9 +795,28 @@ const GuesthouseListMap = ({
       });
 
       const responseData = response?.data;
-      const nextGuesthouses = normalizeGuesthouses(
+      let nextGuesthouses = normalizeGuesthouses(
         getGuesthouseResponseItems(responseData),
       );
+
+      if (
+        Platform.OS === 'web'
+        && nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
+      ) {
+        const fallbackResponse = await userGuesthouseApi.getGuesthouseList({
+          checkIn,
+          checkOut,
+          guestCount,
+          page: 0,
+          size: 200,
+          sortBy: 'RECOMMEND',
+          ...bounds,
+        });
+
+        nextGuesthouses = normalizeGuesthouses(
+          getGuesthouseListFallbackItems(fallbackResponse?.data),
+        );
+      }
 
       setMapGuesthouses(nextGuesthouses);
       setLastFetchedBounds(bounds);
@@ -1091,12 +1130,19 @@ const GuesthouseListMap = ({
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) =>
-          Math.abs(gestureState.dx) > 12
+          Math.abs(gestureState.dx)
+            > (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12)
           && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
         onMoveShouldSetPanResponderCapture: (_, gestureState) =>
-          Math.abs(gestureState.dx) > 12
+          Math.abs(gestureState.dx)
+            > (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12)
           && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
         onPanResponderRelease: (_, gestureState) => {
+          if (Platform.OS === 'web') {
+            cardPressSuppressUntilRef.current =
+              Date.now() + WEB_CARD_PRESS_SUPPRESSION_MS;
+          }
+
           if (gestureState.dx <= -50) {
             handleSwipeNextCard();
             return;
@@ -1115,26 +1161,40 @@ const GuesthouseListMap = ({
       return;
     }
 
-    navigation.navigate('GuesthouseDetail', {
-      id: selectedItem.id,
-      checkIn,
-      checkOut,
-      guestCount,
-      onLikeChange: (id, nextIsLiked) => {
-        setMapGuesthouses(prev =>
-          prev.map(item =>
-            String(item.id ?? item.guesthouseId) === String(id)
-              ? {
-                ...item,
-                isLiked: nextIsLiked,
-                isFavorite: nextIsLiked,
-              }
-              : item,
-          ),
-        );
+    if (
+      Platform.OS === 'web'
+      && Date.now() < cardPressSuppressUntilRef.current
+    ) {
+      return;
+    }
+
+    navigateWebGuesthouseDetailFromMap({
+      navigation,
+      guesthouseId: selectedItem.id,
+      detailParams: {
+        checkIn,
+        checkOut,
+        guestCount,
+        onLikeChange: (id, nextIsLiked) => {
+          setMapGuesthouses(prev =>
+            prev.map(item =>
+              String(item.id ?? item.guesthouseId) === String(id)
+                ? {
+                  ...item,
+                  isLiked: nextIsLiked,
+                  isFavorite: nextIsLiked,
+                }
+                : item,
+            ),
+          );
+        },
+      },
+      mapParams: {
+        mapResetKey: resetKey,
+        regionBounds: presetBounds,
       },
     });
-  }, [navigation, selectedItem, checkIn, checkOut, guestCount]);
+  }, [navigation, presetBounds, resetKey, selectedItem, checkIn, checkOut, guestCount]);
 
   const handleToggleFavorite = useCallback(() => {
     if (!selectedItem) {
@@ -1165,7 +1225,7 @@ const GuesthouseListMap = ({
           onLayout={handleMapLayout}
           onInitialized={() => setMapReady(true)}
           onCameraChanged={params => {
-            if (params.reason === 'Gesture') {
+            if (params.reason === 'Gesture' || params.reason === 'Tap') {
               handleClearSelection();
             }
           }}
@@ -1408,6 +1468,47 @@ const GuesthouseListMap = ({
               <TouchableOpacity
                 activeOpacity={1}
                 style={styles.detailCard}
+                onPointerDown={event => {
+                  if (Platform.OS !== 'web') {
+                    return;
+                  }
+
+                  cardPointerStartRef.current = {
+                    x: event?.clientX ?? 0,
+                    y: event?.clientY ?? 0,
+                  };
+                }}
+                onPointerMove={event => {
+                  if (Platform.OS !== 'web' || !cardPointerStartRef.current) {
+                    return;
+                  }
+
+                  const dx = Math.abs(
+                    (event?.clientX ?? 0) - cardPointerStartRef.current.x,
+                  );
+                  const dy = Math.abs(
+                    (event?.clientY ?? 0) - cardPointerStartRef.current.y,
+                  );
+
+                  if (
+                    dx > WEB_CARD_DRAG_THRESHOLD_PX
+                    || dy > WEB_CARD_DRAG_THRESHOLD_PX
+                  ) {
+                    cardPressSuppressUntilRef.current =
+                      Date.now() + WEB_CARD_PRESS_SUPPRESSION_MS;
+                  }
+                }}
+                onPointerUp={() => {
+                  if (Platform.OS === 'web') {
+                    cardPointerStartRef.current = null;
+                  }
+                }}
+                onWheel={() => {
+                  if (Platform.OS === 'web') {
+                    cardPressSuppressUntilRef.current =
+                      Date.now() + WEB_CARD_PRESS_SUPPRESSION_MS;
+                  }
+                }}
                 onPress={handlePressCard}>
                 <View style={styles.detailHeader}>
                   <View style={styles.detailWrap}>

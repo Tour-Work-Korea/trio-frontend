@@ -6,6 +6,13 @@ import Toast from 'react-native-toast-message';
 import RootNavigation from '@navigations/RootNavigation';
 import {COLORS} from '@constants/colors';
 import GlobalAlertModal from '@components/modals/GlobalAlertModal';
+import BasicToast from '@components/toasts/BasicToast';
+import ErrorToast from '@components/toasts/ErrorToast';
+
+const toastConfig = {
+  success: props => <BasicToast {...props} />,
+  error: props => <ErrorToast {...props} />,
+};
 
 export default function App() {
   return (
@@ -15,7 +22,7 @@ export default function App() {
         <View style={styles.appFrame}>
           <RootNavigation />
         </View>
-        <Toast />
+        <Toast config={toastConfig} />
         <GlobalAlertModal />
       </SafeAreaView>
     </SafeAreaProvider>

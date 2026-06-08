@@ -1,4 +1,6 @@
 import Clipboard from '@react-native-clipboard/clipboard';
+import {Platform} from 'react-native';
+import {WEB_ROUTES} from '@web/routes';
 
 // 앱 딥링크 스킴
 const APP_SCHEME = 'workaway://';
@@ -47,6 +49,32 @@ export const employDetailDeeplink = employId => {
  */
 export const partyDetailDeeplink = partyId => {
   return generateDeeplink(`party/${partyId}`);
+};
+
+const getWebOrigin = () => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return null;
+  }
+
+  return window.location?.origin ?? null;
+};
+
+export const generateWebShareUrl = path => {
+  const origin = getWebOrigin();
+
+  if (!origin) {
+    return null;
+  }
+
+  return `${origin}${path}`;
+};
+
+export const guesthouseDetailShareUrl = guesthouseId => {
+  return generateWebShareUrl(WEB_ROUTES.GUESTHOUSE_DETAIL(guesthouseId));
+};
+
+export const partyDetailShareUrl = partyId => {
+  return generateWebShareUrl(WEB_ROUTES.MEET_DETAIL(partyId));
 };
 
 /**

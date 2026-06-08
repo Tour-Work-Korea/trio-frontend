@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_600,
     marginLeft: 8,
   },
-  
+
   // 인원, 날짜
   selectRow: {
     flexDirection: 'row',
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     marginHorizontal: 20,
     paddingHorizontal: 12,
-    
+
   },
   // 날짜
   dateContainer: {
@@ -122,13 +122,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginLeft: 8,
     padding: 10,
-    
+
   },
   sortText: {
     marginLeft: 8,
     color: COLORS.grayscale_800,
   },
   // 게하 리스트
+  list: {
+    flex: 1,
+  },
   listContent: {
     gap: 12,
   },

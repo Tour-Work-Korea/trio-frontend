@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, View, Linking } from 'react-native';
+import { Image, View, Linking, Platform } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 
@@ -10,6 +10,8 @@ import AlertModal from '@components/modals/AlertModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { showErrorModal } from '@utils/loginModalHub';
+import {replaceWebPath} from '@web/navigation';
+import {WEB_ROUTES} from '@web/routes';
 
 const TARGET_COUPON_NAME = '신규회원 전용 20% 할인 쿠폰';
 const COUPON_EVENT_IMAGE_URL =
@@ -378,6 +380,12 @@ const TemporaryEventBanner = () => {
     const message = event.nativeEvent.data;
 
     if (message === 'back') {
+      if (Platform.OS === 'web') {
+        replaceWebPath(WEB_ROUTES.HOME);
+        navigation.navigate('HomeMain');
+        return;
+      }
+
       navigation.goBack();
       return;
     }

@@ -103,7 +103,7 @@ platform :ios do
   desc "TestFlight build (DEV)"
   lane :beta do
     build_common(
-      scheme: "WorkAway-Dev"
+      scheme: "trioFrontendApp"
     )
 
     upload_to_testflight(

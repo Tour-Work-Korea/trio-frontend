@@ -1,4 +1,4 @@
-import {View, TouchableOpacity, Text} from 'react-native';
+import {Platform, View, TouchableOpacity, Text} from 'react-native';
 import {useNavigation, CommonActions} from '@react-navigation/native';
 import React, {useState} from 'react';
 
@@ -70,12 +70,14 @@ const LoginIntro = () => {
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>
-            <ButtonWhite
-              title="카카오로 시작하기"
-              onPress={handleKakaoLoginClick} 
-              Icon={KakaoLogo}
-              backgroundColor="#fee500"
-            />
+            {Platform.OS !== 'web' && (
+              <ButtonWhite
+                title="카카오로 시작하기"
+                onPress={handleKakaoLoginClick}
+                Icon={KakaoLogo}
+                backgroundColor="#fee500"
+              />
+            )}
             {/* <ButtonWhite
               title="네이버로 시작하기"
               onPress={() =>

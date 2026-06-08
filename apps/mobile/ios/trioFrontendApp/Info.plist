@@ -57,7 +57,7 @@
 	<key>KAKAO_APP_KEY</key>
 	<string>3b6c98b0e2a9e4d3ccdb9b453ccb27b8</string>
 	<key>NMFNcpKeyId</key>
-	<string>8bnkgnibz0</string>
+	<string>$(NAVER_CLIENT_ID)</string>
 	<key>LSApplicationQueriesSchemes</key>
 	<array>
 		<string>kftc-bankpay</string>

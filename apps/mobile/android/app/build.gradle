@@ -3,6 +3,8 @@ apply plugin: "org.jetbrains.kotlin.android"
 apply plugin: "com.facebook.react"
 apply plugin: "com.google.gms.google-services"
 apply plugin: "com.google.firebase.crashlytics"
+
+project.ext.defaultEnvFile = "../../.env"
 apply from: project(':react-native-config').projectDir.getPath() + "/dotenv.gradle"
 
 import java.util.Properties
@@ -108,6 +110,7 @@ android {
         versionName (ciVersionName ?: "1.0.0")    // 로컬 기본값 1.0.0
 
         resValue "string", "google_maps_api_key", MAPS_API_KEY_LOCAL
+        resValue "string", "naver_client_id", project.env.get("NAVER_CLIENT_ID") ?: ""
         resValue "string", "KAKAO_NATIVEAPP_KEY", project.env.get("KAKAO_NATIVEAPP_KEY") ?: ""
         resValue "string", "kakao_app_key", project.env.get("KAKAO_NATIVEAPP_KEY") ?: ""
         resValue "string", "kakao_custom_scheme", "kakao" + (project.env.get("KAKAO_NATIVEAPP_KEY") ?: "")

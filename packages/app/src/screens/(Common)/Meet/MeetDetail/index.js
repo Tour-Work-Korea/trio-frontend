@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import {
   View,
   Text,
@@ -8,6 +8,7 @@ import {
   Pressable,
   ActivityIndicator,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -31,15 +32,18 @@ import useUserStore from '@stores/userStore';
 import { showErrorModal } from '@utils/loginModalHub';
 import {
   partyDetailDeeplink,
+  partyDetailShareUrl,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
 import ImageModal from '@components/modals/ImageModal';
+import {replaceWebPath} from '@web/navigation';
+import {WEB_ROUTES} from '@web/routes';
 
 import ChevronLeft from '@assets/images/chevron_left_white.svg';
-import ShareIcon from '@assets/images/share_gray.svg';
+import ShareIcon from '@assets/images/share_white.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
@@ -84,6 +88,14 @@ const PARTY_STATUS_LABEL = {
   CANCELED: '취소된 파티',
   DELETED: '삭제된 파티',
 };
+
+const getPartyImageUrl = image =>
+  image?.imageUrl
+  ?? image?.partyImageUrl
+  ?? image?.url
+  ?? image?.adminImageUrl
+  ?? image?.thumbnailUrl
+  ?? null;
 
 const toArray = value => {
   if (Array.isArray(value)) {
@@ -144,6 +156,21 @@ const MeetDetail = () => {
   const route = useRoute();
   const { partyId } = route.params ?? {};
 
+  const navigateWebHome = useCallback(() => {
+    replaceWebPath(WEB_ROUTES.HOME);
+    navigation.navigate('MainTabs', {screen: '홈'});
+  }, [navigation]);
+
+  const navigateWebContents = useCallback(() => {
+    replaceWebPath(WEB_ROUTES.CONTENTS);
+    navigation.navigate('MainTabs', {
+      screen: '콘텐츠',
+      params: {
+        screen: 'MeetMain',
+      },
+    });
+  }, [navigation]);
+
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -195,6 +222,25 @@ const MeetDetail = () => {
   };
 
   // 콘텐츠 상세 데이터
+  useEffect(() => {
+    if (Platform.OS !== 'web' || typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handleBrowserBack = () => {
+      setTimeout(
+        route.params?.webBackToHome ? navigateWebHome : navigateWebContents,
+        0,
+      );
+    };
+
+    window.addEventListener('popstate', handleBrowserBack);
+
+    return () => {
+      window.removeEventListener('popstate', handleBrowserBack);
+    };
+  }, [navigateWebContents, navigateWebHome, route.params?.webBackToHome]);
+
   useEffect(() => {
     let mounted = true;
     const fetchDetail = async () => {
@@ -249,6 +295,10 @@ const MeetDetail = () => {
   // 썸네일/갤러리
   const sortedImages = useMemo(() => {
     return [...toArray(partyImages)]
+      .map(img => ({
+        ...img,
+        imageUrl: getPartyImageUrl(img),
+      }))
       .filter(img => !!img?.imageUrl)
       .sort((a, b) =>
         a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
@@ -328,8 +378,12 @@ const MeetDetail = () => {
 
   //  공유 링크
   const handleCopyLink = () => {
-    const deepLinkUrl = partyDetailDeeplink(partyId);
-    copyDeeplinkToClipboard(deepLinkUrl);
+    const shareUrl =
+      Platform.OS === 'web'
+        ? partyDetailShareUrl(partyId)
+        : partyDetailDeeplink(partyId);
+
+    copyDeeplinkToClipboard(shareUrl);
 
     Toast.show({
       type: 'success',
@@ -385,6 +439,20 @@ const MeetDetail = () => {
       thumbnailUrl: thumbnailSource?.uri,
       partyAnnouncements,
     });
+  };
+
+  const handlePressBack = () => {
+    if (Platform.OS === 'web') {
+      if (route.params?.webBackToHome) {
+        navigateWebHome();
+        return;
+      }
+
+      navigateWebContents();
+      return;
+    }
+
+    navigation.goBack();
   };
 
   // 음료 음식 태그
@@ -727,7 +795,18 @@ const MeetDetail = () => {
       <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
         {/* 헤더 */}
         <View style={styles.header}>
-          {hasImages ? (
+          {hasImages && Platform.OS === 'web' ? (
+            <TouchableOpacity
+              style={styles.thumbnail}
+              activeOpacity={1}
+              onPress={() => setImageModalVisible(true)}>
+              <Image
+                source={{ uri: sortedImages[thumbnailIndex]?.imageUrl }}
+                style={styles.thumbnail}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ) : hasImages ? (
             <Carousel
               width={SCREEN_W}
               height={IMAGE_H}
@@ -757,7 +836,7 @@ const MeetDetail = () => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.backButton}
-              onPress={() => navigation.goBack()}>
+              onPress={handlePressBack}>
               <ChevronLeft width={28} height={28} />
             </TouchableOpacity>
             <TouchableOpacity

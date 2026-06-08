@@ -7,6 +7,7 @@ import {
   TouchableOpacity,
   ActivityIndicator,
   ScrollView,
+  Platform,
 } from 'react-native';
 import {
   useNavigation,
@@ -42,8 +43,31 @@ import {
   GUESTHOUSE_MAP_BOUNDS,
   getGuesthouseMapBoundsByRegionIds,
 } from '@constants/guesthouseMapRegions';
+import {WEB_ROUTES} from '@web/routes';
 
 const EMPTY_REGION_IDS = [];
+
+const shouldUseInitialMapView = initialMapView => {
+  if (!initialMapView) {
+    return false;
+  }
+
+  if (Platform.OS !== 'web') {
+    return true;
+  }
+
+  return typeof window !== 'undefined'
+    && window.location?.pathname === WEB_ROUTES.MAP;
+};
+
+const goToWebPath = path => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return false;
+  }
+
+  window.location.assign(path);
+  return true;
+};
 
 const GuesthouseList = () => {
   const navigation = useNavigation();
@@ -60,6 +84,8 @@ const GuesthouseList = () => {
   const loadingRef = useRef(false);
   const isLastRef = useRef(false);
   const errorRef = useRef(false);
+  const manualListModeRef = useRef(false);
+  const lastMapResetKeyRef = useRef(null);
 
   const {
     displayDate: routeDisplayDate = defaultDisplayDate,
@@ -85,7 +111,10 @@ const GuesthouseList = () => {
   const [modalInitialSection, setModalInitialSection] = useState('date');
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
-  const [isMapView, setIsMapView] = useState(initialMapView);
+  const [isMapView, setIsMapView] = useState(() =>
+    shouldUseInitialMapView(initialMapView),
+  );
+  const [viewModeVersion, setViewModeVersion] = useState(0);
   const [availableTags, setAvailableTags] = useState([]);
 
   // 필터 정보
@@ -117,15 +146,40 @@ const GuesthouseList = () => {
   const [childCount, setChildCount] = useState(routeChildCount || 0);
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
+  const resetListState = useCallback(() => {
+    loadingRef.current = false;
+    isLastRef.current = false;
+    errorRef.current = false;
+    setPage(0);
+    setLoading(false);
+    setIsLast(false);
+    setGuesthouses([]);
+    setError(false);
+  }, []);
+
   useEffect(() => {
     setDisplayDateState(routeDisplayDate);
     setAdultCount(routeAdultCount);
     setChildCount(routeChildCount);
 
-    if (initialMapView) {
+    if (lastMapResetKeyRef.current !== mapResetKey) {
+      lastMapResetKeyRef.current = mapResetKey;
+      manualListModeRef.current = false;
+    }
+
+    if (
+      shouldUseInitialMapView(initialMapView)
+      && !manualListModeRef.current
+    ) {
       setIsMapView(true);
     }
-  }, [initialMapView, routeAdultCount, routeChildCount, routeDisplayDate]);
+  }, [
+    initialMapView,
+    mapResetKey,
+    routeAdultCount,
+    routeChildCount,
+    routeDisplayDate,
+  ]);
 
   // api 보낼 날짜 데이터
   const year = dayjs().year();
@@ -158,15 +212,15 @@ const GuesthouseList = () => {
     setCheckOut(
       dayjs(`${year}-${nextEndMonth}-${nextEndDay}`).format('YYYY-MM-DD'),
     );
-    loadingRef.current = false;
-    isLastRef.current = false;
-    errorRef.current = false;
-    setPage(0);
-    setLoading(false);
-    setIsLast(false);
-    setGuesthouses([]);
-    setError(false);
-  }, [regionBounds, routeAdultCount, routeChildCount, routeDisplayDate, year]);
+    resetListState();
+  }, [
+    regionBounds,
+    resetListState,
+    routeAdultCount,
+    routeChildCount,
+    routeDisplayDate,
+    year,
+  ]);
 
   // 모달 열기 전 값 저장(닫을 때 변경 감지용)
   const [tempDateGuest, setTempDateGuest] = useState({
@@ -176,17 +230,6 @@ const GuesthouseList = () => {
     childCount,
   });
   const [sortBy, setSortBy] = useState('RECOMMEND');
-
-  const resetListState = useCallback(() => {
-    loadingRef.current = false;
-    isLastRef.current = false;
-    errorRef.current = false;
-    setPage(0);
-    setLoading(false);
-    setIsLast(false);
-    setGuesthouses([]);
-    setError(false);
-  }, []);
 
   // 게하 불러오기
   const fetchGuesthouses = useCallback(async (pageToFetch = 0) => {
@@ -283,6 +326,20 @@ const GuesthouseList = () => {
 
     fetchGuesthouses(page);
   }, [fetchGuesthouses, isMapView, page]);
+
+  useEffect(() => {
+    if (
+      isMapView
+      || page !== 0
+      || guesthouses.length > 0
+      || loadingRef.current
+      || errorRef.current
+    ) {
+      return;
+    }
+
+    fetchGuesthouses(0);
+  }, [fetchGuesthouses, guesthouses.length, isMapView, page]);
 
   const handleEndReached = () => {
     if (loadingRef.current || isLastRef.current || errorRef.current) return;
@@ -488,11 +545,21 @@ const GuesthouseList = () => {
             regionIds={regionIds}
             regionBounds={regionBounds}
             resetKey={mapResetKey}
-            onPressListToggle={() => setIsMapView(false)}
+            onPressListToggle={() => {
+              manualListModeRef.current = true;
+              if (!goToWebPath(WEB_ROUTES.GUESTHOUSES)) {
+                setLoading(false);
+                setViewModeVersion(prev => prev + 1);
+                setIsMapView(false);
+              }
+            }}
           />
         </View>
       ) : (
-        <View style={styles.guesthouseListContainer}>
+        <View
+          key={`guesthouse-list-view-${viewModeVersion}`}
+          style={styles.guesthouseListContainer}
+        >
           <View style={styles.guesthouseListHeader}>
             <View style={styles.filterContainer}>
               <TouchableOpacity
@@ -536,7 +603,9 @@ const GuesthouseList = () => {
             />
           ) : (
             <FlatList
+              key={`guesthouse-list-flatlist-${viewModeVersion}`}
               data={filteredGuesthouses}
+              style={styles.list}
               keyExtractor={item => String(item.id)}
               renderItem={renderItem}
               contentContainerStyle={styles.listContent}
@@ -545,9 +614,9 @@ const GuesthouseList = () => {
               ListFooterComponent={
                 loading ? <ActivityIndicator size="small" color="gray" /> : null
               }
-              maintainVisibleContentPosition={{
-                minIndexForVisible: 0,
-              }}
+              {...(Platform.OS === 'web'
+                ? {}
+                : {maintainVisibleContentPosition: {minIndexForVisible: 0}})}
               removeClippedSubviews={false}
             />
           )}
@@ -560,7 +629,14 @@ const GuesthouseList = () => {
           <TouchableOpacity
             activeOpacity={1}
             style={styles.mapButton}
-            onPress={() => setIsMapView(true)}
+            onPress={() => {
+              manualListModeRef.current = false;
+              if (!goToWebPath(WEB_ROUTES.MAP)) {
+                setLoading(false);
+                setViewModeVersion(prev => prev + 1);
+                setIsMapView(true);
+              }
+            }}
           >
             <MapIcon width={20} height={20} />
             <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>

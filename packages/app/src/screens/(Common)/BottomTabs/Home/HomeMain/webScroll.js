@@ -37,6 +37,21 @@ const findVerticalScroller = element => {
   return null;
 };
 
+const preventDefaultIfCancelable = event => {
+  const nativeEvent = event?.nativeEvent;
+  const cancelable = event?.cancelable ?? nativeEvent?.cancelable;
+
+  if (cancelable === false) {
+    return;
+  }
+
+  event?.preventDefault?.();
+};
+
+const stopPropagation = event => {
+  event?.stopPropagation?.();
+};
+
 const endDrag = horizontalScroller => {
   const dragState = dragStateByElement.get(horizontalScroller);
 
@@ -79,8 +94,8 @@ export const getHomeHorizontalScrollProps = () => {
       if (horizontalDelta && horizontalScroller) {
         horizontalScroller.scrollLeft += horizontalDelta;
         suppressHomeHorizontalPressUntil = Date.now() + CLICK_SUPPRESSION_MS;
-        event.preventDefault?.();
-        event.stopPropagation?.();
+        preventDefaultIfCancelable(event);
+        stopPropagation(event);
         return;
       }
 
@@ -92,8 +107,8 @@ export const getHomeHorizontalScrollProps = () => {
 
       if (verticalScroller) {
         verticalScroller.scrollTop += deltaY;
-        event.preventDefault?.();
-        event.stopPropagation?.();
+        preventDefaultIfCancelable(event);
+        stopPropagation(event);
       }
     },
     onMouseDown: event => {
@@ -109,7 +124,7 @@ export const getHomeHorizontalScrollProps = () => {
       });
 
       horizontalScroller.style.cursor = 'grabbing';
-      event.preventDefault?.();
+      preventDefaultIfCancelable(event);
     },
     onMouseMove: event => {
       const horizontalScroller = findHorizontalScroller(getEventTarget(event));
@@ -126,8 +141,8 @@ export const getHomeHorizontalScrollProps = () => {
         dragState.scrollLeft - dragDistance;
 
       if (dragState.hasDragged) {
-        event.preventDefault?.();
-        event.stopPropagation?.();
+        preventDefaultIfCancelable(event);
+        stopPropagation(event);
       }
     },
     onMouseUp: event => {
@@ -147,8 +162,8 @@ export const getHomeHorizontalScrollProps = () => {
       );
 
       if (Date.now() <= suppressUntil) {
-        event.preventDefault?.();
-        event.stopPropagation?.();
+        preventDefaultIfCancelable(event);
+        stopPropagation(event);
       }
     },
   };

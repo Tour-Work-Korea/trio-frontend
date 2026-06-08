@@ -15,13 +15,29 @@ import {
 } from './webScroll';
 
 const { width } = Dimensions.get('window');
-const BANNER_WIDTH = width - 32;
+const BANNER_HORIZONTAL_PADDING = 32;
 const BANNER_HEIGHT = 120;
+
+const getBannerImageUrl = item => {
+  const url =
+    item?.url
+    ?? item?.adminImageUrl
+    ?? item?.imageUrl
+    ?? item?.bannerImageUrl
+    ?? item?.thumbnailUrl;
+
+  return typeof url === 'string' && url.trim().length > 0
+    ? url.trim()
+    : null;
+};
 
 export default function Banner({ banners = [] }) {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
+  const [layoutWidth, setLayoutWidth] = useState(width);
   const scrollRef = useRef(null);
+  const pageWidth = layoutWidth || width;
+  const bannerWidth = Math.max(0, pageWidth - BANNER_HORIZONTAL_PADDING);
 
   const handlePressBanner = useCallback(async item => {
     if (shouldIgnoreHomeHorizontalPress()) {
@@ -75,24 +91,32 @@ export default function Banner({ banners = [] }) {
     const timer = setInterval(() => {
       const next = (currentIndex + 1) % banners.length;
       setCurrentIndex(next);
-      scrollRef.current?.scrollTo({ x: next * width, animated: true });
+      scrollRef.current?.scrollTo({ x: next * pageWidth, animated: true });
     }, AUTO_SLIDE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [banners.length, currentIndex]);
+  }, [banners.length, currentIndex, pageWidth]);
 
   const handleScrollEnd = useCallback(event => {
     const offsetX = event.nativeEvent.contentOffset.x;
-    const nextIndex = Math.round(offsetX / width);
+    const nextIndex = Math.round(offsetX / pageWidth);
     setCurrentIndex(nextIndex);
-  }, []);
+  }, [pageWidth]);
 
   if (!banners.length) {
     return null;
   }
 
   return (
-    <View style={styles.bannerContainer}>
+    <View
+      style={styles.bannerContainer}
+      onLayout={event => {
+        const nextWidth = event?.nativeEvent?.layout?.width;
+
+        if (nextWidth > 0 && Math.abs(nextWidth - layoutWidth) > 1) {
+          setLayoutWidth(nextWidth);
+        }
+      }}>
       <ScrollView
         {...getHomeHorizontalScrollProps()}
         ref={scrollRef}
@@ -109,12 +133,15 @@ export default function Banner({ banners = [] }) {
         showsVerticalScrollIndicator={false}
         scrollEventThrottle={16}
         onMomentumScrollEnd={handleScrollEnd}
-        style={[{ width }, styles.horizontalList]}>
-        {banners.map((item, index) => (
+        style={[{ width: pageWidth }, styles.horizontalList]}>
+        {banners.map((item, index) => {
+          const imageUrl = getBannerImageUrl(item);
+
+          return (
           <View
             key={item?.id ?? index}
             style={{
-              width,
+              width: pageWidth,
               alignItems: 'center',
               justifyContent: 'center',
             }}>
@@ -122,19 +149,22 @@ export default function Banner({ banners = [] }) {
               activeOpacity={1}
               onPress={() => handlePressBanner(item)}
               style={{
-                width: BANNER_WIDTH,
+                width: bannerWidth,
                 height: BANNER_HEIGHT,
                 borderRadius: 10,
                 overflow: 'hidden',
               }}>
-              <Image
-                source={{ uri: item.url }}
-                style={{ width: '100%', height: '100%' }}
-                resizeMode="cover"
-              />
+              {imageUrl ? (
+                <Image
+                  source={{ uri: imageUrl }}
+                  style={{ width: '100%', height: '100%' }}
+                  resizeMode="cover"
+                />
+              ) : null}
             </TouchableOpacity>
           </View>
-        ))}
+          );
+        })}
       </ScrollView>
 
       <View style={styles.indicatorRow}>

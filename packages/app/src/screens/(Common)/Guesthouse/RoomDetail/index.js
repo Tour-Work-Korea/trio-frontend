@@ -24,6 +24,8 @@ import useUserStore from '@stores/userStore';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 import {showErrorModal} from '@utils/loginModalHub';
+import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
+import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 
 const RoomDetail = ({route}) => {
   const navigation = useNavigation();
@@ -231,6 +233,10 @@ const RoomDetail = ({route}) => {
           <ButtonScarlet
             title="숙박 예약"
             onPress={() => {
+              if (openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))) {
+                return;
+              }
+
               if (userRole !== 'USER') {
                 showErrorModal({
                   message: '숙박 예약은\n 로그인 후 사용해주세요',
