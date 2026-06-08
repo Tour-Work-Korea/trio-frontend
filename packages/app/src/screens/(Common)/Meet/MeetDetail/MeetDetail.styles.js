@@ -193,12 +193,31 @@ const styles = StyleSheet.create({
   detailInfoContainer: {
     backgroundColor: COLORS.grayscale_100,
     paddingVertical: 12,
-    paddingHorizontal: 8,
+    paddingHorizontal: 12,
     borderRadius: 8,
     overflow: 'hidden',
   },
   infoTitleText: {
     marginBottom: 8,
+  },
+  tagChipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 6,
+    marginBottom: 8,
+  },
+  tagChip: {
+    backgroundColor: COLORS.secondary_blue,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: 4,
+  },
+  tagChipText: {
+    color: COLORS.primary_blue,
+  },
+  detailContentText: {
+    color: COLORS.grayscale_800,
+    lineHeight: 20,
   },
   detailInfoText: {
     flexDirection: 'row',

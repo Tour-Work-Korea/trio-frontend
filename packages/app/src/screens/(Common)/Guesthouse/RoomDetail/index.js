@@ -247,6 +247,11 @@ const RoomDetail = ({route}) => {
                   },
                   onPress2: () => {},
                 });
+              } else if (!isDormitory && guestCount > roomMaxCapacity) {
+                showErrorModal({
+                  message: `해당 객실은 최대 ${roomMaxCapacity}인 입니다\n인원수를 조절해주세요`,
+                  buttonText: '확인',
+                });
               } else if( guesthouseName === '비지터 게스트하우스' ) {
                 const url =
                   'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
