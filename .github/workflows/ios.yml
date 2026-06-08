@@ -146,6 +146,7 @@ jobs:
           KAKAO_RESTAPI_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_RESTAPI_KEY --with-decryption --query Parameter.Value --output text)
           KAKAO_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_CLIENT_ID --with-decryption --query Parameter.Value --output text)
           KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_REDIRECT_URI --with-decryption --query Parameter.Value --output text)
+          NAVER_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/NAVER_CLIENT_ID --with-decryption --query Parameter.Value --output text)
           EOF
 
           cp ios/.env .env
