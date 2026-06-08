@@ -1,0 +1,346 @@
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  ScrollView,
+  TouchableOpacity,
+  Alert,
+  Dimensions,
+  Linking,
+} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
+import Carousel from 'react-native-reanimated-carousel';
+import dayjs from 'dayjs';
+import 'dayjs/locale/ko';
+dayjs.locale('ko');
+
+import styles from './RoomDetail.styles';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import ButtonScarlet from '@components/ButtonScarlet';
+import ImageModal from '@components/modals/ImageModal';
+import useUserStore from '@stores/userStore';
+
+import LeftArrow from '@assets/images/chevron_left_white.svg';
+import {showErrorModal} from '@utils/loginModalHub';
+import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
+import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
+
+const RoomDetail = ({route}) => {
+  const navigation = useNavigation();
+
+  // 호스트 예약 막기
+  const userRole = useUserStore(state => state.userRole);
+
+  const [imageModalVisible, setImageModalVisible] = useState(false);
+  const {
+    roomId,
+    roomName,
+    roomPrice,
+    roomDesc,
+    guesthouseName,
+    guesthouseId,
+    guesthouseAddress,
+    guesthouseAddressDetail,
+    guesthousePhone,
+    checkIn,
+    checkOut,
+    checkInTime,
+    checkOutTime,
+    guestCount,
+    roomImages,
+    roomCapacity,
+    roomType,
+    dormitoryGenderType,
+    roomMaxCapacity,
+    femaleOnly,
+    totalPrice,
+    refundPolicies,
+    reservationPolicy,
+    reservationPolicyMode,
+  } = route.params;
+  const isReservationClosed = reservationPolicyMode === 'CLOSED';
+  const formatTime = timeStr => {
+    if (!timeStr) {
+      return '시간 없음';
+    }
+
+    const date = dayjs(timeStr);
+    return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
+  };
+  const formatDateWithDay = dateStr => {
+    const date = dayjs(dateStr);
+    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+  };
+
+  // 이미지 처리
+  const images = roomImages ?? [];
+  const sortedImages = [...images].sort((a, b) =>
+    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
+  );
+  const hasImages = sortedImages.length > 0;
+  const thumbnailIndex = Math.max(
+    sortedImages.findIndex(i => i?.isThumbnail),
+    0,
+  );
+  const modalImages = sortedImages.map(img => ({
+    id: img.id,
+    imageUrl: img.roomImageUrl,
+  }));
+
+  const {width: SCREEN_W} = Dimensions.get('window');
+  const IMAGE_H = 280;
+
+  const [imageIndex, setImageIndex] = useState(thumbnailIndex);
+
+  const roomTypeMap = {
+    MIXED: '혼숙',
+    FEMALE_ONLY: '여성전용',
+    MALE_ONLY: '남성전용',
+  };
+  const isDormitory = roomType === 'DORMITORY';
+  const genderText = roomTypeMap[dormitoryGenderType] || '';
+
+  return (
+    <View style={styles.container}>
+      <ScrollView>
+        <View style={styles.imageContainer}>
+          {hasImages ? (
+            <Carousel
+              width={SCREEN_W}
+              height={IMAGE_H}
+              data={sortedImages}
+              defaultIndex={thumbnailIndex} // 썸네일부터 시작
+              loop={false}
+              autoPlay={false}
+              pagingEnabled
+              onSnapToItem={idx => setImageIndex(idx)}
+              renderItem={({item}) => (
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={() => setImageModalVisible(true)}>
+                  <Image
+                    source={{uri: item.roomImageUrl}}
+                    style={styles.image}
+                  />
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <View
+              style={[styles.image, {backgroundColor: COLORS.grayscale_200}]}
+            />
+          )}
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <LeftArrow width={28} height={28} />
+          </TouchableOpacity>
+        </View>
+
+        <View style={styles.contentWrapper}>
+          <View style={styles.roomInfo}>
+            <Text style={[FONTS.fs_20_semibold, styles.roomType]}>
+              {roomName}
+            </Text>
+            {isDormitory ? (
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4}}
+              >
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.roomType,
+                    {color: COLORS.grayscale_500},
+                  ]}>
+                  [{roomCapacity}인 도미토리]
+                </Text>
+                {dormitoryGenderType !== 'MIXED' && !!genderText && (
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.roomType,
+                      {color: COLORS.grayscale_500},
+                    ]}>
+                    , {genderText}
+                  </Text>
+                )}
+              </View>
+            ) : (
+              <View
+                style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+                <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                  {roomCapacity}인 기준(최대 {roomMaxCapacity}인)
+                </Text>
+                <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+                  {femaleOnly ? ', 여성전용' : ''}
+                </Text>
+              </View>
+            )}
+            <Text style={[FONTS.fs_14_regular, styles.description]}>
+              {roomDesc}
+            </Text>
+            <View style={styles.priceRow}>
+              <Text style={[FONTS.fs_14_medium, styles.priceInfoText]}>
+                {isDormitory ? '1베드 당' : '1객실 당'}
+              </Text>
+              <Text style={[FONTS.fs_20_bold, styles.price]}>
+                {roomPrice.toLocaleString()}원
+              </Text>
+            </View>
+          </View>
+
+          <Text style={[FONTS.fs_16_medium, styles.dateTitle]}>선택 날짜</Text>
+          <View style={styles.dateBoxContainer}>
+            <View style={styles.dateBoxCheckIn}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+                체크인
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatDateWithDay(checkIn)}
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatTime(checkIn)}
+              </Text>
+            </View>
+            <View style={styles.dateBoxCheckOut}>
+              <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+                체크아웃
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatDateWithDay(checkOut)}
+              </Text>
+              <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+                {formatTime(checkOut)}
+              </Text>
+            </View>
+          </View>
+
+          <View style={styles.guestCountRow}>
+            <Text style={[FONTS.fs_16_medium]}>선택 인원</Text>
+            <Text style={[FONTS.fs_16_semibold]}>{guestCount}명</Text>
+          </View>
+        </View>
+      </ScrollView>
+
+      {!isReservationClosed && (
+        <View style={styles.button}>
+          {/* 비지터 게스트하우스 */}
+          {/* 베드라디오 동문점 */}
+          {/* 이상한밤 게스트하우스 */}
+          <ButtonScarlet
+            title="숙박 예약"
+            onPress={() => {
+              if (openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))) {
+                return;
+              }
+
+              if (userRole !== 'USER') {
+                showErrorModal({
+                  message: '숙박 예약은\n 로그인 후 사용해주세요',
+                  buttonText2: '취소',
+                  buttonText: '로그인하기',
+                  onPress: () => {
+                    navigation.navigate('Login');
+                  },
+                  onPress2: () => {},
+                });
+              } else if (!isDormitory && guestCount > roomMaxCapacity) {
+                showErrorModal({
+                  message: `해당 객실은 최대 ${roomMaxCapacity}인 입니다\n인원수를 조절해주세요`,
+                  buttonText: '확인',
+                });
+              } else if( guesthouseName === '비지터 게스트하우스' ) {
+                const url =
+                  'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
+
+                Linking.canOpenURL(url)
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
+
+              } else if( guesthouseName === '베드라디오 동문점' ) {
+                const url =
+                'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
+
+              Linking.canOpenURL(url)
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
+
+              } else if( guesthouseName === '이상한밤 게스트하우스' ) {
+                const url =
+                'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
+
+              Linking.canOpenURL(url)
+                .then(supported => {
+                  if (supported) {
+                    Linking.openURL(url);
+                  } else {
+                    Alert.alert('알림', '링크를 열 수 없어요');
+                  }
+                })
+                .catch(() => {
+                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                });
+
+              } else {
+                navigation.navigate('GuesthouseReservation', {
+                  roomId,
+                  roomName,
+                  roomPrice,
+                  guesthouseName,
+                  guesthouseId,
+                  guesthouseAddress,
+                  guesthouseAddressDetail,
+                  guesthousePhone,
+                  checkIn,
+                  checkOut,
+                  checkInTime,
+                  checkOutTime,
+                  guestCount,
+                  totalPrice,
+                  roomType,
+                  dormitoryGenderType,
+                  roomCapacity,
+                  roomMaxCapacity,
+                  femaleOnly,
+                  refundPolicies,
+                  reservationPolicy,
+                });
+              }
+            }}
+          />
+        </View>
+      )}
+
+      {/* 이미지 모달 */}
+      {hasImages && (
+        <ImageModal
+          visible={imageModalVisible}
+          images={modalImages}
+          selectedImageIndex={imageIndex}
+          onClose={() => setImageModalVisible(false)}
+        />
+      )}
+    </View>
+  );
+};
+
+export default RoomDetail;

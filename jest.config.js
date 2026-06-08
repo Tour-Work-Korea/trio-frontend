@@ -1,3 +1,3 @@
 module.exports = {
-  preset: 'react-native',
+  projects: ['<rootDir>/apps/mobile'],
 };

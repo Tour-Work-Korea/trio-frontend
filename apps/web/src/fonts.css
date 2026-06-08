@@ -1,0 +1,35 @@
+@font-face {
+  font-family: "Pretendard-Light";
+  src: url("../../../packages/app/src/assets/fonts/Pretendard-Light.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard-Regular";
+  src: url("../../../packages/app/src/assets/fonts/Pretendard-Regular.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard-Medium";
+  src: url("../../../packages/app/src/assets/fonts/Pretendard-Medium.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard-SemiBold";
+  src: url("../../../packages/app/src/assets/fonts/Pretendard-SemiBold.otf") format("opentype");
+  font-display: swap;
+}
+
+@font-face {
+  font-family: "Pretendard-Bold";
+  src: url("../../../packages/app/src/assets/fonts/Pretendard-Bold.otf") format("opentype");
+  font-display: swap;
+}
+
+html,
+body,
+#root {
+  font-family: "Pretendard-Regular", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+}

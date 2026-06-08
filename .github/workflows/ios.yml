@@ -91,7 +91,7 @@ jobs:
           node-version: '18'
 
       - name: Install Node dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Symlink node for Xcode (Fix Hermes Build)
         run: sudo ln -s $(which node) /usr/local/bin/node || true
@@ -103,10 +103,10 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
-          bundler-cache: true
+          bundler-cache: false
 
       - name: Install Ruby gems
-        working-directory: ios
+        working-directory: apps/mobile/ios
         run: bundle install
 
       # --------------------------------
@@ -116,7 +116,7 @@ jobs:
         run: gem install cocoapods -v 1.15.2
 
       - name: Install CocoaPods dependencies
-        working-directory: ios
+        working-directory: apps/mobile/ios
         run: pod _1.15.2_ install --repo-update
 
       # --------------------------------
@@ -138,7 +138,7 @@ jobs:
 
           echo "📦 Loading env from $BASE_PATH"
 
-          cat <<EOF > ios/.env
+          cat <<EOF > apps/mobile/ios/.env
           API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
           WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
           KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
@@ -149,23 +149,24 @@ jobs:
           NAVER_CLIENT_ID=$(aws ssm get-parameter --name $BASE_PATH/NAVER_CLIENT_ID --with-decryption --query Parameter.Value --output text)
           EOF
 
-          cp ios/.env .env
+          cp apps/mobile/ios/.env apps/mobile/.env
+          cp apps/mobile/ios/.env .env
           echo "LANE=$LANE" >> $GITHUB_ENV
 
       - name: Decode GoogleService-Info.plist
         run: |
           BRANCH="${GITHUB_REF##*/}"
           if [ "$BRANCH" = "develop" ]; then
-            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
+            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_BASE64 }}" | base64 --decode > apps/mobile/ios/GoogleService-Info.plist
           else
-            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_PROD_BASE64 }}" | base64 --decode > ios/GoogleService-Info.plist
+            echo "${{ secrets.GOOGLE_SERVICE_INFO_PLIST_PROD_BASE64 }}" | base64 --decode > apps/mobile/ios/GoogleService-Info.plist
           fi
 
       # --------------------------------
       # Build & Upload
       # --------------------------------
       - name: Build & Deploy iOS
-        working-directory: ios
+        working-directory: apps/mobile/ios
         env:
           CI: "true"
         run: |

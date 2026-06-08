@@ -44,9 +44,6 @@ jobs:
         with:
           node-version: 18
 
-      - name: Install yarn
-        run: npm install -g yarn
-
       - name: Set up JDK
         uses: actions/setup-java@v3
         with:
@@ -57,7 +54,7 @@ jobs:
         uses: ruby/setup-ruby@v1
         with:
           ruby-version: 3.1
-          bundler-cache: true
+          bundler-cache: false
 
       # --------------------------------
       # 3. ENV 분기 + SSM 로딩 (⭐ 핵심 변경 사항)
@@ -76,7 +73,7 @@ jobs:
           echo "📦 Loading env from $BASE_PATH"
 
           # .env.production 생성 (SSM에서 데이터 로드)
-          cat <<EOF > .env.production
+          cat <<EOF > apps/mobile/.env.production
           API_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/API_BASE_URL --with-decryption --query Parameter.Value --output text)
           WEB_BASE_URL=$(aws ssm get-parameter --name $BASE_PATH/WEB_BASE_URL --with-decryption --query Parameter.Value --output text)
           KAKAO_JS_KEY=$(aws ssm get-parameter --name $BASE_PATH/KAKAO_JS_KEY --with-decryption --query Parameter.Value --output text)
@@ -88,11 +85,13 @@ jobs:
           EOF
 
         
-          cp .env.production .env
+          cp apps/mobile/.env.production apps/mobile/.env
+          cp apps/mobile/.env.production apps/mobile/android/.env.production
+          cp apps/mobile/.env.production .env
           
           # local.properties (Google Maps 등) 생성
           MAPS_KEY=$(aws ssm get-parameter --name $BASE_PATH/MAPS_API_KEY --with-decryption --query Parameter.Value --output text)
-          echo "MAPS_API_KEY=$MAPS_KEY" >> android/local.properties
+          echo "MAPS_API_KEY=$MAPS_KEY" >> apps/mobile/android/local.properties
           
           echo "ENV_NAME=$ENV" >> $GITHUB_ENV
 
@@ -100,21 +99,21 @@ jobs:
       # 4. 의존성 및 보안 파일 설정
       # --------------------------------
       - name: Install JS dependencies
-        run: yarn install
+        run: npm ci
 
       - name: Install fastlane
         run: bundle install
-        working-directory: android
+        working-directory: apps/mobile/android
 
       - name: Decode Secrets (Keystore & Google Services)
         run: |
           BRANCH="${GITHUB_REF##*/}"
           if [ "$BRANCH" = "develop" ]; then
-            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > android/app/google-services.json
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_BASE64 }}" | base64 --decode > apps/mobile/android/app/google-services.json
           else
-            echo "${{ secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 }}" | base64 --decode > android/app/google-services.json
+            echo "${{ secrets.GOOGLE_SERVICES_JSON_PROD_BASE64 }}" | base64 --decode > apps/mobile/android/app/google-services.json
           fi
-          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > android/app/test-release-key.jks
+          echo "${{ secrets.KEYSTORE_BASE64 }}" | base64 --decode > apps/mobile/android/app/test-release-key.jks
 
       - name: Set CI app version
         run: |
@@ -138,13 +137,13 @@ jobs:
       # - name: Build Release APK
       #   run: |
       #     ENVFILE=.env.production bundle exec fastlane build_release
-      #   working-directory: android
+      #   working-directory: apps/mobile/android
 
       # AAB 빌드 (스토어 배포 및 내부 테스트용)
       - name: Build Release AAB
         run: |
           ENVFILE=.env.production bundle exec fastlane bundle_release
-        working-directory: android
+        working-directory: apps/mobile/android
 
       # --------------------------------
       # 6. 결과물 업로드
@@ -154,10 +153,10 @@ jobs:
         with:
           name: app-release-${{ env.ENV_NAME }}
           path: |
-            android/app/build/outputs/bundle/release/*.aab
+            apps/mobile/android/app/build/outputs/bundle/release/*.aab
       
       #apk 파일 관련 부분 주석처리
-      # android/app/build/outputs/apk/release/*.apk
+      # apps/mobile/android/app/build/outputs/apk/release/*.apk
 
       # Google Play 배포
       - name: Deploy to Google Play (Internal Testing)
@@ -165,7 +164,7 @@ jobs:
         with:
           serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
           packageName: com.triofrontendapp
-          releaseFiles: android/app/build/outputs/bundle/release/app-release.aab
+          releaseFiles: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
           track: internal  
           status: completed 
 
