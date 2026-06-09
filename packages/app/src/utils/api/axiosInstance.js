@@ -1,17 +1,17 @@
 import qs from 'qs';
 import axios from 'axios';
-import {API_BASE_URL as ENV_API_BASE_URL} from '@env';
+import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
 import useUserStore from '@stores/userStore';
-import {log, mask} from '@utils/logger';
-import {tryRefresh} from '@utils/auth/login';
+import { log, mask } from '@utils/logger';
+import { tryRefresh } from '@utils/auth/login';
 
 const API_BASE_URL = ENV_API_BASE_URL ?? '';
 
 const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
-  timeout: 5000,
-  headers: {'Content-Type': 'application/json'},
+  timeout: 12000,
+  headers: { 'Content-Type': 'application/json' },
   paramsSerializer: params => qs.stringify(params),
 });
 
@@ -120,7 +120,7 @@ api.interceptors.response.use(
       if (isRefreshing) {
         log.info(`⏳ [${id}] waiting for ongoing refresh`);
         return new Promise((resolve, reject) => {
-          queue.push({resolve, reject});
+          queue.push({ resolve, reject });
         }).then(token => {
           original.headers = original.headers || {};
           original.headers.Authorization = `Bearer ${token}`;
@@ -130,7 +130,7 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        const ok = await tryRefresh({silent: true}); // 호출한 화면에서 직접 처리하도록 자동 이동은 막는다.
+        const ok = await tryRefresh({ silent: true }); // 호출한 화면에서 직접 처리하도록 자동 이동은 막는다.
         if (!ok) {
           resolveQueue(new Error('refresh failed'), null);
           return Promise.reject(err);
