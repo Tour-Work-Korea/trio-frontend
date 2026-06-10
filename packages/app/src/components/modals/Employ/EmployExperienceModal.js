@@ -1,4 +1,4 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Dimensions,
   Keyboard,
@@ -14,15 +14,15 @@ import {
   Platform,
 } from 'react-native';
 import dayjs from 'dayjs';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
 import Calendar from '@assets/images/calendar_gray.svg';
 import MonthPicker from '@components/Employ/MonthPicker';
 
-const {height} = Dimensions.get('window');
+const { height } = Dimensions.get('window');
 
 export default function EmployExperienceModal({
   visible,
@@ -38,7 +38,7 @@ export default function EmployExperienceModal({
   });
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [dateFieldTarget, setDateFieldTarget] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState({year: 2025, month: 4});
+  const [selectedPeriod, setSelectedPeriod] = useState({ year: 2025, month: 4 });
 
   useEffect(() => {
     if (initialData) {
@@ -57,28 +57,31 @@ export default function EmployExperienceModal({
     setDateFieldTarget(field); // 'startDate' or 'endDate'
     const defaultDate = dayjs().format('YYYY.MM');
     if (!experience[field]) {
-      setExperience(prev => ({...prev, [field]: defaultDate}));
+      setExperience(prev => ({ ...prev, [field]: defaultDate }));
       setSelectedPeriod({
         year: dayjs().year(),
         month: dayjs().month() + 1,
       });
     } else {
       const [year, month] = experience[field].split('.').map(Number);
-      setSelectedPeriod({year, month});
+      setSelectedPeriod({ year, month });
     }
     setIsDatePickerVisible(true);
   };
   const handleMonthChange = date => {
     const formatted = `${date.year}.${String(date.month).padStart(2, '0')}`;
-    setExperience(prev => ({...prev, [dateFieldTarget]: formatted}));
+    setExperience(prev => ({ ...prev, [dateFieldTarget]: formatted }));
     setIsDatePickerVisible(false);
   };
-  return (
-    <Modal visible={visible} animationType="slide" transparent>
-      <KeyboardAvoidingView style={{flex: 1}} enabled>
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-          <View style={styles.overlay}>
-            <View style={styles.container}>
+  if (Platform.OS === 'android' && !visible) {
+    return null;
+  }
+
+  const content = (
+    <KeyboardAvoidingView style={{ flex: 1 }} enabled>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <View style={[styles.overlay, Platform.OS === 'android' && styles.androidOverlay]}>
+          <View style={styles.container}>
               {/* 헤더 */}
               <View style={styles.header}>
                 <View />
@@ -90,7 +93,7 @@ export default function EmployExperienceModal({
               </View>
               {/* 입력 폼 */}
               <ScrollView
-                style={{flex: 1}}
+                style={{ flex: 1 }}
                 contentContainerStyle={styles.detailContainer}
                 showsVerticalScrollIndicator={false}>
                 <View style={styles.detailContainer}>
@@ -99,7 +102,7 @@ export default function EmployExperienceModal({
                     <View style={styles.titleBox}>
                       <Text style={styles.titleText}>회사명</Text>
                       <Text style={styles.titleLength}>
-                        <Text style={{color: COLORS.primary_orange}}>
+                        <Text style={{ color: COLORS.primary_orange }}>
                           {experience.companyName.length}
                         </Text>
                         /50
@@ -112,7 +115,7 @@ export default function EmployExperienceModal({
                         placeholderTextColor={COLORS.grayscale_400}
                         value={experience.companyName}
                         onChangeText={data =>
-                          setExperience(prev => ({...prev, companyName: data}))
+                          setExperience(prev => ({ ...prev, companyName: data }))
                         }
                         maxLength={50}
                       />
@@ -126,7 +129,7 @@ export default function EmployExperienceModal({
                     <View style={styles.dateInputBox}>
                       <TouchableOpacity
                         activeOpacity={1}
-                        style={[styles.inputBox, {flex: 1}]}
+                        style={[styles.inputBox, { flex: 1 }]}
                         onPress={() => handleDateInputPress('startDate')}>
                         <Text style={styles.textInput}>
                           {experience.startDate || '근무시작일'}
@@ -135,7 +138,7 @@ export default function EmployExperienceModal({
                       </TouchableOpacity>
                       <TouchableOpacity
                         activeOpacity={1}
-                        style={[styles.inputBox, {flex: 1}]}
+                        style={[styles.inputBox, { flex: 1 }]}
                         onPress={() => handleDateInputPress('endDate')}>
                         <Text style={styles.textInput}>
                           {experience.endDate || '근무종료일'}
@@ -155,7 +158,7 @@ export default function EmployExperienceModal({
                     <View style={styles.titleBox}>
                       <Text style={styles.titleText}>담당업무</Text>
                       <Text style={styles.titleLength}>
-                        <Text style={{color: COLORS.primary_orange}}>
+                        <Text style={{ color: COLORS.primary_orange }}>
                           {experience.description.length}
                         </Text>
                         /50
@@ -168,7 +171,7 @@ export default function EmployExperienceModal({
                         placeholderTextColor={COLORS.grayscale_400}
                         value={experience.description}
                         onChangeText={data =>
-                          setExperience(prev => ({...prev, description: data}))
+                          setExperience(prev => ({ ...prev, description: data }))
                         }
                         maxLength={50}
                       />
@@ -188,10 +191,19 @@ export default function EmployExperienceModal({
                   />
                 </View>
               </View>
-            </View>
           </View>
-        </TouchableWithoutFeedback>
-      </KeyboardAvoidingView>
+        </View>
+      </TouchableWithoutFeedback>
+    </KeyboardAvoidingView>
+  );
+
+  if (Platform.OS === 'android') {
+    return content;
+  }
+
+  return (
+    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+      {content}
     </Modal>
   );
 }
@@ -200,6 +212,11 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     justifyContent: 'flex-end',
+  },
+  androidOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999,
+    elevation: 9999,
   },
   container: {
     flex: 1,
