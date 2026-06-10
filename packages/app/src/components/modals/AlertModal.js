@@ -1,7 +1,7 @@
 import React from 'react';
-import {Modal, Platform, View, Text, StyleSheet, Image} from 'react-native';
-import {FONTS} from '@constants/fonts';
-import {COLORS} from '@constants/colors';
+import { Modal, Platform, View, Text, StyleSheet, Image } from 'react-native';
+import { FONTS } from '@constants/fonts';
+import { COLORS } from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
 
 /**
@@ -23,7 +23,7 @@ const AlertModal = ({
   imageUri,
   imageSource,   // png/jpg 같은 이미지
   iconElement,   // SVG
-  onRequestClose = () => {},
+  onRequestClose = () => { },
 }) => {
   // 강조 텍스트 여부
   const renderMessage = () => {
@@ -50,7 +50,7 @@ const AlertModal = ({
             {idx !== parts.length - 1 && (
               <Text
                 style={[
-                  {color},
+                  { color },
                 ]}
               >
                 {highlightText}
@@ -62,17 +62,13 @@ const AlertModal = ({
     );
   };
 
-  return (
-    <Modal
-      transparent={true}
-      animationType="fade"
-      visible={visible}
-      presentationStyle="overFullScreen"
-      statusBarTranslucent
-      navigationBarTranslucent
-      onRequestClose={onRequestClose}>
-      <View style={styles.overlay}>
-        <View style={styles.container}>
+  if (Platform.OS === 'android' && !visible) {
+    return null;
+  }
+
+  const content = (
+    <View style={[styles.overlay, Platform.OS === 'android' && styles.androidOverlay]}>
+      <View style={styles.container}>
           {/* 이미지 주소 or 로컬 이미지 */}
           {iconElement ? (
             <View>{iconElement}</View>
@@ -116,13 +112,25 @@ const AlertModal = ({
           )}
         </View>
       </View>
+  );
+
+  if (Platform.OS === 'android') {
+    return content;
+  }
+
+  return (
+    <Modal
+      transparent={true}
+      animationType="fade"
+      visible={visible}
+      onRequestClose={onRequestClose}>
+      {content}
     </Modal>
   );
 };
 
 const styles = StyleSheet.create({
   overlay: {
-    ...StyleSheet.absoluteFillObject,
     flex: 1,
     backgroundColor: COLORS.modal_background,
     justifyContent: 'center',
@@ -132,6 +140,11 @@ const styles = StyleSheet.create({
         paddingHorizontal: 20,
       },
     }),
+  },
+  androidOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    zIndex: 9999,
+    elevation: 9999,
   },
   container: {
     backgroundColor: COLORS.grayscale_0,
