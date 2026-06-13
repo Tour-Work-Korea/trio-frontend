@@ -45,6 +45,18 @@ const RoomList = ({
       roomType: room.roomType,
       dormitoryGenderType: room.dormitoryGenderType,
       roomMaxCapacity: room.roomMaxCapacity,
+      extraPersonPrice:
+        room.extraPersonPrice ??
+        room.additionalGuestPrice ??
+        room.extraGuestPrice ??
+        room.additionalPersonPrice,
+      additionalGuestPrice:
+        room.additionalGuestPrice ??
+        room.extraGuestPrice ??
+        room.extraPersonPrice ??
+        room.additionalPersonPrice,
+      extraPersonCount: room.extraPersonCount,
+      extraPersonTotalPrice: room.extraPersonTotalPrice,
       femaleOnly: room.femaleOnly,
       guesthouseName: detail.guesthouseName,
       guesthouseId,
@@ -133,7 +145,7 @@ const RoomList = ({
       return;
     }
 
-    navigation.navigate('GuesthouseReservation', {
+    navigation.navigate('GuesthouseReservationEntry', {
       roomId: room.id,
       roomName: room.roomName,
       roomPrice: room.roomPrice,
@@ -152,6 +164,18 @@ const RoomList = ({
       dormitoryGenderType: room.dormitoryGenderType,
       roomCapacity: room.roomCapacity,
       roomMaxCapacity: room.roomMaxCapacity,
+      extraPersonPrice:
+        room.extraPersonPrice ??
+        room.additionalGuestPrice ??
+        room.extraGuestPrice ??
+        room.additionalPersonPrice,
+      additionalGuestPrice:
+        room.additionalGuestPrice ??
+        room.extraGuestPrice ??
+        room.extraPersonPrice ??
+        room.additionalPersonPrice,
+      extraPersonCount: room.extraPersonCount,
+      extraPersonTotalPrice: room.extraPersonTotalPrice,
       femaleOnly: room.femaleOnly,
       refundPolicies: detail?.refundPolicies,
       reservationPolicy: detail?.reservationPolicy,

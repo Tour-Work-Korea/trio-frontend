@@ -43,6 +43,7 @@ export const WEB_STATIC_ROUTE_BY_SCREEN = {
   GuesthousePayment: '/guesthouse-payment',
   GuesthousePaymentReceipt: '/my/reservations/guesthouses/receipt',
   GuesthousePaymentSuccess: '/guesthouse-payment/success',
+  GuesthouseReservationEntry: '/guesthouse-reservation/select',
   GuesthouseReservation: '/guesthouse-reservation',
   Login: WEB_ROUTES.LOGIN,
   MeetCancelConfirm: '/my/reservations/contents/cancel',
