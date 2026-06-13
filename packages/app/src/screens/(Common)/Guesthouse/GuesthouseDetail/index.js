@@ -53,10 +53,10 @@ import RightChevronBlack from '@assets/images/chevron_right_black.svg';
 const TAB_OPTIONS = [
   {key: 'room', label: '객실'},
   {key: 'intro', label: '소개'},
-  {key: 'service', label: '시설/서비스'},
   {key: 'rule', label: '이용규칙'},
   {key: 'review', label: '리뷰'},
   {key: 'refund', label: '취소규정'},
+  {key: 'service', label: '시설/서비스'},
 ];
 
 // 안심번호 일 경우만 공개

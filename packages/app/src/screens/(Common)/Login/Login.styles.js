@@ -7,13 +7,12 @@ export default StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
   },
-  loginCloseButton: {
+  loginHeader: {
     position: 'absolute',
-    top: 20,
     right: 18,
     zIndex: 10,
-    width: 40,
-    height: 40,
+  },
+  loginCloseButton: {
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',

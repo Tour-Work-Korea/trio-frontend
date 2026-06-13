@@ -19,6 +19,7 @@ import {
   GuesthouseDetail,
   GuesthouseMap,
   RoomDetail,
+  GuesthouseReservationEntry,
   GuesthouseReservation,
   CouponSelectScreen,
   GuesthousePayment,
@@ -93,6 +94,10 @@ const RootNavigation = () => {
         <Stack.Screen name="RoomDetail" component={RoomDetail} />
         <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
         <Stack.Screen name="GuesthouseLocationMap" component={GuesthouseMap} />
+        <Stack.Screen
+          name="GuesthouseReservationEntry"
+          component={GuesthouseReservationEntry}
+        />
         <Stack.Screen
           name="GuesthouseReservation"
           component={GuesthouseReservation}

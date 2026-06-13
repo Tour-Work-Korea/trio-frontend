@@ -54,6 +54,10 @@ const RoomDetail = ({route}) => {
     roomType,
     dormitoryGenderType,
     roomMaxCapacity,
+    extraPersonPrice,
+    additionalGuestPrice,
+    extraPersonCount,
+    extraPersonTotalPrice,
     femaleOnly,
     totalPrice,
     refundPolicies,
@@ -301,7 +305,7 @@ const RoomDetail = ({route}) => {
                 });
 
               } else {
-                navigation.navigate('GuesthouseReservation', {
+                navigation.navigate('GuesthouseReservationEntry', {
                   roomId,
                   roomName,
                   roomPrice,
@@ -320,6 +324,10 @@ const RoomDetail = ({route}) => {
                   dormitoryGenderType,
                   roomCapacity,
                   roomMaxCapacity,
+                  extraPersonPrice,
+                  additionalGuestPrice,
+                  extraPersonCount,
+                  extraPersonTotalPrice,
                   femaleOnly,
                   refundPolicies,
                   reservationPolicy,
