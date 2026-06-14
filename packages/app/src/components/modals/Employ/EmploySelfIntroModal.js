@@ -2,7 +2,6 @@ import React, {useEffect, useState} from 'react';
 import {
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   ScrollView,
   StyleSheet,
   Text,
@@ -12,6 +11,7 @@ import {
   View,
   Platform,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';

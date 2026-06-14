@@ -1,6 +1,12 @@
-import {FONTS} from '@constants/fonts';
 import React, {useEffect} from 'react';
-import {Modal, View, StyleSheet, Text, TouchableOpacity} from 'react-native';
+import {
+  View,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
+import {FONTS} from '@constants/fonts';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
@@ -26,7 +32,7 @@ export default function ResultModal({
 
       return () => clearTimeout(timer);
     }
-  }, [visible]);
+  }, [buttonText, onClose, visible]);
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>

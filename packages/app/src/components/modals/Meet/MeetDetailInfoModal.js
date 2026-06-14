@@ -2,13 +2,13 @@ import React from 'react';
 import {
   View,
   Text,
-  Modal,
   TouchableOpacity,
   ScrollView,
   StyleSheet,
 } from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import AdaptiveModal from '@components/modals/AdaptiveModal';
 
 import XBtn from '@assets/images/x_gray.svg';
 
@@ -22,10 +22,11 @@ const MeetDetailInfoModal = ({
   sections = [], // 섹션형 [{subtitle: "", body: ""}]
 }) => {
   return (
-    <Modal
+    <AdaptiveModal
       visible={visible}
       animationType="slide"
       transparent
+      onRequestClose={onClose}
     >
       <View style={styles.overlay}>
         <View style={styles.container}>
@@ -64,7 +65,7 @@ const MeetDetailInfoModal = ({
 
             {/* 섹션형 */}
             {type === 'section' && (
-              <View style={{gap: 32}}>
+              <View style={styles.sectionList}>
                 {sections.map((sec, idx) => (
                   <View key={idx} style={styles.sectionBox}>
                     <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
@@ -82,7 +83,7 @@ const MeetDetailInfoModal = ({
 
         </View>
       </View>
-    </Modal>
+    </AdaptiveModal>
   );
 };
 
@@ -122,7 +123,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 8,
     marginBottom: 12,
-    flexWrap: 'wrap'
+    flexWrap: 'wrap',
   },
   tagText: {
     color: COLORS.primary_blue,
@@ -133,6 +134,9 @@ const styles = StyleSheet.create({
   },
 
   // 섹션형
+  sectionList: {
+    gap: 32,
+  },
   sectionBox: {
   },
   sectionTitle: {

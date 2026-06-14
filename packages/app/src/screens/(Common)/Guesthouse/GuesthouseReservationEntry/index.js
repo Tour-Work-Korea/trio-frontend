@@ -366,6 +366,9 @@ const GuesthouseReservationEntry = ({route}) => {
       checkOut: joinDateTime(selectedCheckOut, checkOutTime || checkOut),
       guestCount,
       totalPrice: displayTotalPrice,
+      extraPersonPrice: extraGuestUnitPrice,
+      extraPersonCount: extraGuestCount,
+      extraPersonTotalPrice: extraGuestTotalPrice,
     });
   };
 

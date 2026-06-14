@@ -3,7 +3,6 @@ import {
   Alert,
   Image,
   Keyboard,
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -16,6 +15,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 import Header from '@components/Header';
+import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import styles from './CommunityWrite.styles';
@@ -54,6 +54,19 @@ const defaultCategories = [
   },
 ];
 
+const getObjectKeyFromImageUrl = imageUrl => {
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return null;
+  }
+
+  try {
+    const {pathname} = new URL(imageUrl);
+    return decodeURIComponent(pathname).replace(/^\/+/, '') || null;
+  } catch {
+    return imageUrl.replace(/^\/+/, '') || null;
+  }
+};
+
 const normalizeExistingImages = post =>
   [...(post?.images ?? [])]
     .sort((a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0))
@@ -61,7 +74,7 @@ const normalizeExistingImages = post =>
       id: `existing-${image.imageId ?? image.objectKey ?? index}`,
       uri: image.imageUrl,
       imageUrl: image.imageUrl,
-      objectKey: image.objectKey,
+      objectKey: image.objectKey ?? getObjectKeyFromImageUrl(image.imageUrl),
       fileSize: image.fileSizeBytes ?? image.fileSize ?? 1,
       fileSizeBytes: image.fileSizeBytes ?? image.fileSize ?? 1,
       isExisting: true,
