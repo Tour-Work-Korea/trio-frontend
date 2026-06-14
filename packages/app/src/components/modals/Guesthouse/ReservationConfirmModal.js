@@ -1,12 +1,12 @@
 import React from 'react';
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
   TouchableWithoutFeedback,
   StyleSheet,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');

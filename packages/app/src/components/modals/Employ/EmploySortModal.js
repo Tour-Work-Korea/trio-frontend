@@ -1,5 +1,6 @@
 import React from 'react';
-import {Modal, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 
 import XIcon from '@assets/images/x_gray.svg';
 import CheckIcon from '@assets/images/check20_orange.svg';

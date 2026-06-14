@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, TouchableWithoutFeedback, Modal, ScrollView } from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, Text, StyleSheet, TouchableWithoutFeedback, ScrollView} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
@@ -16,13 +17,7 @@ export default function ReservationCancelDetailModal({
   const [reservation, setReservation] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (visible && reservationId) {
-      fetchReservationDetail();
-    }
-  }, [visible, reservationId]);
-
-  const fetchReservationDetail = async () => {
+  const fetchReservationDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await userMyApi.getReservationDetail(reservationId);
@@ -32,7 +27,13 @@ export default function ReservationCancelDetailModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [reservationId]);
+
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [fetchReservationDetail, reservationId, visible]);
 
   if (loading || !reservation) {
     return (

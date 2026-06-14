@@ -59,6 +59,8 @@ const TAB_OPTIONS = [
   {key: 'service', label: '시설/서비스'},
 ];
 
+const SHORT_INTRO_COLLAPSED_LINES = 6;
+
 // 안심번호 일 경우만 공개
 const is050Number = phone => {
   if (!phone) return false;
@@ -110,11 +112,10 @@ const GuesthouseDetail = ({route}) => {
     a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
   );
   const hasImages = sortedImages.length > 0;
+  const hideHeaderCarouselForImageModal =
+    Platform.OS === 'android' && imageModalVisible;
   const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
-  const modalImages = sortedImages.map(img => ({
-    id: img.id,
-    imageUrl: img.guesthouseImageUrl,
-  }));
+  const modalImages = sortedImages;
 
   const {width: SCREEN_W} = Dimensions.get('window');
   const IMAGE_H = 280;
@@ -140,6 +141,12 @@ const GuesthouseDetail = ({route}) => {
   );
   const [localChildren, setLocalChildren] = useState(0); // 기본 아이 0
   const [hasChanged, setHasChanged] = useState(false);
+  const [shortIntroExpanded, setShortIntroExpanded] = useState(false);
+  const [shortIntroLineCount, setShortIntroLineCount] = useState(0);
+
+  useEffect(() => {
+    setShortIntroExpanded(false);
+  }, [id, detail?.guesthouseShortIntro]);
 
   const navigateWebHome = useCallback(() => {
     replaceWebPath(WEB_ROUTES.HOME);
@@ -317,6 +324,8 @@ const GuesthouseDetail = ({route}) => {
     (a, b) => a.daysBeforeCheckin - b.daysBeforeCheckin,
   );
   const displayRating = getDisplayRating(detail.averageRating);
+  const shortIntroText = detail?.guesthouseShortIntro ?? '';
+  const hasShortIntroOverflow = shortIntroLineCount > SHORT_INTRO_COLLAPSED_LINES;
   const todayParties = Array.isArray(detail?.todayParties)
     ? detail.todayParties
     : [];
@@ -495,7 +504,7 @@ const GuesthouseDetail = ({route}) => {
       <ScrollView style={styles.container}>
         <View>
         {/* 대표 이미지 */}
-        {hasImages ? (
+        {hasImages && !hideHeaderCarouselForImageModal ? (
           <Carousel
             width={SCREEN_W}
             height={IMAGE_H}
@@ -672,9 +681,41 @@ const GuesthouseDetail = ({route}) => {
           )}
 
           <View style={styles.shortIntroContainer}>
-            <Text style={[FONTS.fs_14_regular, styles.shortIntroText]}>
-              {detail.guesthouseShortIntro}
+            <Text
+              style={[
+                FONTS.fs_14_regular,
+                styles.shortIntroText,
+                styles.shortIntroMeasureText,
+              ]}
+              onTextLayout={event => {
+                const lineCount = event.nativeEvent.lines?.length ?? 0;
+                setShortIntroLineCount(prev =>
+                  prev === lineCount ? prev : lineCount,
+                );
+              }}
+            >
+              {shortIntroText}
             </Text>
+            <Text
+              style={[FONTS.fs_14_regular, styles.shortIntroText]}
+              numberOfLines={
+                shortIntroExpanded ? undefined : SHORT_INTRO_COLLAPSED_LINES
+              }
+              ellipsizeMode="tail"
+            >
+              {shortIntroText}
+            </Text>
+            {hasShortIntroOverflow && (
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.shortIntroToggleButton}
+                onPress={() => setShortIntroExpanded(prev => !prev)}
+              >
+                <Text style={[FONTS.fs_14_medium, styles.shortIntroToggleText]}>
+                  {shortIntroExpanded ? '닫기' : '더보기'}
+                </Text>
+              </TouchableOpacity>
+            )}
           </View>
 
           {todayParties.length > 0 && (

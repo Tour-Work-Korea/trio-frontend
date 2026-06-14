@@ -2,12 +2,12 @@ import React from 'react';
 import {
   View,
   Text,
-  Modal,
   StyleSheet,
   TouchableOpacity,
   ScrollView,
   Platform,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import useAmenityStore from '@stores/amenityStore';

@@ -1,6 +1,5 @@
 import React, {useRef, useState, useEffect} from 'react';
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
@@ -8,6 +7,7 @@ import {
   ScrollView,
   Dimensions,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
 import {COLORS} from '@constants/colors';

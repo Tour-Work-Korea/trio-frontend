@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
-  Modal,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 
 import AllIcon from '@assets/images/wlogo_blue_left.svg';
@@ -41,20 +41,10 @@ export default function EmployFilterModal({
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    const checkDirty = () => {
-      const isDirtyNow = !isEqualToInitialState();
-      setIsDirty(isDirtyNow);
-    };
-    checkDirty();
-  }, [selectedSubRegions, selectedTags]);
-
   // 초기화 버튼 활성화 여부
-  const isEqualToInitialState = (next = {}) => {
-    return selectedSubRegions.length === 0 && selectedTags.length === 0
-      ? true
-      : false;
-  };
+  useEffect(() => {
+    setIsDirty(!(selectedSubRegions.length === 0 && selectedTags.length === 0));
+  }, [selectedSubRegions, selectedTags]);
 
   const currentSubRegions =
     regionsData.find(r => r.name === selectedRegion)?.subRegions || [];

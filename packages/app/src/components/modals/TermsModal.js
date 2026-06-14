@@ -1,12 +1,12 @@
 import React, {useMemo} from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import {WebView} from 'react-native-webview';
 
 import { COLORS } from '@constants/colors';

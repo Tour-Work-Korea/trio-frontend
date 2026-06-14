@@ -1,12 +1,12 @@
 import React, {useEffect, useState} from 'react';
 import {
-  Modal,
   View,
   Text,
   StyleSheet,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
