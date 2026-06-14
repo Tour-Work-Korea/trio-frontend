@@ -1,11 +1,11 @@
 import React, {useState} from 'react';
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';

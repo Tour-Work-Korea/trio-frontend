@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   Dimensions,
   ScrollView,
 } from "react-native";
+import Modal from '@components/modals/AdaptiveModal';
 import { Calendar } from 'react-native-calendars';
 import dayjs from "dayjs";
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';

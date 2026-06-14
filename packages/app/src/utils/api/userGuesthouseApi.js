@@ -73,6 +73,22 @@ const userGuesthouseApi = {
       },
     }),
 
+  getRoomAvailabilityCalendar: ({
+    guesthouseId,
+    roomId,
+    yearMonth,
+    guestCount,
+  }) =>
+    api.get(
+      `/user/guesthouses/${guesthouseId}/rooms/${roomId}/availability-calendar`,
+      {
+        params: {
+          yearMonth,
+          guestCount,
+        },
+      },
+    ),
+
   // 게스트하우스 좋아요
   favoriteGuesthouse: guesthouseId =>
     api.post(`/user/guesthouses/favorites/${guesthouseId}`),

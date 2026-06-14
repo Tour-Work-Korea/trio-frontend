@@ -1,7 +1,6 @@
 // 태그 말고 나머지도 값 주고 받을 때 닫기 눌러도 유지 안되게 확인
 import React, { useRef, useState, useEffect } from "react";
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
@@ -10,6 +9,7 @@ import {
   Dimensions,
   TextInput,
 } from "react-native";
+import Modal from '@components/modals/AdaptiveModal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
 import { COLORS } from "@constants/colors";
@@ -68,32 +68,25 @@ const GuesthouseFilterModal = ({
     }
   }, [visible, initialFilters]);
 
-  useEffect(() => {
-    const checkDirty = () => {
-        const isDirtyNow = !isEqualToInitialState();
-        setIsDirty(isDirtyNow);
-    };
-    checkDirty();
-  }, [priceRange, selectedRoomType, selectedFacilityIds, selectedTags, onlyAvailable]);
-
   // 초기화 버튼 활성화 여부
-  const isEqualToInitialState = (next = {}) => {
-    const currentTags = [...(next.selectedTags ?? selectedTags)].sort();
+  useEffect(() => {
+    const currentTags = [...selectedTags].sort();
     const initialTags = [];
 
-    const selectedFacilityIdList = [...(next.selectedFacilityIds ?? selectedFacilityIds)]
+    const selectedFacilityIdList = [...selectedFacilityIds]
       .sort((a, b) => a - b);
     const initialFacilityIdList = [];
 
-    return (
-      (next.priceRange ?? priceRange)[0] === 10000 &&
-      (next.priceRange ?? priceRange)[1] === 10000000 &&
-      (next.selectedRoomType ?? selectedRoomType).length === 0 &&
-      (next.onlyAvailable ?? onlyAvailable) === false &&
+    const isEqualToInitialState =
+      priceRange[0] === 10000 &&
+      priceRange[1] === 10000000 &&
+      selectedRoomType.length === 0 &&
+      onlyAvailable === false &&
       JSON.stringify(currentTags) === JSON.stringify(initialTags) &&
-      JSON.stringify(selectedFacilityIdList) === JSON.stringify(initialFacilityIdList)
-    );
-  };
+      JSON.stringify(selectedFacilityIdList) === JSON.stringify(initialFacilityIdList);
+
+    setIsDirty(!isEqualToInitialState);
+  }, [priceRange, selectedRoomType, selectedFacilityIds, selectedTags, onlyAvailable]);
 
   // 초기화 버튼 enable/disable
   const [isDirty, setIsDirty] = useState(false);

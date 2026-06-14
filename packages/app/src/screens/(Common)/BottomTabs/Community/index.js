@@ -1,6 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
-  Modal,
   Pressable,
   ScrollView,
   Text,
@@ -11,6 +10,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
 import AlertModal from '@components/modals/AlertModal';
+import Modal from '@components/modals/AdaptiveModal';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';

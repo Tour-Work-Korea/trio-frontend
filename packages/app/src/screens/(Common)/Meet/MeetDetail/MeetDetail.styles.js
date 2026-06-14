@@ -219,6 +219,20 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     lineHeight: 20,
   },
+  ruleList: {
+    gap: 14,
+  },
+  ruleItem: {
+    gap: 4,
+  },
+  ruleTitle: {
+    color: COLORS.primary_blue,
+    lineHeight: 20,
+  },
+  ruleContent: {
+    color: COLORS.grayscale_900,
+    lineHeight: 20,
+  },
   detailInfoText: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -1,11 +1,11 @@
-import React, {useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useState} from 'react';
 import {
   View,
   Text,
   StyleSheet,
   TouchableWithoutFeedback,
-  Modal,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -43,13 +43,7 @@ export default function ReservationDetailModal({
   const [reservation, setReservation] = useState(null);
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    if (visible && reservationId) {
-      fetchReservationDetail();
-    }
-  }, [visible, reservationId]);
-
-  const fetchReservationDetail = async () => {
+  const fetchReservationDetail = useCallback(async () => {
     try {
       setLoading(true);
       // API 대신 0.5초 후 가짜 데이터 생성
@@ -60,7 +54,13 @@ export default function ReservationDetailModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [reservationId]);
+
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [fetchReservationDetail, reservationId, visible]);
 
   if (loading || !reservation) {
     return (

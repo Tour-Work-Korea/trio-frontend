@@ -1,5 +1,6 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, StyleSheet, Image, TouchableOpacity, Modal, TouchableWithoutFeedback, Alert } from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, Text, StyleSheet, Image, TouchableOpacity, TouchableWithoutFeedback, Alert} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -28,13 +29,7 @@ export default function ReservationCancelModal({
   const [selectedReason, setSelectedReason] = useState('');
 
   // 예약 상세내역
-  useEffect(() => {
-    if (visible && reservationId) {
-      fetchReservationDetail();
-    }
-  }, [visible, reservationId]);
-
-  const fetchReservationDetail = async () => {
+  const fetchReservationDetail = useCallback(async () => {
     try {
       setLoading(true);
       const res = await userMyApi.getReservationDetail(reservationId);
@@ -44,7 +39,13 @@ export default function ReservationCancelModal({
     } finally {
       setLoading(false);
     }
-  };
+  }, [reservationId]);
+
+  useEffect(() => {
+    if (visible && reservationId) {
+      fetchReservationDetail();
+    }
+  }, [fetchReservationDetail, reservationId, visible]);
 
   if (loading || !reservation) {
     return (

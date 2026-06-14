@@ -68,6 +68,10 @@ const GuesthouseReservation = ({ route }) => {
     dormitoryGenderType,
     roomCapacity,
     roomMaxCapacity,
+    extraPersonPrice,
+    additionalGuestPrice,
+    extraPersonCount,
+    extraPersonTotalPrice,
     femaleOnly,
     selectedCoupon,
     refundPolicies,
@@ -184,6 +188,23 @@ const GuesthouseReservation = ({ route }) => {
   };
   const isDormitory = roomType === 'DORMITORY';
   const genderText = roomTypeMap[dormitoryGenderType] || '';
+  const baseCapacity = Number(roomCapacity || 1);
+  const calculatedExtraGuestCount = isDormitory
+    ? 0
+    : Math.max(Number(guestCount || 1) - baseCapacity, 0);
+  const displayExtraGuestCount =
+    Number(extraPersonCount) > 0
+      ? Number(extraPersonCount)
+      : calculatedExtraGuestCount;
+  const extraGuestUnitPrice = Number(
+    extraPersonPrice ?? additionalGuestPrice ?? 0,
+  );
+  const displayExtraGuestTotalPrice =
+    Number(extraPersonTotalPrice) > 0
+      ? Number(extraPersonTotalPrice || 0)
+      : extraGuestUnitPrice * displayExtraGuestCount * nights;
+  const shouldShowExtraGuestPrice =
+    !isDormitory && displayExtraGuestCount > 0;
   const numericPointValue = Number(pointValue || 0);
   const isPointOverBalance = numericPointValue > Number(pointBalance || 0);
   const usableCouponCount = getUsableCouponCount(coupons, totalPrice);
@@ -577,6 +598,16 @@ const GuesthouseReservation = ({ route }) => {
                   {roomPrice?.toLocaleString()}원
                 </Text>
               </View>
+              {shouldShowExtraGuestPrice ? (
+                <View style={styles.userInfo}>
+                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                    추가 인원 {displayExtraGuestCount}명
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
+                    {displayExtraGuestTotalPrice.toLocaleString()}원
+                  </Text>
+                </View>
+              ) : null}
               <View style={styles.userInfo}>
                 <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
                   {`총 가격 (${isDormitory ? `베드 ${guestCount}개 X ` : ''}${nights}박)`}
