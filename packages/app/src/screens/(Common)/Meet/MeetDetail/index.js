@@ -274,6 +274,7 @@ const MeetDetail = () => {
     rules,
     latitude,
     longitude,
+    location,
     meetingPlace,
     trafficInfo,
     parkingTag,
@@ -506,6 +507,21 @@ const MeetDetail = () => {
       zoom: 16,
     };
   }, [mapCoordinate]);
+  const displayLocation = meetingPlace || location;
+
+  const handlePressLocationMap = () => {
+    if (!mapCoordinate) {
+      return;
+    }
+
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: partyTitle || '오시는 길',
+      guesthouseAddress: displayLocation,
+      latitude: mapCoordinate.latitude,
+      longitude: mapCoordinate.longitude,
+    });
+  };
+
   const renderLocationMap = () => {
     if (!mapCoordinate || !mapCamera) {
       return null;
@@ -516,6 +532,7 @@ const MeetDetail = () => {
         <NaverMapView
           style={styles.locationMap}
           initialCamera={mapCamera}
+          onTapMap={handlePressLocationMap}
           isScrollGesturesEnabled={false}
           isZoomGesturesEnabled={false}
           isRotateGesturesEnabled={false}
@@ -525,7 +542,8 @@ const MeetDetail = () => {
             longitude={mapCoordinate.longitude}
             width={44}
             height={56}
-            anchor={{x: 0.5, y: 1}}>
+            anchor={{x: 0.5, y: 1}}
+            onTap={handlePressLocationMap}>
             <View
               collapsable={false}
               style={styles.markerContainer}>
@@ -552,7 +570,7 @@ const MeetDetail = () => {
 
   // 오시는길 값 유무
   const isEmptyWayInfo =
-    !meetingPlace &&
+    !displayLocation &&
     !(trafficInfoList.length > 0) &&
     !parkingContentText;
 
@@ -660,9 +678,9 @@ const MeetDetail = () => {
         ) : (
           <>
             <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
-            {!!meetingPlace && (
+            {!!displayLocation && (
               <Text style={[FONTS.fs_16_regular, styles.infoText]}>
-                만나는 장소 : {meetingPlace}
+                만나는 장소 : {displayLocation}
               </Text>
             )}
             {renderLocationMap()}

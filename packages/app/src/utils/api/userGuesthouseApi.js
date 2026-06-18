@@ -1,4 +1,8 @@
 import api from './axiosInstance';
+import qs from 'qs';
+
+const repeatArrayParamsSerializer = params =>
+  qs.stringify(params, {arrayFormat: 'repeat'});
 
 const userGuesthouseApi = {
   // 게하 지역 키워드 검색
@@ -30,6 +34,8 @@ const userGuesthouseApi = {
     page,
     size = 10,
     sortBy,
+    contentTypes,
+    roomType,
     minPrice,
     maxPrice,
     hashtagIds,
@@ -53,6 +59,8 @@ const userGuesthouseApi = {
         page,
         size,
         sortBy,
+        contentTypes,
+        roomType,
         minPrice,
         maxPrice,
         hashtagIds,
@@ -61,6 +69,7 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
+      paramsSerializer: repeatArrayParamsSerializer,
     }),
 
   // 유저 게스트하우스 상세 조회
@@ -141,6 +150,8 @@ const userGuesthouseApi = {
     neLng,
     limit = 200,
     sortBy = 'RECOMMEND',
+    contentTypes,
+    roomType,
     minPrice,
     maxPrice,
     hashtagIds,
@@ -160,6 +171,8 @@ const userGuesthouseApi = {
         neLng,
         limit,
         sortBy,
+        contentTypes,
+        roomType,
         minPrice,
         maxPrice,
         hashtagIds,
@@ -168,6 +181,14 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
+      paramsSerializer: repeatArrayParamsSerializer,
+    }),
+
+  getGuesthouseFilterCount: params =>
+    api.get('/user/guesthouses/filter-count', {
+      params,
+      paramsSerializer: repeatArrayParamsSerializer,
+      withAuth: false,
     }),
 };
 

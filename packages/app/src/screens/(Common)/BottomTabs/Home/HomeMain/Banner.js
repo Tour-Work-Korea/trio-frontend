@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
   Image,
+  Text,
   Dimensions,
   TouchableOpacity,
   Linking,
@@ -13,9 +14,11 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
+import { COLORS } from '@trio/app/src/constants/colors';
+import { FONTS } from '@trio/app/src/constants/fonts';
 
 const { width } = Dimensions.get('window');
-const BANNER_HORIZONTAL_PADDING = 32;
+const BANNER_HORIZONTAL_PADDING = 36;
 const BANNER_HEIGHT = 120;
 
 const getBannerImageUrl = item => {
@@ -161,20 +164,30 @@ export default function Banner({ banners = [] }) {
                   resizeMode="cover"
                 />
               ) : null}
+              <View
+                style={{
+                  position: 'absolute',
+                  right: 10,
+                  bottom: 8,
+                  paddingHorizontal: 10,
+                  paddingVertical: 6,
+                  borderRadius: 15,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  backgroundColor: COLORS.modal_background,
+                }}>
+                <Text
+                  style={[{
+                    color: COLORS.grayscale_0,
+                  }, FONTS.fs_14_medium]}>
+                  {index + 1} <Text style={{color: COLORS.grayscale_400}}>/ {banners.length}</Text>
+                </Text>
+              </View>
             </TouchableOpacity>
           </View>
           );
         })}
       </ScrollView>
-
-      <View style={styles.indicatorRow}>
-        {banners.map((_, index) => (
-          <View
-            key={index}
-            style={styles.indicatorDot(currentIndex === index)}
-          />
-        ))}
-      </View>
     </View>
   );
 }
