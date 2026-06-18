@@ -157,6 +157,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
     onCameraChanged,
     onCameraIdle,
     onInitialized,
+    onTapMap,
     style,
     ...props
   },
@@ -183,6 +184,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
     }
 
     onCameraChanged?.({reason: 'Tap'});
+    onTapMap?.();
   };
   const handleLayout = event => {
     onLayout?.(event);

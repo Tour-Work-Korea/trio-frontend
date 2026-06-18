@@ -22,7 +22,6 @@ import Person from '@assets/images/person20_gray.svg';
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 import Star from '@assets/images/star_white.svg';
-import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import MapIcon from '@assets/images/map_black.svg';
 import ListIcon from '@assets/images/bullet_list_black.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
@@ -32,7 +31,6 @@ import GuesthouseListMap from '../GuesthouseListMap';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
-import GuesthouseSortModal from '@components/modals/Guesthouse/GuesthouseSortModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
 import Loading from '@components/Loading';
@@ -46,6 +44,53 @@ import {
 import {WEB_ROUTES} from '@web/routes';
 
 const EMPTY_REGION_IDS = [];
+const EMPTY_CATEGORY_TAGS = [];
+const CATEGORY_FILTERS = ['포틀럭', '독서', '디너파티', '서핑/레저', '프로그램'];
+const CONTENT_TYPE_MAP = {
+  포틀럭: 'POTLUCK',
+  독서: 'BOOK',
+  디너파티: 'DINNER_PARTY',
+  '서핑/레저': 'SURF_LEISURE',
+  프로그램: 'PROGRAM',
+};
+const ROOM_TYPE_MAP = {
+  '일반 객실': 'PRIVATE',
+  도미토리: 'DORMITORY',
+};
+
+const getGuesthouseFilterApiParams = filters => {
+  const params = {};
+  const contentTypes = (filters.tags || [])
+    .map(tag => CONTENT_TYPE_MAP[tag])
+    .filter(Boolean);
+  const roomType = ROOM_TYPE_MAP[filters.roomType];
+
+  if (contentTypes.length > 0) {
+    params.contentTypes = contentTypes;
+  }
+
+  if (roomType) {
+    params.roomType = roomType;
+  }
+
+  if (filters.minPrice !== 10000) {
+    params.minPrice = filters.minPrice;
+  }
+
+  if (filters.maxPrice !== 1000000) {
+    params.maxPrice = filters.maxPrice;
+  }
+
+  if (filters.onlyAvailable) {
+    params.availableOnly = true;
+  }
+
+  if (filters.facility?.length > 0) {
+    params.amenityIds = [...filters.facility];
+  }
+
+  return params;
+};
 
 const shouldUseInitialMapView = initialMapView => {
   if (!initialMapView) {
@@ -92,11 +137,16 @@ const GuesthouseList = () => {
     adultCount: routeAdultCount = 1,
     childCount: routeChildCount = 0,
     searchText = '',
+    categoryTags = EMPTY_CATEGORY_TAGS,
     regionIds = EMPTY_REGION_IDS,
     regionBounds: initialRegionBounds = null,
     initialMapView = false,
     mapResetKey = 0,
   } = route.params || {};
+  const selectedCategoryTags = useMemo(
+    () => (Array.isArray(categoryTags) ? categoryTags : []),
+    [categoryTags],
+  );
 
   const regionBounds = useMemo(
     () =>
@@ -109,37 +159,33 @@ const GuesthouseList = () => {
   // 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
   const [modalInitialSection, setModalInitialSection] = useState('date');
-  const [sortModalVisible, setSortModalVisible] = useState(false);
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [isMapView, setIsMapView] = useState(() =>
     shouldUseInitialMapView(initialMapView),
   );
   const [viewModeVersion, setViewModeVersion] = useState(0);
-  const [availableTags, setAvailableTags] = useState([]);
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    tags: [],
+    tags: selectedCategoryTags,
     minPrice: 10000,
-    maxPrice: 10000000,
-    roomType: [], // 제외 (아직 API 미사용)
+    maxPrice: 1000000,
+    roomType: null,
     facility: [], // amenity object { id, name }
     onlyAvailable: false,
   });
-  const [filterApplied, setFilterApplied] = useState(false);
+  const [filterApplied, setFilterApplied] = useState(
+    selectedCategoryTags.length > 0,
+  );
 
   const isInitialLoading = loading && guesthouses.length === 0;
 
-  const getAmenityIds = facilities => [...facilities];
-  const filteredGuesthouses =
-    filterOptions.tags.length > 0
-      ? guesthouses.filter(item =>
-          item.hashtags?.some(tag => filterOptions.tags.includes(tag))
-        )
-      : guesthouses;
+  const filteredGuesthouses = guesthouses;
 
-  // 정렬 기본 추천순
-  const [selectedSort, setSelectedSort] = useState('RECOMMEND');
+  const filterApiParams = useMemo(
+    () => getGuesthouseFilterApiParams(filterOptions),
+    [filterOptions],
+  );
 
   // 상태 - 처음에는 props 값으로 초기화
   const [adultCount, setAdultCount] = useState(routeAdultCount || 1);
@@ -158,6 +204,27 @@ const GuesthouseList = () => {
   }, []);
 
   useEffect(() => {
+    setFilterOptions(prev => {
+      const nextFilters = {
+        ...prev,
+        tags: selectedCategoryTags,
+      };
+
+      setFilterApplied(
+        nextFilters.tags.length > 0 ||
+        Boolean(nextFilters.roomType) ||
+        nextFilters.facility.length > 0 ||
+        nextFilters.onlyAvailable ||
+        nextFilters.minPrice !== 10000 ||
+        nextFilters.maxPrice !== 1000000
+      );
+
+      return nextFilters;
+    });
+    resetListState();
+  }, [resetListState, selectedCategoryTags]);
+
+  useEffect(() => {
     setDisplayDateState(routeDisplayDate);
     setAdultCount(routeAdultCount);
     setChildCount(routeChildCount);
@@ -172,6 +239,8 @@ const GuesthouseList = () => {
       && !manualListModeRef.current
     ) {
       setIsMapView(true);
+    } else if (!shouldUseInitialMapView(initialMapView)) {
+      setIsMapView(false);
     }
   }, [
     initialMapView,
@@ -230,6 +299,29 @@ const GuesthouseList = () => {
     childCount,
   });
   const [sortBy, setSortBy] = useState('RECOMMEND');
+  const [filterResultCount, setFilterResultCount] = useState(null);
+
+  const fetchFilterResultCount = useCallback(async filters => {
+    if (!checkIn || !checkOut || !regionBounds) {
+      return null;
+    }
+
+    const params = {
+      checkIn,
+      checkOut,
+      guestCount: adultCount + childCount,
+      swLat: regionBounds.swLat,
+      swLng: regionBounds.swLng,
+      neLat: regionBounds.neLat,
+      neLng: regionBounds.neLng,
+      ...getGuesthouseFilterApiParams(filters),
+    };
+
+    const {data} = await userGuesthouseApi.getGuesthouseFilterCount(params);
+    const count = Number(data?.count ?? 0);
+    setFilterResultCount(count);
+    return count;
+  }, [adultCount, checkIn, checkOut, childCount, regionBounds]);
 
   // 게하 불러오기
   const fetchGuesthouses = useCallback(async (pageToFetch = 0) => {
@@ -259,15 +351,7 @@ const GuesthouseList = () => {
 
       // 필터 적용 시 조건 분기
       if (filterApplied) {
-        const allFacilitiesSelected = filterOptions.facility.length === 0;
-
-        if (!allFacilitiesSelected) {
-          params.amenityIds = getAmenityIds(filterOptions.facility);
-        }
-
-        params.minPrice = filterOptions.minPrice;
-        params.maxPrice = filterOptions.maxPrice;
-        params.availableOnly = filterOptions.onlyAvailable;
+        Object.assign(params, filterApiParams);
       }
 
       const response = await userGuesthouseApi.getGuesthouseList(params);
@@ -278,20 +362,6 @@ const GuesthouseList = () => {
         guesthouseId: it.id,
         isLiked: !!it.isFavorite,
       }));
-
-      const nextAvailableTags = Array.from(
-        new Set(
-          normalized.flatMap(item =>
-            Array.isArray(item.hashtags) ? item.hashtags : []
-          )
-        )
-      );
-
-      setAvailableTags(prev =>
-        pageToFetch === 0
-          ? nextAvailableTags
-          : Array.from(new Set([...prev, ...nextAvailableTags]))
-      );
 
       setGuesthouses(prev =>
         pageToFetch === 0 ? normalized : [...prev, ...normalized]
@@ -314,7 +384,7 @@ const GuesthouseList = () => {
     checkIn,
     checkOut,
     filterApplied,
-    filterOptions,
+    filterApiParams,
     regionBounds,
     sortBy,
   ]);
@@ -388,6 +458,30 @@ const GuesthouseList = () => {
         resetListState();
       },
     });
+  };
+
+  const handlePressCategoryFilter = tag => {
+    setFilterOptions(prev => {
+      const isSelected = prev.tags.includes(tag);
+      const nextFilters = {
+        ...prev,
+        tags: isSelected
+          ? prev.tags.filter(item => item !== tag)
+          : [...prev.tags, tag],
+      };
+
+      setFilterApplied(
+        nextFilters.tags.length > 0 ||
+        Boolean(nextFilters.roomType) ||
+        nextFilters.facility.length > 0 ||
+        nextFilters.onlyAvailable ||
+        nextFilters.minPrice !== 10000 ||
+        nextFilters.maxPrice !== 1000000
+      );
+
+      return nextFilters;
+    });
+    resetListState();
   };
 
   const renderItem = ({item}) => {
@@ -513,10 +607,21 @@ const GuesthouseList = () => {
             setModalInitialSection('date');
             setDateGuestModalVisible(true);
           }}>
-          <CalendarIcon width={20} height={20} />
-          <Text style={[FONTS.fs_14_medium, styles.dateText]}>
+          <CalendarIcon width={18} height={18} />
+          <Text
+            numberOfLines={1}
+            style={[FONTS.fs_14_medium, styles.dateText]}>
             {displayDateState}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.filterButtonContainer}
+          onPress={() => {
+            setFilterModalVisible(true);
+          }}>
+          <FilterIcon width={18} height={18} />
+          <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={1}
@@ -526,12 +631,42 @@ const GuesthouseList = () => {
             setModalInitialSection('guest');
             setDateGuestModalVisible(true);
           }}>
-          <Person width={20} height={20} />
+          <Person width={18} height={18} />
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
             {`인원 ${adultCount + childCount}`}
           </Text>
         </TouchableOpacity>
       </View>
+
+      <ScrollView
+        horizontal
+        style={styles.categoryFilterScroll}
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.categoryFilterContainer}>
+        {CATEGORY_FILTERS.map(tag => {
+          const isSelected = filterOptions.tags.includes(tag);
+
+          return (
+            <TouchableOpacity
+              key={tag}
+              activeOpacity={0.8}
+              style={[
+                styles.categoryFilterChip,
+                isSelected && styles.categoryFilterChipActive,
+              ]}
+              onPress={() => handlePressCategoryFilter(tag)}>
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.categoryFilterText,
+                  isSelected && styles.categoryFilterTextActive,
+                ]}>
+                {tag}
+              </Text>
+            </TouchableOpacity>
+          );
+        })}
+      </ScrollView>
 
       {isMapView ? (
         <View style={styles.guesthouseMapContainer}>
@@ -544,6 +679,8 @@ const GuesthouseList = () => {
             guestCount={adultCount + childCount}
             regionIds={regionIds}
             regionBounds={regionBounds}
+            sortBy={sortBy}
+            filterParams={filterApiParams}
             resetKey={mapResetKey}
             onPressListToggle={() => {
               manualListModeRef.current = true;
@@ -560,39 +697,6 @@ const GuesthouseList = () => {
           key={`guesthouse-list-view-${viewModeVersion}`}
           style={styles.guesthouseListContainer}
         >
-          <View style={styles.guesthouseListHeader}>
-            <View style={styles.filterContainer}>
-              <TouchableOpacity
-                activeOpacity={1}
-                style={styles.filterButtonContainer}
-                onPress={() => {
-                  setFilterModalVisible(true);
-                }}>
-                <FilterIcon width={20} height={20} />
-                <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
-              </TouchableOpacity>
-              <ScrollView
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                contentContainerStyle={styles.selectFilterContainer}>
-                {filterOptions.tags.map((tag, index) => (
-                  <View key={`${tag}-${index}`} style={styles.selectFilter}>
-                    <Text style={[FONTS.fs_12_medium, styles.selectFilterText]}>
-                      {tag}
-                    </Text>
-                  </View>
-                ))}
-              </ScrollView>
-            </View>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.sortContainer}
-              onPress={() => setSortModalVisible(true)}>
-              <SortIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_medium, styles.sortText]}>정렬</Text>
-            </TouchableOpacity>
-          </View>
-
           {isInitialLoading ? (
             <Loading title="숙소를 불러오는 중이에요" />
           ) : filteredGuesthouses.length === 0 ? (
@@ -673,42 +777,31 @@ const GuesthouseList = () => {
         initialSection={modalInitialSection}
       />
 
-      {/* 정렬 모달 */}
-      <GuesthouseSortModal
-        visible={sortModalVisible}
-        onClose={() => setSortModalVisible(false)}
-        selected={selectedSort}
-        onSelect={option => {
-          setSelectedSort(option);
-          setSortModalVisible(false);
-
-          // sortBy 업데이트
-          setSortBy(option);
-
-          // 새로 fetch
-          resetListState();
-        }}
-      />
-
       {/* 필터 모달 */}
       <GuesthouseFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filterOptions}
-        availableTags={availableTags}
+        selectedSort={sortBy}
+        onCountRequest={fetchFilterResultCount}
         onApply={filters => {
-          setFilterOptions(filters);
+          const {sortBy: nextSortBy = sortBy, ...nextFilters} = filters;
+
+          setSortBy(nextSortBy);
+          setFilterOptions(nextFilters);
           setFilterApplied(
-            filters.tags.length > 0 ||
-            filters.facility.length > 0 ||
-            filters.onlyAvailable ||
-            filters.minPrice !== 10000 ||
-            filters.maxPrice !== 10000000
+            nextFilters.tags.length > 0 ||
+            Boolean(nextFilters.roomType) ||
+            nextFilters.facility.length > 0 ||
+            nextFilters.onlyAvailable ||
+            nextFilters.minPrice !== 10000 ||
+            nextFilters.maxPrice !== 1000000
           );
           setFilterModalVisible(false);
 
           resetListState();
         }}
+        resultCount={filterResultCount}
       />
     </View>
   );
