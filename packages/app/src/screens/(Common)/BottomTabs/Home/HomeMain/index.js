@@ -36,8 +36,9 @@ import SearchIcon from '@assets/images/search_gray.svg';
 import CategoryFood from '@assets/images/category_food.svg';
 import CategoryReading from '@assets/images/category_reading.svg';
 import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
-import CategorySurfingLeisure from '@assets/images/category_surfing_leisure.svg';
+// import CategorySurfingLeisure from '@assets/images/category_surfing_leisure.svg';
 import CategoryProgram from '@assets/images/category_program.svg';
+import CategoryRelax from '@assets/images/category_relax.svg';
 // import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 // import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
@@ -56,8 +57,9 @@ const GUESTHOUSE_CATEGORIES = [
   {key: 'food', label: '포틀럭', Icon: CategoryFood},
   {key: 'reading', label: '독서', Icon: CategoryReading},
   {key: 'dinnerParty', label: '디너파티', Icon: CategoryDinnerParty},
-  {key: 'surfingLeisure', label: '서핑/레저', Icon: CategorySurfingLeisure},
+  // {key: 'surfingLeisure', label: '서핑/레저', Icon: CategorySurfingLeisure},
   {key: 'program', label: '프로그램', Icon: CategoryProgram},
+  {key: 'relax', label: '쉼', Icon: CategoryRelax},
 ];
 const mainPageBannerAdUnitId = __DEV__
   ? TestIds.BANNER
@@ -226,6 +228,7 @@ const HomeMain = () => {
         ...getDefaultGuesthouseListParams(),
         initialMapView: false,
         categoryTags: [category.label],
+        fromHomeCategory: true,
       },
     });
   };

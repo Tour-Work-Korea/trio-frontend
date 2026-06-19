@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   },
   header: {
     justifyContent: 'center',
+    height: 44,
     marginTop: 13,
   },
   headerText: {
@@ -18,6 +19,12 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    elevation: 10,
   },
   searchContainer: {
     flexDirection: 'row',

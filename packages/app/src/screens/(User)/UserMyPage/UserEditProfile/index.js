@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -32,6 +32,7 @@ import {COLORS} from '@constants/colors';
 
 const UserEditProfile = () => {
   const navigation = useNavigation();
+  const nicknameInputRef = useRef(null);
   const userProfile = useUserStore(state => state.userProfile);
   const setUserProfile = useUserStore(state => state.setUserProfile);
   const initialNickname = userProfile.nickname?.trim() ?? '';
@@ -145,7 +146,9 @@ const UserEditProfile = () => {
 
       if (trimmedNickname !== initialNickname) {
         const isValidNickname = await validateNicknameDuplicate(trimmedNickname);
-        if (!isValidNickname) return;
+        if (!isValidNickname) {
+          return;
+        }
       }
 
       if (formData.photoUrl !== userProfile.photoUrl) {
@@ -233,6 +236,7 @@ const UserEditProfile = () => {
               <Text style={[FONTS.fs_12_medium, styles.nicknameTitle]}>닉네임</Text>
               <View style={styles.nicknameRow}>
                 <TextInput
+                  ref={nicknameInputRef}
                   style={[FONTS.fs_18_semibold, styles.nicknameInput]}
                   value={formData.nickname}
                   onChangeText={text => {
@@ -246,13 +250,16 @@ const UserEditProfile = () => {
                   placeholder="닉네임"
                   placeholderTextColor={COLORS.grayscale_400}
                 />
-                <View style={{position: 'absolute', right: '-8%'}}>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  style={styles.nicknameEditButton}
+                  onPress={() => nicknameInputRef.current?.focus()}>
                   <EditGray width={18} height={18} />
-                </View>
+                </TouchableOpacity>
               </View>
             </View>
           </View>
-          
+
           <View style={styles.sectionGroup}>
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>

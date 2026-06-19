@@ -138,6 +138,58 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: 'rgba(0, 0, 0, 0.55)',
   },
+  locationPreviewCard: {
+    marginHorizontal: 14,
+    marginTop: 12,
+    marginBottom: 18,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.grayscale_200,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  locationMapPreview: {
+    height: 124,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  locationMap: {
+    flex: 1,
+  },
+  locationPreviewBody: {
+    minHeight: 68,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  locationPreviewTextWrap: {
+    flex: 1,
+  },
+  locationPreviewTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+  },
+  locationPreviewAddress: {
+    color: COLORS.grayscale_500,
+  },
+  locationPreviewActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  locationPreviewIconButton: {
+    minWidth: 32,
+    height: 32,
+    paddingHorizontal: 8,
+    borderRadius: 16,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
+  },
+  locationActionText: {
+    color: COLORS.grayscale_700,
+  },
   bottomToolbar: {
     position: 'absolute',
     left: 0,

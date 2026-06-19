@@ -10,6 +10,7 @@ import {
   Platform,
 } from 'react-native';
 import {
+  CommonActions,
   useNavigation,
   useRoute,
 } from '@react-navigation/native';
@@ -25,6 +26,7 @@ import Star from '@assets/images/star_white.svg';
 import MapIcon from '@assets/images/map_black.svg';
 import ListIcon from '@assets/images/bullet_list_black.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
+import ChevronLeft from '@assets/images/chevron_left_black.svg';
 
 import styles from './GuesthouseList.styles';
 import GuesthouseListMap from '../GuesthouseListMap';
@@ -45,13 +47,21 @@ import {WEB_ROUTES} from '@web/routes';
 
 const EMPTY_REGION_IDS = [];
 const EMPTY_CATEGORY_TAGS = [];
-const CATEGORY_FILTERS = ['포틀럭', '독서', '디너파티', '서핑/레저', '프로그램'];
+const CATEGORY_FILTERS = [
+  '포틀럭',
+  '독서',
+  '디너파티',
+  // '서핑/레저',
+  '프로그램',
+  '쉼',
+];
 const CONTENT_TYPE_MAP = {
   포틀럭: 'POTLUCK',
   독서: 'BOOK',
   디너파티: 'DINNER_PARTY',
-  '서핑/레저': 'SURF_LEISURE',
+  // '서핑/레저': 'SURF_LEISURE',
   프로그램: 'PROGRAM',
+  쉼: 'REST',
 };
 const ROOM_TYPE_MAP = {
   '일반 객실': 'PRIVATE',
@@ -142,6 +152,7 @@ const GuesthouseList = () => {
     regionBounds: initialRegionBounds = null,
     initialMapView = false,
     mapResetKey = 0,
+    fromHomeCategory = false,
   } = route.params || {};
   const selectedCategoryTags = useMemo(
     () => (Array.isArray(categoryTags) ? categoryTags : []),
@@ -460,6 +471,24 @@ const GuesthouseList = () => {
     });
   };
 
+  const handlePressHeaderBack = () => {
+    const tabNavigation = navigation.getParent?.();
+    const homeRoute = {
+      name: '홈',
+      params: {screen: 'HomeMain'},
+    };
+
+    if (tabNavigation) {
+      tabNavigation.dispatch(CommonActions.navigate(homeRoute));
+      return;
+    }
+
+    navigation.navigate('MainTabs', {
+      screen: '홈',
+      params: {screen: 'HomeMain'},
+    });
+  };
+
   const handlePressCategoryFilter = tag => {
     setFilterOptions(prev => {
       const isSelected = prev.tags.includes(tag);
@@ -575,6 +604,15 @@ const GuesthouseList = () => {
   return (
     <View style={styles.container}>
       <View style={styles.header}>
+        {fromHomeCategory && (
+          <TouchableOpacity
+            activeOpacity={1}
+            hitSlop={8}
+            style={styles.backButton}
+            onPress={handlePressHeaderBack}>
+            <ChevronLeft width={24} height={24} />
+          </TouchableOpacity>
+        )}
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
           게스트 하우스
         </Text>

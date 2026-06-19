@@ -38,6 +38,8 @@ import {COLORS} from '@constants/colors';
 const COMMENT_MAX_LENGTH = 300;
 const COMMENT_PAGE_SIZE = 20;
 const COMMENT_HIGHLIGHT_DURATION = 1700;
+const COMMENT_INPUT_MIN_HEIGHT = 44;
+const COMMENT_INPUT_MAX_HEIGHT = 88;
 const MB = 1024 * 1024;
 const JPEG_CONTENT_TYPE = 'image/jpeg';
 const COMMENT_IMAGE_LIMITS = {
@@ -148,6 +150,9 @@ const CommunityDetail = ({route}) => {
   const [keyboardHeight, setKeyboardHeight] = useState(0);
   const [replyTarget, setReplyTarget] = useState(null);
   const [commentValue, setCommentValue] = useState('');
+  const [commentInputHeight, setCommentInputHeight] = useState(
+    COMMENT_INPUT_MIN_HEIGHT,
+  );
   const [commentImages, setCommentImages] = useState([]);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
@@ -370,12 +375,35 @@ const CommunityDetail = ({route}) => {
     setIsCommentFocused(true);
   };
 
+  const handleDismissCommentInput = () => {
+    if (!isCommentFocused && keyboardHeight <= 0) {
+      return false;
+    }
+
+    setIsCommentFocused(false);
+    commentInputRef.current?.blur();
+    Keyboard.dismiss();
+    return false;
+  };
+
   const handleChangeCommentText = text => {
     if (!canWriteComment) {
       return;
     }
 
     setCommentValue(text);
+  };
+
+  const handleCommentInputContentSizeChange = event => {
+    const nextHeight = Math.min(
+      Math.max(
+        event.nativeEvent.contentSize.height,
+        COMMENT_INPUT_MIN_HEIGHT,
+      ),
+      COMMENT_INPUT_MAX_HEIGHT,
+    );
+
+    setCommentInputHeight(nextHeight);
   };
 
   const handlePressComment = item => {
@@ -420,6 +448,7 @@ const CommunityDetail = ({route}) => {
   const clearEditingState = () => {
     setEditingTarget(null);
     setCommentValue('');
+    setCommentInputHeight(COMMENT_INPUT_MIN_HEIGHT);
     setCommentImages([]);
     setIsCommentFocused(false);
     commentInputRef.current?.blur();
@@ -737,6 +766,7 @@ const CommunityDetail = ({route}) => {
       }
 
       setCommentValue('');
+      setCommentInputHeight(COMMENT_INPUT_MIN_HEIGHT);
       setCommentImages([]);
       setReplyTarget(postReplyTarget);
       Keyboard.dismiss();
@@ -1356,11 +1386,14 @@ const CommunityDetail = ({route}) => {
       {isLoading ? (
         <Loading title="게시글을 불러오는 중입니다..." />
       ) : (
-        <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <TouchableWithoutFeedback
+          onPress={handleDismissCommentInput}
+          accessible={false}>
         <ScrollView
           ref={scrollViewRef}
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
+          onStartShouldSetResponderCapture={handleDismissCommentInput}
           onScrollBeginDrag={Keyboard.dismiss}
           onScroll={handleScroll}
           scrollEventThrottle={16}
@@ -1496,14 +1529,21 @@ const CommunityDetail = ({route}) => {
           ) : null}
           <TextInput
             ref={commentInputRef}
-            style={[FONTS.fs_14_regular, styles.commentInput]}
+            style={[
+              FONTS.fs_14_regular,
+              styles.commentInput,
+              {height: commentInputHeight},
+            ]}
             placeholder={
               editingTarget ? '댓글을 수정해주세요.' : '댓글을 입력해주세요.'
             }
             placeholderTextColor={COLORS.grayscale_400}
             value={commentValue}
             maxLength={COMMENT_MAX_LENGTH}
+            multiline
+            blurOnSubmit={false}
             onChangeText={handleChangeCommentText}
+            onContentSizeChange={handleCommentInputContentSizeChange}
             onPressIn={() => {
               if (!canWriteComment) {
                 showCommentLoginModal();

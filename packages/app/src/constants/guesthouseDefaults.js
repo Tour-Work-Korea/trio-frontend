@@ -15,5 +15,6 @@ export const getDefaultGuesthouseListParams = () => {
     categoryTags: [],
     initialMapView: true,
     mapResetKey: Date.now(),
+    fromHomeCategory: false,
   };
 };
