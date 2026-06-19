@@ -57,6 +57,12 @@ export default StyleSheet.create({
     borderBottomWidth: 1,
     paddingBottom: 2,
   },
+  nicknameEditButton: {
+    padding: 8,
+    marginLeft: -4,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
   plusButton: {
     position: 'absolute',
     right: 0,

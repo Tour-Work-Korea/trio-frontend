@@ -70,6 +70,7 @@ import {
   NotificationSettings,
   CommunityDetail,
   CommunityWrite,
+  CommunityPlaceSearch,
   CommunityStaffDetail,
 } from '@screens';
 
@@ -221,6 +222,10 @@ const RootNavigation = () => {
         <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
         <Stack.Screen name="CommunityDetail" component={CommunityDetail} />
         <Stack.Screen name="CommunityWrite" component={CommunityWrite} />
+        <Stack.Screen
+          name="CommunityPlaceSearch"
+          component={CommunityPlaceSearch}
+        />
         <Stack.Screen
           name="CommunityStaffDetail"
           component={CommunityStaffDetail}

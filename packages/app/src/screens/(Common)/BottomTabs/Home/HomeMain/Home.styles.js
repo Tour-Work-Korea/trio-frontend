@@ -66,6 +66,7 @@ export default StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
     backgroundColor: COLORS.grayscale_0,
+    marginBottom: 8,
   },
   searchBoxAndroid: {
     paddingVertical: 0,
@@ -151,7 +152,7 @@ export default StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
     paddingHorizontal: 24,
-    paddingTop: 18,
+    paddingTop: 10,
     paddingBottom: 12,
     backgroundColor: COLORS.grayscale_0,
   },

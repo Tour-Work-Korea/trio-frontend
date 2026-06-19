@@ -19,7 +19,14 @@ import CheckIcon from '@assets/images/check20_orange.svg';
 const {height, width} = Dimensions.get('window');
 const MIN_PRICE = 10000;
 const MAX_PRICE = 1000000;
-const CONTENT_OPTIONS = ['포틀럭', '독서', '디너파티', '서핑/레저', '프로그램'];
+const CONTENT_OPTIONS = [
+  '포틀럭',
+  '독서',
+  '디너파티',
+  // '서핑/레저',
+  '프로그램',
+  '쉼',
+];
 const ROOM_TYPE_OPTIONS = ['일반 객실', '도미토리'];
 const SORT_OPTIONS = [
   {label: '추천 순', value: 'RECOMMEND'},
