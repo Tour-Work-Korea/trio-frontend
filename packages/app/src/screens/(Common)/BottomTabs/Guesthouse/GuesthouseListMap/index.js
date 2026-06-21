@@ -508,6 +508,8 @@ const GuesthouseListMap = ({
   guestCount: guestCountProp,
   regionIds: regionIdsProp,
   regionBounds: regionBoundsProp,
+  sortBy = 'RECOMMEND',
+  filterParams = {},
   resetKey,
   onPressListToggle,
 }) => {
@@ -752,7 +754,7 @@ const GuesthouseListMap = ({
   useEffect(() => {
     initialPresetFetchDoneRef.current = false;
     setHasFetchedMapGuesthouses(false);
-  }, [presetBounds]);
+  }, [filterParams, presetBounds, sortBy]);
 
   useEffect(() => {
     if (!resetKey) {
@@ -791,6 +793,8 @@ const GuesthouseListMap = ({
         checkIn,
         checkOut,
         guestCount,
+        sortBy,
+        ...filterParams,
         ...bounds,
       });
 
@@ -809,7 +813,8 @@ const GuesthouseListMap = ({
           guestCount,
           page: 0,
           size: 200,
-          sortBy: 'RECOMMEND',
+          sortBy,
+          ...filterParams,
           ...bounds,
         });
 
@@ -828,7 +833,7 @@ const GuesthouseListMap = ({
     } finally {
       setLoading(false);
     }
-  }, [checkIn, checkOut, guestCount]);
+  }, [checkIn, checkOut, filterParams, guestCount, sortBy]);
 
   const fetchUsingCurrentBounds = useCallback(async () => {
     const bounds =

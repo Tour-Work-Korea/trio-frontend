@@ -66,6 +66,7 @@ export default StyleSheet.create({
     paddingVertical: 10,
     gap: 8,
     backgroundColor: COLORS.grayscale_0,
+    marginBottom: 8,
   },
   searchBoxAndroid: {
     paddingVertical: 0,
@@ -144,6 +145,30 @@ export default StyleSheet.create({
     paddingHorizontal: 14,
     color: COLORS.grayscale_500,
     textAlign: 'center',
+  },
+
+  // 카테고리
+  categoryContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    paddingHorizontal: 24,
+    paddingTop: 10,
+    paddingBottom: 12,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  categoryButton: {
+    alignItems: 'center',
+  },
+  categoryImageBox: {
+    backgroundColor: COLORS.grayscale_100,
+    padding: 8,
+    borderRadius: 10,
+    marginBottom: 4,
+  },
+  categoryText: {
+    color: COLORS.grayscale_900,
+    textAlign: 'center',
+    includeFontPadding: false,
   },
 
   //배너

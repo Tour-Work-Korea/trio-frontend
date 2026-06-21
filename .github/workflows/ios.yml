@@ -112,12 +112,13 @@ jobs:
       # --------------------------------
       # CocoaPods
       # --------------------------------
-      - name: Install CocoaPods 1.15.2
-        run: gem install cocoapods -v 1.15.2
+      - name: Install CocoaPods Ruby gems
+        working-directory: apps/mobile
+        run: bundle install
 
       - name: Install CocoaPods dependencies
-        working-directory: apps/mobile/ios
-        run: pod _1.15.2_ install --repo-update
+        working-directory: apps/mobile
+        run: bundle exec pod install --project-directory=ios --repo-update
 
       # --------------------------------
       # ENV 분기 + SSM 로딩 (⭐ 핵심)

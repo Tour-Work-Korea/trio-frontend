@@ -16,7 +16,8 @@ import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 import styles from './Home.styles';
 import Banner from './Banner';
 import Guesthouses from './Guesthouses';
-import TodayGuesthouses from './TodayGuesthouses';
+// 오늘의 게하 관련: 나중에 홈 탭 복구할 때 다시 사용
+// import TodayGuesthouses from './TodayGuesthouses';
 import RecentGuesthouses from './RecentGuesthouses';
 
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
@@ -25,23 +26,39 @@ import {COLORS} from '@constants/colors';
 import Meets from './Meets';
 import userMeetApi from '@utils/api/userMeetApi';
 import {getRecentGuesthouses} from '@utils/recentGuesthouses';
+import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {FONTS} from '@constants/fonts';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
+import CategoryFood from '@assets/images/category_food.svg';
+import CategoryReading from '@assets/images/category_reading.svg';
+import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
+import CategoryProgram from '@assets/images/category_program.svg';
+import CategoryRelax from '@assets/images/category_relax.svg';
 // import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 // import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
-const TABS = [
-  // {key: 'MEET', label: '콘텐츠'},
-  // {key: 'STAY', label: '게하'},
-  // 임시
-  {key: 'STAY', label: '게하'},
-  {key: 'MEET', label: '콘텐츠'},
+// 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
+// const TABS = [
+//   // {key: 'MEET', label: '콘텐츠'},
+//   // {key: 'STAY', label: '게하'},
+//   // 임시
+//   {key: 'STAY', label: '게하'},
+//   {key: 'MEET', label: '콘텐츠'},
+// ];
+
+// 오늘의 게하 관련: 나중에 홈 탭 복구할 때 다시 사용
+// const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
+const GUESTHOUSE_CATEGORIES = [
+  {key: 'food', label: '포틀럭', Icon: CategoryFood},
+  {key: 'reading', label: '독서', Icon: CategoryReading},
+  {key: 'dinnerParty', label: '디너파티', Icon: CategoryDinnerParty},
+  {key: 'program', label: '프로그램', Icon: CategoryProgram},
+  {key: 'relax', label: '쉼', Icon: CategoryRelax},
 ];
-const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
 const mainPageBannerAdUnitId = __DEV__
   ? TestIds.BANNER
   : Platform.select({
@@ -51,7 +68,8 @@ const mainPageBannerAdUnitId = __DEV__
 
 const HomeMain = () => {
   const navigation = useNavigation();
-  const [activeTab, setActiveTab] = useState(TABS[0].key);
+  // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
+  // const [activeTab, setActiveTab] = useState(TABS[0].key);
 
   const [guesthouseList, setGuesthouseList] = useState([]);
   const [eventList, setEventList] = useState([]);
@@ -201,24 +219,38 @@ const HomeMain = () => {
     });
   };
 
-  const scrollToY = y => {
-    scrollRef.current?.scrollTo({y, animated: true});
-  };
-
-  const handleTabPress = tabKey => {
-    if (tabKey === 'TODAY') {
-      setActiveTab('TODAY');
-      requestAnimationFrame(() => scrollToY(0));
-      return;
-    }
-
-    setActiveTab(tabKey);
-
-    requestAnimationFrame(() => {
-      if (tabKey === 'MEET') scrollToY(meetYRef.current);
-      if (tabKey === 'STAY') scrollToY(stayYRef.current);
+  const handlePressCategory = category => {
+    navigation.navigate('지도', {
+      screen: 'GuesthouseList',
+      params: {
+        ...getDefaultGuesthouseListParams(),
+        initialMapView: false,
+        categoryTags: [category.label],
+        fromHomeCategory: true,
+      },
     });
   };
+
+  // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
+  // const scrollToY = y => {
+  //   scrollRef.current?.scrollTo({y, animated: true});
+  // };
+
+  // 홈 탭/오늘의 게하 관련: 나중에 탭 UI 복구할 때 다시 사용
+  // const handleTabPress = tabKey => {
+  //   if (tabKey === 'TODAY') {
+  //     setActiveTab('TODAY');
+  //     requestAnimationFrame(() => scrollToY(0));
+  //     return;
+  //   }
+
+  //   setActiveTab(tabKey);
+
+  //   requestAnimationFrame(() => {
+  //     if (tabKey === 'MEET') scrollToY(meetYRef.current);
+  //     if (tabKey === 'STAY') scrollToY(stayYRef.current);
+  //   });
+  // };
 
   // const isSearchDropdownVisible = isSearchFocused && searchKeyword.trim().length > 0;
 
@@ -344,49 +376,49 @@ const HomeMain = () => {
         )} */}
       </View>
 
-      {/* 탭바 */}
-      <View style={headerStyles.tabBar}>
-        <View style={headerStyles.tabBarLeft}>
-          {TABS.map(t => {
-            const isActive = activeTab === t.key;
+      {/* 홈 탭/오늘의 게하 관련: 나중에 탭 UI 복구할 때 다시 사용 */}
+      {/* <View style={headerStyles.tabBar}>
+          <View style={headerStyles.tabBarLeft}>
+            {TABS.map(t => {
+              const isActive = activeTab === t.key;
 
-            return (
-              <TouchableOpacity
-                activeOpacity={1}
-                key={t.key}
-                onPress={() => handleTabPress(t.key)}
-                style={[
-                  headerStyles.tabBtn,
-                  isActive && headerStyles.tabBtnActive,
-                ]}>
-                <Text
+              return (
+                <TouchableOpacity
+                  activeOpacity={1}
+                  key={t.key}
+                  onPress={() => handleTabPress(t.key)}
                   style={[
-                    headerStyles.tabText,
-                    isActive && headerStyles.tabTextActive,
+                    headerStyles.tabBtn,
+                    isActive && headerStyles.tabBtnActive,
                   ]}>
-                  {t.label}
-                </Text>
-              </TouchableOpacity>
-            );
-          })}
-        </View>
-        <TouchableOpacity
-          activeOpacity={1}
-          key={today.key}
-          onPress={() => handleTabPress(today.key)}
-          style={[
-            headerStyles.tabBtn,
-            activeTab === today.key && headerStyles.tabBtnActive,
-          ]}>
-          <Text
+                  <Text
+                    style={[
+                      headerStyles.tabText,
+                      isActive && headerStyles.tabTextActive,
+                    ]}>
+                    {t.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+          <TouchableOpacity
+            activeOpacity={1}
+            key={today.key}
+            onPress={() => handleTabPress(today.key)}
             style={[
-              headerStyles.tabText,
-              activeTab === today.key && headerStyles.tabTextActive,
+              headerStyles.tabBtn,
+              activeTab === today.key && headerStyles.tabBtnActive,
             ]}>
-            {today.label}
-          </Text>
-        </TouchableOpacity>
-      </View>
+            <Text
+              style={[
+                headerStyles.tabText,
+                activeTab === today.key && headerStyles.tabTextActive,
+              ]}>
+              {today.label}
+            </Text>
+          </TouchableOpacity>
+        </View> */}
     </View>
   );
 
@@ -397,37 +429,63 @@ const HomeMain = () => {
     // <TouchableWithoutFeedback onPress={dismissSearchUI} accessible={false}>
     <View style={styles.container}>
       {StickyHeader}
-      {activeTab === 'TODAY' ? (
-        // <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
-        <View style={styles.todayContainer}>
-          <TodayGuesthouses />
-        </View>
-      ) : (
-        // </Pressable>
-        <ScrollView
-          ref={scrollRef}
-          style={[styles.container, styles.verticalScroll]}
-          showsVerticalScrollIndicator={false}
-          directionalLockEnabled
-          nestedScrollEnabled
-          alwaysBounceHorizontal={false}
-          overScrollMode="never"
-          decelerationRate="normal"
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode="on-drag"
-          // onScrollBeginDrag={dismissSearchUI}
-        >
-          <>
-            {/* 임시 */}
-            <View
-              onLayout={e => {
-                stayYRef.current = e.nativeEvent.layout.y;
-              }}
-              style={styles.boxContainer}>
-              <Guesthouses guesthouses={guesthouseList} />
-            </View>
-            {/* 콘텐츠 섹션 */}
-            {/* <View
+      {/* 오늘의 게하 관련: 나중에 홈 탭 복구할 때 다시 사용 */}
+      {/* {activeTab === 'TODAY' ? (
+          // <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
+          <View style={styles.todayContainer}>
+            <TodayGuesthouses />
+          </View>
+        ) : ( */}
+      <ScrollView
+        ref={scrollRef}
+        style={[styles.container, styles.verticalScroll]}
+        showsVerticalScrollIndicator={false}
+        directionalLockEnabled
+        nestedScrollEnabled
+        alwaysBounceHorizontal={false}
+        overScrollMode="never"
+        decelerationRate="normal"
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode="on-drag"
+        // onScrollBeginDrag={dismissSearchUI}
+      >
+        <>
+          <View style={styles.categoryContainer}>
+            {GUESTHOUSE_CATEGORIES.map(category => {
+              const {Icon} = category;
+
+              return (
+                <TouchableOpacity
+                  key={category.key}
+                  activeOpacity={0.8}
+                  onPress={() => handlePressCategory(category)}
+                  style={styles.categoryButton}>
+                  <View style={styles.categoryImageBox}>
+                    <Icon width={30} height={30} />
+                  </View>
+                  <Text style={[FONTS.fs_12_medium, styles.categoryText]}>
+                    {category.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
+          </View>
+
+          {/* 배너 */}
+          <View style={styles.boxContainer}>
+            <Banner banners={bannerList} />
+          </View>
+
+          {/* 임시 */}
+          <View
+            onLayout={e => {
+              stayYRef.current = e.nativeEvent.layout.y;
+            }}
+            style={styles.boxContainer}>
+            <Guesthouses guesthouses={guesthouseList} />
+          </View>
+          {/* 콘텐츠 섹션 */}
+          {/* <View
                 onLayout={e => {
                   meetYRef.current = e.nativeEvent.layout.y;
                 }}
@@ -435,17 +493,12 @@ const HomeMain = () => {
                 <Meets events={eventList} setEventList={setEventList} />
               </View> */}
 
-            {/* 배너 */}
-            <View style={styles.boxContainer}>
-              <Banner banners={bannerList} />
-            </View>
+          <View style={styles.boxContainer}>
+            <RecentGuesthouses guesthouses={recentGuesthouseList} />
+          </View>
 
-            <View style={styles.boxContainer}>
-              <RecentGuesthouses guesthouses={recentGuesthouseList} />
-            </View>
-
-            {/* 숙박 섹션 */}
-            {/* <View
+          {/* 숙박 섹션 */}
+          {/* <View
                 onLayout={e => {
                   stayYRef.current = e.nativeEvent.layout.y;
                 }}
@@ -453,26 +506,26 @@ const HomeMain = () => {
                 <Guesthouses guesthouses={guesthouseList} />
               </View> */}
 
-            {/* 임시 */}
-            <View
-              onLayout={e => {
-                meetYRef.current = e.nativeEvent.layout.y;
-              }}
-              style={styles.boxContainer}>
-              <Meets events={eventList} setEventList={setEventList} />
-            </View>
+          {/* 임시 */}
+          <View
+            onLayout={e => {
+              meetYRef.current = e.nativeEvent.layout.y;
+            }}
+            style={styles.boxContainer}>
+            <Meets events={eventList} setEventList={setEventList} />
+          </View>
 
-            {mainPageBannerAdUnitId && (
-              <View style={styles.adBannerContainer}>
-                <BannerAd
-                  unitId={mainPageBannerAdUnitId}
-                  size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
-                />
-              </View>
-            )}
-          </>
-        </ScrollView>
-      )}
+          {mainPageBannerAdUnitId && (
+            <View style={styles.adBannerContainer}>
+              <BannerAd
+                unitId={mainPageBannerAdUnitId}
+                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+              />
+            </View>
+          )}
+        </>
+      </ScrollView>
+      {/* )} */}
     </View>
     // </TouchableWithoutFeedback>
   );
@@ -480,37 +533,38 @@ const HomeMain = () => {
 
 export default HomeMain;
 
-const headerStyles = {
-  tabBar: {
-    flexDirection: 'row',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.grayscale_200,
-    paddingHorizontal: 20,
-    gap: 20,
-    justifyContent: 'space-between',
-    position: 'relative',
-    zIndex: 1,
-    elevation: Platform.OS === 'android' ? 0 : 1,
-  },
-  tabBarLeft: {
-    flexDirection: 'row',
-    gap: 20,
-  },
-  tabBtn: {
-    alignItems: 'center',
-    paddingVertical: 12,
-    position: 'relative',
-    borderBottomWidth: 2,
-    borderBottomColor: 'transparent',
-  },
-  tabBtnActive: {
-    borderBottomColor: COLORS.primary_orange,
-  },
-  tabText: {
-    ...FONTS.fs_14_semibold,
-    color: COLORS.grayscale_500,
-  },
-  tabTextActive: {
-    color: COLORS.primary_orange,
-  },
-};
+// 홈 탭/오늘의 게하 관련: 나중에 탭 UI 복구할 때 다시 사용
+// const headerStyles = {
+//   tabBar: {
+//     flexDirection: 'row',
+//     borderBottomWidth: 1,
+//     borderBottomColor: COLORS.grayscale_200,
+//     paddingHorizontal: 20,
+//     gap: 20,
+//     justifyContent: 'space-between',
+//     position: 'relative',
+//     zIndex: 1,
+//     elevation: Platform.OS === 'android' ? 0 : 1,
+//   },
+//   tabBarLeft: {
+//     flexDirection: 'row',
+//     gap: 20,
+//   },
+//   tabBtn: {
+//     alignItems: 'center',
+//     paddingVertical: 12,
+//     position: 'relative',
+//     borderBottomWidth: 2,
+//     borderBottomColor: 'transparent',
+//   },
+//   tabBtnActive: {
+//     borderBottomColor: COLORS.primary_orange,
+//   },
+//   tabText: {
+//     ...FONTS.fs_14_semibold,
+//     color: COLORS.grayscale_500,
+//   },
+//   tabTextActive: {
+//     color: COLORS.primary_orange,
+//   },
+// };

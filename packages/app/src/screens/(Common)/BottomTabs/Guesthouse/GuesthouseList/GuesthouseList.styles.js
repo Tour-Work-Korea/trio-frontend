@@ -8,6 +8,7 @@ const styles = StyleSheet.create({
   },
   header: {
     justifyContent: 'center',
+    height: 44,
     marginTop: 13,
   },
   headerText: {
@@ -18,6 +19,12 @@ const styles = StyleSheet.create({
   backButton: {
     position: 'absolute',
     left: 20,
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 10,
+    elevation: 10,
   },
   searchContainer: {
     flexDirection: 'row',
@@ -42,31 +49,75 @@ const styles = StyleSheet.create({
   // 인원, 날짜
   selectRow: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 12,
+    alignItems: 'center',
+    gap: 6,
+    marginBottom: 10,
     marginHorizontal: 20,
-    paddingHorizontal: 12,
-
   },
   // 날짜
   dateContainer: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    minWidth: 0,
+    height: 38,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 19,
+    backgroundColor: COLORS.grayscale_0,
   },
   dateText: {
+    flex: 1,
     marginLeft: 8,
-    color: COLORS.grayscale_600,
+    color: COLORS.grayscale_800,
   },
   // 인원
   personRoomContainer: {
     flexDirection: 'row',
     alignItems: 'center',
+    height: 38,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 19,
+    backgroundColor: COLORS.grayscale_0,
   },
   personText: {
     marginLeft: 8,
-    color: COLORS.grayscale_600,
+    color: COLORS.grayscale_800,
   },
-
+  categoryFilterScroll: {
+    flexGrow: 0,
+    height: 44,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  categoryFilterContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingHorizontal: 20,
+    paddingBottom: 8,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  categoryFilterChip: {
+    height: 30,
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+    borderRadius: 15,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  categoryFilterChipActive: {
+    borderWidth: 1,
+    borderColor: COLORS.primary_orange,
+  },
+  categoryFilterText: {
+    color: COLORS.grayscale_800,
+  },
+  categoryFilterTextActive: {
+    color: COLORS.primary_orange,
+  },
   // 게하 리스트 디자인
   guesthouseListContainer: {
     backgroundColor: COLORS.grayscale_0,
@@ -93,9 +144,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
-    borderRadius: 12,
-    backgroundColor: COLORS.grayscale_100,
+    height: 38,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 19,
+    backgroundColor: COLORS.grayscale_0,
   },
   filterText: {
     marginLeft: 8,

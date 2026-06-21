@@ -294,9 +294,11 @@ const styles = StyleSheet.create({
   },
   commentInput: {
     flex: 1,
-    minHeight: 44,
-    paddingVertical: 0,
+    lineHeight: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
     color: COLORS.grayscale_900,
+    textAlignVertical: 'top',
   },
   photoButton: {
     width: 34,
