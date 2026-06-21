@@ -93,6 +93,8 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_100,
   },
   categoryFilterContainer: {
+    flexGrow: 1,
+    justifyContent: 'center',
     alignItems: 'center',
     gap: 6,
     paddingHorizontal: 20,
