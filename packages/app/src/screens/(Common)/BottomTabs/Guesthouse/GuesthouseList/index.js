@@ -51,15 +51,13 @@ const CATEGORY_FILTERS = [
   '포틀럭',
   '독서',
   '디너파티',
-  // '서핑/레저',
   '프로그램',
   '쉼',
 ];
-const CONTENT_TYPE_MAP = {
+const CONTENT_CATEGORY_MAP = {
   포틀럭: 'POTLUCK',
   독서: 'BOOK',
   디너파티: 'DINNER_PARTY',
-  // '서핑/레저': 'SURF_LEISURE',
   프로그램: 'PROGRAM',
   쉼: 'REST',
 };
@@ -70,13 +68,13 @@ const ROOM_TYPE_MAP = {
 
 const getGuesthouseFilterApiParams = filters => {
   const params = {};
-  const contentTypes = (filters.tags || [])
-    .map(tag => CONTENT_TYPE_MAP[tag])
+  const contentCategories = (filters.tags || [])
+    .map(tag => CONTENT_CATEGORY_MAP[tag])
     .filter(Boolean);
   const roomType = ROOM_TYPE_MAP[filters.roomType];
 
-  if (contentTypes.length > 0) {
-    params.contentTypes = contentTypes;
+  if (contentCategories.length > 0) {
+    params.contentCategories = contentCategories;
   }
 
   if (roomType) {

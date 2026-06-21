@@ -23,7 +23,6 @@ const CONTENT_OPTIONS = [
   '포틀럭',
   '독서',
   '디너파티',
-  // '서핑/레저',
   '프로그램',
   '쉼',
 ];
@@ -241,7 +240,10 @@ const GuesthouseFilterModal = ({
         setSectionPosition('content', event.nativeEvent.layout.y)
       }>
       <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>콘텐츠</Text>
-      <View style={styles.chipRow}>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.contentChipRow}>
         {CONTENT_OPTIONS.map(option =>
           renderChip({
             label: option,
@@ -249,7 +251,7 @@ const GuesthouseFilterModal = ({
             onPress: () => toggleValue(option, setSelectedTags),
           }),
         )}
-      </View>
+      </ScrollView>
     </View>
   );
 
@@ -468,6 +470,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     flexWrap: 'wrap',
     gap: 10,
+  },
+  contentChipRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingRight: 20,
   },
   chip: {
     height: 44,
