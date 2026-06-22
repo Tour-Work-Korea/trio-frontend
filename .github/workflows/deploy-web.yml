@@ -1,8 +1,9 @@
-name: Deploy Guest Web
+name: Deploy App Web
 
 on:
   push:
     branches:
+      - develop
       - main
     paths:
       - 'apps/web/**'
@@ -16,6 +17,10 @@ permissions:
   id-token: write
   contents: read
 
+concurrency:
+  group: deploy-app-web-${{ github.ref_name }}
+  cancel-in-progress: true
+
 jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
@@ -23,13 +28,46 @@ jobs:
     env:
       AWS_REGION: ap-northeast-2
       S3_BUCKET: ddakji-react-apps
-      S3_PREFIX: app
-      SSM_BASE_PATH: /workaway/prod/android
-      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
 
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+
+      - name: Determine deployment target
+        id: target
+        run: |
+          case "${GITHUB_REF_NAME}" in
+            develop)
+              echo "deploy_env=dev" >> "$GITHUB_OUTPUT"
+              echo "DEPLOY_ENV=dev" >> "$GITHUB_ENV"
+              echo "S3_PREFIX=app-dev" >> "$GITHUB_ENV"
+              echo "SSM_BASE_PATH=/workaway/dev/android" >> "$GITHUB_ENV"
+              ;;
+            main)
+              echo "deploy_env=prod" >> "$GITHUB_OUTPUT"
+              echo "DEPLOY_ENV=prod" >> "$GITHUB_ENV"
+              echo "S3_PREFIX=app" >> "$GITHUB_ENV"
+              echo "SSM_BASE_PATH=/workaway/prod/android" >> "$GITHUB_ENV"
+              ;;
+            *)
+              echo "Unsupported branch for web deployment: ${GITHUB_REF_NAME}"
+              exit 1
+              ;;
+          esac
+
+      - name: Configure AWS credentials (DEV)
+        if: steps.target.outputs.deploy_env == 'dev'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-dev
+          aws-region: ${{ env.AWS_REGION }}
+
+      - name: Configure AWS credentials (PROD)
+        if: steps.target.outputs.deploy_env == 'prod'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: arn:aws:iam::590052531747:role/github-actions-workaway-ios-prod
+          aws-region: ${{ env.AWS_REGION }}
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -39,12 +77,6 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-region: ${{ env.AWS_REGION }}
-          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
 
       - name: Load web env from AWS SSM
         run: |
@@ -58,7 +90,7 @@ jobs:
             echo "KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/KAKAO_REDIRECT_URI" --with-decryption --query Parameter.Value --output text)"
             echo "NAVER_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/NAVER_CLIENT_ID" --with-decryption --query Parameter.Value --output text)"
           } > .env
-          echo "Web environment file created from AWS SSM."
+          echo "Web environment file created from AWS SSM for ${DEPLOY_ENV}."
 
       - name: Build web app
         run: npm run build:web
@@ -71,6 +103,17 @@ jobs:
 
       - name: Invalidate CloudFront cache
         run: |
+          if [ "${DEPLOY_ENV}" = "dev" ]; then
+            DIST_ID="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_APP_DEV }}"
+          else
+            DIST_ID="${{ secrets.CLOUDFRONT_DISTRIBUTION_ID_APP_PROD }}"
+          fi
+
+          if [ -z "$DIST_ID" ]; then
+            echo "CloudFront distribution ID secret is not set for ${DEPLOY_ENV}."
+            exit 1
+          fi
+
           aws cloudfront create-invalidation \
-            --distribution-id "${CLOUDFRONT_DISTRIBUTION_ID}" \
+            --distribution-id "$DIST_ID" \
             --paths "/*"
