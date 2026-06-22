@@ -3,7 +3,6 @@ import {
   Alert,
   Image,
   Keyboard,
-  Modal,
   Platform,
   ScrollView,
   Text,
@@ -11,18 +10,25 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 import Header from '@components/Header';
+import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
+import {normalizeCommunityLocation} from '@utils/communityLocation';
 import styles from './CommunityWrite.styles';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PhotoIcon from '@assets/images/add_image_gray.svg';
 // import LocationIcon from '@assets/images/map_pin_gray.svg';
+import LocationPinIcon from '@assets/images/map_pin_fill_orange.svg';
 import KeyboardHideIcon from '@assets/images/keyboard_hide_gray.svg';
 import XIcon from '@assets/images/x_gray.svg';
 
@@ -54,6 +60,19 @@ const defaultCategories = [
   },
 ];
 
+const getObjectKeyFromImageUrl = imageUrl => {
+  if (!imageUrl || typeof imageUrl !== 'string') {
+    return null;
+  }
+
+  try {
+    const {pathname} = new URL(imageUrl);
+    return decodeURIComponent(pathname).replace(/^\/+/, '') || null;
+  } catch {
+    return imageUrl.replace(/^\/+/, '') || null;
+  }
+};
+
 const normalizeExistingImages = post =>
   [...(post?.images ?? [])]
     .sort((a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0))
@@ -61,7 +80,7 @@ const normalizeExistingImages = post =>
       id: `existing-${image.imageId ?? image.objectKey ?? index}`,
       uri: image.imageUrl,
       imageUrl: image.imageUrl,
-      objectKey: image.objectKey,
+      objectKey: image.objectKey ?? getObjectKeyFromImageUrl(image.imageUrl),
       fileSize: image.fileSizeBytes ?? image.fileSize ?? 1,
       fileSizeBytes: image.fileSizeBytes ?? image.fileSize ?? 1,
       isExisting: true,
@@ -82,6 +101,9 @@ const CommunityWrite = ({route}) => {
   const [body, setBody] = useState('');
   const [bodyInputHeight, setBodyInputHeight] = useState(160);
   const [keyboardHeight, setKeyboardHeight] = useState(0);
+  const [selectedLocation, setSelectedLocation] = useState(() =>
+    normalizeCommunityLocation(editingPost?.location),
+  );
   const [images, setImages] = useState(() =>
     isEditMode ? normalizeExistingImages(editingPost) : [],
   );
@@ -155,6 +177,7 @@ const CommunityWrite = ({route}) => {
 
     setTitle(editingPost.title ?? '');
     setBody(editingPost.content ?? '');
+    setSelectedLocation(normalizeCommunityLocation(editingPost.location));
     setImages(normalizeExistingImages(editingPost));
     setImagesChanged(false);
   }, [editingPost, isEditMode]);
@@ -189,6 +212,33 @@ const CommunityWrite = ({route}) => {
     Keyboard.dismiss();
     setSelectedCategory(category);
     setCategoryVisible(false);
+  };
+
+  const handleOpenPlaceSearch = () => {
+    Keyboard.dismiss();
+    navigation.navigate('CommunityPlaceSearch', {
+      initialQuery: selectedLocation?.placeName ?? '',
+      onSelectLocation: setSelectedLocation,
+    });
+  };
+
+  const handleRemoveLocation = () => {
+    setSelectedLocation(null);
+  };
+
+  const buildLocationPayload = () => {
+    if (!selectedLocation) {
+      return {};
+    }
+
+    return {
+      placeName: selectedLocation.placeName,
+      address: selectedLocation.address,
+      roadAddress: selectedLocation.roadAddress,
+      latitude: selectedLocation.latitude,
+      longitude: selectedLocation.longitude,
+      category: selectedLocation.category,
+    };
   };
 
   const normalizeImageToJpeg = async (asset, index) => {
@@ -420,6 +470,7 @@ const CommunityWrite = ({route}) => {
 
     try {
       setIsSubmitting(true);
+      const locationPayload = buildLocationPayload();
 
       if (isEditMode) {
         const uploadedImages = imagesChanged
@@ -430,7 +481,7 @@ const CommunityWrite = ({route}) => {
           categoryCode: selectedCategory.code,
           title: title.trim(),
           content: body.trim(),
-          location: editingPost.location ?? {},
+          location: locationPayload,
           tags: (editingPost.tags ?? [])
             .map(tag =>
               typeof tag === 'string'
@@ -449,6 +500,7 @@ const CommunityWrite = ({route}) => {
         categoryCode: selectedCategory.code,
         title: title.trim(),
         content: body.trim(),
+        location: locationPayload,
         tags: [],
       });
       const postId = draftResponse.data?.postId;
@@ -464,7 +516,7 @@ const CommunityWrite = ({route}) => {
       }
 
       await communityApi.publishPost(postId, {
-        location: {},
+        location: locationPayload,
         images: uploadedImages,
       });
 
@@ -651,6 +703,64 @@ const CommunityWrite = ({route}) => {
           scrollEnabled={false}
           textAlignVertical="top"
         />
+
+        {selectedLocation ? (
+          <View style={styles.locationPreviewCard}>
+            {Number.isFinite(selectedLocation.latitude) &&
+            Number.isFinite(selectedLocation.longitude) ? (
+              <View style={styles.locationMapPreview}>
+                <NaverMapView
+                  style={styles.locationMap}
+                  initialCamera={{
+                    latitude: selectedLocation.latitude,
+                    longitude: selectedLocation.longitude,
+                    zoom: 16,
+                  }}>
+                  <NaverMapMarkerOverlay
+                    latitude={selectedLocation.latitude}
+                    longitude={selectedLocation.longitude}
+                    width={32}
+                    height={40}
+                    anchor={{x: 0.5, y: 1}}>
+                    <LocationPinIcon width={32} height={40} />
+                  </NaverMapMarkerOverlay>
+                </NaverMapView>
+              </View>
+            ) : null}
+            <View style={styles.locationPreviewBody}>
+              <View style={styles.locationPreviewTextWrap}>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.locationPreviewTitle]}
+                  numberOfLines={1}>
+                  {selectedLocation.placeName || '선택한 장소'}
+                </Text>
+                <Text
+                  style={[FONTS.fs_12_medium, styles.locationPreviewAddress]}
+                  numberOfLines={1}>
+                  {selectedLocation.roadAddress ||
+                    selectedLocation.address ||
+                    '주소 정보가 없어요'}
+                </Text>
+              </View>
+              <View style={styles.locationPreviewActions}>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.locationPreviewIconButton}
+                  onPress={handleOpenPlaceSearch}>
+                  <Text style={[FONTS.fs_12_medium, styles.locationActionText]}>
+                    수정
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  style={styles.locationPreviewIconButton}
+                  onPress={handleRemoveLocation}>
+                  <XIcon width={14} height={14} />
+                </TouchableOpacity>
+              </View>
+            </View>
+          </View>
+        ) : null}
       </ScrollView>
 
       <View
@@ -669,9 +779,12 @@ const CommunityWrite = ({route}) => {
             사진
           </Text>
         </TouchableOpacity>
-        {/* 지도 교체 전까지 장소 버튼 임시 숨김 */}
-        {/* <TouchableOpacity activeOpacity={0.8} style={styles.toolbarButton}>
-          <LocationIcon width={22} height={22} />
+        {/* 장소 검색 API 확정 전까지 장소 버튼 임시 숨김 */}
+        {/* <TouchableOpacity
+          activeOpacity={0.8}
+          style={styles.toolbarButton}
+          onPress={handleOpenPlaceSearch}>
+          <LocationIcon width={18} height={18} />
           <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
             장소
           </Text>

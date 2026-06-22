@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet, TouchableWithoutFeedback } from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, TouchableWithoutFeedback} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import { Picker } from '@react-native-picker/picker';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';

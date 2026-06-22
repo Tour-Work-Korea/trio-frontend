@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, View, Text, TouchableOpacity, StyleSheet } from 'react-native';
+import {Alert, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';

@@ -12,7 +12,9 @@ export const getDefaultGuesthouseListParams = () => {
     childCount: 0,
     regionBounds: GUESTHOUSE_MAP_BOUNDS.ALL,
     searchText: '',
+    categoryTags: [],
     initialMapView: true,
     mapResetKey: Date.now(),
+    fromHomeCategory: false,
   };
 };

@@ -72,6 +72,7 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
     flexDirection: 'row',
     alignItems: 'center',
+    marginLeft: -3,
     marginBottom: 4,
     gap: 2,
     maxWidth: '100%',
@@ -82,6 +83,7 @@ const styles = StyleSheet.create({
   },
   phoneButton: {
     alignSelf: 'flex-start',
+    marginBottom: 8,
   },
   phone: {},
   copyableText: {
@@ -139,6 +141,20 @@ const styles = StyleSheet.create({
   },
   shortIntroText: {
     color: COLORS.grayscale_700,
+  },
+  shortIntroMeasureText: {
+    position: 'absolute',
+    left: 8,
+    right: 8,
+    opacity: 0,
+    zIndex: -1,
+  },
+  shortIntroToggleButton: {
+    alignSelf: 'flex-start',
+    marginTop: 8,
+  },
+  shortIntroToggleText: {
+    color: COLORS.primary_blue,
   },
 
   // 오늘의 콘텐츠

@@ -1,4 +1,8 @@
 import api from './axiosInstance';
+import qs from 'qs';
+
+const repeatArrayParamsSerializer = params =>
+  qs.stringify(params, {arrayFormat: 'repeat'});
 
 const userGuesthouseApi = {
   // 게하 지역 키워드 검색
@@ -30,6 +34,8 @@ const userGuesthouseApi = {
     page,
     size = 10,
     sortBy,
+    contentCategories,
+    roomType,
     minPrice,
     maxPrice,
     hashtagIds,
@@ -53,6 +59,8 @@ const userGuesthouseApi = {
         page,
         size,
         sortBy,
+        contentCategories,
+        roomType,
         minPrice,
         maxPrice,
         hashtagIds,
@@ -61,6 +69,7 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
+      paramsSerializer: repeatArrayParamsSerializer,
     }),
 
   // 유저 게스트하우스 상세 조회
@@ -72,6 +81,22 @@ const userGuesthouseApi = {
         guestCount,
       },
     }),
+
+  getRoomAvailabilityCalendar: ({
+    guesthouseId,
+    roomId,
+    yearMonth,
+    guestCount,
+  }) =>
+    api.get(
+      `/user/guesthouses/${guesthouseId}/rooms/${roomId}/availability-calendar`,
+      {
+        params: {
+          yearMonth,
+          guestCount,
+        },
+      },
+    ),
 
   // 게스트하우스 좋아요
   favoriteGuesthouse: guesthouseId =>
@@ -125,6 +150,8 @@ const userGuesthouseApi = {
     neLng,
     limit = 200,
     sortBy = 'RECOMMEND',
+    contentCategories,
+    roomType,
     minPrice,
     maxPrice,
     hashtagIds,
@@ -144,6 +171,8 @@ const userGuesthouseApi = {
         neLng,
         limit,
         sortBy,
+        contentCategories,
+        roomType,
         minPrice,
         maxPrice,
         hashtagIds,
@@ -152,6 +181,14 @@ const userGuesthouseApi = {
         femaleOnly,
         availableOnly,
       },
+      paramsSerializer: repeatArrayParamsSerializer,
+    }),
+
+  getGuesthouseFilterCount: params =>
+    api.get('/user/guesthouses/filter-count', {
+      params,
+      paramsSerializer: repeatArrayParamsSerializer,
+      withAuth: false,
     }),
 };
 

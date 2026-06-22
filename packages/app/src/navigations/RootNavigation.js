@@ -19,6 +19,7 @@ import {
   GuesthouseDetail,
   GuesthouseMap,
   RoomDetail,
+  GuesthouseReservationEntry,
   GuesthouseReservation,
   CouponSelectScreen,
   GuesthousePayment,
@@ -69,6 +70,7 @@ import {
   NotificationSettings,
   CommunityDetail,
   CommunityWrite,
+  CommunityPlaceSearch,
   CommunityStaffDetail,
 } from '@screens';
 
@@ -93,6 +95,10 @@ const RootNavigation = () => {
         <Stack.Screen name="RoomDetail" component={RoomDetail} />
         <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
         <Stack.Screen name="GuesthouseLocationMap" component={GuesthouseMap} />
+        <Stack.Screen
+          name="GuesthouseReservationEntry"
+          component={GuesthouseReservationEntry}
+        />
         <Stack.Screen
           name="GuesthouseReservation"
           component={GuesthouseReservation}
@@ -216,6 +222,10 @@ const RootNavigation = () => {
         <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
         <Stack.Screen name="CommunityDetail" component={CommunityDetail} />
         <Stack.Screen name="CommunityWrite" component={CommunityWrite} />
+        <Stack.Screen
+          name="CommunityPlaceSearch"
+          component={CommunityPlaceSearch}
+        />
         <Stack.Screen
           name="CommunityStaffDetail"
           component={CommunityStaffDetail}

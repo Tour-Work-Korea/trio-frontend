@@ -274,6 +274,7 @@ const MeetDetail = () => {
     rules,
     latitude,
     longitude,
+    location,
     meetingPlace,
     trafficInfo,
     parkingTag,
@@ -303,18 +304,13 @@ const MeetDetail = () => {
       );
   }, [partyImages]);
   const hasImages = sortedImages.length > 0;
+  const hideHeaderCarouselForImageModal =
+    Platform.OS === 'android' && imageModalVisible;
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
   );
-  const modalImages = useMemo(
-    () =>
-      sortedImages.map((img, index) => ({
-        id: img.id ?? `${img.imageUrl}-${index}`,
-        imageUrl: img.imageUrl,
-      })),
-    [sortedImages],
-  );
+  const modalImages = sortedImages;
   const thumbnailSource = useMemo(() => {
     if (sortedImages[thumbnailIndex]?.imageUrl) {
       return { uri: sortedImages[thumbnailIndex].imageUrl };
@@ -460,11 +456,6 @@ const MeetDetail = () => {
       ?.filter(Boolean); // 혹시 모를 undefined 제거
   }, [snackTags]);
 
-  // 이용 규칙 제목
-  const ruleTitleLine = useMemo(() => {
-    return ruleList.map(r => r.title).filter(Boolean).join(' · ');
-  }, [ruleList]);
-
   // 교통 정보 제목
   const trafficTitleLine = useMemo(() => {
     return trafficInfoList.map(t => t.title).filter(Boolean).join(' · ');
@@ -516,6 +507,21 @@ const MeetDetail = () => {
       zoom: 16,
     };
   }, [mapCoordinate]);
+  const displayLocation = meetingPlace || location;
+
+  const handlePressLocationMap = () => {
+    if (!mapCoordinate) {
+      return;
+    }
+
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: partyTitle || '오시는 길',
+      guesthouseAddress: displayLocation,
+      latitude: mapCoordinate.latitude,
+      longitude: mapCoordinate.longitude,
+    });
+  };
+
   const renderLocationMap = () => {
     if (!mapCoordinate || !mapCamera) {
       return null;
@@ -526,6 +532,7 @@ const MeetDetail = () => {
         <NaverMapView
           style={styles.locationMap}
           initialCamera={mapCamera}
+          onTapMap={handlePressLocationMap}
           isScrollGesturesEnabled={false}
           isZoomGesturesEnabled={false}
           isRotateGesturesEnabled={false}
@@ -535,7 +542,8 @@ const MeetDetail = () => {
             longitude={mapCoordinate.longitude}
             width={44}
             height={56}
-            anchor={{x: 0.5, y: 1}}>
+            anchor={{x: 0.5, y: 1}}
+            onTap={handlePressLocationMap}>
             <View
               collapsable={false}
               style={styles.markerContainer}>
@@ -562,7 +570,7 @@ const MeetDetail = () => {
 
   // 오시는길 값 유무
   const isEmptyWayInfo =
-    !meetingPlace &&
+    !displayLocation &&
     !(trafficInfoList.length > 0) &&
     !parkingContentText;
 
@@ -614,7 +622,7 @@ const MeetDetail = () => {
         <View style={styles.tabContent}>
           <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
           <View style={styles.infoTextContainer}>
-            <Text style={[FONTS.fs_14_regular, styles.infoText]}>
+            <Text style={[FONTS.fs_16_regular, styles.infoText]}>
               {partySchedule}
             </Text>
           </View>
@@ -638,35 +646,21 @@ const MeetDetail = () => {
           {ruleList.length > 0 && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
-              <View style={styles.detailInfoText}>
-                <View style={styles.tagWrapper}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.tagText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    {ruleTitleLine}
-                  </Text>
-                </View>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.detailInfoBtn}
-                  onPress={() =>
-                    openSectionModal(
-                      '이용규칙',
-                      ruleList.map(r => ({
-                        subtitle: r.title,
-                        body: r.content,
-                      })),
-                    )
-                  }>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
-                    numberOfLines={1}
-                    ellipsizeMode="tail">
-                    내용 확인하기
-                  </Text>
-                  <ChevronRight width={16} height={16} />
-                </TouchableOpacity>
+              <View style={styles.ruleList}>
+                {ruleList.map((rule, index) => (
+                  <View key={rule.id ?? `${rule.title ?? 'rule'}-${index}`} style={styles.ruleItem}>
+                    {!!rule.title && (
+                      <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
+                        {rule.title}
+                      </Text>
+                    )}
+                    {!!rule.content && (
+                      <Text style={[FONTS.fs_14_regular, styles.ruleContent]}>
+                        {rule.content}
+                      </Text>
+                    )}
+                  </View>
+                ))}
               </View>
             </View>
           )}
@@ -684,9 +678,9 @@ const MeetDetail = () => {
         ) : (
           <>
             <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
-            {!!meetingPlace && (
-              <Text style={[FONTS.fs_14_regular, styles.infoText]}>
-                만나는 장소 : {meetingPlace}
+            {!!displayLocation && (
+              <Text style={[FONTS.fs_16_regular, styles.infoText]}>
+                만나는 장소 : {displayLocation}
               </Text>
             )}
             {renderLocationMap()}
@@ -788,7 +782,7 @@ const MeetDetail = () => {
                 resizeMode="cover"
               />
             </TouchableOpacity>
-          ) : hasImages ? (
+          ) : hasImages && !hideHeaderCarouselForImageModal ? (
             <Carousel
               width={SCREEN_W}
               height={IMAGE_H}

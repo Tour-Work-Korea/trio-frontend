@@ -1,5 +1,6 @@
 import React from 'react';
-import { Modal, Platform, View, Text, StyleSheet, Image } from 'react-native';
+import {Platform, View, Text, StyleSheet, Image} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';

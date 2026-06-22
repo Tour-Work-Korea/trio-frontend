@@ -1,421 +1,397 @@
-// 태그 말고 나머지도 값 주고 받을 때 닫기 눌러도 유지 안되게 확인
-import React, { useRef, useState, useEffect } from "react";
+import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
-  Modal,
   View,
   Text,
   TouchableOpacity,
   StyleSheet,
-  ScrollView,
   Dimensions,
-  TextInput,
-} from "react-native";
+  ScrollView,
+} from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
-import { COLORS } from "@constants/colors";
-import { FONTS } from "@constants/fonts";
-import { roomTypes } from '@constants/guesthouseOptions';
-import ButtonScarlet from '@components/ButtonScarlet';
-import ButtonWhite from '@components/ButtonWhite';
-import useAmenityStore from '@stores/amenityStore';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
-import UnChecked from '@assets/images/check_gray.svg';
-import Checked from '@assets/images/check_orange.svg';
 import XBtn from '@assets/images/x_gray.svg';
+import CheckIcon from '@assets/images/check20_orange.svg';
 
-const { height } = Dimensions.get("window");
-
-const tabList = [
-  { key: "price", label: "가격 범위" },
-  { key: "type", label: "숙소 유형" },
-  { key: "room", label: "객실 유형" },
-  { key: "facility", label: "시설/서비스" },
+const {height, width} = Dimensions.get('window');
+const MIN_PRICE = 10000;
+const MAX_PRICE = 1000000;
+const CONTENT_OPTIONS = [
+  '포틀럭',
+  '독서',
+  '디너파티',
+  '프로그램',
+  '쉼',
+];
+const ROOM_TYPE_OPTIONS = ['일반 객실', '도미토리'];
+const SORT_OPTIONS = [
+  {label: '추천 순', value: 'RECOMMEND'},
+  {label: '낮은 가격 순', value: 'LOW_PRICE'},
+  {label: '높은 가격 순', value: 'HIGH_PRICE'},
+  {label: '찜 많은 순', value: 'LIKE_COUNT'},
+];
+const TAB_LIST = [
+  {key: 'sort', label: '정렬'},
+  {key: 'content', label: '콘텐츠'},
+  {key: 'price', label: '가격 범위'},
+  {key: 'room', label: '객실 유형'},
 ];
 
 const GuesthouseFilterModal = ({
   visible,
   onClose,
   initialFilters,
+  selectedSort = 'RECOMMEND',
   onApply,
-  availableTags = [],
+  onCountRequest,
+  resultCount,
 }) => {
-  const amenities = useAmenityStore(state => state.amenities);
-  const fetchAmenities = useAmenityStore(state => state.fetchAmenities);
-
-  const [sectionPositions, setSectionPositions] = useState({});
-  const [activeTab, setActiveTab] = useState("price");
-
-  const [priceRange, setPriceRange] = useState([10000, 10000000]);
-  const [selectedRoomType, setSelectedRoomType] = useState([]);
-  const [selectedFacilityIds, setSelectedFacilityIds] = useState([]);
+  const [activeTab, setActiveTab] = useState('sort');
+  const [priceRange, setPriceRange] = useState([MIN_PRICE, MAX_PRICE]);
+  const [selectedRoomType, setSelectedRoomType] = useState(null);
   const [selectedTags, setSelectedTags] = useState([]);
-  const [onlyAvailable, setOnlyAvailable] = useState(false);
+  const [nextSort, setNextSort] = useState(selectedSort);
+  const scrollViewRef = useRef(null);
+  const [sectionPositions, setSectionPositions] = useState({});
+  const [displayResultCount, setDisplayResultCount] = useState(resultCount);
 
   useEffect(() => {
-    if (visible && amenities.length === 0) {
-      fetchAmenities();
+    if (!visible || !initialFilters) {
+      return;
     }
-  }, [visible, amenities.length, fetchAmenities]);
+
+    setActiveTab('sort');
+    setPriceRange([
+      initialFilters.minPrice ?? MIN_PRICE,
+      Math.min(initialFilters.maxPrice ?? MAX_PRICE, MAX_PRICE),
+    ]);
+    setSelectedRoomType(initialFilters.roomType || null);
+    setSelectedTags(initialFilters.tags || []);
+    setNextSort(selectedSort);
+  }, [initialFilters, selectedSort, visible]);
 
   useEffect(() => {
-    if (visible && initialFilters) {
-      setPriceRange([initialFilters.minPrice, initialFilters.maxPrice]);
-      setSelectedRoomType(initialFilters.roomType || []);
-      setSelectedFacilityIds(initialFilters.facility || []);
-      setSelectedTags(initialFilters.tags || []);
-      setOnlyAvailable(initialFilters.onlyAvailable || false);
-      setIsDirty(false);
+    setDisplayResultCount(resultCount);
+  }, [resultCount]);
+
+  useEffect(() => {
+    if (!visible || !onCountRequest) {
+      return;
     }
-  }, [visible, initialFilters]);
 
-  useEffect(() => {
-    const checkDirty = () => {
-        const isDirtyNow = !isEqualToInitialState();
-        setIsDirty(isDirtyNow);
-    };
-    checkDirty();
-  }, [priceRange, selectedRoomType, selectedFacilityIds, selectedTags, onlyAvailable]);
+    const timer = setTimeout(() => {
+      onCountRequest({
+        tags: selectedTags,
+        minPrice: priceRange[0],
+        maxPrice: priceRange[1],
+        roomType: selectedRoomType,
+        facility: initialFilters?.facility || [],
+        onlyAvailable: initialFilters?.onlyAvailable || false,
+      })
+        .then(count => {
+          if (typeof count === 'number') {
+            setDisplayResultCount(count);
+          }
+        })
+        .catch(error => {
+          console.warn('필터 결과 개수 조회 실패', error);
+        });
+    }, 250);
 
-  // 초기화 버튼 활성화 여부
-  const isEqualToInitialState = (next = {}) => {
-    const currentTags = [...(next.selectedTags ?? selectedTags)].sort();
-    const initialTags = [];
+    return () => clearTimeout(timer);
+  }, [
+    initialFilters,
+    onCountRequest,
+    priceRange,
+    selectedRoomType,
+    selectedTags,
+    visible,
+  ]);
 
-    const selectedFacilityIdList = [...(next.selectedFacilityIds ?? selectedFacilityIds)]
-      .sort((a, b) => a - b);
-    const initialFacilityIdList = [];
-
+  const isDirty = useMemo(() => {
     return (
-      (next.priceRange ?? priceRange)[0] === 10000 &&
-      (next.priceRange ?? priceRange)[1] === 10000000 &&
-      (next.selectedRoomType ?? selectedRoomType).length === 0 &&
-      (next.onlyAvailable ?? onlyAvailable) === false &&
-      JSON.stringify(currentTags) === JSON.stringify(initialTags) &&
-      JSON.stringify(selectedFacilityIdList) === JSON.stringify(initialFacilityIdList)
+      nextSort !== 'RECOMMEND' ||
+      priceRange[0] !== MIN_PRICE ||
+      priceRange[1] !== MAX_PRICE ||
+      Boolean(selectedRoomType) ||
+      selectedTags.length > 0
+    );
+  }, [nextSort, priceRange, selectedRoomType, selectedTags.length]);
+
+  const handleReset = () => {
+    setNextSort('RECOMMEND');
+    setPriceRange([MIN_PRICE, MAX_PRICE]);
+    setSelectedRoomType(null);
+    setSelectedTags([]);
+  };
+
+  const toggleValue = (value, setter) => {
+    setter(prev =>
+      prev.includes(value)
+        ? prev.filter(item => item !== value)
+        : [...prev, value],
     );
   };
 
-  // 초기화 버튼 enable/disable
-  const [isDirty, setIsDirty] = useState(false);
-
-  const scrollViewRef = useRef();
-  const sectionRefs = {
-    price: useRef(),
-    type: useRef(),
-    room: useRef(),
-    facility: useRef(),
+  const applyFilters = () => {
+    onApply({
+      tags: selectedTags,
+      minPrice: priceRange[0],
+      maxPrice: priceRange[1],
+      roomType: selectedRoomType,
+      facility: initialFilters?.facility || [],
+      onlyAvailable: initialFilters?.onlyAvailable || false,
+      sortBy: nextSort,
+    });
   };
 
-  // 현재 영역 감지
-  const handleScroll = (e) => {
-    const y = e.nativeEvent.contentOffset.y;
+  const setSectionPosition = (key, y) => {
+    setSectionPositions(prev => ({...prev, [key]: y}));
+  };
 
-    const entries = Object.entries(sectionPositions);
+  const handleTabPress = key => {
+    const y = sectionPositions[key];
+    setActiveTab(key);
+
+    if (y !== undefined) {
+      scrollViewRef.current?.scrollTo({y, animated: true});
+    }
+  };
+
+  const handleScroll = event => {
+    const y = event.nativeEvent.contentOffset.y;
+    const entries = TAB_LIST
+      .map(tab => [tab.key, sectionPositions[tab.key]])
+      .filter(([, position]) => position !== undefined);
+
     let currentTab = activeTab;
 
-    for (let i = 0; i < entries.length; i++) {
-        const [key, positionY] = entries[i];
-        const nextPositionY = entries[i + 1]?.[1] ?? Infinity;
+    for (let i = 0; i < entries.length; i += 1) {
+      const [key, positionY] = entries[i];
+      const nextPositionY = entries[i + 1]?.[1] ?? Infinity;
 
-        if (y >= positionY && y < nextPositionY) {
+      if (y >= positionY - 12 && y < nextPositionY - 12) {
         currentTab = key;
         break;
-        }
+      }
     }
 
     if (currentTab !== activeTab) {
-        setActiveTab(currentTab);
+      setActiveTab(currentTab);
     }
   };
 
+  const renderChip = ({label, selected, onPress}) => (
+    <TouchableOpacity
+      key={label}
+      activeOpacity={0.8}
+      style={[styles.chip, selected && styles.chipSelected]}
+      onPress={onPress}>
+      <Text
+        style={[
+          FONTS.fs_14_medium,
+          styles.chipText,
+          selected && styles.chipTextSelected,
+        ]}>
+        {label}
+      </Text>
+    </TouchableOpacity>
+  );
 
-  // 탭 클릭 → 스크롤 이동
-  const handleTabPress = (key) => {
-    const y = sectionPositions[key];
-    if (y !== undefined) {
-        scrollViewRef.current?.scrollTo({ y, animated: true });
-    }
-  };
+  const renderSortSection = () => (
+    <View
+      style={styles.section}
+      onLayout={event => setSectionPosition('sort', event.nativeEvent.layout.y)}>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>정렬</Text>
+      <View style={styles.optionList}>
+        {SORT_OPTIONS.map(option => {
+          const selected = nextSort === option.value;
 
-  // 초기화
-  const handleReset = () => {
-    setPriceRange([10000, 10000000]);
-    setSelectedRoomType([]); 
-    setSelectedFacilityIds([]);
-    setSelectedTags([]);
-    setOnlyAvailable(false);
-    setIsDirty(false);
-  };
+          return (
+            <TouchableOpacity
+              key={option.value}
+              activeOpacity={0.8}
+              style={styles.sortOption}
+              onPress={() => setNextSort(option.value)}>
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.sortText,
+                  selected && styles.sortTextSelected,
+                  selected && FONTS.fs_14_semibold,
+                ]}>
+                {option.label}
+              </Text>
+              {selected && <CheckIcon width={20} height={20} />}
+            </TouchableOpacity>
+          );
+        })}
+      </View>
+    </View>
+  );
+
+  const renderContentSection = () => (
+    <View
+      style={styles.section}
+      onLayout={event =>
+        setSectionPosition('content', event.nativeEvent.layout.y)
+      }>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>콘텐츠</Text>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={styles.contentChipRow}>
+        {CONTENT_OPTIONS.map(option =>
+          renderChip({
+            label: option,
+            selected: selectedTags.includes(option),
+            onPress: () => toggleValue(option, setSelectedTags),
+          }),
+        )}
+      </ScrollView>
+    </View>
+  );
+
+  const renderPriceSection = () => (
+    <View
+      style={styles.section}
+      onLayout={event => setSectionPosition('price', event.nativeEvent.layout.y)}>
+      <View style={styles.priceSectionHeader}>
+        <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+          가격 범위
+        </Text>
+        <Text style={[FONTS.fs_12_medium, styles.priceSubtitle]}>
+          성인 1, 1박 기준
+        </Text>
+      </View>
+      <View style={styles.priceMultislider}>
+        <MultiSlider
+          values={priceRange}
+          min={MIN_PRICE}
+          max={MAX_PRICE}
+          step={10000}
+          sliderLength={Math.min(width - 60, 360)}
+          onValuesChange={setPriceRange}
+          selectedStyle={styles.sliderSelected}
+          unselectedStyle={styles.sliderUnselected}
+          markerStyle={styles.sliderMarker}
+        />
+      </View>
+      <View style={styles.priceRangeTextContainer}>
+        <View style={styles.priceTextContainer}>
+          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최소 금액</Text>
+          <View style={styles.priceContainer}>
+            <Text style={[FONTS.fs_14_medium, styles.priceText]}>
+              {priceRange[0].toLocaleString()}
+            </Text>
+          </View>
+        </View>
+        <View style={styles.priceTextContainer}>
+          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최대 금액</Text>
+          <View style={styles.priceContainer}>
+            <Text style={[FONTS.fs_14_medium, styles.priceText]}>
+              {priceRange[1].toLocaleString()}
+            </Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+
+  const renderRoomSection = () => (
+    <View
+      style={styles.section}
+      onLayout={event => setSectionPosition('room', event.nativeEvent.layout.y)}>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>객실 유형</Text>
+      <View style={styles.chipRow}>
+        {ROOM_TYPE_OPTIONS.map(option =>
+          renderChip({
+            label: option,
+            selected: selectedRoomType === option,
+            onPress: () =>
+              setSelectedRoomType(prev => (prev === option ? null : option)),
+          }),
+        )}
+      </View>
+    </View>
+  );
 
   return (
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* 헤더 */}
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold]}>필터</Text>
-            <TouchableOpacity
-              activeOpacity={1} style={styles.xBtn} onPress={onClose}>
-              <XBtn width={24} height={24}/>
+            <TouchableOpacity activeOpacity={1} style={styles.xBtn} onPress={onClose}>
+              <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
 
-          {/* 탭 */}
           <View style={styles.tabRow}>
-            {tabList.map((tab) => (
-              <TouchableOpacity
-                activeOpacity={1}
-                key={tab.key}
-                onPress={() => handleTabPress(tab.key)}
-              >
-                <Text
-                  style={[
-                    FONTS.fs_16_regular,
-                    styles.tabText,
-                    activeTab === tab.key && styles.tabTextActive,
-                    activeTab === tab.key && FONTS.fs_16_semibold,
-                  ]}
-                >
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
+            {TAB_LIST.map(tab => {
+              const selected = activeTab === tab.key;
+
+              return (
+                <TouchableOpacity
+                  activeOpacity={0.8}
+                  key={tab.key}
+                  onPress={() => handleTabPress(tab.key)}>
+                  <Text
+                    style={[
+                      FONTS.fs_16_regular,
+                      styles.tabText,
+                      selected && styles.tabTextActive,
+                      selected && FONTS.fs_16_semibold,
+                    ]}>
+                    {tab.label}
+                  </Text>
+                </TouchableOpacity>
+              );
+            })}
           </View>
 
-          {/* 본문 */}
           <ScrollView
             ref={scrollViewRef}
             onScroll={handleScroll}
-            contentContainerStyle={{ paddingBottom: 120 }}
-          >
-            {/* 가격 범위 */}
-            <View 
-              ref={sectionRefs.price} 
-              style={styles.section}
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                setSectionPositions(prev => ({ ...prev, price: y }));
-              }}
-            >
-              <View style={styles.priceSectionHeader}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>가격 범위</Text>
-                <Text style={[FONTS.fs_12_medium, styles.priceSubtitle]}>성인 1, 1박 기준</Text>
-              </View>
-              <View style={styles.priceMultislider}>
-                <MultiSlider
-                    values={priceRange}
-                    min={10000}
-                    max={10000000}
-                    step={10000}
-                    sliderLength={300}
-                    onValuesChange={(values) => {
-                        setPriceRange(values);
-                        setIsDirty(true);
-                    }}
-                    selectedStyle={styles.sliderSelected}
-                    unselectedStyle={styles.sliderUnselected}
-                    markerStyle={styles.sliderMarker}
-                />
-              </View>
-              {/* 선택된 가격 범위 출력 */}
-              <View style={styles.priceRangeTextContainer}>
-                <View style={styles.priceTextContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최소 금액</Text>
-                    <View style={styles.priceContainer}>
-                        <Text style={[FONTS.fs_14_medium, styles.priceText]}>{priceRange[0].toLocaleString()}</Text>
-                    </View>
-                </View>
-                <View style={styles.priceTextContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최대 금액</Text>
-                    <View style={styles.priceContainer}>
-                        <Text style={[FONTS.fs_14_medium, styles.priceText]}>{priceRange[1].toLocaleString()}</Text>
-                    </View>
-                </View>
-              </View>
-            </View>
-            
-            <View  style={styles.devide}/>
-
-            {/* 태그 */}
-            <View 
-              ref={sectionRefs.type} 
-              style={styles.section}
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                setSectionPositions(prev => ({ ...prev, type: y }));
-              }}
-            >
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>태그</Text>
-                <View style={styles.tagSelectRow}>
-                  {availableTags.map((tag) => {
-                    const isSelected = selectedTags.includes(tag);
-                    return (
-                        <TouchableOpacity
-                          activeOpacity={1}
-                          key={tag}
-                          onPress={() => {
-                              if (isSelected) {
-                                setSelectedTags(prev => prev.filter(value => value !== tag));
-                              } else {
-                                setSelectedTags(prev => [...prev, tag]);
-                              }
-                              setIsDirty(true);
-                          }}
-                          style={styles.tagOptionContainer}
-                        >
-                            <Text
-                                style={[
-                                styles.tagOptionText,
-                                FONTS.fs_14_medium,
-                                isSelected && styles.tagOptionSelectedText,
-                                isSelected && FONTS.fs_14_semibold,
-                                ]}
-                            >
-                                {tag}
-                            </Text>
-                        </TouchableOpacity>
-                    );
-                    })}
-                </View>
-            </View>
-
-            <View  style={styles.devide}/>
-
-            {/* 객실유형 */}
-            <View 
-              ref={sectionRefs.room} 
-              style={styles.section}
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                setSectionPositions(prev => ({ ...prev, room: y }));
-              }}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>객실 유형</Text>
-              <View style={styles.roomSelectRow}>
-                {roomTypes.map((room) => {
-                const isSelected = selectedRoomType.includes(room);
-                return (
-                    <TouchableOpacity
-                      activeOpacity={1}
-                    key={room}
-                    onPress={() => {
-                        if (isSelected) {
-                        setSelectedRoomType(prev => prev.filter(item => item !== room));
-                        } else {
-                        setSelectedRoomType(prev => [...prev, room]);
-                        }
-                        setIsDirty(true);
-                    }}
-                    style={[
-                        styles.roomContainer,
-                        isSelected && styles.roomSelectedContainer,
-                    ]}
-                    >
-                    <Text
-                        style={[
-                        styles.roomOptionText,
-                        FONTS.fs_14_medium,
-                        isSelected && styles.roomOptionSelectedText,
-                        ]}
-                    >
-                        {room}
-                    </Text>
-                    </TouchableOpacity>
-                );
-                })}
-              </View>
-            </View>
-
-            <View  style={styles.devide}/>
-
-            {/* 시설/서비스 */}
-            <View 
-              ref={sectionRefs.facility} 
-              style={styles.section}
-              onLayout={(e) => {
-                const y = e.nativeEvent.layout.y;
-                setSectionPositions(prev => ({ ...prev, facility: y }));
-              }}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>시설/서비스</Text>
-              <View style={styles.tagSelectRow}>
-                {amenities.map((facility) => {
-                const isSelected = selectedFacilityIds.includes(facility.id);
-                return (
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      key={facility.id}
-                      onPress={() => {
-                          if (isSelected) {
-                            setSelectedFacilityIds(prev => prev.filter(id => id !== facility.id));
-                          } else {
-                            setSelectedFacilityIds(prev => [...prev, facility.id]);
-                          }
-                          setIsDirty(true);
-                      }}
-                      style={styles.tagOptionContainer}
-                    >
-                    <Text
-                        style={[
-                            styles.tagOptionText,
-                            FONTS.fs_14_medium,
-                            isSelected && styles.tagOptionSelectedText,
-                            isSelected && FONTS.fs_14_semibold,
-                        ]}
-                    >
-                        {facility.name}
-                    </Text>
-                    </TouchableOpacity>
-                );
-                })}
-              </View>
-            </View>
-
-            <View  style={styles.devide}/>
-
-            {/* 예약 가능 게하 보기 */}
-            <View style={styles.checkBoxSection}>
-                <TouchableOpacity
-                  activeOpacity={1}
-                    onPress={() => {
-                    setOnlyAvailable(prev => !prev);
-                    setIsDirty(true);
-                    }}
-                    style={[
-                        onlyAvailable ? styles.checkedContainer : styles.uncheckedContainer,
-                    ]}
-                >
-                    {onlyAvailable ? <Checked width={24} height={24} /> : <UnChecked width={24} height={24} />}
-                </TouchableOpacity>
-                <Text style={[FONTS.fs_14_medium]}>예약 가능한 게스트하우스만 볼래요.</Text>
-            </View>
-
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.content}>
+            {renderSortSection()}
+            <View style={styles.divider} />
+            {renderContentSection()}
+            <View style={styles.divider} />
+            {renderPriceSection()}
+            <View style={styles.divider} />
+            {renderRoomSection()}
           </ScrollView>
 
-          {/* 하단 버튼 */}
           <View style={styles.sticky}>
-            <View style={styles.resetButton}>
-                <ButtonWhite
-                    title="초기화"
-                    onPress={handleReset}
-                    disabled={!isDirty}
-                />
-            </View>
-            <View style={styles.confirmButton}>
-              <ButtonScarlet 
-                title="게스트하우스 보기"
-                onPress={() => {
-                    onApply({
-                    tags: selectedTags,
-                    minPrice: priceRange[0],
-                    maxPrice: priceRange[1],
-                    roomType: selectedRoomType, // 아직 api로 보내지는 않음
-                    facility: selectedFacilityIds,
-                    onlyAvailable,
-                    });
-                }}
-              />
-            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              disabled={!isDirty}
+              style={[styles.resetButton, !isDirty && styles.resetButtonDisabled]}
+              onPress={handleReset}>
+              <Text
+                style={[
+                  FONTS.fs_16_semibold,
+                  styles.resetText,
+                  !isDirty && styles.resetTextDisabled,
+                ]}>
+                초기화
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.9}
+              style={styles.confirmButton}
+              onPress={applyFilters}>
+              <Text style={[FONTS.fs_16_semibold, styles.confirmText]}>
+                {typeof displayResultCount === 'number'
+                  ? `${displayResultCount}개 게스트하우스 보기`
+                  : '게스트하우스 보기'}
+              </Text>
+            </TouchableOpacity>
           </View>
         </View>
       </View>
@@ -429,10 +405,10 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   container: {
-    height: height * 0.9,
+    height: height * 0.78,
     backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
@@ -441,51 +417,90 @@ const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
     justifyContent: 'center',
-    marginVertical: 20,
+    paddingVertical: 20,
   },
   xBtn: {
     position: 'absolute',
     right: 0,
   },
-
-  // 탭
   tabRow: {
-    flexDirection: "row",
-    justifyContent: "space-around",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_300,
-    marginTop: 20,
   },
   tabText: {
-    paddingBottom: 12,
+    paddingBottom: 14,
     color: COLORS.grayscale_600,
   },
   tabTextActive: {
     color: COLORS.primary_orange,
   },
-
-  // 선택 섹션
+  content: {
+    paddingBottom: 120,
+  },
   section: {
-    paddingVertical: 20,
+    paddingVertical: 28,
   },
-  sectionTitle: {
-  },
-  devide: {
-    height: 0.8,
+  divider: {
+    height: 1,
     backgroundColor: COLORS.grayscale_200,
   },
-
-  // 가격
+  sectionTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 16,
+  },
+  optionList: {
+    gap: 8,
+  },
+  sortOption: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    height: 44,
+    paddingHorizontal: 14,
+  },
+  sortText: {
+    color: COLORS.grayscale_500,
+  },
+  sortTextSelected: {
+    color: COLORS.primary_orange,
+  },
+  chipRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 10,
+  },
+  contentChipRow: {
+    flexDirection: 'row',
+    gap: 10,
+    paddingRight: 20,
+  },
+  chip: {
+    height: 44,
+    justifyContent: 'center',
+    paddingHorizontal: 16,
+    borderRadius: 22,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  chipSelected: {
+    backgroundColor: COLORS.primary_orange,
+  },
+  chipText: {
+    color: COLORS.grayscale_800,
+  },
+  chipTextSelected: {
+    color: COLORS.grayscale_0,
+  },
   priceSectionHeader: {
-    flexDirection: "row",
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
+    marginBottom: 18,
   },
   priceSubtitle: {
     color: COLORS.grayscale_500,
   },
-  // 가격 슬라이더
   priceMultislider: {
     alignItems: 'center',
     justifyContent: 'center',
@@ -500,124 +515,73 @@ const styles = StyleSheet.create({
   },
   sliderMarker: {
     backgroundColor: COLORS.secondary_blue,
-    width: 18,
-    height: 18,
+    width: 20,
+    height: 20,
     borderWidth: 0,
     shadowOpacity: 0,
     elevation: 0,
     marginTop: 4,
   },
-  // 가격 출력
   priceRangeTextContainer: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: "row",
-    gap: 4,
+    flexDirection: 'row',
+    gap: 8,
+    marginTop: 16,
   },
   priceTextContainer: {
     flex: 1,
   },
   priceTitle: {
-    marginBottom: 4,
+    marginBottom: 8,
   },
   priceContainer: {
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
-    padding: 12,
-    borderRadius: 20,
-  },
-  priceText:{
-  },
-
-  // 태그 , 시설/서비스
-  tagSelectRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 4,
-    backgroundColor: COLORS.grayscale_100,
-    borderRadius: 8,
-    alignContent: 'center',
-  },
-  tagOptionContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    height: 40,
-    padding: 10,
-    width: '48%',
-  },
-  tagOptionText: {
-    color: COLORS.grayscale_400,
-  },
-  tagOptionSelectedText: {
-    color: COLORS.primary_orange,
-  },
-
-  // 객실 유형
-  roomSelectRow: {
-    marginTop: 12,
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 20,
-  },
-  roomContainer: {
-    backgroundColor: COLORS.grayscale_100,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 100,
-  },
-  roomSelectedContainer: {
-    backgroundColor: COLORS.primary_orange,
-  },
-  roomOptionText: {
-    color: COLORS.grayscale_800,
-  },
-  roomOptionSelectedText: {
-    color: COLORS.grayscale_0,
-  },
-
-  // 하단 선택 박스
-  checkBoxSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginTop: 20,
-  },
-  uncheckedContainer: {
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_300,
-    borderRadius: 4,
-    padding: 2,
-    alignItems: 'center',
+    paddingHorizontal: 14,
+    height: 48,
+    borderRadius: 24,
     justifyContent: 'center',
-    marginRight: 12,
   },
-  checkedContainer: {
-    borderColor: COLORS.primary_orange,
-    borderWidth: 1,
-    borderRadius: 4,
-    padding: 2,
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginRight: 12,
+  priceText: {
+    color: COLORS.grayscale_900,
   },
-
-  // 하단 버튼
   sticky: {
-    position: "absolute",
+    position: 'absolute',
     left: 0,
     right: 0,
     bottom: 0,
-    flexDirection: "row",
+    flexDirection: 'row',
     backgroundColor: COLORS.grayscale_0,
     paddingHorizontal: 20,
-    paddingTop: 20,
+    paddingTop: 18,
     paddingBottom: 40,
     gap: 20,
   },
   resetButton: {
     flex: 1,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_200,
+  },
+  resetButtonDisabled: {
+    backgroundColor: COLORS.grayscale_200,
+  },
+  resetText: {
+    color: COLORS.grayscale_700,
+  },
+  resetTextDisabled: {
+    color: COLORS.grayscale_400,
   },
   confirmButton: {
     flex: 3,
+    height: 44,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 8,
+    backgroundColor: COLORS.primary_orange,
+  },
+  confirmText: {
+    color: COLORS.grayscale_0,
   },
 });

@@ -5,7 +5,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   Keyboard,
-  Modal,
   ActivityIndicator,
   Platform,
   Linking,
@@ -17,6 +16,7 @@ import {WebView} from 'react-native-webview';
 import LogoOrange from '@assets/images/logo_orange.svg';
 import ButtonWhite from '@components/ButtonWhite';
 import AlertModal from '@components/modals/AlertModal';
+import Modal from '@components/modals/AdaptiveModal';
 import authApi from '@utils/api/authApi';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';

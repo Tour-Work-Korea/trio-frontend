@@ -20,6 +20,7 @@ export {default as GuesthouseSearch} from './(Common)/BottomTabs/Guesthouse/Gues
 export {default as RoomDetail} from './(Common)/Guesthouse/RoomDetail';
 export {default as GuesthousePayment} from './(Common)/Guesthouse/GuesthousePayment';
 export {default as GuesthousePaymentSuccess} from './(Common)/Guesthouse/GuesthousePayment/GuesthousePaymentSuccess';
+export {default as GuesthouseReservationEntry} from './(Common)/Guesthouse/GuesthouseReservationEntry';
 export {default as GuesthouseReservation} from './(Common)/Guesthouse/GuesthouseReservation';
 export {default as RecentGuesthouseList} from './(Common)/Guesthouse/RecentGuesthouseList';
 export {default as CouponSelectScreen} from './(Common)/Coupon/CouponSelectScreen';
@@ -48,6 +49,7 @@ export {default as Terms} from './(Common)/Setting/Terms';
 export {default as Community} from './(Common)/BottomTabs/Community';
 export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
 export {default as CommunityWrite} from './(Common)/Community/CommunityWrite';
+export {default as CommunityPlaceSearch} from './(Common)/Community/CommunityPlaceSearch';
 export {default as CommunityStaffDetail} from './(Common)/Community/CommunityStaffDetail';
 
 //로그인, 회원가입

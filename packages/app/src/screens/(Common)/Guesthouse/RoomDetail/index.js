@@ -8,6 +8,7 @@ import {
   Alert,
   Dimensions,
   Linking,
+  Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
@@ -54,6 +55,10 @@ const RoomDetail = ({route}) => {
     roomType,
     dormitoryGenderType,
     roomMaxCapacity,
+    extraPersonPrice,
+    additionalGuestPrice,
+    extraPersonCount,
+    extraPersonTotalPrice,
     femaleOnly,
     totalPrice,
     refundPolicies,
@@ -80,14 +85,13 @@ const RoomDetail = ({route}) => {
     a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
   );
   const hasImages = sortedImages.length > 0;
+  const hideHeaderCarouselForImageModal =
+    Platform.OS === 'android' && imageModalVisible;
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
   );
-  const modalImages = sortedImages.map(img => ({
-    id: img.id,
-    imageUrl: img.roomImageUrl,
-  }));
+  const modalImages = sortedImages;
 
   const {width: SCREEN_W} = Dimensions.get('window');
   const IMAGE_H = 280;
@@ -106,7 +110,7 @@ const RoomDetail = ({route}) => {
     <View style={styles.container}>
       <ScrollView>
         <View style={styles.imageContainer}>
-          {hasImages ? (
+          {hasImages && !hideHeaderCarouselForImageModal ? (
             <Carousel
               width={SCREEN_W}
               height={IMAGE_H}
@@ -301,7 +305,7 @@ const RoomDetail = ({route}) => {
                 });
 
               } else {
-                navigation.navigate('GuesthouseReservation', {
+                navigation.navigate('GuesthouseReservationEntry', {
                   roomId,
                   roomName,
                   roomPrice,
@@ -320,6 +324,10 @@ const RoomDetail = ({route}) => {
                   dormitoryGenderType,
                   roomCapacity,
                   roomMaxCapacity,
+                  extraPersonPrice,
+                  additionalGuestPrice,
+                  extraPersonCount,
+                  extraPersonTotalPrice,
                   femaleOnly,
                   refundPolicies,
                   reservationPolicy,

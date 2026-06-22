@@ -3,7 +3,6 @@ import {
   Dimensions,
   Keyboard,
   KeyboardAvoidingView,
-  Modal,
   StyleSheet,
   Text,
   TextInput,
@@ -13,6 +12,7 @@ import {
   ScrollView,
   Platform,
 } from 'react-native';
+import Modal from '@components/modals/AdaptiveModal';
 import dayjs from 'dayjs';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
