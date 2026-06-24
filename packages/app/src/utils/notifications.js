@@ -93,6 +93,31 @@ const getNestedFirstValue = (source, keys) => {
   return null;
 };
 
+const getNotificationId = notification =>
+  getNestedFirstValue(notification, ['notificationId', 'id']);
+
+const fetchNotificationDetail = async notification => {
+  const notificationId = getNotificationId(notification);
+
+  if (!notificationId) {
+    return notification;
+  }
+
+  try {
+    const {data: notificationDetail} = await notificationApi.getDetail(
+      notificationId,
+    );
+
+    return {
+      ...notification,
+      ...(notificationDetail ?? {}),
+    };
+  } catch (error) {
+    console.warn('fetchNotificationDetail 실패:', error);
+    return notification;
+  }
+};
+
 const buildCommunityCommentAnchor = (commentId, parentCommentId) => {
   if (!commentId && !parentCommentId) {
     return null;
@@ -103,6 +128,14 @@ const buildCommunityCommentAnchor = (commentId, parentCommentId) => {
     ...(parentCommentId ? {parentCommentId} : {}),
   };
 };
+
+const isGuesthouseCancellationType = type =>
+  type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
+  type === 'GUESTHOUSE_RESERVATION_USER_REFUND';
+
+const isPartyCancellationType = type =>
+  type === 'PARTY_RESERVATION_USER_CANCELLED' ||
+  type === 'PARTY_CANCELLED_BY_HOST';
 
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
@@ -246,33 +279,32 @@ export const openNotificationTarget = async notification => {
     return;
   }
 
-  const type = String(notification?.type || '').toUpperCase();
-  const reservationId = notification?.reservationId;
-  const guesthouseId = notification?.guesthouseId;
-  const partyId = notification?.partyId;
-  let communityPostId = getNestedFirstValue(notification, [
+  let targetNotification = notification;
+  let type = String(
+    getNestedFirstValue(targetNotification, ['type', 'targetType']) || '',
+  ).toUpperCase();
+  let reservationId = getNestedFirstValue(targetNotification, [
+    'reservationId',
+  ]);
+  let guesthouseId = getNestedFirstValue(targetNotification, ['guesthouseId']);
+  let partyId = getNestedFirstValue(targetNotification, ['partyId']);
+  let communityPostId = getNestedFirstValue(targetNotification, [
     'postId',
     'communityPostId',
     'targetPostId',
     'articleId',
   ]);
-  let communityCommentId = getNestedFirstValue(notification, [
+  let communityCommentId = getNestedFirstValue(targetNotification, [
     'targetCommentId',
     'commentId',
     'communityCommentId',
     'replyId',
   ]);
-  let communityParentCommentId = getNestedFirstValue(notification, [
+  let communityParentCommentId = getNestedFirstValue(targetNotification, [
     'parentId',
     'parentCommentId',
     'rootCommentId',
   ]);
-  const isGuesthouseCancellation =
-    type === 'GUESTHOUSE_RESERVATION_USER_CANCELLED' ||
-    type === 'GUESTHOUSE_RESERVATION_USER_REFUND';
-  const isPartyCancellation =
-    type === 'PARTY_RESERVATION_USER_CANCELLED' ||
-    type === 'PARTY_CANCELLED_BY_HOST';
 
   if (
     type.startsWith('GUESTHOUSE_RESERVATION_USER_') ||
@@ -284,8 +316,16 @@ export const openNotificationTarget = async notification => {
       return;
     }
 
+    if (!reservationId) {
+      targetNotification = await fetchNotificationDetail(targetNotification);
+      type = String(
+        getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
+      ).toUpperCase();
+      reservationId = getNestedFirstValue(targetNotification, ['reservationId']);
+    }
+
     if (reservationId) {
-      if (isGuesthouseCancellation) {
+      if (isGuesthouseCancellationType(type)) {
         navigate('GuesthouseCancelledReceipt', {reservationId});
         return;
       }
@@ -309,8 +349,17 @@ export const openNotificationTarget = async notification => {
       return;
     }
 
+    if (!reservationId) {
+      targetNotification = await fetchNotificationDetail(targetNotification);
+      type = String(
+        getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
+      ).toUpperCase();
+      reservationId = getNestedFirstValue(targetNotification, ['reservationId']);
+      partyId = getNestedFirstValue(targetNotification, ['partyId']);
+    }
+
     if (reservationId) {
-      if (isPartyCancellation) {
+      if (isPartyCancellationType(type)) {
         navigate('MeetCancelledReceipt', {reservationId});
         return;
       }
@@ -355,41 +404,24 @@ export const openNotificationTarget = async notification => {
         : 'MyCommunityPostList';
 
     if (!communityPostId && !communityCommentId) {
-      const notificationId = getFirstValue(notification, [
-        'notificationId',
-        'id',
+      targetNotification = await fetchNotificationDetail(targetNotification);
+      communityPostId = getNestedFirstValue(targetNotification, [
+        'postId',
+        'communityPostId',
+        'targetPostId',
+        'articleId',
       ]);
-
-      if (notificationId) {
-        try {
-          const {data: notificationDetail} = await notificationApi.getDetail(
-            notificationId,
-          );
-          const mergedNotification = {
-            ...notification,
-            ...(notificationDetail ?? {}),
-          };
-          communityPostId = getNestedFirstValue(mergedNotification, [
-            'postId',
-            'communityPostId',
-            'targetPostId',
-            'articleId',
-          ]);
-          communityCommentId = getNestedFirstValue(mergedNotification, [
-            'targetCommentId',
-            'commentId',
-            'communityCommentId',
-            'replyId',
-          ]);
-          communityParentCommentId = getNestedFirstValue(mergedNotification, [
-            'parentId',
-            'parentCommentId',
-            'rootCommentId',
-          ]);
-        } catch (error) {
-          console.warn('fetchCommunityNotificationDetail 실패:', error);
-        }
-      }
+      communityCommentId = getNestedFirstValue(targetNotification, [
+        'targetCommentId',
+        'commentId',
+        'communityCommentId',
+        'replyId',
+      ]);
+      communityParentCommentId = getNestedFirstValue(targetNotification, [
+        'parentId',
+        'parentCommentId',
+        'rootCommentId',
+      ]);
     }
 
     if (!communityCommentId && communityParentCommentId) {

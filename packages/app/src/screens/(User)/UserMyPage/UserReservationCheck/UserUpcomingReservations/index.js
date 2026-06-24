@@ -209,6 +209,15 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
           backgroundColor={COLORS.secondary_red}
           textColor={COLORS.semantic_red}
           onPress={() => {
+            const paidAmount =
+              typeof item.amount === 'number'
+                ? item.amount
+                : typeof item.totalAmount === 'number'
+                  ? item.totalAmount
+                  : typeof item.reservationAmount === 'number'
+                    ? item.reservationAmount
+                    : undefined;
+
             navigation.navigate('GuesthouseCancelConfirm', {
               reservationId: item.reservationId,
               cancelContext: {
@@ -220,17 +229,20 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
                 checkInTime: checkInFormatted.time,
                 checkOutDate: checkOutFormatted.date,
                 checkOutTime: checkOutFormatted.time,
-                ...(typeof item.amount === 'number'
-                  ? {paidAmount: item.amount}
-                  : typeof item.totalAmount === 'number'
-                    ? {paidAmount: item.totalAmount}
-                    : typeof item.reservationAmount === 'number'
-                      ? {paidAmount: item.reservationAmount}
-                      : {}),
-                ...(typeof item.cancelFee === 'number'
+                reservationStatus: item.reservationStatus,
+                approvalStatus: item.approvalStatus,
+                ...(typeof paidAmount === 'number'
+                  ? {
+                      paidAmount,
+                      ...(isPendingReservation(item)
+                        ? {cancelFee: 0, refundAmount: paidAmount}
+                        : {}),
+                    }
+                  : {}),
+                ...(!isPendingReservation(item) && typeof item.cancelFee === 'number'
                   ? {cancelFee: item.cancelFee}
                   : {}),
-                ...(typeof item.refundAmount === 'number'
+                ...(!isPendingReservation(item) && typeof item.refundAmount === 'number'
                   ? {refundAmount: item.refundAmount}
                   : {}),
                 ...(item.refundMethod

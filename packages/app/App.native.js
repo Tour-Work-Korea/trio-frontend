@@ -68,6 +68,25 @@ const waitForNavReady = async () => {
   }
 };
 
+const recordStartupError = (label, error) => {
+  if (__DEV__) {
+    console.warn(`${label} failed:`, error?.message || error);
+  }
+
+  try {
+    const crashlyticsError =
+      error instanceof Error
+        ? error
+        : new Error(`${label} failed: ${String(error?.message || error)}`);
+
+    crashlytics().recordError(crashlyticsError);
+  } catch (recordError) {
+    if (__DEV__) {
+      console.warn('record startup error failed:', recordError?.message);
+    }
+  }
+};
+
 function AppContent() {
   const [appLoaded, setAppLoaded] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
@@ -79,7 +98,15 @@ function AppContent() {
   const accessToken = useUserStore(state => state.accessToken);
 
   useEffect(() => {
-    mobileAds().initialize();
+    const initializeMobileAds = async () => {
+      try {
+        await mobileAds().initialize();
+      } catch (error) {
+        recordStartupError('mobile ads initialize', error);
+      }
+    };
+
+    initializeMobileAds();
     console.log('API_BASE_URL (runtime):', API_BASE_URL);
 
     const syncForceUpdateState = async () => {
@@ -119,8 +146,15 @@ function AppContent() {
       }
     };
 
-    bootstrap();
-    crashlytics().log('App mounted - Crashlytics initialized');
+    bootstrap().catch(error => {
+      recordStartupError('app bootstrap', error);
+    });
+
+    try {
+      crashlytics().log('App mounted - Crashlytics initialized');
+    } catch (error) {
+      recordStartupError('crashlytics log', error);
+    }
 
     const unsubscribeFCM = messaging().onMessage(async remoteMessage => {
       console.log('Foreground FCM message:', remoteMessage);
@@ -130,16 +164,21 @@ function AppContent() {
     const unsubscribeOnNotificationOpenedApp =
       messaging().onNotificationOpenedApp(remoteMessage => {
         console.log('Background FCM message tap:', remoteMessage);
-        handleNotificationTap(remoteMessage);
+        handleNotificationTap(remoteMessage).catch(error => {
+          recordStartupError('background notification tap', error);
+        });
       });
 
     messaging()
       .getInitialNotification()
-      .then(remoteMessage => {
+      .then(async remoteMessage => {
         if (remoteMessage) {
           console.log('Killed FCM message tap:', remoteMessage);
-          handleNotificationTap(remoteMessage);
+          await handleNotificationTap(remoteMessage);
         }
+      })
+      .catch(error => {
+        recordStartupError('initial notification', error);
       });
 
     return () => {

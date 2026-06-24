@@ -35,6 +35,34 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
     lineHeight: 22,
   },
+  locationCard: {
+    marginTop: 20,
+    borderRadius: 8,
+    borderWidth: StyleSheet.hairlineWidth,
+    borderColor: COLORS.grayscale_200,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  locationMapPreview: {
+    height: 136,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  locationMap: {
+    flex: 1,
+  },
+  locationBody: {
+    minHeight: 72,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    justifyContent: 'center',
+  },
+  locationTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 6,
+  },
+  locationAddress: {
+    color: COLORS.grayscale_500,
+  },
   multiImageContainer: {
     gap: 12,
     marginTop: 20,
