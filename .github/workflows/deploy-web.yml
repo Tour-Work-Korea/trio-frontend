@@ -89,6 +89,9 @@ jobs:
             echo "KAKAO_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/KAKAO_CLIENT_ID" --with-decryption --query Parameter.Value --output text)"
             echo "KAKAO_REDIRECT_URI=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/KAKAO_REDIRECT_URI" --with-decryption --query Parameter.Value --output text)"
             echo "NAVER_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/NAVER_CLIENT_ID" --with-decryption --query Parameter.Value --output text)"
+            echo "NAVER_CLIENT_SECRET=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/NAVER_CLIENT_SECRET" --with-decryption --query Parameter.Value --output text)"
+            echo "NAVER_SEARCH_CLIENT_ID=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/NAVER_SEARCH_CLIENT_ID" --with-decryption --query Parameter.Value --output text)"
+            echo "NAVER_SEARCH_CLIENT_SECRET=$(aws ssm get-parameter --name "${SSM_BASE_PATH}/NAVER_SEARCH_CLIENT_SECRET" --with-decryption --query Parameter.Value --output text)"
           } > .env
           echo "Web environment file created from AWS SSM for ${DEPLOY_ENV}."
 
