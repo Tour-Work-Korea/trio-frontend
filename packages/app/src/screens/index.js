@@ -50,6 +50,7 @@ export {default as Community} from './(Common)/BottomTabs/Community';
 export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
 export {default as CommunityWrite} from './(Common)/Community/CommunityWrite';
 export {default as CommunityPlaceSearch} from './(Common)/Community/CommunityPlaceSearch';
+export {default as CommunityLocationMap} from './(Common)/Community/CommunityLocationMap';
 export {default as CommunityStaffDetail} from './(Common)/Community/CommunityStaffDetail';
 
 //로그인, 회원가입

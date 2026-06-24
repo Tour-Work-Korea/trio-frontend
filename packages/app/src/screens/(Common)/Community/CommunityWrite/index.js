@@ -27,10 +27,11 @@ import styles from './CommunityWrite.styles';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PhotoIcon from '@assets/images/add_image_gray.svg';
-// import LocationIcon from '@assets/images/map_pin_gray.svg';
+import LocationIcon from '@assets/images/map_pin_gray.svg';
 import LocationPinIcon from '@assets/images/map_pin_fill_orange.svg';
 import KeyboardHideIcon from '@assets/images/keyboard_hide_gray.svg';
-import XIcon from '@assets/images/x_gray.svg';
+import EditIcon from '@assets/images/edit_white.svg';
+import XIcon from '@assets/images/x_white.svg';
 
 const TITLE_MAX_LENGTH = 40;
 const BODY_MAX_LENGTH = 2000;
@@ -89,10 +90,15 @@ const normalizeExistingImages = post =>
 
 const CommunityWrite = ({route}) => {
   const navigation = useNavigation();
-  const {mode, post: editingPost} = route?.params ?? {};
+  const {
+    mode,
+    post: editingPost,
+    selectedLocation: selectedLocationParam,
+  } = route?.params ?? {};
   const isEditMode = mode === 'edit' && Boolean(editingPost?.postId);
   const titleInputRef = useRef(null);
   const bodyInputRef = useRef(null);
+  const scrollViewRef = useRef(null);
   const scrollFocusTimerRef = useRef(null);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState(null);
@@ -182,6 +188,14 @@ const CommunityWrite = ({route}) => {
     setImagesChanged(false);
   }, [editingPost, isEditMode]);
 
+  useEffect(() => {
+    const nextLocation = normalizeCommunityLocation(selectedLocationParam);
+
+    if (nextLocation) {
+      setSelectedLocation(nextLocation);
+    }
+  }, [selectedLocationParam]);
+
   const unlockInputsAfterScroll = () => {
     if (scrollFocusTimerRef.current) {
       clearTimeout(scrollFocusTimerRef.current);
@@ -218,7 +232,6 @@ const CommunityWrite = ({route}) => {
     Keyboard.dismiss();
     navigation.navigate('CommunityPlaceSearch', {
       initialQuery: selectedLocation?.placeName ?? '',
-      onSelectLocation: setSelectedLocation,
     });
   };
 
@@ -231,14 +244,26 @@ const CommunityWrite = ({route}) => {
       return {};
     }
 
-    return {
+    const payload = {
       placeName: selectedLocation.placeName,
       address: selectedLocation.address,
       roadAddress: selectedLocation.roadAddress,
-      latitude: selectedLocation.latitude,
-      longitude: selectedLocation.longitude,
-      category: selectedLocation.category,
+      provider: selectedLocation.provider ?? 'NAVER',
     };
+
+    if (
+      Number.isFinite(selectedLocation.latitude) &&
+      Number.isFinite(selectedLocation.longitude)
+    ) {
+      payload.lat = selectedLocation.latitude;
+      payload.lng = selectedLocation.longitude;
+    }
+
+    if (selectedLocation.providerPlaceId) {
+      payload.providerPlaceId = selectedLocation.providerPlaceId;
+    }
+
+    return payload;
   };
 
   const normalizeImageToJpeg = async (asset, index) => {
@@ -574,6 +599,7 @@ const CommunityWrite = ({route}) => {
       />
 
       <ScrollView
+        ref={scrollViewRef}
         style={styles.content}
         contentContainerStyle={styles.contentContainer}
         keyboardShouldPersistTaps="handled"
@@ -681,6 +707,62 @@ const CommunityWrite = ({route}) => {
           </View>
         ) : null}
 
+        {selectedLocation ? (
+          <View style={styles.locationPreviewCard}>
+            {Number.isFinite(selectedLocation.latitude) &&
+            Number.isFinite(selectedLocation.longitude) ? (
+              <View style={styles.locationMapPreview}>
+                <NaverMapView
+                  style={styles.locationMap}
+                  initialCamera={{
+                    latitude: selectedLocation.latitude,
+                    longitude: selectedLocation.longitude,
+                    zoom: 16,
+                  }}>
+                  <NaverMapMarkerOverlay
+                    latitude={selectedLocation.latitude}
+                    longitude={selectedLocation.longitude}
+                    width={32}
+                    height={40}
+                    anchor={{x: 0.5, y: 1}}>
+                    <LocationPinIcon width={32} height={40} />
+                  </NaverMapMarkerOverlay>
+                </NaverMapView>
+                <View style={styles.locationMapActions}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.locationMapActionButton}
+                    onPress={handleOpenPlaceSearch}>
+                    <EditIcon width={12} height={12} />
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={styles.locationMapActionButton}
+                    onPress={handleRemoveLocation}>
+                    <XIcon width={12} height={12} />
+                  </TouchableOpacity>
+                </View>
+              </View>
+            ) : null}
+            <View style={styles.locationPreviewBody}>
+              <View style={styles.locationPreviewTextWrap}>
+                <Text
+                  style={[FONTS.fs_14_medium, styles.locationPreviewTitle]}
+                  numberOfLines={1}>
+                  {selectedLocation.placeName || '선택한 장소'}
+                </Text>
+                <Text
+                  style={[FONTS.fs_12_medium, styles.locationPreviewAddress]}
+                  numberOfLines={1}>
+                  {selectedLocation.roadAddress ||
+                    selectedLocation.address ||
+                    '주소 정보가 없어요'}
+                </Text>
+              </View>
+            </View>
+          </View>
+        ) : null}
+
         <TextInput
           ref={bodyInputRef}
           value={body}
@@ -703,64 +785,6 @@ const CommunityWrite = ({route}) => {
           scrollEnabled={false}
           textAlignVertical="top"
         />
-
-        {selectedLocation ? (
-          <View style={styles.locationPreviewCard}>
-            {Number.isFinite(selectedLocation.latitude) &&
-            Number.isFinite(selectedLocation.longitude) ? (
-              <View style={styles.locationMapPreview}>
-                <NaverMapView
-                  style={styles.locationMap}
-                  initialCamera={{
-                    latitude: selectedLocation.latitude,
-                    longitude: selectedLocation.longitude,
-                    zoom: 16,
-                  }}>
-                  <NaverMapMarkerOverlay
-                    latitude={selectedLocation.latitude}
-                    longitude={selectedLocation.longitude}
-                    width={32}
-                    height={40}
-                    anchor={{x: 0.5, y: 1}}>
-                    <LocationPinIcon width={32} height={40} />
-                  </NaverMapMarkerOverlay>
-                </NaverMapView>
-              </View>
-            ) : null}
-            <View style={styles.locationPreviewBody}>
-              <View style={styles.locationPreviewTextWrap}>
-                <Text
-                  style={[FONTS.fs_14_medium, styles.locationPreviewTitle]}
-                  numberOfLines={1}>
-                  {selectedLocation.placeName || '선택한 장소'}
-                </Text>
-                <Text
-                  style={[FONTS.fs_12_medium, styles.locationPreviewAddress]}
-                  numberOfLines={1}>
-                  {selectedLocation.roadAddress ||
-                    selectedLocation.address ||
-                    '주소 정보가 없어요'}
-                </Text>
-              </View>
-              <View style={styles.locationPreviewActions}>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.locationPreviewIconButton}
-                  onPress={handleOpenPlaceSearch}>
-                  <Text style={[FONTS.fs_12_medium, styles.locationActionText]}>
-                    수정
-                  </Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  activeOpacity={0.8}
-                  style={styles.locationPreviewIconButton}
-                  onPress={handleRemoveLocation}>
-                  <XIcon width={14} height={14} />
-                </TouchableOpacity>
-              </View>
-            </View>
-          </View>
-        ) : null}
       </ScrollView>
 
       <View
@@ -779,16 +803,15 @@ const CommunityWrite = ({route}) => {
             사진
           </Text>
         </TouchableOpacity>
-        {/* 장소 검색 API 확정 전까지 장소 버튼 임시 숨김 */}
-        {/* <TouchableOpacity
+        <TouchableOpacity
           activeOpacity={0.8}
           style={styles.toolbarButton}
           onPress={handleOpenPlaceSearch}>
-          <LocationIcon width={18} height={18} />
+          <LocationIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
             장소
           </Text>
-        </TouchableOpacity> */}
+        </TouchableOpacity>
         {keyboardHeight > 0 ? (
           <TouchableOpacity
             activeOpacity={0.8}

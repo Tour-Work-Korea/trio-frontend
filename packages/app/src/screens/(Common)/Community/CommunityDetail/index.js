@@ -13,6 +13,10 @@ import {
   View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
 import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
@@ -24,6 +28,7 @@ import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
+import {normalizeCommunityLocation} from '@utils/communityLocation';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -32,6 +37,7 @@ import HeartIcon from '@assets/images/heart_black.svg';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import CommentIcon from '@assets/images/chat_black.svg';
 import PhotoIcon from '@assets/images/add_image_gray.svg';
+import LocationPinIcon from '@assets/images/map_pin_fill_orange.svg';
 import XIcon from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 
@@ -1089,6 +1095,74 @@ const CommunityDetail = ({route}) => {
     );
   };
 
+  const renderPostLocation = location => {
+    const normalizedLocation = normalizeCommunityLocation(location);
+
+    if (!normalizedLocation) {
+      return null;
+    }
+
+    const hasCoordinate =
+      Number.isFinite(normalizedLocation.latitude) &&
+      Number.isFinite(normalizedLocation.longitude);
+
+    const handlePressLocation = () => {
+      if (!hasCoordinate) {
+        return;
+      }
+
+      navigation.navigate('CommunityLocationMap', {
+        placeName: normalizedLocation.placeName || '장소 위치',
+        address: normalizedLocation.address,
+        roadAddress: normalizedLocation.roadAddress,
+        latitude: normalizedLocation.latitude,
+        longitude: normalizedLocation.longitude,
+      });
+    };
+
+    return (
+      <TouchableOpacity
+        activeOpacity={hasCoordinate ? 0.9 : 1}
+        style={styles.locationCard}
+        onPress={handlePressLocation}>
+        {hasCoordinate ? (
+          <View style={styles.locationMapPreview}>
+            <NaverMapView
+              style={styles.locationMap}
+              initialCamera={{
+                latitude: normalizedLocation.latitude,
+                longitude: normalizedLocation.longitude,
+                zoom: 16,
+              }}>
+              <NaverMapMarkerOverlay
+                latitude={normalizedLocation.latitude}
+                longitude={normalizedLocation.longitude}
+                width={32}
+                height={40}
+                anchor={{x: 0.5, y: 1}}>
+                <LocationPinIcon width={32} height={40} />
+              </NaverMapMarkerOverlay>
+            </NaverMapView>
+          </View>
+        ) : null}
+        <View style={styles.locationBody}>
+          <Text
+            style={[FONTS.fs_14_medium, styles.locationTitle]}
+            numberOfLines={1}>
+            {normalizedLocation.placeName || '선택한 장소'}
+          </Text>
+          <Text
+            style={[FONTS.fs_12_medium, styles.locationAddress]}
+            numberOfLines={1}>
+            {normalizedLocation.roadAddress ||
+              normalizedLocation.address ||
+              '주소 정보가 없어요'}
+          </Text>
+        </View>
+      </TouchableOpacity>
+    );
+  };
+
   const renderCommentImages = images => {
     if (!images?.length) {
       return null;
@@ -1420,6 +1494,7 @@ const CommunityDetail = ({route}) => {
             {post?.content}
           </Text>
 
+          {renderPostLocation(post?.location)}
           {renderPostImages(post.images)}
           {renderActionRow(post, {likeable: true})}
 

@@ -113,6 +113,23 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
+    if (
+      original?.optionalAuth
+      && original
+      && (status === 401 || status === 403)
+      && !original._optionalAuthRetry
+    ) {
+      log.warn(`🧷 [${id}] optionalAuth failed → retry without token`);
+      original._optionalAuthRetry = true;
+      original.withAuth = false;
+      original.optionalAuth = false;
+      original.headers = {...original.headers};
+      delete original.headers.Authorization;
+      delete original.headers.authorization;
+
+      return api(original);
+    }
+
     if (original && (status === 401 || status === 403) && !original._retry) {
       log.info(`🔁 [${id}] accessToken expired → refresh flow`);
       original._retry = true;

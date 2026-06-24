@@ -32,7 +32,10 @@ const userMeetApi = {
 
   // 인기 콘텐츠 조회
   getPopularParties: (params = {}) =>
-    api.get('/user/parties/popular', {params}),
+    api.get('/user/parties/popular', {
+      params,
+      optionalAuth: true,
+    }),
 };
 
 export default userMeetApi;

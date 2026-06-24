@@ -149,53 +149,50 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_0,
   },
   locationMapPreview: {
-    height: 124,
+    height: 136,
     backgroundColor: COLORS.grayscale_100,
   },
   locationMap: {
     flex: 1,
   },
-  locationPreviewBody: {
-    minHeight: 68,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-  },
-  locationPreviewTextWrap: {
-    flex: 1,
-  },
-  locationPreviewTitle: {
-    color: COLORS.grayscale_900,
-    marginBottom: 4,
-  },
-  locationPreviewAddress: {
-    color: COLORS.grayscale_500,
-  },
-  locationPreviewActions: {
+  locationMapActions: {
+    position: 'absolute',
+    top: 12,
+    right: 12,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
   },
-  locationPreviewIconButton: {
-    minWidth: 32,
-    height: 32,
-    paddingHorizontal: 8,
-    borderRadius: 16,
+  locationMapActionButton: {
+    width: 24,
+    height: 24,
+    borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: COLORS.grayscale_100,
+    backgroundColor: COLORS.grayscale_900,
   },
-  locationActionText: {
-    color: COLORS.grayscale_700,
+  locationPreviewBody: {
+    minHeight: 74,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
+    justifyContent: 'center',
+  },
+  locationPreviewTextWrap: {
+    width: '100%',
+  },
+  locationPreviewTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 6,
+  },
+  locationPreviewAddress: {
+    color: COLORS.grayscale_500,
   },
   bottomToolbar: {
     position: 'absolute',
     left: 0,
     right: 0,
     minHeight: 44,
-    paddingHorizontal: 14,
+    paddingHorizontal: 20,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLORS.grayscale_200,
     flexDirection: 'row',
@@ -209,7 +206,7 @@ const styles = StyleSheet.create({
   toolbarButton: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 6,
+    gap: 4,
   },
   toolbarButtonText: {
     color: COLORS.grayscale_600,

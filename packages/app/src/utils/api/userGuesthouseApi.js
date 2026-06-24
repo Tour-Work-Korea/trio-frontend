@@ -133,6 +133,7 @@ const userGuesthouseApi = {
   getPopularGuesthouses: ({ page, size = 10 } = {}) =>
     api.get('/user/guesthouses/popular', {
       params: { page, size },
+      optionalAuth: true,
     }),
 
   getGuesthouseAmenities: () =>
