@@ -1,9 +1,9 @@
-import React, {useCallback} from 'react';
+import React from 'react';
 import {Alert, Linking, Platform} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
 import useUserStore from '@stores/userStore';
-import Config from 'react-native-config';
+import {WEB_BASE_URL} from '@env';
 
 const GuesthousePayment = ({route}) => {
   const navigation = useNavigation();
@@ -12,12 +12,19 @@ const GuesthousePayment = ({route}) => {
   const reservationType = 'GUESTHOUSE';
 
   const accessToken = useUserStore(state => state.accessToken);
-  
-  const WEB_BASE_URL = Config.WEB_BASE_URL;
+
+  const webBaseUrl = (WEB_BASE_URL || '').replace(/\/$/, '');
 
 
   if (!reservationId) {
     Alert.alert('결제 오류', '결제를 진행할 수 없습니다.');
+    navigation.goBack();
+    return null;
+  }
+
+  if (!webBaseUrl) {
+    console.warn('WEB_BASE_URL is missing');
+    Alert.alert('결제 오류', '결제 페이지 주소를 찾을 수 없습니다.');
     navigation.goBack();
     return null;
   }
@@ -45,7 +52,9 @@ const GuesthousePayment = ({route}) => {
   };
 
   const logSuccessParams = url => {
-    if (!url?.includes('/payments/toss/success')) return;
+    if (!url?.includes('/payments/toss/success')) {
+      return;
+    }
 
     try {
       const parsedUrl = new URL(url);
@@ -76,36 +85,51 @@ const GuesthousePayment = ({route}) => {
   const onShouldStartLoadWithRequest = request => {
     const {url} = request;
 
+    const showExternalPaymentAppError = error => {
+      console.warn('Failed to open external payment app', {url, error});
+      Alert.alert(
+        '알림',
+        '해당 앱이 설치되어 있지 않습니다.',
+        [{text: '확인', onPress: () => navigation.goBack()}],
+      );
+    };
+
     if (Platform.OS === 'android' && url.startsWith('intent:')) {
       const schemeMatch = url.match(/scheme=([^;]+)/);
       const packageMatch = url.match(/package=([^;]+)/);
-      
+
       if (schemeMatch && schemeMatch[1]) {
         const scheme = schemeMatch[1];
         const appUrl = url.replace('intent://', `${scheme}://`).split('#Intent')[0];
-        
-        Linking.openURL(appUrl).catch(() => {
+
+        Linking.openURL(appUrl).catch(error => {
           if (packageMatch && packageMatch[1]) {
-            Linking.openURL(`market://details?id=${packageMatch[1]}`);
+            Linking.openURL(`market://details?id=${packageMatch[1]}`).catch(
+              showExternalPaymentAppError,
+            );
+            return;
           }
+          showExternalPaymentAppError(error);
         });
       } else {
-        Linking.openURL(url).catch(() => {
+        Linking.openURL(url).catch(error => {
           if (packageMatch && packageMatch[1]) {
-            Linking.openURL(`market://details?id=${packageMatch[1]}`);
+            Linking.openURL(`market://details?id=${packageMatch[1]}`).catch(
+              showExternalPaymentAppError,
+            );
+            return;
           }
+          showExternalPaymentAppError(error);
         });
       }
       return false;
     }
-    
+
     if (Platform.OS === 'ios' && !url.startsWith('http') && !url.startsWith('about:blank')) {
-      Linking.openURL(url).catch(() => {
-        Alert.alert('알림', '해당 앱이 설치되어 있지 않습니다.');
-      });
+      Linking.openURL(url).catch(showExternalPaymentAppError);
       return false;
     }
-    
+
     return true;
   };
 
@@ -114,7 +138,7 @@ const GuesthousePayment = ({route}) => {
       originWhitelist={['*']}
       source={{
         // 결제 페이지 진입
-        uri: `${WEB_BASE_URL}/payments/toss/request/reservation?${paymentQuery.toString()}`,
+        uri: `${webBaseUrl}/payments/toss/request/reservation?${paymentQuery.toString()}`,
         headers: {
           Authorization: `Bearer ${accessToken}`,
         },

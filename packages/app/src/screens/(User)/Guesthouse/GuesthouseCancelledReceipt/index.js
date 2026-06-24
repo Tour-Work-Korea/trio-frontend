@@ -55,7 +55,22 @@ const GuesthouseCancelledReceipt = () => {
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
   const data = useMemo(() => {
+    const isCancelledBeforeHostApproval =
+      reservationItem?.isCancelledBeforeHostApproval ||
+      dto?.reservationStatus === 'PENDING' ||
+      reservationItem?.reservationStatus === 'PENDING' ||
+      dto?.approvalStatus === 'WAITING_HOST' ||
+      reservationItem?.approvalStatus === 'WAITING_HOST';
+
     const cancelPolicyInfo = (() => {
+      if (isCancelledBeforeHostApproval) {
+        return {
+          text: '호스트 승인 전 취소',
+          dailyInfo: null,
+          totalNights: 1,
+        };
+      }
+
       const appliedRate = dto?.refundRateApplied;
       if (typeof appliedRate !== 'number') return { text: '-', dailyInfo: null, totalNights: 1 };
 
@@ -136,7 +151,7 @@ const GuesthouseCancelledReceipt = () => {
           dateStr: currentNightDate.format('MM.DD'),
           daysBeforeLabel: label,
           rate,
-          refundAmt
+          refundAmt,
         });
       }
 
@@ -144,7 +159,7 @@ const GuesthouseCancelledReceipt = () => {
         text: '차등 수수료 적용',
         dailyInfo,
         totalNights,
-        totalFrontendRefundAmount
+        totalFrontendRefundAmount,
       };
     })();
 
