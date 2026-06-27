@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 
 import {COLORS} from '@constants/colors';
 
@@ -13,6 +13,11 @@ const styles = StyleSheet.create({
   },
   pager: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-x',
+      },
+    }),
   },
   pagerContent: {
     flexGrow: 1,

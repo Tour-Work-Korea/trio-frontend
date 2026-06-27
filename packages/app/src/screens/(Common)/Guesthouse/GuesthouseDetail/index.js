@@ -97,6 +97,8 @@ const GuesthouseDetail = ({route}) => {
     onTabPress,
     pageWidth,
     onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
     onMomentumScrollEnd,
   } = useSwipeTabs({
     tabs: TAB_OPTIONS,
@@ -787,7 +789,10 @@ const GuesthouseDetail = ({route}) => {
           bounces={false}
           showsHorizontalScrollIndicator={false}
           onLayout={onPagerLayout}
+          onScroll={onScroll}
+          onScrollEndDrag={onScrollEndDrag}
           onMomentumScrollEnd={onMomentumScrollEnd}
+          scrollEventThrottle={16}
           style={styles.tabPager}>
           {TAB_OPTIONS.map(tab => (
             <View

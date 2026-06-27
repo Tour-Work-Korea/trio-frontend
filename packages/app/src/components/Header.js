@@ -70,7 +70,7 @@ const Header = ({
         </View>
       ) : (
         <View style={styles.logoWrapper}>
-          <Logo />
+          <Logo width={51} height={24} />
         </View>
       )}
 

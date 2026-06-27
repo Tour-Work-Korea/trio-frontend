@@ -1,4 +1,4 @@
-import { StyleSheet } from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 import { COLORS } from '@constants/colors';
 
 const styles = StyleSheet.create({
@@ -277,6 +277,11 @@ const styles = StyleSheet.create({
   },
   tabPager: {
     marginTop: 4,
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-x',
+      },
+    }),
   },
   tabPage: {
     flexShrink: 0,

@@ -1,6 +1,7 @@
 import React from 'react';
 import {
   ScrollView,
+  Platform,
   StyleSheet,
   Text,
   TouchableOpacity,
@@ -30,6 +31,8 @@ const UserFavorite = () => {
     onTabPress,
     pageWidth,
     onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
     onMomentumScrollEnd,
   } = useSwipeTabs({
     tabs: TAB_ITEMS,
@@ -71,7 +74,10 @@ const UserFavorite = () => {
         bounces={false}
         showsHorizontalScrollIndicator={false}
         onLayout={onPagerLayout}
+        onScroll={onScroll}
+        onScrollEndDrag={onScrollEndDrag}
         onMomentumScrollEnd={onMomentumScrollEnd}
+        scrollEventThrottle={16}
         style={styles.content}>
         <View style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
           <UserFavoriteGuesthouse hideHeader />
@@ -116,6 +122,11 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-x',
+      },
+    }),
   },
   page: {
     flex: 1,

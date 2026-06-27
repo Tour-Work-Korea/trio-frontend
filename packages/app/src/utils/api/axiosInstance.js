@@ -113,12 +113,7 @@ api.interceptors.response.use(
       return Promise.reject(err);
     }
 
-    if (
-      original?.optionalAuth
-      && original
-      && (status === 401 || status === 403)
-      && !original._optionalAuthRetry
-    ) {
+    if (original?.optionalAuth && original && !original._optionalAuthRetry) {
       log.warn(`🧷 [${id}] optionalAuth failed → retry without token`);
       original._optionalAuthRetry = true;
       original.withAuth = false;

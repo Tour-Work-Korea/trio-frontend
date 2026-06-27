@@ -820,8 +820,12 @@ export function createNavigatorFactory(defaultKind = 'stack') {
     }
 
     const routeValue = {name: activeScreen.props.name, params: route.params};
+    const routeKey =
+      defaultKind === 'bottom-tabs'
+        ? routeValue.name
+        : `${routeValue.name}:${JSON.stringify(routeValue.params ?? {})}`;
     const content = (
-      <View style={styles.navigator}>
+      <View key={routeKey} style={styles.navigator}>
         <Component navigation={navigation} route={routeValue} />
       </View>
     );

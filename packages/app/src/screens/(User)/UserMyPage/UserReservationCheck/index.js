@@ -33,6 +33,8 @@ const UserReservationCheck = () => {
     onTabPress,
     pageWidth,
     onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
     onMomentumScrollEnd,
   } = useSwipeTabs({
     tabs: TABS,
@@ -139,7 +141,10 @@ const UserReservationCheck = () => {
             bounces={false}
             showsHorizontalScrollIndicator={false}
             onLayout={onPagerLayout}
+            onScroll={onScroll}
+            onScrollEndDrag={onScrollEndDrag}
             onMomentumScrollEnd={onMomentumScrollEnd}
+            scrollEventThrottle={16}
             style={styles.tabPager}>
             {TABS.map(tab => (
               <View

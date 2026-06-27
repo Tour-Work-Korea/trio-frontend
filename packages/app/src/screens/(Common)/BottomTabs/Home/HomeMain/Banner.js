@@ -38,6 +38,7 @@ export default function Banner({ banners = [] }) {
   const scrollRef = useRef(null);
   const isDraggingRef = useRef(false);
   const scrollEndTimeoutRef = useRef(null);
+  const loopResetTimeoutRef = useRef(null);
   const previousBannerCountRef = useRef(banners.length);
   const hasPositionedInitialPageRef = useRef(false);
   const bannerAreaWidth = Math.max(
@@ -176,6 +177,9 @@ export default function Banner({ banners = [] }) {
     if (scrollEndTimeoutRef.current) {
       clearTimeout(scrollEndTimeoutRef.current);
     }
+    if (loopResetTimeoutRef.current) {
+      clearTimeout(loopResetTimeoutRef.current);
+    }
   }, []);
 
   useEffect(() => {
@@ -198,7 +202,17 @@ export default function Banner({ banners = [] }) {
       }
 
       if (isLoopEnabled && currentIndex === banners.length - 1) {
+        setCurrentIndex(0);
         scrollToPage(banners.length + 1);
+
+        if (loopResetTimeoutRef.current) {
+          clearTimeout(loopResetTimeoutRef.current);
+        }
+
+        loopResetTimeoutRef.current = setTimeout(() => {
+          scrollToPage(1, false);
+          loopResetTimeoutRef.current = null;
+        }, 450);
         return;
       }
 
@@ -252,6 +266,10 @@ export default function Banner({ banners = [] }) {
             if (scrollEndTimeoutRef.current) {
               clearTimeout(scrollEndTimeoutRef.current);
               scrollEndTimeoutRef.current = null;
+            }
+            if (loopResetTimeoutRef.current) {
+              clearTimeout(loopResetTimeoutRef.current);
+              loopResetTimeoutRef.current = null;
             }
             isDraggingRef.current = true;
           }}
