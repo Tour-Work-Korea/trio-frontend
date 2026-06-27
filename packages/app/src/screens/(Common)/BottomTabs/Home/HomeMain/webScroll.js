@@ -94,7 +94,6 @@ export const getHomeHorizontalScrollProps = () => {
       if (horizontalDelta && horizontalScroller) {
         horizontalScroller.scrollLeft += horizontalDelta;
         suppressHomeHorizontalPressUntil = Date.now() + CLICK_SUPPRESSION_MS;
-        preventDefaultIfCancelable(event);
         stopPropagation(event);
         return;
       }
@@ -107,7 +106,6 @@ export const getHomeHorizontalScrollProps = () => {
 
       if (verticalScroller) {
         verticalScroller.scrollTop += deltaY;
-        preventDefaultIfCancelable(event);
         stopPropagation(event);
       }
     },

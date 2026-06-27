@@ -12,6 +12,20 @@ const getEventTarget = event =>
 
 const getPointX = event => event?.clientX ?? event?.nativeEvent?.clientX ?? 0;
 
+const isEditableTarget = target => {
+  const element = target?.nodeType === 1 ? target : target?.parentElement;
+
+  if (!element?.closest) {
+    return false;
+  }
+
+  return Boolean(
+    element.closest(
+      'input, textarea, select, button, [contenteditable="true"], [role="textbox"]',
+    ),
+  );
+};
+
 const findHorizontalScroller = (target, boundary) => {
   let current = target;
 
@@ -162,6 +176,10 @@ const getHorizontalScrollHandlers = props => {
         return;
       }
 
+      if (isEditableTarget(getEventTarget(event))) {
+        return;
+      }
+
       const scroller = findHorizontalScroller(
         getEventTarget(event),
         event?.currentTarget,
@@ -184,6 +202,10 @@ const getHorizontalScrollHandlers = props => {
       callHandler(props.onMouseMove, event);
 
       if (event?.defaultPrevented) {
+        return;
+      }
+
+      if (isEditableTarget(getEventTarget(event))) {
         return;
       }
 
@@ -237,6 +259,10 @@ const getHorizontalScrollHandlers = props => {
         return;
       }
 
+      if (isEditableTarget(getEventTarget(event))) {
+        return;
+      }
+
       const scroller = findHorizontalScroller(
         getEventTarget(event),
         event?.currentTarget,
@@ -258,6 +284,43 @@ export const ScrollView = React.forwardRef(function ScrollView(props, ref) {
     <ReactNativeWeb.ScrollView
       {...props}
       {...getHorizontalScrollHandlers(props)}
+      ref={ref}
+    />
+  );
+});
+
+const skipEditablePressProps = props => {
+  if (typeof props?.onPress !== 'function') {
+    return props;
+  }
+
+  return {
+    ...props,
+    onPress: event => {
+      if (isEditableTarget(getEventTarget(event))) {
+        return;
+      }
+
+      props.onPress(event);
+    },
+  };
+};
+
+export const TouchableWithoutFeedback = React.forwardRef(
+  function TouchableWithoutFeedback(props, ref) {
+    return (
+      <ReactNativeWeb.TouchableWithoutFeedback
+        {...skipEditablePressProps(props)}
+        ref={ref}
+      />
+    );
+  },
+);
+
+export const Pressable = React.forwardRef(function Pressable(props, ref) {
+  return (
+    <ReactNativeWeb.Pressable
+      {...skipEditablePressProps(props)}
       ref={ref}
     />
   );
@@ -305,5 +368,7 @@ export default {
   Image,
   NativeModules,
   PermissionsAndroid,
+  Pressable,
   ScrollView,
+  TouchableWithoutFeedback,
 };

@@ -1,13 +1,12 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import {
-  Animated,
   View,
   Image,
   Text,
   Dimensions,
   TouchableOpacity,
   Linking,
-  PanResponder,
+  ScrollView,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import styles from './Home.styles';
@@ -18,10 +17,6 @@ const { width } = Dimensions.get('window');
 const BANNER_HORIZONTAL_PADDING = 36;
 const BANNER_HEIGHT = 120;
 const AUTO_SLIDE_INTERVAL = 4000;
-const SLIDE_DURATION = 350;
-const SWIPE_TRIGGER_DISTANCE = 40;
-const SWIPE_TRIGGER_VELOCITY = 0.35;
-const PRESS_SUPPRESS_DELAY = 250;
 
 const getBannerImageUrl = item => {
   const url =
@@ -39,19 +34,23 @@ const getBannerImageUrl = item => {
 export default function Banner({ banners = [] }) {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [nextIndex, setNextIndex] = useState(null);
-  const [slideDirection, setSlideDirection] = useState('next');
   const [layoutWidth, setLayoutWidth] = useState(width);
-  const slideX = useRef(new Animated.Value(0)).current;
-  const isAnimatingRef = useRef(false);
-  const isSwipingRef = useRef(false);
-  const didSwipeRef = useRef(false);
-  const pageWidth = layoutWidth || width;
-  const bannerWidth = Math.max(0, pageWidth - BANNER_HORIZONTAL_PADDING);
-  const activeBanner = banners[currentIndex] ?? banners[0];
-  const nextBanner = nextIndex === null ? null : banners[nextIndex];
-  const activeImageUrl = getBannerImageUrl(activeBanner);
-  const nextImageUrl = getBannerImageUrl(nextBanner);
+  const scrollRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const scrollEndTimeoutRef = useRef(null);
+  const loopResetTimeoutRef = useRef(null);
+  const previousBannerCountRef = useRef(banners.length);
+  const hasPositionedInitialPageRef = useRef(false);
+  const bannerAreaWidth = Math.max(
+    0,
+    (layoutWidth || width) - BANNER_HORIZONTAL_PADDING,
+  );
+  const previousPageWidthRef = useRef(bannerAreaWidth);
+  const pageWidth = bannerAreaWidth;
+  const isLoopEnabled = banners.length > 1;
+  const loopedBanners = isLoopEnabled
+    ? [banners[banners.length - 1], ...banners, banners[0]]
+    : banners;
 
   const renderBannerImage = imageUrl =>
     imageUrl ? (
@@ -62,131 +61,59 @@ export default function Banner({ banners = [] }) {
       />
     ) : null;
 
-  const clearSwipePressSuppress = useCallback(() => {
-    setTimeout(() => {
-      didSwipeRef.current = false;
-    }, PRESS_SUPPRESS_DELAY);
-  }, []);
-
-  const getIncomingIndex = useCallback((index, direction) => {
-    if (direction === 'prev') {
-      return (index - 1 + banners.length) % banners.length;
-    }
-
-    return (index + 1) % banners.length;
-  }, [banners.length]);
-
-  const finishSlide = useCallback((incomingIndex, direction, duration = SLIDE_DURATION) => {
-    if (banners.length <= 1 || isAnimatingRef.current || bannerWidth <= 0) {
+  const scrollToPage = useCallback((pageIndex, animated = true) => {
+    if (pageWidth <= 0) {
       return;
     }
 
-    isAnimatingRef.current = true;
-    setSlideDirection(direction);
-    setNextIndex(incomingIndex);
-
-    Animated.timing(slideX, {
-      toValue: direction === 'next' ? -bannerWidth : bannerWidth,
-      duration,
-      useNativeDriver: true,
-    }).start(({finished}) => {
-      if (finished) {
-        setCurrentIndex(incomingIndex);
-      }
-
-      setNextIndex(null);
-      slideX.setValue(0);
-      isAnimatingRef.current = false;
-      isSwipingRef.current = false;
-      clearSwipePressSuppress();
+    scrollRef.current?.scrollTo({
+      x: pageIndex * pageWidth,
+      y: 0,
+      animated,
     });
-  }, [bannerWidth, banners.length, clearSwipePressSuppress, slideX]);
+  }, [pageWidth]);
 
-  const resetSlide = useCallback(() => {
-    Animated.spring(slideX, {
-      toValue: 0,
-      useNativeDriver: true,
-      bounciness: 0,
-      speed: 18,
-    }).start(() => {
-      setNextIndex(null);
-      isSwipingRef.current = false;
-      clearSwipePressSuppress();
-    });
-  }, [clearSwipePressSuppress, slideX]);
+  const scrollToBannerIndex = useCallback((index, animated = true) => {
+    scrollToPage(isLoopEnabled ? index + 1 : index, animated);
+  }, [isLoopEnabled, scrollToPage]);
 
-  const panResponder = useMemo(() =>
-    PanResponder.create({
-      onMoveShouldSetPanResponderCapture: (_, gestureState) => {
-        const isHorizontalSwipe =
-          Math.abs(gestureState.dx) > 8
-          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+  const handleMomentumScrollEnd = useCallback(event => {
+    if (pageWidth <= 0) {
+      return;
+    }
 
-        return banners.length > 1 && isHorizontalSwipe;
-      },
-      onMoveShouldSetPanResponder: (_, gestureState) => {
-        const isHorizontalSwipe =
-          Math.abs(gestureState.dx) > 8
-          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy);
+    if (scrollEndTimeoutRef.current) {
+      clearTimeout(scrollEndTimeoutRef.current);
+      scrollEndTimeoutRef.current = null;
+    }
 
-        return banners.length > 1 && isHorizontalSwipe;
-      },
-      onPanResponderGrant: () => {
-        if (isAnimatingRef.current) {
-          return;
-        }
+    isDraggingRef.current = false;
+    const offsetX = event.nativeEvent.contentOffset.x;
+    const pageIndex = Math.round(offsetX / pageWidth);
 
-        isSwipingRef.current = true;
-        didSwipeRef.current = true;
-      },
-      onPanResponderMove: (_, gestureState) => {
-        if (isAnimatingRef.current || banners.length <= 1 || bannerWidth <= 0) {
-          return;
-        }
+    if (!isLoopEnabled) {
+      setCurrentIndex(0);
+      return;
+    }
 
-        const direction = gestureState.dx < 0 ? 'next' : 'prev';
-        const incomingIndex = getIncomingIndex(currentIndex, direction);
-        const clampedDx = Math.max(-bannerWidth, Math.min(bannerWidth, gestureState.dx));
+    if (pageIndex <= 0) {
+      const lastIndex = banners.length - 1;
 
-        setSlideDirection(direction);
-        setNextIndex(incomingIndex);
-        slideX.setValue(clampedDx);
-      },
-      onPanResponderRelease: (_, gestureState) => {
-        if (isAnimatingRef.current || banners.length <= 1) {
-          return;
-        }
+      setCurrentIndex(lastIndex);
+      scrollToPage(banners.length, false);
+      return;
+    }
 
-        const direction = gestureState.dx < 0 ? 'next' : 'prev';
-        const shouldChange =
-          Math.abs(gestureState.dx) > SWIPE_TRIGGER_DISTANCE
-          || Math.abs(gestureState.vx) > SWIPE_TRIGGER_VELOCITY;
+    if (pageIndex >= banners.length + 1) {
+      setCurrentIndex(0);
+      scrollToPage(1, false);
+      return;
+    }
 
-        if (!shouldChange) {
-          resetSlide();
-          return;
-        }
-
-        finishSlide(getIncomingIndex(currentIndex, direction), direction, 220);
-      },
-      onPanResponderTerminate: resetSlide,
-    }),
-  [
-    bannerWidth,
-    banners.length,
-    currentIndex,
-    finishSlide,
-    getIncomingIndex,
-    resetSlide,
-    slideX,
-  ]);
+    setCurrentIndex(pageIndex - 1);
+  }, [banners.length, isLoopEnabled, pageWidth, scrollToPage]);
 
   const handlePressBanner = useCallback(async item => {
-    if (didSwipeRef.current || isSwipingRef.current) {
-      didSwipeRef.current = false;
-      return;
-    }
-
     const detailHtml = item?.detailHtml;
 
     if (
@@ -225,13 +152,44 @@ export default function Banner({ banners = [] }) {
   }, [navigation]);
 
   useEffect(() => {
+    const didBannerCountChange = previousBannerCountRef.current !== banners.length;
+    previousBannerCountRef.current = banners.length;
+
+    if (!banners.length) {
+      hasPositionedInitialPageRef.current = false;
+      return;
+    }
+
     if (currentIndex >= banners.length) {
       setCurrentIndex(0);
-      setNextIndex(null);
-      slideX.setValue(0);
-      isAnimatingRef.current = false;
+      scrollToBannerIndex(0, false);
+      hasPositionedInitialPageRef.current = true;
+      return;
     }
-  }, [banners.length, currentIndex, slideX]);
+
+    if (didBannerCountChange || !hasPositionedInitialPageRef.current) {
+      scrollToBannerIndex(currentIndex, false);
+      hasPositionedInitialPageRef.current = true;
+    }
+  }, [banners.length, currentIndex, scrollToBannerIndex]);
+
+  useEffect(() => () => {
+    if (scrollEndTimeoutRef.current) {
+      clearTimeout(scrollEndTimeoutRef.current);
+    }
+    if (loopResetTimeoutRef.current) {
+      clearTimeout(loopResetTimeoutRef.current);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (Math.abs(previousPageWidthRef.current - pageWidth) <= 1) {
+      return;
+    }
+
+    previousPageWidthRef.current = pageWidth;
+    scrollToBannerIndex(currentIndex, false);
+  }, [currentIndex, pageWidth, scrollToBannerIndex]);
 
   useEffect(() => {
     if (banners.length <= 1) {
@@ -239,15 +197,39 @@ export default function Banner({ banners = [] }) {
     }
 
     const timer = setInterval(() => {
-      if (isAnimatingRef.current) {
+      if (isDraggingRef.current) {
         return;
       }
 
-      finishSlide(getIncomingIndex(currentIndex, 'next'), 'next');
+      if (isLoopEnabled && currentIndex === banners.length - 1) {
+        setCurrentIndex(0);
+        scrollToPage(banners.length + 1);
+
+        if (loopResetTimeoutRef.current) {
+          clearTimeout(loopResetTimeoutRef.current);
+        }
+
+        loopResetTimeoutRef.current = setTimeout(() => {
+          scrollToPage(1, false);
+          loopResetTimeoutRef.current = null;
+        }, 450);
+        return;
+      }
+
+      const nextIndex = (currentIndex + 1) % banners.length;
+
+      setCurrentIndex(nextIndex);
+      scrollToBannerIndex(nextIndex);
     }, AUTO_SLIDE_INTERVAL);
 
     return () => clearInterval(timer);
-  }, [banners.length, currentIndex, finishSlide, getIncomingIndex]);
+  }, [
+    banners.length,
+    currentIndex,
+    isLoopEnabled,
+    scrollToBannerIndex,
+    scrollToPage,
+  ]);
 
   if (!banners.length) {
     return null;
@@ -265,58 +247,80 @@ export default function Banner({ banners = [] }) {
       }}>
       <View
         style={{
-          width: pageWidth,
+          width: bannerAreaWidth,
           alignItems: 'center',
           justifyContent: 'center',
+          overflow: 'hidden',
+          borderRadius: 10,
         }}>
-        <View
-          {...panResponder.panHandlers}
+        <ScrollView
+          ref={scrollRef}
+          horizontal
+          pagingEnabled
+          nestedScrollEnabled
+          showsHorizontalScrollIndicator={false}
+          alwaysBounceHorizontal={false}
+          bounces={false}
+          scrollEventThrottle={16}
+          onScrollBeginDrag={() => {
+            if (scrollEndTimeoutRef.current) {
+              clearTimeout(scrollEndTimeoutRef.current);
+              scrollEndTimeoutRef.current = null;
+            }
+            if (loopResetTimeoutRef.current) {
+              clearTimeout(loopResetTimeoutRef.current);
+              loopResetTimeoutRef.current = null;
+            }
+            isDraggingRef.current = true;
+          }}
+          onMomentumScrollBegin={() => {
+            if (scrollEndTimeoutRef.current) {
+              clearTimeout(scrollEndTimeoutRef.current);
+              scrollEndTimeoutRef.current = null;
+            }
+          }}
+          onMomentumScrollEnd={handleMomentumScrollEnd}
+          onScrollEndDrag={event => {
+            if (scrollEndTimeoutRef.current) {
+              clearTimeout(scrollEndTimeoutRef.current);
+            }
+
+            scrollEndTimeoutRef.current = setTimeout(() => {
+              handleMomentumScrollEnd(event);
+            }, 120);
+          }}
           style={{
-            width: bannerWidth,
+            width: bannerAreaWidth,
             height: BANNER_HEIGHT,
-            borderRadius: 10,
-            overflow: 'hidden',
           }}>
-          <Animated.View
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-              transform: [
-                {
-                  translateX: slideX,
-                },
-              ],
-            }}>
-            {renderBannerImage(activeImageUrl)}
-          </Animated.View>
-          {nextIndex !== null && (
-            <Animated.View
+          {loopedBanners.map((banner, index) => (
+            <View
+              key={`${banner?.id ?? 'home-banner'}-${index}`}
               style={{
-                position: 'absolute',
-                width: '100%',
-                height: '100%',
-                transform: [
-                  {
-                    translateX: Animated.add(
-                      slideX,
-                      slideDirection === 'next' ? bannerWidth : -bannerWidth,
-                    ),
-                  },
-                ],
+                width: pageWidth,
+                alignItems: 'center',
               }}>
-              {renderBannerImage(nextImageUrl)}
-            </Animated.View>
-          )}
-          <TouchableOpacity
-            activeOpacity={1}
-            onPress={() => handlePressBanner(activeBanner)}
-            style={{
-              position: 'absolute',
-              width: '100%',
-              height: '100%',
-            }}
-          />
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => handlePressBanner(banner)}
+                style={{
+                  width: bannerAreaWidth,
+                  height: BANNER_HEIGHT,
+                  borderRadius: 10,
+                  overflow: 'hidden',
+                }}>
+                {renderBannerImage(getBannerImageUrl(banner))}
+              </TouchableOpacity>
+            </View>
+          ))}
+        </ScrollView>
+        <View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            width: bannerAreaWidth,
+            height: BANNER_HEIGHT,
+          }}>
           <View
             style={{
               position: 'absolute',
@@ -333,7 +337,7 @@ export default function Banner({ banners = [] }) {
               style={[{
                 color: COLORS.grayscale_0,
               }, FONTS.fs_14_medium]}>
-              {(nextIndex ?? currentIndex) + 1} <Text style={{color: COLORS.grayscale_400}}>/ {banners.length}</Text>
+              {currentIndex + 1} <Text style={{color: COLORS.grayscale_400}}>/ {banners.length}</Text>
             </Text>
           </View>
         </View>

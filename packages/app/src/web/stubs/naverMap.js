@@ -353,6 +353,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
     document.addEventListener('wheel', handleDocumentWheel, true);
 
     return () => {
+      globalSuppressClickUntil = 0;
       maps.Event.removeListener(idleListener);
       maps.Event.removeListener(clickListener);
       maps.Event.removeListener(dragStartListener);
@@ -371,6 +372,15 @@ export const NaverMapView = forwardRef(function NaverMapView(
       document.removeEventListener('pointermove', handleDocumentPointerMove, true);
       document.removeEventListener('pointerup', handleDocumentPointerUp, true);
       document.removeEventListener('wheel', handleDocumentWheel, true);
+      try {
+        nextMap.destroy?.();
+      } catch {
+        // Naver Maps versions differ; clearing the container handles fallback cleanup.
+      }
+      if (mapRef.current === nextMap) {
+        mapRef.current = null;
+      }
+      mapElement.innerHTML = '';
     };
   }, [initialCamera, initialRegion, maps, onCameraChanged, onCameraIdle, onInitialized]);
 

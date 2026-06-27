@@ -1,4 +1,4 @@
-import React, {useCallback, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -71,6 +71,8 @@ const CommunityPostList = ({
   contentContainerStyle,
 }) => {
   const navigation = useNavigation();
+  const pageRef = useRef(0);
+  const postsLengthRef = useRef(0);
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -86,6 +88,14 @@ const CommunityPostList = ({
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+
+  useEffect(() => {
+    pageRef.current = page;
+  }, [page]);
+
+  useEffect(() => {
+    postsLengthRef.current = posts.length;
+  }, [posts.length]);
 
   const fetchPosts = useCallback(
     async (pageToFetch = 0, isLoadMore = false, isRefresh = false) => {
@@ -135,17 +145,54 @@ const CommunityPostList = ({
     [category, selectedSort],
   );
 
+  const refreshVisiblePosts = useCallback(async () => {
+    const lastLoadedPage = pageRef.current;
+    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
+
+    try {
+      const results = await Promise.all(
+        pages.map(pageToFetch =>
+          communityApi.getPosts({
+            ...(category?.code ? {categoryCode: category.code} : {}),
+            sort: sortCodeMap[selectedSort],
+            page: pageToFetch,
+            size: PAGE_SIZE,
+          }),
+        ),
+      );
+      const nextPosts = results.flatMap(
+        response => response.data?.content ?? [],
+      );
+      const lastPageData = results[results.length - 1]?.data;
+
+      setPosts(nextPosts);
+      setPage(lastPageData?.number ?? lastLoadedPage);
+      setHasNext(!lastPageData?.last);
+      setLoadedSort(selectedSort);
+    } catch (error) {
+      console.warn('refreshCommunityPosts 실패:', error);
+    }
+  }, [category, selectedSort]);
+
   useFocusEffect(
     useCallback(() => {
       if (!isActive) {
         return;
       }
 
-      // If list is empty or the sort has changed, reload page 0
-      if (posts.length === 0 || loadedSort !== selectedSort) {
+      if (postsLengthRef.current === 0 || loadedSort !== selectedSort) {
         fetchPosts(0, false, false);
+        return;
       }
-    }, [isActive, selectedSort, loadedSort, posts.length, fetchPosts]),
+
+      refreshVisiblePosts();
+    }, [
+      fetchPosts,
+      isActive,
+      loadedSort,
+      refreshVisiblePosts,
+      selectedSort,
+    ]),
   );
 
   const handleRefresh = () => {
@@ -320,6 +367,7 @@ const CommunityPostList = ({
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
+        maintainVisibleContentPosition={{minIndexForVisible: 0}}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={

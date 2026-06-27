@@ -80,6 +80,12 @@ const GuesthouseCancelConfirm = () => {
     fetchReservationDetail();
   }, [reservationId]);
 
+  const isPendingReservation =
+    reservationDetail?.reservationStatus === 'PENDING' ||
+    reservationDetail?.approvalStatus === 'WAITING_HOST' ||
+    cancelContext?.reservationStatus === 'PENDING' ||
+    cancelContext?.approvalStatus === 'WAITING_HOST';
+
   const viewData = useMemo(() => {
     const paymentLabel =
       PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] ?? '';
@@ -100,7 +106,9 @@ const GuesthouseCancelConfirm = () => {
             ? cancelContext.paidAmount
             : 0;
     const refundRateApplied =
-      typeof reservationDetail?.refundRateApplied === 'number'
+      isPendingReservation
+        ? 100
+        : typeof reservationDetail?.refundRateApplied === 'number'
         ? reservationDetail.refundRateApplied
         : typeof cancelContext?.refundRateApplied === 'number'
           ? cancelContext.refundRateApplied
@@ -118,7 +126,9 @@ const GuesthouseCancelConfirm = () => {
           ? cancelContext.cancelFee
           : 0;
     const refundAmount =
-      typeof reservationDetail?.refundRateApplied === 'number'
+      isPendingReservation
+        ? paidAmount
+        : typeof reservationDetail?.refundRateApplied === 'number'
         ? computedRefundAmount
         : typeof cancelContext?.refundAmount === 'number'
         ? cancelContext.refundAmount
@@ -151,7 +161,7 @@ const GuesthouseCancelConfirm = () => {
       refundAmount,
       refundMethod,
     };
-  }, [reservationDetail, cancelContext]);
+  }, [reservationDetail, cancelContext, isPendingReservation]);
   const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const cancelPolicyDoc = AGREEMENT_CONTENT.USER?.GUESTHOUSE_RESERVATION_POLICY;
@@ -184,6 +194,14 @@ const GuesthouseCancelConfirm = () => {
   }, [cancelContext, reservationDetail]);
 
   const cancelPolicyInfo = useMemo(() => {
+    if (isPendingReservation) {
+      return {
+        text: '승인 전 취소 (100% 환불)',
+        dailyInfo: null,
+        totalNights: 1,
+      };
+    }
+
     const appliedRate = viewData.refundRateApplied;
     if (appliedRate === null) return { text: '-', dailyInfo: null, totalNights: 1 };
 
@@ -264,7 +282,7 @@ const GuesthouseCancelConfirm = () => {
         dateStr: currentNightDate.format('MM.DD'),
         daysBeforeLabel: label,
         rate,
-        refundAmt
+        refundAmt,
       });
     }
 
@@ -272,9 +290,15 @@ const GuesthouseCancelConfirm = () => {
       text: '차등 수수료 적용',
       dailyInfo,
       totalNights,
-      totalFrontendRefundAmount
+      totalFrontendRefundAmount,
     };
-  }, [viewData.refundRateApplied, viewData.paidAmount, reservationDetail, cancelContext]);
+  }, [
+    isPendingReservation,
+    viewData.refundRateApplied,
+    viewData.paidAmount,
+    reservationDetail,
+    cancelContext,
+  ]);
 
   const refundAmount = cancelPolicyInfo?.dailyInfo 
     ? cancelPolicyInfo.totalFrontendRefundAmount 
@@ -285,6 +309,11 @@ const GuesthouseCancelConfirm = () => {
     : viewData.cancelFee;
 
   const handlePressSubmit = () => {
+    if (isPendingReservation) {
+      setCancelConfirmOpen(true);
+      return;
+    }
+
     const result = getRefundPolicyResult({
       checkInDate: reservationDetail?.checkIn ?? cancelContext?.checkInDate,
       checkInTime: cancelContext?.checkInTime,
@@ -343,6 +372,15 @@ const GuesthouseCancelConfirm = () => {
         roomDesc: viewData.roomDesc,
         guesthouseCheckIn: viewData.checkInTime,
         guesthouseCheckOut: viewData.checkOutTime,
+        reservationStatus:
+          cancelDetail?.reservationStatus ??
+          reservationDetail?.reservationStatus ??
+          cancelContext?.reservationStatus,
+        approvalStatus:
+          cancelDetail?.approvalStatus ??
+          reservationDetail?.approvalStatus ??
+          cancelContext?.approvalStatus,
+        isCancelledBeforeHostApproval: isPendingReservation,
       };
       setCancelConfirmOpen(false);
       navigation.replace('GuesthouseCancelSuccess', {

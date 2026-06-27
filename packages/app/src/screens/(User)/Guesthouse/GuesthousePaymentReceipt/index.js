@@ -358,6 +358,36 @@ const GuesthousePaymentReceipt = () => {
     data?.reservation?.status === 'PENDING' ||
     data?.reservation?.approvalStatus === 'WAITING_HOST';
 
+  const navigateToGuesthouseCancelConfirm = () => {
+    if (!data) {
+      setRefundModalOpen(false);
+      return;
+    }
+
+    navigation.navigate('GuesthouseCancelConfirm', {
+      reservationId,
+      cancelContext: {
+        guesthouseName: data.guesthouse.name,
+        roomName: data.purchase.title,
+        roomDesc: data.purchase.subTitle,
+        checkInDate: data.stay.checkIn,
+        checkInTime: data.stay.checkInTime,
+        checkOutDate: data.stay.checkOut,
+        checkOutTime: data.stay.checkOutTime,
+        reservationStatus: data.reservation.status,
+        approvalStatus: data.reservation.approvalStatus,
+        paidAmount: data.payment.finalPrice,
+        cancelFee: 0,
+        refundAmount: data.payment.finalPrice,
+        refundMethod: data.payment.method
+          ? `${data.payment.method} 환불`
+          : '환불',
+        freeCancelUntil,
+        refundPolicies: data.cancelPolicy.refundPolicies,
+      },
+    });
+  };
+
   // 뒤로가기
   const handleClose = () => {
     if (isFromPaymentFlow) {
@@ -838,6 +868,11 @@ const GuesthousePaymentReceipt = () => {
 
             <ButtonWhite
               onPress={() => {
+                if (isPendingReservation) {
+                  navigateToGuesthouseCancelConfirm();
+                  return;
+                }
+
                 const {
                   result,
                   message,
@@ -864,26 +899,7 @@ const GuesthousePaymentReceipt = () => {
                   return;
                 }
 
-                navigation.navigate('GuesthouseCancelConfirm', {
-                  reservationId,
-                  cancelContext: {
-                    guesthouseName: data.guesthouse.name,
-                    roomName: data.purchase.title,
-                    roomDesc: data.purchase.subTitle,
-                    checkInDate: data.stay.checkIn,
-                    checkInTime: data.stay.checkInTime,
-                    checkOutDate: data.stay.checkOut,
-                    checkOutTime: data.stay.checkOutTime,
-                    paidAmount: data.payment.finalPrice,
-                    cancelFee: 0,
-                    refundAmount: data.payment.finalPrice,
-                    refundMethod: data.payment.method
-                      ? `${data.payment.method} 환불`
-                      : '환불',
-                    freeCancelUntil,
-                    refundPolicies: data.cancelPolicy.refundPolicies,
-                  },
-                });
+                navigateToGuesthouseCancelConfirm();
               }}
               backgroundColor={COLORS.secondary_red}
               textColor={COLORS.semantic_red}
@@ -894,7 +910,7 @@ const GuesthousePaymentReceipt = () => {
       </ScrollView>
 
       <AlertModal
-        visible={refundModalOpen}
+        visible={refundModalOpen && !isPendingReservation}
         title={refundModalContent.title}
         message={refundModalContent.message}
         highlightText={refundModalContent.highlightText}

@@ -184,10 +184,13 @@ const MeetDetail = () => {
   const [infoModalSections, setInfoModalSections] = useState([]);
   const {
     pagerRef,
+    activeKey,
     isActive,
     onTabPress,
     pageWidth,
     onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
     onMomentumScrollEnd,
   } = useSwipeTabs({
     tabs: TABS,
@@ -523,6 +526,10 @@ const MeetDetail = () => {
   };
 
   const renderLocationMap = () => {
+    if (Platform.OS === 'web' && activeKey !== 'way') {
+      return null;
+    }
+
     if (!mapCoordinate || !mapCamera) {
       return null;
     }
@@ -903,7 +910,10 @@ const MeetDetail = () => {
             bounces={false}
             showsHorizontalScrollIndicator={false}
             onLayout={onPagerLayout}
+            onScroll={onScroll}
+            onScrollEndDrag={onScrollEndDrag}
             onMomentumScrollEnd={onMomentumScrollEnd}
+            scrollEventThrottle={16}
             style={styles.tabPager}>
             {TABS.map(tab => (
               <View
