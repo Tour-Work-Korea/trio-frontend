@@ -59,6 +59,7 @@ const communityDetailBannerAdUnitId = __DEV__
   : Platform.select({
       ios: 'ca-app-pub-6098454400067335/4619471702',
       android: 'ca-app-pub-6098454400067335/5920208998',
+      web: 'ca-pub-6098454400067335/4250943648',
     });
 
 const formatRelativeTime = dateTime => {

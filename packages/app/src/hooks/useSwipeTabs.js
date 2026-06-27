@@ -19,6 +19,7 @@ export default function useSwipeTabs({
 } = {}) {
   const pagerRef = useRef(null);
   const pendingScrollRef = useRef(null);
+  const scrollEndTimeoutRef = useRef(null);
   const [pageWidth, setPageWidth] = useState(0);
 
   const tabKeys = useMemo(
@@ -137,23 +138,80 @@ export default function useSwipeTabs({
     setPageWidth(prev => (prev === width ? prev : width));
   }, []);
 
-  // 손가락을 떼고 paging 정렬이 끝난 시점에 현재 페이지 인덱스를 반영
-  const onMomentumScrollEnd = useCallback(
-    event => {
+  const syncIndexFromOffset = useCallback(
+    offsetX => {
       if (pageWidth <= 0) {
         return;
       }
 
-      const offsetX = Number(event?.nativeEvent?.contentOffset?.x ?? 0);
-      const nextIndex = Math.round(offsetX / pageWidth);
+      const nextIndex = Math.max(
+        0,
+        Math.min(tabKeys.length - 1, Math.round(Number(offsetX) / pageWidth)),
+      );
 
       if (nextIndex === activeIndex) {
         return;
       }
       setIndex(nextIndex, {animated: false, syncScroll: false});
     },
-    [activeIndex, pageWidth, setIndex],
+    [activeIndex, pageWidth, setIndex, tabKeys.length],
   );
+
+  const getOffsetX = useCallback(
+    event => Number(event?.nativeEvent?.contentOffset?.x ?? 0),
+    [],
+  );
+
+  // 손가락을 떼고 paging 정렬이 끝난 시점에 현재 페이지 인덱스를 반영
+  const onMomentumScrollEnd = useCallback(
+    event => {
+      if (scrollEndTimeoutRef.current) {
+        clearTimeout(scrollEndTimeoutRef.current);
+        scrollEndTimeoutRef.current = null;
+      }
+
+      syncIndexFromOffset(getOffsetX(event));
+    },
+    [getOffsetX, syncIndexFromOffset],
+  );
+
+  const onScroll = useCallback(
+    event => {
+      const offsetX = getOffsetX(event);
+
+      if (scrollEndTimeoutRef.current) {
+        clearTimeout(scrollEndTimeoutRef.current);
+      }
+
+      scrollEndTimeoutRef.current = setTimeout(() => {
+        scrollEndTimeoutRef.current = null;
+        syncIndexFromOffset(offsetX);
+      }, 120);
+    },
+    [getOffsetX, syncIndexFromOffset],
+  );
+
+  const onScrollEndDrag = useCallback(
+    event => {
+      const offsetX = getOffsetX(event);
+
+      if (scrollEndTimeoutRef.current) {
+        clearTimeout(scrollEndTimeoutRef.current);
+      }
+
+      scrollEndTimeoutRef.current = setTimeout(() => {
+        scrollEndTimeoutRef.current = null;
+        syncIndexFromOffset(offsetX);
+      }, 120);
+    },
+    [getOffsetX, syncIndexFromOffset],
+  );
+
+  useEffect(() => () => {
+    if (scrollEndTimeoutRef.current) {
+      clearTimeout(scrollEndTimeoutRef.current);
+    }
+  }, []);
 
   // width 측정 직후 또는 레이아웃 폭이 바뀌었을 때 현재 탭 위치만 맞춘다.
   // activeIndex 변경마다 여기서 다시 scrollTo를 호출하면
@@ -182,6 +240,8 @@ export default function useSwipeTabs({
     setKey,
     setIndex,
     onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
     onMomentumScrollEnd,
   };
 }
