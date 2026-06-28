@@ -1,6 +1,7 @@
 import React, {useEffect, useId, useMemo, useRef} from 'react';
 
 const DEFAULT_WEB_AD_UNIT_ID = 'ca-pub-6098454400067335/4250943648';
+const WEB_ADS_DISABLED = true;
 
 const mobileAds = () => ({
   initialize: async () => {},
@@ -46,7 +47,7 @@ const getAdDiagnostics = adElement => {
   };
 };
 
-export const BannerAd = ({unitId, size}) => {
+const EnabledBannerAd = ({unitId, size}) => {
   const adId = useId();
   const pushedRef = useRef(false);
   const retryTimeoutRef = useRef(null);
@@ -223,6 +224,15 @@ export const BannerAd = ({unitId, size}) => {
       'data-adtest': typeof __DEV__ !== 'undefined' && __DEV__ ? 'on' : undefined,
     }),
   );
+};
+
+export const BannerAd = props => {
+  if (WEB_ADS_DISABLED) {
+    // Temporarily disable web ads while keeping native ad imports intact.
+    return null;
+  }
+
+  return React.createElement(EnabledBannerAd, props);
 };
 export const BannerAdSize = {
   BANNER: 'BANNER',
