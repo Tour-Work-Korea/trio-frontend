@@ -1,5 +1,13 @@
-import React from 'react';
-import {View, Text, Image, TouchableOpacity, Alert, Linking} from 'react-native';
+import React, {useState} from 'react';
+import {
+  View,
+  Text,
+  Image,
+  TouchableOpacity,
+  Alert,
+  Linking,
+  Platform,
+} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import styles from './GuesthouseDetail.styles';
@@ -10,6 +18,7 @@ import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
+import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
 
 import RightArrow from '@assets/images/chevron_right_blue.svg';
 
@@ -23,6 +32,7 @@ const RoomList = ({
 }) => {
   const navigation = useNavigation();
   const userRole = useUserStore(state => state.userRole);
+  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const formatTime = timeStr => (timeStr ? timeStr.slice(0, 5) : '');
   const totalGuestCount = localAdults + localChildren;
   const dormitoryGenderMap = {
@@ -77,6 +87,11 @@ const RoomList = ({
   };
 
   const handleReservationPress = (room, guestCount) => {
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     if (openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))) {
       return;
     }
@@ -434,6 +449,10 @@ const RoomList = ({
           </View>
         );
       })}
+      <GuesthouseReservationAppPromptModal
+        visible={appPromptVisible}
+        onClose={() => setAppPromptVisible(false)}
+      />
     </View>
   );
 };

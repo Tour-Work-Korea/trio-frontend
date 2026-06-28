@@ -6,6 +6,7 @@ import {
   StyleSheet,
   Dimensions,
   ScrollView,
+  Platform,
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import MultiSlider from '@ptomasroos/react-native-multi-slider';
@@ -57,6 +58,9 @@ const GuesthouseFilterModal = ({
   const scrollViewRef = useRef(null);
   const [sectionPositions, setSectionPositions] = useState({});
   const [displayResultCount, setDisplayResultCount] = useState(resultCount);
+  const [priceSliderLength, setPriceSliderLength] = useState(
+    Math.min(width - 60, 360),
+  );
 
   useEffect(() => {
     if (!visible || !initialFilters) {
@@ -184,6 +188,18 @@ const GuesthouseFilterModal = ({
     }
   };
 
+  const handlePriceSliderLayout = event => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
+    const layoutWidth = event.nativeEvent.layout.width;
+
+    if (layoutWidth > 0) {
+      setPriceSliderLength(Math.max(layoutWidth - 40, 240));
+    }
+  };
+
   const renderChip = ({label, selected, onPress}) => (
     <TouchableOpacity
       key={label}
@@ -267,13 +283,13 @@ const GuesthouseFilterModal = ({
           성인 1, 1박 기준
         </Text>
       </View>
-      <View style={styles.priceMultislider}>
+      <View style={styles.priceMultislider} onLayout={handlePriceSliderLayout}>
         <MultiSlider
           values={priceRange}
           min={MIN_PRICE}
           max={MAX_PRICE}
           step={10000}
-          sliderLength={Math.min(width - 60, 360)}
+          sliderLength={priceSliderLength}
           onValuesChange={setPriceRange}
           selectedStyle={styles.sliderSelected}
           unselectedStyle={styles.sliderUnselected}

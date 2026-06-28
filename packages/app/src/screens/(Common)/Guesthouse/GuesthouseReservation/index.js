@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -28,6 +29,7 @@ import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
 import AlertModal from '@components/modals/AlertModal';
+import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
@@ -99,6 +101,7 @@ const GuesthouseReservation = ({ route }) => {
   const [isRequestConfirmationNoticeVisible, setRequestConfirmationNoticeVisible] =
     useState(false);
   const [reservationErrorMessage, setReservationErrorMessage] = useState('');
+  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const {
     scrollRef,
     keyboardHeight,
@@ -354,6 +357,11 @@ const GuesthouseReservation = ({ route }) => {
   };
 
   const handlePressPayment = () => {
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     if (isRequestConfirmationReservation) {
       setRequestConfirmationNoticeVisible(true);
       return;
@@ -857,6 +865,11 @@ const GuesthouseReservation = ({ route }) => {
           buttonText="확인"
           onPress={() => setReservationErrorMessage('')}
           onRequestClose={() => setReservationErrorMessage('')}
+        />
+
+        <GuesthouseReservationAppPromptModal
+          visible={appPromptVisible}
+          onClose={() => setAppPromptVisible(false)}
         />
 
         {/* 약관동의 모달 */}

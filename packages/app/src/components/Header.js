@@ -1,11 +1,12 @@
-import React from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
+import React, {useState} from 'react';
+import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import ChevronLeft from '@assets/images/chevron_left_gray.svg';
 import Logo from '@assets/images/logo_orange.svg';
 import useUserStore from '@stores/userStore';
+import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 
 // Header 사용법
 // - title이 있으면 중앙 제목 헤더, 없으면 중앙 로고 헤더를 렌더링
@@ -20,6 +21,7 @@ const Header = ({
   rightComponent = null,
 }) => {
   const navigation = useNavigation();
+  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
   const handleOnPress = () => {
     if (onPress) {
       onPress();
@@ -31,13 +33,22 @@ const Header = ({
   const accessToken = useUserStore(state => state.accessToken);
   const isLoggedIn = !!accessToken;
 
+  const handlePressLogin = () => {
+    if (Platform.OS === 'web') {
+      setLoginPromptVisible(true);
+      return;
+    }
+
+    navigation.navigate('Login');
+  };
+
   // 로그인 버튼 노출 여부: 로그인되어 있지 않고, 다른 우측 컴포넌트가 없으며, (타이틀이 있다면 뒤로가기 버튼이 없는 메인화면이거나, 로고 헤더일 때)
   const showLoginButton = !isLoggedIn && !rightComponent && (title ? !showBackButton : true);
 
   const rightElement = rightComponent || (showLoginButton ? (
     <TouchableOpacity
       activeOpacity={0.8}
-      onPress={() => navigation.navigate('Login')}
+      onPress={handlePressLogin}
       style={styles.loginButton}
     >
       <Text style={[FONTS.fs_12_medium, styles.loginButtonText]}>로그인 / 회원가입</Text>
@@ -79,6 +90,10 @@ const Header = ({
           {rightElement}
         </View>
       )}
+      <LoginAppPromptModal
+        visible={loginPromptVisible}
+        onClose={() => setLoginPromptVisible(false)}
+      />
     </View>
   );
 };

@@ -1,5 +1,10 @@
 const Geolocation = {
-  getCurrentPosition: success => {
+  getCurrentPosition: (success, error, options) => {
+    if (typeof navigator !== 'undefined' && navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success, error, options);
+      return;
+    }
+
     success?.({
       coords: {
         latitude: 33.4996,
