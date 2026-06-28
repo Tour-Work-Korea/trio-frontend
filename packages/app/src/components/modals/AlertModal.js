@@ -1,9 +1,10 @@
-import React from 'react';
+import React, {useState} from 'react';
 import {Platform, View, Text, StyleSheet, Image} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
+import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 
 /**
  * visible, buttonText, onPress 필수
@@ -25,7 +26,23 @@ const AlertModal = ({
   imageSource,   // png/jpg 같은 이미지
   iconElement,   // SVG
   onRequestClose = () => { },
+  interceptWebLoginPress = true,
 }) => {
+  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
+
+  const handlePrimaryPress = () => {
+    if (
+      interceptWebLoginPress &&
+      Platform.OS === 'web' &&
+      buttonText === '로그인하기'
+    ) {
+      setLoginPromptVisible(true);
+      return;
+    }
+
+    onPress?.();
+  };
+
   // 강조 텍스트 여부
   const renderMessage = () => {
     if (!message) {
@@ -96,7 +113,7 @@ const AlertModal = ({
                 title={buttonText}
                 backgroundColor={color}
                 textColor={COLORS.grayscale_0}
-                onPress={onPress}
+                onPress={handlePrimaryPress}
                 style={styles.button}
               />
             </View>
@@ -106,7 +123,7 @@ const AlertModal = ({
                 title={buttonText}
                 backgroundColor={color}
                 textColor={COLORS.grayscale_0}
-                onPress={onPress}
+                onPress={handlePrimaryPress}
                 style={styles.button}
               />
             </View>
@@ -116,17 +133,31 @@ const AlertModal = ({
   );
 
   if (Platform.OS === 'android') {
-    return content;
+    return (
+      <>
+        {content}
+        <LoginAppPromptModal
+          visible={loginPromptVisible}
+          onClose={() => setLoginPromptVisible(false)}
+        />
+      </>
+    );
   }
 
   return (
-    <Modal
-      transparent={true}
-      animationType="fade"
-      visible={visible}
-      onRequestClose={onRequestClose}>
-      {content}
-    </Modal>
+    <>
+      <Modal
+        transparent={true}
+        animationType="fade"
+        visible={visible}
+        onRequestClose={onRequestClose}>
+        {content}
+      </Modal>
+      <LoginAppPromptModal
+        visible={loginPromptVisible}
+        onClose={() => setLoginPromptVisible(false)}
+      />
+    </>
   );
 };
 

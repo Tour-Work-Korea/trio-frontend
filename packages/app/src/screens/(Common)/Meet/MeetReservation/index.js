@@ -7,6 +7,7 @@ import {
   ScrollView,
   Image,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -19,6 +20,7 @@ import styles from './MeetReservation.styles';
 import { FONTS } from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
+import PartyApplicationAppPromptModal from '@components/modals/PartyApplicationAppPromptModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
@@ -66,6 +68,7 @@ const MeetReservation = () => {
   );
   const [guideAgreed, setGuideAgreed] = useState(false);
   const [reservationInfo, setReservationInfo] = useState(null);
+  const [appPromptVisible, setAppPromptVisible] = useState(false);
 
   useEffect(() => {
     if (selectedCoupon) {
@@ -229,6 +232,11 @@ const MeetReservation = () => {
   const handleCreateReservation = async () => {
     if (!partyId || !reservationInfo) {return;}
 
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     try {
       const requestText = requestMessage?.trim() || '';
       const amount = Number(reservationInfo?.amount ?? 0);
@@ -296,6 +304,12 @@ const MeetReservation = () => {
     if (!guideAgreed) {
       return;
     }
+
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     setStep(2);
   };
 
@@ -513,6 +527,10 @@ const MeetReservation = () => {
           content={selectedAgreementDoc?.detail || ''}
           contentHtml={selectedAgreementDoc?.detailHtml || ''}
           onAgree={handleAgreeModal}
+        />
+        <PartyApplicationAppPromptModal
+          visible={appPromptVisible}
+          onClose={() => setAppPromptVisible(false)}
         />
     </View>
   );
