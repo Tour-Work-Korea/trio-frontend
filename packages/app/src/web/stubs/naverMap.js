@@ -165,6 +165,12 @@ export const NaverMapView = forwardRef(function NaverMapView(
 ) {
   const mapElementRef = useRef(null);
   const mapRef = useRef(null);
+  const initialCameraRef = useRef(initialCamera);
+  const initialRegionRef = useRef(initialRegion);
+  const onCameraChangedRef = useRef(onCameraChanged);
+  const onCameraIdleRef = useRef(onCameraIdle);
+  const onInitializedRef = useRef(onInitialized);
+  const onTapMapRef = useRef(onTapMap);
   const suppressClickUntilRef = useRef(0);
   const pointerStartRef = useRef(null);
   const pointerMovedRef = useRef(false);
@@ -183,12 +189,19 @@ export const NaverMapView = forwardRef(function NaverMapView(
       return;
     }
 
-    onCameraChanged?.({reason: 'Tap'});
-    onTapMap?.();
+    onCameraChangedRef.current?.({reason: 'Tap'});
+    onTapMapRef.current?.();
   };
   const handleLayout = event => {
     onLayout?.(event);
   };
+
+  initialCameraRef.current = initialCamera;
+  initialRegionRef.current = initialRegion;
+  onCameraChangedRef.current = onCameraChanged;
+  onCameraIdleRef.current = onCameraIdle;
+  onInitializedRef.current = onInitialized;
+  onTapMapRef.current = onTapMap;
 
   useImperativeHandle(ref, () => ({
     animateRegionTo: region => {
@@ -242,28 +255,31 @@ export const NaverMapView = forwardRef(function NaverMapView(
     }
 
     const mapElement = mapElementRef.current;
-    const center = getCenterFromProps({initialCamera, initialRegion});
+    const center = getCenterFromProps({
+      initialCamera: initialCameraRef.current,
+      initialRegion: initialRegionRef.current,
+    });
     const nextMap = new maps.Map(mapElement, {
       center: new maps.LatLng(center.latitude, center.longitude),
       zoom: center.zoom,
     });
 
-    if (!initialCamera) {
+    if (!initialCameraRef.current) {
       requestAnimationFrame(() => {
-        fitMapToRegion(nextMap, maps, initialRegion);
+        fitMapToRegion(nextMap, maps, initialRegionRef.current);
       });
     }
 
     mapRef.current = nextMap;
     setMap(nextMap);
-    onInitialized?.();
+    onInitializedRef.current?.();
 
     const idleListener = maps.Event.addListener(nextMap, 'idle', () => {
       const nextRegion = getRegionFromMap(nextMap);
-      onCameraIdle?.(nextRegion);
+      onCameraIdleRef.current?.(nextRegion);
     });
     const clickListener = maps.Event.addListener(nextMap, 'click', () => {
-      onCameraChanged?.({reason: 'Tap'});
+      onCameraChangedRef.current?.({reason: 'Tap'});
     });
     const suppressFromMapChange = () => {
       suppressClickUntilRef.current = Date.now() + WHEEL_SUPPRESSION_MS;
@@ -271,7 +287,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
     };
     const suppressFromMapGesture = () => {
       suppressFromMapChange();
-      onCameraChanged?.({reason: 'Gesture'});
+      onCameraChangedRef.current?.({reason: 'Gesture'});
     };
     const dragStartListener = maps.Event.addListener(nextMap, 'dragstart', () => {
       suppressFromMapGesture();
@@ -299,7 +315,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
 
       suppressClickUntilRef.current = Date.now() + WHEEL_SUPPRESSION_MS;
       suppressMapClicks(WHEEL_SUPPRESSION_MS);
-      onCameraChanged?.({reason: 'Gesture'});
+      onCameraChangedRef.current?.({reason: 'Gesture'});
     };
     const documentPointerStart = {x: 0, y: 0, active: false};
     const handleDocumentPointerDown = event => {
@@ -323,7 +339,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
       if (dx > DRAG_THRESHOLD_PX || dy > DRAG_THRESHOLD_PX) {
         suppressMapClicks(WHEEL_SUPPRESSION_MS);
         suppressClickUntilRef.current = Date.now() + WHEEL_SUPPRESSION_MS;
-        onCameraChanged?.({reason: 'Gesture'});
+        onCameraChangedRef.current?.({reason: 'Gesture'});
       }
     };
     const handleDocumentPointerUp = () => {
@@ -336,7 +352,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
 
       suppressMapClicks(WHEEL_SUPPRESSION_MS);
       suppressClickUntilRef.current = Date.now() + WHEEL_SUPPRESSION_MS;
-      onCameraChanged?.({reason: 'Gesture'});
+      onCameraChangedRef.current?.({reason: 'Gesture'});
     };
 
     mapElement.addEventListener('wheel', suppressFromDomGesture, {
@@ -380,9 +396,10 @@ export const NaverMapView = forwardRef(function NaverMapView(
       if (mapRef.current === nextMap) {
         mapRef.current = null;
       }
+      setMap(null);
       mapElement.innerHTML = '';
     };
-  }, [initialCamera, initialRegion, maps, onCameraChanged, onCameraIdle, onInitialized]);
+  }, [maps]);
 
   return (
     <MapContext.Provider
@@ -421,13 +438,13 @@ export const NaverMapView = forwardRef(function NaverMapView(
         onPointerUp={() => {
           if (pointerMovedRef.current) {
             suppressNextClick();
-            onCameraChanged?.({reason: 'Gesture'});
+            onCameraChangedRef.current?.({reason: 'Gesture'});
           }
           pointerStartRef.current = null;
         }}
         onWheel={() => {
           suppressClickUntilRef.current = Date.now() + WHEEL_SUPPRESSION_MS;
-          onCameraChanged?.({reason: 'Gesture'});
+          onCameraChangedRef.current?.({reason: 'Gesture'});
         }}
         style={[style, styles.mapContainer]}>
         <div

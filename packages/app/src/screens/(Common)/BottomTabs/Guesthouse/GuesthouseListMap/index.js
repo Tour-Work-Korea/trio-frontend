@@ -425,6 +425,10 @@ const groupGuesthouses = (guesthouses, region, mapSize) => {
 };
 
 const requestLocationPermission = async () => {
+  if (Platform.OS === 'web') {
+    return true;
+  }
+
   if (Platform.OS === 'ios') {
     return true;
   }
