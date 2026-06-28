@@ -3,6 +3,7 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Platform,
   RefreshControl,
   ScrollView,
   Text,
@@ -30,6 +31,10 @@ const sortCodeMap = {
   최신순: 'LATEST',
   등록순: 'OLDEST',
 };
+const webCommunityScrollOffsets = new Map();
+
+const getCategoryKey = category =>
+  String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
 
 const formatRelativeTime = dateTime => {
   if (!dateTime) {
@@ -71,8 +76,12 @@ const CommunityPostList = ({
   contentContainerStyle,
 }) => {
   const navigation = useNavigation();
+  const listRef = useRef(null);
   const pageRef = useRef(0);
   const postsLengthRef = useRef(0);
+  const scrollOffsetRef = useRef(0);
+  const hasRestoredScrollRef = useRef(false);
+  const scrollStoreKey = `${getCategoryKey(category)}:${selectedSort}`;
   const [posts, setPosts] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -96,6 +105,37 @@ const CommunityPostList = ({
   useEffect(() => {
     postsLengthRef.current = posts.length;
   }, [posts.length]);
+
+  useEffect(() => {
+    hasRestoredScrollRef.current = false;
+  }, [scrollStoreKey]);
+
+  useEffect(() => {
+    if (
+      Platform.OS !== 'web' ||
+      !isActive ||
+      posts.length === 0 ||
+      hasRestoredScrollRef.current
+    ) {
+      return undefined;
+    }
+
+    const offset = webCommunityScrollOffsets.get(scrollStoreKey) ?? 0;
+    if (offset <= 0) {
+      hasRestoredScrollRef.current = true;
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      listRef.current?.scrollToOffset?.({
+        offset,
+        animated: false,
+      });
+      hasRestoredScrollRef.current = true;
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
+  }, [isActive, posts.length, scrollStoreKey]);
 
   const fetchPosts = useCallback(
     async (pageToFetch = 0, isLoadMore = false, isRefresh = false) => {
@@ -245,7 +285,31 @@ const CommunityPostList = ({
     setImageModalVisible(true);
   };
 
+  const rememberWebScrollOffset = useCallback(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
+    webCommunityScrollOffsets.set(scrollStoreKey, scrollOffsetRef.current);
+  }, [scrollStoreKey]);
+
+  const handleScroll = useCallback(
+    event => {
+      if (Platform.OS !== 'web') {
+        return;
+      }
+
+      const offset = event?.nativeEvent?.contentOffset?.y;
+      if (Number.isFinite(offset)) {
+        scrollOffsetRef.current = offset;
+        webCommunityScrollOffsets.set(scrollStoreKey, offset);
+      }
+    },
+    [scrollStoreKey],
+  );
+
   const handlePressCommentCount = item => {
+    rememberWebScrollOffset();
     navigation.navigate('CommunityDetail', {
       postId: item.postId,
       focusCommentInput: true,
@@ -301,9 +365,10 @@ const CommunityPostList = ({
     <View style={styles.postContainer}>
       <TouchableOpacity
         activeOpacity={0.8}
-        onPress={() =>
-          navigation.navigate('CommunityDetail', {postId: item.postId})
-        }>
+        onPress={() => {
+          rememberWebScrollOffset();
+          navigation.navigate('CommunityDetail', {postId: item.postId});
+        }}>
         <View style={styles.postHeader}>
           <Avatar
             uri={item.author?.profileImageUrl}
@@ -362,12 +427,15 @@ const CommunityPostList = ({
   return (
     <View style={styles.container}>
       <FlatList
+        ref={listRef}
         data={posts}
         keyExtractor={item => item.postId.toString()}
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
         maintainVisibleContentPosition={{minIndexForVisible: 0}}
+        onScroll={handleScroll}
+        scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         refreshControl={
