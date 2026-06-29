@@ -160,16 +160,6 @@ const MeetDetail = () => {
     navigation.navigate('MainTabs', {screen: '홈'});
   }, [navigation]);
 
-  const navigateWebContents = useCallback(() => {
-    replaceWebPath(WEB_ROUTES.CONTENTS);
-    navigation.navigate('MainTabs', {
-      screen: '콘텐츠',
-      params: {
-        screen: 'MeetMain',
-      },
-    });
-  }, [navigation]);
-
   const [detail, setDetail] = useState(null);
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
@@ -190,10 +180,12 @@ const MeetDetail = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TABS,
     initialKey: 'intro',
@@ -225,25 +217,6 @@ const MeetDetail = () => {
   };
 
   // 콘텐츠 상세 데이터
-  useEffect(() => {
-    if (Platform.OS !== 'web' || typeof window === 'undefined') {
-      return undefined;
-    }
-
-    const handleBrowserBack = () => {
-      setTimeout(
-        route.params?.webBackToHome ? navigateWebHome : navigateWebContents,
-        0,
-      );
-    };
-
-    window.addEventListener('popstate', handleBrowserBack);
-
-    return () => {
-      window.removeEventListener('popstate', handleBrowserBack);
-    };
-  }, [navigateWebContents, navigateWebHome, route.params?.webBackToHome]);
-
   useEffect(() => {
     let mounted = true;
     const fetchDetail = async () => {
@@ -446,13 +419,8 @@ const MeetDetail = () => {
   };
 
   const handlePressBack = () => {
-    if (Platform.OS === 'web') {
-      if (route.params?.webBackToHome) {
-        navigateWebHome();
-        return;
-      }
-
-      navigateWebContents();
+    if (Platform.OS === 'web' && route.params?.webBackToHome) {
+      navigateWebHome();
       return;
     }
 
@@ -912,6 +880,8 @@ const MeetDetail = () => {
           <ScrollView
             ref={pagerRef}
             horizontal
+            scrollEnabled={swipeEnabled}
+            directionalLockEnabled
             pagingEnabled
             nestedScrollEnabled
             bounces={false}
@@ -921,6 +891,8 @@ const MeetDetail = () => {
             onScrollEndDrag={onScrollEndDrag}
             onMomentumScrollEnd={onMomentumScrollEnd}
             scrollEventThrottle={16}
+            contentContainerStyle={styles.tabPagerContent}
+            {...webSwipeHandlers}
             style={styles.tabPager}>
             {TABS.map(tab => (
               <View

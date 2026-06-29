@@ -66,6 +66,25 @@ const ROOM_TYPE_MAP = {
   '일반 객실': 'PRIVATE',
   도미토리: 'DORMITORY',
 };
+const DEFAULT_FILTER_OPTIONS = {
+  tags: [],
+  minPrice: 10000,
+  maxPrice: 1000000,
+  roomType: null,
+  facility: [],
+  onlyAvailable: false,
+};
+
+const normalizeFilterOptions = (filters, categoryTags = []) => ({
+  ...DEFAULT_FILTER_OPTIONS,
+  ...(filters || {}),
+  tags: Array.isArray(filters?.tags)
+    ? filters.tags
+    : Array.isArray(categoryTags)
+      ? categoryTags
+      : [],
+  facility: Array.isArray(filters?.facility) ? filters.facility : [],
+});
 
 const getGuesthouseFilterApiParams = filters => {
   const params = {};
@@ -152,10 +171,16 @@ const GuesthouseList = () => {
     initialMapView = false,
     mapResetKey = 0,
     fromHomeCategory = false,
+    filterOptions: routeFilterOptions = null,
+    sortBy: routeSortBy = 'RECOMMEND',
   } = route.params || {};
   const selectedCategoryTags = useMemo(
     () => (Array.isArray(categoryTags) ? categoryTags : []),
     [categoryTags],
+  );
+  const initialFilterOptions = useMemo(
+    () => normalizeFilterOptions(routeFilterOptions, selectedCategoryTags),
+    [routeFilterOptions, selectedCategoryTags],
   );
 
   const regionBounds = useMemo(
@@ -177,15 +202,15 @@ const GuesthouseList = () => {
 
   // 필터 정보
   const [filterOptions, setFilterOptions] = useState({
-    tags: selectedCategoryTags,
-    minPrice: 10000,
-    maxPrice: 1000000,
-    roomType: null,
-    facility: [], // amenity object { id, name }
-    onlyAvailable: false,
+    ...initialFilterOptions,
   });
   const [filterApplied, setFilterApplied] = useState(
-    selectedCategoryTags.length > 0,
+    initialFilterOptions.tags.length > 0 ||
+      Boolean(initialFilterOptions.roomType) ||
+      initialFilterOptions.facility.length > 0 ||
+      initialFilterOptions.onlyAvailable ||
+      initialFilterOptions.minPrice !== 10000 ||
+      initialFilterOptions.maxPrice !== 1000000,
   );
 
   const isInitialLoading = loading && guesthouses.length === 0;
@@ -214,25 +239,17 @@ const GuesthouseList = () => {
   }, []);
 
   useEffect(() => {
-    setFilterOptions(prev => {
-      const nextFilters = {
-        ...prev,
-        tags: selectedCategoryTags,
-      };
-
-      setFilterApplied(
-        nextFilters.tags.length > 0 ||
-        Boolean(nextFilters.roomType) ||
-        nextFilters.facility.length > 0 ||
-        nextFilters.onlyAvailable ||
-        nextFilters.minPrice !== 10000 ||
-        nextFilters.maxPrice !== 1000000
-      );
-
-      return nextFilters;
-    });
+    setFilterOptions(initialFilterOptions);
+    setFilterApplied(
+      initialFilterOptions.tags.length > 0 ||
+      Boolean(initialFilterOptions.roomType) ||
+      initialFilterOptions.facility.length > 0 ||
+      initialFilterOptions.onlyAvailable ||
+      initialFilterOptions.minPrice !== 10000 ||
+      initialFilterOptions.maxPrice !== 1000000
+    );
     resetListState();
-  }, [resetListState, selectedCategoryTags]);
+  }, [initialFilterOptions, resetListState]);
 
   useEffect(() => {
     setDisplayDateState(routeDisplayDate);
@@ -252,12 +269,14 @@ const GuesthouseList = () => {
     } else if (!shouldUseInitialMapView(initialMapView)) {
       setIsMapView(false);
     }
+    setSortBy(routeSortBy);
   }, [
     initialMapView,
     mapResetKey,
     routeAdultCount,
     routeChildCount,
     routeDisplayDate,
+    routeSortBy,
   ]);
 
   // api 보낼 날짜 데이터
@@ -308,7 +327,7 @@ const GuesthouseList = () => {
     adultCount,
     childCount,
   });
-  const [sortBy, setSortBy] = useState('RECOMMEND');
+  const [sortBy, setSortBy] = useState(routeSortBy);
   const [filterResultCount, setFilterResultCount] = useState(null);
 
   const fetchFilterResultCount = useCallback(async filters => {
@@ -439,7 +458,8 @@ const GuesthouseList = () => {
 
   const handlePressGuesthouse = (item) => {
     navigation.navigate('GuesthouseDetail', {
-      id: item.id,
+      id: item.id ?? item.guesthouseId,
+      guesthouseId: item.guesthouseId ?? item.id,
       checkIn,
       checkOut,
       guestCount: adultCount + childCount,
@@ -625,6 +645,9 @@ const GuesthouseList = () => {
             adultCount,
             childCount,
             searchText,
+            categoryTags: filterOptions.tags,
+            filterOptions,
+            sortBy,
           });
         }}>
         <View style={styles.searchIconContainer}>

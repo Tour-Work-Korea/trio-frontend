@@ -33,7 +33,14 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Platform.select({
       web: {
-        touchAction: 'pan-x',
+        touchAction: 'pan-y',
+      },
+    }),
+  },
+  tabPagerContent: {
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
       },
     }),
   },

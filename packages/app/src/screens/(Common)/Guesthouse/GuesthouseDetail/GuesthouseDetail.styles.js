@@ -10,6 +10,9 @@ const styles = StyleSheet.create({
     width: '100%',
     height: 280,
   },
+  mainImageWeb: {
+    height: 220,
+  },
   backButton: {
     position: 'absolute',
     left: 20,
@@ -279,7 +282,14 @@ const styles = StyleSheet.create({
     marginTop: 4,
     ...Platform.select({
       web: {
-        touchAction: 'pan-x',
+        touchAction: 'pan-y',
+      },
+    }),
+  },
+  tabPagerContent: {
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
       },
     }),
   },

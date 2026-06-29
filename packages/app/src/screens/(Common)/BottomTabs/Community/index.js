@@ -87,10 +87,12 @@ const Community = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: categoryTabs,
     initialKey: getCategoryKey(defaultCategories[0]),
@@ -227,6 +229,8 @@ const Community = () => {
       <ScrollView
         ref={pagerRef}
         horizontal
+        scrollEnabled={swipeEnabled}
+        directionalLockEnabled
         pagingEnabled
         nestedScrollEnabled
         bounces={false}
@@ -237,6 +241,7 @@ const Community = () => {
         onMomentumScrollEnd={onMomentumScrollEnd}
         scrollEventThrottle={16}
         style={styles.pager}
+        {...webSwipeHandlers}
         contentContainerStyle={styles.pagerContent}>
         {categoryTabs.map(category => (
           <View

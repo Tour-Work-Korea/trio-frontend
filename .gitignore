@@ -83,3 +83,6 @@ android/app/release-test-key.jks
 yarn.lock
 
 .env
+
+# Local agent instructions
+AGENTS.md

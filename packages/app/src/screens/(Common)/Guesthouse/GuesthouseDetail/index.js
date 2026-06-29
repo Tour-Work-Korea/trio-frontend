@@ -97,10 +97,12 @@ const GuesthouseDetail = ({route}) => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TAB_OPTIONS,
     initialKey: 'room',
@@ -121,7 +123,10 @@ const GuesthouseDetail = ({route}) => {
   const modalImages = sortedImages;
 
   const {width: SCREEN_W} = Dimensions.get('window');
-  const IMAGE_H = 280;
+  const HEADER_IMAGE_W = Platform.OS === 'web'
+    ? Math.min(SCREEN_W, 430)
+    : SCREEN_W;
+  const HEADER_IMAGE_H = Platform.OS === 'web' ? 220 : 280;
 
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
@@ -156,48 +161,6 @@ const GuesthouseDetail = ({route}) => {
     replaceWebPath(WEB_ROUTES.HOME);
     navigation.navigate('MainTabs', {screen: '홈'});
   }, [navigation]);
-
-  useEffect(() => {
-    if (
-      Platform.OS !== 'web'
-      || route.params?.webBackTo !== WEB_ROUTES.MAP
-      || typeof window === 'undefined'
-    ) {
-      return undefined;
-    }
-
-    const handleBrowserBackToMap = () => {
-      setTimeout(() => {
-        navigateWebBackToMap(navigation, route.params?.webBackParams);
-      }, 0);
-    };
-
-    window.addEventListener('popstate', handleBrowserBackToMap);
-
-    return () => {
-      window.removeEventListener('popstate', handleBrowserBackToMap);
-    };
-  }, [navigation, route.params?.webBackParams, route.params?.webBackTo]);
-
-  useEffect(() => {
-    if (
-      Platform.OS !== 'web'
-      || !route.params?.webBackToHome
-      || typeof window === 'undefined'
-    ) {
-      return undefined;
-    }
-
-    const handleBrowserBackToHome = () => {
-      setTimeout(navigateWebHome, 0);
-    };
-
-    window.addEventListener('popstate', handleBrowserBackToHome);
-
-    return () => {
-      window.removeEventListener('popstate', handleBrowserBackToHome);
-    };
-  }, [navigateWebHome, route.params?.webBackToHome]);
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
@@ -510,8 +473,8 @@ const GuesthouseDetail = ({route}) => {
         {/* 대표 이미지 */}
         {hasImages && !hideHeaderCarouselForImageModal ? (
           <Carousel
-            width={SCREEN_W}
-            height={IMAGE_H}
+            width={HEADER_IMAGE_W}
+            height={HEADER_IMAGE_H}
             data={sortedImages}
             defaultIndex={thumbnailIndex} // 썸네일부터 시작
             loop={false}
@@ -525,14 +488,21 @@ const GuesthouseDetail = ({route}) => {
               >
                 <Image
                   source={{uri: item.guesthouseImageUrl}}
-                  style={styles.mainImage}
+                  style={[
+                    styles.mainImage,
+                    Platform.OS === 'web' && styles.mainImageWeb,
+                  ]}
                 />
               </TouchableOpacity>
             )}
           />
         ) : (
           <View
-            style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
+            style={[
+              styles.mainImage,
+              Platform.OS === 'web' && styles.mainImageWeb,
+              {backgroundColor: COLORS.grayscale_200},
+            ]}
           />
         )}
 
@@ -786,6 +756,8 @@ const GuesthouseDetail = ({route}) => {
         <ScrollView
           ref={pagerRef}
           horizontal
+          scrollEnabled={swipeEnabled}
+          directionalLockEnabled
           pagingEnabled
           nestedScrollEnabled
           bounces={false}
@@ -795,6 +767,8 @@ const GuesthouseDetail = ({route}) => {
           onScrollEndDrag={onScrollEndDrag}
           onMomentumScrollEnd={onMomentumScrollEnd}
           scrollEventThrottle={16}
+          contentContainerStyle={styles.tabPagerContent}
+          {...webSwipeHandlers}
           style={styles.tabPager}>
           {TAB_OPTIONS.map(tab => (
             <View
