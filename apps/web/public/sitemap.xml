@@ -3,4 +3,13 @@
   <url>
     <loc>https://app.ddakji.kr/</loc>
   </url>
+  <url>
+    <loc>https://app.ddakji.kr/guesthouses</loc>
+  </url>
+  <url>
+    <loc>https://app.ddakji.kr/contents</loc>
+  </url>
+  <url>
+    <loc>https://app.ddakji.kr/community</loc>
+  </url>
 </urlset>
