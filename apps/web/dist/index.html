@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <link rel="icon" type="image/svg+xml" href="/assets/favicon-KCBfg8P2.svg" />
     <title>게딱지</title>
@@ -17,8 +17,8 @@
       html,
       body {
         width: 100%;
-        min-height: 100dvh;
-        height: 100dvh;
+        min-height: var(--trio-vh, 100dvh);
+        height: var(--trio-vh, 100dvh);
         margin: 0;
       }
 
@@ -32,18 +32,42 @@
         display: flex;
         flex: 1;
         width: 100%;
-        min-height: 100dvh;
-        height: 100dvh;
+        min-height: var(--trio-vh, 100dvh);
+        height: var(--trio-vh, 100dvh);
       }
 
       * {
         box-sizing: border-box;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index--F_jXDyG.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-djVbNVN7.css">
+    <script type="module" crossorigin src="/assets/index-BZpUtfRX.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-B8w4Odj4.css">
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        function setViewportHeight() {
+          var height =
+            window.visualViewport && window.visualViewport.height
+              ? window.visualViewport.height
+              : window.innerHeight;
+
+          document.documentElement.style.setProperty(
+            '--trio-vh',
+            height + 'px',
+          );
+        }
+
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', setViewportHeight);
+          window.visualViewport.addEventListener('scroll', setViewportHeight);
+        }
+      })();
+    </script>
   </body>
 </html>

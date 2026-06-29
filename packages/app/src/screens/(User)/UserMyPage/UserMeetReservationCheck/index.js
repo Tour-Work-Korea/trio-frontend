@@ -28,6 +28,7 @@ const UserMeetReservationCheck = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
@@ -142,6 +143,7 @@ const UserMeetReservationCheck = () => {
           <ScrollView
             ref={pagerRef}
             horizontal
+            scrollEnabled={swipeEnabled}
             pagingEnabled
             nestedScrollEnabled
             bounces={false}

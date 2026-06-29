@@ -32,6 +32,7 @@ const UserReservationCheck = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
@@ -136,6 +137,7 @@ const UserReservationCheck = () => {
           <ScrollView
             ref={pagerRef}
             horizontal
+            scrollEnabled={swipeEnabled}
             pagingEnabled
             nestedScrollEnabled
             bounces={false}

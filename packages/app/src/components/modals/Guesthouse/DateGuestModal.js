@@ -224,13 +224,17 @@ const DateGuestModal = ({
                 <View style={styles.calendarHeader}>
                   <View style={styles.calendarHeaderText}>
                     <TouchableOpacity
-                      activeOpacity={1} onPress={goPrevMonth}>
-                      <LeftArrowIcon />
+                      activeOpacity={1}
+                      style={styles.monthArrowButton}
+                      onPress={goPrevMonth}>
+                      <LeftArrowIcon width={24} height={24} />
                     </TouchableOpacity>
                     <Text style={[FONTS.fs_16_semibold, styles.monthText]}>{dayjs(currentMonth).format("YYYY년 M월")}</Text>
                     <TouchableOpacity
-                      activeOpacity={1} onPress={goNextMonth}>
-                      <RightArrowIcon />
+                      activeOpacity={1}
+                      style={styles.monthArrowButton}
+                      onPress={goNextMonth}>
+                      <RightArrowIcon width={24} height={24} />
                     </TouchableOpacity>
                   </View>
                   <View style={styles.dayTextContainer}>
@@ -432,6 +436,12 @@ const styles = StyleSheet.create({
     width: '95%',
   },
   monthText: {
+  },
+  monthArrowButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   dayTextContainer: {
     flexDirection: "row",

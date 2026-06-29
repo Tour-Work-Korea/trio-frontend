@@ -30,6 +30,7 @@ const UserFavorite = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
@@ -69,6 +70,7 @@ const UserFavorite = () => {
       <ScrollView
         ref={pagerRef}
         horizontal
+        scrollEnabled={swipeEnabled}
         pagingEnabled
         nestedScrollEnabled
         bounces={false}
@@ -124,7 +126,7 @@ const styles = StyleSheet.create({
     flex: 1,
     ...Platform.select({
       web: {
-        touchAction: 'pan-x',
+        touchAction: 'pan-y',
       },
     }),
   },

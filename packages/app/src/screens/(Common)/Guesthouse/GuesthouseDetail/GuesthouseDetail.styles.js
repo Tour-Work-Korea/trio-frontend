@@ -279,7 +279,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
     ...Platform.select({
       web: {
-        touchAction: 'pan-x',
+        touchAction: 'pan-y',
       },
     }),
   },

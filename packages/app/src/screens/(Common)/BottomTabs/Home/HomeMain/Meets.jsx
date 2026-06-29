@@ -6,6 +6,8 @@ import {
   Image,
   StyleSheet,
   FlatList,
+  Dimensions,
+  Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
@@ -22,6 +24,19 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
+
+const APP_FRAME_WIDTH = Math.min(Dimensions.get('window').width, 430);
+const SECTION_HORIZONTAL_PADDING = 32;
+const CARD_GAP = 12;
+const DEFAULT_CARD_WIDTH = 160;
+const CARD_WIDTH =
+  Platform.OS === 'web'
+    ? Math.max(
+        136,
+        Math.floor((APP_FRAME_WIDTH - SECTION_HORIZONTAL_PADDING - CARD_GAP) / 2),
+      )
+    : DEFAULT_CARD_WIDTH;
+const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * 1.5);
 
 export default function Meets({events = [], setEventList}) {
   const navigation = useNavigation();
@@ -214,18 +229,18 @@ const localStyles = StyleSheet.create({
     borderWidth: 0,
   },
   card: {
-    width: 160,
+    width: CARD_WIDTH,
     overflow: 'hidden',
     backgroundColor: COLORS.grayscale_0,
   },
   imageWrapper: {
-    width: 160,
+    width: CARD_WIDTH,
     position: 'relative',
   },
   image: {
     borderRadius: 12,
-    width: 160,
-    height: 240,
+    width: CARD_WIDTH,
+    height: CARD_IMAGE_HEIGHT,
   },
   heartWrapper: {
     position: 'absolute',
@@ -238,7 +253,7 @@ const localStyles = StyleSheet.create({
   infoWrapper: {
     marginTop: 8,
     gap: 4,
-    width: 160,
+    width: CARD_WIDTH,
   },
   guesthouseName: {
     color: COLORS.grayscale_500,

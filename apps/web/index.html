@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <meta
       name="viewport"
-      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+      content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover"
     />
     <meta
       name="naver-site-verification"
@@ -41,8 +41,8 @@
       html,
       body {
         width: 100%;
-        min-height: 100dvh;
-        height: 100dvh;
+        min-height: var(--trio-vh, 100dvh);
+        height: var(--trio-vh, 100dvh);
         margin: 0;
       }
 
@@ -56,8 +56,8 @@
         display: flex;
         flex: 1;
         width: 100%;
-        min-height: 100dvh;
-        height: 100dvh;
+        min-height: var(--trio-vh, 100dvh);
+        height: var(--trio-vh, 100dvh);
       }
 
       * {
@@ -67,6 +67,30 @@
   </head>
   <body>
     <div id="root"></div>
+    <script>
+      (function () {
+        function setViewportHeight() {
+          var height =
+            window.visualViewport && window.visualViewport.height
+              ? window.visualViewport.height
+              : window.innerHeight;
+
+          document.documentElement.style.setProperty(
+            '--trio-vh',
+            height + 'px',
+          );
+        }
+
+        setViewportHeight();
+        window.addEventListener('resize', setViewportHeight);
+        window.addEventListener('orientationchange', setViewportHeight);
+
+        if (window.visualViewport) {
+          window.visualViewport.addEventListener('resize', setViewportHeight);
+          window.visualViewport.addEventListener('scroll', setViewportHeight);
+        }
+      })();
+    </script>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

@@ -96,6 +96,7 @@ const GuesthouseDetail = ({route}) => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
@@ -154,48 +155,6 @@ const GuesthouseDetail = ({route}) => {
     replaceWebPath(WEB_ROUTES.HOME);
     navigation.navigate('MainTabs', {screen: '홈'});
   }, [navigation]);
-
-  useEffect(() => {
-    if (
-      Platform.OS !== 'web'
-      || route.params?.webBackTo !== WEB_ROUTES.MAP
-      || typeof window === 'undefined'
-    ) {
-      return undefined;
-    }
-
-    const handleBrowserBackToMap = () => {
-      setTimeout(() => {
-        navigateWebBackToMap(navigation, route.params?.webBackParams);
-      }, 0);
-    };
-
-    window.addEventListener('popstate', handleBrowserBackToMap);
-
-    return () => {
-      window.removeEventListener('popstate', handleBrowserBackToMap);
-    };
-  }, [navigation, route.params?.webBackParams, route.params?.webBackTo]);
-
-  useEffect(() => {
-    if (
-      Platform.OS !== 'web'
-      || !route.params?.webBackToHome
-      || typeof window === 'undefined'
-    ) {
-      return undefined;
-    }
-
-    const handleBrowserBackToHome = () => {
-      setTimeout(navigateWebHome, 0);
-    };
-
-    window.addEventListener('popstate', handleBrowserBackToHome);
-
-    return () => {
-      window.removeEventListener('popstate', handleBrowserBackToHome);
-    };
-  }, [navigateWebHome, route.params?.webBackToHome]);
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
@@ -784,6 +743,7 @@ const GuesthouseDetail = ({route}) => {
         <ScrollView
           ref={pagerRef}
           horizontal
+          scrollEnabled={swipeEnabled}
           pagingEnabled
           nestedScrollEnabled
           bounces={false}

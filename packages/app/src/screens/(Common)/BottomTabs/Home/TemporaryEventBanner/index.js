@@ -7,6 +7,7 @@ import styles from './TemporaryEventBanner.styles';
 import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
 import AlertModal from '@components/modals/AlertModal';
+import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { showErrorModal } from '@utils/loginModalHub';
@@ -204,6 +205,7 @@ const TemporaryEventBanner = () => {
     message: '',
     navigateOnConfirm: false,
   });
+  const [loginPromptVisible, setLoginPromptVisible] = React.useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -301,6 +303,11 @@ const TemporaryEventBanner = () => {
   }, []);
 
   const showLoginRequiredModal = useCallback(() => {
+    if (Platform.OS === 'web') {
+      setLoginPromptVisible(true);
+      return;
+    }
+
     showErrorModal({
       message: '로그인 후 다운로드 가능합니다',
       buttonText2: '취소',
@@ -425,6 +432,10 @@ const TemporaryEventBanner = () => {
         buttonText="확인"
         onPress={closeAlert}
         onRequestClose={closeAlert}
+      />
+      <LoginAppPromptModal
+        visible={loginPromptVisible}
+        onClose={() => setLoginPromptVisible(false)}
       />
     </View>
   );
