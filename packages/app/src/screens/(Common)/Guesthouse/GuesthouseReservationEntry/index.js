@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {Calendar} from 'react-native-calendars';
 import {useNavigation} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -8,6 +8,7 @@ import 'dayjs/locale/ko';
 
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
+import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
 import {CALENDAR_COMMON_PROPS, CALENDAR_THEME} from '@constants/calendarConfig';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -94,6 +95,7 @@ const GuesthouseReservationEntry = ({route}) => {
     extraPersonCount: params.extraPersonCount,
     extraPersonTotalPrice: params.extraPersonTotalPrice,
   });
+  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const nights = getNightCount(selectedCheckIn, selectedCheckOut);
   const calendarCurrentDate = `${currentMonth}-01`;
   const extraGuestUnitPrice = Number(roomInfo.extraPersonPrice || 0);
@@ -357,6 +359,11 @@ const GuesthouseReservationEntry = ({route}) => {
       return;
     }
 
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     navigation.navigate('GuesthouseReservation', {
       ...params,
       ...roomInfo,
@@ -556,6 +563,10 @@ const GuesthouseReservationEntry = ({route}) => {
           disabled={!selectedCheckIn || !selectedCheckOut}
         />
       </View>
+      <GuesthouseReservationAppPromptModal
+        visible={appPromptVisible}
+        onClose={() => setAppPromptVisible(false)}
+      />
     </View>
   );
 };

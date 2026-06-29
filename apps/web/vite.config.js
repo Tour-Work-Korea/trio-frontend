@@ -90,6 +90,7 @@ export default defineConfig(({mode}) => {
   ],
   define: {
     __DEV__: JSON.stringify(process.env.NODE_ENV !== 'production'),
+    global: 'globalThis',
     'globalThis.__TRIO_ENV__': JSON.stringify(clientEnv),
   },
   resolve: {

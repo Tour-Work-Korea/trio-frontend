@@ -6,14 +6,40 @@ const ANDROID_STORE_URL =
   'https://play.google.com/store/apps/details?id=com.triofrontendapp&pcampaignid=web_share';
 const FALLBACK_DELAY_MS = 1400;
 
-const getStoreUrl = () => {
-  const userAgent = window.navigator?.userAgent ?? '';
+export const APP_STORE_URLS = {
+  ios: IOS_STORE_URL,
+  android: ANDROID_STORE_URL,
+};
+
+export const getWebUserAgent = () =>
+  typeof window === 'undefined' ? '' : window.navigator?.userAgent ?? '';
+
+export const getWebDeviceType = () => {
+  const userAgent = getWebUserAgent();
 
   if (/Android/i.test(userAgent)) {
+    return 'android';
+  }
+
+  if (/iPhone|iPad|iPod/i.test(userAgent)) {
+    return 'ios';
+  }
+
+  return 'desktop';
+};
+
+export const getStoreUrlForWebDevice = () => {
+  const deviceType = getWebDeviceType();
+
+  if (deviceType === 'android') {
     return ANDROID_STORE_URL;
   }
 
-  return IOS_STORE_URL;
+  if (deviceType === 'ios') {
+    return IOS_STORE_URL;
+  }
+
+  return null;
 };
 
 const escapeHtml = value =>
@@ -112,7 +138,7 @@ export const openAppOrStoreFromWeb = deepLinkUrl => {
     return false;
   }
 
-  const storeUrl = getStoreUrl();
+  const storeUrl = getStoreUrlForWebDevice() || IOS_STORE_URL;
   const targetWindow = window.open('', '_blank');
 
   if (!targetWindow) {

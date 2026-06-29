@@ -33,6 +33,7 @@ import {formatGuesthouseAddress} from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
+import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
@@ -136,6 +137,7 @@ const GuesthouseDetail = ({route}) => {
   // 날짜, 인원 변경
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
   const [loginModalVisible, setLoginModalVisible] = useState(false);
+  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
   // 화면 내부 표시/전달용 로컬 상태
   const [localCheckIn, setLocalCheckIn] = useState(checkIn);
   const [localCheckOut, setLocalCheckOut] = useState(checkOut);
@@ -813,6 +815,10 @@ const GuesthouseDetail = ({route}) => {
                 textColor={COLORS.grayscale_0}
                 onPress={() => {
                   setLoginModalVisible(false);
+                  if (Platform.OS === 'web') {
+                    setLoginPromptVisible(true);
+                    return;
+                  }
                   navigation.navigate('Login');
                 }}
                 style={styles.loginModalButton}
@@ -821,6 +827,10 @@ const GuesthouseDetail = ({route}) => {
           </View>
         </View>
       ) : null}
+      <LoginAppPromptModal
+        visible={loginPromptVisible}
+        onClose={() => setLoginPromptVisible(false)}
+      />
     </View>
   );
 };

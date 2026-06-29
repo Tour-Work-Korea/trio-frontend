@@ -44,6 +44,7 @@ import {
   getGuesthouseMapBoundsByRegionIds,
 } from '@constants/guesthouseMapRegions';
 import {WEB_ROUTES} from '@web/routes';
+import {pushWebPath} from '@web/navigation';
 
 const EMPTY_REGION_IDS = [];
 const EMPTY_CATEGORY_TAGS = [];
@@ -132,12 +133,12 @@ const shouldUseInitialMapView = initialMapView => {
     && window.location?.pathname === WEB_ROUTES.MAP;
 };
 
-const goToWebPath = path => {
+const pushGuesthouseWebPath = path => {
   if (Platform.OS !== 'web' || typeof window === 'undefined') {
     return false;
   }
 
-  window.location.assign(path);
+  pushWebPath(path, {__trioNavigation: true});
   return true;
 };
 
@@ -743,11 +744,16 @@ const GuesthouseList = () => {
             resetKey={mapResetKey}
             onPressListToggle={() => {
               manualListModeRef.current = true;
-              if (!goToWebPath(WEB_ROUTES.GUESTHOUSES)) {
+              if (pushGuesthouseWebPath(WEB_ROUTES.GUESTHOUSES)) {
                 setLoading(false);
                 setViewModeVersion(prev => prev + 1);
                 setIsMapView(false);
+                return;
               }
+
+              setLoading(false);
+              setViewModeVersion(prev => prev + 1);
+              setIsMapView(false);
             }}
           />
         </View>
@@ -794,11 +800,16 @@ const GuesthouseList = () => {
             style={styles.mapButton}
             onPress={() => {
               manualListModeRef.current = false;
-              if (!goToWebPath(WEB_ROUTES.MAP)) {
+              if (pushGuesthouseWebPath(WEB_ROUTES.MAP)) {
                 setLoading(false);
                 setViewModeVersion(prev => prev + 1);
                 setIsMapView(true);
+                return;
               }
+
+              setLoading(false);
+              setViewModeVersion(prev => prev + 1);
+              setIsMapView(true);
             }}
           >
             <MapIcon width={20} height={20} />

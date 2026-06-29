@@ -34,6 +34,15 @@ body,
   font-family: "Pretendard-Regular", -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
 }
 
+:where(a, button, input, textarea, select, summary, [tabindex], [role="button"]) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(a, button, input, textarea, select, summary, [tabindex], [role="button"]):focus,
+:where(a, button, input, textarea, select, summary, [tabindex], [role="button"]):focus-visible {
+  outline: none;
+}
+
 input,
 textarea,
 select {

@@ -1,4 +1,4 @@
-import React, {useEffect, useMemo, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   Image,
@@ -40,6 +40,8 @@ import PhotoIcon from '@assets/images/add_image_gray.svg';
 import LocationPinIcon from '@assets/images/map_pin_fill_orange.svg';
 import XIcon from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
+import {replaceWebPath} from '@web/navigation';
+import {WEB_ROUTES} from '@web/routes';
 
 const COMMENT_MAX_LENGTH = 300;
 const COMMENT_PAGE_SIZE = 20;
@@ -184,6 +186,18 @@ const CommunityDetail = ({route}) => {
   const hasCommentImages = commentImages.length > 0;
   const canWriteComment =
     currentUserRole === 'USER' || currentUserRole === 'ADMIN';
+  const navigateWebCommunity = useCallback(() => {
+    replaceWebPath(WEB_ROUTES.COMMUNITY);
+    navigation.navigate('MainTabs', {screen: '커뮤니티'});
+  }, [navigation]);
+  const handlePressBack = useCallback(() => {
+    if (Platform.OS === 'web') {
+      navigateWebCommunity();
+      return;
+    }
+
+    navigation.goBack();
+  }, [navigateWebCommunity, navigation]);
 
   useEffect(() => {
     const resolveCommentAnchor = async () => {
@@ -1455,7 +1469,7 @@ const CommunityDetail = ({route}) => {
       behavior={undefined}>
       <Header
         title={post?.categoryDisplayName || ''}
-        onPress={() => navigation.goBack()}
+        onPress={handlePressBack}
       />
 
       {isLoading ? (
