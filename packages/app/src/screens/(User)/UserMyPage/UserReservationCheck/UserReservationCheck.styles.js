@@ -37,6 +37,13 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  tabPagerContent: {
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
+      },
+    }),
+  },
   tabPage: {
     flex: 1,
   },

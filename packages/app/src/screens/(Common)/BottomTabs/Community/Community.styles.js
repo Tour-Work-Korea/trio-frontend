@@ -21,6 +21,11 @@ const styles = StyleSheet.create({
   },
   pagerContent: {
     flexGrow: 1,
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
+      },
+    }),
   },
   page: {
     flex: 1,

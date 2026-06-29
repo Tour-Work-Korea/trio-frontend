@@ -37,6 +37,7 @@ const UserReservationCheck = () => {
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TABS,
     initialKey: 'upcoming',
@@ -138,6 +139,7 @@ const UserReservationCheck = () => {
             ref={pagerRef}
             horizontal
             scrollEnabled={swipeEnabled}
+            directionalLockEnabled
             pagingEnabled
             nestedScrollEnabled
             bounces={false}
@@ -147,6 +149,8 @@ const UserReservationCheck = () => {
             onScrollEndDrag={onScrollEndDrag}
             onMomentumScrollEnd={onMomentumScrollEnd}
             scrollEventThrottle={16}
+            contentContainerStyle={styles.tabPagerContent}
+            {...webSwipeHandlers}
             style={styles.tabPager}>
             {TABS.map(tab => (
               <View

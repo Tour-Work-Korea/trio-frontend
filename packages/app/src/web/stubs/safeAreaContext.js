@@ -4,10 +4,13 @@ import {View} from 'react-native';
 const ALL_EDGES = ['top', 'right', 'bottom', 'left'];
 
 const SAFE_AREA_STYLE_BY_EDGE = {
-  top: {paddingTop: 'env(safe-area-inset-top)'},
-  right: {paddingRight: 'env(safe-area-inset-right)'},
-  bottom: {paddingBottom: 'env(safe-area-inset-bottom)'},
-  left: {paddingLeft: 'env(safe-area-inset-left)'},
+  top: {
+    paddingTop:
+      'max(env(safe-area-inset-top, 0px), var(--trio-safe-area-top, 0px))',
+  },
+  right: {paddingRight: 'env(safe-area-inset-right, 0px)'},
+  bottom: {paddingBottom: 'env(safe-area-inset-bottom, 0px)'},
+  left: {paddingLeft: 'env(safe-area-inset-left, 0px)'},
 };
 
 export function SafeAreaProvider({children}) {

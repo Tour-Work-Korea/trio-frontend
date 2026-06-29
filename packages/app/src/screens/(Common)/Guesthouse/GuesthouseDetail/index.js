@@ -102,6 +102,7 @@ const GuesthouseDetail = ({route}) => {
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TAB_OPTIONS,
     initialKey: 'room',
@@ -122,7 +123,10 @@ const GuesthouseDetail = ({route}) => {
   const modalImages = sortedImages;
 
   const {width: SCREEN_W} = Dimensions.get('window');
-  const IMAGE_H = 280;
+  const HEADER_IMAGE_W = Platform.OS === 'web'
+    ? Math.min(SCREEN_W, 430)
+    : SCREEN_W;
+  const HEADER_IMAGE_H = Platform.OS === 'web' ? 220 : 280;
 
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
@@ -469,8 +473,8 @@ const GuesthouseDetail = ({route}) => {
         {/* 대표 이미지 */}
         {hasImages && !hideHeaderCarouselForImageModal ? (
           <Carousel
-            width={SCREEN_W}
-            height={IMAGE_H}
+            width={HEADER_IMAGE_W}
+            height={HEADER_IMAGE_H}
             data={sortedImages}
             defaultIndex={thumbnailIndex} // 썸네일부터 시작
             loop={false}
@@ -484,14 +488,21 @@ const GuesthouseDetail = ({route}) => {
               >
                 <Image
                   source={{uri: item.guesthouseImageUrl}}
-                  style={styles.mainImage}
+                  style={[
+                    styles.mainImage,
+                    Platform.OS === 'web' && styles.mainImageWeb,
+                  ]}
                 />
               </TouchableOpacity>
             )}
           />
         ) : (
           <View
-            style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
+            style={[
+              styles.mainImage,
+              Platform.OS === 'web' && styles.mainImageWeb,
+              {backgroundColor: COLORS.grayscale_200},
+            ]}
           />
         )}
 
@@ -746,6 +757,7 @@ const GuesthouseDetail = ({route}) => {
           ref={pagerRef}
           horizontal
           scrollEnabled={swipeEnabled}
+          directionalLockEnabled
           pagingEnabled
           nestedScrollEnabled
           bounces={false}
@@ -755,6 +767,8 @@ const GuesthouseDetail = ({route}) => {
           onScrollEndDrag={onScrollEndDrag}
           onMomentumScrollEnd={onMomentumScrollEnd}
           scrollEventThrottle={16}
+          contentContainerStyle={styles.tabPagerContent}
+          {...webSwipeHandlers}
           style={styles.tabPager}>
           {TAB_OPTIONS.map(tab => (
             <View

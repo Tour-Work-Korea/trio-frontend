@@ -72,14 +72,27 @@
     <script>
       (function () {
         function setViewportHeight() {
+          var visualViewport = window.visualViewport;
           var height =
-            window.visualViewport && window.visualViewport.height
-              ? window.visualViewport.height
+            visualViewport && visualViewport.height
+              ? visualViewport.height
               : window.innerHeight;
+          var isMobileWeb =
+            window.matchMedia &&
+            window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+          var topOffset =
+            visualViewport && Number.isFinite(visualViewport.offsetTop)
+              ? visualViewport.offsetTop
+              : 0;
+          var mobileTopInset = isMobileWeb ? 12 : 0;
 
           document.documentElement.style.setProperty(
             '--trio-vh',
             height + 'px',
+          );
+          document.documentElement.style.setProperty(
+            '--trio-safe-area-top',
+            Math.max(topOffset, mobileTopInset) + 'px',
           );
         }
 
