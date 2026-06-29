@@ -7,11 +7,15 @@ import {
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
+  Platform,
 } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
+const APP_FRAME_WIDTH = Platform.OS === 'web'
+  ? Math.min(SCREEN_WIDTH, 430)
+  : SCREEN_WIDTH;
 
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
@@ -27,7 +31,7 @@ import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 
 const PAGE_SIZE = 10;
-const TRENDING_CARD_WIDTH = SCREEN_WIDTH * 0.9;
+const TRENDING_CARD_WIDTH = APP_FRAME_WIDTH * 0.9;
 const TRENDING_CARD_GAP = 16;
 const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 
@@ -330,7 +334,7 @@ const PopularGuesthouseList = () => {
             }}
             scrollEventThrottle={16}
             contentContainerStyle={{
-              paddingHorizontal: (SCREEN_WIDTH - TRENDING_CARD_WIDTH) / 2,
+              paddingHorizontal: (APP_FRAME_WIDTH - TRENDING_CARD_WIDTH) / 2,
             }}
             decelerationRate="fast"
             snapToInterval={TRENDING_SNAP_INTERVAL}

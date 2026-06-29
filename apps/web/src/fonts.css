@@ -49,6 +49,7 @@ select {
   outline: none;
   -webkit-tap-highlight-color: transparent;
   box-shadow: none;
+  font-size: max(16px, 1em) !important;
 }
 
 input:focus,

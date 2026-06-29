@@ -87,6 +87,7 @@ const Community = () => {
     isActive,
     onTabPress,
     pageWidth,
+    swipeEnabled,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,
@@ -227,6 +228,7 @@ const Community = () => {
       <ScrollView
         ref={pagerRef}
         horizontal
+        scrollEnabled={swipeEnabled}
         pagingEnabled
         nestedScrollEnabled
         bounces={false}

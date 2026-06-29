@@ -12,7 +12,7 @@ const canUseBrowserHistory =
   typeof window !== 'undefined' &&
   typeof window.history !== 'undefined' &&
   typeof window.addEventListener === 'function';
-let webHistoryIndex = 0;
+const WEB_BACK_ROUTE_PARAM = '__webBackRoute';
 
 export const CommonActions = {
   navigate: (name, params) => ({type: 'NAVIGATE', payload: {name, params}}),
@@ -150,11 +150,13 @@ function getFirstParam(params, keys) {
 }
 
 function encodeExtraParams(params) {
-  if (params == null || Object.keys(params).length === 0) {
+  const publicParams = stripInternalParams(params);
+
+  if (publicParams == null || Object.keys(publicParams).length === 0) {
     return '';
   }
 
-  return `?params=${encodeURIComponent(JSON.stringify(params))}`;
+  return `?params=${encodeURIComponent(JSON.stringify(publicParams))}`;
 }
 
 function decodeExtraParams(search = '') {
@@ -169,6 +171,91 @@ function decodeExtraParams(search = '') {
 
 function withParams(path, params) {
   return `${path}${encodeExtraParams(params)}`;
+}
+
+function withRouteParams(routeName, path, params) {
+  if (
+    routeName === 'PopularGuesthouseList'
+    || routeName === 'PopularMeetList'
+    || routeName === 'PopularEmployList'
+  ) {
+    return path;
+  }
+
+  return withParams(path, params);
+}
+
+function stripInternalParams(params) {
+  if (params == null || typeof params !== 'object' || Array.isArray(params)) {
+    return params;
+  }
+
+  return Object.entries(params).reduce((acc, [key, value]) => {
+    if (!key.startsWith('__web')) {
+      acc[key] = value;
+    }
+
+    return acc;
+  }, {});
+}
+
+function createNestedWebBackRoute(route, childBackRoute, navigatorKind) {
+  if (!route?.name) {
+    return childBackRoute || null;
+  }
+
+  if (navigatorKind === 'bottom-tabs') {
+    return {
+      name: 'MainTabs',
+      params: {
+        screen: route.name,
+        params: childBackRoute
+          ? {
+            screen: childBackRoute.name,
+            params: childBackRoute.params,
+          }
+          : route.params,
+      },
+    };
+  }
+
+  if (!childBackRoute) {
+    return {
+      name: route.name,
+      params: route.params,
+    };
+  }
+
+  return {
+    name: route.name,
+    params: {
+      ...route.params,
+      screen: childBackRoute.name,
+      params: childBackRoute.params,
+    },
+  };
+}
+
+function getWebBackRoute(params) {
+  return params?.[WEB_BACK_ROUTE_PARAM] || null;
+}
+
+function withWebBackRoute(params, route, navigatorKind) {
+  const childBackRoute = getWebBackRoute(params);
+  const webBackRoute = createNestedWebBackRoute(
+    route,
+    childBackRoute,
+    navigatorKind,
+  );
+
+  if (!webBackRoute) {
+    return params;
+  }
+
+  return {
+    ...params,
+    [WEB_BACK_ROUTE_PARAM]: webBackRoute,
+  };
 }
 
 function getDefaultGuesthouseDetailParams() {
@@ -198,6 +285,18 @@ function routeToWebPath(route) {
 
   if (route.name === 'MainTabs') {
     const screen = route.params?.screen;
+    const nestedScreen = route.params?.params?.screen;
+
+    if (nestedScreen) {
+      const nestedPath = routeToWebPath({
+        name: nestedScreen,
+        params: route.params?.params?.params,
+      });
+
+      if (nestedPath) {
+        return nestedPath;
+      }
+    }
 
     if (screen === '지도') {
       const initialMapView =
@@ -273,8 +372,11 @@ function routeToWebPath(route) {
     return withParams(WEB_ROUTES.GUESTHOUSE_REVIEW, route.params);
   }
 
-  if (route.name === 'GuesthouseDetail' && route.params?.id != null) {
-    return withParams(WEB_ROUTES.GUESTHOUSE_DETAIL(route.params.id), route.params);
+  if (route.name === 'GuesthouseDetail') {
+    const id = getFirstParam(route.params, ['id', 'guesthouseId']);
+    return id == null
+      ? withParams('/guesthouses/detail', route.params)
+      : withParams(WEB_ROUTES.GUESTHOUSE_DETAIL(id), route.params);
   }
 
   if (route.name === 'GuesthouseLocationMap') {
@@ -345,7 +447,7 @@ function routeToWebPath(route) {
   const staticPath = WEB_STATIC_ROUTE_BY_SCREEN[route.name];
 
   if (staticPath) {
-    return withParams(staticPath, route.params);
+    return withRouteParams(route.name, staticPath, route.params);
   }
 
   return null;
@@ -651,16 +753,14 @@ function getInitialRoute(childScreens, firstScreen, parentParams) {
   };
 }
 
-function pushBrowserHistory(route) {
+function replaceBrowserHistory(route) {
   if (!canUseBrowserHistory) {
     return;
   }
 
-  webHistoryIndex += 1;
-  window.history.pushState(
+  window.history.replaceState(
     {
       __trioNavigation: true,
-      index: webHistoryIndex,
       route: {
         name: route.name,
         params: route.params,
@@ -715,7 +815,10 @@ export function createNavigatorFactory(defaultKind = 'stack') {
 
         const ownsRoute = childScreens.some(child => child.props.name === next.name);
         if (!ownsRoute) {
-          parentNavigation?.navigate?.(nameOrOptions, params);
+          parentNavigation?.navigate?.(
+            next.name,
+            withWebBackRoute(next.params, routeRef.current, defaultKind),
+          );
           return;
         }
 
@@ -723,65 +826,29 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         const nextRoute = {name: next.name, params: next.params};
 
         setRoute(nextRoute);
-        pushBrowserHistory(nextRoute);
+        replaceBrowserHistory(nextRoute);
       },
       [childScreens, parentNavigation],
     );
 
     const goBack = useCallback(() => {
-      if (canUseBrowserHistory && historyRef.current.length > 0) {
-        window.history.back();
+      const webBackRoute = getWebBackRoute(routeRef.current?.params);
+
+      if (webBackRoute?.name) {
+        setRoute(webBackRoute);
+        replaceBrowserHistory(webBackRoute);
         return;
       }
 
       const previous = historyRef.current.pop();
       if (previous) {
         setRoute(previous);
+        replaceBrowserHistory(previous);
         return;
       }
 
       parentNavigation?.goBack?.();
     }, [parentNavigation]);
-
-    useEffect(() => {
-      if (!canUseBrowserHistory) {
-        return undefined;
-      }
-
-      const handlePopState = event => {
-        const stateRoute = event?.state?.route;
-        const ownsStateRoute =
-          stateRoute?.name
-          && childScreens.some(child => child.props.name === stateRoute.name);
-
-        if (ownsStateRoute) {
-          setRoute({name: stateRoute.name, params: stateRoute.params});
-          return;
-        }
-
-        if (stateRoute?.name && !parentNavigation?.__isRootFallback) {
-          const previous = historyRef.current.pop();
-
-          if (previous) {
-            setRoute(previous);
-          }
-
-          return;
-        }
-
-        const previous = historyRef.current.pop();
-
-        if (previous) {
-          setRoute(previous);
-        }
-      };
-
-      window.addEventListener('popstate', handlePopState);
-
-      return () => {
-        window.removeEventListener('popstate', handlePopState);
-      };
-    }, [childScreens, parentNavigation?.__isRootFallback]);
 
     const navigation = useMemo(
       () => ({

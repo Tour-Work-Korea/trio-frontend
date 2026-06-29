@@ -33,8 +33,8 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     width: '100%',
-    minHeight: '100vh',
-    height: '100vh',
+    minHeight: 'var(--trio-vh, 100dvh)',
+    height: 'var(--trio-vh, 100dvh)',
     backgroundColor: COLORS.grayscale_100,
   },
   appFrame: {
