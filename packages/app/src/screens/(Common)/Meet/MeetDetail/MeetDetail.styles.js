@@ -172,6 +172,13 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  tabPagerContent: {
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
+      },
+    }),
+  },
   tabPage: {
     flexShrink: 0,
   },

@@ -17,12 +17,14 @@ export default function useSwipeTabs({
   tabs = [],
   initialKey,
   onChange,
-  swipeEnabled = Platform.OS !== 'web',
+  swipeEnabled = true,
 } = {}) {
   const pagerRef = useRef(null);
   const pendingScrollRef = useRef(null);
   const scrollEndTimeoutRef = useRef(null);
+  const webTouchStartRef = useRef(null);
   const [pageWidth, setPageWidth] = useState(0);
+  const nativeScrollEnabled = swipeEnabled && Platform.OS !== 'web';
 
   const tabKeys = useMemo(
     () => tabs.map(tab => tab?.key).filter(Boolean),
@@ -178,21 +180,21 @@ export default function useSwipeTabs({
         scrollEndTimeoutRef.current = null;
       }
 
-      if (!swipeEnabled) {
+      if (!nativeScrollEnabled) {
         scrollToIndex(activeIndexRef.current, false);
         return;
       }
 
       syncIndexFromOffset(getOffsetX(event));
     },
-    [getOffsetX, scrollToIndex, swipeEnabled, syncIndexFromOffset],
+    [getOffsetX, nativeScrollEnabled, scrollToIndex, syncIndexFromOffset],
   );
 
   const onScroll = useCallback(
     event => {
       const offsetX = getOffsetX(event);
 
-      if (!swipeEnabled) {
+      if (!nativeScrollEnabled) {
         scrollToIndex(activeIndexRef.current, false);
         return;
       }
@@ -206,14 +208,14 @@ export default function useSwipeTabs({
         syncIndexFromOffset(offsetX);
       }, 120);
     },
-    [getOffsetX, scrollToIndex, swipeEnabled, syncIndexFromOffset],
+    [getOffsetX, nativeScrollEnabled, scrollToIndex, syncIndexFromOffset],
   );
 
   const onScrollEndDrag = useCallback(
     event => {
       const offsetX = getOffsetX(event);
 
-      if (!swipeEnabled) {
+      if (!nativeScrollEnabled) {
         scrollToIndex(activeIndexRef.current, false);
         return;
       }
@@ -227,8 +229,65 @@ export default function useSwipeTabs({
         syncIndexFromOffset(offsetX);
       }, 120);
     },
-    [getOffsetX, scrollToIndex, swipeEnabled, syncIndexFromOffset],
+    [getOffsetX, nativeScrollEnabled, scrollToIndex, syncIndexFromOffset],
   );
+
+  const getTouchPoint = useCallback(event => {
+    const nativeEvent = event?.nativeEvent ?? {};
+    const touch = nativeEvent.changedTouches?.[0] ?? nativeEvent.touches?.[0];
+
+    if (!touch) {
+      return null;
+    }
+
+    return {
+      x: Number(touch.pageX ?? touch.clientX ?? 0),
+      y: Number(touch.pageY ?? touch.clientY ?? 0),
+    };
+  }, []);
+
+  const webSwipeHandlers = useMemo(() => {
+    if (Platform.OS !== 'web' || !swipeEnabled) {
+      return {};
+    }
+
+    return {
+      onTouchStart: event => {
+        webTouchStartRef.current = getTouchPoint(event);
+      },
+      onTouchEnd: event => {
+        const start = webTouchStartRef.current;
+        webTouchStartRef.current = null;
+
+        if (!start) {
+          return;
+        }
+
+        const end = getTouchPoint(event);
+        if (!end) {
+          return;
+        }
+
+        const deltaX = end.x - start.x;
+        const deltaY = end.y - start.y;
+        const absX = Math.abs(deltaX);
+        const absY = Math.abs(deltaY);
+
+        if (absX < 48 || absX < absY * 1.25) {
+          return;
+        }
+
+        const direction = deltaX < 0 ? 1 : -1;
+        setIndex(activeIndexRef.current + direction, {
+          animated: true,
+          syncScroll: true,
+        });
+      },
+      onTouchCancel: () => {
+        webTouchStartRef.current = null;
+      },
+    };
+  }, [getTouchPoint, setIndex, swipeEnabled]);
 
   useEffect(() => () => {
     if (scrollEndTimeoutRef.current) {
@@ -250,7 +309,7 @@ export default function useSwipeTabs({
       return;
     }
 
-    scrollToIndex(activeIndex, false);
+    scrollToIndex(activeIndexRef.current, false);
   }, [pageWidth, scrollToIndex]);
 
   return {
@@ -263,6 +322,7 @@ export default function useSwipeTabs({
     setKey,
     setIndex,
     swipeEnabled,
+    webSwipeHandlers,
     onPagerLayout,
     onScroll,
     onScrollEndDrag,

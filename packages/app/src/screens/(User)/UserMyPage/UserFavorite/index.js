@@ -35,6 +35,7 @@ const UserFavorite = () => {
     onScroll,
     onScrollEndDrag,
     onMomentumScrollEnd,
+    webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TAB_ITEMS,
     initialKey: 'guesthouse',
@@ -71,6 +72,7 @@ const UserFavorite = () => {
         ref={pagerRef}
         horizontal
         scrollEnabled={swipeEnabled}
+        directionalLockEnabled
         pagingEnabled
         nestedScrollEnabled
         bounces={false}
@@ -80,6 +82,8 @@ const UserFavorite = () => {
         onScrollEndDrag={onScrollEndDrag}
         onMomentumScrollEnd={onMomentumScrollEnd}
         scrollEventThrottle={16}
+        contentContainerStyle={styles.contentContainer}
+        {...webSwipeHandlers}
         style={styles.content}>
         <View style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
           <UserFavoriteGuesthouse hideHeader />
@@ -124,6 +128,13 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
+    ...Platform.select({
+      web: {
+        touchAction: 'pan-y',
+      },
+    }),
+  },
+  contentContainer: {
     ...Platform.select({
       web: {
         touchAction: 'pan-y',
