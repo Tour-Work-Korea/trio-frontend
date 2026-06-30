@@ -17,7 +17,7 @@ import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
-import ChevronLeft from '@assets/images/chevron_left_gray.svg';
+import ChevronLeft from '@assets/images/chevron_left_black.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import Person from '@assets/images/person20_gray.svg';
@@ -371,7 +371,7 @@ const GuesthouseSearch = () => {
           </View>
         ) : (
           <View style={styles.regionImgPlaceholder}>
-            <IconComponent width={50} height={50} />
+            <IconComponent width={40} height={40} />
           </View>
         )}
         <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
@@ -439,26 +439,27 @@ const GuesthouseSearch = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <View style={styles.header}>
+        <View style={styles.searchRow}>
           <TouchableOpacity
             activeOpacity={0.8}
-            style={styles.backButton}
+            hitSlop={8}
+            style={styles.searchBackButton}
             onPress={() => navigation.goBack()}>
-            <ChevronLeft width={28} height={28} />
+            <ChevronLeft width={24} height={24} />
           </TouchableOpacity>
-        </View>
 
-        {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
-        <View style={styles.searchBar}>
-          <SearchIcon width={20} height={20} />
-          <TextInput
-            style={styles.searchInput}
-            placeholder="찾는 게하가 있으신가요?"
-            placeholderTextColor={COLORS.grayscale_700}
-            value={searchTerm}
-            onChangeText={handleChangeSearchTerm}
-            returnKeyType="search"
-          />
+          {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
+          <View style={styles.searchBar}>
+            <SearchIcon width={24} height={24} />
+            <TextInput
+              style={styles.searchInput}
+              placeholder="찾는 게하가 있으신가요?"
+              placeholderTextColor={COLORS.grayscale_700}
+              value={searchTerm}
+              onChangeText={handleChangeSearchTerm}
+              returnKeyType="search"
+            />
+          </View>
         </View>
 
         <View style={styles.selectRow}>
@@ -476,15 +477,6 @@ const GuesthouseSearch = () => {
 
           <TouchableOpacity
             activeOpacity={1}
-            style={styles.filterButtonContainer}
-            onPress={() => {
-              setFilterModalVisible(true);
-            }}>
-            <FilterIcon width={18} height={18} />
-            <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
             style={styles.personRoomContainer}
             onPress={() => {
               setModalInitialSection('guest');
@@ -494,6 +486,16 @@ const GuesthouseSearch = () => {
             <Text style={[FONTS.fs_14_medium, styles.personText]}>
               {`인원 ${adultCount + childCount}`}
             </Text>
+          </TouchableOpacity>
+
+          <TouchableOpacity
+            activeOpacity={1}
+            style={styles.filterButtonContainer}
+            onPress={() => {
+              setFilterModalVisible(true);
+            }}>
+            <FilterIcon width={18} height={18} />
+            <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
           </TouchableOpacity>
         </View>
 
