@@ -29,12 +29,12 @@ const notificationApi = {
 
   // 알림 설정 조회
   getSettings: () => {
-    return api.get('/notifications/settings');
+    return api.get('/user/notifications/settings');
   },
 
   // 알림 설정 변경
   updateSettings: ({isPushEnabled, isEventEnabled}) => {
-    return api.put('/notifications/settings', {
+    return api.put('/user/notifications/settings', {
       isPushEnabled,
       isEventEnabled,
     });

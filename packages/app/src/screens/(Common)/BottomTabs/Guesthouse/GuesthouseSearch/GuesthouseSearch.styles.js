@@ -4,23 +4,33 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_100,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  header: {
+    justifyContent: 'center',
+    paddingHorizontal: 12,
+  },
+  backButton: {
+    marginTop: 16,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
   },
   headerText: {
     color: COLORS.grayscale_800,
-    lineHeight: 28,
     textAlign: 'center',
   },
   searchBar: {
     flexDirection: 'row',
     alignItems: 'center',
     backgroundColor: COLORS.grayscale_0,
+    height: 38,
     marginHorizontal: 20,
-    marginVertical: 16,
-    paddingVertical: 10,
-    paddingLeft: 8,
-    paddingRight: 8,
-    borderRadius: 20,
+    marginBottom: 16,
+    marginTop: 8,
+    paddingHorizontal: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 19,
   },
   searchInput: {
     flex: 1,
@@ -34,7 +44,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 10,
+    marginBottom: 16,
     marginHorizontal: 20,
   },
   dateContainer: {
@@ -148,7 +158,7 @@ const styles = StyleSheet.create({
   // 검색어 입력 후
   searchResultContainer: {
     backgroundColor: COLORS.grayscale_0,
-    paddingVertical: 16,
+    paddingTop: 0,
     paddingHorizontal: 20,
     flex: 1,
   },
