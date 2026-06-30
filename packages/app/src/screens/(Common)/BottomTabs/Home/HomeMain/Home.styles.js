@@ -360,4 +360,33 @@ export default StyleSheet.create({
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_400,
   },
+  footerContainer: {
+    paddingHorizontal: 20,
+    paddingTop: 24,
+    paddingBottom: 48,
+    gap: 24,
+  },
+  agreementLinkRow: {
+    flexDirection: 'row',
+    alignSelf: 'center',
+    alignItems: 'center',
+    gap: 16,
+  },
+  agreementDivider: {
+    backgroundColor: COLORS.grayscale_500,
+    height: 12,
+    width: 1,
+  },
+  agreementLinkText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+    textDecorationLine: 'underline',
+  },
+  businessInfoContainer: {
+    gap: 4,
+  },
+  businessInfoText: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+  },
 });
