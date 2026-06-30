@@ -30,7 +30,6 @@ const allCategory = {
   contentType: 'COMMUNITY',
 };
 const defaultCategories = [
-  {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
   allCategory,
   {
     id: 'GUESTHOUSE_RECOMMEND',
@@ -46,6 +45,7 @@ const defaultCategories = [
     displayName: '동행',
     contentType: 'COMMUNITY',
   },
+  {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
 ];
 
 const isStaffCategory = category =>
@@ -64,8 +64,8 @@ const withRequiredCategories = categories => {
     defaultCategories.find(isStaffCategory);
 
   return [
-    staffCategory,
     ...normalizedCategories.filter(category => !isStaffCategory(category)),
+    staffCategory,
   ];
 };
 
@@ -91,7 +91,7 @@ const Community = () => {
 
   const categoryTabs = useMemo(
     () =>
-      categories.map(category => ({
+      withRequiredCategories(categories).map(category => ({
         ...category,
         key: getCategoryKey(category),
       })),

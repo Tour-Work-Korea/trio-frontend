@@ -496,6 +496,26 @@ const GuesthouseList = () => {
   };
 
   const handlePressHeaderBack = useCallback(() => {
+    if (isMapView) {
+      manualListModeRef.current = true;
+      if (pushGuesthouseWebPath(WEB_ROUTES.GUESTHOUSES)) {
+        setLoading(false);
+        setViewModeVersion(prev => prev + 1);
+        setIsMapView(false);
+        return;
+      }
+
+      setLoading(false);
+      setViewModeVersion(prev => prev + 1);
+      setIsMapView(false);
+      return;
+    }
+
+    if (!fromHomeCategory && navigation.canGoBack()) {
+      navigation.goBack();
+      return;
+    }
+
     const tabNavigation = navigation.getParent?.();
     const homeRoute = {
       name: '홈',
@@ -511,7 +531,7 @@ const GuesthouseList = () => {
       screen: '홈',
       params: {screen: 'HomeMain'},
     });
-  }, [navigation]);
+  }, [fromHomeCategory, isMapView, navigation]);
 
   const homeBackPanResponder = useMemo(
     () =>
@@ -691,41 +711,36 @@ const GuesthouseList = () => {
         },
       ]}
       {...(fromHomeCategory ? homeBackPanResponder.panHandlers : {})}>
-      <View style={styles.header}>
-        {fromHomeCategory && (
-          <TouchableOpacity
-            activeOpacity={1}
-            hitSlop={8}
-            style={styles.backButton}
-            onPress={handlePressHeaderBack}>
-            <ChevronLeft width={24} height={24} />
-          </TouchableOpacity>
-        )}
-        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
-          게스트 하우스
-        </Text>
+      <View style={[styles.searchRow, styles.searchRowWithBack]}>
+        <TouchableOpacity
+          activeOpacity={1}
+          hitSlop={8}
+          style={styles.searchBackButton}
+          onPress={handlePressHeaderBack}>
+          <ChevronLeft width={24} height={24} />
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.searchContainer}
+          onPress={() => {
+            navigation.navigate('GuesthouseSearch', {
+              displayDate: displayDateState,
+              adultCount,
+              childCount,
+              searchText,
+              categoryTags: filterOptions.tags,
+              filterOptions,
+              sortBy,
+            });
+          }}>
+          <View style={styles.searchIconContainer}>
+            <SearchIcon width={24} height={24} />
+            <Text style={[FONTS.fs_14_regular, styles.searchText]}>
+              {searchText || '찾는 게하가 있으신가요?'}
+            </Text>
+          </View>
+        </TouchableOpacity>
       </View>
-      <TouchableOpacity
-        activeOpacity={1}
-        style={styles.searchContainer}
-        onPress={() => {
-          navigation.navigate('GuesthouseSearch', {
-            displayDate: displayDateState,
-            adultCount,
-            childCount,
-            searchText,
-            categoryTags: filterOptions.tags,
-            filterOptions,
-            sortBy,
-          });
-        }}>
-        <View style={styles.searchIconContainer}>
-          <SearchIcon width={24} height={24} />
-          <Text style={[FONTS.fs_14_regular, styles.searchText]}>
-            {searchText || '찾는 게하가 있으신가요?'}
-          </Text>
-        </View>
-      </TouchableOpacity>
 
       <View style={styles.selectRow}>
         <TouchableOpacity
@@ -745,15 +760,6 @@ const GuesthouseList = () => {
         </TouchableOpacity>
         <TouchableOpacity
           activeOpacity={1}
-          style={styles.filterButtonContainer}
-          onPress={() => {
-            setFilterModalVisible(true);
-          }}>
-          <FilterIcon width={18} height={18} />
-          <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={1}
           style={styles.personRoomContainer}
           onPress={() => {
             setTempDateGuest({checkIn, checkOut, adultCount, childCount});
@@ -764,6 +770,15 @@ const GuesthouseList = () => {
           <Text style={[FONTS.fs_14_medium, styles.personText]}>
             {`인원 ${adultCount + childCount}`}
           </Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.filterButtonContainer}
+          onPress={() => {
+            setFilterModalVisible(true);
+          }}>
+          <FilterIcon width={18} height={18} />
+          <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
         </TouchableOpacity>
       </View>
 
