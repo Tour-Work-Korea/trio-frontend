@@ -800,6 +800,7 @@ const GuesthouseList = () => {
               ]}
               onPress={() => handlePressCategoryFilter(tag)}>
               <Text
+                numberOfLines={1}
                 style={[
                   FONTS.fs_14_medium,
                   styles.categoryFilterText,
