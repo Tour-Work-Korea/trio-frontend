@@ -23,7 +23,7 @@ const onShouldStartLoadWithRequest = request => {
 };
 
 export default function AgreeDetail({route}) {
-  const {id, who = 'USER'} = route.params || {};
+  const {id, who = 'USER', headerTitle} = route.params || {};
   const scheme = useColorScheme();
   const navigation = useNavigation();
 
@@ -74,7 +74,7 @@ export default function AgreeDetail({route}) {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View />
-        <Text style={styles.titleText}>이용약관 동의</Text>
+        <Text style={styles.titleText}>{headerTitle || '이용약관 동의'}</Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <XBtn width={24} height={24} />
         </TouchableOpacity>

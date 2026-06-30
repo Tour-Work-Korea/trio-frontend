@@ -8,6 +8,9 @@ import {
   ActivityIndicator,
   ScrollView,
   Platform,
+  PanResponder,
+  Animated,
+  Dimensions,
 } from 'react-native';
 import {
   CommonActions,
@@ -329,6 +332,8 @@ const GuesthouseList = () => {
   });
   const [sortBy, setSortBy] = useState(routeSortBy);
   const [filterResultCount, setFilterResultCount] = useState(null);
+  const homeBackTranslateX = useRef(new Animated.Value(0)).current;
+  const screenWidth = useMemo(() => Dimensions.get('window').width, []);
 
   const fetchFilterResultCount = useCallback(async filters => {
     if (!checkIn || !checkOut || !regionBounds) {
@@ -490,7 +495,7 @@ const GuesthouseList = () => {
     });
   };
 
-  const handlePressHeaderBack = () => {
+  const handlePressHeaderBack = useCallback(() => {
     const tabNavigation = navigation.getParent?.();
     const homeRoute = {
       name: '홈',
@@ -506,7 +511,64 @@ const GuesthouseList = () => {
       screen: '홈',
       params: {screen: 'HomeMain'},
     });
-  };
+  }, [navigation]);
+
+  const homeBackPanResponder = useMemo(
+    () =>
+      PanResponder.create({
+        onPanResponderGrant: () => {
+          homeBackTranslateX.stopAnimation();
+        },
+        onPanResponderMove: (_, gestureState) => {
+          homeBackTranslateX.setValue(Math.max(0, gestureState.dx));
+        },
+        onMoveShouldSetPanResponder: (_, gestureState) =>
+          fromHomeCategory
+          && gestureState.x0 <= 80
+          && gestureState.dx > 12
+          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onMoveShouldSetPanResponderCapture: (_, gestureState) =>
+          fromHomeCategory
+          && gestureState.x0 <= 80
+          && gestureState.dx > 12
+          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+        onPanResponderRelease: (_, gestureState) => {
+          if (gestureState.dx >= 80 || gestureState.vx >= 0.7) {
+            Animated.timing(homeBackTranslateX, {
+              toValue: screenWidth,
+              duration: 180,
+              useNativeDriver: true,
+            }).start(({finished}) => {
+              if (!finished) {
+                return;
+              }
+
+              handlePressHeaderBack();
+              requestAnimationFrame(() => {
+                homeBackTranslateX.setValue(0);
+              });
+            });
+            return;
+          }
+
+          Animated.spring(homeBackTranslateX, {
+            toValue: 0,
+            tension: 90,
+            friction: 12,
+            useNativeDriver: true,
+          }).start();
+        },
+        onPanResponderTerminate: () => {
+          Animated.spring(homeBackTranslateX, {
+            toValue: 0,
+            tension: 90,
+            friction: 12,
+            useNativeDriver: true,
+          }).start();
+        },
+      }),
+    [fromHomeCategory, handlePressHeaderBack, homeBackTranslateX, screenWidth],
+  );
 
   const handlePressCategoryFilter = tag => {
     setFilterOptions(prev => {
@@ -621,7 +683,14 @@ const GuesthouseList = () => {
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View
+      style={[
+        styles.container,
+        fromHomeCategory && {
+          transform: [{translateX: homeBackTranslateX}],
+        },
+      ]}
+      {...(fromHomeCategory ? homeBackPanResponder.panHandlers : {})}>
       <View style={styles.header}>
         {fromHomeCategory && (
           <TouchableOpacity
@@ -653,7 +722,7 @@ const GuesthouseList = () => {
         <View style={styles.searchIconContainer}>
           <SearchIcon width={24} height={24} />
           <Text style={[FONTS.fs_14_regular, styles.searchText]}>
-            {searchText || '찾는 숙소가 있으신가요?'}
+            {searchText || '찾는 게하가 있으신가요?'}
           </Text>
         </View>
       </TouchableOpacity>
@@ -873,7 +942,7 @@ const GuesthouseList = () => {
         }}
         resultCount={filterResultCount}
       />
-    </View>
+    </Animated.View>
   );
 };
 

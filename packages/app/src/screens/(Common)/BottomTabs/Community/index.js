@@ -30,6 +30,7 @@ const allCategory = {
   contentType: 'COMMUNITY',
 };
 const defaultCategories = [
+  {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
   allCategory,
   {
     id: 'GUESTHOUSE_RECOMMEND',
@@ -45,13 +46,28 @@ const defaultCategories = [
     displayName: '동행',
     contentType: 'COMMUNITY',
   },
-  {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
 ];
 
-const withAllCategory = categories => [
-  allCategory,
-  ...categories.filter(category => category.code !== allCategory.code),
-];
+const isStaffCategory = category =>
+  category?.contentType === 'RECRUIT' ||
+  category?.code === 'STAFF' ||
+  category?.id === 'STAFF' ||
+  category?.displayName === '스탭';
+
+const withRequiredCategories = categories => {
+  const normalizedCategories = [
+    allCategory,
+    ...categories.filter(category => category.code !== allCategory.code),
+  ];
+  const staffCategory =
+    normalizedCategories.find(isStaffCategory) ??
+    defaultCategories.find(isStaffCategory);
+
+  return [
+    staffCategory,
+    ...normalizedCategories.filter(category => !isStaffCategory(category)),
+  ];
+};
 
 const getCategoryKey = category =>
   String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
@@ -59,6 +75,7 @@ const getCategoryKey = category =>
 const Community = () => {
   const navigation = useNavigation();
   const sortButtonRef = useRef(null);
+  const didSyncInitialTabRef = useRef(false);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [sortVisible, setSortVisible] = useState(false);
@@ -80,6 +97,7 @@ const Community = () => {
       })),
     [categories],
   );
+  const initialCategoryKey = getCategoryKey(allCategory);
 
   const {
     pagerRef,
@@ -87,6 +105,7 @@ const Community = () => {
     isActive,
     onTabPress,
     pageWidth,
+    setKey,
     swipeEnabled,
     onPagerLayout,
     onScroll,
@@ -95,7 +114,7 @@ const Community = () => {
     webSwipeHandlers,
   } = useSwipeTabs({
     tabs: categoryTabs,
-    initialKey: getCategoryKey(defaultCategories[0]),
+    initialKey: initialCategoryKey,
   });
 
   const activeCategory = categoryTabs[activeIndex] ?? categoryTabs[0];
@@ -106,7 +125,7 @@ const Community = () => {
       try {
         const response = await communityApi.getCategories();
         const nextCategories = Array.isArray(response.data)
-          ? withAllCategory(response.data)
+          ? withRequiredCategories(response.data)
           : defaultCategories;
 
         setCategories(nextCategories);
@@ -122,6 +141,15 @@ const Community = () => {
 
     fetchCategories();
   }, []);
+
+  useEffect(() => {
+    if (didSyncInitialTabRef.current || pageWidth <= 0) {
+      return;
+    }
+
+    didSyncInitialTabRef.current = true;
+    setKey(initialCategoryKey, {animated: false, syncScroll: true});
+  }, [initialCategoryKey, pageWidth, setKey]);
 
   const handleSelectSort = sort => {
     setSelectedSort(sort);
@@ -188,14 +216,14 @@ const Community = () => {
             horizontal
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={styles.categoryChipContainer}>
-            {categoryTabs.map((category, index) => {
-              const selected = activeIndex === index;
+            {categoryTabs.map((category, tabIndex) => {
+              const selected = activeIndex === tabIndex;
 
               return (
                 <TouchableOpacity
                   key={category.key}
                   activeOpacity={0.8}
-                  onPress={() => onTabPress(index)}
+                  onPress={() => onTabPress(tabIndex)}
                   style={[styles.chip, selected && styles.selectedChip]}>
                   <Text
                     style={[

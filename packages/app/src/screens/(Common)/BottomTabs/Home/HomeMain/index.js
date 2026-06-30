@@ -66,6 +66,18 @@ const mainPageBannerAdUnitId = __DEV__
       android: 'ca-app-pub-6098454400067335/5920208998',
       web: 'ca-pub-6098454400067335/4250943648',
     });
+const HOME_AGREEMENT_LINKS = [
+  {id: 'TERMS_OF_SERVICE', label: '서비스 이용약관'},
+  {id: 'PRIVACY_POLICY', label: '개인정보 처리방침'},
+];
+const BUSINESS_INFO = [
+  '상호명 : 워커웨이',
+  '사업자등록번호: 888-25-02003',
+  '연락처: 010-4123-0075',
+  '통신판매번호: 2025-서울양천-0825',
+  '주소: 제주시 연동 263-13 레지던스이타스3',
+  '대표자 : 이하늘, 정재원',
+];
 
 const HomeMain = () => {
   const navigation = useNavigation();
@@ -229,6 +241,14 @@ const HomeMain = () => {
         categoryTags: [category.label],
         fromHomeCategory: true,
       },
+    });
+  };
+
+  const handlePressAgreement = agreement => {
+    navigation.navigate('AgreeDetail', {
+      id: agreement.id,
+      who: 'USER',
+      headerTitle: agreement.label,
     });
   };
 
@@ -524,6 +544,31 @@ const HomeMain = () => {
               />
             </View>
           )}
+
+          <View style={styles.footerContainer}>
+            <View style={styles.businessInfoContainer}>
+              {BUSINESS_INFO.map(info => (
+                <Text key={info} style={styles.businessInfoText}>
+                  {info}
+                </Text>
+              ))}
+            </View>
+
+            <View style={styles.agreementLinkRow}>
+              {HOME_AGREEMENT_LINKS.map((agreement, index) => (
+                <React.Fragment key={agreement.id}>
+                  {index > 0 && <View style={styles.agreementDivider} />}
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    onPress={() => handlePressAgreement(agreement)}>
+                    <Text style={styles.agreementLinkText}>
+                      {agreement.label}
+                    </Text>
+                  </TouchableOpacity>
+                </React.Fragment>
+              ))}
+            </View>
+          </View>
         </>
       </ScrollView>
       {/* )} */}

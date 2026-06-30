@@ -17,6 +17,7 @@ import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
+import ChevronLeft from '@assets/images/chevron_left_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import Person from '@assets/images/person20_gray.svg';
@@ -30,7 +31,6 @@ import JejuNorth from '@assets/images/regions/jeju/jeju_north.svg';
 import styles from './GuesthouseSearch.styles';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import Header from '@components/Header';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
@@ -439,15 +439,22 @@ const GuesthouseSearch = () => {
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
-        <Header title="검색" />
+        <View style={styles.header}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.backButton}
+            onPress={() => navigation.goBack()}>
+            <ChevronLeft width={28} height={28} />
+          </TouchableOpacity>
+        </View>
 
         {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
         <View style={styles.searchBar}>
-          <SearchIcon width={24} height={24} />
+          <SearchIcon width={20} height={20} />
           <TextInput
             style={styles.searchInput}
-            placeholder="찾는 숙소가 있으신가요?"
-            placeholderTextColor={COLORS.grayscale_600}
+            placeholder="찾는 게하가 있으신가요?"
+            placeholderTextColor={COLORS.grayscale_700}
             value={searchTerm}
             onChangeText={handleChangeSearchTerm}
             returnKeyType="search"
