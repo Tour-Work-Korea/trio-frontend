@@ -227,8 +227,11 @@ const HomeMain = () => {
 
   const handlePressSearchBox = () => {
     navigation.navigate('지도', {
-      screen: 'GuesthouseSearch',
-      params: {searchText: ''},
+      screen: 'GuesthouseList',
+      params: {
+        ...getDefaultGuesthouseListParams(),
+        initialMapView: false,
+      },
     });
   };
 

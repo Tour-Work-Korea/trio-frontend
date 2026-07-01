@@ -4,39 +4,52 @@ import { COLORS } from '@constants/colors';
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: COLORS.grayscale_0,
-  },
-  header: {
-    justifyContent: 'center',
-    paddingHorizontal: 12,
-  },
-  backButton: {
-    marginTop: 16,
-    alignItems: 'flex-start',
-    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_100,
   },
   headerText: {
-    color: COLORS.grayscale_800,
+    color: COLORS.grayscale_900,
     textAlign: 'center',
+    marginTop: 12,
+    marginBottom: 4,
   },
-  searchBar: {
+  searchRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: COLORS.grayscale_0,
+    gap: 8,
+    marginLeft: 8,
+    marginRight: 12,
+    marginVertical: 16,
+  },
+  searchBackButton: {
+    width: 32,
     height: 38,
-    marginHorizontal: 20,
-    marginBottom: 16,
-    marginTop: 8,
-    paddingHorizontal: 12,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  searchBar: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
     borderWidth: 1,
-    borderColor: COLORS.grayscale_300,
-    borderRadius: 19,
+    borderColor: COLORS.primary_orange,
+    borderRadius: 20,
+    backgroundColor: COLORS.grayscale_0,
+    paddingVertical: 10,
+    paddingLeft: 8,
+    paddingRight: 8,
+    gap: 8,
   },
   searchInput: {
     flex: 1,
-    marginLeft: 8,
-    color: COLORS.grayscale_900,
-    lineHeight: 20,
+    color: COLORS.grayscale_800,
+    paddingVertical: 0,
+    textAlignVertical: 'center',
+  },
+  searchInputSmall: {
+    fontSize: 13,
+  },
+  searchInputAndroid: {
+    height: 40,
     paddingVertical: 0,
     textAlignVertical: 'center',
   },
@@ -51,16 +64,16 @@ const styles = StyleSheet.create({
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
+    justifyContent: 'center',
     minWidth: 0,
     height: 38,
-    paddingHorizontal: 12,
+    paddingHorizontal: 16,
     borderWidth: 1,
     borderColor: COLORS.grayscale_300,
     borderRadius: 19,
     backgroundColor: COLORS.grayscale_0,
   },
   dateText: {
-    flex: 1,
     marginLeft: 8,
     color: COLORS.grayscale_800,
   },
@@ -151,14 +164,14 @@ const styles = StyleSheet.create({
   regionImgPlaceholder: {
     width: 50,
     height: 50,
-    backgroundColor: COLORS.grayscale_300,
-    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
 
   // 검색어 입력 후
   searchResultContainer: {
     backgroundColor: COLORS.grayscale_0,
-    paddingTop: 0,
+    paddingTop: 8,
     paddingHorizontal: 20,
     flex: 1,
   },
@@ -187,7 +200,45 @@ const styles = StyleSheet.create({
     backgroundColor: COLORS.grayscale_300,
     marginBottom: 10,
   },
-
+  recentSearchHeader: {
+    marginTop: 8,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recentSearchTitle: {
+    color: COLORS.grayscale_900,
+  },
+  recentSearchClearText: {
+    color: COLORS.grayscale_500,
+  },
+  recentSearchContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    flex: 1,
+    minWidth: 0,
+  },
+  recentSearchRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  recentSearchKeyword: {
+    flexShrink: 1,
+    color: COLORS.grayscale_900,
+  },
+  recentSearchDeleteButton: {
+    width: 24,
+    height: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginLeft: 12,
+  },
+  recentSearchDeleteText: {
+    color: COLORS.grayscale_400,
+  },
 });
 
 export default styles;
