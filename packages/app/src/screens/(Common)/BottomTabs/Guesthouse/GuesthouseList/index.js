@@ -12,11 +12,7 @@ import {
   Animated,
   Dimensions,
 } from 'react-native';
-import {
-  CommonActions,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -29,7 +25,6 @@ import Star from '@assets/images/star_white.svg';
 import MapIcon from '@assets/images/map_black.svg';
 import ListIcon from '@assets/images/bullet_list_black.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
-import ChevronLeft from '@assets/images/chevron_left_black.svg';
 
 import styles from './GuesthouseList.styles';
 import GuesthouseListMap from '../GuesthouseListMap';
@@ -58,6 +53,13 @@ const CATEGORY_FILTERS = [
   '프로그램',
   '쉼',
 ];
+const CATEGORY_FILTER_WIDTHS = {
+  포틀럭: 72,
+  독서: 60,
+  디너파티: 86,
+  프로그램: 86,
+  쉼: 48,
+};
 const CONTENT_CATEGORY_MAP = {
   포틀럭: 'POTLUCK',
   독서: 'BOOK',
@@ -495,27 +497,7 @@ const GuesthouseList = () => {
     });
   };
 
-  const handlePressHeaderBack = useCallback(() => {
-    if (isMapView) {
-      manualListModeRef.current = true;
-      if (pushGuesthouseWebPath(WEB_ROUTES.GUESTHOUSES)) {
-        setLoading(false);
-        setViewModeVersion(prev => prev + 1);
-        setIsMapView(false);
-        return;
-      }
-
-      setLoading(false);
-      setViewModeVersion(prev => prev + 1);
-      setIsMapView(false);
-      return;
-    }
-
-    if (!fromHomeCategory && navigation.canGoBack()) {
-      navigation.goBack();
-      return;
-    }
-
+  const handleGoHomeFromCategory = useCallback(() => {
     const tabNavigation = navigation.getParent?.();
     const homeRoute = {
       name: '홈',
@@ -531,7 +513,7 @@ const GuesthouseList = () => {
       screen: '홈',
       params: {screen: 'HomeMain'},
     });
-  }, [fromHomeCategory, isMapView, navigation]);
+  }, [navigation]);
 
   const homeBackPanResponder = useMemo(
     () =>
@@ -563,7 +545,7 @@ const GuesthouseList = () => {
                 return;
               }
 
-              handlePressHeaderBack();
+              handleGoHomeFromCategory();
               requestAnimationFrame(() => {
                 homeBackTranslateX.setValue(0);
               });
@@ -587,7 +569,7 @@ const GuesthouseList = () => {
           }).start();
         },
       }),
-    [fromHomeCategory, handlePressHeaderBack, homeBackTranslateX, screenWidth],
+    [fromHomeCategory, handleGoHomeFromCategory, homeBackTranslateX, screenWidth],
   );
 
   const handlePressCategoryFilter = tag => {
@@ -711,14 +693,7 @@ const GuesthouseList = () => {
         },
       ]}
       {...(fromHomeCategory ? homeBackPanResponder.panHandlers : {})}>
-      <View style={[styles.searchRow, styles.searchRowWithBack]}>
-        <TouchableOpacity
-          activeOpacity={1}
-          hitSlop={8}
-          style={styles.searchBackButton}
-          onPress={handlePressHeaderBack}>
-          <ChevronLeft width={24} height={24} />
-        </TouchableOpacity>
+      <View style={styles.searchRow}>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.searchContainer}
@@ -796,6 +771,7 @@ const GuesthouseList = () => {
               activeOpacity={0.8}
               style={[
                 styles.categoryFilterChip,
+                {width: CATEGORY_FILTER_WIDTHS[tag]},
                 isSelected && styles.categoryFilterChipActive,
               ]}
               onPress={() => handlePressCategoryFilter(tag)}>

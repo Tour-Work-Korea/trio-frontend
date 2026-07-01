@@ -5,6 +5,7 @@ import {
   TouchableOpacity,
   TextInput,
   Keyboard,
+  Platform,
   TouchableWithoutFeedback,
 } from 'react-native';
 import {
@@ -12,21 +13,14 @@ import {
   useFocusEffect,
   useRoute,
 } from '@react-navigation/native';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import ChevronLeft from '@assets/images/chevron_left_black.svg';
-import FilterIcon from '@assets/images/filter_gray.svg';
-import CalendarIcon from '@assets/images/calendar_gray.svg';
-import Person from '@assets/images/person20_gray.svg';
 import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
-import AllIcon from '@assets/images/wlogo_blue_left.svg';
-import JejuEast from '@assets/images/regions/jeju/jeju_east.svg';
-import JejuWest from '@assets/images/regions/jeju/jeju_west.svg';
-import JejuSouth from '@assets/images/regions/jeju/jeju_south.svg';
-import JejuNorth from '@assets/images/regions/jeju/jeju_north.svg';
 
 import styles from './GuesthouseSearch.styles';
 import {FONTS} from '@constants/fonts';
@@ -34,7 +28,6 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
-import {regions} from '@constants/filter';
 import {
   GUESTHOUSE_MAP_BOUNDS,
   getGuesthouseMapBoundsByRegionIds,
@@ -61,15 +54,8 @@ const DEFAULT_FILTER_OPTIONS = {
   onlyAvailable: false,
 };
 
-const regionIcons = {
-  제주전체: AllIcon,
-  제주북부: JejuNorth,
-  제주동부: JejuEast,
-  제주남부: JejuSouth,
-  제주서부: JejuWest,
-};
-
-const getRegionDisplayName = regionName => regionName.replace('제주', '');
+const RECENT_SEARCH_STORAGE_KEY = 'guesthouse_recent_searches';
+const MAX_RECENT_SEARCHES = 10;
 
 const normalizeFilterOptions = (filters, categoryTags = []) => ({
   ...DEFAULT_FILTER_OPTIONS,
@@ -116,18 +102,39 @@ const getGuesthouseFilterApiParams = filters => {
   return params;
 };
 
+const readRecentSearches = async () => {
+  try {
+    const stored = await AsyncStorage.getItem(RECENT_SEARCH_STORAGE_KEY);
+    if (!stored) {
+      return [];
+    }
+
+    const parsed = JSON.parse(stored);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch (e) {
+    console.warn('최근 검색 기록 불러오기 실패', e);
+    return [];
+  }
+};
+
+const writeRecentSearches = async searches => {
+  try {
+    await AsyncStorage.setItem(RECENT_SEARCH_STORAGE_KEY, JSON.stringify(searches));
+  } catch (e) {
+    console.warn('최근 검색 기록 저장 실패', e);
+  }
+};
+
 const GuesthouseSearch = () => {
   const navigation = useNavigation();
   const route = useRoute();
-
-  // 지역 선택
-  const [selectedRegion, setSelectedRegion] = useState(regions[0].name);
   // 검색어 입력
   const [searchTerm, setSearchTerm] = useState(route.params?.searchText || '');
   // 게하 이름 검색 결과
   const [guesthouseResults, setGuesthouseResults] = useState([]);
   // 키워드 검색 결과
   const [keywordResults, setKeywordResults] = useState([]);
+  const [recentSearches, setRecentSearches] = useState([]);
   const searchDebounceRef = useRef(null);
   const searchRequestIdRef = useRef(0);
   const routeDisplayDate = route.params?.displayDate;
@@ -138,13 +145,24 @@ const GuesthouseSearch = () => {
   const [childCount, setChildCount] = useState(0);
   // 인원, 날짜 선택 모달
   const [dateGuestModalVisible, setDateGuestModalVisible] = useState(false);
-  const [modalInitialSection, setModalInitialSection] = useState('date');
+  const [modalInitialSection] = useState('date');
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortBy, setSortBy] = useState(route.params?.sortBy || 'RECOMMEND');
   const [filterOptions, setFilterOptions] = useState(() =>
     normalizeFilterOptions(route.params?.filterOptions, route.params?.categoryTags),
   );
   const [filterResultCount, setFilterResultCount] = useState(null);
+
+  const resetSearchState = useCallback(() => {
+    setSearchTerm('');
+    setGuesthouseResults([]);
+    setKeywordResults([]);
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+      searchDebounceRef.current = null;
+    }
+  }, []);
 
   // 날짜는 초기에 오늘~내일 날짜로 설정
   useEffect(() => {
@@ -163,6 +181,12 @@ const GuesthouseSearch = () => {
   // 리스트에서 날짜, 인원값 변경해서 뒤로가기
   useFocusEffect(
     React.useCallback(() => {
+      const tabNavigation = navigation.getParent();
+
+      if (Platform.OS === 'web') {
+        tabNavigation?.setOptions({tabBarStyle: {display: 'none'}});
+      }
+
       if (route.params?.displayDate) {
         setDisplayDate(route.params.displayDate);
         setAdultCount(route.params.adultCount);
@@ -176,8 +200,32 @@ const GuesthouseSearch = () => {
       if (route.params?.sortBy) {
         setSortBy(route.params.sortBy);
       }
-    }, [route.params]),
+
+      return () => {
+        if (Platform.OS === 'web') {
+          tabNavigation?.setOptions({tabBarStyle: undefined});
+        }
+        resetSearchState();
+      };
+    }, [navigation, resetSearchState, route.params]),
   );
+
+  useEffect(() => {
+    let mounted = true;
+
+    const loadRecentSearches = async () => {
+      const savedRecentSearches = await readRecentSearches();
+      if (mounted) {
+        setRecentSearches(savedRecentSearches);
+      }
+    };
+
+    loadRecentSearches();
+
+    return () => {
+      mounted = false;
+    };
+  }, []);
 
   useEffect(() => {
     return () => {
@@ -185,6 +233,37 @@ const GuesthouseSearch = () => {
         clearTimeout(searchDebounceRef.current);
       }
     };
+  }, []);
+
+  const saveRecentSearch = useCallback(keyword => {
+    const trimmedKeyword = keyword.trim();
+
+    if (!trimmedKeyword) {
+      return;
+    }
+
+    setRecentSearches(prevSearches => {
+      const nextSearches = [
+        trimmedKeyword,
+        ...prevSearches.filter(item => item !== trimmedKeyword),
+      ].slice(0, MAX_RECENT_SEARCHES);
+
+      writeRecentSearches(nextSearches);
+      return nextSearches;
+    });
+  }, []);
+
+  const clearRecentSearches = useCallback(() => {
+    setRecentSearches([]);
+    writeRecentSearches([]);
+  }, []);
+
+  const removeRecentSearch = useCallback(keyword => {
+    setRecentSearches(prevSearches => {
+      const nextSearches = prevSearches.filter(item => item !== keyword);
+      writeRecentSearches(nextSearches);
+      return nextSearches;
+    });
   }, []);
 
   const fetchSearchResults = useCallback(async term => {
@@ -244,7 +323,6 @@ const GuesthouseSearch = () => {
     }, 300);
   };
 
-  // 게하 리스트 페이지로 지역 선택해서 이동
   const getGuesthouseListParams = useCallback(
     extraParams => ({
       displayDate,
@@ -259,14 +337,6 @@ const GuesthouseSearch = () => {
     }),
     [adultCount, childCount, displayDate, filterOptions, sortBy],
   );
-
-  const goToGuesthouseList = regionIds => {
-    const bounds = getGuesthouseMapBoundsByRegionIds(regionIds);
-
-    navigation.navigate('GuesthouseList', getGuesthouseListParams({
-      regionBounds: bounds,
-    }));
-  };
 
   const getSearchDates = useCallback(() => {
     if (!displayDate || !displayDate.includes(' - ')) {
@@ -295,9 +365,17 @@ const GuesthouseSearch = () => {
 
   const handlePressGuesthouseResult = guesthouse => {
     const guesthouseId = guesthouse?.id || guesthouse?.guesthouseId;
+    const guesthouseName = guesthouse?.name?.trim();
 
     if (!guesthouseId) {
       return;
+    }
+
+    if (guesthouseName) {
+      saveRecentSearch(guesthouseName);
+      setSearchTerm(guesthouseName);
+    } else if (searchTerm.trim()) {
+      saveRecentSearch(searchTerm);
     }
 
     const {checkIn, checkOut} = getSearchDates();
@@ -308,11 +386,6 @@ const GuesthouseSearch = () => {
       checkOut,
       guestCount: adultCount + childCount,
     });
-  };
-
-  // 큰 지역 전환
-  const handleRegionPress = regionName => {
-    setSelectedRegion(regionName);
   };
 
   const fetchFilterResultCount = useCallback(async filters => {
@@ -334,55 +407,6 @@ const GuesthouseSearch = () => {
     setFilterResultCount(count);
     return count;
   }, [adultCount, childCount, getSearchDates]);
-
-  // 큰 지역
-  const renderRegionItem = region => (
-    <TouchableOpacity
-      key={region.name}
-      style={[
-        styles.regionItem,
-        selectedRegion === region.name && styles.regionItemSelected,
-      ]}
-      onPress={() => handleRegionPress(region.name)}>
-      <Text
-        style={[
-          FONTS.fs_14_medium,
-          styles.regionText,
-          selectedRegion === region.name && styles.regionTextSelected,
-        ]}>
-        {region.name}
-      </Text>
-    </TouchableOpacity>
-  );
-
-  // 세부 지역
-  const renderSubRegionItem = subRegion => {
-    const IconComponent = regionIcons[subRegion.name];
-    const isAll = subRegion.name === '제주전체';
-
-    return(
-      <TouchableOpacity
-        key={subRegion.name}
-        style={styles.subRegionItem}
-        onPress={() => goToGuesthouseList(subRegion.regionIds)}>
-        {isAll ? (
-          <View style={styles.imagePlaceholder}>
-            <AllIcon width={36} height={36} />
-          </View>
-        ) : (
-          <View style={styles.regionImgPlaceholder}>
-            <IconComponent width={40} height={40} />
-          </View>
-        )}
-        <Text style={[FONTS.fs_14_medium, styles.subRegionText]}>
-          {getRegionDisplayName(subRegion.name)}
-        </Text>
-      </TouchableOpacity>
-    );
-  };
-
-  const currentSubRegions =
-    regions.find(r => r.name === selectedRegion)?.subRegions || [];
 
   // 검색어 입력시
   const renderSearchResults = () => (
@@ -418,14 +442,15 @@ const GuesthouseSearch = () => {
 
       <View style={styles.searchResultSection}>
         {keywordResults.map(({ id, keyword }) => (
-          <TouchableOpacity
-            key={id}
-            style={styles.searchResultRow}
-            onPress={() =>
-              navigation.navigate('GuesthouseList', getGuesthouseListParams({
-                regionBounds: getGuesthouseMapBoundsByRegionIds([1, 2, 3, 4]),
-              }))
-            }>
+            <TouchableOpacity
+              key={id}
+              style={styles.searchResultRow}
+              onPress={() => {
+                saveRecentSearch(keyword);
+                navigation.navigate('GuesthouseList', getGuesthouseListParams({
+                  regionBounds: getGuesthouseMapBoundsByRegionIds([1, 2, 3, 4]),
+                }));
+              }}>
             <View style={styles.resultIconBox}>
               <SearchIcon width={24} height={24} />
             </View>
@@ -436,9 +461,60 @@ const GuesthouseSearch = () => {
     </View>
   );
 
+  const renderRecentSearchHistory = () => (
+    <View style={styles.searchResultContainer}>
+      <View style={styles.recentSearchHeader}>
+        <Text style={[FONTS.fs_16_semibold, styles.recentSearchTitle]}>
+          최근 검색 기록
+        </Text>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          hitSlop={8}
+          onPress={clearRecentSearches}>
+          <Text style={[FONTS.fs_12_medium, styles.recentSearchClearText]}>
+            전체삭제
+          </Text>
+        </TouchableOpacity>
+      </View>
+      <View style={styles.searchResultSection}>
+        {recentSearches.map(keyword => (
+          <TouchableOpacity
+            key={keyword}
+            style={styles.recentSearchRow}
+            onPress={() => {
+              setSearchTerm(keyword);
+              saveRecentSearch(keyword);
+              fetchSearchResults(keyword);
+            }}>
+            <View style={styles.recentSearchContent}>
+              <View style={styles.resultIconBox}>
+                <SearchIcon width={20} height={20} />
+              </View>
+              <Text style={[FONTS.fs_14_medium, styles.recentSearchKeyword]}>
+                {keyword}
+              </Text>
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              hitSlop={8}
+              style={styles.recentSearchDeleteButton}
+              onPress={() => removeRecentSearch(keyword)}>
+              <Text style={[FONTS.fs_16_regular, styles.recentSearchDeleteText]}>
+                x
+              </Text>
+            </TouchableOpacity>
+          </TouchableOpacity>
+        ))}
+      </View>
+    </View>
+  );
+
   return (
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
+        <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
+          검색
+        </Text>
         <View style={styles.searchRow}>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -450,19 +526,25 @@ const GuesthouseSearch = () => {
 
           {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
           <View style={styles.searchBar}>
-            <SearchIcon width={24} height={24} />
+            <SearchIcon width={20} height={20} />
             <TextInput
-              style={styles.searchInput}
+              style={[
+                FONTS.fs_14_regular,
+                styles.searchInputSmall,
+                styles.searchInput,
+                Platform.OS === 'android' && styles.searchInputAndroid,
+              ]}
               placeholder="찾는 게하가 있으신가요?"
               placeholderTextColor={COLORS.grayscale_700}
               value={searchTerm}
               onChangeText={handleChangeSearchTerm}
+              onSubmitEditing={() => saveRecentSearch(searchTerm)}
               returnKeyType="search"
             />
           </View>
         </View>
 
-        <View style={styles.selectRow}>
+        {/* <View style={styles.selectRow}>
           <TouchableOpacity
             style={styles.dateContainer}
             onPress={() => {
@@ -497,19 +579,21 @@ const GuesthouseSearch = () => {
             <FilterIcon width={18} height={18} />
             <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
           </TouchableOpacity>
-        </View>
+        </View> */}
 
         {searchTerm.trim() === '' ? (
-          // 지역 선택
-          // 지역 누르면 지역 번호로 바로 이동
-          <View style={styles.regionContainer}>
-            <View style={styles.leftRegionList}>
-              {regions.map(renderRegionItem)}
-            </View>
-            <View style={styles.rightSubRegionGrid}>
-              {currentSubRegions.map(renderSubRegionItem)}
-            </View>
-          </View>
+          <>
+            {/* 지역 선택
+            <View style={styles.regionContainer}>
+              <View style={styles.leftRegionList}>
+                {regions.map(renderRegionItem)}
+              </View>
+              <View style={styles.rightSubRegionGrid}>
+                {currentSubRegions.map(renderSubRegionItem)}
+              </View>
+            </View> */}
+            {renderRecentSearchHistory()}
+          </>
         ) : (
           // 검색어 입력 후
           renderSearchResults()
