@@ -39,6 +39,10 @@ const styles = StyleSheet.create({
     paddingRight: 8,
     gap: 8,
   },
+  searchBarAndroid: {
+    height: 42,
+    paddingVertical: 0,
+  },
   searchInput: {
     flex: 1,
     color: COLORS.grayscale_800,
@@ -52,6 +56,7 @@ const styles = StyleSheet.create({
     height: 40,
     paddingVertical: 0,
     textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   selectRow: {
     flexDirection: 'row',

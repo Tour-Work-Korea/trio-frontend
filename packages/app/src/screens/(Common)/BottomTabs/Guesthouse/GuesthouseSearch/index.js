@@ -525,7 +525,11 @@ const GuesthouseSearch = () => {
           </TouchableOpacity>
 
           {/* 검색하면 2개 api 호출 키워드 검색, 지역 검색 */}
-          <View style={styles.searchBar}>
+          <View
+            style={[
+              styles.searchBar,
+              Platform.OS === 'android' && styles.searchBarAndroid,
+            ]}>
             <SearchIcon width={20} height={20} />
             <TextInput
               style={[
