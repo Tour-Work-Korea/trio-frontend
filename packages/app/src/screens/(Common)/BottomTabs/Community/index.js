@@ -83,8 +83,7 @@ const normalizeCategoryParam = value =>
     .toUpperCase();
 
 const getRequestedCategoryParam = routeParams => {
-  const routeParam =
-    routeParams?.tab ?? routeParams?.category ?? routeParams?.categoryCode;
+  const routeParam = routeParams?.tab;
 
   if (routeParam) {
     return routeParam;
@@ -95,12 +94,7 @@ const getRequestedCategoryParam = routeParams => {
   }
 
   const searchParams = new URLSearchParams(window.location.search);
-  return (
-    searchParams.get('tab') ??
-    searchParams.get('category') ??
-    searchParams.get('categoryCode') ??
-    ''
-  );
+  return searchParams.get('tab') ?? '';
 };
 
 const getInitialCategoryKey = (tabs, routeParams) => {
