@@ -3,15 +3,15 @@ import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
-import ButtonWhite from '@components/ButtonWhite';
+// import ButtonWhite from '@components/ButtonWhite';
 import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
-import ResultModal from '@components/modals/ResultModal';
+// import ResultModal from '@components/modals/ResultModal';
 import {formatLocalDateToDot} from '@utils/formatDate';
 
 import styles from './MyApplicantList.styles';
-import DeleteWaLogo from '@assets/images/delete_wa.svg';
+// import DeleteWaLogo from '@assets/images/delete_wa.svg';
 
 const MyApplicantList = () => {
   const navigation = useNavigation();
@@ -24,7 +24,7 @@ const MyApplicantList = () => {
     onPress2: null,
   });
   const [loading, setLoading] = useState(true);
-  const [deleteCompleted, setDeleteCompleted] = useState(false);
+  // const [deleteCompleted, setDeleteCompleted] = useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -51,36 +51,36 @@ const MyApplicantList = () => {
     }
   };
 
-  const tryDeleteApplicantById = async id => {
-    try {
-      await userEmployApi.deleteApply(id);
-      setDeleteCompleted(true);
-      setTimeout(() => {
-        navigation.replace('MyApplicantList');
-      }, 3000);
-    } catch (error) {
-      setErrorModal(prev => ({
-        ...prev,
-        visible: true,
-        title: '삭제 중 오류가 발생했어요',
-        buttonText: '확인',
-      }));
-    }
-  };
+  // const tryDeleteApplicantById = async id => {
+  //   try {
+  //     await userEmployApi.deleteApply(id);
+  //     setDeleteCompleted(true);
+  //     setTimeout(() => {
+  //       navigation.replace('MyApplicantList');
+  //     }, 3000);
+  //   } catch (error) {
+  //     setErrorModal(prev => ({
+  //       ...prev,
+  //       visible: true,
+  //       title: '삭제 중 오류가 발생했어요',
+  //       buttonText: '확인',
+  //     }));
+  //   }
+  // };
 
-  const handleDeleteApplicant = async id => {
-    setErrorModal({
-      visible: true,
-      title:
-        '지원 취소한 알바는\n다시 지원하기 어려워요\n알바 지원을 취소하시겠습니까?',
-      buttonText: '닫기',
-      buttonText2: '지원 취소',
-      onPress2: () => {
-        tryDeleteApplicantById(id);
-        setErrorModal(prev => ({...prev, visible: false}));
-      },
-    });
-  };
+  // const handleDeleteApplicant = async id => {
+  //   setErrorModal({
+  //     visible: true,
+  //     title:
+  //       '지원 취소한 알바는\n다시 지원하기 어려워요\n알바 지원을 취소하시겠습니까?',
+  //     buttonText: '닫기',
+  //     buttonText2: '지원 취소',
+  //     onPress2: () => {
+  //       tryDeleteApplicantById(id);
+  //       setErrorModal(prev => ({...prev, visible: false}));
+  //     },
+  //   });
+  // };
 
   const renderApplyItem = ({item}) => (
     <View>
@@ -138,10 +138,10 @@ const MyApplicantList = () => {
             </Text>
           </View>
         </TouchableOpacity>
-        <ButtonWhite
+        {/* <ButtonWhite
           title={'지원 취소하기'}
           onPress={() => handleDeleteApplicant(item.id)}
-        />
+        /> */}
       </View>
       <View style={styles.divider} />
     </View>
@@ -177,14 +177,14 @@ const MyApplicantList = () => {
         onPress2={errorModal.onPress2}
         title={errorModal.title}
       />
-      <ResultModal
+      {/* <ResultModal
         visible={deleteCompleted}
         onClose={() => {
           setDeleteCompleted(false);
         }}
         title="알바 지원을 취소했어요"
         Icon={DeleteWaLogo}
-      />
+      /> */}
     </View>
   );
 };

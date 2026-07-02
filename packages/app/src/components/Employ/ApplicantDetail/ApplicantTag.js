@@ -1,12 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import EditIcon from '@assets/images/edit_gray.svg';
-import EmployTagModal from '@components/modals/Employ/EmployTagModal';
 
-const ApplicantTag = ({tags, isEditable = false, setTags = null}) => {
-  const [modalVisible, setModalVisible] = useState(false);
+const ApplicantTag = ({tags, isEditable = false, onEditTags = () => {}}) => {
   return (
     <View>
       <View style={styles.sectionBox}>
@@ -20,7 +18,7 @@ const ApplicantTag = ({tags, isEditable = false, setTags = null}) => {
           {isEditable ? (
             <TouchableOpacity
               onPress={() => {
-                setModalVisible(true);
+                onEditTags();
               }}>
               <EditIcon width={24} />
             </TouchableOpacity>
@@ -36,12 +34,6 @@ const ApplicantTag = ({tags, isEditable = false, setTags = null}) => {
           ))}
         </View>
       </View>
-      <EmployTagModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        addTags={setTags}
-        initialData={tags}
-      />
     </View>
   );
 };

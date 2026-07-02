@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -8,29 +8,22 @@ import EditIcon from '@assets/images/edit_gray.svg';
 import TrashcanIcon from '@assets/images/delete_gray.svg';
 import {parseSlashDateToYearMonthDot} from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
-import EmployExperienceModal from '@components/modals/Employ/EmployExperienceModal';
 
 const ApplicantExperienceSection = ({
-  experiences,
+  experiences = [],
   isEditable = false,
   setExperience = null,
+  onAddExperience = () => {},
+  onEditExperience = () => {},
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
-  const [editingIndex, setEditingIndex] = useState(null);
-  const [editingData, setEditingData] = useState(null);
-
   // 추가 버튼 클릭
   const handleAdd = () => {
-    setEditingIndex(null);
-    setEditingData(null);
-    setModalVisible(true);
+    onAddExperience();
   };
 
   // 수정 버튼 클릭
   const handleEdit = (exp, index) => {
-    setEditingIndex(index);
-    setEditingData(exp);
-    setModalVisible(true);
+    onEditExperience(exp, index);
   };
 
   // 삭제 버튼 클릭
@@ -86,24 +79,6 @@ const ApplicantExperienceSection = ({
         <></>
       )}
 
-      <EmployExperienceModal
-        visible={modalVisible}
-        initialData={editingData}
-        onClose={() => setModalVisible(false)}
-        addExperience={data => {
-          let updated = [];
-          if (editingIndex !== null) {
-            // 수정
-            updated = [...experiences];
-            updated[editingIndex] = data;
-          } else {
-            // 추가
-            updated = [...experiences, data];
-          }
-          setExperience(updated);
-          setModalVisible(false);
-        }}
-      />
     </View>
   );
 };

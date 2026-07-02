@@ -23,25 +23,14 @@ import {COLORS} from '@constants/colors';
 import styles from './ApplicantForm.styles';
 import useUserStore from '@stores/userStore';
 
-const parseRecruitDate = date => {
-  if (!date) {
-    return null;
-  }
-
-  return date.split('T')[0];
-};
-
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {recruitId, entryStartDate = null, entryEndDate = null} =
-    route.params ?? {};
+  const {recruitId} = route.params ?? {};
 
   const [resumes, setResumes] = useState();
   const [applicant, setApplicant] = useState({
     message: '',
-    startDate: null,
-    endDate: null,
     personalInfoConsent: false,
     resumeId: null,
   });
@@ -56,26 +45,7 @@ const ApplicantForm = () => {
   const noResumeState =
     userProfile?.mbti === 'DEFAULT' ||
     userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
-
-  const tryFetchRecruitApplyDates = useCallback(async () => {
-    try {
-      const response = await userEmployApi.getRecruitById(recruitId, true);
-      const recruit = response.data;
-      setApplicant(prev => ({
-        ...prev,
-        startDate: parseRecruitDate(
-          recruit.entryStartDate ?? recruit.workStartDate,
-        ),
-        endDate: parseRecruitDate(recruit.entryEndDate ?? recruit.workEndDate),
-      }));
-    } catch (error) {
-      setErrorModal({
-        visible: true,
-        message: '공고 근무 날짜를 가져오는데 실패했습니다',
-        buttonText: '확인',
-      });
-    }
-  }, [recruitId]);
+  const hasNoResume = resumes?.length === 0;
 
   const tryFetchResumeList = useCallback(async () => {
     try {
@@ -100,22 +70,6 @@ const ApplicantForm = () => {
     setApplicant(prev => ({...prev, personalInfoConsent: allRequired}));
   }, [agreements]);
 
-  useEffect(() => {
-    const initialStartDate = parseRecruitDate(entryStartDate);
-    const initialEndDate = parseRecruitDate(entryEndDate);
-
-    if (initialStartDate && initialEndDate) {
-      setApplicant(prev => ({
-        ...prev,
-        startDate: initialStartDate,
-        endDate: initialEndDate,
-      }));
-      return;
-    }
-
-    tryFetchRecruitApplyDates();
-  }, [entryEndDate, entryStartDate, tryFetchRecruitApplyDates]);
-
   useFocusEffect(
     useCallback(() => {
       tryFetchResumeList();
@@ -127,6 +81,20 @@ const ApplicantForm = () => {
       id,
       isEditable: true,
       headerTitle: '이력서 수정',
+    });
+  };
+
+  const handleCreateResume = () => {
+    if (noResumeState) {
+      navigation.navigate('ProfileUpdate');
+      return;
+    }
+
+    navigation.navigate('ResumeDetail', {
+      isEditable: true,
+      role: 'USER',
+      isNew: true,
+      headerTitle: '이력서 작성',
     });
   };
 
@@ -145,8 +113,6 @@ const ApplicantForm = () => {
     try {
       const parsedData = {
         message: '열심히 하겠습니다.',
-        startDate: applicant.startDate,
-        endDate: applicant.endDate,
         personalInfoConsent: applicant.personalInfoConsent,
         resumeId: applicant.resumeId,
       };
@@ -177,23 +143,10 @@ const ApplicantForm = () => {
           <EmployEmpty
             title={'아직 정보가 부족해요'}
             subTitle={'이력서를 완성하러 가볼까요?'}
-            buttonText={'이력서 작성하러 가기'}
-            onPress={() => {
-              navigation.navigate('ProfileUpdate');
-            }}
           />
         ) : (
           <EmployEmpty
             title={'작성하신 이력서가 없습니다'}
-            buttonText={'이력서 작성하러 가기'}
-            onPress={() => {
-              navigation.navigate('ResumeDetail', {
-                isEditable: true,
-                role: 'USER',
-                isNew: true,
-                headerTitle: '이력서 작성',
-              });
-            }}
           />
         )
       ) : (
@@ -328,15 +281,15 @@ const ApplicantForm = () => {
 
         {/* 하단 고정 영역 */}
         <View style={styles.bottomButtonContainer}>
-          {renderPrivacyAgreement()}
+          {!hasNoResume && renderPrivacyAgreement()}
           <ButtonScarlet
-            title="지원하기"
-            onPress={handleSubmit}
+            title={hasNoResume ? '이력서 작성하기' : '지원하기'}
+            onPress={hasNoResume ? handleCreateResume : handleSubmit}
             disabled={
-              !applicant.personalInfoConsent ||
-              !applicant.resumeId ||
-              !applicant.startDate ||
-              !applicant.endDate
+              hasNoResume
+                ? false
+                : !applicant.personalInfoConsent ||
+                  !applicant.resumeId
             }
           />
         </View>

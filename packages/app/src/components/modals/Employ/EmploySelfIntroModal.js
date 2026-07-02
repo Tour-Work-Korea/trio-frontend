@@ -1,5 +1,6 @@
 import React, {useEffect, useState} from 'react';
 import {
+  Dimensions,
   Keyboard,
   KeyboardAvoidingView,
   ScrollView,
@@ -9,7 +10,6 @@ import {
   TouchableOpacity,
   TouchableWithoutFeedback,
   View,
-  Platform,
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
@@ -17,6 +17,9 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
+
+const SELF_INTRO_MAX_LENGTH = 1000;
+const {height} = Dimensions.get('window');
 
 export default function EmploySelfIntroModal({
   visible,
@@ -31,7 +34,12 @@ export default function EmploySelfIntroModal({
   }, [initialData]);
 
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      useNativeModalOnAndroid>
       <KeyboardAvoidingView style={{flex: 1}} enabled>
         <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
           <View style={styles.overlay}>
@@ -62,7 +70,7 @@ export default function EmploySelfIntroModal({
                     <Text style={{color: COLORS.primary_orange}}>
                       {selfIntro?.length?.toLocaleString()}
                     </Text>
-                    /50,000
+                    /1,000
                   </Text>
                   <View style={styles.inputBox}>
                     <TextInput
@@ -71,7 +79,7 @@ export default function EmploySelfIntroModal({
                       placeholderTextColor={COLORS.grayscale_400}
                       value={selfIntro}
                       onChangeText={setSelfIntro}
-                      maxLength={50000}
+                      maxLength={SELF_INTRO_MAX_LENGTH}
                       multiline
                       textAlignVertical="top"
                     />
@@ -109,16 +117,11 @@ const styles = StyleSheet.create({
     justifyContent: 'flex-end',
   },
   container: {
-    flex: 1, // height → flex: 1 로 수정
+    height: height * 0.9,
     backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
-    ...Platform.select({
-      ios: {
-        maxHeight: '90%',
-      },
-    }),
   },
   textInput: {
     flex: 1,

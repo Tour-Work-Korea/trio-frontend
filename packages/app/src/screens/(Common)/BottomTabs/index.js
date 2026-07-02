@@ -67,7 +67,16 @@ const BottomTabs = () => {
           headerShown: false,
         })}>
         <Tab.Screen name="홈" component={Home} />
-        <Tab.Screen name="커뮤니티" component={Community} />
+        <Tab.Screen
+          name="커뮤니티"
+          component={Community}
+          listeners={({navigation}) => ({
+            tabPress: e => {
+              e.preventDefault();
+              navigation.navigate('커뮤니티', {tab: 'all'});
+            },
+          })}
+        />
         <Tab.Screen
           name="지도"
           component={Guesthouse}
