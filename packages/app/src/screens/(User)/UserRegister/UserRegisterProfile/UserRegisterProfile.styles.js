@@ -92,6 +92,31 @@ export default StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
   },
+  genderGroup: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  genderButton: {
+    flex: 1,
+    height: 44,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  genderButtonActive: {
+    borderColor: COLORS.primary_orange,
+    backgroundColor: COLORS.primary_orange,
+  },
+  genderButtonText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_400,
+  },
+  genderButtonTextActive: {
+    color: COLORS.grayscale_0,
+  },
   resendText: {...FONTS.fs_12_medium, color: COLORS.grayscale_400},
   resendContainer: {
     textAlign: 'right',

@@ -1,244 +1,487 @@
-  import React, {useState} from 'react';
-  import {useNavigation} from '@react-navigation/native';
-  import Toast from 'react-native-toast-message';
+import React, {useCallback, useEffect, useState} from 'react';
+import {
+  Keyboard,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  View,
+} from 'react-native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 
-  import UserPhone from '@components/Certificate/UserPhone';
-  import useUserStore from '@stores/userStore';
-  import authApi from '@utils/api/authApi';
-  import {storeLoginTokens} from '@utils/auth/login';
+import ButtonScarletLogo from '@components/ButtonScarletLogo';
+import ButtonWhite from '@components/ButtonWhite';
+import AlertModal from '@components/modals/AlertModal';
+import LogoOrange from '@assets/images/logo_orange.svg';
+import {COLORS} from '@constants/colors';
+import authApi from '@utils/api/authApi';
+import {storeLoginTokens} from '@utils/auth/login';
 
-  import AlertModal from '@components/modals/AlertModal';
+import styles from '../../Login/Login.styles';
 
-  /**
-   * PhoneCertificate 역할
-   * - USER: NICE(UserPhone) 인증 → niceAuthToken 받기 → check-status 호출 → 다음 화면 이동
-   */
-  const PhoneCertificate = ({route}) => {
-    const {user, agreements, email, isSocial = false, externalId = null, isUpdateCi = false} =
-      route.params;
-    const navigation = useNavigation();
-    const [checking, setChecking] = useState(false); // 중복 호출 방지
+/**
+ * NICE 기반 USER 본인인증/가입 보조 경로는 백엔드에서 제거되어 비활성화함.
+ *
+ * 기존 흐름 요약:
+ * - <UserPhone />에서 POST /auth/nice/init 호출
+ * - NICE WebView 완료 후 niceAuthToken 수신
+ * - authApi.checkSignUpStatus(niceAuthToken)
+ * - authApi.completeUserSignUp({niceAuthToken, ...})
+ *
+ * 현재 일반 USER 가입 흐름:
+ * - 이메일 인증 완료
+ * - SMS 인증 USER + SIGN_UP 완료
+ * - UserRegisterProfile에서 /auth/user/signup 호출
+ */
+const PhoneCertificate = ({route}) => {
+  const {
+    user = 'USER',
+    agreements = [],
+    email = '',
+    isSocial = false,
+    socialSignupToken = null,
+    provider = null,
+    socialProfile = {},
+  } = route.params || {};
+  const userRole = user || 'USER';
+  const navigation = useNavigation();
 
-    const [errorModal, setErrorModal] = useState({
-      visible: false,
-      message: '',
-      buttonText: '확인',
-      onPress: null,
+  const [smsPurpose, setSmsPurpose] = useState('SIGN_UP');
+  const [phoneNumber, setPhoneNumber] = useState('');
+  const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
+  const [code, setCode] = useState('');
+  const [isCodeValid, setIsCodeValid] = useState(false);
+  const [isCodeSent, setIsCodeSent] = useState(false);
+  const [isCodeVerified, setIsCodeVerified] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(300);
+  const [isTimerActive, setIsTimerActive] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [hasRequestedCode, setHasRequestedCode] = useState(false);
+  const [isResendEnabled, setIsResendEnabled] = useState(false);
+  const [errorModal, setErrorModal] = useState({
+    visible: false,
+    message: '',
+    buttonText: '',
+    onPress: null,
+  });
+
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
+  const socialProfileEmail = socialProfile.email || '';
+  const socialProfileName = socialProfile.name || '';
+  const socialProfileBirthday = socialProfile.birthday || '';
+  const socialProfileGender = socialProfile.gender || '';
+  const socialProfileNickname = socialProfile.nickname || '';
+  const hasCompleteSocialProfile =
+    !!socialProfileName &&
+    /^\d{4}-\d{2}-\d{2}$/.test(socialProfileBirthday) &&
+    (socialProfileGender === 'M' || socialProfileGender === 'F') &&
+    !!socialProfileNickname;
+
+  const moveToSocialProfileFallback = useCallback(() => {
+    navigation.navigate('UserRegisterProfile', {
+      prevData: {
+        userRole,
+        agreements,
+        email: email || socialProfileEmail,
+        phoneNum: phoneNumber,
+        isSocial,
+        socialSignupToken,
+        provider,
+        name: socialProfileName,
+        birthday: socialProfileBirthday,
+        gender: socialProfileGender,
+        nickname: socialProfileNickname,
+        password: '',
+        passwordConfirm: '',
+      },
     });
+  }, [
+    agreements,
+    email,
+    isSocial,
+    navigation,
+    phoneNumber,
+    provider,
+    socialProfileBirthday,
+    socialProfileEmail,
+    socialProfileGender,
+    socialProfileName,
+    socialProfileNickname,
+    socialSignupToken,
+    userRole,
+  ]);
 
-    const openModal = ({message, buttonText = '확인', onPress = null}) => {
-      setErrorModal({
-        visible: true,
-        message,
-        buttonText,
-        onPress,
-      });
-    };
-
-    const closeModal = () => {
-      setErrorModal(prev => ({...prev, visible: false}));
-    };
-
-    const moveToLoginIntro = () => {
-      closeModal();
-      navigation.reset({
-        index: 0,
-        routes: [{name: 'LoginIntro'}],
-      });
-    };
-
-    /**
-     * NICE 인증 완료 토큰을 받았을 때 실행되는 콜백
-     * - token은 일회용/유효시간(10분)
-     */
-    const getErrorMessage = error =>
-      error?.response?.data?.message ||
-      error?.message ||
-      '계정 상태 확인 중 문제가 발생했어요.';
-
-    const handleNiceVerifiedSuccess = async niceAuthToken => {
-      // 토큰이 없으면 아무 것도 안함
-      if (!niceAuthToken) return;
-
-      // 중복 방지
-      if (checking) return;
-
-      try {
-        setChecking(true);
-
-  if (isUpdateCi) {
-          try {
-            // 1. 서버에 CI 매핑 요청
-            await authApi.verifyCi(niceAuthToken);
-            
-            Toast.show({
-              type: 'success',
-              text1: '본인 인증이 완료되었습니다!',
-              position: 'top',
-            });
-            
-            useUserStore.getState().setIsVerified(true);
-            
-            // 2. 인증이 완료되었으므로 메인으로 이동
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'MainTabs'}],
-            });
-            return;
-          } catch (error) {
-            openModal({
-              message: error?.response?.data?.message || '인증 정보 업데이트에 실패했습니다.',
-              buttonText: '확인',
-              onPress: () => navigation.goBack(),
-            });
-            return;
-          }
-        }
-
-        if (isSocial && !externalId) {
-          openModal({
-            message: '로그인 오류 잠시 후 다시 시도해주세요.',
-            buttonText: '로그인으로 이동',
-            onPress: moveToLoginIntro,
-          });
-          return;
-        }
-
-        if (isSocial && externalId) {
-          let res;
-          try {
-            res = await authApi.completeSocialSignUp({
-              externalId,
-              niceAuthToken,
-              userRole: 'USER',
-              agreements: agreements || [],
-            });
-          } catch (error) {
-            openModal({
-              message: getErrorMessage(error),
-              buttonText: '로그인으로 이동',
-              onPress: moveToLoginIntro,
-            });
-            return;
-          }
-
-          const {accessToken, refreshToken} = res.data || {};
-
-          if (!accessToken || !refreshToken) {
-            openModal({
-              message: getErrorMessage(),
-              buttonText: '로그인으로 이동',
-              onPress: moveToLoginIntro,
-            });
-            return;
-          }
-
-          await storeLoginTokens({
-            accessToken,
-            refreshToken,
-            userRole: 'USER',
-          });
-
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'MainTabs'}],
-          });
-          return;
-        }
-
-        // 가입 상태 체크
-        const res = await authApi.checkSignUpStatus(niceAuthToken);
-        const {status, socialTypes, message} = res.data;
-
-        if (!status) {
-          openModal({
-            message: '계정 상태 확인 중 문제가 발생했어요.',
-          });
-          return;
-        }
-
-        // NEW_USER: 신규 회원 → 가입폼으로 이동
-        if (status === 'NEW_USER') {
-          Toast.show({
-            type: 'success',
-            text1: '인증이 완료되었어요!',
-            position: 'top',
-            visibilityTime: 2000,
-          });
-
-          navigation.navigate('UserRegisterProfile', {
-            prevData: {
-              userRole: 'USER',
-              agreements: agreements || [],
-              email: email || '',
-              niceAuthToken,
-              nickname: '',
-              password: '',
-              passwordConfirm: '',
-            },
-          });
-          return;
-        }
-
-        // ALREADY_LOCAL: 이미 로컬 계정 존재 → 로그인 유도
-        if (status === 'ALREADY_LOCAL') {
-          openModal({
-            message:
-              message || '해당 명의로 이미 가입된 계정이 있어요.',
-            buttonText: '로그인으로 이동',
-            onPress: () => {
-              closeModal();
-              navigation.navigate('LoginIntro');
-            },
-          });
-          return;
-        }
-
-        // SOCIAL_INTEGRATION: 소셜 계정 존재 → 연동 내역 + 가입폼 이동
-        if (status === 'SOCIAL_INTEGRATION') {
-          Toast.show({
-            type: 'success',
-            text1: '인증이 완료되었어요!',
-            position: 'top',
-            visibilityTime: 2000,
-          });
-
-          navigation.navigate('UserRegisterProfile', {
-            prevData: {
-              userRole: 'USER',
-              agreements: agreements || [],
-              email: email || '',
-              niceAuthToken,
-              isIntegration: true,
-              socialTypes: socialTypes || [],
-              nickname: '',
-              password: '',
-              passwordConfirm: '',
-            },
-          });
-
-          return;
-        }
-
-        // 알 수 없는 status
-        openModal({
-          message: getErrorMessage(),
-        });
-      } catch (e) {
-        openModal({
-          message: getErrorMessage(e),
-          ...(isSocial
-            ? {buttonText: '로그인으로 이동', onPress: moveToLoginIntro}
-            : null),
-        });
-      } finally {
-        setChecking(false);
-      }
-    };
+  const isSocialProfileCompletionError = error => {
+    const data = error?.response?.data;
+    const errorCode = data?.code || data?.errorCode || data?.status || '';
+    const message = data?.message || error?.message || '';
 
     return (
-      <>
-        <UserPhone user={user} onPress={handleNiceVerifiedSuccess} />
+      errorCode.includes('NICKNAME') ||
+      errorCode.includes('PROFILE') ||
+      errorCode.includes('REQUIRED') ||
+      message.includes('닉네임') ||
+      message.includes('필수') ||
+      message.includes('중복')
+    );
+  };
+
+  const completeSocialSignUp = useCallback(async () => {
+    try {
+      setLoading(true);
+
+      const res = await authApi.completeSocialSignUp({
+        provider,
+        socialSignupToken,
+        userRole,
+        phoneNum: phoneNumber,
+        name: socialProfileName,
+        birthday: socialProfileBirthday,
+        gender: socialProfileGender,
+        nickname: socialProfileNickname,
+        agreements,
+      });
+
+      const {accessToken, refreshToken} = res.data || {};
+
+      if (!accessToken || !refreshToken) {
+        throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+      }
+
+      await storeLoginTokens({
+        accessToken,
+        refreshToken,
+        userRole,
+      });
+
+      navigation.dispatch(
+        CommonActions.reset({
+          index: 0,
+          routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+        }),
+      );
+    } catch (error) {
+      if (isSocialProfileCompletionError(error)) {
+        setErrorModal({
+          visible: true,
+          message:
+            error?.response?.data?.message ||
+            '카카오에서 받은 정보를 확인해주세요.',
+          buttonText: '확인',
+          onPress: moveToSocialProfileFallback,
+        });
+        return;
+      }
+
+      setErrorModal({
+        visible: true,
+        message:
+          error?.response?.data?.message ||
+          error?.message ||
+          '소셜 회원가입에 실패했습니다.',
+        buttonText: '확인',
+        onPress: null,
+      });
+    } finally {
+      setLoading(false);
+    }
+  }, [
+    agreements,
+    navigation,
+    phoneNumber,
+    provider,
+    moveToSocialProfileFallback,
+    socialProfileBirthday,
+    socialProfileGender,
+    socialProfileName,
+    socialProfileNickname,
+    socialSignupToken,
+    userRole,
+  ]);
+
+  useFocusEffect(
+    useCallback(() => {
+      setPhoneNumber('');
+      setIsPhoneNumberValid(false);
+      setCode('');
+      setIsCodeValid(false);
+      setIsCodeSent(false);
+      setIsCodeVerified(false);
+      setTimeLeft(300);
+      setIsTimerActive(false);
+      setLoading(false);
+      setHasRequestedCode(false);
+      setIsResendEnabled(false);
+      setSmsPurpose('SIGN_UP');
+      setErrorModal({
+        visible: false,
+        message: '',
+        buttonText: '',
+        onPress: null,
+      });
+    }, []),
+  );
+
+  useEffect(() => {
+    setIsPhoneNumberValid(phoneNumber.length === 11);
+  }, [phoneNumber]);
+
+  useEffect(() => {
+    setIsCodeValid(code.length === 6);
+  }, [code]);
+
+  useEffect(() => {
+    if (!isCodeVerified) {
+      return undefined;
+    }
+
+    const timeoutId = setTimeout(() => {
+      if (isSocial && hasCompleteSocialProfile) {
+        completeSocialSignUp();
+        return;
+      }
+
+      moveToSocialProfileFallback();
+    }, 850);
+
+    return () => clearTimeout(timeoutId);
+  }, [
+    agreements,
+    completeSocialSignUp,
+    hasCompleteSocialProfile,
+    email,
+    isCodeVerified,
+    isSocial,
+    moveToSocialProfileFallback,
+    socialSignupToken,
+    userRole,
+  ]);
+
+  useEffect(() => {
+    let interval = null;
+    if (isTimerActive && timeLeft > 0) {
+      interval = setInterval(() => {
+        setTimeLeft(prev => prev - 1);
+      }, 1000);
+    } else if (timeLeft === 0) {
+      clearInterval(interval);
+      setIsTimerActive(false);
+      setErrorModal({
+        visible: true,
+        message: '인증 유효 시간이 만료되었습니다.',
+        buttonText: '확인',
+      });
+    }
+
+    return () => clearInterval(interval);
+  }, [isTimerActive, timeLeft]);
+
+  const openPhoneAlreadyExistsForSocial = () => {
+    setErrorModal({
+      visible: true,
+      message:
+        '이미 가입된 전화번호입니다.\n기존 계정에 소셜 계정을 연결하려면 인증을 진행해주세요.',
+      buttonText: '연동 인증하기',
+      onPress: async () => {
+        setErrorModal(prev => ({...prev, visible: false, onPress: null}));
+        setSmsPurpose('FIND_ACCOUNT');
+        await sendVerificationCode('FIND_ACCOUNT');
+      },
+    });
+  };
+
+  const isPhoneAlreadyExistsError = error => {
+    const data = error?.response?.data;
+    const errorCode = data?.code || data?.errorCode || data?.status;
+    const message = data?.message || '';
+    return (
+      errorCode === 'PHONE_ALREADY_EXISTS' || message.includes('이미 가입')
+    );
+  };
+
+  const sendVerificationCode = async (purpose = smsPurpose) => {
+    try {
+      await authApi.sendSms(phoneNumber, userRole, purpose);
+      setHasRequestedCode(true);
+      setIsCodeSent(true);
+      setTimeLeft(300);
+      setIsTimerActive(true);
+
+      setErrorModal({
+        visible: true,
+        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
+        buttonText: '확인',
+      });
+
+      setIsResendEnabled(false);
+      setTimeout(() => setIsResendEnabled(true), 30000);
+    } catch (error) {
+      if (
+        isSocial &&
+        purpose === 'SIGN_UP' &&
+        isPhoneAlreadyExistsError(error)
+      ) {
+        openPhoneAlreadyExistsForSocial();
+        return;
+      }
+
+      setErrorModal({
+        visible: true,
+        message:
+          error?.response?.data?.message || '인증번호 전송에 실패했습니다',
+        buttonText: '확인',
+        onPress: null,
+      });
+    }
+  };
+
+  const resendVerificationCode = () => {
+    setCode('');
+    sendVerificationCode();
+  };
+
+  const verifyCode = async () => {
+    setLoading(true);
+    try {
+      await authApi.verifySms(phoneNumber, code, userRole, smsPurpose);
+      setIsTimerActive(false);
+      setIsCodeVerified(true);
+    } catch (error) {
+      setErrorModal({
+        visible: true,
+        message: error?.response?.data?.message || '인증에 실패했습니다.',
+        buttonText: '다시 인증하기',
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const formatTime = seconds => {
+    const mins = Math.floor(seconds / 60);
+    const secs = seconds % 60;
+    return `0${mins}:${secs < 10 ? '0' : ''}${secs}`;
+  };
+
+  return (
+    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+      <View style={styles.container}>
+        <View style={styles.viewFlexBox}>
+          <View>
+            <View style={styles.groupParent}>
+              <View style={styles.titleContainer}>
+                <MainLogo width={60} height={29} />
+              </View>
+              <Text style={styles.titleText}>전화번호 인증</Text>
+            </View>
+
+            <View style={styles.inputGroup}>
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>전화번호</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="전화번호를 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={phoneNumber}
+                    onChangeText={text => {
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setPhoneNumber(filtered);
+                      setHasRequestedCode(false);
+                      setIsCodeSent(false);
+                      setIsResendEnabled(false);
+                      setSmsPurpose('SIGN_UP');
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={11}
+                  />
+                  <TouchableOpacity
+                    onPress={sendVerificationCode}
+                    disabled={!isPhoneNumberValid || hasRequestedCode}>
+                    <Text
+                      style={[
+                        styles.inputButton,
+                        isPhoneNumberValid && !hasRequestedCode
+                          ? {color: COLORS.primary_orange}
+                          : '',
+                      ]}>
+                      인증요청
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>인증번호</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="인증번호를 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={code}
+                    onChangeText={text => {
+                      const filtered = text.replace(/[^0-9]/g, '');
+                      setCode(filtered);
+                    }}
+                    keyboardType="number-pad"
+                    maxLength={6}
+                    editable={isCodeSent}
+                  />
+                  <Text
+                    style={[
+                      styles.inputButton,
+                      isCodeSent ? {color: COLORS.primary_orange} : '',
+                    ]}>
+                    {isCodeSent ? formatTime(timeLeft) : '00:00'}
+                  </Text>
+                </View>
+                <View style={styles.resendContainer}>
+                  <TouchableOpacity
+                    onPress={resendVerificationCode}
+                    disabled={!hasRequestedCode || !isResendEnabled}>
+                    <Text
+                      style={[
+                        styles.resendText,
+                        hasRequestedCode && isResendEnabled
+                          ? {color: COLORS.primary_orange}
+                          : '',
+                      ]}>
+                      인증번호 재전송
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
+            </View>
+          </View>
+
+          <View style={styles.frameParent}>
+            <View style={styles.frameGroup}>
+              {loading ? (
+                <ButtonScarletLogo disabled={true} />
+              ) : isCodeVerified ? (
+                <ButtonWhite
+                  title="인증 성공!"
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
+              ) : isCodeValid ? (
+                <ButtonWhite
+                  title="인증하기"
+                  onPress={verifyCode}
+                  backgroundColor={mainColor}
+                  textColor={COLORS.grayscale_0}
+                />
+              ) : (
+                <ButtonWhite title="인증하기" disabled={true} />
+              )}
+            </View>
+          </View>
+        </View>
 
         <AlertModal
           visible={errorModal.visible}
@@ -249,11 +492,12 @@
               errorModal.onPress();
               return;
             }
-            closeModal();
+            setErrorModal(prev => ({...prev, visible: false}));
           }}
         />
-      </>
-    );
-  };
+      </View>
+    </TouchableWithoutFeedback>
+  );
+};
 
-  export default PhoneCertificate;
+export default PhoneCertificate;
