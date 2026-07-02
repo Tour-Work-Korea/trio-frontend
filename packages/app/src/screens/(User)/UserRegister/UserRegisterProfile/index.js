@@ -19,7 +19,7 @@ import authApi from '@utils/api/authApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {validateRegisterProfile} from '@utils/validation/registerValidation';
 import AlertModal from '@components/modals/AlertModal';
-import {tryLogin} from '@utils/auth/login';
+import {storeLoginTokens, tryLogin} from '@utils/auth/login';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 
 import styles from './UserRegisterProfile.styles';
@@ -34,6 +34,7 @@ const UserRegisterProfile = () => {
   const {prevData} = route.params;
   const navigation = useNavigation();
   const [formData, setFormData] = useState(prevData);
+  const isSocialSignUp = !!formData?.isSocial;
   const [formValid, setFormValid] = useState({
     nickname: [],
     password: [],
@@ -65,6 +66,8 @@ const UserRegisterProfile = () => {
   const nicknameField = registerInput('nickname');
   const passwordField = registerInput('password');
   const passwordConfirmField = registerInput('passwordConfirm');
+  const nameField = registerInput('name');
+  const birthdayField = registerInput('birthday');
 
   useEffect(() => {
     if (pendingAfterLogin) {
@@ -75,7 +78,6 @@ const UserRegisterProfile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      console.log(prevData);
       setFormData(prevData);
       setFormValid({
         nickname: [],
@@ -107,6 +109,22 @@ const UserRegisterProfile = () => {
       nickname: validateRegisterProfile({...formData, nickname: text}).nickname,
     };
     setFormValid(nextValid);
+  };
+
+  const handleNameChange = text => {
+    updateField('name', text);
+  };
+
+  const handleBirthdayChange = text => {
+    const filtered = text.replace(/[^0-9]/g, '').slice(0, 8);
+    const formatted = filtered
+      .replace(/^(\d{4})(\d)/, '$1-$2')
+      .replace(/^(\d{4}-\d{2})(\d)/, '$1-$2');
+    updateField('birthday', formatted);
+  };
+
+  const handleGenderChange = gender => {
+    updateField('gender', gender);
   };
 
   const handlePasswordChange = text => {
@@ -168,21 +186,75 @@ const UserRegisterProfile = () => {
 
     const confirmValid = formValid.passwordConfirm?.isMatched;
 
+    if (isSocialSignUp) {
+      const nameValid = !!formData.name?.trim();
+      const birthdayValid = /^\d{4}-\d{2}-\d{2}$/.test(
+        formData.birthday || '',
+      );
+      const genderValid = formData.gender === 'M' || formData.gender === 'F';
+
+      return nicknameValid && nameValid && birthdayValid && genderValid;
+    }
+
     return nicknameValid && passwordValid && confirmValid;
   };
 
   const handleSubmit = async () => {
     try {
+      if (isSocialSignUp) {
+        const payload = {
+          provider: formData.provider,
+          socialSignupToken: formData.socialSignupToken,
+          userRole: formData.userRole,
+          phoneNum: formData.phoneNum,
+          name: formData.name,
+          birthday: formData.birthday,
+          gender: formData.gender,
+          nickname: formData.nickname,
+          agreements: formData.agreements,
+        };
+
+        const res = await authApi.completeSocialSignUp(payload);
+        const {accessToken, refreshToken} = res.data || {};
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+        }
+
+        await storeLoginTokens({
+          accessToken,
+          refreshToken,
+          userRole: 'USER',
+        });
+
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: 'MainTabs', params: {screen: '홈'}}],
+          }),
+        );
+        return;
+      }
+
       const payload = {
-        niceAuthToken: formData.niceAuthToken,
         email: formData.email,
         password: formData.password,
         passwordConfirm: formData.passwordConfirm,
         nickname: formData.nickname,
         userRole: formData.userRole,
+        phoneNum: formData.phoneNum,
         agreements: formData.agreements,
       };
-      await authApi.completeUserSignUp(payload);
+
+      /**
+       * 기존 NICE 기반 가입 완료:
+       * - niceAuthToken을 /auth/user/signup/complete로 전달
+       *
+       * 새 일반 USER 가입:
+       * - PhoneCertificate에서 SMS USER + SIGN_UP 인증 완료
+       * - phoneNum을 /auth/user/signup으로 전달
+       */
+      await authApi.userSignUp(payload);
       afterSuccessRegister();
     } catch (error) {
       setErrorModal({
@@ -280,6 +352,83 @@ const UserRegisterProfile = () => {
               </View>
             </View>
             <View style={styles.inputGroup}>
+              {isSocialSignUp && (
+                <>
+                  <View
+                    style={styles.inputContainer}
+                    onLayout={nameField.onLayout}>
+                    <Text style={styles.inputLabel}>이름</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="이름을 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.name}
+                        onChangeText={handleNameChange}
+                        onFocus={nameField.onFocus}
+                        maxLength={20}
+                      />
+                    </View>
+                  </View>
+
+                  <View
+                    style={styles.inputContainer}
+                    onLayout={birthdayField.onLayout}>
+                    <Text style={styles.inputLabel}>생년월일</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="YYYY-MM-DD"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.birthday}
+                        onChangeText={handleBirthdayChange}
+                        onFocus={birthdayField.onFocus}
+                        keyboardType="number-pad"
+                        maxLength={10}
+                      />
+                    </View>
+                  </View>
+
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>성별</Text>
+                    <View style={styles.genderGroup}>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[
+                          styles.genderButton,
+                          formData.gender === 'F' && styles.genderButtonActive,
+                        ]}
+                        onPress={() => handleGenderChange('F')}>
+                        <Text
+                          style={[
+                            styles.genderButtonText,
+                            formData.gender === 'F' &&
+                              styles.genderButtonTextActive,
+                          ]}>
+                          여성
+                        </Text>
+                      </TouchableOpacity>
+                      <TouchableOpacity
+                        activeOpacity={0.8}
+                        style={[
+                          styles.genderButton,
+                          formData.gender === 'M' && styles.genderButtonActive,
+                        ]}
+                        onPress={() => handleGenderChange('M')}>
+                        <Text
+                          style={[
+                            styles.genderButtonText,
+                            formData.gender === 'M' &&
+                              styles.genderButtonTextActive,
+                          ]}>
+                          남성
+                        </Text>
+                      </TouchableOpacity>
+                    </View>
+                  </View>
+                </>
+              )}
+
               <View
                 style={styles.inputContainer}
                 onLayout={nicknameField.onLayout}>
@@ -359,101 +508,113 @@ const UserRegisterProfile = () => {
                   </View>
                 )}
               </View>
-              <View
-                style={styles.inputContainer}
-                onLayout={passwordField.onLayout}>
-                <Text style={styles.inputLabel}>비밀번호</Text>
-                <View style={styles.inputBox}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="비밀번호를 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.password}
-                    onChangeText={handlePasswordChange}
-                    onFocus={passwordField.onFocus}
-                    maxLength={20}
-                    secureTextEntry={!isPasswordVisible}
-                    autoCapitalize="none"
-                  />
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => setIsPasswordVisible(prev => !prev)}>
-                    {isPasswordVisible ? (
-                      <HidePassword width={24} hide={24} />
-                    ) : (
-                      <ShowPassword width={24} hide={24} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.validBox}>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasUpperLowercase
-                        ? styles.validText
-                        : '',
-                    ]}>
-                    영문 대소문자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasNumber ? styles.validText : '',
-                    ]}>
-                    숫자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.hasSpecialChar ? styles.validText : '',
-                    ]}>
-                    특수문자 포함
-                  </Text>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.password.isLengthValid ? styles.validText : '',
-                    ]}>
-                    8-20자 이내
-                  </Text>
-                </View>
-              </View>
-              <View
-                style={styles.inputContainer}
-                onLayout={passwordConfirmField.onLayout}>
-                <View style={styles.inputBox}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="다시 한 번 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.passwordConfirm}
-                    onChangeText={handlePasswordConfirmChange}
-                    onFocus={passwordConfirmField.onFocus}
-                    maxLength={20}
-                    secureTextEntry={!isPasswordCheckVisible}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
-                    {isPasswordCheckVisible ? (
-                      <HidePassword width={24} hide={24} />
-                    ) : (
-                      <ShowPassword width={24} hide={24} />
-                    )}
-                  </TouchableOpacity>
-                </View>
-                <View style={styles.validBox}>
-                  <Text
-                    style={[
-                      styles.validDefaultText,
-                      formValid.passwordConfirm.isMatched
-                        ? styles.validText
-                        : '',
-                    ]}>
-                    비밀번호 일치
-                  </Text>
-                </View>
-              </View>
+              {!isSocialSignUp && (
+                <>
+                  <View
+                    style={styles.inputContainer}
+                    onLayout={passwordField.onLayout}>
+                    <Text style={styles.inputLabel}>비밀번호</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="비밀번호를 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.password}
+                        onChangeText={handlePasswordChange}
+                        onFocus={passwordField.onFocus}
+                        maxLength={20}
+                        secureTextEntry={!isPasswordVisible}
+                        autoCapitalize="none"
+                      />
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() => setIsPasswordVisible(prev => !prev)}>
+                        {isPasswordVisible ? (
+                          <HidePassword width={24} hide={24} />
+                        ) : (
+                          <ShowPassword width={24} hide={24} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.hasUpperLowercase
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        영문 대소문자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.hasNumber
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        숫자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.hasSpecialChar
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        특수문자 포함
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.password.isLengthValid
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        8-20자 이내
+                      </Text>
+                    </View>
+                  </View>
+                  <View
+                    style={styles.inputContainer}
+                    onLayout={passwordConfirmField.onLayout}>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="다시 한 번 입력해주세요"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.passwordConfirm}
+                        onChangeText={handlePasswordConfirmChange}
+                        onFocus={passwordConfirmField.onFocus}
+                        maxLength={20}
+                        secureTextEntry={!isPasswordCheckVisible}
+                      />
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        onPress={() =>
+                          setIsPasswordCheckVisible(prev => !prev)
+                        }>
+                        {isPasswordCheckVisible ? (
+                          <HidePassword width={24} hide={24} />
+                        ) : (
+                          <ShowPassword width={24} hide={24} />
+                        )}
+                      </TouchableOpacity>
+                    </View>
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.passwordConfirm.isMatched
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        비밀번호 일치
+                      </Text>
+                    </View>
+                  </View>
+                </>
+              )}
             </View>
           </View>
           <View>

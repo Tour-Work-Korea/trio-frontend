@@ -6,11 +6,87 @@ import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { log, mask } from '@utils/logger';
 import { reset } from '@utils/navigationService';
-import { login as kakaoLogin } from '@react-native-seoul/kakao-login';
+import {
+  getProfile as kakaoGetProfile,
+  login as kakaoLogin,
+} from '@react-native-seoul/kakao-login';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 
 const REFRESH_KEY = 'refresh-token';
+
+const cleanKakaoValue = value => {
+  if (value == null) {
+    return '';
+  }
+
+  const text = String(value);
+  return text === 'null' || text === 'undefined' ? '' : text;
+};
+
+const normalizeGender = value => {
+  const gender = cleanKakaoValue(value).toLowerCase();
+
+  if (gender === 'female' || gender === 'f') {
+    return 'F';
+  }
+  if (gender === 'male' || gender === 'm') {
+    return 'M';
+  }
+
+  return '';
+};
+
+const normalizeBirthday = ({birthday, birthyear}) => {
+  const rawBirthday = cleanKakaoValue(birthday);
+  const rawBirthyear = cleanKakaoValue(birthyear);
+
+  if (/^\d{4}-\d{2}-\d{2}$/.test(rawBirthday)) {
+    return rawBirthday;
+  }
+
+  if (/^\d{4}$/.test(rawBirthyear) && /^\d{4}$/.test(rawBirthday)) {
+    return `${rawBirthyear}-${rawBirthday.slice(0, 2)}-${rawBirthday.slice(2)}`;
+  }
+
+  return '';
+};
+
+const normalizeSocialProfile = data => {
+  const profile = data?.profile || data?.socialProfile || {};
+  return {
+    email: cleanKakaoValue(profile.email || data?.email),
+    nickname: cleanKakaoValue(profile.nickname || data?.nickname),
+    name: cleanKakaoValue(profile.name || data?.name),
+    birthday: normalizeBirthday({
+      birthday: profile.birthday || data?.birthday,
+      birthyear: profile.birthyear || data?.birthyear,
+    }),
+    gender: normalizeGender(profile.gender || data?.gender),
+  };
+};
+
+const mergeSocialProfiles = (...profiles) =>
+  profiles.reduce(
+    (merged, profile = {}) => ({
+      email: merged.email || profile.email || '',
+      nickname: merged.nickname || profile.nickname || '',
+      name: merged.name || profile.name || '',
+      birthday: merged.birthday || profile.birthday || '',
+      gender: merged.gender || profile.gender || '',
+    }),
+    {},
+  );
+
+const getKakaoProfileFallback = async () => {
+  try {
+    const profile = await kakaoGetProfile();
+    return normalizeSocialProfile(profile);
+  } catch (error) {
+    log.warn('카카오 프로필 조회 실패:', error?.message);
+    return {};
+  }
+};
 
 const clearAuthSession = async ({ silent = false } = {}) => {
   try {
@@ -35,8 +111,23 @@ export const tryKakaoLoginNative = async (userRole) => {
 
     // 2. 획득한 accessToken을 백엔드로 전달
     const res = await authApi.loginKakao(kakaoToken.accessToken);
+    const data = res.data || {};
 
-    // 3. 백엔드에서 응답받은 우리 서비스의 토큰을 저장
+    if (data.isNewUser) {
+      const backendProfile = normalizeSocialProfile(data);
+      const sdkProfile = await getKakaoProfileFallback();
+
+      return {
+        success: true,
+        isNewUser: true,
+        provider: 'KAKAO',
+        socialSignupToken: data.socialSignupToken,
+        socialProfile: mergeSocialProfiles(backendProfile, sdkProfile),
+        message: data.message,
+      };
+    }
+
+    // 3. 기존 유저일 때만 백엔드에서 응답받은 우리 서비스의 토큰을 저장
     await storeLoginInfo(res, userRole);
 
     // 4. FCM 토큰 동기화 (Authorization 헤더가 설정된 상태로 등록)
@@ -44,8 +135,8 @@ export const tryKakaoLoginNative = async (userRole) => {
 
     return {
       success: true,
-      isNewUser: res.data.isNewUser,
-      externalId: res.data.externalId
+      isNewUser: false,
+      provider: 'KAKAO',
     };
   } catch (err) {
     log.warn('❌ tryKakaoLoginNative failed:', err?.message);
@@ -53,7 +144,7 @@ export const tryKakaoLoginNative = async (userRole) => {
 
     return {
       success: false,
-      message: err?.message
+      message: err?.message,
     };
   }
 };
@@ -63,14 +154,18 @@ export const tryAutoLogin = async () => {
   try {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🔐 has refreshToken?', !!storedRefresh);
-    if (!storedRefresh) return false;
+    if (!storedRefresh) {
+      return false;
+    }
 
     const ok = await tryRefresh({ silent: true });
     log.info('🚪 tryAutoLogin: refresh result =', ok);
     if (ok) {
       const { userRole } = useUserStore.getState();
       log.info('👤 tryAutoLogin: userRole =', userRole);
-      if (userRole) await updateProfile(userRole);
+      if (userRole) {
+        await updateProfile(userRole);
+      }
     }
     return ok;
   } catch (err) {
@@ -83,7 +178,7 @@ export const storeLoginTokens = async ({
   accessToken,
   refreshToken,
   userRole,
-  needVerification
+  needVerification,
 }) => {
   log.info(
     '✅ login success: accessToken=',
@@ -93,16 +188,20 @@ export const storeLoginTokens = async ({
     'role=',
     userRole,
     'needVerification=',
-    needVerification
+    needVerification,
   );
 
   const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
-  if (accessToken) setTokens({ accessToken });
-  if (userRole) setUserRole(userRole);
+  if (accessToken) {
+    setTokens({ accessToken });
+  }
+  if (userRole) {
+    setUserRole(userRole);
+  }
 
-  // needVerification이 "true"면 본인 인증이 안 된 상태이므로 false 저장
+  // needVerification이 'true'면 본인 인증이 안 된 상태이므로 false 저장
   if (setIsVerified) {
-    setIsVerified(needVerification !== "true");
+    setIsVerified(needVerification !== 'true');
   }
 
   if (refreshToken) {
@@ -156,8 +255,20 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
   log.info('🟨 tryKakaoLogin: role=', userRole);
   try {
     const res = await authApi.loginKakao(accessCode);
+    const data = res.data || {};
+    if (data.isNewUser) {
+      const backendProfile = normalizeSocialProfile(data);
+
+      return {
+        success: true,
+        isNewUser: true,
+        provider: 'KAKAO',
+        socialSignupToken: data.socialSignupToken,
+        socialProfile: backendProfile,
+      };
+    }
     await storeLoginInfo(res, userRole);
-    return { success: true, isNewUser: res.data.isNewUser };
+    return { success: true, isNewUser: false, provider: 'KAKAO' };
   } catch (err) {
     log.warn('❌ tryKakaoLogin failed:', err?.message);
     useUserStore.getState().clearUser();
@@ -261,7 +372,9 @@ const updateProfile = async role => {
 };
 
 export function calculateAge(birthDateString) {
-  if (!birthDateString) return '00';
+  if (!birthDateString) {
+    return '00';
+  }
   const today = new Date();
   const birthDate = new Date(birthDateString);
   let age = today.getFullYear() - birthDate.getFullYear();
