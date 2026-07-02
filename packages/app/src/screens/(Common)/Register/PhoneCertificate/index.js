@@ -75,12 +75,10 @@ const PhoneCertificate = ({route}) => {
   const socialProfileName = socialProfile.name || '';
   const socialProfileBirthday = socialProfile.birthday || '';
   const socialProfileGender = socialProfile.gender || '';
-  const socialProfileNickname = socialProfile.nickname || '';
   const hasCompleteSocialProfile =
     !!socialProfileName &&
     /^\d{4}-\d{2}-\d{2}$/.test(socialProfileBirthday) &&
-    (socialProfileGender === 'M' || socialProfileGender === 'F') &&
-    !!socialProfileNickname;
+    (socialProfileGender === 'M' || socialProfileGender === 'F');
 
   const moveToSocialProfileFallback = useCallback(() => {
     navigation.navigate('UserRegisterProfile', {
@@ -95,7 +93,6 @@ const PhoneCertificate = ({route}) => {
         name: socialProfileName,
         birthday: socialProfileBirthday,
         gender: socialProfileGender,
-        nickname: socialProfileNickname,
         password: '',
         passwordConfirm: '',
       },
@@ -111,7 +108,6 @@ const PhoneCertificate = ({route}) => {
     socialProfileEmail,
     socialProfileGender,
     socialProfileName,
-    socialProfileNickname,
     socialSignupToken,
     userRole,
   ]);
@@ -122,12 +118,9 @@ const PhoneCertificate = ({route}) => {
     const message = data?.message || error?.message || '';
 
     return (
-      errorCode.includes('NICKNAME') ||
       errorCode.includes('PROFILE') ||
       errorCode.includes('REQUIRED') ||
-      message.includes('닉네임') ||
-      message.includes('필수') ||
-      message.includes('중복')
+      message.includes('필수')
     );
   };
 
@@ -143,7 +136,6 @@ const PhoneCertificate = ({route}) => {
         name: socialProfileName,
         birthday: socialProfileBirthday,
         gender: socialProfileGender,
-        nickname: socialProfileNickname,
         agreements,
       });
 
@@ -199,7 +191,6 @@ const PhoneCertificate = ({route}) => {
     socialProfileBirthday,
     socialProfileGender,
     socialProfileName,
-    socialProfileNickname,
     socialSignupToken,
     userRole,
   ]);

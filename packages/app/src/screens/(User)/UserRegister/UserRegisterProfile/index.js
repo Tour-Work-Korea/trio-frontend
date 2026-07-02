@@ -193,7 +193,7 @@ const UserRegisterProfile = () => {
       );
       const genderValid = formData.gender === 'M' || formData.gender === 'F';
 
-      return nicknameValid && nameValid && birthdayValid && genderValid;
+      return nameValid && birthdayValid && genderValid;
     }
 
     return nicknameValid && passwordValid && confirmValid;
@@ -210,7 +210,6 @@ const UserRegisterProfile = () => {
           name: formData.name,
           birthday: formData.birthday,
           gender: formData.gender,
-          nickname: formData.nickname,
           agreements: formData.agreements,
         };
 
@@ -429,85 +428,87 @@ const UserRegisterProfile = () => {
                 </>
               )}
 
-              <View
-                style={styles.inputContainer}
-                onLayout={nicknameField.onLayout}>
-                <Text style={styles.inputLabel}>닉네임</Text>
-                <View style={[styles.inputBox, styles.inputRelative]}>
-                  <TextInput
-                    style={styles.textInput}
-                    placeholder="닉네임을 입력해주세요"
-                    placeholderTextColor={COLORS.grayscale_400}
-                    value={formData.nickname}
-                    onChangeText={handleNicknameChange}
-                    onFocus={nicknameField.onFocus}
-                    maxLength={10}
-                  />
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    disabled={
-                      !formValid.nickname?.hasNoSpecialChars ||
-                      !formValid.nickname?.isLengthValid
-                    }
-                    style={[
-                      styles.inputButtonAbsolute,
-                      {
-                        backgroundColor:
-                          formValid.nickname?.hasNoSpecialChars &&
+              {!isSocialSignUp && (
+                <View
+                  style={styles.inputContainer}
+                  onLayout={nicknameField.onLayout}>
+                  <Text style={styles.inputLabel}>닉네임</Text>
+                  <View style={[styles.inputBox, styles.inputRelative]}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder="닉네임을 입력해주세요"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={formData.nickname}
+                      onChangeText={handleNicknameChange}
+                      onFocus={nicknameField.onFocus}
+                      maxLength={10}
+                    />
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      disabled={
+                        !formValid.nickname?.hasNoSpecialChars ||
+                        !formValid.nickname?.isLengthValid
+                      }
+                      style={[
+                        styles.inputButtonAbsolute,
+                        {
+                          backgroundColor:
+                            formValid.nickname?.hasNoSpecialChars &&
+                            formValid.nickname?.isLengthValid
+                              ? COLORS.primary_orange
+                              : COLORS.grayscale_200,
+                        },
+                      ]}
+                      onPress={checkNicknameDuplicate}>
+                      <Text
+                        style={{
+                          ...FONTS.fs_14_medium,
+                          color:
+                            formValid.nickname?.hasNoSpecialChars &&
+                            formValid.nickname?.isLengthValid
+                              ? COLORS.grayscale_0
+                              : COLORS.grayscale_400,
+                        }}>
+                        중복확인
+                      </Text>
+                    </TouchableOpacity>
+                  </View>
+                  {isNicknameChecked ? (
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          !isNicknameDuplicated
+                            ? styles.validText
+                            : styles.invalidText,
+                        ]}>
+                        {nicknameCheckMessage}
+                      </Text>
+                    </View>
+                  ) : (
+                    <View style={styles.validBox}>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
+                          formValid.nickname?.hasNoSpecialChars
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        특수문자 제외
+                      </Text>
+                      <Text
+                        style={[
+                          styles.validDefaultText,
                           formValid.nickname?.isLengthValid
-                            ? COLORS.primary_orange
-                            : COLORS.grayscale_200,
-                      },
-                    ]}
-                    onPress={checkNicknameDuplicate}>
-                    <Text
-                      style={{
-                        ...FONTS.fs_14_medium,
-                        color:
-                          formValid.nickname?.hasNoSpecialChars &&
-                          formValid.nickname?.isLengthValid
-                            ? COLORS.grayscale_0
-                            : COLORS.grayscale_400,
-                      }}>
-                      중복확인
-                    </Text>
-                  </TouchableOpacity>
+                            ? styles.validText
+                            : '',
+                        ]}>
+                        2-10자 내외
+                      </Text>
+                    </View>
+                  )}
                 </View>
-                {isNicknameChecked ? (
-                  <View style={styles.validBox}>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        !isNicknameDuplicated
-                          ? styles.validText
-                          : styles.invalidText,
-                      ]}>
-                      {nicknameCheckMessage}
-                    </Text>
-                  </View>
-                ) : (
-                  <View style={styles.validBox}>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.nickname?.hasNoSpecialChars
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      특수문자 제외
-                    </Text>
-                    <Text
-                      style={[
-                        styles.validDefaultText,
-                        formValid.nickname?.isLengthValid
-                          ? styles.validText
-                          : '',
-                      ]}>
-                      2-10자 내외
-                    </Text>
-                  </View>
-                )}
-              </View>
+              )}
               {!isSocialSignUp && (
                 <>
                   <View
