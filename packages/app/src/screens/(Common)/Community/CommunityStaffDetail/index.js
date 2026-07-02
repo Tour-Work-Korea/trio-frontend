@@ -11,7 +11,6 @@ import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {FONTS} from '@constants/fonts';
-import {trimJejuPrefix} from '@utils/formatAddress';
 import styles from './CommunityStaffDetail.styles';
 
 const formatMonthDay = value => {
@@ -83,7 +82,6 @@ const CommunityStaffDetail = ({route}) => {
     recruit?.recruitImages?.find(image => image.isThumbnail)?.recruitImageUrl ||
     recruit?.recruitImages?.[0]?.recruitImageUrl;
   const deadline = formatMonthDay(recruit?.recruitEnd);
-  const address = trimJejuPrefix(recruit?.location);
 
   const handleApply = () => {
     if (userRole !== 'USER') {
@@ -138,19 +136,6 @@ const CommunityStaffDetail = ({route}) => {
             {recruit?.recruitTitle}
           </Text>
 
-          <View style={styles.metaRow}>
-            <Text
-              style={[FONTS.fs_12_regular, styles.address]}
-              numberOfLines={1}>
-              {address}
-            </Text>
-            {!!recruit?.workDuration && (
-              <Text style={[FONTS.fs_12_regular, styles.workDuration]}>
-                {recruit.workDuration}
-              </Text>
-            )}
-          </View>
-
           {!!recruit?.recruitShortDescription && (
             <Text style={[FONTS.fs_14_regular, styles.shortDescription]}>
               {recruit.recruitShortDescription}
@@ -163,19 +148,24 @@ const CommunityStaffDetail = ({route}) => {
             <RecruitTapSection recruit={recruit} />
           </View>
 
-          <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-            상세정보
-          </Text>
-          <View style={styles.detailCard}>
-            <Text style={[FONTS.fs_14_regular, styles.detailText]}>
-              {recruit?.recruitDetail}
-            </Text>
-          </View>
+          {!!recruit?.recruitDetail && (
+            <View style={styles.detailSection}>
+              <Text style={[FONTS.fs_16_semibold, styles.detailTitle]}>
+                상세 정보
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.detailText]}>
+                {recruit.recruitDetail}
+              </Text>
+            </View>
+          )}
 
-          <View style={styles.applyButtonContainer}>
-            <ButtonScarlet title="지원하기" onPress={handleApply} />
-          </View>
         </ScrollView>
+      )}
+
+      {!isLoading && (
+        <View style={styles.applyButtonContainer}>
+          <ButtonScarlet title="지원하기" onPress={handleApply} />
+        </View>
       )}
 
       <AlertModal
