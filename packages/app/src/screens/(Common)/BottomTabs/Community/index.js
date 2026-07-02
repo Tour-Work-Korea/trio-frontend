@@ -140,6 +140,10 @@ const Community = () => {
     () => getInitialCategoryKey(categoryTabs, route.params),
     [categoryTabs, route.params],
   );
+  const requestedCategory = useMemo(
+    () => normalizeCategoryParam(getRequestedCategoryParam(route.params)),
+    [route.params],
+  );
 
   const {
     pagerRef,
@@ -192,6 +196,31 @@ const Community = () => {
     didSyncInitialTabRef.current = true;
     setKey(initialCategoryKey, {animated: false, syncScroll: true});
   }, [initialCategoryKey, pageWidth, setKey]);
+
+  useEffect(() => {
+    if (pageWidth <= 0) {
+      return;
+    }
+
+    if (requestedCategory === 'ALL') {
+      setKey(getCategoryKey(allCategory), {
+        animated: false,
+        syncScroll: true,
+      });
+      return;
+    }
+
+    if (requestedCategory === 'STAFF' || requestedCategory === 'RECRUIT') {
+      const staffCategory = categoryTabs.find(isStaffCategory);
+
+      if (staffCategory) {
+        setKey(getCategoryKey(staffCategory), {
+          animated: false,
+          syncScroll: true,
+        });
+      }
+    }
+  }, [categoryTabs, pageWidth, requestedCategory, setKey]);
 
   const handleSelectSort = sort => {
     setSelectedSort(sort);

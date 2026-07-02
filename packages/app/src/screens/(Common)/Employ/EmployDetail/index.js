@@ -101,8 +101,6 @@ const EmployDetail = ({route}) => {
                 } else {
                   navigation.navigate('ApplicantForm', {
                     recruitId: recruit?.recruitId,
-                    entryStartDate: recruit?.entryStartDate,
-                    entryEndDate: recruit?.entryEndDate,
                   });
                 }
               }}

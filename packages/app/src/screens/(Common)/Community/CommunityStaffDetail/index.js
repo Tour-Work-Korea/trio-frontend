@@ -97,8 +97,6 @@ const CommunityStaffDetail = ({route}) => {
 
     navigation.navigate('ApplicantForm', {
       recruitId: recruit?.recruitId,
-      entryStartDate: recruit?.entryStartDate,
-      entryEndDate: recruit?.entryEndDate,
     });
   };
 
