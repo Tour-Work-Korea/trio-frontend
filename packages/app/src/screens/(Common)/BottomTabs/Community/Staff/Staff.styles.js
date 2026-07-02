@@ -21,7 +21,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
     justifyContent: 'space-between',
   },
   headerInfoRow: {
@@ -46,14 +46,14 @@ const styles = StyleSheet.create({
   },
   recruitTitle: {
     color: COLORS.grayscale_900,
-    marginBottom: 6,
+    marginBottom: 10,
   },
   metaRow: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     gap: 12,
-    marginBottom: 10,
+    marginBottom: 14,
   },
   address: {
     flex: 1,
@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 12,
+    marginBottom: 16,
   },
   tag: {
     paddingHorizontal: 8,
