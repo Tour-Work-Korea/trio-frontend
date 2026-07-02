@@ -44,7 +44,12 @@ export default function EmployTagModal({
     }
   };
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      useNativeModalOnAndroid>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* 헤더 */}
