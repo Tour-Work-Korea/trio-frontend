@@ -1,12 +1,13 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
+  Platform,
   Pressable,
   ScrollView,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useNavigation} from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
 import AlertModal from '@components/modals/AlertModal';
@@ -64,16 +65,60 @@ const withRequiredCategories = categories => {
     defaultCategories.find(isStaffCategory);
 
   return [
-    ...normalizedCategories.filter(category => !isStaffCategory(category)),
+    allCategory,
     staffCategory,
+    ...normalizedCategories.filter(
+      category =>
+        category.code !== allCategory.code && !isStaffCategory(category),
+    ),
   ];
 };
 
 const getCategoryKey = category =>
   String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
 
+const normalizeCategoryParam = value =>
+  String(value ?? '')
+    .trim()
+    .toUpperCase();
+
+const getRequestedCategoryParam = routeParams => {
+  const routeParam =
+    routeParams?.tab ?? routeParams?.category ?? routeParams?.categoryCode;
+
+  if (routeParam) {
+    return routeParam;
+  }
+
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return '';
+  }
+
+  const searchParams = new URLSearchParams(window.location.search);
+  return (
+    searchParams.get('tab') ??
+    searchParams.get('category') ??
+    searchParams.get('categoryCode') ??
+    ''
+  );
+};
+
+const getInitialCategoryKey = (tabs, routeParams) => {
+  const requestedCategory = normalizeCategoryParam(
+    getRequestedCategoryParam(routeParams),
+  );
+
+  if (requestedCategory === 'STAFF' || requestedCategory === 'RECRUIT') {
+    const staffCategory = tabs.find(isStaffCategory);
+    return staffCategory ? getCategoryKey(staffCategory) : 'STAFF';
+  }
+
+  return getCategoryKey(allCategory);
+};
+
 const Community = () => {
   const navigation = useNavigation();
+  const route = useRoute();
   const sortButtonRef = useRef(null);
   const didSyncInitialTabRef = useRef(false);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
@@ -97,7 +142,10 @@ const Community = () => {
       })),
     [categories],
   );
-  const initialCategoryKey = getCategoryKey(allCategory);
+  const initialCategoryKey = useMemo(
+    () => getInitialCategoryKey(categoryTabs, route.params),
+    [categoryTabs, route.params],
+  );
 
   const {
     pagerRef,
