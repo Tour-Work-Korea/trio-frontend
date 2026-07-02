@@ -7,6 +7,8 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
+import Clipboard from '@react-native-clipboard/clipboard';
+import Toast from 'react-native-toast-message';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
@@ -19,6 +21,20 @@ export default function RecruitTapSection({recruit}) {
 
   const handleTabPress = tabName => {
     setActiveTab(tabName);
+  };
+
+  const handleCopyLocation = () => {
+    if (!recruit?.location) {
+      return;
+    }
+
+    Clipboard.setString(recruit.location);
+    Toast.show({
+      type: 'success',
+      text1: '주소를 복사했어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
   };
 
   const renderTabContent = () => {
@@ -88,10 +104,10 @@ export default function RecruitTapSection({recruit}) {
             </View>
           </View>
         );
-      case '근무지정보':
+      case '근무 정보':
         return (
           <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>근무지 사진</Text>
+            <Text style={styles.sectionTitle}>근무 사진</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -115,9 +131,12 @@ export default function RecruitTapSection({recruit}) {
             </ScrollView>
 
             <Text style={styles.sectionTitle}>근무지 위치</Text>
-            <Text style={{...FONTS.fs_14_medium, color: COLORS.grayscale_800}}>
-              {recruit.location}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              onPress={handleCopyLocation}
+              disabled={!recruit?.location}>
+              <Text style={styles.locationText}>{recruit.location}</Text>
+            </TouchableOpacity>
           </View>
         );
       default:
@@ -156,14 +175,14 @@ export default function RecruitTapSection({recruit}) {
 
         <TouchableOpacity
           activeOpacity={1}
-          style={[styles.tab, activeTab === '근무지정보' && styles.activeTab]}
-          onPress={() => handleTabPress('근무지정보')}>
+          style={[styles.tab, activeTab === '근무 정보' && styles.activeTab]}
+          onPress={() => handleTabPress('근무 정보')}>
           <Text
             style={[
               styles.tabText,
-              activeTab === '근무지정보' && styles.activeTabText,
+              activeTab === '근무 정보' && styles.activeTabText,
             ]}>
-            근무지정보
+            근무 정보
           </Text>
         </TouchableOpacity>
       </View>
@@ -209,14 +228,15 @@ const styles = StyleSheet.create({
   //탭 상세 내용
   tabContent: {
     backgroundColor: COLORS.grayscale_100,
-    paddingVertical: 8,
-    paddingHorizontal: 12,
+    paddingVertical: 14,
+    paddingHorizontal: 14,
     borderRadius: 8,
     flexDirection: 'column',
-    gap: 8,
+    gap: 12,
   },
   infoRow: {
     flexDirection: 'row',
+    alignItems: 'flex-start',
     justifyContent: 'space-between',
     gap: 40,
   },
@@ -229,6 +249,7 @@ const styles = StyleSheet.create({
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,
     flex: 1,
+    lineHeight: 20,
   },
   divider: {
     height: 0,
@@ -237,6 +258,11 @@ const styles = StyleSheet.create({
   sectionTitle: {
     ...FONTS.fs_14_regular,
     color: COLORS.grayscale_400,
+  },
+  locationText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_800,
+    lineHeight: 20,
   },
   photoScroll: {
     marginBottom: 12,

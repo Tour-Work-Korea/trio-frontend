@@ -54,7 +54,9 @@ const SocialLogin = () => {
   };
 
   const handleLoginByCode = async code => {
-    if (!code || isSubmitting) return;
+    if (!code || isSubmitting) {
+      return;
+    }
 
     setIsSubmitting(true);
 
@@ -74,8 +76,8 @@ const SocialLogin = () => {
 
       // 신규 유저
       if (data.isNewUser) {
-        if (!data.externalId) {
-          openError('신규 유저 식별값이 없음', () =>
+        if (!data.socialSignupToken) {
+          openError('소셜 가입 세션이 없음', () =>
             navigation.reset({
               index: 0,
               routes: [{name: 'LoginIntro'}],
@@ -91,7 +93,15 @@ const SocialLogin = () => {
               params: {
                 user: 'USER',
                 isSocial: true,
-                externalId: data.externalId,
+                provider,
+                socialSignupToken: data.socialSignupToken,
+                socialProfile: data.profile || data.socialProfile || {
+                  email: data.email || '',
+                  nickname: data.nickname || '',
+                  name: data.name || '',
+                  birthday: data.birthday || '',
+                  gender: data.gender || '',
+                },
               },
             },
           ],

@@ -1,6 +1,5 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
-import EmploySelfIntroModal from '@components/modals/Employ/EmploySelfIntroModal';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import EditIcon from '@assets/images/edit_gray.svg';
@@ -8,15 +7,14 @@ import EditIcon from '@assets/images/edit_gray.svg';
 const ApplicantSelfIntroduction = ({
   text = '',
   isEditable = false,
-  setSelfIntro = null,
+  onEditSelfIntro = () => {},
 }) => {
-  const [modalVisible, setModalVisible] = useState(false);
   return (
     <View style={styles.sectionBox}>
       <View style={styles.titleBox}>
         <Text style={styles.titleText}>자기소개</Text>
         {isEditable ? (
-          <TouchableOpacity onPress={() => setModalVisible(true)}>
+          <TouchableOpacity onPress={onEditSelfIntro}>
             <EditIcon width={24} />
           </TouchableOpacity>
         ) : (
@@ -27,19 +25,16 @@ const ApplicantSelfIntroduction = ({
         <Text style={{color: COLORS.primary_orange}}>
           {text?.length?.toLocaleString()}
         </Text>
-        /50,000
+        /1,000
       </Text>
 
-      <View style={styles.introductionCard}>
+      <TouchableOpacity
+        activeOpacity={isEditable ? 0.8 : 1}
+        disabled={!isEditable}
+        style={styles.introductionCard}
+        onPress={onEditSelfIntro}>
         <Text style={styles.introductionText}>{text}</Text>
-      </View>
-
-      <EmploySelfIntroModal
-        visible={modalVisible}
-        onClose={() => setModalVisible(false)}
-        editSelfIntro={setSelfIntro}
-        initialData={text}
-      />
+      </TouchableOpacity>
     </View>
   );
 };

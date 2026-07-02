@@ -21,6 +21,7 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 const VerifyPhone = ({route}) => {
   const {find, originPhone} = route.params;
   const userRole = 'USER';
+  const smsPurpose = 'FIND_ACCOUNT';
   const navigation = useNavigation();
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
@@ -124,7 +125,7 @@ const VerifyPhone = ({route}) => {
       }
     }
     try {
-      await authApi.verifySelfByPhone(phoneNumber, userRole);
+      await authApi.sendSms(phoneNumber, userRole, smsPurpose);
       setHasRequestedCode(true);
       setIsCodeSent(true);
       setTimeLeft(300);
@@ -159,7 +160,7 @@ const VerifyPhone = ({route}) => {
   const verifyCode = async () => {
     setLoading(true);
     try {
-      await authApi.verifySms(phoneNumber, code);
+      await authApi.verifySms(phoneNumber, code, userRole, smsPurpose);
       setIsTimerActive(false);
       setIsCodeVerified(true);
     } catch (error) {
@@ -277,14 +278,14 @@ const VerifyPhone = ({route}) => {
               {loading ? (
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
-                <ButtonWhite 
+                <ButtonWhite
                   title="인증 성공!"
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : isCodeValid ? (
-                <ButtonWhite 
-                  title="인증하기" 
+                <ButtonWhite
+                  title="인증하기"
                   onPress={verifyCode}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}

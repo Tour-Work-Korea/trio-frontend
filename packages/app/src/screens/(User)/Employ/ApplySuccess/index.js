@@ -1,4 +1,4 @@
-import {useEffect} from 'react';
+import {useCallback, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {CommonActions, useNavigation} from '@react-navigation/native';
 
@@ -9,18 +9,30 @@ import {FONTS} from '@constants/fonts';
 const ApplySuccess = () => {
   const navigation = useNavigation();
 
+  const navigateStaffRecruit = useCallback(() => {
+    navigation.dispatch(
+      CommonActions.reset({
+        index: 0,
+        routes: [
+          {
+            name: 'MainTabs',
+            params: {
+              screen: '커뮤니티',
+              params: {tab: 'staff'},
+            },
+          },
+        ],
+      }),
+    );
+  }, [navigation]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigation.dispatch(
-        CommonActions.reset({
-          index: 0,
-          routes: [{name: 'MainTabs', params: {screen: '홈'}}],
-        }),
-      );
+      navigateStaffRecruit();
     }, 2000);
 
     return () => clearTimeout(timer);
-  }, [navigation]);
+  }, [navigateStaffRecruit]);
 
   return (
     <View style={styles.signin}>
@@ -29,7 +41,7 @@ const ApplySuccess = () => {
           <LogoBlue width={168} />
           <View>
             <Text style={styles.titleText}>지원서 제출 완료!</Text>
-            <Text style={styles.titleText}>다른 게하들도 둘러볼까요?</Text>
+            <Text style={styles.titleText}>다른 스탭 공고도 둘러볼까요?</Text>
           </View>
         </View>
       </View>

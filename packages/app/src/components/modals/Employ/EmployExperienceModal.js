@@ -73,10 +73,6 @@ export default function EmployExperienceModal({
     setExperience(prev => ({ ...prev, [dateFieldTarget]: formatted }));
     setIsDatePickerVisible(false);
   };
-  if (Platform.OS === 'android' && !visible) {
-    return null;
-  }
-
   const content = (
     <KeyboardAvoidingView style={{ flex: 1 }} enabled>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
@@ -197,12 +193,13 @@ export default function EmployExperienceModal({
     </KeyboardAvoidingView>
   );
 
-  if (Platform.OS === 'android') {
-    return content;
-  }
-
   return (
-    <Modal visible={visible} animationType="slide" transparent onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}
+      useNativeModalOnAndroid>
       {content}
     </Modal>
   );
@@ -219,16 +216,11 @@ const styles = StyleSheet.create({
     elevation: 9999,
   },
   container: {
-    flex: 1,
+    height: height * 0.9,
     backgroundColor: COLORS.grayscale_0,
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     paddingHorizontal: 20,
-    ...Platform.select({
-      ios: {
-        maxHeight: '90%',
-      },
-    }),
   },
   header: {
     flexDirection: 'row',

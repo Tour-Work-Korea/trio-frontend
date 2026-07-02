@@ -13,6 +13,9 @@ import userEmployApi from '@utils/api/userEmployApi';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {parseDotDateToLocalDate} from '@utils/formatDate';
 import AlertModal from '@components/modals/AlertModal';
+import EmployExperienceModal from '@components/modals/Employ/EmployExperienceModal';
+import EmploySelfIntroModal from '@components/modals/Employ/EmploySelfIntroModal';
+import EmployTagModal from '@components/modals/Employ/EmployTagModal';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
 import EmptyState from '@components/EmptyState';
@@ -40,7 +43,60 @@ const ResumeDetail = ({route}) => {
     message: '',
     buttonText: '',
   });
+  const [experienceModal, setExperienceModal] = useState({
+    visible: false,
+    editingIndex: null,
+    editingData: null,
+  });
+  const [tagModalVisible, setTagModalVisible] = useState(false);
+  const [selfIntroModalVisible, setSelfIntroModalVisible] = useState(false);
   const [newResumeSuccess, setNewResumeSuccess] = useState(false);
+
+  const handlePressFindRecruit = () => {
+    navigation.navigate('MainTabs', {
+      screen: '커뮤니티',
+      params: {tab: 'staff'},
+    });
+  };
+
+  const handleOpenAddExperience = () => {
+    setExperienceModal({
+      visible: true,
+      editingIndex: null,
+      editingData: null,
+    });
+  };
+
+  const handleOpenEditExperience = (experience, index) => {
+    setExperienceModal({
+      visible: true,
+      editingIndex: index,
+      editingData: experience,
+    });
+  };
+
+  const handleCloseExperienceModal = () => {
+    setExperienceModal(prev => ({...prev, visible: false}));
+  };
+
+  const handleApplyExperience = experience => {
+    setFormData(prev => {
+      const currentExperiences = prev.workExperience ?? [];
+      const nextExperiences =
+        experienceModal.editingIndex !== null
+          ? currentExperiences.map((item, index) =>
+              index === experienceModal.editingIndex ? experience : item,
+            )
+          : [...currentExperiences, experience];
+
+      return {...prev, workExperience: nextExperiences};
+    });
+    setExperienceModal({
+      visible: false,
+      editingIndex: null,
+      editingData: null,
+    });
+  };
 
   const tryFetchResumeById = useCallback(async () => {
     try {
@@ -127,7 +183,9 @@ const ResumeDetail = ({route}) => {
           icon={EmploySuccessIcon}
           iconSize={{width: 224, height: 171}}
           title="이력서 작성 완성!"
-          description="공고 지원하러 가볼까요?"
+          description="스탭 지원하러 가볼까요?"
+          buttonText="스탭 지원하기"
+          onPressButton={handlePressFindRecruit}
         />
       ) : (
         <ScrollView contentContainerStyle={styles.scrollContent}>
@@ -151,21 +209,19 @@ const ResumeDetail = ({route}) => {
                 setExperience={newList =>
                   setFormData(prev => ({...prev, workExperience: newList}))
                 }
+                onAddExperience={handleOpenAddExperience}
+                onEditExperience={handleOpenEditExperience}
               />
               {/* 해시태그 */}
               <ApplicantTag
                 tags={formData?.hashtags}
                 isEditable={isEditable}
-                setTags={newList =>
-                  setFormData(prev => ({...prev, hashtags: newList}))
-                }
+                onEditTags={() => setTagModalVisible(true)}
               />
               <ApplicantSelfIntroduction
                 text={formData?.selfIntro}
                 isEditable={isEditable}
-                setSelfIntro={data =>
-                  setFormData(prev => ({...prev, selfIntro: data}))
-                }
+                onEditSelfIntro={() => setSelfIntroModalVisible(true)}
               />
               {isEditable ? (
                 <View style={styles.bottomGap}>
@@ -185,6 +241,28 @@ const ResumeDetail = ({route}) => {
           )}
         </ScrollView>
       )}
+      <EmployExperienceModal
+        visible={experienceModal.visible}
+        initialData={experienceModal.editingData}
+        onClose={handleCloseExperienceModal}
+        addExperience={handleApplyExperience}
+      />
+      <EmployTagModal
+        visible={tagModalVisible}
+        onClose={() => setTagModalVisible(false)}
+        addTags={newList =>
+          setFormData(prev => ({...prev, hashtags: newList}))
+        }
+        initialData={formData?.hashtags}
+      />
+      <EmploySelfIntroModal
+        visible={selfIntroModalVisible}
+        onClose={() => setSelfIntroModalVisible(false)}
+        editSelfIntro={data =>
+          setFormData(prev => ({...prev, selfIntro: data}))
+        }
+        initialData={formData?.selfIntro}
+      />
       <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}

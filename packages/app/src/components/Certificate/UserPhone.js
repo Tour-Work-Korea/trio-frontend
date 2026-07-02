@@ -17,7 +17,8 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import ButtonWhite from '@components/ButtonWhite';
 import AlertModal from '@components/modals/AlertModal';
 import Modal from '@components/modals/AdaptiveModal';
-import authApi from '@utils/api/authApi';
+// NICE 기반 본인인증 API는 백엔드에서 제거되어 비활성화됨.
+// import authApi from '@utils/api/authApi';
 import styles from './Certificate.styles';
 import {COLORS} from '@constants/colors';
 
@@ -83,19 +84,25 @@ const UserPhone = ({onPress}) => {
       setLoading(true);
 
       /**
+       * NICE 기반 본인인증은 백엔드에서 410 Gone으로 전환되어 호출하지 않음.
+       * 새 USER 가입/소셜 가입 플로우는 SMS 인증 컴포넌트로 교체 예정.
+       */
+      throw new Error('본인 인증 방식이 SMS 인증으로 변경되었습니다.');
+
+      /**
        * 서버에 init 요청
        * - POST /auth/nice/init
        * - 응답에 authUrl / requestNo / expiresAt 가 옴
        */
-      const res = await authApi.niceInit();
-      const {authUrl: nextAuthUrl} = res.data || {};
-
-      if (!nextAuthUrl) {
-        throw new Error('본인 인증 URL이 없습니다.');
-      }
-
-      setAuthUrl(nextAuthUrl);
-      setShowWebView(true);
+      // const res = await authApi.niceInit();
+      // const {authUrl: nextAuthUrl} = res.data || {};
+      //
+      // if (!nextAuthUrl) {
+      //   throw new Error('본인 인증 URL이 없습니다.');
+      // }
+      //
+      // setAuthUrl(nextAuthUrl);
+      // setShowWebView(true);
     } catch (error) {
       setErrorModal({
         visible: true,

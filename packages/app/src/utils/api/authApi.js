@@ -23,30 +23,33 @@ const authApi = {
       withAuth: false,
     }),
 
-  // NICE 본인인증 init (encData 등 받기)
-  niceInit: () =>
-    api.post('/auth/nice/init', null, {
-      withAuth: false,
-    }),
+  /**
+   * NICE 기반 USER 가입/본인인증 보조 경로
+   *
+   * 백엔드에서 NICE API가 제거되며 아래 경로는 410 Gone으로 전환됨.
+   * 새 가입 플로우는 SMS purpose 기반 인증과 /auth/user/signup,
+   * /auth/user/signup/social/complete 계약으로 교체해야 함.
+   */
+  // niceInit: () =>
+  //   api.post('/auth/nice/init', null, {
+  //     withAuth: false,
+  //   }),
 
-  // 본인인증 후 계정 상태 확인 (NEW_USER / ALREADY_LOCAL / SOCIAL_INTEGRATION)
-  checkSignUpStatus: niceAuthToken =>
-    api.post('/auth/user/check-status', null, {
-      params: {niceAuthToken},
-      withAuth: false,
-    }),
+  // checkSignUpStatus: niceAuthToken =>
+  //   api.post('/auth/user/check-status', null, {
+  //     params: {niceAuthToken},
+  //     withAuth: false,
+  //   }),
 
-  // 최종 회원가입/연동 완료
-  completeUserSignUp: body =>
-    api.post('/auth/user/signup/complete', body, {
-      withAuth: false,
-    }),
+  // completeUserSignUp: body =>
+  //   api.post('/auth/user/signup/complete', body, {
+  //     withAuth: false,
+  //   }),
 
-  // 결측 CI 수집 완료 후 CI 등록
-  verifyCi: (niceAuthToken) =>
-    api.post('/auth/user/verify-ci', {niceAuthToken}, {
-      withAuth: true, // 로그인 상태에서 호출, 토큰 포함
-    }),
+  // verifyCi: niceAuthToken =>
+  //   api.post('/auth/user/verify-ci', {niceAuthToken}, {
+  //     withAuth: true,
+  //   }),
 
   // 소셜 회원가입 완료
   completeSocialSignUp: body =>
@@ -54,15 +57,16 @@ const authApi = {
       withAuth: false,
     }),
 
-  //휴대폰 인증
-  sendSms: (phoneNum, userRole) =>
+  // 휴대폰 인증
+  // purpose: SIGN_UP | FIND_ACCOUNT | PHONE_CHANGE
+  sendSms: (phoneNum, userRole, purpose = 'SIGN_UP') =>
     api.post('/auth/sms/send', null, {
-      params: {phoneNum, userRole},
+      params: {phoneNum, userRole, purpose},
       withAuth: false,
     }),
-  verifySms: (phoneNum, code) =>
+  verifySms: (phoneNum, code, userRole = 'USER', purpose = 'SIGN_UP') =>
     api.post('/auth/sms/verify', null, {
-      params: {phoneNum, code},
+      params: {phoneNum, code, userRole, purpose},
       withAuth: false,
     }),
   //사장님 회원가입

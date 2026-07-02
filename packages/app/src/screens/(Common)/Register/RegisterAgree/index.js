@@ -2,7 +2,6 @@ import React, {useState, useEffect} from 'react';
 import {Text, View, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
-import ButtonScarlet from '@components/ButtonScarlet';
 import {userRegisterAgrees} from '@data/agree';
 import ButtonWhite from '@components/ButtonWhite';
 
@@ -13,7 +12,13 @@ import styles from './Agree.styles';
 import { COLORS } from '@constants/colors';
 
 const RegisterAgree = ({route}) => {
-  const {user, isSocial = false, externalId = null} = route.params;
+  const {
+    user,
+    isSocial = false,
+    provider = null,
+    socialSignupToken = null,
+    socialProfile = {},
+  } = route.params;
   const [agreements, setAgreements] = useState(userRegisterAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
@@ -66,7 +71,9 @@ const RegisterAgree = ({route}) => {
         user,
         agreements: agreementPayload,
         isSocial: true,
-        externalId,
+        provider,
+        socialSignupToken,
+        socialProfile,
       });
       return;
     }
@@ -146,9 +153,9 @@ const RegisterAgree = ({route}) => {
             ))}
           </View>
           {isRequiredAgreed ? (
-            <ButtonWhite 
-              title="다음" 
-              onPress={handleMoveNext} 
+            <ButtonWhite
+              title="다음"
+              onPress={handleMoveNext}
               backgroundColor={mainColor}
               textColor={COLORS.grayscale_0}
             />

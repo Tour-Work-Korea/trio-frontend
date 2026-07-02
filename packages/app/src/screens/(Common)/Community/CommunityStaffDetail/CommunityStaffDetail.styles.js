@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   container: {
@@ -9,13 +10,13 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 40,
+    paddingBottom: 128,
   },
   postHeader: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginTop: 4,
-    marginBottom: 8,
+    marginTop: 8,
+    marginBottom: 12,
   },
   avatar: {
     width: 30,
@@ -33,33 +34,21 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
   },
   recruitTitle: {
+    ...FONTS.fs_16_medium,
     color: COLORS.grayscale_900,
-    marginBottom: 6,
-  },
-  metaRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: 12,
-    marginBottom: 8,
-  },
-  address: {
-    flex: 1,
-    color: COLORS.grayscale_500,
-  },
-  workDuration: {
-    color: COLORS.grayscale_500,
+    lineHeight: 23,
+    marginBottom: 14,
   },
   shortDescription: {
     color: COLORS.grayscale_900,
-    lineHeight: 20,
-    marginBottom: 12,
+    lineHeight: 22,
+    marginBottom: 16,
   },
   tagRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginBottom: 16,
+    marginBottom: 20,
   },
   tag: {
     paddingHorizontal: 8,
@@ -118,21 +107,26 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
     lineHeight: 18,
   },
-  sectionTitle: {
+  detailSection: {
+    marginTop: 24,
+  },
+  detailTitle: {
     color: COLORS.grayscale_900,
     marginBottom: 10,
   },
-  detailCard: {
-    borderRadius: 8,
-    padding: 14,
-    backgroundColor: COLORS.grayscale_100,
-  },
   detailText: {
-    color: COLORS.grayscale_900,
-    lineHeight: 20,
+    color: COLORS.grayscale_800,
+    lineHeight: 22,
   },
   applyButtonContainer: {
-    marginTop: 24,
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    paddingHorizontal: 20,
+    paddingTop: 12,
+    paddingBottom: 34,
+    backgroundColor: COLORS.grayscale_0,
   },
   loadingContainer: {
     flex: 1,
