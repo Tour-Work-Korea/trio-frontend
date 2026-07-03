@@ -120,10 +120,10 @@ const fitMapToRegion = (map, maps, region) => {
 
   try {
     map.fitBounds(bounds, {
-      bottom: 48,
-      left: 24,
-      right: 24,
-      top: 48,
+      bottom: region.fitBoundsPadding?.bottom ?? 48,
+      left: region.fitBoundsPadding?.left ?? 24,
+      right: region.fitBoundsPadding?.right ?? 24,
+      top: region.fitBoundsPadding?.top ?? 48,
     });
   } catch {
     map.fitBounds(bounds);

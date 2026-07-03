@@ -173,6 +173,14 @@ function withParams(path, params) {
   return `${path}${encodeExtraParams(params)}`;
 }
 
+function withCommunityTab(path, tab) {
+  if (!tab || String(tab).toUpperCase() === 'ALL') {
+    return path;
+  }
+
+  return `${path}?tab=${encodeURIComponent(tab)}`;
+}
+
 function withRouteParams(routeName, path, params) {
   if (
     routeName === 'PopularGuesthouseList'
@@ -307,7 +315,10 @@ function routeToWebPath(route) {
     }
 
     if (screen === '커뮤니티') {
-      return WEB_ROUTES.COMMUNITY;
+      return withCommunityTab(
+        WEB_ROUTES.COMMUNITY,
+        route.params?.params?.tab,
+      );
     }
 
     if (screen === '콘텐츠') {
@@ -336,7 +347,7 @@ function routeToWebPath(route) {
   }
 
   if (route.name === '커뮤니티') {
-    return WEB_ROUTES.COMMUNITY;
+    return withCommunityTab(WEB_ROUTES.COMMUNITY, route.params?.tab);
   }
 
   if (route.name === '콘텐츠' || route.name === 'MeetMain') {
@@ -850,6 +861,16 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       parentNavigation?.goBack?.();
     }, [parentNavigation]);
 
+    const setParams = useCallback(params => {
+      setRoute(prevRoute => ({
+        ...prevRoute,
+        params: {
+          ...(prevRoute?.params || {}),
+          ...(params || {}),
+        },
+      }));
+    }, []);
+
     const navigation = useMemo(
       () => ({
         navigate,
@@ -865,17 +886,20 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         },
         dispatch: action => {
           const payload = action?.payload;
-          if (payload?.name) {
+          if (action?.type === 'SET_PARAMS') {
+            setParams(payload?.params);
+          } else if (payload?.name) {
             navigate(payload.name, payload.params);
           } else if (payload?.routes?.length) {
             const nextRoute = payload.routes[payload.index ?? payload.routes.length - 1];
             navigate(nextRoute.name, nextRoute.params);
           }
         },
+        setParams,
         setOptions: () => {},
         getParent: () => parentNavigation ?? null,
       }),
-      [firstScreen, goBack, navigate, parentNavigation],
+      [firstScreen, goBack, navigate, parentNavigation, setParams],
     );
 
     const activeScreen =
