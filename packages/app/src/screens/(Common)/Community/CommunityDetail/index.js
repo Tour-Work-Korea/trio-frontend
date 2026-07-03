@@ -137,6 +137,7 @@ const CommunityDetail = ({route}) => {
     targetCommentId,
     focusCommentInput,
     fallbackRouteName,
+    sourceTab,
   } =
     route.params ?? {};
   const currentUserPhotoUrl = useUserStore(
@@ -187,9 +188,17 @@ const CommunityDetail = ({route}) => {
   const canWriteComment =
     currentUserRole === 'USER' || currentUserRole === 'ADMIN';
   const navigateWebCommunity = useCallback(() => {
-    replaceWebPath(WEB_ROUTES.COMMUNITY);
-    navigation.navigate('MainTabs', {screen: '커뮤니티'});
-  }, [navigation]);
+    const tab = sourceTab ? String(sourceTab) : '';
+    const isAllTab = tab.toUpperCase() === 'ALL';
+    const search = tab && !isAllTab ? `?tab=${encodeURIComponent(tab)}` : '';
+    const params = tab ? {tab} : undefined;
+
+    replaceWebPath(`${WEB_ROUTES.COMMUNITY}${search}`);
+    navigation.navigate('MainTabs', {
+      screen: '커뮤니티',
+      params,
+    });
+  }, [navigation, sourceTab]);
   const handlePressBack = useCallback(() => {
     if (Platform.OS === 'web') {
       navigateWebCommunity();

@@ -71,20 +71,57 @@
     <div id="root"></div>
     <script>
       (function () {
+        var stableViewportHeight = 0;
+
+        function isTextInputFocused() {
+          var activeElement = document.activeElement;
+
+          if (!activeElement) {
+            return false;
+          }
+
+          var tagName = activeElement.tagName;
+
+          return (
+            tagName === 'INPUT' ||
+            tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+          );
+        }
+
         function setViewportHeight() {
           var visualViewport = window.visualViewport;
-          var height =
+          var visualViewportHeight =
             visualViewport && visualViewport.height
               ? visualViewport.height
               : window.innerHeight;
+          var layoutViewportHeight = window.innerHeight || visualViewportHeight;
           var isMobileWeb =
             window.matchMedia &&
             window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+          var keyboardHeight = Math.max(
+            0,
+            layoutViewportHeight - visualViewportHeight,
+          );
+          var stableHeightDelta = Math.max(
+            0,
+            stableViewportHeight - visualViewportHeight,
+          );
+          var isKeyboardOpen =
+            isMobileWeb &&
+            isTextInputFocused() &&
+            (keyboardHeight > 120 || stableHeightDelta > 120);
           var topOffset =
             visualViewport && Number.isFinite(visualViewport.offsetTop)
               ? visualViewport.offsetTop
               : 0;
-          var mobileTopInset = isMobileWeb ? 12 : 0;
+          var height = visualViewportHeight;
+
+          if (!isKeyboardOpen) {
+            stableViewportHeight = Math.max(stableViewportHeight, height);
+          } else if (stableViewportHeight > 0) {
+            height = stableViewportHeight;
+          }
 
           document.documentElement.style.setProperty(
             '--trio-vh',
@@ -92,7 +129,7 @@
           );
           document.documentElement.style.setProperty(
             '--trio-safe-area-top',
-            Math.max(topOffset, mobileTopInset) + 'px',
+            Math.max(topOffset, 0) + 'px',
           );
         }
 
