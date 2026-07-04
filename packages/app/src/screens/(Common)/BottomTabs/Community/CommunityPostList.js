@@ -73,6 +73,7 @@ const CommunityPostList = ({
   category,
   selectedSort,
   isActive,
+  sourceRouteTab,
   contentContainerStyle,
 }) => {
   const navigation = useNavigation();
@@ -313,6 +314,7 @@ const CommunityPostList = ({
     navigation.navigate('CommunityDetail', {
       postId: item.postId,
       focusCommentInput: true,
+      sourceTab: sourceRouteTab,
     });
   };
 
@@ -367,7 +369,10 @@ const CommunityPostList = ({
         activeOpacity={0.8}
         onPress={() => {
           rememberWebScrollOffset();
-          navigation.navigate('CommunityDetail', {postId: item.postId});
+          navigation.navigate('CommunityDetail', {
+            postId: item.postId,
+            sourceTab: sourceRouteTab,
+          });
         }}>
         <View style={styles.postHeader}>
           <Avatar

@@ -62,16 +62,36 @@ const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 const DETAIL_IMAGE_SCROLL_STEP = 116;
 const WEB_CARD_PRESS_SUPPRESSION_MS = 500;
 const WEB_CARD_DRAG_THRESHOLD_PX = 2;
+const WEB_INITIAL_FIT_PADDING = {
+  bottom: 12,
+  left: 12,
+  right: 12,
+  top: 12,
+};
+const WEB_INITIAL_REGION_SCALE = 0.6;
 const centerRegionToNaverRegion = region => {
   if (!region) {
     return null;
   }
 
+  const nextRegion = Platform.OS === 'web'
+    ? {
+      ...region,
+      latitudeDelta: region.latitudeDelta * WEB_INITIAL_REGION_SCALE,
+      longitudeDelta: region.longitudeDelta * WEB_INITIAL_REGION_SCALE,
+    }
+    : region;
+
   return {
-    latitude: region.latitude - region.latitudeDelta / 2,
-    longitude: region.longitude - region.longitudeDelta / 2,
-    latitudeDelta: region.latitudeDelta,
-    longitudeDelta: region.longitudeDelta,
+    latitude: nextRegion.latitude - nextRegion.latitudeDelta / 2,
+    longitude: nextRegion.longitude - nextRegion.longitudeDelta / 2,
+    latitudeDelta: nextRegion.latitudeDelta,
+    longitudeDelta: nextRegion.longitudeDelta,
+    ...(Platform.OS === 'web'
+      ? {
+        fitBoundsPadding: WEB_INITIAL_FIT_PADDING,
+      }
+      : {}),
   };
 };
 

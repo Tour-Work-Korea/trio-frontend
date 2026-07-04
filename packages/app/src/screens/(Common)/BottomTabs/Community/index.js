@@ -22,6 +22,8 @@ import CommunityPostList from './CommunityPostList';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
+import {replaceWebPath} from '@web/navigation';
+import {WEB_ROUTES} from '@web/routes';
 
 const sortChips = ['최신순', '등록순'];
 const allCategory = {
@@ -77,6 +79,8 @@ const withRequiredCategories = categories => {
 const getCategoryKey = category =>
   String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
 
+const getCategoryRouteTab = category => getCategoryKey(category);
+
 const normalizeCategoryParam = value =>
   String(value ?? '')
     .trim()
@@ -107,6 +111,21 @@ const getInitialCategoryKey = (tabs, routeParams) => {
     return staffCategory ? getCategoryKey(staffCategory) : 'STAFF';
   }
 
+  const requestedTab = tabs.find(category => {
+    const candidates = [
+      getCategoryRouteTab(category),
+      category?.code,
+      category?.id,
+      category?.displayName,
+    ].map(normalizeCategoryParam);
+
+    return candidates.includes(requestedCategory);
+  });
+
+  if (requestedTab) {
+    return getCategoryKey(requestedTab);
+  }
+
   return getCategoryKey(allCategory);
 };
 
@@ -115,6 +134,7 @@ const Community = () => {
   const route = useRoute();
   const sortButtonRef = useRef(null);
   const didSyncInitialTabRef = useRef(false);
+  const suppressNextWebTabSyncRef = useRef(false);
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [sortVisible, setSortVisible] = useState(false);
@@ -144,6 +164,42 @@ const Community = () => {
     () => normalizeCategoryParam(getRequestedCategoryParam(route.params)),
     [route.params],
   );
+  const requestedCategoryRef = useRef(requestedCategory);
+
+  useEffect(() => {
+    requestedCategoryRef.current = requestedCategory;
+  }, [requestedCategory]);
+
+  const syncWebCommunityTab = useCallback(
+    category => {
+      if (Platform.OS !== 'web' || !category) {
+        return;
+      }
+
+      const tab = getCategoryRouteTab(category);
+      const isAllTab = normalizeCategoryParam(tab) === 'ALL';
+      const search =
+        tab && !isAllTab ? `?tab=${encodeURIComponent(tab)}` : '';
+      const normalizedTab = normalizeCategoryParam(tab);
+
+      if (requestedCategoryRef.current !== normalizedTab) {
+        navigation.setParams?.({tab});
+        requestedCategoryRef.current = normalizedTab;
+      }
+
+      replaceWebPath(`${WEB_ROUTES.COMMUNITY}${search}`, {
+        __trioNavigation: true,
+        route: {
+          name: 'MainTabs',
+          params: {
+            screen: '커뮤니티',
+            params: {tab},
+          },
+        },
+      });
+    },
+    [navigation],
+  );
 
   const {
     pagerRef,
@@ -161,6 +217,14 @@ const Community = () => {
   } = useSwipeTabs({
     tabs: categoryTabs,
     initialKey: initialCategoryKey,
+    onChange: (_key, index) => {
+      if (suppressNextWebTabSyncRef.current) {
+        suppressNextWebTabSyncRef.current = false;
+        return;
+      }
+
+      syncWebCommunityTab(categoryTabs[index]);
+    },
   });
 
   const activeCategory = categoryTabs[activeIndex] ?? categoryTabs[0];
@@ -194,6 +258,7 @@ const Community = () => {
     }
 
     didSyncInitialTabRef.current = true;
+    suppressNextWebTabSyncRef.current = true;
     setKey(initialCategoryKey, {animated: false, syncScroll: true});
   }, [initialCategoryKey, pageWidth, setKey]);
 
@@ -203,10 +268,12 @@ const Community = () => {
     }
 
     if (requestedCategory === 'ALL') {
-      setKey(getCategoryKey(allCategory), {
-        animated: false,
-        syncScroll: true,
-      });
+      if (getCategoryKey(activeCategory) !== getCategoryKey(allCategory)) {
+        setKey(getCategoryKey(allCategory), {
+          animated: false,
+          syncScroll: true,
+        });
+      }
       return;
     }
 
@@ -214,13 +281,37 @@ const Community = () => {
       const staffCategory = categoryTabs.find(isStaffCategory);
 
       if (staffCategory) {
-        setKey(getCategoryKey(staffCategory), {
-          animated: false,
-          syncScroll: true,
-        });
+        if (getCategoryKey(activeCategory) !== getCategoryKey(staffCategory)) {
+          setKey(getCategoryKey(staffCategory), {
+            animated: false,
+            syncScroll: true,
+          });
+        }
       }
+      return;
     }
-  }, [categoryTabs, pageWidth, requestedCategory, setKey]);
+
+    const requestedTab = categoryTabs.find(category => {
+      const candidates = [
+        getCategoryRouteTab(category),
+        category?.code,
+        category?.id,
+        category?.displayName,
+      ].map(normalizeCategoryParam);
+
+      return candidates.includes(requestedCategory);
+    });
+
+    if (
+      requestedTab &&
+      getCategoryKey(requestedTab) !== getCategoryKey(activeCategory)
+    ) {
+      setKey(getCategoryKey(requestedTab), {
+        animated: false,
+        syncScroll: true,
+      });
+    }
+  }, [activeCategory, categoryTabs, pageWidth, requestedCategory, setKey]);
 
   const handleSelectSort = sort => {
     setSelectedSort(sort);
@@ -321,44 +412,56 @@ const Community = () => {
     ],
   );
 
+  const renderCategoryPage = useCallback(
+    category => (
+      <View
+        key={category.key}
+        style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+        {category.contentType === 'RECRUIT' ? (
+          <Staff isActive={isActive(category.key)} />
+        ) : (
+          <CommunityPostList
+            category={category}
+            selectedSort={selectedSort}
+            isActive={isActive(category.key)}
+            sourceRouteTab={getCategoryRouteTab(category)}
+            contentContainerStyle={styles.pageListContent}
+          />
+        )}
+      </View>
+    ),
+    [isActive, pageWidth, selectedSort],
+  );
+
   return (
     <View style={styles.container}>
       {renderHeader()}
 
-      <ScrollView
-        ref={pagerRef}
-        horizontal
-        scrollEnabled={swipeEnabled}
-        directionalLockEnabled
-        pagingEnabled
-        nestedScrollEnabled
-        bounces={false}
-        showsHorizontalScrollIndicator={false}
-        onLayout={onPagerLayout}
-        onScroll={onScroll}
-        onScrollEndDrag={onScrollEndDrag}
-        onMomentumScrollEnd={onMomentumScrollEnd}
-        scrollEventThrottle={16}
-        style={styles.pager}
-        {...webSwipeHandlers}
-        contentContainerStyle={styles.pagerContent}>
-        {categoryTabs.map(category => (
-          <View
-            key={category.key}
-            style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
-            {category.contentType === 'RECRUIT' ? (
-              <Staff isActive={isActive(category.key)} />
-            ) : (
-              <CommunityPostList
-                category={category}
-                selectedSort={selectedSort}
-                isActive={isActive(category.key)}
-                contentContainerStyle={styles.pageListContent}
-              />
-            )}
-          </View>
-        ))}
-      </ScrollView>
+      {Platform.OS === 'web' ? (
+        <View style={styles.pager} onLayout={onPagerLayout}>
+          {activeCategory ? renderCategoryPage(activeCategory) : null}
+        </View>
+      ) : (
+        <ScrollView
+          ref={pagerRef}
+          horizontal
+          scrollEnabled={swipeEnabled}
+          directionalLockEnabled
+          pagingEnabled
+          nestedScrollEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onLayout={onPagerLayout}
+          onScroll={onScroll}
+          onScrollEndDrag={onScrollEndDrag}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          scrollEventThrottle={16}
+          style={styles.pager}
+          {...webSwipeHandlers}
+          contentContainerStyle={styles.pagerContent}>
+          {categoryTabs.map(renderCategoryPage)}
+        </ScrollView>
+      )}
 
       {!isStaffSelected && (
         <TouchableOpacity
