@@ -86,6 +86,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
+    marginLeft: 8,
   },
   actionText: {
     color: COLORS.grayscale_900,

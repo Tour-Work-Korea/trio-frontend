@@ -158,7 +158,7 @@ const Staff = ({isActive}) => {
             </Text>
             {!!deadline && (
               <Text style={[FONTS.fs_14_regular, styles.deadline]}>
-                ~{deadline}까지 지원
+                ~{deadline}
               </Text>
             )}
           </View>
