@@ -29,7 +29,9 @@ const formatValidUntil = coupon => {
   }
 
   const date = dayjs(expiryDate);
-  return date.isValid() ? `${date.format('YY.MM.DD HH:mm')}까지 발급 가능` : expiryDate;
+  return date.isValid()
+    ? `${date.format('YY.MM.DD HH:mm')}까지 발급 가능`
+    : expiryDate;
 };
 
 const MyCouponReceive = () => {
@@ -59,14 +61,12 @@ const MyCouponReceive = () => {
       const nextCoupons = Array.isArray(response?.data?.coupons)
         ? response.data.coupons
         : Array.isArray(response?.data)
-          ? response.data
-          : [];
-      const sortedCoupons = [...nextCoupons].sort(
-        (a, b) => Number(Boolean(a?.isIssued)) - Number(Boolean(b?.isIssued)),
-      );
+        ? response.data
+        : [];
+      const receivableCoupons = nextCoupons.filter(coupon => !coupon?.isIssued);
 
       if (isActive()) {
-        setCoupons(sortedCoupons);
+        setCoupons(receivableCoupons);
       }
     } catch (error) {
       if (isActive()) {
@@ -107,11 +107,7 @@ const MyCouponReceive = () => {
 
     try {
       await userMyApi.issueCouponByTemplate(couponId);
-      setCoupons(prev =>
-        prev.map(item =>
-          getCouponId(item) === couponId ? {...item, isIssued: true} : item,
-        ),
-      );
+      setCoupons(prev => prev.filter(item => getCouponId(item) !== couponId));
       showAlert('쿠폰 발급이 완료되었습니다.');
     } catch (error) {
       const message =
@@ -191,13 +187,18 @@ const MyCouponReceive = () => {
                       styles.issueButtonText,
                       isIssued && styles.issueButtonTextDisabled,
                     ]}>
-                    {isIssued ? '발급 완료' : isIssuing ? '발급중' : '쿠폰 받기'}
+                    {isIssued
+                      ? '발급 완료'
+                      : isIssuing
+                      ? '발급중'
+                      : '쿠폰 받기'}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <Text style={[FONTS.fs_14_medium, styles.descriptionText]}>
-                {getCouponConditionText(coupon) || '사용 조건이 없는 쿠폰입니다.'}
+                {getCouponConditionText(coupon) ||
+                  '사용 조건이 없는 쿠폰입니다.'}
               </Text>
 
               {validUntilText ? (
