@@ -15,21 +15,6 @@ const MESSAGE_MAX_LENGTH = 50;
 
 const pad2 = value => String(value).padStart(2, '0');
 
-const parseLocalDate = value => {
-  if (!value) {
-    return null;
-  }
-
-  const [datePart] = String(value).split('T');
-  const [year, month, day] = datePart.split('-').map(Number);
-
-  if (!year || !month || !day) {
-    return null;
-  }
-
-  return new Date(year, month - 1, day);
-};
-
 const formatYearMonth = date => {
   if (!date) {
     return '2025. 04';
@@ -49,15 +34,8 @@ const ApplicantInfo = () => {
     recruitTitle,
     guesthouseName,
     recruitEnd,
-    entryStartDate,
-    entryEndDate,
   } = route.params ?? {};
-  const minDate = useMemo(
-    () => parseLocalDate(entryStartDate),
-    [entryStartDate],
-  );
-  const maxDate = useMemo(() => parseLocalDate(entryEndDate), [entryEndDate]);
-  const [startDate, setStartDate] = useState(minDate ?? null);
+  const [startDate, setStartDate] = useState(null);
   const [message, setMessage] = useState('');
   const {
     scrollRef,
@@ -119,8 +97,6 @@ const ApplicantInfo = () => {
         <ApplicantInfoDatePicker
           value={startDate}
           onChange={setStartDate}
-          minDate={minDate ?? undefined}
-          maxDate={maxDate ?? undefined}
           label="날짜"
           style={styles.calendar}
         />

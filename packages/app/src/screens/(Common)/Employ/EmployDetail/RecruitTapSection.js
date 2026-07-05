@@ -12,12 +12,15 @@ import {
   NaverMapMarkerOverlay,
   NaverMapView,
 } from '@mj-studio/react-native-naver-map';
+import dayjs from 'dayjs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {formatLocalDateTimeToDotAndTime} from '@utils/formatDate';
+import {trimJejuPrefix} from '@utils/formatAddress';
 import HomeIcon from '@assets/images/home_white_filled.svg';
+import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
 const recruitTabs = ['모집조건', '근무조건', '근무 정보'];
 const recruitTabItems = recruitTabs.map(tab => ({key: tab}));
@@ -80,6 +83,23 @@ export default function RecruitTapSection({recruit}) {
       guesthouseAddress: recruit?.location,
       latitude: mapCoordinate.latitude,
       longitude: mapCoordinate.longitude,
+    });
+  };
+
+  const handlePressGuesthouse = () => {
+    const guesthouseId =
+      recruit?.guesthouseId ?? recruit?.profileSummary?.guesthouseId;
+
+    if (!guesthouseId) {
+      return;
+    }
+
+    navigation.navigate('GuesthouseDetail', {
+      id: guesthouseId,
+      guesthouseId,
+      checkIn: dayjs().format('YYYY-MM-DD'),
+      checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      guestCount: 1,
     });
   };
 
@@ -212,12 +232,37 @@ export default function RecruitTapSection({recruit}) {
 
             <Text style={styles.sectionTitle}>근무지 위치</Text>
             {renderWorkLocationMap()}
-            <TouchableOpacity
-              activeOpacity={mapCoordinate ? 0.8 : 1}
-              onPress={handlePressLocationMap}
-              disabled={!mapCoordinate}>
-              <Text style={styles.locationText}>{recruit.location}</Text>
-            </TouchableOpacity>
+            <View style={styles.guesthouseLinkCard}>
+              <View style={styles.guesthouseLinkTopRow}>
+                <View style={styles.guesthouseLinkTitleBox}>
+                  <Text
+                    style={styles.guesthouseLinkTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {recruit?.profileSummary?.guesthouseName ||
+                      recruit?.guesthouseName}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={styles.guesthouseLinkActionButton}
+                  onPress={handlePressGuesthouse}
+                  disabled={
+                    !(recruit?.guesthouseId ?? recruit?.profileSummary?.guesthouseId)
+                  }>
+                  <Text style={styles.guesthouseLinkAction}>
+                    게하 보러가기
+                  </Text>
+                  <ChevroRight width={14} height={14} />
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={styles.guesthouseLinkAddress}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {trimJejuPrefix(recruit?.location)}
+              </Text>
+            </View>
           </View>
         );
       default:
@@ -370,6 +415,44 @@ const styles = StyleSheet.create({
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,
     lineHeight: 20,
+  },
+  guesthouseLinkCard: {
+    gap: 6,
+    paddingTop: 2,
+  },
+  guesthouseLinkTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  guesthouseLinkTitleBox: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  guesthouseLinkTitle: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
+  },
+  guesthouseLinkAddress: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_500,
+  },
+  guesthouseLinkActionButton: {
+    width: 112,
+    flexShrink: 0,
+    marginLeft: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+  },
+  guesthouseLinkAction: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.primary_blue,
+    textAlign: 'right',
   },
   photoScroll: {
     marginBottom: 12,
