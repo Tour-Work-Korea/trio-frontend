@@ -58,6 +58,30 @@ const userEmployApi = {
 
   //공고 리뷰 조회
   getEmployReviews: () => api.get('/user/recruits/reviews', {withAuth: false}),
+
+  //공고 댓글 전체 조회
+  getRecruitComments: (recruitId, params = {}) =>
+    api.get(`/user/recruits/${recruitId}/comments`, {params}),
+
+  //특정 댓글의 대댓글 전체 조회
+  getRecruitCommentReplies: commentId =>
+    api.get(`/user/recruits/comments/${commentId}/replies`),
+
+  //공고 댓글 및 대댓글 작성
+  createRecruitComment: (recruitId, body) =>
+    api.post(`/user/recruits/${recruitId}/comments`, body),
+
+  //공고 댓글 및 대댓글 수정
+  updateRecruitComment: (commentId, body) =>
+    api.put(`/user/recruits/comments/${commentId}`, body),
+
+  //공고 댓글 및 대댓글 삭제
+  deleteRecruitComment: commentId =>
+    api.delete(`/user/recruits/comments/${commentId}`),
+
+  //공고 댓글 좋아요 토글
+  toggleRecruitCommentLike: commentId =>
+    api.post(`/user/recruits/comments/${commentId}/likes`),
 };
 
 export default userEmployApi;

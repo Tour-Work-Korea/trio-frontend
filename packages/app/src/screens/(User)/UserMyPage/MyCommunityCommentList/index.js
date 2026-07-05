@@ -21,6 +21,7 @@ import HeartIcon from '@assets/images/heart_black.svg';
 import CommentIcon from '@assets/images/chat_black.svg';
 
 const PAGE_SIZE = 10;
+const SOURCE_TYPE_RECRUIT = 'RECRUIT';
 
 const formatRelativeTime = dateTime => {
   if (!dateTime) {
@@ -157,6 +158,15 @@ const MyCommunityCommentList = () => {
   };
 
   const handlePressComment = item => {
+    if (item.sourceType === SOURCE_TYPE_RECRUIT) {
+      navigation.navigate('CommunityStaffDetail', {
+        id: item.recruitSummary?.recruitId,
+        targetCommentId: item.commentId,
+        commentAnchor: item.recruitAnchor,
+      });
+      return;
+    }
+
     navigation.navigate('CommunityDetail', {
       postId: item.postSummary?.postId,
       targetCommentId: item.commentId,
@@ -202,59 +212,91 @@ const MyCommunityCommentList = () => {
   };
 
   const renderCommentItem = ({item}) => {
+    const isRecruitComment = item.sourceType === SOURCE_TYPE_RECRUIT;
     const post = item.postSummary;
+    const recruit = item.recruitSummary;
     const commentTypeText = item.commentType === 'REPLY' ? '내 답글' : '내 댓글';
+    const targetName = isRecruitComment
+      ? recruit?.guesthouseName
+      : item.targetAuthorNickname;
 
     return (
       <TouchableOpacity
         activeOpacity={0.85}
         style={styles.itemContainer}
         onPress={() => handlePressComment(item)}>
-        <View style={styles.postSummary}>
-          <View style={styles.postHeader}>
-            <Avatar
-              uri={post?.author?.profileImageUrl}
-              size={30}
-              iconSize={16}
-              style={styles.avatar}
-            />
-            <Text style={[FONTS.fs_16_medium, styles.nickname]}>
-              {post?.author?.nickname}
-            </Text>
-            <Text style={[FONTS.fs_14_regular, styles.postTime]}>
-              {formatRelativeTime(post?.createdAt)}
-            </Text>
-          </View>
-          <Text
-            style={[FONTS.fs_16_medium, styles.postTitle]}
-            numberOfLines={1}
-            ellipsizeMode="tail">
-            {post?.title}
-          </Text>
-          <Text
-            style={[FONTS.fs_14_regular, styles.postContent]}
-            numberOfLines={2}
-            ellipsizeMode="tail">
-            {post?.content}
-          </Text>
-
-          {renderPostImages(post?.images)}
-
-          <View style={styles.postActions}>
-            <View style={styles.actionItem}>
-              <HeartIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-                {post?.likeCount}
+        {isRecruitComment ? (
+          <View style={styles.postSummary}>
+            <View style={styles.recruitHeader}>
+              <Text style={[FONTS.fs_14_medium, styles.recruitBadge]}>
+                스탭 공고
+              </Text>
+              <Text
+                style={[FONTS.fs_14_regular, styles.postTime]}
+                numberOfLines={1}>
+                {formatRelativeTime(item.createdAt)}
               </Text>
             </View>
-            <View style={styles.actionItem}>
-              <CommentIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-                {post?.commentCount}
+            <Text
+              style={[FONTS.fs_16_medium, styles.postTitle]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {recruit?.recruitTitle}
+            </Text>
+            <Text
+              style={[FONTS.fs_14_regular, styles.postContent]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {recruit?.guesthouseName}
+            </Text>
+          </View>
+        ) : (
+          <View style={styles.postSummary}>
+            <View style={styles.postHeader}>
+              <Avatar
+                uri={post?.author?.profileImageUrl}
+                size={30}
+                iconSize={16}
+                style={styles.avatar}
+              />
+              <Text style={[FONTS.fs_16_medium, styles.nickname]}>
+                {post?.author?.nickname}
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.postTime]}>
+                {formatRelativeTime(post?.createdAt)}
               </Text>
             </View>
+            <Text
+              style={[FONTS.fs_16_medium, styles.postTitle]}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {post?.title}
+            </Text>
+            <Text
+              style={[FONTS.fs_14_regular, styles.postContent]}
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {post?.content}
+            </Text>
+
+            {renderPostImages(post?.images)}
+
+            <View style={styles.postActions}>
+              <View style={styles.actionItem}>
+                <HeartIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                  {post?.likeCount}
+                </Text>
+              </View>
+              <View style={styles.actionItem}>
+                <CommentIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                  {post?.commentCount}
+                </Text>
+              </View>
+            </View>
           </View>
-        </View>
+        )}
 
         <View style={styles.commentPreview}>
           <View style={styles.commentMetaRow}>
@@ -264,7 +306,7 @@ const MyCommunityCommentList = () => {
             <Text
               style={[FONTS.fs_14_regular, styles.targetText]}
               numberOfLines={1}>
-              {item.targetAuthorNickname}_님에게 남김
+              {targetName}_님에게 남김
             </Text>
           </View>
           <Text
@@ -284,7 +326,7 @@ const MyCommunityCommentList = () => {
       <FlatList
         ref={listRef}
         data={comments}
-        keyExtractor={item => item.commentId.toString()}
+        keyExtractor={item => `${item.sourceType ?? 'COMMUNITY'}-${item.commentId}`}
         renderItem={renderCommentItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}

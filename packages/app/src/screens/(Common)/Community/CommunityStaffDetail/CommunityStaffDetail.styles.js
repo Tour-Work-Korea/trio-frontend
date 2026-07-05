@@ -1,4 +1,4 @@
-import {StyleSheet} from 'react-native';
+import {Platform, StyleSheet} from 'react-native';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -10,7 +10,7 @@ const styles = StyleSheet.create({
   },
   content: {
     paddingHorizontal: 20,
-    paddingBottom: 128,
+    paddingBottom: 130,
   },
   postHeader: {
     flexDirection: 'row',
@@ -118,15 +118,207 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     lineHeight: 22,
   },
-  applyButtonContainer: {
+  detailLinkText: {
+    color: COLORS.primary_blue,
+    textDecorationLine: 'underline',
+  },
+  commentList: {
+    marginTop: 44,
+    gap: 16,
+  },
+  commentBlock: {
+    position: 'relative',
+  },
+  commentSurface: {
+    borderRadius: 8,
+    padding: 10,
+    marginHorizontal: -10,
+  },
+  commentThreadConnector: {
     position: 'absolute',
-    left: 0,
-    right: 0,
+    left: 20,
+    top: 40,
+    bottom: 32,
+    width: 46,
+    borderLeftWidth: 2,
+    borderBottomWidth: 2,
+    borderBottomLeftRadius: 18,
+    borderColor: COLORS.grayscale_200,
+  },
+  commentContentRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+  },
+  commentAvatar: {
+    marginRight: 10,
+  },
+  commentBody: {
+    flex: 1,
+    minWidth: 0,
+  },
+  commentHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+    marginBottom: 6,
+  },
+  commentNickname: {
+    color: COLORS.grayscale_900,
+  },
+  commentTime: {
+    color: COLORS.grayscale_400,
+  },
+  editedText: {
+    color: COLORS.grayscale_400,
+  },
+  commentText: {
+    color: COLORS.grayscale_900,
+    lineHeight: 28,
+  },
+  commentMetaActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexWrap: 'wrap',
+    gap: 12,
+  },
+  commentActionRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginTop: 8,
+  },
+  actionItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  actionText: {
+    color: COLORS.grayscale_900,
+  },
+  commentManageRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+    marginTop: 8,
+  },
+  commentManageButton: {
+    paddingVertical: 2,
+  },
+  commentManageText: {
+    color: COLORS.grayscale_500,
+  },
+  commentManageDot: {
+    color: COLORS.grayscale_300,
+  },
+  commentDeleteText: {
+    color: COLORS.semantic_red,
+  },
+  replySection: {
+    position: 'relative',
+    marginLeft: 20,
+  },
+  replyList: {
+    flex: 1,
+    gap: 12,
+    marginLeft: 62,
+  },
+  replyRow: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    borderRadius: 8,
+    padding: 10,
+    marginLeft: -10,
+  },
+  replyMoreButton: {
+    alignSelf: 'flex-start',
+    paddingVertical: 4,
+  },
+  replyMoreText: {
+    color: COLORS.grayscale_500,
+  },
+  commentFooterLoading: {
+    marginTop: 20,
+    marginBottom: 8,
+  },
+  bottomContainer: {
+    position: 'absolute',
+    left: 12,
+    right: 12,
     bottom: 0,
-    paddingHorizontal: 20,
-    paddingTop: 12,
-    paddingBottom: 34,
     backgroundColor: COLORS.grayscale_0,
+  },
+  bottomInputRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  replyTargetBox: {
+    paddingHorizontal: 2,
+    paddingTop: 10,
+  },
+  replyTargetHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    marginBottom: 6,
+  },
+  replyTargetTitle: {
+    flex: 1,
+    color: COLORS.grayscale_400,
+  },
+  replyTargetCancel: {
+    color: COLORS.primary_orange,
+  },
+  replyTargetContent: {
+    color: COLORS.grayscale_900,
+  },
+  commentInputBar: {
+    flex: 1,
+    minHeight: 52,
+    borderRadius: 26,
+    paddingHorizontal: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+    backgroundColor: COLORS.grayscale_100,
+    marginBottom: Platform.OS === 'ios' ? 28 : 16,
+    marginTop: 12,
+  },
+  commentInputBarFocused: {
+    marginBottom: 8,
+  },
+  commentInput: {
+    flex: 1,
+    lineHeight: 20,
+    paddingTop: 12,
+    paddingBottom: 12,
+    color: COLORS.grayscale_900,
+    textAlignVertical: 'top',
+  },
+  sendButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 100,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary_orange,
+  },
+  sendButtonText: {
+    color: COLORS.grayscale_0,
+    lineHeight: 24,
+  },
+  inlineApplyButton: {
+    height: 52,
+    paddingHorizontal: 16,
+    borderRadius: 26,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.primary_orange,
+    marginTop: 12,
+    marginBottom: Platform.OS === 'ios' ? 28 : 16,
+  },
+  inlineApplyText: {
+    color: COLORS.grayscale_0,
   },
   loadingContainer: {
     flex: 1,

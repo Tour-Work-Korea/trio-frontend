@@ -47,11 +47,13 @@ export default function MyLikeRecruitList({hideHeader = false}) {
 
   const handleJobPress = id => navigation.navigate('EmployDetail', {id});
   const handleApplyPress = recruit =>
-    navigation.navigate('ApplicantForm', {
+    navigation.navigate('ApplicantInfo', {
       recruitId: recruit?.recruitId,
       recruitTitle: recruit.recruitTitle,
       guesthouseName: recruit.guesthouseName,
       recruitEnd: recruit.recruitEnd,
+      entryStartDate: recruit.entryStartDate,
+      entryEndDate: recruit.entryEndDate,
     });
   const handleLikePress = ({id, isLiked, setRecruitList}) => {
     toggleFavorite({

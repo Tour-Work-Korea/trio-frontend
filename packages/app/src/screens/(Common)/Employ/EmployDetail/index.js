@@ -99,8 +99,13 @@ const EmployDetail = ({route}) => {
                     onPress2: () => {},
                   });
                 } else {
-                  navigation.navigate('ApplicantForm', {
+                  navigation.navigate('ApplicantInfo', {
                     recruitId: recruit?.recruitId,
+                    recruitTitle: recruit?.recruitTitle,
+                    guesthouseName: recruit?.guesthouseName,
+                    recruitEnd: recruit?.recruitEnd,
+                    entryStartDate: recruit?.entryStartDate,
+                    entryEndDate: recruit?.entryEndDate,
                   });
                 }
               }}

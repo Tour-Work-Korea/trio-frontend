@@ -23,6 +23,19 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 8,
   },
+  recruitHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 8,
+    gap: 8,
+  },
+  recruitBadge: {
+    color: COLORS.primary_blue,
+    backgroundColor: COLORS.grayscale_100,
+    borderRadius: 100,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
+  },
   avatar: {
     width: 30,
     height: 30,

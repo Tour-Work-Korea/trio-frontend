@@ -79,7 +79,8 @@ const withRequiredCategories = categories => {
 const getCategoryKey = category =>
   String(category?.id ?? category?.code ?? category?.displayName ?? 'ALL');
 
-const getCategoryRouteTab = category => getCategoryKey(category);
+const getCategoryRouteTab = category =>
+  String(category?.code ?? category?.id ?? category?.displayName ?? 'ALL');
 
 const normalizeCategoryParam = value =>
   String(value ?? '')
@@ -135,6 +136,7 @@ const Community = () => {
   const sortButtonRef = useRef(null);
   const didSyncInitialTabRef = useRef(false);
   const suppressNextWebTabSyncRef = useRef(false);
+  const handledRequestedCategoryRef = useRef('');
   const [selectedSort, setSelectedSort] = useState(sortChips[0]);
   const [categories, setCategories] = useState(defaultCategories);
   const [sortVisible, setSortVisible] = useState(false);
@@ -267,7 +269,17 @@ const Community = () => {
       return;
     }
 
+    if (!requestedCategory) {
+      handledRequestedCategoryRef.current = '';
+      return;
+    }
+
+    if (handledRequestedCategoryRef.current === requestedCategory) {
+      return;
+    }
+
     if (requestedCategory === 'ALL') {
+      handledRequestedCategoryRef.current = requestedCategory;
       if (getCategoryKey(activeCategory) !== getCategoryKey(allCategory)) {
         setKey(getCategoryKey(allCategory), {
           animated: false,
@@ -281,6 +293,7 @@ const Community = () => {
       const staffCategory = categoryTabs.find(isStaffCategory);
 
       if (staffCategory) {
+        handledRequestedCategoryRef.current = requestedCategory;
         if (getCategoryKey(activeCategory) !== getCategoryKey(staffCategory)) {
           setKey(getCategoryKey(staffCategory), {
             animated: false,
@@ -306,10 +319,16 @@ const Community = () => {
       requestedTab &&
       getCategoryKey(requestedTab) !== getCategoryKey(activeCategory)
     ) {
+      handledRequestedCategoryRef.current = requestedCategory;
       setKey(getCategoryKey(requestedTab), {
         animated: false,
         syncScroll: true,
       });
+      return;
+    }
+
+    if (requestedTab) {
+      handledRequestedCategoryRef.current = requestedCategory;
     }
   }, [activeCategory, categoryTabs, pageWidth, requestedCategory, setKey]);
 
