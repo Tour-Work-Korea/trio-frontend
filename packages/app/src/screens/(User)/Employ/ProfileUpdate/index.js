@@ -42,26 +42,34 @@ const ProfileUpdate = () => {
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
 
   const canSave = useMemo(() => {
-    const rawId = (formData.instagramId ?? '').trim();
-    const id = rawId.replace(/^@+/, '');
-    const isIdValid = id.length > 0 && id !== 'ID를 추가해주세요';
     const isMbtiValid =
       !!(formData.mbti ?? '').trim() && formData.mbti !== 'DEFAULT';
-    return isIdValid && isMbtiValid;
-  }, [formData.instagramId, formData.mbti]);
+    return isMbtiValid;
+  }, [formData.mbti]);
+
+  const getInstagramIdForSubmit = () => {
+    const nextInstagramId = (formData.instagramId ?? '')
+      .replace(/^@+/, '')
+      .trim();
+
+    return nextInstagramId || 'ID를 추가해주세요';
+  };
+
   const updateMyProfile = async () => {
     if (!canSave) {
       setErrorModal({
         visible: true,
-        title: 'MBTI와 Insta 아이디를 먼저 입력/선택해주세요.',
+        title: 'MBTI를 먼저 선택해주세요.',
       });
       return;
     }
 
     try {
+      const instagramId = getInstagramIdForSubmit();
+
       await userMyApi.updateMyProfile({
         ...formData,
-        instagramId: (formData.instagramId ?? '').replace(/^@+/, '').trim(),
+        instagramId,
       });
       setUserProfile({
         name: formData.name ?? '',
@@ -73,7 +81,7 @@ const ProfileUpdate = () => {
         phone: formData.phone ?? '',
         email: formData.email ?? '',
         mbti: formData.mbti ?? '',
-        instagramId: (formData.instagramId ?? '').replace(/^@+/, '').trim(),
+        instagramId,
         gender: formData.gender ?? 'F',
         birthDate: formData.birthDate ?? null,
         age: calculateAge(formData.birthDate),

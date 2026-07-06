@@ -30,9 +30,7 @@ const MyResumeList = () => {
   });
   const [loading, setLoading] = useState(true);
   const [deleteCompleted, setDeleteCompleted] = useState(false);
-  const noResumeState =
-    userProfile?.mbti === 'DEFAULT' ||
-    userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
+  const noResumeState = userProfile?.mbti === 'DEFAULT'; //true이면 정보 부족, false이면 이력서 없음
 
   useFocusEffect(
     useCallback(() => {

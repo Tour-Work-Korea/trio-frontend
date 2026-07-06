@@ -9,6 +9,7 @@ import BottomTabs from '@screens/(Common)/BottomTabs';
 
 import {
   EmployDetail,
+  ApplicantInfo,
   ApplicantForm,
   ResumeDetail,
   AgreeDetail,
@@ -136,6 +137,7 @@ const RootNavigation = () => {
         />
 
         <Stack.Screen name="EmployDetail" component={EmployDetail} />
+        <Stack.Screen name="ApplicantInfo" component={ApplicantInfo} />
         <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
         <Stack.Screen name="ResumeDetail" component={ResumeDetail} />
         <Stack.Screen name="ApplySuccess" component={ApplySuccess} />
@@ -204,7 +206,10 @@ const RootNavigation = () => {
           name="UserMeetReservationCancelled"
           component={UserMeetReservationCancelled}
         />
-        <Stack.Screen name="MeetPaymentReceipt" component={MeetPaymentReceipt} />
+        <Stack.Screen
+          name="MeetPaymentReceipt"
+          component={MeetPaymentReceipt}
+        />
         <Stack.Screen
           name="MeetCancelledReceipt"
           component={MeetCancelledReceipt}

@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {
   View,
   Text,
@@ -7,38 +7,138 @@ import {
   TouchableOpacity,
   StyleSheet,
 } from 'react-native';
-import Clipboard from '@react-native-clipboard/clipboard';
-import Toast from 'react-native-toast-message';
+import {useNavigation} from '@react-navigation/native';
+import {
+  NaverMapMarkerOverlay,
+  NaverMapView,
+} from '@mj-studio/react-native-naver-map';
+import dayjs from 'dayjs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
+import useSwipeTabs from '@hooks/useSwipeTabs';
 import {formatLocalDateTimeToDotAndTime} from '@utils/formatDate';
+import {trimJejuPrefix} from '@utils/formatAddress';
+import HomeIcon from '@assets/images/home_white_filled.svg';
+import ChevroRight from '@assets/images/chevron_right_blue.svg';
+
+const recruitTabs = ['모집조건', '근무조건', '근무 정보'];
+const recruitTabItems = recruitTabs.map(tab => ({key: tab}));
 
 export default function RecruitTapSection({recruit}) {
-  const [activeTab, setActiveTab] = useState('모집조건');
+  const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
+  const {
+    pagerRef,
+    activeIndex,
+    isActive,
+    onTabPress,
+    pageWidth,
+    swipeEnabled,
+    onPagerLayout,
+    onScroll,
+    onScrollEndDrag,
+    onMomentumScrollEnd,
+    webSwipeHandlers,
+  } = useSwipeTabs({
+    tabs: recruitTabItems,
+    initialKey: recruitTabs[0],
+  });
+  const [tabHeights, setTabHeights] = useState({});
+  const activeTabHeight = tabHeights[recruitTabs[activeIndex]];
 
-  const handleTabPress = tabName => {
-    setActiveTab(tabName);
-  };
+  const mapCoordinate = useMemo(() => {
+    const lat = Number(recruit?.guesthouseLat);
+    const lng = Number(recruit?.guesthouseLng);
 
-  const handleCopyLocation = () => {
-    if (!recruit?.location) {
+    if (!Number.isFinite(lat) || !Number.isFinite(lng)) {
+      return null;
+    }
+
+    return {
+      latitude: lat,
+      longitude: lng,
+    };
+  }, [recruit?.guesthouseLat, recruit?.guesthouseLng]);
+
+  const mapCamera = useMemo(() => {
+    if (!mapCoordinate) {
+      return null;
+    }
+
+    return {
+      ...mapCoordinate,
+      zoom: 16,
+    };
+  }, [mapCoordinate]);
+
+  const handlePressLocationMap = () => {
+    if (!mapCoordinate) {
       return;
     }
 
-    Clipboard.setString(recruit.location);
-    Toast.show({
-      type: 'success',
-      text1: '주소를 복사했어요!',
-      position: 'top',
-      visibilityTime: 2000,
+    navigation.navigate('GuesthouseLocationMap', {
+      guesthouseName: recruit?.guesthouseName || '근무지 위치',
+      guesthouseAddress: recruit?.location,
+      latitude: mapCoordinate.latitude,
+      longitude: mapCoordinate.longitude,
     });
   };
 
-  const renderTabContent = () => {
-    switch (activeTab) {
+  const handlePressGuesthouse = () => {
+    const guesthouseId =
+      recruit?.guesthouseId ?? recruit?.profileSummary?.guesthouseId;
+
+    if (!guesthouseId) {
+      return;
+    }
+
+    navigation.navigate('GuesthouseDetail', {
+      id: guesthouseId,
+      guesthouseId,
+      checkIn: dayjs().format('YYYY-MM-DD'),
+      checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+      guestCount: 1,
+    });
+  };
+
+  const renderWorkLocationMap = () => {
+    if (!mapCoordinate || !mapCamera) {
+      return null;
+    }
+
+    return (
+      <View style={styles.mapContainer}>
+        <NaverMapView
+          style={styles.map}
+          initialCamera={mapCamera}
+          onTapMap={handlePressLocationMap}
+          isScrollGesturesEnabled={false}
+          isZoomGesturesEnabled={false}
+          isRotateGesturesEnabled={false}
+          isTiltGesturesEnabled={false}>
+          <NaverMapMarkerOverlay
+            latitude={mapCoordinate.latitude}
+            longitude={mapCoordinate.longitude}
+            width={44}
+            height={56}
+            anchor={{x: 0.5, y: 1}}
+            onTap={handlePressLocationMap}>
+            <View collapsable={false} style={styles.markerContainer}>
+              <View style={styles.homeMarker}>
+                <HomeIcon width={24} height={24} />
+              </View>
+              <View style={styles.markerTail} />
+            </View>
+          </NaverMapMarkerOverlay>
+        </NaverMapView>
+      </View>
+    );
+  };
+
+  const renderTabContent = tabName => {
+    switch (tabName) {
       case '모집조건':
         return (
           <View style={styles.tabContent}>
@@ -131,63 +231,109 @@ export default function RecruitTapSection({recruit}) {
             </ScrollView>
 
             <Text style={styles.sectionTitle}>근무지 위치</Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              onPress={handleCopyLocation}
-              disabled={!recruit?.location}>
-              <Text style={styles.locationText}>{recruit.location}</Text>
-            </TouchableOpacity>
+            {renderWorkLocationMap()}
+            <View style={styles.guesthouseLinkCard}>
+              <View style={styles.guesthouseLinkTopRow}>
+                <View style={styles.guesthouseLinkTitleBox}>
+                  <Text
+                    style={styles.guesthouseLinkTitle}
+                    numberOfLines={1}
+                    ellipsizeMode="tail">
+                    {recruit?.profileSummary?.guesthouseName ||
+                      recruit?.guesthouseName}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={styles.guesthouseLinkActionButton}
+                  onPress={handlePressGuesthouse}
+                  disabled={
+                    !(recruit?.guesthouseId ?? recruit?.profileSummary?.guesthouseId)
+                  }>
+                  <Text style={styles.guesthouseLinkAction}>
+                    게하 보러가기
+                  </Text>
+                  <ChevroRight width={14} height={14} />
+                </TouchableOpacity>
+              </View>
+              <Text
+                style={styles.guesthouseLinkAddress}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {trimJejuPrefix(recruit?.location)}
+              </Text>
+            </View>
           </View>
         );
       default:
         return null;
     }
   };
+
+  const handleTabContentLayout = tabName => event => {
+    const height = Number(event?.nativeEvent?.layout?.height ?? 0);
+
+    if (height <= 0) {
+      return;
+    }
+
+    setTabHeights(prev =>
+      prev[tabName] === height ? prev : {...prev, [tabName]: height},
+    );
+  };
+
   return (
     <>
       {/* 탭 메뉴 */}
       <View style={styles.tabContainer}>
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[styles.tab, activeTab === '모집조건' && styles.activeTab]}
-          onPress={() => handleTabPress('모집조건')}>
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === '모집조건' && styles.activeTabText,
-            ]}>
-            모집조건
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[styles.tab, activeTab === '근무조건' && styles.activeTab]}
-          onPress={() => handleTabPress('근무조건')}>
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === '근무조건' && styles.activeTabText,
-            ]}>
-            근무조건
-          </Text>
-        </TouchableOpacity>
-
-        <TouchableOpacity
-          activeOpacity={1}
-          style={[styles.tab, activeTab === '근무 정보' && styles.activeTab]}
-          onPress={() => handleTabPress('근무 정보')}>
-          <Text
-            style={[
-              styles.tabText,
-              activeTab === '근무 정보' && styles.activeTabText,
-            ]}>
-            근무 정보
-          </Text>
-        </TouchableOpacity>
+        {recruitTabs.map((tabName, tabIndex) => (
+          <TouchableOpacity
+            key={tabName}
+            activeOpacity={1}
+            style={[styles.tab, isActive(tabName) && styles.activeTab]}
+            onPress={() => onTabPress(tabIndex)}>
+            <Text
+              style={[
+                styles.tabText,
+                isActive(tabName) && styles.activeTabText,
+              ]}>
+              {tabName}
+            </Text>
+          </TouchableOpacity>
+        ))}
       </View>
       {/* 탭 내용 */}
-      {renderTabContent()}
+      <View
+        style={[
+          styles.pagerWrapper,
+          activeTabHeight ? {height: activeTabHeight} : null,
+        ]}
+        onLayout={onPagerLayout}>
+        <ScrollView
+          ref={pagerRef}
+          horizontal
+          scrollEnabled={swipeEnabled}
+          pagingEnabled
+          nestedScrollEnabled
+          directionalLockEnabled
+          bounces={false}
+          showsHorizontalScrollIndicator={false}
+          onScroll={onScroll}
+          onScrollEndDrag={onScrollEndDrag}
+          onMomentumScrollEnd={onMomentumScrollEnd}
+          scrollEventThrottle={16}
+          {...webSwipeHandlers}>
+          {recruitTabs.map(tabName => (
+            <View
+              key={tabName}
+              style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
+              <View onLayout={handleTabContentLayout(tabName)}>
+                {renderTabContent(tabName)}
+              </View>
+            </View>
+          ))}
+        </ScrollView>
+      </View>
       {/* 이미지 선택 모달 */}
       <ImageModal
         visible={imageModalVisible}
@@ -224,6 +370,12 @@ const styles = StyleSheet.create({
   activeTabText: {
     ...FONTS.fs_14_semibold,
     color: COLORS.primary_blue,
+  },
+  pagerWrapper: {
+    width: '100%',
+  },
+  page: {
+    paddingHorizontal: 0,
   },
   //탭 상세 내용
   tabContent: {
@@ -264,6 +416,44 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_800,
     lineHeight: 20,
   },
+  guesthouseLinkCard: {
+    gap: 6,
+    paddingTop: 2,
+  },
+  guesthouseLinkTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  guesthouseLinkTitleBox: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  guesthouseLinkTitle: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
+  },
+  guesthouseLinkAddress: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_500,
+  },
+  guesthouseLinkActionButton: {
+    width: 112,
+    flexShrink: 0,
+    marginLeft: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+  },
+  guesthouseLinkAction: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.primary_blue,
+    textAlign: 'right',
+  },
   photoScroll: {
     marginBottom: 12,
   },
@@ -276,6 +466,30 @@ const styles = StyleSheet.create({
   mapContainer: {
     height: 134,
     borderRadius: 6,
+    overflow: 'hidden',
     backgroundColor: COLORS.grayscale_200,
+  },
+  map: {
+    flex: 1,
+  },
+  markerContainer: {
+    alignItems: 'center',
+  },
+  homeMarker: {
+    width: 44,
+    height: 44,
+    borderRadius: 100,
+    backgroundColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: COLORS.grayscale_0,
+  },
+  markerTail: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: COLORS.primary_orange,
+    marginTop: 4,
   },
 });

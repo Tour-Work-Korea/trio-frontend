@@ -96,7 +96,8 @@ const Staff = ({isActive}) => {
     tryFetchRecruitList(page + 1, true);
   };
 
-  const handleJobPress = id => navigation.navigate('CommunityStaffDetail', {id});
+  const handleJobPress = id =>
+    navigation.navigate('CommunityStaffDetail', {id});
 
   const handleToggleFavorite = item => {
     toggleFavorite({
@@ -157,7 +158,7 @@ const Staff = ({isActive}) => {
             </Text>
             {!!deadline && (
               <Text style={[FONTS.fs_14_regular, styles.deadline]}>
-                {deadline} 마감
+                ~{deadline}
               </Text>
             )}
           </View>
@@ -183,9 +184,7 @@ const Staff = ({isActive}) => {
         </Text>
 
         <View style={styles.metaRow}>
-          <Text
-            style={[FONTS.fs_12_regular, styles.address]}
-            numberOfLines={1}>
+          <Text style={[FONTS.fs_12_regular, styles.address]} numberOfLines={1}>
             {address}
           </Text>
           {!!workDuration && (

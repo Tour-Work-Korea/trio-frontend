@@ -26,7 +26,7 @@ import useUserStore from '@stores/userStore';
 const ApplicantForm = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {recruitId} = route.params ?? {};
+  const {recruitId, startDate, message} = route.params ?? {};
 
   const [resumes, setResumes] = useState();
   const [applicant, setApplicant] = useState({
@@ -42,9 +42,7 @@ const ApplicantForm = () => {
   });
   const [footerHeight] = useState(0);
   const userProfile = useUserStore(state => state.userProfile);
-  const noResumeState =
-    userProfile?.mbti === 'DEFAULT' ||
-    userProfile?.instagramId === 'ID를 추가해주세요'; //true이면 정보 부족, false이면 이력서 없음
+  const noResumeState = userProfile?.mbti === 'DEFAULT'; //true이면 정보 부족, false이면 이력서 없음
   const hasNoResume = resumes?.length === 0;
 
   const tryFetchResumeList = useCallback(async () => {
@@ -110,9 +108,19 @@ const ApplicantForm = () => {
   };
 
   const handleSubmit = async () => {
+    if (!startDate) {
+      setErrorModal({
+        visible: true,
+        message: '입도 가능 날짜를 선택해주세요.',
+        buttonText: '확인',
+      });
+      return;
+    }
+
     try {
       const parsedData = {
-        message: '열심히 하겠습니다.',
+        message: message?.trim() || '열심히 하겠습니다.',
+        startDate,
         personalInfoConsent: applicant.personalInfoConsent,
         resumeId: applicant.resumeId,
       };
@@ -145,9 +153,7 @@ const ApplicantForm = () => {
             subTitle={'이력서를 완성하러 가볼까요?'}
           />
         ) : (
-          <EmployEmpty
-            title={'작성하신 이력서가 없습니다'}
-          />
+          <EmployEmpty title={'작성하신 이력서가 없습니다'} />
         )
       ) : (
         <View>
@@ -228,7 +234,9 @@ const ApplicantForm = () => {
         </TouchableOpacity>
       ) : (
         <TouchableOpacity
-          activeOpacity={1} style={styles.checkbox} onPress={onPress}>
+          activeOpacity={1}
+          style={styles.checkbox}
+          onPress={onPress}>
           <CheckGray width={24} height={24} />
         </TouchableOpacity>
       )}
@@ -252,7 +260,8 @@ const ApplicantForm = () => {
                 <Text style={styles.textAgreeTitle}>{item.title}</Text>
               </View>
               <TouchableOpacity
-                activeOpacity={1} onPress={() => handleAgreeDetail(item.id)}>
+                activeOpacity={1}
+                onPress={() => handleAgreeDetail(item.id)}>
                 <Text style={[styles.textSmall, styles.textBlue]}>보기</Text>
               </TouchableOpacity>
             </View>
@@ -288,8 +297,7 @@ const ApplicantForm = () => {
             disabled={
               hasNoResume
                 ? false
-                : !applicant.personalInfoConsent ||
-                  !applicant.resumeId
+                : !applicant.personalInfoConsent || !applicant.resumeId
             }
           />
         </View>
