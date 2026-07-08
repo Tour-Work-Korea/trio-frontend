@@ -11,7 +11,7 @@ import ButtonWhite from '@components/ButtonWhite';
 import AlertModal from '@components/modals/AlertModal';
 import LogoOrange from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
-import {tryLogin} from '@utils/auth/login';
+import authApi from '@utils/api/authApi';
 import {markDevWebAdminAuthenticated} from '@utils/auth/devAdminAccess';
 
 import styles from './Login.styles';
@@ -38,7 +38,7 @@ export default function DevAdminLoginGate({onAuthenticated}) {
 
     try {
       setLoading(true);
-      await tryLogin(normalizedEmail, password, 'ADMIN');
+      await authApi.adminLogin(normalizedEmail, password);
       await markDevWebAdminAuthenticated();
       onAuthenticated?.();
     } catch (error) {
