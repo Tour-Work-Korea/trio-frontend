@@ -113,8 +113,8 @@ const authApi = {
   adminLogin: (email, password) => {
     if (Platform.OS === 'web') {
       return api.post(
-        '/user/auth/login',
-        {email, password, userRole: 'ADMIN'},
+        '/admin/auth/login',
+        {email, password},
         {withAuth: false},
       );
     }
