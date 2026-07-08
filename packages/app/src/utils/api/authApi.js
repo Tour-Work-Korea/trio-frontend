@@ -110,12 +110,21 @@ const authApi = {
     );
   },
 
-  adminLogin: (email, password) =>
-    api.post(
+  adminLogin: (email, password) => {
+    if (Platform.OS === 'web') {
+      return api.post(
+        '/user/auth/login',
+        {email, password, userRole: 'ADMIN'},
+        {withAuth: false},
+      );
+    }
+
+    return api.post(
       '/auth/login',
       {email, password, userRole: 'ADMIN'},
       {withAuth: false},
-    ),
+    );
+  },
 
   //토큰 재발급
   refreshToken: async refreshToken => {
