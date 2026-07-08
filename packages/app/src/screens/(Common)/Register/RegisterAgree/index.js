@@ -18,6 +18,8 @@ const RegisterAgree = ({route}) => {
     provider = null,
     socialSignupToken = null,
     socialProfile = {},
+    phoneNum = '',
+    socialPhoneVerified = false,
   } = route.params;
   const [agreements, setAgreements] = useState(userRegisterAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
@@ -67,6 +69,26 @@ const RegisterAgree = ({route}) => {
   const handleMoveNext = () => {
     const agreementPayload = getAgreementPayload();
     if (isSocial) {
+      if (socialPhoneVerified) {
+        navigation.navigate('UserRegisterProfile', {
+          prevData: {
+            userRole: user,
+            agreements: agreementPayload,
+            email: socialProfile.email || '',
+            phoneNum,
+            isSocial: true,
+            socialSignupToken,
+            provider,
+            name: socialProfile.name || '',
+            birthday: socialProfile.birthday || '',
+            gender: socialProfile.gender || '',
+            password: '',
+            passwordConfirm: '',
+          },
+        });
+        return;
+      }
+
       navigation.navigate('PhoneCertificate', {
         user,
         agreements: agreementPayload,

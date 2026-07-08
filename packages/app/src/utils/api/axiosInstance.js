@@ -1,9 +1,11 @@
 import qs from 'qs';
 import axios from 'axios';
 import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
+import { Platform } from 'react-native';
 import useUserStore from '@stores/userStore';
 import { log, mask } from '@utils/logger';
 import { tryRefresh } from '@utils/auth/login';
+import { isWebSessionToken } from '@utils/auth/webSession';
 
 const API_BASE_URL = ENV_API_BASE_URL ?? '';
 
@@ -33,7 +35,12 @@ api.interceptors.request.use(
 
     // accessToken 주입
     const token = useUserStore.getState().accessToken;
-    if (config.withAuth !== false && token) {
+    const shouldAttachBearer =
+      config.withAuth !== false &&
+      token &&
+      !(Platform.OS === 'web' && isWebSessionToken(token));
+
+    if (shouldAttachBearer) {
       config.headers.Authorization = `Bearer ${token}`;
     }
 
@@ -135,7 +142,9 @@ api.interceptors.response.use(
           queue.push({ resolve, reject });
         }).then(token => {
           original.headers = original.headers || {};
-          original.headers.Authorization = `Bearer ${token}`;
+          if (token && !(Platform.OS === 'web' && isWebSessionToken(token))) {
+            original.headers.Authorization = `Bearer ${token}`;
+          }
           return api(original);
         });
       }
@@ -151,7 +160,9 @@ api.interceptors.response.use(
         const newAccess = useUserStore.getState().accessToken;
         resolveQueue(null, newAccess);
         original.headers = original.headers || {};
-        original.headers.Authorization = `Bearer ${newAccess}`;
+        if (newAccess && !(Platform.OS === 'web' && isWebSessionToken(newAccess))) {
+          original.headers.Authorization = `Bearer ${newAccess}`;
+        }
         return api(original);
       } catch (e) {
         resolveQueue(e, null);

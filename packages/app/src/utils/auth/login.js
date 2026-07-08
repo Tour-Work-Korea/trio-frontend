@@ -12,6 +12,7 @@ import {
 } from '@react-native-seoul/kakao-login';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
+import { WEB_SESSION_ACCESS_TOKEN } from '@utils/auth/webSession';
 
 const REFRESH_KEY = 'refresh-token';
 
@@ -78,6 +79,10 @@ const mergeSocialProfiles = (...profiles) =>
     {},
   );
 
+const shouldContinueSocialSignUp = data =>
+  data?.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
+  (data?.status == null && data?.isNewUser);
+
 const getKakaoProfileFallback = async () => {
   try {
     const profile = await kakaoGetProfile();
@@ -113,7 +118,7 @@ export const tryKakaoLoginNative = async (userRole) => {
     const res = await authApi.loginKakao(kakaoToken.accessToken);
     const data = res.data || {};
 
-    if (data.isNewUser) {
+    if (shouldContinueSocialSignUp(data)) {
       const backendProfile = normalizeSocialProfile(data);
       const sdkProfile = await getKakaoProfileFallback();
 
@@ -152,6 +157,12 @@ export const tryKakaoLoginNative = async (userRole) => {
 export const tryAutoLogin = async () => {
   log.info('🚪 tryAutoLogin: start');
   try {
+    if (Platform.OS === 'web') {
+      const ok = await tryRefresh({ silent: true });
+      log.info('🚪 tryAutoLogin: web refresh result =', ok);
+      return ok;
+    }
+
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🔐 has refreshToken?', !!storedRefresh);
     if (!storedRefresh) {
@@ -178,7 +189,6 @@ export const storeLoginTokens = async ({
   accessToken,
   refreshToken,
   userRole,
-  needVerification,
 }) => {
   log.info(
     '✅ login success: accessToken=',
@@ -187,21 +197,14 @@ export const storeLoginTokens = async ({
     mask(refreshToken),
     'role=',
     userRole,
-    'needVerification=',
-    needVerification,
   );
 
-  const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
+  const { setTokens, setUserRole } = useUserStore.getState();
   if (accessToken) {
     setTokens({ accessToken });
   }
   if (userRole) {
     setUserRole(userRole);
-  }
-
-  // needVerification이 'true'면 본인 인증이 안 된 상태이므로 false 저장
-  if (setIsVerified) {
-    setIsVerified(needVerification !== 'true');
   }
 
   if (refreshToken) {
@@ -216,15 +219,49 @@ export const storeLoginTokens = async ({
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const { accessToken, refreshToken, needVerification } = res.data || {};
+  const { accessToken, refreshToken } = res.data || {};
 
-  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification });
+  await storeLoginTokens({ accessToken, refreshToken, userRole });
+};
+
+const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
+  const {
+    setTokens,
+    setUserRole,
+    setUserProfile,
+  } = useUserStore.getState();
+  const role = data.role || fallbackRole || 'USER';
+  const accessToken =
+    data.accessToken || data.token || data.jwt || WEB_SESSION_ACCESS_TOKEN;
+
+  setTokens({ accessToken });
+  setUserRole(role);
+  setUserProfile?.({
+    userId: data.userId ?? null,
+    name: data.name ?? '',
+    nickname: data.nickname ?? data.name ?? '',
+    photoUrl: data.photoUrl ?? null,
+    phone: data.phone ?? '',
+    email: data.email ?? '',
+    mbti: data.mbti ?? '',
+    instagramId: data.instagramId ?? '',
+    gender: data.gender ?? 'F',
+    birthDate: data.birthDate ?? null,
+    age: calculateAge(data.birthDate),
+  });
+
+  await updateProfile(role);
 };
 
 export const tryLogin = async (email, password, userRole) => {
   log.info('🔓 tryLogin: role=', userRole);
   try {
     const res = await authApi.login(email, password, userRole);
+    if (Platform.OS === 'web') {
+      await storeWebSessionInfo(res.data, userRole);
+      return res.data;
+    }
+
     await storeLoginInfo(res, userRole);
 
     log.info('🔓 tryLogin: sync FCM token');
@@ -256,7 +293,7 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
     const data = res.data || {};
-    if (data.isNewUser) {
+    if (shouldContinueSocialSignUp(data)) {
       const backendProfile = normalizeSocialProfile(data);
 
       return {
@@ -283,6 +320,12 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
 export const tryRefresh = async ({ silent = false } = {}) => {
   log.info('🔄 tryRefresh: start');
   try {
+    if (Platform.OS === 'web') {
+      const res = await authApi.refreshToken();
+      await storeWebSessionInfo(res.data);
+      return true;
+    }
+
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');

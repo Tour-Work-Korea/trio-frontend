@@ -213,7 +213,7 @@ const NotificationCenter = () => {
     await openNotificationTarget({
       ...(item.rawItem ?? {}),
       ...(notificationDetail ?? {}),
-    });
+    }, navigation);
   };
 
   return (

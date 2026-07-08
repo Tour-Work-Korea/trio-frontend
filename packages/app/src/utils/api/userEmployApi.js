@@ -4,7 +4,10 @@ const userEmployApi = {
   //채용 공고 목록 조회
   getRecruits: (params = {}) =>
     api.get('/user/recruits', {
-      params,
+      params: {
+        ...params,
+        sortBy: 'LATEST',
+      },
     }),
   //특정 채용공고 상세 조회
   getRecruitById: recruitId => api.get(`/user/recruits/${recruitId}`),

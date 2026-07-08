@@ -217,6 +217,10 @@ const CommunityPlaceSearch = () => {
   };
 
   useEffect(() => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
     moveToCurrentLocation();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -359,18 +363,20 @@ const CommunityPlaceSearch = () => {
             <View style={styles.mapBubbleTail} />
           </View>
         ) : null}
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.targetButton}
-          onPress={() => {
-            moveToCurrentLocation({showPermissionAlert: true});
-          }}>
-          {isCurrentLocationLoading ? (
-            <ActivityIndicator size="small" color="#1C1D1F" />
-          ) : (
-            <TargetIcon width={22} height={22} />
-          )}
-        </TouchableOpacity>
+        {Platform.OS !== 'web' ? (
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.targetButton}
+            onPress={() => {
+              moveToCurrentLocation({showPermissionAlert: true});
+            }}>
+            {isCurrentLocationLoading ? (
+              <ActivityIndicator size="small" color="#1C1D1F" />
+            ) : (
+              <TargetIcon width={22} height={22} />
+            )}
+          </TouchableOpacity>
+        ) : null}
       </View>
 
       <View style={styles.resultPanel}>{renderResults()}</View>

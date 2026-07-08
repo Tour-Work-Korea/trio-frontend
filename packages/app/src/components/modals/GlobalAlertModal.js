@@ -2,7 +2,7 @@ import {subscribe} from '@utils/loginModalHub';
 import {useEffect, useState} from 'react';
 import {Platform} from 'react-native';
 import AlertModal from './AlertModal';
-import LoginAppPromptModal from './LoginAppPromptModal';
+import {navigate} from '@utils/navigationService';
 
 const initialState = {
   visible: false,
@@ -21,7 +21,6 @@ const initialState = {
 
 export default function GlobalAlertModal() {
   const [state, setState] = useState(initialState);
-  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
 
   useEffect(() => {
     const unsub = subscribe(updater => setState(updater));
@@ -33,13 +32,20 @@ export default function GlobalAlertModal() {
   };
 
   const handlePress = () => {
+    const callback = state.onPress;
+
     if (Platform.OS === 'web' && state.buttonText === '로그인하기') {
       close();
-      setLoginPromptVisible(true);
+      requestAnimationFrame(() => {
+        if (callback) {
+          callback();
+        } else {
+          navigate('Login');
+        }
+      });
       return;
     }
 
-    const callback = state.onPress;
     close();
     requestAnimationFrame(() => callback?.());
   };
@@ -67,10 +73,6 @@ export default function GlobalAlertModal() {
         iconElement={state.iconElement}
         onRequestClose={handlePress2}
         interceptWebLoginPress={false}
-      />
-      <LoginAppPromptModal
-        visible={loginPromptVisible}
-        onClose={() => setLoginPromptVisible(false)}
       />
     </>
   );

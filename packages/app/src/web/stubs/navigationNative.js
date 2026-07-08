@@ -34,6 +34,7 @@ export function createNavigationContainerRef() {
     isReady: () => Boolean(ref.current),
     navigate: (...args) => ref.current?.navigate?.(...args),
     goBack: () => ref.current?.goBack?.(),
+    canGoBack: () => ref.current?.canGoBack?.() ?? false,
     dispatch: action => ref.current?.dispatch?.(action),
   };
 
@@ -45,7 +46,9 @@ export function NavigationContainer({children, ref: navigationRef}) {
     () => ({
       navigate: () => {},
       goBack: () => {},
+      canGoBack: () => false,
       dispatch: () => {},
+      reset: () => {},
       setOptions: () => {},
       getParent: () => null,
       __isRootFallback: true,
@@ -70,7 +73,9 @@ export function useNavigation() {
   return useContext(NavigationContext) || {
     navigate: () => {},
     goBack: () => {},
+    canGoBack: () => false,
     dispatch: () => {},
+    reset: () => {},
     setOptions: () => {},
     getParent: () => null,
   };
@@ -346,6 +351,10 @@ function routeToWebPath(route) {
     return WEB_ROUTES.HOME;
   }
 
+  if (route.name === 'LoginIntro') {
+    return WEB_ROUTES.LOGIN;
+  }
+
   if (route.name === '커뮤니티') {
     return withCommunityTab(WEB_ROUTES.COMMUNITY, route.params?.tab);
   }
@@ -533,6 +542,24 @@ function parseRouteFromUrl() {
     };
   }
 
+  if (pathname === WEB_ROUTES.LOGIN) {
+    return {
+      name: 'Login',
+      params: {
+        screen: 'LoginIntro',
+      },
+    };
+  }
+
+  if (pathname === WEB_ROUTES.LOGIN_EMAIL) {
+    return {
+      name: 'Login',
+      params: {
+        screen: 'LoginByEmail',
+      },
+    };
+  }
+
   if (pathname === WEB_ROUTES.COMMUNITY) {
     return {
       name: 'MainTabs',
@@ -550,14 +577,14 @@ function parseRouteFromUrl() {
   if (pathname === WEB_ROUTES.MY) {
     return {
       name: 'MainTabs',
-      params: getNestedStackParams('마이', 'MyGate', extraParams),
+      params: getNestedStackParams('마이', 'UserMyPage', extraParams),
     };
   }
 
   if (pathname === WEB_ROUTES.EMPLOY) {
     return {
-      name: 'MainTabs',
-      params: getNestedStackParams('채용', 'EmployIntro', extraParams),
+      name: 'EmployIntro',
+      params: extraParams,
     };
   }
 
@@ -577,22 +604,22 @@ function parseRouteFromUrl() {
 
   if (pathname === WEB_ROUTES.EMPLOY_SEARCH) {
     return {
-      name: 'MainTabs',
-      params: getNestedStackParams('채용', 'EmploySearchList', extraParams),
+      name: 'EmploySearchList',
+      params: extraParams,
     };
   }
 
   if (pathname === WEB_ROUTES.EMPLOY_SEARCH_RESULT) {
     return {
-      name: 'MainTabs',
-      params: getNestedStackParams('채용', 'EmploySearchResult', extraParams),
+      name: 'EmploySearchList',
+      params: extraParams,
     };
   }
 
   if (pathname === WEB_ROUTES.EMPLOY_MAP) {
     return {
-      name: 'MainTabs',
-      params: getNestedStackParams('채용', 'EmployMap', extraParams),
+      name: 'EmployMap',
+      params: extraParams,
     };
   }
 
@@ -764,12 +791,20 @@ function getInitialRoute(childScreens, firstScreen, parentParams) {
   };
 }
 
-function replaceBrowserHistory(route) {
+function writeBrowserHistory(route, mode = 'replace') {
   if (!canUseBrowserHistory) {
     return;
   }
 
-  window.history.replaceState(
+  const path = routeToWebPath(route);
+
+  if (!path) {
+    return;
+  }
+
+  const method = mode === 'push' ? 'pushState' : 'replaceState';
+
+  window.history[method](
     {
       __trioNavigation: true,
       route: {
@@ -778,8 +813,16 @@ function replaceBrowserHistory(route) {
       },
     },
     '',
-    routeToWebPath(route) || window.location.href,
+    path,
   );
+}
+
+function replaceBrowserHistory(route) {
+  writeBrowserHistory(route, 'replace');
+}
+
+function pushBrowserHistory(route) {
+  writeBrowserHistory(route, 'push');
 }
 
 export function createNavigatorFactory(defaultKind = 'stack') {
@@ -817,6 +860,46 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       setRoute(nestedRoute);
     }, [childScreens, parentRoute?.params]);
 
+    useEffect(() => {
+      if (!canUseBrowserHistory) {
+        return undefined;
+      }
+
+      const handlePopState = event => {
+        const nextRoute = parseRouteFromUrl() || event.state?.route;
+
+        if (!nextRoute?.name) {
+          return;
+        }
+
+        const ownsRoute = childScreens.some(
+          child => child.props.name === nextRoute.name,
+        );
+
+        if (ownsRoute) {
+          historyRef.current = [];
+          setRoute({
+            name: nextRoute.name,
+            params: nextRoute.params,
+          });
+          return;
+        }
+
+        const nestedRoute = getNestedRoute(childScreens, nextRoute.params);
+
+        if (nestedRoute) {
+          historyRef.current = [];
+          setRoute(nestedRoute);
+        }
+      };
+
+      window.addEventListener('popstate', handlePopState);
+
+      return () => {
+        window.removeEventListener('popstate', handlePopState);
+      };
+    }, [childScreens]);
+
     const navigate = useCallback(
       (nameOrOptions, params) => {
         const next = normalizeNavigateArgs(nameOrOptions, params);
@@ -837,7 +920,7 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         const nextRoute = {name: next.name, params: next.params};
 
         setRoute(nextRoute);
-        replaceBrowserHistory(nextRoute);
+        pushBrowserHistory(nextRoute);
       },
       [childScreens, parentNavigation],
     );
@@ -871,12 +954,46 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       }));
     }, []);
 
+    const reset = useCallback(
+      payload => {
+        const routes = payload?.routes || [];
+        const nextRoute = routes[payload?.index ?? routes.length - 1];
+
+        if (!nextRoute?.name) {
+          return;
+        }
+
+        const ownsRoute = childScreens.some(
+          child => child.props.name === nextRoute.name,
+        );
+
+        historyRef.current = [];
+
+        if (!ownsRoute) {
+          parentNavigation?.reset?.(payload);
+          return;
+        }
+
+        setRoute({
+          name: nextRoute.name,
+          params: nextRoute.params,
+        });
+        replaceBrowserHistory(nextRoute);
+      },
+      [childScreens, parentNavigation],
+    );
+
     const navigation = useMemo(
       () => ({
         navigate,
         push: navigate,
         replace: navigate,
         goBack,
+        canGoBack: () =>
+          historyRef.current.length > 0 ||
+          Boolean(getWebBackRoute(routeRef.current?.params)?.name) ||
+          Boolean(parentNavigation?.canGoBack?.()),
+        reset,
         pop: goBack,
         popToTop: () => {
           historyRef.current = [];
@@ -888,6 +1005,8 @@ export function createNavigatorFactory(defaultKind = 'stack') {
           const payload = action?.payload;
           if (action?.type === 'SET_PARAMS') {
             setParams(payload?.params);
+          } else if (action?.type === 'RESET') {
+            reset(payload);
           } else if (payload?.name) {
             navigate(payload.name, payload.params);
           } else if (payload?.routes?.length) {
@@ -899,7 +1018,7 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         setOptions: () => {},
         getParent: () => parentNavigation ?? null,
       }),
-      [firstScreen, goBack, navigate, parentNavigation, setParams],
+      [firstScreen, goBack, navigate, parentNavigation, reset, setParams],
     );
 
     const activeScreen =
@@ -915,6 +1034,25 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       defaultKind === 'bottom-tabs'
         ? routeValue.name
         : `${routeValue.name}:${JSON.stringify(routeValue.params ?? {})}`;
+    const stackOptions =
+      defaultKind === 'bottom-tabs'
+        ? null
+        : getMergedOptions(
+            screenOptions,
+            activeScreen?.props.options,
+            routeValue,
+            navigation,
+          );
+    const stackHeader =
+      defaultKind !== 'bottom-tabs' &&
+      stackOptions?.headerShown !== false &&
+      typeof stackOptions?.header === 'function'
+        ? stackOptions.header({
+            navigation,
+            route: routeValue,
+            options: stackOptions,
+          })
+        : null;
     const content = (
       <View key={routeKey} style={styles.navigator}>
         <Component navigation={navigation} route={routeValue} />
@@ -964,7 +1102,10 @@ export function createNavigatorFactory(defaultKind = 'stack') {
               </View>
             </View>
           ) : (
-            content
+            <>
+              {stackHeader}
+              {content}
+            </>
           )}
         </RouteContext.Provider>
       </NavigationContext.Provider>
@@ -985,6 +1126,19 @@ function getOptions(screenOptions, route, navigation) {
   }
 
   return screenOptions || {};
+}
+
+function getMergedOptions(screenOptions, screenSpecificOptions, route, navigation) {
+  const baseOptions = getOptions(screenOptions, route, navigation);
+  const nextOptions =
+    typeof screenSpecificOptions === 'function'
+      ? screenSpecificOptions({route, navigation})
+      : screenSpecificOptions;
+
+  return {
+    ...(baseOptions || {}),
+    ...(nextOptions || {}),
+  };
 }
 
 function getTabBarStyle(screenOptions, route, navigation) {

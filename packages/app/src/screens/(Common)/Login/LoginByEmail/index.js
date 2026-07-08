@@ -12,6 +12,11 @@ import {CommonActions, useNavigation} from '@react-navigation/native';
 import ButtonWhite from '@components/ButtonWhite';
 import AlertModal from '@components/modals/AlertModal';
 import {tryLogin} from '@utils/auth/login';
+import {
+  LOGIN_PROVIDERS,
+  storeLastLoginProvider,
+} from '@utils/auth/lastLoginProvider';
+import {markDevWebAdminAuthenticated} from '@utils/auth/devAdminAccess';
 
 import styles from '../Login.styles';
 import ShowPassword from '@assets/images/show_password.svg';
@@ -22,6 +27,8 @@ import {COLORS} from '@constants/colors';
 export default function LoginByEmail({route}) {
   const userRole = route?.params?.userRole ?? 'USER';
   const navigation = useNavigation();
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [isPasswordVisible, setIsPasswordVisible] = useState(false);
@@ -31,9 +38,6 @@ export default function LoginByEmail({route}) {
     buttonText: '',
     color: mainColor,
   });
-
-  const MainLogo = LogoOrange;
-  const mainColor = COLORS.primary_orange;
 
   const handleMoveToRegister = () => {
     navigation.navigate('RegisterAgree', {user: userRole});
@@ -47,23 +51,23 @@ export default function LoginByEmail({route}) {
     navigation.navigate('FindIntro', {find: 'password', userRole});
   };
 
+  const getLoginUserRole = () => {
+    if (email.trim().toLowerCase().endsWith('@ddakji.kr')) {
+      return 'ADMIN';
+    }
+
+    return userRole;
+  };
+
   const handleLogin = async () => {
+    const nextUserRole = getLoginUserRole();
+
     try {
-      const data = await tryLogin(email, password, userRole);
-      if (userRole === 'USER' && data?.needVerification === "true") {
-        setErrorModal({
-          visible: true,
-          message: data.message || "안전한 서비스 이용을 위해\n최초 1회 본인 인증이 필요합니다.",
-          buttonText: "인증하기",
-          onPress: () => {
-            setErrorModal(prev => ({...prev, visible: false, onPress: null}));
-            navigation.navigate('PhoneCertificate', {
-              user: userRole,
-              isUpdateCi: true
-            });
-          }
-        });
-        return;
+      await tryLogin(email, password, nextUserRole);
+      if (nextUserRole === 'ADMIN') {
+        await markDevWebAdminAuthenticated();
+      } else {
+        await storeLastLoginProvider(LOGIN_PROVIDERS.EMAIL);
       }
       navigation.dispatch(
         CommonActions.reset({
@@ -136,9 +140,9 @@ export default function LoginByEmail({route}) {
           <View style={styles.bottomSection}>
             <View>
               <View style={styles.buttonSection}>
-                <ButtonWhite 
-                  title={'로그인하기'} 
-                  onPress={handleLogin} 
+                <ButtonWhite
+                  title={'로그인하기'}
+                  onPress={handleLogin}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
@@ -164,11 +168,7 @@ export default function LoginByEmail({route}) {
           buttonText={errorModal.buttonText}
           color={mainColor}
           onPress={() => {
-            if (errorModal.onPress) {
-              errorModal.onPress(); // "인증하기" 클릭 시 navigation 이동 실행
-            } else {
-              setErrorModal(prev => ({...prev, visible: false})); // 일반 에러는 닫기만
-            }
+            setErrorModal(prev => ({...prev, visible: false}));
           }}
         />
       </View>

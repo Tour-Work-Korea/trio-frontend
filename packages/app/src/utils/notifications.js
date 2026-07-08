@@ -153,19 +153,29 @@ const isLoggedInUser = () => {
   return Boolean(accessToken && userRole === 'USER');
 };
 
+const navigateTo = (navigation, name, params) => {
+  if (navigation?.navigate) {
+    navigation.navigate(name, params);
+    return;
+  }
+
+  navigate(name, params);
+};
+
 const showLoginRequiredModal = (
   message = '서비스 이용을 위해 로그인 해주세요.',
+  navigation,
 ) => {
   showErrorModal({
     title: '로그인이 필요합니다',
     message,
     buttonText: '확인',
     buttonText2: '취소',
-    onPress: () => navigate('Login'),
+    onPress: () => navigateTo(navigation, 'Login'),
   });
 };
 
-const openDeeplinkTarget = url => {
+const openDeeplinkTarget = (url, navigation) => {
   const {parts, searchParams} = parseDeeplink(url);
 
   if (
@@ -177,11 +187,11 @@ const openDeeplinkTarget = url => {
       parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
-        showLoginRequiredModal();
+        showLoginRequiredModal(undefined, navigation);
         return true;
       }
 
-      navigate('GuesthousePaymentReceipt', {
+      navigateTo(navigation, 'GuesthousePaymentReceipt', {
         reservationId,
         isFromDeeplink: true,
       });
@@ -198,11 +208,11 @@ const openDeeplinkTarget = url => {
       parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
     if (reservationId) {
       if (!isLoggedInUser()) {
-        showLoginRequiredModal();
+        showLoginRequiredModal(undefined, navigation);
         return true;
       }
 
-      navigate('MeetPaymentReceipt', {
+      navigateTo(navigation, 'MeetPaymentReceipt', {
         reservationId,
         isFromDeeplink: true,
       });
@@ -217,7 +227,7 @@ const openDeeplinkTarget = url => {
         : parts[1];
 
     if (partyId) {
-      navigate('MeetDetail', {partyId, isFromDeeplink: true});
+      navigateTo(navigation, 'MeetDetail', {partyId, isFromDeeplink: true});
       return true;
     }
   }
@@ -246,7 +256,7 @@ const openDeeplinkTarget = url => {
     ]);
 
     if (postId) {
-      navigate('CommunityDetail', {
+      navigateTo(navigation, 'CommunityDetail', {
         postId,
         ...(targetCommentId ? {targetCommentId} : {}),
         fallbackRouteName: targetCommentId
@@ -268,14 +278,14 @@ const openDeeplinkTarget = url => {
   return false;
 };
 
-export const openNotificationTarget = async notification => {
+export const openNotificationTarget = async (notification, navigation) => {
   const deeplink =
     notification?.deeplink ||
     notification?.deepLink ||
     notification?.link ||
     notification?.url;
 
-  if (deeplink && openDeeplinkTarget(deeplink)) {
+  if (deeplink && openDeeplinkTarget(deeplink, navigation)) {
     return;
   }
 
@@ -312,7 +322,7 @@ export const openNotificationTarget = async notification => {
     type === 'GUESTHOUSE_TODAY_CHECKIN_USER'
   ) {
     if (!isLoggedInUser()) {
-      showLoginRequiredModal();
+      showLoginRequiredModal(undefined, navigation);
       return;
     }
 
@@ -326,15 +336,15 @@ export const openNotificationTarget = async notification => {
 
     if (reservationId) {
       if (isGuesthouseCancellationType(type)) {
-        navigate('GuesthouseCancelledReceipt', {reservationId});
+        navigateTo(navigation, 'GuesthouseCancelledReceipt', {reservationId});
         return;
       }
 
-      navigate('GuesthousePaymentReceipt', {reservationId});
+      navigateTo(navigation, 'GuesthousePaymentReceipt', {reservationId});
       return;
     }
 
-    navigate('UserReservationCheck');
+    navigateTo(navigation, 'UserReservationCheck');
     return;
   }
 
@@ -345,7 +355,7 @@ export const openNotificationTarget = async notification => {
     type === 'PARTY_CANCELLED_BY_HOST'
   ) {
     if (!isLoggedInUser()) {
-      showLoginRequiredModal();
+      showLoginRequiredModal(undefined, navigation);
       return;
     }
 
@@ -360,7 +370,7 @@ export const openNotificationTarget = async notification => {
 
     if (reservationId) {
       if (isPartyCancellationType(type)) {
-        navigate('MeetCancelledReceipt', {reservationId});
+        navigateTo(navigation, 'MeetCancelledReceipt', {reservationId});
         return;
       }
 
@@ -379,21 +389,21 @@ export const openNotificationTarget = async notification => {
         console.log('파티 예약 상태 확인 실패', e);
       }
 
-      navigate('MeetPaymentReceipt', {reservationId});
+      navigateTo(navigation, 'MeetPaymentReceipt', {reservationId});
       return;
     }
 
     if (partyId) {
-      navigate('MeetDetail', {partyId});
+      navigateTo(navigation, 'MeetDetail', {partyId});
       return;
     }
 
-    navigate('UserMeetReservationCheck');
+    navigateTo(navigation, 'UserMeetReservationCheck');
     return;
   }
 
   if (type === 'REVIEW_COMMENT_NEW' || type === 'REVIEW_SUB_COMMENT_NEW') {
-    navigate('UserGuesthouseReview');
+    navigateTo(navigation, 'UserGuesthouseReview');
     return;
   }
 
@@ -429,7 +439,7 @@ export const openNotificationTarget = async notification => {
     }
 
     if (communityPostId) {
-      navigate('CommunityDetail', {
+      navigateTo(navigation, 'CommunityDetail', {
         postId: communityPostId,
         ...(communityCommentId ? {targetCommentId: communityCommentId} : {}),
         fallbackRouteName,
@@ -458,7 +468,7 @@ export const openNotificationTarget = async notification => {
         ]);
 
         if (anchorPostId) {
-          navigate('CommunityDetail', {
+          navigateTo(navigation, 'CommunityDetail', {
             postId: anchorPostId,
             targetCommentId: communityCommentId,
             commentAnchor,
@@ -470,18 +480,16 @@ export const openNotificationTarget = async notification => {
       }
     }
 
-    navigate(
-      fallbackRouteName,
-    );
+    navigateTo(navigation, fallbackRouteName);
     return;
   }
 
   if (partyId) {
-    navigate('MeetDetail', {partyId});
+    navigateTo(navigation, 'MeetDetail', {partyId});
     return;
   }
 
   if (guesthouseId) {
-    navigate('GuesthouseDetail', {id: guesthouseId});
+    navigateTo(navigation, 'GuesthouseDetail', {id: guesthouseId});
   }
 };

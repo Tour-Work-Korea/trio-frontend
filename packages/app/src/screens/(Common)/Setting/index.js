@@ -1,5 +1,5 @@
 import React, {useState} from 'react';
-import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import DeviceInfo from 'react-native-device-info';
 
@@ -12,6 +12,8 @@ import {tryLogout} from '@utils/auth/login';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
+
+const LOGOUT_HOME_LOCK_KEY = '__TRIO_LOGOUT_HOME_LOCK__';
 
 const Settings = () => {
   const navigation = useNavigation();
@@ -27,9 +29,14 @@ const Settings = () => {
 
   const handleLogout = async () => {
     await tryLogout();
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.sessionStorage.setItem(LOGOUT_HOME_LOCK_KEY, '1');
+      window.history.replaceState({__trioLogoutHomeLock: true}, '', '/');
+      window.history.pushState({__trioLogoutHomeLock: true}, '', '/');
+    }
     navigation.reset({
       index: 0,
-      routes: [{name: 'Login'}],
+      routes: [{name: 'MainTabs', params: {screen: '홈'}}],
     });
   };
 
@@ -94,10 +101,12 @@ const Settings = () => {
         <View>
           <Text style={styles.menuHeader}>서비스 정보</Text>
           <View style={styles.menuContainer}>
-            <View style={styles.menuRow}>
-              <Text style={styles.menuText}>버전 정보</Text>
-              <Text style={styles.versionText}>ver.{appVersion}</Text>
-            </View>
+            {Platform.OS !== 'web' ? (
+              <View style={styles.menuRow}>
+                <Text style={styles.menuText}>버전 정보</Text>
+                <Text style={styles.versionText}>ver.{appVersion}</Text>
+              </View>
+            ) : null}
             <TouchableOpacity
               style={styles.menuRow}
               onPress={() => navigation.navigate('Terms')}>

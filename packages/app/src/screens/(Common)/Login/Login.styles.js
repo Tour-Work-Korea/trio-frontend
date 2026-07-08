@@ -12,6 +12,9 @@ export default StyleSheet.create({
     right: 18,
     zIndex: 10,
   },
+  loginHeaderOffset: {
+    top: 20,
+  },
   loginCloseButton: {
     borderRadius: 20,
     alignItems: 'center',

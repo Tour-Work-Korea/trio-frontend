@@ -20,8 +20,21 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
 import authApi from '@utils/api/authApi';
 import {storeLoginTokens} from '@utils/auth/login';
+import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 
 import styles from '../../Login/Login.styles';
+
+const PROVIDER_LABELS = {
+  KAKAO: '카카오',
+  NAVER: '네이버',
+  GOOGLE: '구글',
+};
+
+const SOCIAL_SMS_STATUS_MESSAGES = {
+  EXISTING_USER_LINK_REQUIRED:
+    '기존 계정에 소셜 계정을 연결하기 위해\n휴대폰 인증을 진행합니다.',
+  NEW_USER_SIGNUP_REQUIRED: '신규 회원가입을 위해\n휴대폰 인증을 진행합니다.',
+};
 
 /**
  * NICE 기반 USER 본인인증/가입 보조 경로는 백엔드에서 제거되어 비활성화함.
@@ -49,8 +62,10 @@ const PhoneCertificate = ({route}) => {
   } = route.params || {};
   const userRole = user || 'USER';
   const navigation = useNavigation();
+  const providerLabel = PROVIDER_LABELS[provider] || '소셜';
 
   const [smsPurpose, setSmsPurpose] = useState('SIGN_UP');
+  const [socialSmsStatus, setSocialSmsStatus] = useState(null);
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isPhoneNumberValid, setIsPhoneNumberValid] = useState(false);
   const [code, setCode] = useState('');
@@ -150,6 +165,7 @@ const PhoneCertificate = ({route}) => {
         refreshToken,
         userRole,
       });
+      await storeLastLoginProvider(provider);
 
       navigation.dispatch(
         CommonActions.reset({
@@ -163,7 +179,7 @@ const PhoneCertificate = ({route}) => {
           visible: true,
           message:
             error?.response?.data?.message ||
-            '카카오에서 받은 정보를 확인해주세요.',
+            `${providerLabel}에서 받은 정보를 확인해주세요.`,
           buttonText: '확인',
           onPress: moveToSocialProfileFallback,
         });
@@ -187,6 +203,7 @@ const PhoneCertificate = ({route}) => {
     navigation,
     phoneNumber,
     provider,
+    providerLabel,
     moveToSocialProfileFallback,
     socialProfileBirthday,
     socialProfileGender,
@@ -209,6 +226,7 @@ const PhoneCertificate = ({route}) => {
       setHasRequestedCode(false);
       setIsResendEnabled(false);
       setSmsPurpose('SIGN_UP');
+      setSocialSmsStatus(null);
       setErrorModal({
         visible: false,
         message: '',
@@ -232,8 +250,26 @@ const PhoneCertificate = ({route}) => {
     }
 
     const timeoutId = setTimeout(() => {
-      if (isSocial && hasCompleteSocialProfile) {
-        completeSocialSignUp();
+      if (isSocial) {
+        if (agreements.length === 0) {
+          navigation.navigate('RegisterAgree', {
+            user: userRole,
+            isSocial: true,
+            provider,
+            socialSignupToken,
+            socialProfile,
+            phoneNum: phoneNumber,
+            socialPhoneVerified: true,
+          });
+          return;
+        }
+
+        if (hasCompleteSocialProfile) {
+          completeSocialSignUp();
+          return;
+        }
+
+        moveToSocialProfileFallback();
         return;
       }
 
@@ -249,6 +285,11 @@ const PhoneCertificate = ({route}) => {
     isCodeVerified,
     isSocial,
     moveToSocialProfileFallback,
+    navigation,
+    phoneNumber,
+    provider,
+    socialProfile,
+    socialSmsStatus,
     socialSignupToken,
     userRole,
   ]);
@@ -272,32 +313,21 @@ const PhoneCertificate = ({route}) => {
     return () => clearInterval(interval);
   }, [isTimerActive, timeLeft]);
 
-  const openPhoneAlreadyExistsForSocial = () => {
-    setErrorModal({
-      visible: true,
-      message:
-        '이미 가입된 전화번호입니다.\n기존 계정에 소셜 계정을 연결하려면 인증을 진행해주세요.',
-      buttonText: '연동 인증하기',
-      onPress: async () => {
-        setErrorModal(prev => ({...prev, visible: false, onPress: null}));
-        setSmsPurpose('FIND_ACCOUNT');
-        await sendVerificationCode('FIND_ACCOUNT');
-      },
-    });
-  };
-
-  const isPhoneAlreadyExistsError = error => {
-    const data = error?.response?.data;
-    const errorCode = data?.code || data?.errorCode || data?.status;
-    const message = data?.message || '';
-    return (
-      errorCode === 'PHONE_ALREADY_EXISTS' || message.includes('이미 가입')
-    );
-  };
-
   const sendVerificationCode = async (purpose = smsPurpose) => {
     try {
-      await authApi.sendSms(phoneNumber, userRole, purpose);
+      const response = isSocial
+        ? await authApi.sendSocialSignUpSms({
+            socialSignupToken,
+            phoneNum: phoneNumber,
+          })
+        : await authApi.sendSms(phoneNumber, userRole, purpose);
+      const responseData = response?.data || {};
+      const nextSmsPurpose = responseData.smsPurpose || purpose;
+
+      setSmsPurpose(nextSmsPurpose);
+      if (isSocial && responseData.status) {
+        setSocialSmsStatus(responseData.status);
+      }
       setHasRequestedCode(true);
       setIsCodeSent(true);
       setTimeLeft(300);
@@ -305,22 +335,16 @@ const PhoneCertificate = ({route}) => {
 
       setErrorModal({
         visible: true,
-        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
+        message:
+          SOCIAL_SMS_STATUS_MESSAGES[responseData.status] ||
+          responseData.message ||
+          `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
         buttonText: '확인',
       });
 
       setIsResendEnabled(false);
       setTimeout(() => setIsResendEnabled(true), 30000);
     } catch (error) {
-      if (
-        isSocial &&
-        purpose === 'SIGN_UP' &&
-        isPhoneAlreadyExistsError(error)
-      ) {
-        openPhoneAlreadyExistsForSocial();
-        return;
-      }
-
       setErrorModal({
         visible: true,
         message:
@@ -339,7 +363,25 @@ const PhoneCertificate = ({route}) => {
   const verifyCode = async () => {
     setLoading(true);
     try {
-      await authApi.verifySms(phoneNumber, code, userRole, smsPurpose);
+      const response = isSocial
+        ? await authApi.verifySocialSignUpSms({
+            socialSignupToken,
+            phoneNum: phoneNumber,
+            code,
+          })
+        : await authApi.verifySms(phoneNumber, code, userRole, smsPurpose);
+      const responseData = response?.data || {};
+
+      if (responseData.smsPurpose) {
+        setSmsPurpose(responseData.smsPurpose);
+      }
+      if (isSocial && responseData.status) {
+        setSocialSmsStatus(responseData.status);
+      }
+      if (isSocial && responseData.verified === false) {
+        throw new Error(responseData.message || '인증에 실패했습니다.');
+      }
+
       setIsTimerActive(false);
       setIsCodeVerified(true);
     } catch (error) {
@@ -387,12 +429,13 @@ const PhoneCertificate = ({route}) => {
                       setIsCodeSent(false);
                       setIsResendEnabled(false);
                       setSmsPurpose('SIGN_UP');
+                      setSocialSmsStatus(null);
                     }}
                     keyboardType="number-pad"
                     maxLength={11}
                   />
                   <TouchableOpacity
-                    onPress={sendVerificationCode}
+                    onPress={() => sendVerificationCode()}
                     disabled={!isPhoneNumberValid || hasRequestedCode}>
                     <Text
                       style={[

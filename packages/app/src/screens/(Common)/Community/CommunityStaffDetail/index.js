@@ -409,6 +409,10 @@ const CommunityStaffDetail = ({route}) => {
   };
 
   const handleCommentInputContentSizeChange = event => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
     const nextHeight = Math.min(
       Math.max(event.nativeEvent.contentSize.height, COMMENT_INPUT_MIN_HEIGHT),
       COMMENT_INPUT_MAX_HEIGHT,
