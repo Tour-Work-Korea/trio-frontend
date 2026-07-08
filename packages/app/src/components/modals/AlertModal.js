@@ -1,10 +1,10 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {Platform, View, Text, StyleSheet, Image} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
-import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
+import {navigate} from '@utils/navigationService';
 
 /**
  * visible, buttonText, onPress 필수
@@ -28,15 +28,17 @@ const AlertModal = ({
   onRequestClose = () => { },
   interceptWebLoginPress = true,
 }) => {
-  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
-
   const handlePrimaryPress = () => {
     if (
       interceptWebLoginPress &&
       Platform.OS === 'web' &&
       buttonText === '로그인하기'
     ) {
-      setLoginPromptVisible(true);
+      if (onPress) {
+        onPress();
+      } else {
+        navigate('Login');
+      }
       return;
     }
 
@@ -133,15 +135,7 @@ const AlertModal = ({
   );
 
   if (Platform.OS === 'android') {
-    return (
-      <>
-        {content}
-        <LoginAppPromptModal
-          visible={loginPromptVisible}
-          onClose={() => setLoginPromptVisible(false)}
-        />
-      </>
-    );
+    return content;
   }
 
   return (
@@ -153,10 +147,6 @@ const AlertModal = ({
         onRequestClose={onRequestClose}>
         {content}
       </Modal>
-      <LoginAppPromptModal
-        visible={loginPromptVisible}
-        onClose={() => setLoginPromptVisible(false)}
-      />
     </>
   );
 };

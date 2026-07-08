@@ -100,6 +100,7 @@ const CommunityWrite = ({route}) => {
   const bodyInputRef = useRef(null);
   const scrollViewRef = useRef(null);
   const scrollFocusTimerRef = useRef(null);
+  const locationMapRef = useRef(null);
   const [categories, setCategories] = useState(defaultCategories);
   const [selectedCategory, setSelectedCategory] = useState(null);
   const [categoryVisible, setCategoryVisible] = useState(false);
@@ -195,6 +196,25 @@ const CommunityWrite = ({route}) => {
       setSelectedLocation(nextLocation);
     }
   }, [selectedLocationParam]);
+
+  useEffect(() => {
+    if (
+      !Number.isFinite(selectedLocation?.latitude) ||
+      !Number.isFinite(selectedLocation?.longitude)
+    ) {
+      return undefined;
+    }
+
+    const frameId = requestAnimationFrame(() => {
+      locationMapRef.current?.animateCameraTo?.({
+        latitude: selectedLocation.latitude,
+        longitude: selectedLocation.longitude,
+        zoom: 16,
+      });
+    });
+
+    return () => cancelAnimationFrame(frameId);
+  }, [selectedLocation?.latitude, selectedLocation?.longitude]);
 
   const unlockInputsAfterScroll = () => {
     if (scrollFocusTimerRef.current) {
@@ -486,6 +506,20 @@ const CommunityWrite = ({route}) => {
     });
   };
 
+  const handleGoBack = () => {
+    if (Platform.OS !== 'web') {
+      navigation.goBack();
+      return;
+    }
+
+    if (isEditMode && editingPost?.postId) {
+      navigation.navigate('CommunityDetail', {postId: editingPost.postId});
+      return;
+    }
+
+    navigation.navigate('MainTabs', {screen: '커뮤니티'});
+  };
+
   const handleSubmit = async () => {
     if (!canSubmit) {
       return;
@@ -517,7 +551,7 @@ const CommunityWrite = ({route}) => {
           images: uploadedImages,
         });
 
-        navigation.goBack();
+        handleGoBack();
         return;
       }
 
@@ -545,7 +579,7 @@ const CommunityWrite = ({route}) => {
         images: uploadedImages,
       });
 
-      navigation.goBack();
+      handleGoBack();
     } catch (error) {
       console.warn(
         isEditMode ? 'updateCommunityPost 실패:' : 'createCommunityPost 실패:',
@@ -571,7 +605,7 @@ const CommunityWrite = ({route}) => {
     <View style={styles.container}>
       <Header
         title={isEditMode ? '글 수정' : '글쓰기'}
-        onPress={() => navigation.goBack()}
+        onPress={handleGoBack}
         rightComponent={
           <TouchableOpacity
             activeOpacity={canSubmit ? 0.8 : 1}
@@ -713,6 +747,8 @@ const CommunityWrite = ({route}) => {
             Number.isFinite(selectedLocation.longitude) ? (
               <View style={styles.locationMapPreview}>
                 <NaverMapView
+                  key={`${selectedLocation.latitude}-${selectedLocation.longitude}`}
+                  ref={locationMapRef}
                   style={styles.locationMap}
                   initialCamera={{
                     latitude: selectedLocation.latitude,
@@ -770,6 +806,10 @@ const CommunityWrite = ({route}) => {
           onChangeText={setBody}
           maxLength={BODY_MAX_LENGTH}
           onContentSizeChange={event => {
+            if (Platform.OS === 'web') {
+              return;
+            }
+
             setBodyInputHeight(
               Math.max(160, event.nativeEvent.contentSize.height + 24),
             );

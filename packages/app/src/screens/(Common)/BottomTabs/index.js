@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {StyleSheet, View, Text, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import AppInstallPromptModal from '@components/modals/AppInstallPromptModal';
 
 import GuesthouseIcon from '@assets/images/navigation_black.svg';
 import GuesthouseIconFilled from '@assets/images/navigation_fill_black.svg';
@@ -20,13 +19,10 @@ import {Community, Guesthouse, Home, Meet, My} from '@screens';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
-import CouponAppInstall20 from '@assets/images/coupon_app_install_20.svg';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
-  const [appInstallModalVisible, setAppInstallModalVisible] = useState(false);
-
   return (
     <View style={styles.container}>
       <Tab.Navigator
@@ -100,11 +96,6 @@ const BottomTabs = () => {
               if (role !== 'USER') {
                 e.preventDefault();
 
-                if (Platform.OS === 'web') {
-                  setAppInstallModalVisible(true);
-                  return;
-                }
-
                 showErrorModal({
                   message: '마이페이지는\n 로그인 후 사용해주세요',
                   buttonText2: '취소',
@@ -117,17 +108,6 @@ const BottomTabs = () => {
           })}
         />
       </Tab.Navigator>
-
-      {Platform.OS === 'web' ? (
-        <AppInstallPromptModal
-          visible={appInstallModalVisible}
-          onClose={() => setAppInstallModalVisible(false)}
-          title="앱 설치하고 쿠폰 받자!"
-          message="회원가입 시 20% 할인 쿠폰 제공"
-          ImageComponent={CouponAppInstall20}
-          buttonText="앱 설치하고 혜택받기"
-        />
-      ) : null}
     </View>
   );
 };

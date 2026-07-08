@@ -1,4 +1,5 @@
 import commonApi from './api/commonApi';
+import {Platform} from 'react-native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
@@ -166,7 +167,14 @@ export const uploadSensitiveImage = async () => {
   const fileType = 'image/jpeg';
 
   const formData = new FormData();
-  formData.append('image', {uri: fileUri, name: fileName, type: fileType});
+
+  if (Platform.OS === 'web') {
+    const fileResponse = await fetch(fileUri);
+    const fileBlob = await fileResponse.blob();
+    formData.append('image', fileBlob, fileName);
+  } else {
+    formData.append('image', {uri: fileUri, name: fileName, type: fileType});
+  }
 
   try {
     const response = await commonApi.postImage(formData);
