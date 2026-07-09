@@ -560,6 +560,16 @@ function parseRouteFromUrl() {
     };
   }
 
+  if (pathname.replace(/\/$/, '') === '/auth/kakao/callback') {
+    return {
+      name: 'SocialLogin',
+      params: {
+        ...extraParams,
+        provider: 'KAKAO',
+      },
+    };
+  }
+
   if (pathname === WEB_ROUTES.COMMUNITY) {
     return {
       name: 'MainTabs',

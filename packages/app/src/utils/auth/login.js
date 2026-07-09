@@ -276,7 +276,7 @@ const storeLoginInfo = async (res, userRole) => {
   await storeLoginTokens({ accessToken, refreshToken, userRole });
 };
 
-const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
+export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
   const {
     setTokens,
     setUserRole,

@@ -65,10 +65,6 @@
       android:theme="@style/AppTheme"
       android:supportsRtl="true"
       android:requestLegacyExternalStorage="true">
-      <!-- 구글 맵 api -->
-      <meta-data
-        android:name="com.google.android.geo.API_KEY"
-        android:value="@string/google_maps_api_key" />
       <meta-data
         android:name="com.naver.maps.map.NCP_KEY_ID"
         android:value="@string/naver_client_id" />

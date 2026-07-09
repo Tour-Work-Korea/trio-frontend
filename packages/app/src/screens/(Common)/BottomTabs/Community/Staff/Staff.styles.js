@@ -18,6 +18,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 28,
   },
+  recruitItemClosed: {
+    
+  },
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -36,12 +39,31 @@ const styles = StyleSheet.create({
     marginRight: 8,
     backgroundColor: COLORS.grayscale_100,
   },
+  avatarClosed: {
+    opacity: 0.45,
+  },
   guesthouseName: {
     flexShrink: 1,
     color: COLORS.grayscale_900,
     marginRight: 8,
   },
   deadline: {
+    color: COLORS.grayscale_400,
+  },
+  closedBadge: {
+    marginLeft: 8,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_300,
+  },
+  closedBadgeText: {
+    color: COLORS.grayscale_600,
+  },
+  closedPrimaryText: {
+    color: COLORS.grayscale_500,
+  },
+  closedSecondaryText: {
     color: COLORS.grayscale_400,
   },
   recruitTitle: {
@@ -74,8 +96,14 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     backgroundColor: COLORS.grayscale_100,
   },
+  tagClosed: {
+    backgroundColor: COLORS.grayscale_200,
+  },
   tagText: {
     color: COLORS.primary_blue,
+  },
+  tagTextClosed: {
+    color: COLORS.grayscale_500,
   },
   actionRow: {
     flexDirection: 'row',
@@ -93,6 +121,13 @@ const styles = StyleSheet.create({
   },
   footerLoading: {
     marginVertical: 16,
+  },
+  adBannerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 8,
+    paddingBottom: 16,
   },
 });
 

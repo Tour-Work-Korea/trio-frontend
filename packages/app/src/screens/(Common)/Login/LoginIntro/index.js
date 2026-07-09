@@ -153,17 +153,15 @@ const LoginIntro = () => {
         </View>
         <View style={styles.frameParent}>
           <View style={styles.buttonParent}>
-            {Platform.OS !== 'web'
-              ? renderLoginButton(
-                  LOGIN_PROVIDERS.KAKAO,
-                  <ButtonWhite
-                    title="카카오로 시작하기"
-                    onPress={handleKakaoLoginClick}
-                    Icon={KakaoLogo}
-                    backgroundColor="#fee500"
-                  />,
-                )
-              : null}
+            {renderLoginButton(
+              LOGIN_PROVIDERS.KAKAO,
+              <ButtonWhite
+                title="카카오로 시작하기"
+                onPress={handleKakaoLoginClick}
+                Icon={KakaoLogo}
+                backgroundColor="#fee500"
+              />,
+            )}
             {Platform.OS !== 'web'
               ? renderLoginButton(
                   LOGIN_PROVIDERS.NAVER,
