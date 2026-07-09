@@ -32,6 +32,7 @@ target 'trioFrontendApp' do
   pod 'GoogleDataTransport', :modular_headers => true
   pod 'nanopb', :modular_headers => true
   pod 'PromisesObjC', :modular_headers => true
+  pod 'RecaptchaInterop', :modular_headers => true
 
   use_react_native!(
     :path => config[:reactNativePath],

@@ -3,11 +3,13 @@ import {
   ActivityIndicator,
   FlatList,
   Image,
+  Platform,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import AlertModal from '@components/modals/AlertModal';
 import Loading from '@components/Loading';
@@ -22,6 +24,25 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
 
 const PAGE_SIZE = 8;
+const staffListBannerAdUnitId = __DEV__
+  ? TestIds.BANNER
+  : Platform.select({
+      ios: 'ca-app-pub-6098454400067335/4619471702',
+      android: 'ca-app-pub-6098454400067335/5920208998',
+      web: 'ca-pub-6098454400067335/4250943648',
+    });
+
+const sortRecruitsByRecruiting = recruits =>
+  [...recruits].sort((a, b) => {
+    const aClosed = a?.isRecruiting === false;
+    const bClosed = b?.isRecruiting === false;
+
+    if (aClosed === bClosed) {
+      return 0;
+    }
+
+    return aClosed ? 1 : -1;
+  });
 
 const Staff = ({isActive}) => {
   const navigation = useNavigation();
@@ -53,7 +74,9 @@ const Staff = ({isActive}) => {
         const {content, last, number} = res.data;
 
         setRecruitList(prev =>
-          pageToFetch === 0 ? content : [...prev, ...content],
+          sortRecruitsByRecruiting(
+            pageToFetch === 0 ? content : [...prev, ...content],
+          ),
         );
         setPage(number);
         setHasNext(!last);
@@ -131,6 +154,7 @@ const Staff = ({isActive}) => {
   };
 
   const renderRecruit = ({item}) => {
+    const isClosed = item.isRecruiting === false;
     const imageUrl =
       item.profileSummary?.profileImageUrl ||
       item.thumbnailImage ||
@@ -142,25 +166,44 @@ const Staff = ({isActive}) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        style={styles.recruitItem}
+        style={[styles.recruitItem, isClosed && styles.recruitItemClosed]}
         onPress={() => handleJobPress(item.recruitId)}>
         <View style={styles.headerRow}>
           <View style={styles.headerInfoRow}>
             {imageUrl ? (
-              <Image source={{uri: imageUrl}} style={styles.avatar} />
+              <Image
+                source={{uri: imageUrl}}
+                style={[styles.avatar, isClosed && styles.avatarClosed]}
+              />
             ) : (
-              <View style={styles.avatar} />
+              <View style={[styles.avatar, isClosed && styles.avatarClosed]} />
             )}
             <Text
-              style={[FONTS.fs_14_medium, styles.guesthouseName]}
+              style={[
+                FONTS.fs_14_medium,
+                styles.guesthouseName,
+                isClosed && styles.closedPrimaryText,
+              ]}
               numberOfLines={1}>
               {item.guesthouseName}
             </Text>
             {!!deadline && (
-              <Text style={[FONTS.fs_14_regular, styles.deadline]}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.deadline,
+                  isClosed && styles.closedSecondaryText,
+                ]}>
                 ~{deadline}
               </Text>
             )}
+            {isClosed ? (
+              <View style={styles.closedBadge}>
+                <Text style={[FONTS.fs_12_medium, styles.closedBadgeText]}>
+                  마감
+                </Text>
+              </View>
+            ) : null}
           </View>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -178,23 +221,63 @@ const Staff = ({isActive}) => {
         </View>
 
         <Text
-          style={[FONTS.fs_14_medium, styles.recruitTitle]}
+          style={[
+            FONTS.fs_14_medium,
+            styles.recruitTitle,
+            isClosed && styles.closedPrimaryText,
+          ]}
           numberOfLines={1}>
           {item.recruitTitle}
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={[FONTS.fs_12_regular, styles.address]} numberOfLines={1}>
+          <Text
+            style={[
+              FONTS.fs_12_regular,
+              styles.address,
+              isClosed && styles.closedSecondaryText,
+            ]}
+            numberOfLines={1}>
             {address}
           </Text>
           {!!workDuration && (
-            <Text style={[FONTS.fs_12_regular, styles.workPeriod]}>
+            <Text
+              style={[
+                FONTS.fs_12_regular,
+                styles.workPeriod,
+                isClosed && styles.closedSecondaryText,
+              ]}>
               {workDuration}
             </Text>
           )}
         </View>
 
-        {renderTags(item.hashtags)}
+        {isClosed && item.hashtags?.length ? (
+          <View style={styles.tagRow}>
+            {item.hashtags?.slice(0, 3).map((tag, index) => {
+              const tagLabel = tag?.hashtag ?? tag;
+
+              return (
+                <View
+                  key={`${tagLabel}-${index}`}
+                  style={[styles.tag, styles.tagClosed]}>
+                  <Text
+                    style={[
+                      FONTS.fs_12_medium,
+                      styles.tagText,
+                      styles.tagTextClosed,
+                    ]}>
+                    {tagLabel}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : !isClosed ? (
+          renderTags(item.hashtags)
+        ) : (
+          null
+        )}
 
         {/* <View style={styles.actionRow}>
           <View style={styles.actionItem}>
@@ -218,6 +301,35 @@ const Staff = ({isActive}) => {
     );
   };
 
+  const renderListFooter = () => {
+    const shouldShowAd =
+      Boolean(staffListBannerAdUnitId) &&
+      !hasNext &&
+      recruitList.length > 0 &&
+      !isMoreLoading;
+
+    return (
+      <View>
+        {isMoreLoading ? (
+          <ActivityIndicator
+            size="small"
+            color={COLORS.grayscale_500}
+            style={styles.footerLoading}
+          />
+        ) : null}
+
+        {shouldShowAd ? (
+          <View style={styles.adBannerContainer}>
+            <BannerAd
+              unitId={staffListBannerAdUnitId}
+              size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            />
+          </View>
+        ) : null}
+      </View>
+    );
+  };
+
   if (isInitialLoading && page === 0) {
     return (
       <View style={styles.loadingContainer}>
@@ -235,15 +347,7 @@ const Staff = ({isActive}) => {
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}
         contentContainerStyle={styles.listContent}
-        ListFooterComponent={
-          isMoreLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.grayscale_500}
-              style={styles.footerLoading}
-            />
-          ) : null
-        }
+        ListFooterComponent={renderListFooter}
       />
 
       <AlertModal

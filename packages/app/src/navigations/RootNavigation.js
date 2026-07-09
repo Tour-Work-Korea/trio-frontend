@@ -27,6 +27,7 @@ import {
   GuesthousePaymentSuccess,
   RecentGuesthouseList,
   Login,
+  SocialLogin,
   RegisterIntro,
   RegisterAgree,
   PhoneCertificate,
@@ -93,6 +94,7 @@ const RootNavigation = () => {
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="MainTabs" component={BottomTabs} />
         <Stack.Screen name="Login" component={Login} />
+        <Stack.Screen name="SocialLogin" component={SocialLogin} />
         <Stack.Screen name="undefined" component={undefinedStack} />
         <Stack.Screen name="Setting" component={Setting} />
         <Stack.Screen name="Terms" component={Terms} />

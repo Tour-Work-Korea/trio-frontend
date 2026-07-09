@@ -182,7 +182,12 @@ const authApi = {
       body.accessToken = accessToken;
     }
 
-    return api.post('/auth/user/social-login', body, {withAuth: false});
+    const url =
+      Platform.OS === 'web'
+        ? '/user/auth/social-login'
+        : '/auth/user/social-login';
+
+    return api.post(url, body, {withAuth: false});
   },
 
   //카카오 로그인

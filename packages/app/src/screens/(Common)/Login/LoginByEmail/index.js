@@ -16,7 +16,6 @@ import {
   LOGIN_PROVIDERS,
   storeLastLoginProvider,
 } from '@utils/auth/lastLoginProvider';
-import {markDevWebAdminAuthenticated} from '@utils/auth/devAdminAccess';
 
 import styles from '../Login.styles';
 import ShowPassword from '@assets/images/show_password.svg';
@@ -64,9 +63,7 @@ export default function LoginByEmail({route}) {
 
     try {
       await tryLogin(email, password, nextUserRole);
-      if (nextUserRole === 'ADMIN') {
-        await markDevWebAdminAuthenticated();
-      } else {
+      if (nextUserRole !== 'ADMIN') {
         await storeLastLoginProvider(LOGIN_PROVIDERS.EMAIL);
       }
       navigation.dispatch(
