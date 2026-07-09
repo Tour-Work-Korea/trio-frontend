@@ -10,6 +10,7 @@ import {
   getProfile as kakaoGetProfile,
   login as kakaoLogin,
 } from '@react-native-seoul/kakao-login';
+import {signInWithGoogle} from '@utils/auth/googleSignIn';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 import { WEB_SESSION_ACCESS_TOKEN } from '@utils/auth/webSession';
@@ -145,6 +146,57 @@ export const tryKakaoLoginNative = async (userRole) => {
     };
   } catch (err) {
     log.warn('❌ tryKakaoLoginNative failed:', err?.message);
+    useUserStore.getState().clearUser();
+
+    return {
+      success: false,
+      message: err?.message,
+    };
+  }
+};
+
+export const tryGoogleLoginNative = async (userRole) => {
+  log.info('tryGoogleLoginNative: role=', userRole);
+  try {
+    const googleResult = await signInWithGoogle();
+
+    if (googleResult?.cancelled) {
+      return {
+        success: false,
+        cancelled: true,
+        message: 'cancelled',
+      };
+    }
+
+    const res = await authApi.loginGoogle(googleResult.idToken);
+    const data = res.data || {};
+
+    if (shouldContinueSocialSignUp(data)) {
+      const backendProfile = normalizeSocialProfile(data);
+
+      return {
+        success: true,
+        isNewUser: true,
+        provider: 'GOOGLE',
+        socialSignupToken: data.socialSignupToken,
+        socialProfile: mergeSocialProfiles(
+          backendProfile,
+          googleResult.profile,
+        ),
+        message: data.message,
+      };
+    }
+
+    await storeLoginInfo(res, userRole);
+    await syncFcmToken();
+
+    return {
+      success: true,
+      isNewUser: false,
+      provider: 'GOOGLE',
+    };
+  } catch (err) {
+    log.warn('❌ tryGoogleLoginNative failed:', err?.message);
     useUserStore.getState().clearUser();
 
     return {

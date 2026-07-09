@@ -3,8 +3,6 @@ import {View, ActivityIndicator} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 import {
-  GOOGLE_CLIENT_ID,
-  GOOGLE_REDIRECT_URI,
   KAKAO_CLIENT_ID,
   KAKAO_REDIRECT_URI,
   NAVER_REDIRECT_URI,
@@ -24,8 +22,6 @@ const PROVIDER_LABELS = {
   NAVER: '네이버',
   GOOGLE: '구글',
 };
-
-const GOOGLE_RESOLVED_REDIRECT_URI = GOOGLE_REDIRECT_URI || KAKAO_REDIRECT_URI;
 
 const generateState = provider =>
   `${provider.toLowerCase()}-${Date.now()}-${Math.random()
@@ -130,20 +126,11 @@ const SocialLogin = () => {
     }
 
     if (provider === 'GOOGLE') {
-      const nonce = generateState(provider);
-      const scope = encodeURIComponent('openid email profile');
-
       return {
-        clientId: GOOGLE_CLIENT_ID,
-        redirectUri: GOOGLE_RESOLVED_REDIRECT_URI,
-        requiredLabel: GOOGLE_CLIENT_ID
-          ? 'GOOGLE_REDIRECT_URI'
-          : 'GOOGLE_CLIENT_ID',
-        authUrl: `https://accounts.google.com/o/oauth2/v2/auth?response_type=id_token&client_id=${GOOGLE_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-          GOOGLE_RESOLVED_REDIRECT_URI,
-        )}&scope=${scope}&nonce=${encodeURIComponent(
-          nonce,
-        )}&prompt=select_account`,
+        clientId: '',
+        redirectUri: '',
+        requiredLabel: '구글 로그인은 앱 SDK ID Token 방식으로 처리됩니다',
+        authUrl: '',
       };
     }
 
