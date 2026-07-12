@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
@@ -23,6 +22,7 @@ import styles from './PopularGuesthouseList.styles';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
 import StarIcon from '@assets/images/star_white.svg';
@@ -86,6 +86,7 @@ const PopularGuesthouseList = () => {
 
       const normalized = normalizeGuesthouses(data?.content ?? []);
       setGuesthouses(prev => [...prev, ...normalized]);
+      prefetchImageUrls(normalized.map(item => item.thumbnailUrl), {limit: 8});
       setPage(page + 1);
       setHasNext(!data?.last);
     } catch (e) {
@@ -109,6 +110,7 @@ const PopularGuesthouseList = () => {
       const normalized = normalizeGuesthouses(data?.content ?? []);
 
       setGuesthouses(normalized);
+      prefetchImageUrls(normalized.map(item => item.thumbnailUrl), {limit: 8});
       setPage(0);
       setHasNext(!data?.last);
     } catch (e) {
@@ -146,7 +148,7 @@ const PopularGuesthouseList = () => {
           })
         }>
         {item.thumbnailUrl ? (
-          <Image source={{ uri: item.thumbnailUrl }} style={styles.trendingImage} />
+          <AppImage uri={item.thumbnailUrl} style={styles.trendingImage} />
         ) : (
           <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
         )}
@@ -220,7 +222,7 @@ const PopularGuesthouseList = () => {
 
         <View style={styles.imgRatingContainer}>
           {item.thumbnailUrl ? (
-            <Image source={{ uri: item.thumbnailUrl }} style={styles.popularImage} />
+            <AppImage uri={item.thumbnailUrl} style={styles.popularImage} />
           ) : (
             <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
           )}

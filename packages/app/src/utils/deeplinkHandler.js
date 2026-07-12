@@ -193,10 +193,6 @@ const DeeplinkHandler = ({enabled = true}) => {
         });
         console.log('게하 디테일 화면으로 이동');
       }
-      // 홈 화면 (예시)
-      else if (parts[0] === 'exDeeplink' && parts[1]) {
-        navigate('EXHome');
-      }
       // 스탭 공고 디테일 화면 (로그인 불필요)
       else if (parts[0] === 'employ' && parts[1]) {
         const employId = parts[1];

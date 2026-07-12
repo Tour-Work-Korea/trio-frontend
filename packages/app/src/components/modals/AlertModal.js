@@ -1,10 +1,11 @@
 import React from 'react';
-import {Platform, View, Text, StyleSheet, Image} from 'react-native';
+import {Platform, View, Text, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigate} from '@utils/navigationService';
+import AppImage from '@components/AppImage';
 
 /**
  * visible, buttonText, onPress 필수
@@ -93,9 +94,9 @@ const AlertModal = ({
           {iconElement ? (
             <View>{iconElement}</View>
           ) : imageSource ? (
-            <Image source={imageSource} style={styles.image} />
+            <AppImage source={imageSource} style={styles.image} />
           ) : imageUri ? (
-            <Image source={{ uri: imageUri }} style={styles.image} />
+            <AppImage uri={imageUri} style={styles.image} />
           ) : null}
           {/* 제목 */}
           {title ? (

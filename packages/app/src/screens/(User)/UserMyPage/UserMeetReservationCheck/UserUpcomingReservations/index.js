@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
@@ -16,6 +15,7 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
 import AlertModal from '@components/modals/AlertModal';
+import AppImage from '@components/AppImage';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
@@ -78,7 +78,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
 
           {/* 썸네일 */}
           <View style={styles.imageWrap}>
-            <Image source={imageSource} style={styles.image} resizeMode="cover" />
+            <AppImage source={imageSource} style={styles.image} resizeMode="cover" />
           </View>
 
           {/* 예약취소 */}

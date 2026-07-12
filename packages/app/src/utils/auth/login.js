@@ -206,7 +206,7 @@ export const tryGoogleLoginNative = async (userRole) => {
   }
 };
 
-export const tryAutoLogin = async () => {
+export const tryAutoLogin = async ({loadProfile = true} = {}) => {
   log.info('🚪 tryAutoLogin: start');
   try {
     if (Platform.OS === 'web') {
@@ -223,7 +223,7 @@ export const tryAutoLogin = async () => {
 
     const ok = await tryRefresh({ silent: true });
     log.info('🚪 tryAutoLogin: refresh result =', ok);
-    if (ok) {
+    if (ok && loadProfile) {
       const { userRole } = useUserStore.getState();
       log.info('👤 tryAutoLogin: userRole =', userRole);
       if (userRole) {
@@ -424,6 +424,8 @@ export const tryLogout = async () => {
     useUserStore.getState().clearUser();
   }
 };
+
+export const refreshUserProfile = async role => updateProfile(role);
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);

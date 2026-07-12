@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity, TouchableWithoutFeedback, Alert} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Alert} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
@@ -11,6 +11,7 @@ import { FONTS } from '@constants/fonts';
 import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
+import AppImage from '@components/AppImage';
 
 import ArrowRight from '@assets/images/arrow_right_white.svg';
 import XBtn from '@assets/images/x_gray.svg';
@@ -106,8 +107,8 @@ export default function ReservationCancelModal({
 
           {/* 예약 정보 */}
           <View style={styles.guesthouseInfo}>
-            <Image
-              source={{ uri: reservation.guesthouseImage }}
+            <AppImage
+              uri={reservation.guesthouseImage}
               style={styles.image}
               resizeMode="cover"
             />

@@ -5,7 +5,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  Image,
   Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -35,6 +34,7 @@ import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
@@ -58,6 +58,18 @@ const TAB_OPTIONS = [
   {key: 'refund', label: '취소규정'},
   {key: 'service', label: '시설/서비스'},
 ];
+
+const getSortedGuesthouseImages = images =>
+  [...(Array.isArray(images) ? images : [])].sort((a, b) =>
+    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
+  );
+
+const prefetchGuesthouseImages = images => {
+  prefetchImageUrls(
+    getSortedGuesthouseImages(images).map(item => item?.guesthouseImageUrl),
+    {limit: 4},
+  );
+};
 
 const SHORT_INTRO_COLLAPSED_LINES = 6;
 
@@ -112,9 +124,7 @@ const GuesthouseDetail = ({route}) => {
 
   const rawImages = detail?.guesthouseImages ?? [];
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
-  const sortedImages = [...rawImages].sort((a, b) =>
-    a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
-  );
+  const sortedImages = getSortedGuesthouseImages(rawImages);
   const hasImages = sortedImages.length > 0;
   const hideHeaderCarouselForImageModal =
     Platform.OS === 'android' && imageModalVisible;
@@ -175,6 +185,7 @@ const GuesthouseDetail = ({route}) => {
           ...data,
           isLiked: typeof data.isLiked === 'boolean' ? data.isLiked : !!data.isFavorite,
         });
+        prefetchGuesthouseImages(data.guesthouseImages);
         addRecentGuesthouse({...data, guesthouseId: id}).catch(error => {
           console.warn('최근 본 게하 저장 실패', error);
         });
@@ -200,6 +211,7 @@ const GuesthouseDetail = ({route}) => {
           ? data.isLiked
           : (typeof prev?.isLiked === 'boolean' ? prev.isLiked : !!data.isFavorite),
       }));
+      prefetchGuesthouseImages(data.guesthouseImages);
     } catch (e) {
       console.warn('게스트하우스 상세 재조회 실패', e);
     }
@@ -306,7 +318,7 @@ const GuesthouseDetail = ({route}) => {
         onPress={() => navigation.navigate('MeetDetail', {partyId: party.partyId})}
       >
         {party.partyImage ? (
-          <Image source={{uri: party.partyImage}} style={styles.todayPartyImage} />
+          <AppImage uri={party.partyImage} style={styles.todayPartyImage} />
         ) : (
           <View style={styles.todayPartyImagePlaceholder}>
             <Text style={[FONTS.fs_12_medium, styles.todayPartyImageText]}>
@@ -484,8 +496,8 @@ const GuesthouseDetail = ({route}) => {
                 activeOpacity={1}
                 onPress={() => setImageModalVisible(true)}
               >
-                <Image
-                  source={{uri: item.guesthouseImageUrl}}
+                <AppImage
+                  uri={item.guesthouseImageUrl}
                   style={[
                     styles.mainImage,
                     Platform.OS === 'web' && styles.mainImageWeb,

@@ -3,7 +3,6 @@ import {
   ActivityIndicator,
   Alert,
   FlatList,
-  Image,
   ScrollView,
   Text,
   TouchableOpacity,
@@ -14,6 +13,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import Header from '@components/Header';
 import Avatar from '@components/Avatar';
 import Loading from '@components/Loading';
+import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import communityApi from '@utils/api/communityApi';
@@ -217,8 +217,8 @@ const MyCommunityPostList = () => {
 
     if (sortedImages.length === 1) {
       return (
-        <Image
-          source={{uri: sortedImages[0].imageUrl}}
+        <AppImage
+          uri={sortedImages[0].imageUrl}
           style={styles.singlePostImage}
           resizeMode="cover"
         />
@@ -233,9 +233,9 @@ const MyCommunityPostList = () => {
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.multiImageContainer}>
         {sortedImages.map((image, index) => (
-          <Image
+          <AppImage
             key={image.imageId ?? index}
-            source={{uri: image.imageUrl}}
+            uri={image.imageUrl}
             style={styles.multiPostImage}
             resizeMode="cover"
           />

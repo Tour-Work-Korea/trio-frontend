@@ -1,8 +1,7 @@
-import React, {useMemo, useState} from 'react';
+import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
@@ -16,6 +15,7 @@ import dayjs from 'dayjs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
+import AppImage from '@components/AppImage';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {formatLocalDateTimeToDotAndTime} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
@@ -29,6 +29,9 @@ export default function RecruitTapSection({recruit}) {
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
+  const [renderedTabs, setRenderedTabs] = useState(
+    () => new Set([recruitTabs[0]]),
+  );
   const {
     pagerRef,
     activeIndex,
@@ -47,6 +50,20 @@ export default function RecruitTapSection({recruit}) {
   });
   const [tabHeights, setTabHeights] = useState({});
   const activeTabHeight = tabHeights[recruitTabs[activeIndex]];
+
+  useEffect(() => {
+    const activeTabName = recruitTabs[activeIndex];
+
+    setRenderedTabs(prev => {
+      if (prev.has(activeTabName)) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      next.add(activeTabName);
+      return next;
+    });
+  }, [activeIndex]);
 
   const mapCoordinate = useMemo(() => {
     const lat = Number(recruit?.guesthouseLat);
@@ -220,10 +237,8 @@ export default function RecruitTapSection({recruit}) {
                     setSelectedImageId(idx);
                     setImageModalVisible(true);
                   }}>
-                  <Image
-                    source={{
-                      uri: item.recruitImageUrl,
-                    }}
+                  <AppImage
+                    uri={item.recruitImageUrl}
                     style={styles.workplacePhoto}
                   />
                 </TouchableOpacity>
@@ -328,7 +343,7 @@ export default function RecruitTapSection({recruit}) {
               key={tabName}
               style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
               <View onLayout={handleTabContentLayout(tabName)}>
-                {renderTabContent(tabName)}
+                {renderedTabs.has(tabName) ? renderTabContent(tabName) : null}
               </View>
             </View>
           ))}

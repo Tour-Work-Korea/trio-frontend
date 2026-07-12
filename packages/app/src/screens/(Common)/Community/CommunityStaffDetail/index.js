@@ -1,7 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
-  Image,
+  InteractionManager,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -18,6 +18,7 @@ import Avatar from '@components/Avatar';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
 import AlertModal from '@components/modals/AlertModal';
+import AppImage from '@components/AppImage';
 import RecruitTapSection from '@screens/(Common)/Employ/EmployDetail/RecruitTapSection';
 import userEmployApi from '@utils/api/userEmployApi';
 import useUserStore from '@stores/userStore';
@@ -149,6 +150,8 @@ const CommunityStaffDetail = ({route}) => {
   const {id} = route.params ?? {};
   const scrollViewRef = useRef(null);
   const commentInputRef = useRef(null);
+  const commentLoadInteractionRef = useRef(null);
+  const hasUserScrolledCommentsRef = useRef(false);
   const [recruit, setRecruit] = useState(null);
   const [comments, setComments] = useState([]);
   const [commentPage, setCommentPage] = useState(0);
@@ -254,18 +257,33 @@ const CommunityStaffDetail = ({route}) => {
     [id],
   );
 
-  const fetchRecruitDetail = useCallback(async () => {
+  const loadInitialComments = useCallback(async () => {
     try {
-      setIsLoading(true);
-      const [recruitResponse, commentPageResponse] = await Promise.all([
-        userEmployApi.getRecruitById(id, true),
-        fetchRecruitComments(0),
-      ]);
+      const commentPageResponse = await fetchRecruitComments(0);
 
-      setRecruit(recruitResponse.data);
       setComments(getCommentPageContent(commentPageResponse));
       setCommentPage(0);
       setCommentsLast(Boolean(commentPageResponse?.last ?? true));
+    } catch (error) {
+      console.warn('fetchRecruitComments 실패:', error);
+    }
+  }, [fetchRecruitComments]);
+
+  const fetchRecruitDetail = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      hasUserScrolledCommentsRef.current = false;
+      commentLoadInteractionRef.current?.cancel?.();
+
+      const recruitResponse = await userEmployApi.getRecruitById(id, true);
+
+      setRecruit(recruitResponse.data);
+      setComments([]);
+      setCommentPage(0);
+      setCommentsLast(true);
+
+      commentLoadInteractionRef.current =
+        InteractionManager.runAfterInteractions(loadInitialComments);
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -275,10 +293,14 @@ const CommunityStaffDetail = ({route}) => {
     } finally {
       setIsLoading(false);
     }
-  }, [fetchRecruitComments, id]);
+  }, [id, loadInitialComments]);
 
   useEffect(() => {
     fetchRecruitDetail();
+
+    return () => {
+      commentLoadInteractionRef.current?.cancel?.();
+    };
   }, [fetchRecruitDetail]);
 
   useEffect(() => {
@@ -628,7 +650,12 @@ const CommunityStaffDetail = ({route}) => {
   };
 
   const handleLoadMoreComments = async () => {
-    if (isMoreCommentsLoading || commentsLast || !id) {
+    if (
+      isMoreCommentsLoading ||
+      commentsLast ||
+      !id ||
+      !hasUserScrolledCommentsRef.current
+    ) {
       return;
     }
 
@@ -645,6 +672,11 @@ const CommunityStaffDetail = ({route}) => {
     } finally {
       setIsMoreCommentsLoading(false);
     }
+  };
+
+  const handleScrollBeginDrag = () => {
+    hasUserScrolledCommentsRef.current = true;
+    Keyboard.dismiss();
   };
 
   const handleScroll = event => {
@@ -877,13 +909,13 @@ const CommunityStaffDetail = ({route}) => {
             showsVerticalScrollIndicator={false}
             keyboardShouldPersistTaps="handled"
             onStartShouldSetResponderCapture={handleDismissCommentInput}
-            onScrollBeginDrag={Keyboard.dismiss}
+            onScrollBeginDrag={handleScrollBeginDrag}
             onScroll={handleScroll}
             scrollEventThrottle={16}
             contentContainerStyle={styles.content}>
             <View style={styles.postHeader}>
               {imageUrl ? (
-                <Image source={{uri: imageUrl}} style={styles.avatar} />
+                <AppImage uri={imageUrl} style={styles.avatar} />
               ) : (
                 <View style={styles.avatar} />
               )}

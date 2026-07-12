@@ -1,9 +1,8 @@
-import React, { useEffect, useState, useCallback } from 'react';
-import { View, Text, Image, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
+import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
-import { COLORS } from '@constants/colors';
 
 import Star from '@assets/images/star_white.svg';
 import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
@@ -11,6 +10,7 @@ import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import ImageModal from '@components/modals/ImageModal';
 import Avatar from '@components/Avatar';
+import AppImage from '@components/AppImage';
 
 const PAGE_SIZE = 10;
 const SORT = 'id';
@@ -21,9 +21,11 @@ const getDisplayRating = rating => {
 };
 
 const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) => {
+  const loadingRef = useRef(false);
+  const lastPageRef = useRef(false);
+  const hasUserScrolledRef = useRef(false);
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(0);
-  const [lastPage, setLastPage] = useState(false);
   const [loading, setLoading] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
 
@@ -32,73 +34,92 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const [modalImages, setModalImages] = useState([]);
   const [modalIndex, setModalIndex] = useState(0);
 
+  // 첫 로드 or 새로고침
+  const fetchReviews = useCallback(
+    async (pageToLoad = 0, isRefresh = false) => {
+      if (loadingRef.current || (!isRefresh && lastPageRef.current)) {
+        return;
+      }
+
+      loadingRef.current = true;
+      setLoading(true);
+
+      try {
+        const res = await userGuesthouseApi.getGuesthouseReviews({
+          guesthouseId,
+          page: pageToLoad,
+          size: PAGE_SIZE,
+          sort: SORT,
+        });
+
+        const newReviews = (res.data.content || []).filter(
+          r => r.isJobReview === false,
+        );
+        lastPageRef.current = res.data.last;
+
+        if (isRefresh || pageToLoad === 0) {
+          setReviews(newReviews);
+        } else {
+          setReviews(prev => [...prev, ...newReviews]);
+        }
+        setPage(pageToLoad);
+      } catch (e) {
+        lastPageRef.current = true;
+        if (pageToLoad === 0) {
+          setReviews([]);
+        }
+      } finally {
+        loadingRef.current = false;
+        setLoading(false);
+        setRefreshing(false);
+      }
+    },
+    [guesthouseId],
+  );
+
   // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
-    // 모든 상태를 0/초기값으로 리셋
+    loadingRef.current = false;
+    lastPageRef.current = false;
+    hasUserScrolledRef.current = false;
     setReviews([]);
     setPage(0);
-    setLastPage(false);
     setLoading(false);
     setRefreshing(false);
-    // 무조건 첫 페이지부터 다시 가져오기
-    if (!lastPage) {
-      fetchReviews(0, true);
-    }
-  }, [guesthouseId]);
+    fetchReviews(0, true);
+  }, [fetchReviews]);
 
-  // 첫 로드 or 새로고침
-  const fetchReviews = async (pageToLoad = 0, isRefresh = false) => {
-    if (loading || lastPage) return;
-    setLoading(true);
-
-    try {
-      const res = await userGuesthouseApi.getGuesthouseReviews({
-        guesthouseId,
-        page: pageToLoad,
-        size: PAGE_SIZE,
-        sort: SORT,
-      });
-
-      const newReviews = (res.data.content || []).filter(r => r.isJobReview === false);
-      setLastPage(res.data.last);
-
-      if (isRefresh || pageToLoad === 0) {
-        setReviews(newReviews);
-      } else {
-        setReviews(prev => [...prev, ...newReviews]);
-      }
-      setPage(pageToLoad);
-    } catch (e) {
-      setLastPage(true);
-      if (pageToLoad === 0) {
-      setReviews([]);
-    }
-
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  };
+  const handleScrollBeginDrag = useCallback(() => {
+    hasUserScrolledRef.current = true;
+  }, []);
 
   // 무한스크롤 핸들러
-  const handleEndReached = () => {
-    if (!loading && !lastPage) {
-      fetchReviews(page + 1);
+  const handleEndReached = useCallback(() => {
+    if (
+      !hasUserScrolledRef.current ||
+      loadingRef.current ||
+      lastPageRef.current
+    ) {
+      return;
     }
-  };
+
+    fetchReviews(page + 1);
+  }, [fetchReviews, page]);
 
   // 새로고침 핸들러
-  const onRefresh = () => {
+  const onRefresh = useCallback(() => {
+    hasUserScrolledRef.current = false;
+    lastPageRef.current = false;
     setRefreshing(true);
     fetchReviews(0, true);
-  };
+  }, [fetchReviews]);
 
   // 이미지 모달
-  const openImageModal = (images, index) => {
+  const openImageModal = useCallback((images, index) => {
     setModalImages(images.map((url, i) => ({ id: i.toString(), imageUrl: url })));
     setModalIndex(index);
     setImageModalVisible(true);
-  };
+  }, []);
 
   const renderItem = useCallback(
     ({ item, index }) => {
@@ -133,7 +154,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
                 {item.imgUrls.map((imgUrl, i) => (
                   <TouchableOpacity
                     activeOpacity={1} key={i} onPress={() => openImageModal(item.imgUrls, i)}>
-                    <Image source={{ uri: imgUrl }} style={styles.reviewImage} />
+                    <AppImage uri={imgUrl} style={styles.reviewImage} />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -154,23 +175,26 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         </View>
       );
     },
-    []
+    [openImageModal]
   );
+
+  const keyExtractor = useCallback(item => item.id?.toString(), []);
 
   return (
     <View style={styles.reviewRowContainer}>
       <FlatList
         data={reviews}
-        keyExtractor={item => item.id?.toString()}
+        keyExtractor={keyExtractor}
         renderItem={renderItem}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        onScrollBeginDrag={handleScrollBeginDrag}
         ListFooterComponent={loading && !refreshing ? <ActivityIndicator /> : null}
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          !loading && 
+          !loading &&
           <View style={styles.emptyReviewContainer}>
             <NoReviewIcon />
             <Text style={[FONTS.fs_14_medium, styles.emptyText]}>

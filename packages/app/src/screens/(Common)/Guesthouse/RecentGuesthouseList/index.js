@@ -2,7 +2,6 @@ import React, {useCallback, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
 } from 'react-native';
@@ -21,6 +20,7 @@ import {
 } from '@utils/recentGuesthouses';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
@@ -39,6 +39,7 @@ const RecentGuesthouseList = () => {
         try {
           const list = await getRecentGuesthouses();
           setGuesthouses(list);
+          prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 8});
         } catch (error) {
           console.warn('최근 본 게하 조회 실패', error);
           setGuesthouses([]);
@@ -97,7 +98,7 @@ const RecentGuesthouseList = () => {
         });
       }}>
       {item.thumbnailUrl ? (
-        <Image source={{uri: item.thumbnailUrl}} style={styles.image} />
+        <AppImage uri={item.thumbnailUrl} style={styles.image} />
       ) : (
         <View style={[styles.image, {backgroundColor: COLORS.grayscale_200}]} />
       )}

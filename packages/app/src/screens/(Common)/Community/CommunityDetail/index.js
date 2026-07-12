@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
-  Image,
   Keyboard,
   KeyboardAvoidingView,
   Platform,
@@ -26,6 +25,7 @@ import Header from '@components/Header';
 import Loading from '@components/Loading';
 import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
+import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
@@ -1092,8 +1092,8 @@ const CommunityDetail = ({route}) => {
           activeOpacity={0.9}
           style={styles.singlePostImage}
           onPress={() => openPostImageModal(0)}>
-          <Image
-            source={{uri: sortedImages[0].imageUrl}}
+          <AppImage
+            uri={sortedImages[0].imageUrl}
             style={styles.postImageFill}
             resizeMode="cover"
           />
@@ -1112,8 +1112,8 @@ const CommunityDetail = ({route}) => {
             activeOpacity={0.9}
             style={styles.multiPostImage}
             onPress={() => openPostImageModal(index)}>
-            <Image
-              source={{uri: image.imageUrl}}
+            <AppImage
+              uri={image.imageUrl}
               style={styles.postImageFill}
               resizeMode="cover"
             />
@@ -1215,8 +1215,8 @@ const CommunityDetail = ({route}) => {
           activeOpacity={0.9}
           style={styles.singleCommentImageButton}
           onPress={() => openCommentImageModal(0)}>
-          <Image
-            source={{uri: sortedImages[0].imageUrl}}
+          <AppImage
+            uri={sortedImages[0].imageUrl}
             style={styles.singleCommentImage}
             resizeMode="cover"
           />
@@ -1237,8 +1237,8 @@ const CommunityDetail = ({route}) => {
             activeOpacity={0.9}
             style={styles.commentImageButton}
             onPress={() => openCommentImageModal(index)}>
-            <Image
-              source={{uri: image.imageUrl}}
+            <AppImage
+              uri={image.imageUrl}
               style={styles.commentImage}
               resizeMode="cover"
             />
@@ -1605,8 +1605,8 @@ const CommunityDetail = ({route}) => {
               contentContainerStyle={styles.commentImagePreviewList}>
               {commentImages.map(image => (
                 <View key={image.id} style={styles.commentImagePreviewItem}>
-                  <Image
-                    source={{uri: image.uri}}
+                  <AppImage
+                    uri={image.uri}
                     style={styles.commentImagePreview}
                     resizeMode="cover"
                   />

@@ -28,6 +28,7 @@ const BottomTabs = () => {
       <Tab.Navigator
         initialRouteName="홈"
         backBehavior="initialRoute"
+        detachInactiveScreens={Platform.OS !== 'android'}
         screenOptions={({route}) => ({
           tabBarIcon: ({focused}) => {
             const iconProps = {width: 24, height: 24};
@@ -78,6 +79,10 @@ const BottomTabs = () => {
           component={Guesthouse}
           listeners={({navigation}) => ({
             tabPress: e => {
+              if (!navigation.isFocused()) {
+                return;
+              }
+
               e.preventDefault();
               navigation.navigate('지도', {
                 screen: 'GuesthouseList',

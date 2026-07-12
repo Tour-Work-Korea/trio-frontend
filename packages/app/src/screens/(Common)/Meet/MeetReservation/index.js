@@ -5,7 +5,6 @@ import {
   TextInput,
   TouchableOpacity,
   ScrollView,
-  Image,
   Dimensions,
   Platform,
 } from 'react-native';
@@ -25,6 +24,7 @@ import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
+import AppImage from '@components/AppImage';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
@@ -415,7 +415,7 @@ const MeetReservation = () => {
           {/* 콘텐츠 정보 */}
           <View style={styles.eventInfoRow}>
             {eventThumbnailSource && (
-              <Image
+              <AppImage
                 source={eventThumbnailSource}
                 style={styles.eventThumbnail}
                 resizeMode="cover"

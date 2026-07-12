@@ -1,18 +1,19 @@
 import React from 'react';
-import {View, Text, TouchableOpacity, Image} from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import HeartIcon from '@assets/images/Empty_Heart.svg';
 import styles from './RecruitList.styles';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import AppImage from '@components/AppImage';
 
 const RecruitCard = ({item, onPress, onToggleFavorite}) => {
   return (
     <View style={styles.RecruitCard}>
       <TouchableOpacity onPress={onPress}>
         <View style={styles.jobItemContent}>
-          <Image
-            source={{uri: item.thumbnailImage || item.recruitImage}}
+          <AppImage
+            uri={item.thumbnailImage || item.recruitImage}
             style={styles.jobImage}
             resizeMode="cover"
           />

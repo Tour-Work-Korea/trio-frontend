@@ -2,7 +2,6 @@ import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   FlatList,
   TouchableOpacity,
   ActivityIndicator,
@@ -33,6 +32,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
+import AppImage from '@components/AppImage';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import { toggleFavorite } from '@utils/toggleFavorite';
@@ -612,7 +612,7 @@ const GuesthouseList = () => {
           <View style={styles.imgRatingContainer}>
             {/* 이미지 데이터 없을 때 */}
             {item.thumbnailImgUrl ? (
-              <Image source={{uri: item.thumbnailImgUrl}} style={styles.image} />
+              <AppImage uri={item.thumbnailImgUrl} style={styles.image} />
             ) : (
               <View
                 style={[styles.image, {backgroundColor: COLORS.grayscale_200}]}

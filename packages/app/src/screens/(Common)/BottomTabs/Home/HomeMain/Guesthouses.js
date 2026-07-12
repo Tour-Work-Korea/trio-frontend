@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
+import React, {memo, useCallback, useMemo} from 'react';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
@@ -13,27 +13,32 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
+import AppImage from '@components/AppImage';
 
-export default function Guesthouses({guesthouses}) {
+const guesthouseSeparatorStyle = {width: 20};
+const GuesthouseSeparator = () => <View style={guesthouseSeparatorStyle} />;
+
+function Guesthouses({guesthouses = []}) {
   const navigation = useNavigation();
+  const today = useMemo(() => dayjs(), []);
+  const tomorrow = useMemo(() => today.add(1, 'day'), [today]);
+  const checkIn = useMemo(() => today.format('YYYY-MM-DD'), [today]);
+  const checkOut = useMemo(() => tomorrow.format('YYYY-MM-DD'), [tomorrow]);
 
-  const getDisplayRating = rating => {
+  const getDisplayRating = useCallback(rating => {
     const ratingNumber = Number(rating);
     return Number.isFinite(ratingNumber) && ratingNumber > 0
       ? ratingNumber.toFixed(1)
       : null;
-  };
+  }, []);
 
-  const getTagLabels = item =>
+  const getTagLabels = useCallback(item =>
     (Array.isArray(item.hashtags) ? item.hashtags : [])
       .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
       .filter(Boolean)
-      .slice(0, 3);
+      .slice(0, 3), []);
 
-  const today = dayjs();
-  const tomorrow = today.add(1, 'day');
-
-  const renderGuesthouse = ({item}) => {
+  const renderGuesthouse = useCallback(({item}) => {
     const displayRating = getDisplayRating(item.avgRating);
 
     return (
@@ -46,8 +51,8 @@ export default function Guesthouses({guesthouses}) {
 
           navigation.navigate('GuesthouseDetail', {
             id: item.guesthouseId,
-            checkIn: today.format('YYYY-MM-DD'),
-            checkOut: tomorrow.format('YYYY-MM-DD'),
+            checkIn,
+            checkOut,
             guestCount: 1,
           });
         }}
@@ -55,8 +60,8 @@ export default function Guesthouses({guesthouses}) {
         <View style={styles.guesthouseCard}>
           <View>
             {item.thumbnailUrl ? (
-              <Image
-                source={{ uri: item.thumbnailUrl }}
+              <AppImage
+                uri={item.thumbnailUrl}
                 style={styles.guesthouseImage}
               />
             ) : (
@@ -108,7 +113,13 @@ export default function Guesthouses({guesthouses}) {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [checkIn, checkOut, getDisplayRating, getTagLabels, navigation]);
+
+  const handlePressSeeMore = useCallback(() => {
+    navigation.navigate('PopularGuesthouseList', {
+      guesthouses,
+    });
+  }, [guesthouses, navigation]);
 
   return (
     <View style={styles.guesthouseContainer}>
@@ -119,11 +130,7 @@ export default function Guesthouses({guesthouses}) {
         <TouchableOpacity
           activeOpacity={1}
           style={styles.seeMoreButton}
-          onPress={() => {
-            navigation.navigate('PopularGuesthouseList', {
-              guesthouses,
-            });
-          }}
+          onPress={handlePressSeeMore}
         >
           <Text style={styles.seeMoreText}>더보기</Text>
           <Chevron_right_gray width={24} height={24} />
@@ -146,8 +153,10 @@ export default function Guesthouses({guesthouses}) {
         style={styles.horizontalList}
         keyExtractor={item => String(item.guesthouseId)}
         renderItem={renderGuesthouse}
-        ItemSeparatorComponent={() => <View style={{ width: 20 }} />}
+        ItemSeparatorComponent={GuesthouseSeparator}
       />
     </View>
   );
 }
+
+export default memo(Guesthouses);

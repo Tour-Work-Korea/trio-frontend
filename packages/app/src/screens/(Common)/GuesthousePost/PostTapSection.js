@@ -1,7 +1,8 @@
 import React, {useMemo, useState} from 'react';
-import {View, Text, Image, TouchableOpacity, StyleSheet, Platform} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import AppImage from '@components/AppImage';
 
 const TABS = [
   {key: 'GREETING', label: '인사말'},
@@ -69,8 +70,8 @@ export default function PostTapSection({intro}) {
               <View key={b.sectionId ?? i} style={styles.blockBox}>
                 {/* 이미지 */}
                 {hasImage && (
-                  <Image
-                    source={{uri: b.imgUrl}}
+                  <AppImage
+                    uri={b.imgUrl}
                     style={styles.blockImage}
                     resizeMode="cover"
                   />

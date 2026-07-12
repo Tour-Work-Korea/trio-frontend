@@ -1,6 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, {useEffect, useRef, useState} from 'react';
 import {
   AppState,
+  InteractionManager,
+  LogBox,
   Platform,
   StatusBar,
   StyleSheet,
@@ -13,7 +15,7 @@ import ErrorToast from '@components/toasts/ErrorToast';
 import InAppNotificationBanner from '@components/InAppNotificationBanner';
 import DeeplinkHandler from '@utils/deeplinkHandler';
 import {COLORS} from '@constants/colors';
-import {tryAutoLogin} from '@utils/auth/login';
+import {refreshUserProfile, tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
 import {navigationRef} from '@utils/navigationService';
 import messaging from '@react-native-firebase/messaging';
@@ -41,6 +43,12 @@ const toastConfig = {
   success: props => <BasicToast {...props} />,
   error: props => <ErrorToast {...props} />,
 };
+
+if (__DEV__) {
+  LogBox.ignoreLogs([
+    'This method is deprecated (as well as all React Native Firebase namespaced API)',
+  ]);
+}
 
 function SplashOverlay({onFinish}) {
   return (
@@ -94,19 +102,12 @@ function AppContent() {
     visible: false,
     minVersion: '',
   });
+  const didInitialForceUpdateCheck = useRef(false);
   const insets = useSafeAreaInsets();
   const accessToken = useUserStore(state => state.accessToken);
+  const userRole = useUserStore(state => state.userRole);
 
   useEffect(() => {
-    const initializeMobileAds = async () => {
-      try {
-        await mobileAds().initialize();
-      } catch (error) {
-        recordStartupError('mobile ads initialize', error);
-      }
-    };
-
-    initializeMobileAds();
     console.log('API_BASE_URL (runtime):', API_BASE_URL);
 
     const syncForceUpdateState = async () => {
@@ -129,18 +130,14 @@ function AppContent() {
 
     const bootstrap = async () => {
       try {
-        await wait(120);
-        await waitForNavReady();
-
         const forceUpdateResult = await syncForceUpdateState();
+        didInitialForceUpdateCheck.current = true;
 
         if (forceUpdateResult.shouldUpdate) {
           return;
         }
 
-        await tryAutoLogin();
-        await syncFcmToken();
-        unsubscribeTokenRefresh = setupTokenRefreshListener();
+        await tryAutoLogin({loadProfile: false});
       } finally {
         setAppLoaded(true);
       }
@@ -189,6 +186,53 @@ function AppContent() {
   }, []);
 
   useEffect(() => {
+    if (!appLoaded || forceUpdateState.visible) {
+      return undefined;
+    }
+
+    let cancelled = false;
+    let tokenRefreshUnsubscribe;
+    const interactionHandle = InteractionManager.runAfterInteractions(() => {
+      const runDeferredStartupTasks = async () => {
+        try {
+          await mobileAds().initialize();
+        } catch (error) {
+          recordStartupError('mobile ads initialize', error);
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        if (!accessToken) {
+          return;
+        }
+
+        if (userRole) {
+          await refreshUserProfile(userRole);
+        }
+
+        if (cancelled) {
+          return;
+        }
+
+        await syncFcmToken();
+        tokenRefreshUnsubscribe = setupTokenRefreshListener();
+      };
+
+      runDeferredStartupTasks().catch(error => {
+        recordStartupError('deferred startup tasks', error);
+      });
+    });
+
+    return () => {
+      cancelled = true;
+      interactionHandle.cancel?.();
+      tokenRefreshUnsubscribe?.();
+    };
+  }, [accessToken, appLoaded, forceUpdateState.visible, userRole]);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener('change', nextAppState => {
       setAppState(nextAppState);
     });
@@ -226,6 +270,11 @@ function AppContent() {
 
   useEffect(() => {
     if (appState !== 'active' || !appLoaded) {
+      return undefined;
+    }
+
+    if (didInitialForceUpdateCheck.current) {
+      didInitialForceUpdateCheck.current = false;
       return undefined;
     }
 

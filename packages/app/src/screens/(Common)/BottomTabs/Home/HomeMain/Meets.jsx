@@ -1,9 +1,8 @@
-import React, {useState} from 'react';
+import React, {memo, useCallback, useMemo} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   StyleSheet,
   FlatList,
   Dimensions,
@@ -24,6 +23,7 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
+import AppImage from '@components/AppImage';
 
 const APP_FRAME_WIDTH = Math.min(Dimensions.get('window').width, 430);
 const SECTION_HORIZONTAL_PADDING = 32;
@@ -37,16 +37,17 @@ const CARD_WIDTH =
       )
     : DEFAULT_CARD_WIDTH;
 const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * 1.5);
+const meetSeparatorStyle = {width: 12};
+const MeetSeparator = () => <View style={meetSeparatorStyle} />;
 
-export default function Meets({events = [], setEventList}) {
+function Meets({events = [], setEventList}) {
   const navigation = useNavigation();
-  const [selectedChip, setSelectedChip] = useState('guesthouseParty');
 
-  const moveToDetail = partyId => {
+  const moveToDetail = useCallback(partyId => {
     navigation.navigate('MeetDetail', {partyId});
-  };
+  }, [navigation]);
 
-  const handleToggleFavorite = async item => {
+  const handleToggleFavorite = useCallback(async item => {
     try {
       await toggleFavorite({
         type: 'party',
@@ -60,9 +61,9 @@ export default function Meets({events = [], setEventList}) {
         error?.response?.data?.message,
       );
     }
-  };
+  }, [setEventList]);
 
-  const renderEvents = item => {
+  const renderEvents = useCallback(({item}) => {
     const isFav = !!item.isLiked;
 
     return (
@@ -78,7 +79,7 @@ export default function Meets({events = [], setEventList}) {
         }}>
         <View style={localStyles.card}>
           <View style={localStyles.imageWrapper}>
-            <Image source={{uri: item.partyImageUrl}} style={localStyles.image} />
+            <AppImage uri={item.partyImageUrl} style={localStyles.image} />
 
             {/* 하트 아이콘 (이미지 내부 오른쪽 상단) */}
             <View style={localStyles.heartWrapper}>
@@ -128,11 +129,13 @@ export default function Meets({events = [], setEventList}) {
         </View>
       </TouchableOpacity>
     );
-  };
+  }, [handleToggleFavorite, moveToDetail]);
 
-  const guesthousePartyEvents = events;
-  const visibleEvents =
-    selectedChip === 'guesthouseParty' ? guesthousePartyEvents.slice(0, 3) : [];
+  const visibleEvents = useMemo(() => events.slice(0, 3), [events]);
+
+  const handlePressSeeMore = useCallback(() => {
+    navigation.navigate('PopularMeetList');
+  }, [navigation]);
 
   return (
     <View style={styles.jobContainer}>
@@ -142,9 +145,7 @@ export default function Meets({events = [], setEventList}) {
           <TouchableOpacity
             activeOpacity={1}
             style={styles.seeMoreButton}
-            onPress={() => {
-              navigation.navigate('PopularMeetList');
-            }}
+            onPress={handlePressSeeMore}
           >
             <Text style={styles.seeMoreText}>더보기</Text>
             <Chevron_right_gray width={24} height={24} />
@@ -217,12 +218,14 @@ export default function Meets({events = [], setEventList}) {
         scrollEventThrottle={16}
         style={styles.horizontalList}
         keyExtractor={item => String(item.partyId)}
-        renderItem={({item}) => renderEvents(item)}
-        ItemSeparatorComponent={() => <View style={{width: 12}} />}
+        renderItem={renderEvents}
+        ItemSeparatorComponent={MeetSeparator}
       />
     </View>
   );
 }
+
+export default memo(Meets);
 
 const localStyles = StyleSheet.create({
   cardButton: {

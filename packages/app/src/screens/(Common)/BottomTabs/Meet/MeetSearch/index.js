@@ -1,9 +1,8 @@
-import React, {useEffect, useMemo, useState, useCallback} from 'react';
+import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
   TextInput,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import styles from './MeetSearch.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import EmptyState from '@components/EmptyState';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
@@ -51,6 +51,10 @@ const MeetSearch = () => {
   const [isFetching, setIsFetching] = useState(false);
   const [refreshing, setRefreshing] = useState(false);
   const [hasNext, setHasNext] = useState(true);
+  const isFetchingRef = useRef(false);
+  const hasUserScrolledRef = useRef(false);
+  const requestKeyRef = useRef(null);
+  const didInitialLoadRef = useRef(false);
 
   // 좋아요 토글
   const [favorites, setFavorites] = useState({});
@@ -76,7 +80,14 @@ const MeetSearch = () => {
   // 콘텐츠 데이터 로더
   const fetchPage = useCallback(
     async (nextPage, reset = false) => {
-      if (isFetching) return;
+      const requestKey = `${keyword ?? ''}:${nextPage}:${reset ? 'reset' : 'append'}`;
+
+      if (isFetchingRef.current || requestKeyRef.current === requestKey) {
+        return;
+      }
+
+      isFetchingRef.current = true;
+      requestKeyRef.current = requestKey;
       setIsFetching(true);
       try {
         const params = {
@@ -88,30 +99,40 @@ const MeetSearch = () => {
         const {data} = await userMeetApi.searchParties(params);
         const content = Array.isArray(data?.content) ? data.content : [];
         const mapped = content.map(mapApiToUI);
+        prefetchImageUrls(mapped.map(item => item.thumbnailUri), {limit: 8});
 
         setItems(prev => (reset ? mapped : [...prev, ...mapped]));
         setPage(nextPage);
-        // hasNext: Spring Page 없다고 가정 → content 사이즈로 판정
-        setHasNext(mapped.length === size);
+        setHasNext(
+          typeof data?.last === 'boolean' ? !data.last : mapped.length === size,
+        );
       } catch (e) {
         console.log('searchParties error', e);
         // 실패 시 다음 페이지 요청 막기 위해 hasNext는 일단 false
         setHasNext(false);
       } finally {
+        isFetchingRef.current = false;
+        requestKeyRef.current = null;
         setIsFetching(false);
         setRefreshing(false);
       }
     },
-    [keyword, isFetching],
+    [keyword],
   );
 
   // 최초 로드
   useEffect(() => {
+    if (didInitialLoadRef.current) {
+      return;
+    }
+
+    didInitialLoadRef.current = true;
     fetchPage(0, true);
-  }, []); // 첫 마운트
+  }, [fetchPage]); // 첫 마운트
 
   // 검색 실행
   const submitSearch = () => {
+    hasUserScrolledRef.current = false;
     setRefreshing(true);
     setHasNext(true);
     fetchPage(0, true);
@@ -119,6 +140,7 @@ const MeetSearch = () => {
 
   // 당겨서 새로고침
   const onRefresh = () => {
+    hasUserScrolledRef.current = false;
     setRefreshing(true);
     setHasNext(true);
     fetchPage(0, true);
@@ -126,8 +148,15 @@ const MeetSearch = () => {
 
   // 무한 스크롤
   const loadMore = () => {
-    if (isFetching || !hasNext) return;
+    if (isFetchingRef.current || !hasNext || !hasUserScrolledRef.current) {
+      return;
+    }
+
     fetchPage(page + 1, false);
+  };
+
+  const handleScrollBeginDrag = () => {
+    hasUserScrolledRef.current = true;
   };
 
   // 콘텐츠 리스트
@@ -141,7 +170,7 @@ const MeetSearch = () => {
         style={styles.itemWrap}
         onPress={() => navigation.navigate('MeetDetail', {partyId: item.id})}>
         <View style={styles.itemTopWrap}>
-          <Image source={{ uri: item.thumbnailUri }} style={styles.thumbnail} />
+          <AppImage uri={item.thumbnailUri} style={styles.thumbnail} />
           <View style={styles.infoWrap}>
             <View style={styles.nameHeartWrap}>
               <Text
@@ -232,6 +261,7 @@ const MeetSearch = () => {
           contentContainerStyle={{paddingBottom: 120, gap: 24, flexGrow: 1}}
           onEndReachedThreshold={0.6}
           onEndReached={loadMore}
+          onScrollBeginDrag={handleScrollBeginDrag}
           refreshing={refreshing}
           onRefresh={onRefresh}
           ListEmptyComponent={

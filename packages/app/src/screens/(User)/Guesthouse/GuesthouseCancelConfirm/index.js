@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
@@ -32,6 +31,7 @@ import ReservationCancelConfirmModal from '@components/modals/Guesthouse/Reserva
 import AlertModal from '@components/modals/AlertModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import Toast from 'react-native-toast-message';
+import AppImage from '@components/AppImage';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckGray from '@assets/images/check_gray.svg';
@@ -428,8 +428,8 @@ const GuesthouseCancelConfirm = () => {
           {/* 예약 카드 */}
           <View style={styles.card}>
             {viewData.guesthouseImage ? (
-              <Image
-                source={{uri: viewData.guesthouseImage}}
+              <AppImage
+                uri={viewData.guesthouseImage}
                 style={styles.thumbnail}
               />
             ) : null}

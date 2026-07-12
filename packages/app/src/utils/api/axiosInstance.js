@@ -20,18 +20,80 @@ const api = axios.create({
 // 간단한 요청 ID 생성
 const rid = () => Math.random().toString(36).slice(2, 8);
 
+const summarizePayload = data => {
+  if (Array.isArray(data)) {
+    return {
+      type: 'array',
+      length: data.length,
+      sampleKeys:
+        data.length > 0 && data[0] && typeof data[0] === 'object'
+          ? Object.keys(data[0]).slice(0, 8)
+          : [],
+    };
+  }
+
+  if (data && typeof data === 'object') {
+    const summary = {
+      type: 'object',
+      keys: Object.keys(data).slice(0, 12),
+    };
+
+    if (Array.isArray(data.content)) {
+      summary.contentLength = data.content.length;
+    }
+
+    return summary;
+  }
+
+  if (typeof data === 'string') {
+    return {
+      type: 'string',
+      length: data.length,
+      preview: data.slice(0, 120),
+    };
+  }
+
+  return data;
+};
+
+const hasLogPayload = data => {
+  if (data == null) {
+    return false;
+  }
+
+  if (typeof data === 'string') {
+    return data.trim().length > 0;
+  }
+
+  return true;
+};
+
+const getRequestUrl = config => {
+  const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
+  const endpoint = config.url?.replace(/^\//, '') || '';
+  const query = config.params ? `?${qs.stringify(config.params)}` : '';
+
+  return `${baseUrl}/${endpoint}${query}`;
+};
+
+const getRequestLabel = config => {
+  const method = config.method?.toUpperCase() || 'GET';
+  return `${method} ${getRequestUrl(config)}`;
+};
+
+// 성능 테스트처럼 로그를 줄이고 싶을 때 DevTools에서
+// `global.__API_LOG_SUMMARY__ = true`로 켠다.
+const shouldLogSummaryPayload = config =>
+  config?.summaryLog === true || global.__API_LOG_SUMMARY__ === true;
+
+const getLogPayload = (data, config) =>
+  shouldLogSummaryPayload(config) ? summarizePayload(data) : data;
+
 // REQUEST
 api.interceptors.request.use(
   async config => {
     const id = rid();
     config._reqId = id;
-
-    const method = config.method?.toUpperCase() || 'GET';
-    const baseUrl = config.baseURL?.replace(/\/$/, '') || '';
-    const endpoint = config.url?.replace(/^\//, '') || '';
-    const fullUrl = config.params
-      ? `${baseUrl}/${endpoint}?${qs.stringify(config.params)}`
-      : `${baseUrl}/${endpoint}`;
 
     // accessToken 주입
     const token = useUserStore.getState().accessToken;
@@ -45,13 +107,13 @@ api.interceptors.request.use(
     }
 
     log.time(`⏱️ ${id}`);
-    log.info(`➡️ [${id}] ${method} ${fullUrl}`);
+    log.info(`➡️ [${id}] ${getRequestLabel(config)}`);
 
     if (config.withAuth !== false) {
-      log.info(`🔑 [${id}] accessToken=`, mask(token));
+      log.info(`   auth: ${mask(token)}`);
     }
-    if (config.data) {
-      log.info(`📦 [${id}] body=`, config.data);
+    if (hasLogPayload(config.data)) {
+      log.info('   body:', getLogPayload(config.data, config));
     }
 
     return config;
@@ -71,16 +133,9 @@ const resolveQueue = (error, token = null) => {
 api.interceptors.response.use(
   res => {
     const id = res.config._reqId;
-    log.info(`✅ [${id}] status=`, res.status);
-    if (res.data) {
-      try {
-        log.info(
-          `📩 [${id}] response data=`,
-          JSON.stringify(res.data, null, 2),
-        );
-      } catch (e) {
-        log.info(`📩 [${id}] response data=`, res.data);
-      }
+    log.info(`✅ [${id}] ${res.status} ${getRequestLabel(res.config)}`);
+    if (hasLogPayload(res.data)) {
+      log.info('   response:', getLogPayload(res.data, res.config));
     }
     log.timeEnd(`⏱️ ${res.config._reqId}`);
     return res;
@@ -91,22 +146,10 @@ api.interceptors.response.use(
     const status = err.response?.status;
     const errorData = err.response?.data;
 
-    log.error(
-      `🛑 [${id}] error status=`,
-      status,
-      'url=',
-      original?.url,
-      err,
-    );
-    if (errorData) {
-      try {
-        log.error(
-          `🧾 [${id}] error data=`,
-          JSON.stringify(errorData, null, 2),
-        );
-      } catch (e) {
-        log.error(`🧾 [${id}] error data=`, errorData);
-      }
+    log.error(`🛑 [${id}] ${status || 'ERROR'} ${getRequestLabel(original || {})}`);
+    log.error('   error:', err);
+    if (hasLogPayload(errorData)) {
+      log.error('   error body:', errorData);
     }
     log.timeEnd(`⏱️ ${id}`);
 

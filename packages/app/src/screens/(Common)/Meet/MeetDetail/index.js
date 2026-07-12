@@ -26,6 +26,7 @@ import { FONTS } from '@constants/fonts';
 import { COLORS } from '@constants/colors';
 import styles from './MeetDetail.styles';
 import Avatar from '@components/Avatar';
+import AppImage from '@components/AppImage';
 import userMeetApi from '@utils/api/userMeetApi';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
@@ -136,8 +137,8 @@ const PartyEventImage = ({ uri, width }) => {
   }, [uri]);
 
   return (
-    <Image
-      source={{ uri }}
+    <AppImage
+      uri={uri}
       style={[
         styles.eventImageBlog,
         {
@@ -174,6 +175,9 @@ const MeetDetail = () => {
   const [infoModalTags, setInfoModalTags] = useState([]);
   const [infoModalContent, setInfoModalContent] = useState("");
   const [infoModalSections, setInfoModalSections] = useState([]);
+  const [renderedTabs, setRenderedTabs] = useState(
+    () => new Set([TABS[0].key]),
+  );
   const {
     pagerRef,
     activeKey,
@@ -190,6 +194,18 @@ const MeetDetail = () => {
     tabs: TABS,
     initialKey: 'intro',
   });
+
+  useEffect(() => {
+    setRenderedTabs(prev => {
+      if (prev.has(activeKey)) {
+        return prev;
+      }
+
+      const next = new Set(prev);
+      next.add(activeKey);
+      return next;
+    });
+  }, [activeKey]);
 
   const openTagModal = (title, tags, content) => {
     setInfoModalTitle(title);
@@ -758,8 +774,8 @@ const MeetDetail = () => {
               style={styles.thumbnail}
               activeOpacity={1}
               onPress={() => setImageModalVisible(true)}>
-              <Image
-                source={{ uri: sortedImages[thumbnailIndex]?.imageUrl }}
+              <AppImage
+                uri={sortedImages[thumbnailIndex]?.imageUrl}
                 style={styles.thumbnail}
                 resizeMode="cover"
               />
@@ -779,8 +795,8 @@ const MeetDetail = () => {
                   style={styles.thumbnail}
                   activeOpacity={1}
                   onPress={() => setImageModalVisible(true)}>
-                  <Image
-                    source={{ uri: item.imageUrl }}
+                  <AppImage
+                    uri={item.imageUrl}
                     style={styles.thumbnail}
                     resizeMode="cover"
                   />
@@ -898,7 +914,7 @@ const MeetDetail = () => {
               <View
                 key={tab.key}
                 style={[styles.tabPage, pageWidth > 0 && { width: pageWidth }]}>
-                {renderTabContent(tab.key)}
+                {renderedTabs.has(tab.key) ? renderTabContent(tab.key) : null}
               </View>
             ))}
           </ScrollView>

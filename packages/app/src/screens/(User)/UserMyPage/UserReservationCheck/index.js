@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useState, useCallback } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 
@@ -42,10 +42,6 @@ const UserReservationCheck = () => {
     tabs: TABS,
     initialKey: 'upcoming',
   });
-
-  useEffect(() => {
-    fetchReservationList();
-  }, []);
 
   const fetchReservationList = async () => {
     try {
