@@ -97,8 +97,8 @@ const BottomTabs = () => {
           component={My}
           listeners={({navigation}) => ({
             tabPress: e => {
-              const role = useUserStore.getState().userRole;
-              if (role !== 'USER') {
+              const accessToken = useUserStore.getState().accessToken;
+              if (!accessToken) {
                 e.preventDefault();
 
                 showErrorModal({

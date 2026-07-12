@@ -1065,7 +1065,12 @@ const CommunityStaffDetail = ({route}) => {
                   activeOpacity={0.8}
                   style={styles.sendButton}
                   disabled={isSubmittingComment}
-                  onPress={handleSubmitComment}>
+                  onPress={
+                    Platform.OS === 'web' ? undefined : handleSubmitComment
+                  }
+                  onPressIn={
+                    Platform.OS === 'web' ? handleSubmitComment : undefined
+                  }>
                   <Text style={[FONTS.fs_20_semibold, styles.sendButtonText]}>
                     ↑
                   </Text>

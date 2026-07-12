@@ -14,71 +14,12 @@ import {signInWithGoogle} from '@utils/auth/googleSignIn';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
 import { WEB_SESSION_ACCESS_TOKEN } from '@utils/auth/webSession';
+import {
+  mergeSocialProfiles,
+  normalizeSocialProfile,
+} from '@utils/auth/socialProfile';
 
 const REFRESH_KEY = 'refresh-token';
-
-const cleanKakaoValue = value => {
-  if (value == null) {
-    return '';
-  }
-
-  const text = String(value);
-  return text === 'null' || text === 'undefined' ? '' : text;
-};
-
-const normalizeGender = value => {
-  const gender = cleanKakaoValue(value).toLowerCase();
-
-  if (gender === 'female' || gender === 'f') {
-    return 'F';
-  }
-  if (gender === 'male' || gender === 'm') {
-    return 'M';
-  }
-
-  return '';
-};
-
-const normalizeBirthday = ({birthday, birthyear}) => {
-  const rawBirthday = cleanKakaoValue(birthday);
-  const rawBirthyear = cleanKakaoValue(birthyear);
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(rawBirthday)) {
-    return rawBirthday;
-  }
-
-  if (/^\d{4}$/.test(rawBirthyear) && /^\d{4}$/.test(rawBirthday)) {
-    return `${rawBirthyear}-${rawBirthday.slice(0, 2)}-${rawBirthday.slice(2)}`;
-  }
-
-  return '';
-};
-
-const normalizeSocialProfile = data => {
-  const profile = data?.profile || data?.socialProfile || {};
-  return {
-    email: cleanKakaoValue(profile.email || data?.email),
-    nickname: cleanKakaoValue(profile.nickname || data?.nickname),
-    name: cleanKakaoValue(profile.name || data?.name),
-    birthday: normalizeBirthday({
-      birthday: profile.birthday || data?.birthday,
-      birthyear: profile.birthyear || data?.birthyear,
-    }),
-    gender: normalizeGender(profile.gender || data?.gender),
-  };
-};
-
-const mergeSocialProfiles = (...profiles) =>
-  profiles.reduce(
-    (merged, profile = {}) => ({
-      email: merged.email || profile.email || '',
-      nickname: merged.nickname || profile.nickname || '',
-      name: merged.name || profile.name || '',
-      birthday: merged.birthday || profile.birthday || '',
-      gender: merged.gender || profile.gender || '',
-    }),
-    {},
-  );
 
 const shouldContinueSocialSignUp = data =>
   data?.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||

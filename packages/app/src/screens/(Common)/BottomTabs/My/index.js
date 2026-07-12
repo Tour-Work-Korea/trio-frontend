@@ -7,16 +7,16 @@ import {UserFavorite, UserMyPage} from '@screens';
 const Stack = createNativeStackNavigator();
 
 function MyGate({navigation}) {
-  const userRole = useUserStore(state => state.userRole);
+  const accessToken = useUserStore(state => state.accessToken);
 
   useFocusEffect(
     useCallback(() => {
-      if (userRole === 'USER') {
+      if (accessToken) {
         navigation.replace('UserMyPage');
       } else {
         navigation.getParent()?.navigate('홈');
       }
-    }, [userRole, navigation]),
+    }, [accessToken, navigation]),
   );
 
   return null;
