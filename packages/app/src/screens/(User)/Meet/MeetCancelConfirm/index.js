@@ -2,7 +2,6 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   ScrollView,
   ActivityIndicator,
@@ -23,6 +22,7 @@ import TermsModal from '@components/modals/TermsModal';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import Toast from 'react-native-toast-message';
 import {log} from '@utils/logger';
+import AppImage from '@components/AppImage';
 
 import CheckOrange from '@assets/images/check_orange.svg';
 import CheckGray from '@assets/images/check_gray.svg';
@@ -213,8 +213,8 @@ const MeetCancelConfirm = () => {
           {/* 예약 카드 */}
           <View style={styles.card}>
             {viewData.partyImage ? (
-              <Image
-                source={{uri: viewData.partyImage}}
+              <AppImage
+                uri={viewData.partyImage}
                 style={styles.thumbnail}
               />
             ) : null}

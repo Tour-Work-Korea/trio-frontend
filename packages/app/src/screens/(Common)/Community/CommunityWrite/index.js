@@ -1,7 +1,6 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Alert,
-  Image,
   Keyboard,
   Platform,
   ScrollView,
@@ -19,6 +18,7 @@ import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 import Header from '@components/Header';
+import AppImage from '@components/AppImage';
 import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
@@ -724,8 +724,8 @@ const CommunityWrite = ({route}) => {
                   activeOpacity={0.9}
                   style={styles.imagePreviewItem}
                   onPress={() => setPreviewImageUri(image.uri)}>
-                  <Image
-                    source={{uri: image.uri}}
+                  <AppImage
+                    uri={image.uri}
                     style={styles.imagePreview}
                     resizeMode="cover"
                   />
@@ -873,8 +873,8 @@ const CommunityWrite = ({route}) => {
             style={styles.imageModalCloseArea}
             onPress={() => setPreviewImageUri(null)}>
             {previewImageUri ? (
-              <Image
-                source={{uri: previewImageUri}}
+              <AppImage
+                uri={previewImageUri}
                 style={styles.imageModalImage}
                 resizeMode="contain"
               />

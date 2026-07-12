@@ -4,7 +4,6 @@ import {
   Text,
   FlatList,
   ScrollView,
-  Image,
   TouchableOpacity,
   Dimensions,
   Linking,
@@ -23,7 +22,7 @@ import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
 import AlertModal from '@components/modals/AlertModal';
 import userEmployApi from '@utils/api/userEmployApi';
-import useUserStore from '@stores/userStore';
+import AppImage from '@components/AppImage';
 
 const PopularEmployList = () => {
   const navigation = useNavigation();
@@ -32,8 +31,6 @@ const PopularEmployList = () => {
     message: '',
     buttonText: '',
   });
-
-  const userRole = useUserStore.getState()?.userRole;
 
   const [recruits, setRecruits] = useState([]);
   const [reviews, setReviews] = useState();
@@ -62,8 +59,8 @@ const PopularEmployList = () => {
         openReviewLink(item.reviewLink);
       }}>
       {item.reviewImageUrl ? (
-        <Image
-          source={{uri: item.reviewImageUrl}}
+        <AppImage
+          uri={item.reviewImageUrl}
           style={styles.trendingImage}
         />
       ) : (
@@ -138,7 +135,7 @@ const PopularEmployList = () => {
         setIsRecruitsLoading(false);
       }
     },
-    [userRole, isRecruitsLoading, isRecruitsLast],
+    [isRecruitsLoading, isRecruitsLast],
   );
 
   const openReviewLink = async url => {

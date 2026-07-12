@@ -1,7 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
-  Image,
   RefreshControl,
   ScrollView,
   Text,
@@ -16,6 +15,7 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import styles from './GuesthouseCheckInGuide.styles';
+import AppImage from '@components/AppImage';
 
 import XBtn from '@assets/images/x_gray.svg';
 import PeopleIcon from '@assets/images/people_gray.svg';
@@ -98,7 +98,7 @@ export default function GuesthouseCheckInGuide() {
           navigation.navigate('MeetDetail', {partyId: party.partyId})
         }>
         {party.partyImage ? (
-          <Image source={{uri: party.partyImage}} style={styles.partyImage} />
+          <AppImage uri={party.partyImage} style={styles.partyImage} />
         ) : (
           <View style={styles.partyImagePlaceholder}>
             <Text style={[FONTS.fs_12_medium, styles.partyImageText]}>

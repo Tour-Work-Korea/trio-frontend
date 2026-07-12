@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import styles from '../Employ.styles';
@@ -7,6 +7,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ChevronRightIcon from '@assets/images/chevron_right_gray.svg';
 import StarIcon from '@assets/images/star_white.svg';
+import AppImage from '@components/AppImage';
 
 export default function WorkAndStay({guesthouses}) {
   const navigation = useNavigation();
@@ -32,8 +33,8 @@ export default function WorkAndStay({guesthouses}) {
         <View style={styles.guesthouseCard}>
           <View>
             {item.thumbnailImgUrl ? (
-              <Image
-                source={{uri: item.thumbnailImgUrl}}
+              <AppImage
+                uri={item.thumbnailImgUrl}
                 style={styles.guesthouseImage}
               />
             ) : (

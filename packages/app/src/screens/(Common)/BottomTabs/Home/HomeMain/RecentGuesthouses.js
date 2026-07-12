@@ -1,5 +1,5 @@
-import React from 'react';
-import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
+import React, {memo, useCallback, useMemo} from 'react';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
@@ -11,18 +11,21 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
+import AppImage from '@components/AppImage';
 
 const RecentGuesthouseSeparator = () => (
   <View style={styles.recentGuesthouseGap} />
 );
 
-export default function RecentGuesthouses({guesthouses = []}) {
+function RecentGuesthouses({guesthouses = []}) {
   const navigation = useNavigation();
 
-  const today = dayjs();
-  const tomorrow = today.add(1, 'day');
+  const today = useMemo(() => dayjs(), []);
+  const tomorrow = useMemo(() => today.add(1, 'day'), [today]);
+  const checkIn = useMemo(() => today.format('YYYY-MM-DD'), [today]);
+  const checkOut = useMemo(() => tomorrow.format('YYYY-MM-DD'), [tomorrow]);
 
-  const renderGuesthouse = ({item}) => (
+  const renderGuesthouse = useCallback(({item}) => (
     <TouchableOpacity
       activeOpacity={1}
       style={styles.recentGuesthouseCard}
@@ -33,14 +36,14 @@ export default function RecentGuesthouses({guesthouses = []}) {
 
         navigation.navigate('GuesthouseDetail', {
           id: item.id,
-          checkIn: today.format('YYYY-MM-DD'),
-          checkOut: tomorrow.format('YYYY-MM-DD'),
+          checkIn,
+          checkOut,
           guestCount: 1,
         });
       }}>
       {item.thumbnailUrl ? (
-        <Image
-          source={{uri: item.thumbnailUrl}}
+        <AppImage
+          uri={item.thumbnailUrl}
           style={styles.recentGuesthouseImage}
         />
       ) : (
@@ -58,7 +61,11 @@ export default function RecentGuesthouses({guesthouses = []}) {
         {item.guesthouseName}
       </Text>
     </TouchableOpacity>
-  );
+  ), [checkIn, checkOut, navigation]);
+
+  const handlePressSeeMore = useCallback(() => {
+    navigation.navigate('RecentGuesthouseList');
+  }, [navigation]);
 
   if (!guesthouses.length) {
     return null;
@@ -71,9 +78,7 @@ export default function RecentGuesthouses({guesthouses = []}) {
         <TouchableOpacity
           activeOpacity={1}
           style={styles.seeMoreButton}
-          onPress={() => {
-            navigation.navigate('RecentGuesthouseList');
-          }}>
+          onPress={handlePressSeeMore}>
           <Text style={styles.seeMoreText}>더보기</Text>
           <ChevronRightGray width={24} height={24} />
         </TouchableOpacity>
@@ -100,3 +105,5 @@ export default function RecentGuesthouses({guesthouses = []}) {
     </View>
   );
 }
+
+export default memo(RecentGuesthouses);

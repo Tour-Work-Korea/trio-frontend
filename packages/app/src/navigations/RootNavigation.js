@@ -1,10 +1,11 @@
 import React, {useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import {navigationRef} from '@utils/navigationService';
 import useAmenityStore from '@stores/amenityStore';
 
-import undefinedStack from './undefinedStack';
+import UndefinedStack from './undefinedStack';
 import BottomTabs from '@screens/(Common)/BottomTabs';
 
 import {
@@ -86,7 +87,13 @@ const RootNavigation = () => {
   const fetchAmenities = useAmenityStore(state => state.fetchAmenities);
 
   useEffect(() => {
-    fetchAmenities({force: true});
+    const handle = InteractionManager.runAfterInteractions(() => {
+      fetchAmenities();
+    });
+
+    return () => {
+      handle.cancel?.();
+    };
   }, [fetchAmenities]);
 
   return (
@@ -95,7 +102,7 @@ const RootNavigation = () => {
         <Stack.Screen name="MainTabs" component={BottomTabs} />
         <Stack.Screen name="Login" component={Login} />
         <Stack.Screen name="SocialLogin" component={SocialLogin} />
-        <Stack.Screen name="undefined" component={undefinedStack} />
+        <Stack.Screen name="undefined" component={UndefinedStack} />
         <Stack.Screen name="Setting" component={Setting} />
         <Stack.Screen name="Terms" component={Terms} />
 

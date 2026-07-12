@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, ScrollView, BackHandler} from 'react-native';
+import {View, Text, ScrollView, BackHandler} from 'react-native';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
@@ -11,6 +11,7 @@ import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {PAYMENT_TYPE_LABEL} from '@constants/payment';
+import AppImage from '@components/AppImage';
 
 export default function MeetCancelledReceipt() {
   const navigation = useNavigation();
@@ -120,8 +121,8 @@ export default function MeetCancelledReceipt() {
             </Text>
 
             {reservationDetail?.partyImage ? (
-              <Image
-                source={{uri: reservationDetail.partyImage}}
+              <AppImage
+                uri={reservationDetail.partyImage}
                 style={styles.image}
               />
             ) : null}

@@ -1,6 +1,7 @@
 import React, {
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
 } from 'react';
@@ -8,7 +9,6 @@ import {
   Animated,
   Dimensions,
   FlatList,
-  Image,
   Modal,
   Platform,
   StyleSheet,
@@ -21,6 +21,7 @@ import {
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import XIcon from '@assets/images/x_gray.svg';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 const {width: FALLBACK_SCREEN_WIDTH} = Dimensions.get('window');
 const SWIPE_CLOSE_DISTANCE = 80;
@@ -52,7 +53,10 @@ const ImageModal = ({
   const isClosingRef = useRef(false);
   const touchStartRef = useRef(null);
   const swipeY = useRef(new Animated.Value(0)).current;
-  const imageList = Array.isArray(images) ? images : [];
+  const imageList = useMemo(
+    () => (Array.isArray(images) ? images : []),
+    [images],
+  );
   const safeSelectedImageIndex = Number.isFinite(selectedImageIndex)
     ? selectedImageIndex
     : 0;
@@ -259,13 +263,15 @@ const ImageModal = ({
       return;
     }
 
+    prefetchImageUrls(imageList.map(getImageUrl), {limit: 6});
+
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({
         index: initialIndex,
         animated: false,
       });
     });
-  }, [imageList.length, initialIndex, visible]);
+  }, [imageList, imageList.length, initialIndex, visible]);
 
   const renderImage = ({item}) => {
     const imageUrl = getImageUrl(item);
@@ -279,8 +285,8 @@ const ImageModal = ({
             height: pageHeight,
           },
         ]}>
-        <Image
-          source={{uri: imageUrl}}
+        <AppImage
+          uri={imageUrl}
           style={styles.image}
           resizeMode="contain"
         />
@@ -349,8 +355,8 @@ const ImageModal = ({
                       },
                     ]}>
                     {!!imageUrl && (
-                      <Image
-                        source={{uri: imageUrl}}
+                      <AppImage
+                        uri={imageUrl}
                         style={styles.image}
                         resizeMode="contain"
                       />

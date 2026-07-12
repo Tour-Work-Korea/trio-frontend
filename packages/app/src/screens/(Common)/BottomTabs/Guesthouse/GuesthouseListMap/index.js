@@ -3,7 +3,7 @@ import {
   ActivityIndicator,
   Alert,
   Animated,
-  Image,
+  InteractionManager,
   Linking,
   PanResponder,
   PermissionsAndroid,
@@ -31,6 +31,7 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {navigateWebGuesthouseDetailFromMap} from '@web/navigation';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import HomeIcon from '@assets/images/home_white_filled.svg';
 import TargetIcon from '@assets/images/target_black.svg';
@@ -62,6 +63,9 @@ const GUESTHOUSE_FOCUS_ANIMATION_MS = 1;
 const DETAIL_IMAGE_SCROLL_STEP = 116;
 const WEB_CARD_PRESS_SUPPRESSION_MS = 500;
 const WEB_CARD_DRAG_THRESHOLD_PX = 2;
+const MAP_FETCH_CACHE_TTL_MS = 60 * 1000;
+const activeMapFetchPromises = new Map();
+const completedMapFetchResults = new Map();
 const WEB_INITIAL_FIT_PADDING = {
   bottom: 12,
   left: 12,
@@ -112,6 +116,55 @@ const getBoundsFromRegion = region => {
     neLat: region.latitude + region.latitudeDelta / 2,
     neLng: region.longitude + region.longitudeDelta / 2,
   };
+};
+
+const formatBoundValue = value =>
+  Number.isFinite(Number(value)) ? Number(value).toFixed(5) : '';
+
+const getMapFetchKey = ({
+  bounds,
+  checkIn,
+  checkOut,
+  guestCount,
+  sortBy,
+  filterParams,
+}) => {
+  const normalizedFilters = Object.entries(filterParams ?? {})
+    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .map(([key, value]) => [
+      key,
+      Array.isArray(value) ? [...value].sort().join(',') : String(value),
+    ])
+    .sort(([a], [b]) => a.localeCompare(b));
+
+  return JSON.stringify({
+    checkIn,
+    checkOut,
+    guestCount,
+    sortBy,
+    bounds: {
+      swLat: formatBoundValue(bounds?.swLat),
+      swLng: formatBoundValue(bounds?.swLng),
+      neLat: formatBoundValue(bounds?.neLat),
+      neLng: formatBoundValue(bounds?.neLng),
+    },
+    filters: normalizedFilters,
+  });
+};
+
+const getCachedMapFetchResult = fetchKey => {
+  const cached = completedMapFetchResults.get(fetchKey);
+
+  if (!cached) {
+    return null;
+  }
+
+  if (Date.now() - cached.completedAt < MAP_FETCH_CACHE_TTL_MS) {
+    return cached.guesthouses;
+  }
+
+  completedMapFetchResults.delete(fetchKey);
+  return null;
 };
 
 const normalizeGuesthouses = guesthouses =>
@@ -540,6 +593,8 @@ const GuesthouseListMap = ({
   const navigation = useNavigation();
   const lastCenteredGuesthouseIdRef = useRef(null);
   const initialPresetFetchDoneRef = useRef(false);
+  const activeFetchKeyRef = useRef(null);
+  const lastFetchKeyRef = useRef(null);
   const sourceGuesthouses = useMemo(
     () => normalizeGuesthouses(guesthouses ?? route?.params?.guesthouses),
     [guesthouses, route?.params?.guesthouses],
@@ -583,6 +638,7 @@ const GuesthouseListMap = ({
   const [pendingBounds, setPendingBounds] = useState(null);
   const [lastFetchedBounds, setLastFetchedBounds] = useState(null);
   const [hasFetchedMapGuesthouses, setHasFetchedMapGuesthouses] = useState(false);
+  const [shouldRenderMarkers, setShouldRenderMarkers] = useState(false);
   const [showResearchButton, setShowResearchButton] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(initialRegion);
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
@@ -641,6 +697,10 @@ const GuesthouseListMap = ({
     () => getGuesthouseImageUrls(selectedItem),
     [selectedItem],
   );
+
+  useEffect(() => {
+    prefetchImageUrls(selectedImageUrls, {limit: 4});
+  }, [selectedImageUrls]);
   const markerBubblePosition = useMemo(() => {
     const point = getMapPointFromCoordinate(
       selectedCluster?.coordinate,
@@ -777,7 +837,10 @@ const GuesthouseListMap = ({
 
   useEffect(() => {
     initialPresetFetchDoneRef.current = false;
+    activeFetchKeyRef.current = null;
+    lastFetchKeyRef.current = null;
     setHasFetchedMapGuesthouses(false);
+    setShouldRenderMarkers(false);
   }, [filterParams, presetBounds, sortBy]);
 
   useEffect(() => {
@@ -786,7 +849,10 @@ const GuesthouseListMap = ({
     }
 
     initialPresetFetchDoneRef.current = false;
+    activeFetchKeyRef.current = null;
+    lastFetchKeyRef.current = null;
     setHasFetchedMapGuesthouses(false);
+    setShouldRenderMarkers(false);
     setPendingBounds(null);
     setShowResearchButton(false);
     setSelectedClusterKey(null);
@@ -810,54 +876,119 @@ const GuesthouseListMap = ({
       return;
     }
 
+    const fetchKey = getMapFetchKey({
+      bounds,
+      checkIn,
+      checkOut,
+      guestCount,
+      sortBy,
+      filterParams,
+    });
+
+    if (
+      activeFetchKeyRef.current === fetchKey ||
+      lastFetchKeyRef.current === fetchKey
+    ) {
+      return;
+    }
+
+    const cachedGuesthouses = getCachedMapFetchResult(fetchKey);
+    if (cachedGuesthouses) {
+      setMapGuesthouses(cachedGuesthouses);
+      setLastFetchedBounds(bounds);
+      setHasFetchedMapGuesthouses(true);
+      setPendingBounds(null);
+      setShowResearchButton(false);
+      lastFetchKeyRef.current = fetchKey;
+      return;
+    }
+
+    activeFetchKeyRef.current = fetchKey;
     setLoading(true);
 
     try {
-      const response = await userGuesthouseApi.getGuesthouseMap({
-        checkIn,
-        checkOut,
-        guestCount,
-        sortBy,
-        ...filterParams,
-        ...bounds,
-      });
+      let fetchPromise = activeMapFetchPromises.get(fetchKey);
 
-      const responseData = response?.data;
-      let nextGuesthouses = normalizeGuesthouses(
-        getGuesthouseResponseItems(responseData),
-      );
+      if (!fetchPromise) {
+        fetchPromise = (async () => {
+          const response = await userGuesthouseApi.getGuesthouseMap({
+            checkIn,
+            checkOut,
+            guestCount,
+            sortBy,
+            ...filterParams,
+            ...bounds,
+          });
 
-      if (
-        Platform.OS === 'web'
-        && nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
-      ) {
-        const fallbackResponse = await userGuesthouseApi.getGuesthouseList({
-          checkIn,
-          checkOut,
-          guestCount,
-          page: 0,
-          size: 200,
-          sortBy,
-          ...filterParams,
-          ...bounds,
-        });
+          const responseData = response?.data;
+          let nextGuesthouses = normalizeGuesthouses(
+            getGuesthouseResponseItems(responseData),
+          );
 
-        nextGuesthouses = normalizeGuesthouses(
-          getGuesthouseListFallbackItems(fallbackResponse?.data),
-        );
+          if (
+            Platform.OS === 'web'
+            && nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
+          ) {
+            const fallbackResponse = await userGuesthouseApi.getGuesthouseList({
+              checkIn,
+              checkOut,
+              guestCount,
+              page: 0,
+              size: 200,
+              sortBy,
+              ...filterParams,
+              ...bounds,
+            });
+
+            nextGuesthouses = normalizeGuesthouses(
+              getGuesthouseListFallbackItems(fallbackResponse?.data),
+            );
+          }
+
+          return nextGuesthouses;
+        })();
+
+        activeMapFetchPromises.set(fetchKey, fetchPromise);
       }
+
+      const nextGuesthouses = await fetchPromise;
+
+      completedMapFetchResults.set(fetchKey, {
+        completedAt: Date.now(),
+        guesthouses: nextGuesthouses,
+      });
 
       setMapGuesthouses(nextGuesthouses);
       setLastFetchedBounds(bounds);
       setHasFetchedMapGuesthouses(true);
       setPendingBounds(null);
       setShowResearchButton(false);
+      lastFetchKeyRef.current = fetchKey;
     } catch (error) {
       console.warn('지도 게스트하우스 조회 실패', error);
     } finally {
+      activeMapFetchPromises.delete(fetchKey);
+      if (activeFetchKeyRef.current === fetchKey) {
+        activeFetchKeyRef.current = null;
+      }
       setLoading(false);
     }
   }, [checkIn, checkOut, filterParams, guestCount, sortBy]);
+
+  useEffect(() => {
+    if (!mapReady || !hasFetchedMapGuesthouses) {
+      setShouldRenderMarkers(false);
+      return undefined;
+    }
+
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setShouldRenderMarkers(true);
+    });
+
+    return () => {
+      handle.cancel?.();
+    };
+  }, [hasFetchedMapGuesthouses, mapReady]);
 
   const fetchUsingCurrentBounds = useCallback(async () => {
     const bounds =
@@ -1135,9 +1266,7 @@ const GuesthouseListMap = ({
       })
       .filter(Boolean);
 
-    [...new Set(preloadUrls)].forEach(url => {
-      Image.prefetch(url).catch(() => {});
-    });
+    prefetchImageUrls(preloadUrls, {limit: 6});
   }, [mapGuesthouses, selectedGlobalIndex]);
 
   useEffect(() => {
@@ -1259,7 +1388,7 @@ const GuesthouseListMap = ({
             }
           }}
           onCameraIdle={handleCameraIdle}>
-          {orderedClusters.map(cluster => {
+          {shouldRenderMarkers && orderedClusters.map(cluster => {
             const isSelected = cluster.key === selectedCluster?.key;
             const isSoldOutCluster = isClusterReserved(cluster);
 
@@ -1616,9 +1745,9 @@ const GuesthouseListMap = ({
                   contentContainerStyle={styles.imageRow}>
                   {selectedImageUrls.length > 0 ? (
                     selectedImageUrls.map((imageUrl, index) => (
-                      <Image
+                      <AppImage
                         key={`${imageUrl}-${index}`}
-                        source={{uri: imageUrl}}
+                        uri={imageUrl}
                         style={styles.detailImage}
                       />
                     ))

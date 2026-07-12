@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import {
-  View, Text, Image, TouchableOpacity, TextInput, ScrollView, PanResponder,
+  View, Text, TouchableOpacity, TextInput, ScrollView, PanResponder,
   Alert, KeyboardAvoidingView, Platform,
 } from 'react-native';
 import { useRoute, useNavigation } from '@react-navigation/native';
@@ -13,6 +13,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import { uploadMultiImage } from '@utils/imageUploadHandler';
 import ReviewConfirmModal from '@components/modals/UserMy/Guesthouse/ReviewConfirmModal';
 import ReviewSuccessModal from '@components/modals/UserMy/Guesthouse/ReviewSuccessModal';
+import AppImage from '@components/AppImage';
 
 import StarFilled from '@assets/images/star_filled.svg';
 import StarHalf from '@assets/images/star_half.svg';
@@ -206,9 +207,9 @@ const UserGuesthouseReviewForm = () => {
             )}
             {images.map((img, idx) => (
               <View key={idx} pointerEvents="box-none">
-                <Image
+                <AppImage
                   pointerEvents="none"
-                  source={{ uri: img }}
+                  uri={img}
                   style={styles.reviewImage}
                 />
                 <TouchableOpacity

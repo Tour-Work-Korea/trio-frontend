@@ -1,8 +1,9 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, StyleSheet, Image, TouchableOpacity} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native'; 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import AppImage from '@components/AppImage';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';
 
@@ -18,8 +19,8 @@ export default function PostHeaderSection({images}) {
 
   return (
     <View>
-      <Image
-        source={{uri: thumbnailUrl}}
+      <AppImage
+        uri={thumbnailUrl}
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
         resizeMode="cover"
       />

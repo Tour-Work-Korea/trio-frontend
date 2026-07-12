@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   TouchableOpacity,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -16,6 +15,7 @@ import {FONTS} from '@constants/fonts';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty_eye.svg';
 import EmptyState from '@components/EmptyState';
+import AppImage from '@components/AppImage';
 
 const UserMeetReservationCancelled = () => {
   const navigation = useNavigation();
@@ -71,7 +71,7 @@ const UserMeetReservationCancelled = () => {
           <View style={styles.divide} />
 
           <View style={styles.infoRow}>
-            <Image
+            <AppImage
               source={imageSource}
               style={styles.image}
               resizeMode="cover"

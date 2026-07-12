@@ -1,7 +1,8 @@
 import React from 'react';
-import {Image, StyleSheet, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 import {COLORS} from '@constants/colors';
 import EmptyImage from '@assets/images/wlogo_gray_up.svg';
+import AppImage from '@components/AppImage';
 
 const Avatar = ({
   uri,
@@ -30,7 +31,7 @@ const Avatar = ({
         style,
       ]}>
       {imageUri ? (
-        <Image source={{uri: imageUri}} style={[styles.image, imageStyle]} />
+        <AppImage uri={imageUri} style={[styles.image, imageStyle]} />
       ) : (
         <IconComponent width={fallbackIconSize} height={fallbackIconSize} />
       )}

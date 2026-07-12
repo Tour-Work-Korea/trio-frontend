@@ -1,9 +1,8 @@
-import React, {useMemo, useState, useCallback} from 'react';
+import React, {useMemo, useRef, useState, useCallback} from 'react';
 import {
   View,
   Text,
   TouchableOpacity,
-  Image,
   FlatList,
   ScrollView,
   ActivityIndicator,
@@ -17,6 +16,7 @@ import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -28,8 +28,12 @@ import PeopleIcon from '@assets/images/people_gray.svg';
 
 import {meetScales, stayTypes} from '@constants/meetOptions';
 
+const MEET_CACHE_TTL_MS = 60 * 1000;
+
 const MeetMain = () => {
   const navigation = useNavigation();
+  const inFlightKeyRef = useRef(null);
+  const lastFetchRef = useRef({key: null, time: 0});
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortModalVisible, setSortModalVisible] = useState(false);
@@ -50,8 +54,27 @@ const MeetMain = () => {
   const [meets, setMeets] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  const requestKey = useMemo(
+    () => JSON.stringify({sortOption, scaleId, stayId}),
+    [sortOption, scaleId, stayId],
+  );
+
   const fetchRecent = useCallback(async () => {
+    const now = Date.now();
+
+    if (inFlightKeyRef.current === requestKey) {
+      return;
+    }
+
+    if (
+      lastFetchRef.current.key === requestKey &&
+      now - lastFetchRef.current.time < MEET_CACHE_TTL_MS
+    ) {
+      return;
+    }
+
     try {
+      inFlightKeyRef.current = requestKey;
       setLoading(true);
 
       const params = {sortBy: sortOption};
@@ -65,12 +88,18 @@ const MeetMain = () => {
       const {data} = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
       setMeets(list);
+      prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 8});
+      lastFetchRef.current = {
+        key: requestKey,
+        time: Date.now(),
+      };
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
+      inFlightKeyRef.current = null;
       setLoading(false);
     }
-  }, [sortOption, scaleId, stayId, isBigById, isGuestById]);
+  }, [requestKey, sortOption, scaleId, stayId, isBigById, isGuestById]);
 
   useFocusEffect(
     useCallback(() => {
@@ -128,7 +157,7 @@ const MeetMain = () => {
         onPress={() =>
           navigation.navigate('MeetDetail', {partyId: item.partyId})
         }>
-        <Image source={{uri: item.partyImageUrl}} style={styles.partyThumb} />
+        <AppImage uri={item.partyImageUrl} style={styles.partyThumb} />
         <View style={styles.partyInfo}>
           <View style={styles.partyTopInfo}>
             <View style={styles.partyTitleRow}>

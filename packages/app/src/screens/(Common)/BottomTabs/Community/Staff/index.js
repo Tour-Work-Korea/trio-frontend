@@ -1,8 +1,7 @@
-import React, {useCallback, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Platform,
   Text,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import AlertModal from '@components/modals/AlertModal';
+import AppImage from '@components/AppImage';
 import Loading from '@components/Loading';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
@@ -46,6 +46,8 @@ const sortRecruitsByRecruiting = recruits =>
 
 const Staff = ({isActive}) => {
   const navigation = useNavigation();
+  const hasUserScrolledRef = useRef(false);
+  const isFetchingRef = useRef(false);
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -59,6 +61,12 @@ const Staff = ({isActive}) => {
 
   const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0, isLoadMore = false) => {
+      if (isFetchingRef.current) {
+        return;
+      }
+
+      isFetchingRef.current = true;
+
       try {
         if (isLoadMore) {
           setIsMoreLoading(true);
@@ -89,6 +97,8 @@ const Staff = ({isActive}) => {
           buttonText: '확인',
         });
       } finally {
+        isFetchingRef.current = false;
+
         if (isLoadMore) {
           setIsMoreLoading(false);
         } else {
@@ -104,6 +114,7 @@ const Staff = ({isActive}) => {
       if (!isActive) {
         return;
       }
+      hasUserScrolledRef.current = false;
       setRecruitList([]);
       setHasNext(true);
       setPage(0);
@@ -111,27 +122,37 @@ const Staff = ({isActive}) => {
     }, [tryFetchRecruitList, isActive]),
   );
 
-  const handleEndReached = () => {
-    if (isInitialLoading || isMoreLoading || !hasNext) {
+  const handleEndReached = useCallback(() => {
+    if (
+      !hasUserScrolledRef.current ||
+      isInitialLoading ||
+      isMoreLoading ||
+      !hasNext
+    ) {
       return;
     }
 
     tryFetchRecruitList(page + 1, true);
-  };
+  }, [hasNext, isInitialLoading, isMoreLoading, page, tryFetchRecruitList]);
 
-  const handleJobPress = id =>
+  const handleScrollBeginDrag = useCallback(() => {
+    hasUserScrolledRef.current = true;
+  }, []);
+
+  const handleJobPress = useCallback(id => {
     navigation.navigate('CommunityStaffDetail', {id});
+  }, [navigation]);
 
-  const handleToggleFavorite = item => {
+  const handleToggleFavorite = useCallback(item => {
     toggleFavorite({
       type: 'recruit',
       id: item.recruitId,
       isLiked: item.isLiked,
       setList: setRecruitList,
     });
-  };
+  }, []);
 
-  const renderTags = hashtags => {
+  const renderTags = useCallback(hashtags => {
     if (!hashtags?.length) {
       return null;
     }
@@ -151,9 +172,9 @@ const Staff = ({isActive}) => {
         })}
       </View>
     );
-  };
+  }, []);
 
-  const renderRecruit = ({item}) => {
+  const renderRecruit = useCallback(({item}) => {
     const isClosed = item.isRecruiting === false;
     const imageUrl =
       item.profileSummary?.profileImageUrl ||
@@ -171,8 +192,8 @@ const Staff = ({isActive}) => {
         <View style={styles.headerRow}>
           <View style={styles.headerInfoRow}>
             {imageUrl ? (
-              <Image
-                source={{uri: imageUrl}}
+              <AppImage
+                uri={imageUrl}
                 style={[styles.avatar, isClosed && styles.avatarClosed]}
               />
             ) : (
@@ -299,9 +320,9 @@ const Staff = ({isActive}) => {
         </View> */}
       </TouchableOpacity>
     );
-  };
+  }, [handleJobPress, handleToggleFavorite, renderTags]);
 
-  const renderListFooter = () => {
+  const renderListFooter = useCallback(() => {
     const shouldShowAd =
       Boolean(staffListBannerAdUnitId) &&
       !hasNext &&
@@ -328,7 +349,9 @@ const Staff = ({isActive}) => {
         ) : null}
       </View>
     );
-  };
+  }, [hasNext, isMoreLoading, recruitList.length]);
+
+  const keyExtractor = useCallback(item => item.recruitId.toString(), []);
 
   if (isInitialLoading && page === 0) {
     return (
@@ -342,10 +365,12 @@ const Staff = ({isActive}) => {
     <View style={styles.container}>
       <FlatList
         data={recruitList}
-        keyExtractor={item => item.recruitId.toString()}
+        keyExtractor={keyExtractor}
         renderItem={renderRecruit}
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        onScrollBeginDrag={handleScrollBeginDrag}
         contentContainerStyle={styles.listContent}
         ListFooterComponent={renderListFooter}
       />
@@ -360,4 +385,4 @@ const Staff = ({isActive}) => {
   );
 };
 
-export default Staff;
+export default memo(Staff);

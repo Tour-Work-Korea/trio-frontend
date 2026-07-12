@@ -16,6 +16,10 @@ import authApi from '@utils/api/authApi';
 import {COLORS} from '@constants/colors';
 import {storeLoginTokens, storeWebSessionInfo} from '@utils/auth/login';
 import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
+import {
+  mergeSocialProfiles,
+  normalizeSocialProfile,
+} from '@utils/auth/socialProfile';
 
 const KAKAO_WEB_CALLBACK_PATH = '/auth/kakao/callback';
 const KAKAO_WEB_STATE_KEY = 'trio-kakao-oauth-state';
@@ -241,6 +245,27 @@ const SocialLogin = () => {
     return data.access_token;
   };
 
+  const getNaverProfileFallback = async accessToken => {
+    try {
+      const response = await fetch('https://openapi.naver.com/v1/nid/me', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = await response.json();
+
+      if (!response.ok || data?.resultcode !== '00') {
+        return {};
+      }
+
+      return normalizeSocialProfile(data);
+    } catch (error) {
+      return {};
+    }
+  };
+
   const handleLoginByToken = async tokenValue => {
     if (!tokenValue || isSubmitting) {
       return;
@@ -267,20 +292,21 @@ const SocialLogin = () => {
           return;
         }
 
+        const backendProfile = normalizeSocialProfile(data);
+        const providerProfile =
+          provider === 'NAVER' ? await getNaverProfileFallback(tokenValue) : {};
+        const socialProfile = mergeSocialProfiles(
+          backendProfile,
+          providerProfile,
+        );
+
         navigation.replace('PhoneCertificate', {
           user: 'USER',
           agreements: [],
           isSocial: true,
           provider,
           socialSignupToken: data.socialSignupToken,
-          socialProfile: data.profile ||
-            data.socialProfile || {
-              email: data.email || '',
-              nickname: data.nickname || '',
-              name: data.name || '',
-              birthday: data.birthday || '',
-              gender: data.gender || '',
-            },
+          socialProfile,
         });
         return;
       }

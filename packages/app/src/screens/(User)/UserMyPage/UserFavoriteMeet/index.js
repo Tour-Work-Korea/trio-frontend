@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState, useCallback} from 'react';
-import {View, Text, Image, FlatList, TouchableOpacity} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 dayjs.locale('ko');
@@ -12,6 +12,7 @@ import {COLORS} from '@constants/colors';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import userMeetApi from '@utils/api/userMeetApi';
+import AppImage from '@components/AppImage';
 
 import FillHeart from '@assets/images/heart_filled.svg';
 import SearchEmpty from '@assets/images/search_empty_sprinkle.svg';
@@ -55,12 +56,6 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
     })();
   }, [fetchFavorites]);
 
-  const onRefresh = useCallback(async () => {
-    setRefreshing(true);
-    await fetchFavorites();
-    setRefreshing(false);
-  }, [fetchFavorites]);
-
   const handleUnfavorite = useCallback(
     async partyId => {
       if (removingId) return;
@@ -100,7 +95,7 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.id })}
       >
         <View style={{flexDirection: 'row'}}>
-          <Image source={item.image} style={styles.thumbnail} />
+          <AppImage source={item.image} style={styles.thumbnail} />
 
           <View style={styles.middle}>
             <View>

@@ -1,10 +1,11 @@
 import React, {useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, Image} from 'react-native';
+import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import LeftArrow from '@assets/images/chevron_left_black.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import AppImage from '@components/AppImage';
 
 export default function RecruitHeaderSection({
   tags,
@@ -22,8 +23,8 @@ export default function RecruitHeaderSection({
 
   return (
     <View>
-      <Image
-        source={{uri: thumbnailUrl}}
+      <AppImage
+        uri={thumbnailUrl}
         style={[styles.mainImage, {backgroundColor: COLORS.grayscale_200}]}
       />
       <View style={styles.headerContainer}>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Image, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
@@ -10,6 +10,7 @@ import userMyApi from '@utils/api/userMyApi';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
 import ButtonScarlet from '@components/ButtonScarlet';
+import AppImage from '@components/AppImage';
 
 import FillHeart from '@assets/images/heart_filled.svg';
 import Star from '@assets/images/star_white.svg';
@@ -73,8 +74,8 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
         }}
       >
         <View>
-          <Image
-            source={{ uri: item.thumbnailImgUrl }}
+          <AppImage
+            uri={item.thumbnailImgUrl}
             style={styles.image}
             resizeMode="cover"
           />

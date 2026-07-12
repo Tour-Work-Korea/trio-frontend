@@ -20,14 +20,6 @@ export const generateDeeplink = path => {
 };
 
 /**
- * 예시 함수 -> 추후 삭제 예정
- * @param {string} id
- */
-export const exDeeplink = id => {
-  return generateDeeplink(`exDeeplink/${id}`);
-};
-
-/**
  * 게스트하우스 상세
  * @param {string} guesthouseId
  */

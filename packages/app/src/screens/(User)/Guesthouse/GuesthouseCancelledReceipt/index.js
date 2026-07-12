@@ -1,5 +1,5 @@
 import React, {useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, TouchableOpacity, ScrollView} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 
 import styles from './GuesthouseCancelledReceipt.styles';
@@ -10,6 +10,7 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import dayjs from 'dayjs';
 import {normalizeRefundPolicies} from '@utils/refundPolicyAgreement';
+import AppImage from '@components/AppImage';
 
 import XBtn from '@assets/images/x_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
@@ -272,8 +273,8 @@ const GuesthouseCancelledReceipt = () => {
 
         {/* 게하 정보 */}
         <View style={styles.summaryCard}>
-          <Image
-            source={{uri: data.imageUrl}}
+          <AppImage
+            uri={data.imageUrl}
             style={styles.thumbnail}
             resizeMode="cover"
           />

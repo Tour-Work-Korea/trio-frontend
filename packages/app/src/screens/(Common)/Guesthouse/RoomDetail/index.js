@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
-  Image,
   ScrollView,
   TouchableOpacity,
   Alert,
@@ -22,6 +21,7 @@ import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ImageModal from '@components/modals/ImageModal';
 import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
+import AppImage from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';
@@ -126,8 +126,8 @@ const RoomDetail = ({route}) => {
                 <TouchableOpacity
                   activeOpacity={1}
                   onPress={() => setImageModalVisible(true)}>
-                  <Image
-                    source={{uri: item.roomImageUrl}}
+                  <AppImage
+                    uri={item.roomImageUrl}
                     style={styles.image}
                   />
                 </TouchableOpacity>
