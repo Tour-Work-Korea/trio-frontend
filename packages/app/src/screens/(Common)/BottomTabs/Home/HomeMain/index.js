@@ -40,6 +40,7 @@ import CategoryReading from '@assets/images/category_reading.svg';
 import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
 import CategoryProgram from '@assets/images/category_program.svg';
 import CategoryRelax from '@assets/images/category_relax.svg';
+import JejuAirplane from '@assets/images/jeju_airplane.svg';
 // import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 // import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
@@ -323,6 +324,10 @@ const HomeMain = () => {
     });
   };
 
+  const handlePressStaffNoticeBanner = () => {
+    navigation.navigate('커뮤니티', {tab: 'STAFF'});
+  };
+
   // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
   // const scrollToY = y => {
   //   scrollRef.current?.scrollTo({y, animated: true});
@@ -585,6 +590,28 @@ const HomeMain = () => {
                 style={styles.boxContainer}>
                 <Meets events={eventList} setEventList={setEventList} />
               </View> */}
+
+          {/* 제주 한달살기 공고 배너 시작: 필요 없을 때 이 블록과 관련 스타일을 삭제해주세요. */}
+          <View style={styles.boxContainer}>
+            <View style={styles.staffNoticeBanner}>
+              <View style={styles.staffNoticeBannerLeft}>
+                <JejuAirplane width={16} height={16} />
+                <Text style={[FONTS.fs_16_semibold, styles.staffNoticeTitle]}>
+                  제주 <Text style={styles.staffNoticeHighlight}>한달살기</Text>{' '}
+                  어때?
+                </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.staffNoticeButton}
+                onPress={handlePressStaffNoticeBanner}>
+                <Text style={styles.staffNoticeButtonText}>
+                  현재 모집 중인 스탭 공고 보러가기
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* 제주 한달살기 공고 배너 끝 */}
 
           <View style={styles.boxContainer}>
             <RecentGuesthouses guesthouses={recentGuesthouseList} />
