@@ -1,5 +1,5 @@
 import React, { useEffect, useState , useCallback } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
@@ -9,6 +9,7 @@ import NoReview from '@assets/images/wa_orange_noreview.svg';
 import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
+import AppImage from '@components/AppImage';
 
 const UserGuesthouseReviewWrite = () => {
   const navigation = useNavigation();
@@ -53,8 +54,8 @@ const UserGuesthouseReviewWrite = () => {
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.guesthouseInfo}>
-            <Image
-              source={{ uri: item.guesthouseImage }}
+            <AppImage
+              uri={item.guesthouseImage}
               style={styles.image}
               resizeMode="cover"
             />

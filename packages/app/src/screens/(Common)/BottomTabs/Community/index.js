@@ -432,24 +432,31 @@ const Community = () => {
   );
 
   const renderCategoryPage = useCallback(
-    category => (
-      <View
-        key={category.key}
-        style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
-        {category.contentType === 'RECRUIT' ? (
-          <Staff isActive={isActive(category.key)} />
-        ) : (
-          <CommunityPostList
-            category={category}
-            selectedSort={selectedSort}
-            isActive={isActive(category.key)}
-            sourceRouteTab={getCategoryRouteTab(category)}
-            contentContainerStyle={styles.pageListContent}
-          />
-        )}
-      </View>
-    ),
-    [isActive, pageWidth, selectedSort],
+    (category, index = activeIndex) => {
+      const pageStyle = [styles.page, pageWidth > 0 && {width: pageWidth}];
+      const isCurrentPage = index === activeIndex;
+
+      if (Platform.OS !== 'web' && !isCurrentPage) {
+        return <View key={category.key} style={pageStyle} />;
+      }
+
+      return (
+        <View key={category.key} style={pageStyle}>
+          {category.contentType === 'RECRUIT' ? (
+            <Staff isActive={isActive(category.key)} />
+          ) : (
+            <CommunityPostList
+              category={category}
+              selectedSort={selectedSort}
+              isActive={isActive(category.key)}
+              sourceRouteTab={getCategoryRouteTab(category)}
+              contentContainerStyle={styles.pageListContent}
+            />
+          )}
+        </View>
+      );
+    },
+    [activeIndex, isActive, pageWidth, selectedSort],
   );
 
   return (

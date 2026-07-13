@@ -6,7 +6,7 @@ export default StyleSheet.create({
   container: {
     flex: 1,
     flexDirection: 'column',
-    backgroundColor: COLORS.grayscale_100,
+    backgroundColor: COLORS.grayscale_0,
   },
   verticalScroll: {
     ...Platform.select({
@@ -269,6 +269,49 @@ export default StyleSheet.create({
   recentGuesthouseGap: {
     width: 14,
   },
+  // 제주 한달살기 공고 배너 시작: 필요 없을 때 이 스타일 묶음을 삭제해주세요.
+  staffNoticeBanner: {
+    marginHorizontal: 16,
+    marginVertical: 8,
+    paddingHorizontal: 14,
+    paddingVertical: 12,
+    borderRadius: 16,
+    backgroundColor: '#FFFAE3',
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 4,
+  },
+  staffNoticeBannerLeft: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    flexShrink: 1,
+    minWidth: 0,
+    gap: 8,
+  },
+  staffNoticeTitle: {
+    color: COLORS.grayscale_900,
+    flexShrink: 1,
+  },
+  staffNoticeHighlight: {
+    color: COLORS.primary_orange,
+  },
+  staffNoticeButton: {
+    borderWidth: 1,
+    borderColor: '#FECE30',
+    borderRadius: 100,
+    paddingHorizontal: 14,
+    paddingVertical: 7,
+    backgroundColor: COLORS.grayscale_0,
+    flexShrink: 0,
+  },
+  staffNoticeButtonText: {
+    fontSize: 11,
+    fontFamily: FONTS.fs_12_medium.fontFamily,
+    color: COLORS.grayscale_800,
+    includeFontPadding: false,
+  },
+  // 제주 한달살기 공고 배너 끝
   // 게하 카드
   guesthouseCardContainer: {
     gap: 20,

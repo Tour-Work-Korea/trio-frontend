@@ -1,5 +1,5 @@
 import React from 'react';
-import { View, Text, FlatList, Image, StyleSheet, TouchableOpacity } from 'react-native';
+import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import Clipboard from '@react-native-clipboard/clipboard';
@@ -14,6 +14,7 @@ import ButtonWhite from '@components/ButtonWhite';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
+import AppImage from '@components/AppImage';
 
 export default function UserUpcomingReservations({ data, onRefresh }) {
   const navigation = useNavigation();
@@ -138,8 +139,8 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
             </TouchableOpacity>
           </View>
           <View style={styles.guesthouseInfo}>
-            <Image
-              source={{ uri: item.guesthouseImage }}
+            <AppImage
+              uri={item.guesthouseImage}
               style={styles.image}
               resizeMode="cover"
             />

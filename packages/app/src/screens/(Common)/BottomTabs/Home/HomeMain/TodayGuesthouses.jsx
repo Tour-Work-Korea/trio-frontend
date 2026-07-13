@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   StyleSheet,
   Pressable,
   TouchableOpacity,
@@ -20,6 +19,7 @@ import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import Loading from '@components/Loading';
 import Avatar from '@components/Avatar';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 const PAGE_SIZE = 6;
 
@@ -53,6 +53,9 @@ export default function TodayGuesthouses() {
         setItems(prev =>
           isRefresh ? data.content ?? [] : [...prev, ...(data.content ?? [])],
         );
+        prefetchImageUrls((data.content ?? []).map(item => item.thumbnailUrl), {
+          limit: 6,
+        });
       } catch (e) {
         console.warn(
           'today intros fetch fail',
@@ -112,7 +115,7 @@ export default function TodayGuesthouses() {
               guesthouseId: item.guesthouseId,
             })
           }>
-          <Image source={{uri: item.thumbnailUrl}} style={styles.thumb} />
+          <AppImage uri={item.thumbnailUrl} style={styles.thumb} />
 
           <View style={styles.cardBody}>
             {/* 제목 */}

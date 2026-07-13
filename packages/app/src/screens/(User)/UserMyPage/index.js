@@ -1,5 +1,5 @@
-import React, {useCallback, useState} from 'react';
-import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import React, {useCallback, useEffect, useState} from 'react';
+import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
@@ -29,11 +29,13 @@ import {isUserNotification} from '@utils/notifications';
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 
+const REVIEW_BUBBLE_DISMISSED_COUNT_KEY = 'trio:my-review-bubble-dismissed-count';
+
 const UserMyPage = () => {
   const navigation = useNavigation();
   const [reviewCount, setReviewCount] = useState(0);
   const [reviewableCount, setReviewableCount] = useState(0);
-  const [showReviewBubble, setShowReviewBubble] = useState(true);
+  const [showReviewBubble, setShowReviewBubble] = useState(Platform.OS !== 'web');
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -63,6 +65,33 @@ const UserMyPage = () => {
     navigation.navigate('UserEditProfile', {
       userInfo: user,
     });
+  };
+
+  useEffect(() => {
+    if (Platform.OS !== 'web') {
+      return;
+    }
+
+    if (reviewableCount <= 0) {
+      setShowReviewBubble(false);
+      return;
+    }
+
+    const dismissedCount = Number(
+      window.localStorage?.getItem(REVIEW_BUBBLE_DISMISSED_COUNT_KEY) ?? 0,
+    );
+    setShowReviewBubble(!Number.isFinite(dismissedCount) || dismissedCount < reviewableCount);
+  }, [reviewableCount]);
+
+  const closeReviewBubble = () => {
+    if (Platform.OS === 'web') {
+      window.localStorage?.setItem(
+        REVIEW_BUBBLE_DISMISSED_COUNT_KEY,
+        String(reviewableCount),
+      );
+    }
+
+    setShowReviewBubble(false);
   };
 
   useFocusEffect(
@@ -250,7 +279,7 @@ const UserMyPage = () => {
                     activeOpacity={0.8}
                     style={styles.reviewBubbleClose}
                     hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-                    onPress={() => setShowReviewBubble(false)}
+                    onPress={closeReviewBubble}
                   >
                     <Text style={styles.reviewBubbleCloseText}>X</Text>
                   </TouchableOpacity>

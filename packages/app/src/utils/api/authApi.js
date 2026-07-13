@@ -1,5 +1,6 @@
 import useUserStore from '@stores/userStore';
 import api from './axiosInstance';
+import {Platform} from 'react-native';
 
 const {setUserRole} = useUserStore.getState();
 
@@ -57,6 +58,22 @@ const authApi = {
       withAuth: false,
     }),
 
+  // 소셜 회원가입/연동 휴대폰 인증번호 발송
+  sendSocialSignUpSms: ({socialSignupToken, phoneNum}) =>
+    api.post(
+      '/auth/user/signup/social/sms/send',
+      {socialSignupToken, phoneNum},
+      {withAuth: false},
+    ),
+
+  // 소셜 회원가입/연동 휴대폰 인증번호 검증
+  verifySocialSignUpSms: ({socialSignupToken, phoneNum, code}) =>
+    api.post(
+      '/auth/user/signup/social/sms/verify',
+      {socialSignupToken, phoneNum, code},
+      {withAuth: false},
+    ),
+
   // 휴대폰 인증
   // purpose: SIGN_UP | FIND_ACCOUNT | PHONE_CHANGE
   sendSms: (phoneNum, userRole, purpose = 'SIGN_UP') =>
@@ -77,11 +94,58 @@ const authApi = {
     api.post('/auth/user/signup', userData, {withAuth: false}),
 
   //로그인
-  login: (email, password, userRole) =>
-    api.post('/auth/login', {email, password, userRole}, {withAuth: false}),
+  login: (email, password, userRole) => {
+    if (Platform.OS === 'web') {
+      return api.post(
+        '/user/auth/login',
+        {email, password},
+        {withAuth: false},
+      );
+    }
+
+    return api.post(
+      '/auth/login',
+      {email, password, userRole},
+      {withAuth: false},
+    );
+  },
+
+  adminLogin: (email, password) => {
+    if (Platform.OS === 'web') {
+      return api.post(
+        '/admin/auth/login',
+        {email, password},
+        {withAuth: false},
+      );
+    }
+
+    return api.post(
+      '/auth/login',
+      {email, password, userRole: 'ADMIN'},
+      {withAuth: false},
+    );
+  },
 
   //토큰 재발급
   refreshToken: async refreshToken => {
+    if (Platform.OS === 'web') {
+      const url = '/user/auth/refresh';
+      console.log(`🔄 Web Session Refresh Request: POST ${url}`);
+
+      try {
+        return await api.post(url);
+      } catch (err) {
+        console.warn(
+          '🧨 [authApi.refreshToken] 웹 세션 재발급 실패=>userRole 리셋',
+          err.response?.status,
+          err.response?.data || err.message,
+        );
+        setUserRole('');
+
+        throw err;
+      }
+    }
+
     const url = '/auth/refresh';
     console.log(`🔄 Refresh Request: POST ${url}`);
 
@@ -106,13 +170,37 @@ const authApi = {
     }
   },
 
+  //소셜 로그인
+  loginSocial: ({provider, accessToken, token, credential}) => {
+    const body = {provider};
+
+    if (credential) {
+      body.credential = credential;
+    } else if (token) {
+      body.token = token;
+    } else if (accessToken) {
+      body.accessToken = accessToken;
+    }
+
+    const url =
+      Platform.OS === 'web'
+        ? '/user/auth/social-login'
+        : '/auth/user/social-login';
+
+    return api.post(url, body, {withAuth: false});
+  },
+
   //카카오 로그인
   loginKakao: accessToken =>
-    api.post(
-      '/auth/user/social-login',
-      {provider: 'KAKAO', accessToken},
-      {withAuth: false},
-    ),
+    authApi.loginSocial({provider: 'KAKAO', accessToken}),
+
+  //네이버 로그인
+  loginNaver: accessToken =>
+    authApi.loginSocial({provider: 'NAVER', accessToken}),
+
+  //구글 로그인
+  loginGoogle: credential =>
+    authApi.loginSocial({provider: 'GOOGLE', credential}),
 
   //닉네임 중복 확인
   checkNickname: nickname =>
@@ -143,7 +231,13 @@ const authApi = {
     api.post('/auth/find/password', body, {withAuth: false}),
 
   //로그아웃
-  logout: refreshToken => api.post('/auth/logout', {refreshToken}),
+  logout: refreshToken => {
+    if (Platform.OS === 'web') {
+      return api.post('/user/auth/logout');
+    }
+
+    return api.post('/auth/logout', {refreshToken});
+  },
 
   //회원 탈퇴
   withdrawal: () => api.post('/auth/user/withdrawal'),

@@ -30,7 +30,7 @@
       content="게스트하우스 숙박 예약과 파티·체험 콘텐츠 신청을 한곳에서 확인해 보세요."
     />
     <meta name="twitter:domain" content="app.ddakji.kr" />
-    <link rel="icon" type="image/svg+xml" href="/assets/favicon-KCBfg8P2.svg" />
+    <link rel="icon" type="image/svg+xml" href="/favicon-app.svg" />
     <title>게딱지(게스트하우스 딱, 지금!)</title>
     <!-- Temporarily disabled web ads.
     <script
@@ -66,27 +66,64 @@
         box-sizing: border-box;
       }
     </style>
-    <script type="module" crossorigin src="/assets/index-DEOnJGLj.js"></script>
+    <script type="module" crossorigin src="/assets/index-J0e8FXx5.js"></script>
     <link rel="stylesheet" crossorigin href="/assets/index-B8w4Odj4.css">
   </head>
   <body>
     <div id="root"></div>
     <script>
       (function () {
+        var stableViewportHeight = 0;
+
+        function isTextInputFocused() {
+          var activeElement = document.activeElement;
+
+          if (!activeElement) {
+            return false;
+          }
+
+          var tagName = activeElement.tagName;
+
+          return (
+            tagName === 'INPUT' ||
+            tagName === 'TEXTAREA' ||
+            activeElement.isContentEditable
+          );
+        }
+
         function setViewportHeight() {
           var visualViewport = window.visualViewport;
-          var height =
+          var visualViewportHeight =
             visualViewport && visualViewport.height
               ? visualViewport.height
               : window.innerHeight;
+          var layoutViewportHeight = window.innerHeight || visualViewportHeight;
           var isMobileWeb =
             window.matchMedia &&
             window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+          var keyboardHeight = Math.max(
+            0,
+            layoutViewportHeight - visualViewportHeight,
+          );
+          var stableHeightDelta = Math.max(
+            0,
+            stableViewportHeight - visualViewportHeight,
+          );
+          var isKeyboardOpen =
+            isMobileWeb &&
+            isTextInputFocused() &&
+            (keyboardHeight > 120 || stableHeightDelta > 120);
           var topOffset =
             visualViewport && Number.isFinite(visualViewport.offsetTop)
               ? visualViewport.offsetTop
               : 0;
-          var mobileTopInset = isMobileWeb ? 12 : 0;
+          var height = visualViewportHeight;
+
+          if (!isKeyboardOpen) {
+            stableViewportHeight = Math.max(stableViewportHeight, height);
+          } else if (stableViewportHeight > 0) {
+            height = stableViewportHeight;
+          }
 
           document.documentElement.style.setProperty(
             '--trio-vh',
@@ -94,7 +131,7 @@
           );
           document.documentElement.style.setProperty(
             '--trio-safe-area-top',
-            Math.max(topOffset, mobileTopInset) + 'px',
+            Math.max(topOffset, 0) + 'px',
           );
         }
 

@@ -1,15 +1,17 @@
-import React, {useCallback, useState} from 'react';
+import React, {memo, useCallback, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
+  Platform,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import AlertModal from '@components/modals/AlertModal';
+import AppImage from '@components/AppImage';
 import Loading from '@components/Loading';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
@@ -22,9 +24,30 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
 
 const PAGE_SIZE = 8;
+const staffListBannerAdUnitId = __DEV__
+  ? TestIds.BANNER
+  : Platform.select({
+      ios: 'ca-app-pub-6098454400067335/4619471702',
+      android: 'ca-app-pub-6098454400067335/5920208998',
+      web: 'ca-pub-6098454400067335/4250943648',
+    });
+
+const sortRecruitsByRecruiting = recruits =>
+  [...recruits].sort((a, b) => {
+    const aClosed = a?.isRecruiting === false;
+    const bClosed = b?.isRecruiting === false;
+
+    if (aClosed === bClosed) {
+      return 0;
+    }
+
+    return aClosed ? 1 : -1;
+  });
 
 const Staff = ({isActive}) => {
   const navigation = useNavigation();
+  const hasUserScrolledRef = useRef(false);
+  const isFetchingRef = useRef(false);
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -38,6 +61,12 @@ const Staff = ({isActive}) => {
 
   const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0, isLoadMore = false) => {
+      if (isFetchingRef.current) {
+        return;
+      }
+
+      isFetchingRef.current = true;
+
       try {
         if (isLoadMore) {
           setIsMoreLoading(true);
@@ -53,7 +82,9 @@ const Staff = ({isActive}) => {
         const {content, last, number} = res.data;
 
         setRecruitList(prev =>
-          pageToFetch === 0 ? content : [...prev, ...content],
+          sortRecruitsByRecruiting(
+            pageToFetch === 0 ? content : [...prev, ...content],
+          ),
         );
         setPage(number);
         setHasNext(!last);
@@ -66,6 +97,8 @@ const Staff = ({isActive}) => {
           buttonText: '확인',
         });
       } finally {
+        isFetchingRef.current = false;
+
         if (isLoadMore) {
           setIsMoreLoading(false);
         } else {
@@ -81,6 +114,7 @@ const Staff = ({isActive}) => {
       if (!isActive) {
         return;
       }
+      hasUserScrolledRef.current = false;
       setRecruitList([]);
       setHasNext(true);
       setPage(0);
@@ -88,27 +122,37 @@ const Staff = ({isActive}) => {
     }, [tryFetchRecruitList, isActive]),
   );
 
-  const handleEndReached = () => {
-    if (isInitialLoading || isMoreLoading || !hasNext) {
+  const handleEndReached = useCallback(() => {
+    if (
+      !hasUserScrolledRef.current ||
+      isInitialLoading ||
+      isMoreLoading ||
+      !hasNext
+    ) {
       return;
     }
 
     tryFetchRecruitList(page + 1, true);
-  };
+  }, [hasNext, isInitialLoading, isMoreLoading, page, tryFetchRecruitList]);
 
-  const handleJobPress = id =>
+  const handleScrollBeginDrag = useCallback(() => {
+    hasUserScrolledRef.current = true;
+  }, []);
+
+  const handleJobPress = useCallback(id => {
     navigation.navigate('CommunityStaffDetail', {id});
+  }, [navigation]);
 
-  const handleToggleFavorite = item => {
+  const handleToggleFavorite = useCallback(item => {
     toggleFavorite({
       type: 'recruit',
       id: item.recruitId,
       isLiked: item.isLiked,
       setList: setRecruitList,
     });
-  };
+  }, []);
 
-  const renderTags = hashtags => {
+  const renderTags = useCallback(hashtags => {
     if (!hashtags?.length) {
       return null;
     }
@@ -128,9 +172,10 @@ const Staff = ({isActive}) => {
         })}
       </View>
     );
-  };
+  }, []);
 
-  const renderRecruit = ({item}) => {
+  const renderRecruit = useCallback(({item}) => {
+    const isClosed = item.isRecruiting === false;
     const imageUrl =
       item.profileSummary?.profileImageUrl ||
       item.thumbnailImage ||
@@ -142,25 +187,44 @@ const Staff = ({isActive}) => {
     return (
       <TouchableOpacity
         activeOpacity={0.8}
-        style={styles.recruitItem}
+        style={[styles.recruitItem, isClosed && styles.recruitItemClosed]}
         onPress={() => handleJobPress(item.recruitId)}>
         <View style={styles.headerRow}>
           <View style={styles.headerInfoRow}>
             {imageUrl ? (
-              <Image source={{uri: imageUrl}} style={styles.avatar} />
+              <AppImage
+                uri={imageUrl}
+                style={[styles.avatar, isClosed && styles.avatarClosed]}
+              />
             ) : (
-              <View style={styles.avatar} />
+              <View style={[styles.avatar, isClosed && styles.avatarClosed]} />
             )}
             <Text
-              style={[FONTS.fs_14_medium, styles.guesthouseName]}
+              style={[
+                FONTS.fs_14_medium,
+                styles.guesthouseName,
+                isClosed && styles.closedPrimaryText,
+              ]}
               numberOfLines={1}>
               {item.guesthouseName}
             </Text>
             {!!deadline && (
-              <Text style={[FONTS.fs_14_regular, styles.deadline]}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.deadline,
+                  isClosed && styles.closedSecondaryText,
+                ]}>
                 ~{deadline}
               </Text>
             )}
+            {isClosed ? (
+              <View style={styles.closedBadge}>
+                <Text style={[FONTS.fs_12_medium, styles.closedBadgeText]}>
+                  마감
+                </Text>
+              </View>
+            ) : null}
           </View>
           <TouchableOpacity
             activeOpacity={0.8}
@@ -178,23 +242,63 @@ const Staff = ({isActive}) => {
         </View>
 
         <Text
-          style={[FONTS.fs_14_medium, styles.recruitTitle]}
+          style={[
+            FONTS.fs_14_medium,
+            styles.recruitTitle,
+            isClosed && styles.closedPrimaryText,
+          ]}
           numberOfLines={1}>
           {item.recruitTitle}
         </Text>
 
         <View style={styles.metaRow}>
-          <Text style={[FONTS.fs_12_regular, styles.address]} numberOfLines={1}>
+          <Text
+            style={[
+              FONTS.fs_12_regular,
+              styles.address,
+              isClosed && styles.closedSecondaryText,
+            ]}
+            numberOfLines={1}>
             {address}
           </Text>
           {!!workDuration && (
-            <Text style={[FONTS.fs_12_regular, styles.workPeriod]}>
+            <Text
+              style={[
+                FONTS.fs_12_regular,
+                styles.workPeriod,
+                isClosed && styles.closedSecondaryText,
+              ]}>
               {workDuration}
             </Text>
           )}
         </View>
 
-        {renderTags(item.hashtags)}
+        {isClosed && item.hashtags?.length ? (
+          <View style={styles.tagRow}>
+            {item.hashtags?.slice(0, 3).map((tag, index) => {
+              const tagLabel = tag?.hashtag ?? tag;
+
+              return (
+                <View
+                  key={`${tagLabel}-${index}`}
+                  style={[styles.tag, styles.tagClosed]}>
+                  <Text
+                    style={[
+                      FONTS.fs_12_medium,
+                      styles.tagText,
+                      styles.tagTextClosed,
+                    ]}>
+                    {tagLabel}
+                  </Text>
+                </View>
+              );
+            })}
+          </View>
+        ) : !isClosed ? (
+          renderTags(item.hashtags)
+        ) : (
+          null
+        )}
 
         {/* <View style={styles.actionRow}>
           <View style={styles.actionItem}>
@@ -216,7 +320,38 @@ const Staff = ({isActive}) => {
         </View> */}
       </TouchableOpacity>
     );
-  };
+  }, [handleJobPress, handleToggleFavorite, renderTags]);
+
+  const renderListFooter = useCallback(() => {
+    const shouldShowAd =
+      Boolean(staffListBannerAdUnitId) &&
+      !hasNext &&
+      recruitList.length > 0 &&
+      !isMoreLoading;
+
+    return (
+      <View>
+        {isMoreLoading ? (
+          <ActivityIndicator
+            size="small"
+            color={COLORS.grayscale_500}
+            style={styles.footerLoading}
+          />
+        ) : null}
+
+        {shouldShowAd ? (
+          <View style={styles.adBannerContainer}>
+            <BannerAd
+              unitId={staffListBannerAdUnitId}
+              size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            />
+          </View>
+        ) : null}
+      </View>
+    );
+  }, [hasNext, isMoreLoading, recruitList.length]);
+
+  const keyExtractor = useCallback(item => item.recruitId.toString(), []);
 
   if (isInitialLoading && page === 0) {
     return (
@@ -230,20 +365,14 @@ const Staff = ({isActive}) => {
     <View style={styles.container}>
       <FlatList
         data={recruitList}
-        keyExtractor={item => item.recruitId.toString()}
+        keyExtractor={keyExtractor}
         renderItem={renderRecruit}
         showsVerticalScrollIndicator={false}
         onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        onScrollBeginDrag={handleScrollBeginDrag}
         contentContainerStyle={styles.listContent}
-        ListFooterComponent={
-          isMoreLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.grayscale_500}
-              style={styles.footerLoading}
-            />
-          ) : null
-        }
+        ListFooterComponent={renderListFooter}
       />
 
       <AlertModal
@@ -256,4 +385,4 @@ const Staff = ({isActive}) => {
   );
 };
 
-export default Staff;
+export default memo(Staff);

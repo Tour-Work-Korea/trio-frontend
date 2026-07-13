@@ -3,7 +3,6 @@ import {
   View,
   Text,
   ScrollView,
-  Image,
   TouchableOpacity,
   Dimensions,
   ActivityIndicator,
@@ -23,6 +22,7 @@ import styles from './PopularMeetList.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import { trimJejuPrefix } from '@utils/formatAddress';
 import { toggleFavorite } from '@utils/toggleFavorite';
+import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import HeaderImg from '@assets/images/meet_popular_header.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
@@ -83,6 +83,7 @@ const PopularMeetList = () => {
       const normalized = normalizeParties(list);
 
       setParties(normalized);
+      prefetchImageUrls(normalized.map(item => item.partyImageUrl), {limit: 10});
     } catch (e) {
       console.warn('초기 로딩 실패', e);
       setParties([]);
@@ -121,7 +122,7 @@ const PopularMeetList = () => {
         ]}
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
         {item.partyImageUrl ? (
-          <Image source={{ uri: item.partyImageUrl }} style={styles.trendingImage} />
+          <AppImage uri={item.partyImageUrl} style={styles.trendingImage} />
         ) : (
           <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
         )}
@@ -169,7 +170,7 @@ const PopularMeetList = () => {
         onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
         <View style={styles.meetTopContainer}>
           {item.partyImageUrl ? (
-            <Image source={{ uri: item.partyImageUrl }} style={styles.meetThumb} />
+            <AppImage uri={item.partyImageUrl} style={styles.meetThumb} />
           ) : (
             <View style={[styles.meetThumb, { backgroundColor: COLORS.grayscale_200 }]} />
           )}

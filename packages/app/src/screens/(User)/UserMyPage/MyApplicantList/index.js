@@ -1,5 +1,5 @@
 import React, {useCallback, useState} from 'react';
-import {View, Text, FlatList, TouchableOpacity, Image} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
 import userEmployApi from '@utils/api/userEmployApi';
@@ -11,6 +11,7 @@ import EmployEmpty from '@components/Employ/EmployEmpty';
 import {formatLocalDateToDot} from '@utils/formatDate';
 
 import styles from './MyApplicantList.styles';
+import AppImage from '@components/AppImage';
 // import DeleteWaLogo from '@assets/images/delete_wa.svg';
 
 const MyApplicantList = () => {
@@ -91,8 +92,8 @@ const MyApplicantList = () => {
             navigation.navigate('EmployDetail', {id: item.recruitId})
           }>
           <View style={styles.jobItemContent}>
-            <Image
-              source={{uri: item.recruitImage}}
+            <AppImage
+              uri={item.recruitImage}
               style={styles.jobImage}
               resizeMode="cover"
             />

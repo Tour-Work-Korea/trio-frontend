@@ -1,14 +1,100 @@
-import React, {useMemo, useRef, useState} from 'react';
-import {View, ActivityIndicator} from 'react-native';
-import {useNavigation, useRoute} from '@react-navigation/native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {Platform, View, ActivityIndicator} from 'react-native';
+import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
-import Config from 'react-native-config';
+import {
+  KAKAO_CLIENT_ID,
+  KAKAO_REDIRECT_URI,
+  NAVER_REDIRECT_URI,
+  NAVER_SEARCH_CLIENT_ID,
+  NAVER_SEARCH_CLIENT_SECRET,
+} from '@env';
 
 import AlertModal from '@components/modals/AlertModal';
 import styles from './SocialLogin.styles';
 import authApi from '@utils/api/authApi';
 import {COLORS} from '@constants/colors';
-import {storeLoginTokens} from '@utils/auth/login';
+import {storeLoginTokens, storeWebSessionInfo} from '@utils/auth/login';
+import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
+import {
+  mergeSocialProfiles,
+  normalizeSocialProfile,
+} from '@utils/auth/socialProfile';
+
+const KAKAO_WEB_CALLBACK_PATH = '/auth/kakao/callback';
+const KAKAO_WEB_STATE_KEY = 'trio-kakao-oauth-state';
+
+const PROVIDER_LABELS = {
+  KAKAO: '카카오',
+  NAVER: '네이버',
+  GOOGLE: '구글',
+};
+
+const generateState = provider =>
+  `${provider.toLowerCase()}-${Date.now()}-${Math.random()
+    .toString(36)
+    .slice(2)}`;
+
+const buildQueryString = params =>
+  Object.entries(params)
+    .map(
+      ([key, value]) =>
+        `${encodeURIComponent(key)}=${encodeURIComponent(value || '')}`,
+    )
+    .join('&');
+
+const getWebKakaoRedirectUri = () => {
+  if (Platform.OS !== 'web' || typeof window === 'undefined') {
+    return KAKAO_REDIRECT_URI;
+  }
+
+  return `${window.location.origin}${KAKAO_WEB_CALLBACK_PATH}`;
+};
+
+const parseUrlParams = url => {
+  try {
+    const queryStart = url.indexOf('?');
+    const hashStart = url.indexOf('#');
+    const query =
+      queryStart >= 0
+        ? url.slice(queryStart + 1, hashStart >= 0 ? hashStart : undefined)
+        : '';
+    const hash = hashStart >= 0 ? url.slice(hashStart + 1) : '';
+    const pairs = [query, hash]
+      .filter(Boolean)
+      .join('&')
+      .split('&')
+      .filter(Boolean);
+    const params = pairs.reduce((nextParams, pair) => {
+      const [rawKey, ...rawValueParts] = pair.split('=');
+      const key = decodeURIComponent(rawKey || '');
+      const value = decodeURIComponent(rawValueParts.join('=') || '');
+
+      if (key) {
+        nextParams[key] = value;
+      }
+
+      return nextParams;
+    }, {});
+
+    const fallbackMatch = key => {
+      const match = url.match(new RegExp(`[?#&]${key}=([^&#]+)`));
+      return match ? decodeURIComponent(match[1]) : null;
+    };
+
+    return {
+      code: params.code || fallbackMatch('code'),
+      accessToken: params.access_token || fallbackMatch('access_token'),
+      idToken: params.id_token || fallbackMatch('id_token'),
+      state: params.state || fallbackMatch('state'),
+      error: params.error || fallbackMatch('error'),
+      errorDescription:
+        params.error_description || fallbackMatch('error_description'),
+    };
+  } catch (e) {
+    return {};
+  }
+};
 
 const SocialLogin = () => {
   const navigation = useNavigation();
@@ -16,6 +102,7 @@ const SocialLogin = () => {
   const webviewRef = useRef(null);
 
   const provider = route?.params?.provider || 'KAKAO';
+  const providerLabel = PROVIDER_LABELS[provider] || '소셜';
 
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({
@@ -25,17 +112,54 @@ const SocialLogin = () => {
   });
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const KAKAO_CLIENT_ID = Config.KAKAO_CLIENT_ID;
-  const REDIRECT_URI = Config.KAKAO_REDIRECT_URI;
-
-  const authUrl = useMemo(() => {
+  const oauthConfig = useMemo(() => {
     if (provider === 'KAKAO') {
-      return `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(
-        REDIRECT_URI,
-      )}`;
+      const redirectUri = getWebKakaoRedirectUri();
+      const state = generateState(provider);
+
+      return {
+        clientId: KAKAO_CLIENT_ID,
+        redirectUri,
+        requiredLabel: 'KAKAO_CLIENT_ID 또는 KAKAO_REDIRECT_URI',
+        authUrl: `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+          redirectUri,
+        )}&state=${encodeURIComponent(state)}`,
+        state,
+      };
     }
-    return '';
-  }, [provider, KAKAO_CLIENT_ID, REDIRECT_URI]);
+
+    if (provider === 'NAVER') {
+      const state = generateState(provider);
+
+      return {
+        clientId: NAVER_SEARCH_CLIENT_ID,
+        redirectUri: NAVER_REDIRECT_URI,
+        clientSecret: NAVER_SEARCH_CLIENT_SECRET,
+        requiredLabel:
+          'NAVER_SEARCH_CLIENT_ID, NAVER_SEARCH_CLIENT_SECRET 또는 NAVER_REDIRECT_URI',
+        authUrl: `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_SEARCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(
+          NAVER_REDIRECT_URI,
+        )}&state=${encodeURIComponent(state)}`,
+        state,
+      };
+    }
+
+    if (provider === 'GOOGLE') {
+      return {
+        clientId: '',
+        redirectUri: '',
+        requiredLabel: '구글 로그인은 앱 SDK ID Token 방식으로 처리됩니다',
+        authUrl: '',
+      };
+    }
+
+    return {
+      clientId: '',
+      redirectUri: '',
+      requiredLabel: '지원하지 않는 소셜 provider',
+      authUrl: '',
+    };
+  }, [provider]);
 
   const openError = (message, onPress = null) =>
     setModal({visible: true, message, onPress});
@@ -43,80 +167,173 @@ const SocialLogin = () => {
     setModal({visible: true, message, onPress});
   const handleCloseModal = () =>
     setModal(prev => ({...prev, visible: false, onPress: null}));
+  const resetToLoginIntro = () => {
+    if (Platform.OS === 'web' && typeof window !== 'undefined') {
+      window.location.replace('/login');
+      return;
+    }
 
-  const extractCodeFromUrl = url => {
+    navigation.reset({
+      index: 0,
+      routes: [{name: 'LoginIntro'}],
+    });
+  };
+
+  const loginWithProviderToken = tokenValue => {
+    if (provider === 'GOOGLE') {
+      return authApi.loginGoogle(tokenValue);
+    }
+    if (provider === 'NAVER') {
+      return authApi.loginNaver(tokenValue);
+    }
+    return authApi.loginKakao(tokenValue);
+  };
+
+  const exchangeKakaoCode = async code => {
+    const body = buildQueryString({
+      grant_type: 'authorization_code',
+      client_id: KAKAO_CLIENT_ID,
+      redirect_uri: oauthConfig.redirectUri,
+      code,
+    });
+
+    const response = await fetch('https://kauth.kakao.com/oauth/token', {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/x-www-form-urlencoded;charset=utf-8',
+      },
+      body,
+    });
+    const data = await response.json();
+
+    if (!response.ok || !data.access_token) {
+      throw new Error(
+        data.error_description || data.error || '카카오 access token 발급 실패',
+      );
+    }
+
+    return data.access_token;
+  };
+
+  const exchangeNaverCode = async ({code, state}) => {
+    const params = buildQueryString({
+      grant_type: 'authorization_code',
+      client_id: NAVER_SEARCH_CLIENT_ID,
+      client_secret: NAVER_SEARCH_CLIENT_SECRET,
+      code,
+      state: state || oauthConfig.state || '',
+    });
+
+    const response = await fetch(
+      `https://nid.naver.com/oauth2.0/token?${params.toString()}`,
+      {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+        },
+      },
+    );
+    const data = await response.json();
+
+    if (!response.ok || !data.access_token) {
+      throw new Error(
+        data.error_description || '네이버 access token 발급 실패',
+      );
+    }
+
+    return data.access_token;
+  };
+
+  const getNaverProfileFallback = async accessToken => {
     try {
-      const codeMatch = url.match(/[?&]code=([^&]+)/);
-      return codeMatch ? decodeURIComponent(codeMatch[1]) : null;
-    } catch (e) {
-      return null;
+      const response = await fetch('https://openapi.naver.com/v1/nid/me', {
+        method: 'GET',
+        headers: {
+          Accept: 'application/json',
+          Authorization: `Bearer ${accessToken}`,
+        },
+      });
+      const data = await response.json();
+
+      if (!response.ok || data?.resultcode !== '00') {
+        return {};
+      }
+
+      return normalizeSocialProfile(data);
+    } catch (error) {
+      return {};
     }
   };
 
-  const handleLoginByCode = async code => {
-    if (!code || isSubmitting) {
+  const handleLoginByToken = async tokenValue => {
+    if (!tokenValue || isSubmitting) {
       return;
     }
 
     setIsSubmitting(true);
 
     try {
-      const res = await authApi.loginKakao(code);
+      const res = await loginWithProviderToken(tokenValue);
       const data = res?.data;
 
       if (!data) {
-        openError('로그인 응답이 비어있음', () =>
-          navigation.reset({
-            index: 0,
-            routes: [{name: 'LoginIntro'}],
-          }),
-        );
+        openError('로그인 응답이 비어있음', resetToLoginIntro);
         return;
       }
 
-      // 신규 유저
-      if (data.isNewUser) {
+      const shouldContinueSocialSignUp =
+        data.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
+        (data.status == null && data.isNewUser);
+
+      if (shouldContinueSocialSignUp) {
         if (!data.socialSignupToken) {
-          openError('소셜 가입 세션이 없음', () =>
-            navigation.reset({
-              index: 0,
-              routes: [{name: 'LoginIntro'}],
-            }),
-          );
+          openError('소셜 가입 세션이 없음', resetToLoginIntro);
           return;
         }
-        navigation.reset({
-          index: 0,
-          routes: [
-            {
-              name: 'RegisterAgree',
-              params: {
-                user: 'USER',
-                isSocial: true,
-                provider,
-                socialSignupToken: data.socialSignupToken,
-                socialProfile: data.profile || data.socialProfile || {
-                  email: data.email || '',
-                  nickname: data.nickname || '',
-                  name: data.name || '',
-                  birthday: data.birthday || '',
-                  gender: data.gender || '',
-                },
-              },
-            },
-          ],
+
+        const backendProfile = normalizeSocialProfile(data);
+        const providerProfile =
+          provider === 'NAVER' ? await getNaverProfileFallback(tokenValue) : {};
+        const socialProfile = mergeSocialProfiles(
+          backendProfile,
+          providerProfile,
+        );
+
+        navigation.replace('PhoneCertificate', {
+          user: 'USER',
+          agreements: [],
+          isSocial: true,
+          provider,
+          socialSignupToken: data.socialSignupToken,
+          socialProfile,
         });
         return;
       }
 
-      // 기존 유저
-      if (!data.accessToken || !data.refreshToken) {
-        openError('토큰이 없음', () =>
-          navigation.reset({
+      const isLinkedSocialAccount =
+        data.status === 'LINKED' || (data.status == null && !data.isNewUser);
+
+      if (Platform.OS === 'web') {
+        if (!isLinkedSocialAccount) {
+          openError('로그인 응답 상태를 확인할 수 없음', resetToLoginIntro);
+          return;
+        }
+
+        await storeWebSessionInfo(data.session || data, 'USER');
+        await storeLastLoginProvider(provider);
+
+        navigation.dispatch(
+          CommonActions.reset({
             index: 0,
-            routes: [{name: 'LoginIntro'}],
+            routes: [{name: 'MainTabs'}],
           }),
         );
+        return;
+      }
+
+      if (!isLinkedSocialAccount || !data.accessToken || !data.refreshToken) {
+        openError('토큰이 없음', resetToLoginIntro);
         return;
       }
 
@@ -125,6 +342,7 @@ const SocialLogin = () => {
         refreshToken: data.refreshToken,
         userRole: 'USER',
       });
+      await storeLastLoginProvider(provider);
 
       const moveToMain = () => {
         navigation.reset({
@@ -143,13 +361,8 @@ const SocialLogin = () => {
       const msg =
         e?.response?.data?.message ||
         e?.message ||
-        '카카오 로그인 중 오류가 발생했습니다.';
-      openError(msg, () =>
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'LoginIntro'}],
-        }),
-      );
+        `${providerLabel} 로그인 중 오류가 발생했습니다.`;
+      openError(msg, resetToLoginIntro);
     } finally {
       setIsSubmitting(false);
     }
@@ -158,20 +371,55 @@ const SocialLogin = () => {
   const onShouldStartLoadWithRequest = request => {
     const {url} = request;
 
-    // redirect uri로 이동하는 순간 code 잡기
-    if (url?.startsWith(REDIRECT_URI)) {
-      const code = extractCodeFromUrl(url);
+    if (url?.startsWith(oauthConfig.redirectUri)) {
+      const {code, accessToken, idToken, state, error, errorDescription} =
+        parseUrlParams(url);
 
-      if (code) {
-        handleLoginByCode(code);
+      if (error) {
+        openError(
+          errorDescription || `${providerLabel} 인증이 취소되었습니다.`,
+          resetToLoginIntro,
+        );
         return false;
       }
 
-      openError('인가코드 없음', () =>
-        navigation.reset({
-          index: 0,
-          routes: [{name: 'LoginIntro'}],
-        }),
+      if (provider === 'NAVER' && code) {
+        exchangeNaverCode({code, state})
+          .then(handleLoginByToken)
+          .catch(e =>
+            openError(
+              e?.message || '네이버 access token 발급 실패',
+              resetToLoginIntro,
+            ),
+          );
+        return false;
+      }
+
+      if (provider === 'KAKAO' && code) {
+        exchangeKakaoCode(code)
+          .then(handleLoginByToken)
+          .catch(e =>
+            openError(
+              e?.message || '카카오 access token 발급 실패',
+              resetToLoginIntro,
+            ),
+          );
+        return false;
+      }
+
+      const tokenValue = provider === 'GOOGLE' ? idToken : accessToken || code;
+
+      if (tokenValue) {
+        handleLoginByToken(tokenValue);
+        return false;
+      }
+
+      const debugUrl =
+        provider === 'NAVER' && url ? `\n${url.slice(0, 180)}` : '';
+
+      openError(
+        `${providerLabel} 인증 토큰이 없음${debugUrl}`,
+        resetToLoginIntro,
       );
       return false;
     }
@@ -179,15 +427,97 @@ const SocialLogin = () => {
     return true;
   };
 
-  if (!KAKAO_CLIENT_ID || !REDIRECT_URI) {
+  useEffect(() => {
+    if (Platform.OS !== 'web' || provider !== 'KAKAO') {
+      return;
+    }
+
+    if (
+      !oauthConfig.clientId ||
+      !oauthConfig.redirectUri ||
+      !oauthConfig.authUrl
+    ) {
+      return;
+    }
+
+    const currentUrl = window.location.href;
+    const params = parseUrlParams(currentUrl);
+    const isCallback =
+      window.location.pathname.replace(/\/$/, '') === KAKAO_WEB_CALLBACK_PATH;
+
+    if (isCallback) {
+      if (params.error) {
+        openError(
+          params.errorDescription || '카카오 인증이 취소되었습니다.',
+          resetToLoginIntro,
+        );
+        return;
+      }
+
+      const savedState = window.sessionStorage.getItem(KAKAO_WEB_STATE_KEY);
+      if (savedState && params.state && savedState !== params.state) {
+        openError('카카오 인증 상태가 일치하지 않습니다.', resetToLoginIntro);
+        return;
+      }
+
+      window.sessionStorage.removeItem(KAKAO_WEB_STATE_KEY);
+
+      if (!params.code) {
+        openError('카카오 인증 코드가 없음', resetToLoginIntro);
+        return;
+      }
+
+      exchangeKakaoCode(params.code)
+        .then(handleLoginByToken)
+        .catch(e =>
+          openError(
+            e?.message || '카카오 access token 발급 실패',
+            resetToLoginIntro,
+          ),
+        );
+      return;
+    }
+
+    window.sessionStorage.setItem(KAKAO_WEB_STATE_KEY, oauthConfig.state);
+    window.location.assign(oauthConfig.authUrl);
+  }, [oauthConfig, provider, navigation]);
+
+  if (
+    !oauthConfig.clientId ||
+    (provider === 'NAVER' && !oauthConfig.clientSecret) ||
+    !oauthConfig.redirectUri ||
+    !oauthConfig.authUrl
+  ) {
     return (
       <View style={[styles.container, styles.loading]}>
         <ActivityIndicator size="large" color={COLORS.primary_orange} />
         <AlertModal
           visible={true}
-          title={'KAKAO_CLIENT_ID 또는 KAKAO_REDIRECT_URI가 비어있음.\n'}
+          title={`${oauthConfig.requiredLabel}가 비어있음.\n`}
           buttonText={'확인'}
           onPress={() => navigation.goBack()}
+        />
+      </View>
+    );
+  }
+
+  if (Platform.OS === 'web' && provider === 'KAKAO') {
+    return (
+      <View style={[styles.container, styles.loading]}>
+        <ActivityIndicator size="large" color={COLORS.primary_orange} />
+        <AlertModal
+          visible={modal.visible}
+          title={modal.message}
+          buttonText={'확인'}
+          onPress={() => {
+            if (typeof modal.onPress === 'function') {
+              const action = modal.onPress;
+              handleCloseModal();
+              action();
+              return;
+            }
+            handleCloseModal();
+          }}
         />
       </View>
     );
@@ -197,7 +527,7 @@ const SocialLogin = () => {
     <View style={styles.container}>
       <WebView
         ref={webviewRef}
-        source={{uri: authUrl}}
+        source={{uri: oauthConfig.authUrl}}
         onLoadEnd={() => setLoading(false)}
         onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
         javaScriptEnabled

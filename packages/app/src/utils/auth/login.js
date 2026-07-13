@@ -10,73 +10,20 @@ import {
   getProfile as kakaoGetProfile,
   login as kakaoLogin,
 } from '@react-native-seoul/kakao-login';
+import {signInWithGoogle} from '@utils/auth/googleSignIn';
 import { syncFcmToken, getDeviceId } from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
+import { WEB_SESSION_ACCESS_TOKEN } from '@utils/auth/webSession';
+import {
+  mergeSocialProfiles,
+  normalizeSocialProfile,
+} from '@utils/auth/socialProfile';
 
 const REFRESH_KEY = 'refresh-token';
 
-const cleanKakaoValue = value => {
-  if (value == null) {
-    return '';
-  }
-
-  const text = String(value);
-  return text === 'null' || text === 'undefined' ? '' : text;
-};
-
-const normalizeGender = value => {
-  const gender = cleanKakaoValue(value).toLowerCase();
-
-  if (gender === 'female' || gender === 'f') {
-    return 'F';
-  }
-  if (gender === 'male' || gender === 'm') {
-    return 'M';
-  }
-
-  return '';
-};
-
-const normalizeBirthday = ({birthday, birthyear}) => {
-  const rawBirthday = cleanKakaoValue(birthday);
-  const rawBirthyear = cleanKakaoValue(birthyear);
-
-  if (/^\d{4}-\d{2}-\d{2}$/.test(rawBirthday)) {
-    return rawBirthday;
-  }
-
-  if (/^\d{4}$/.test(rawBirthyear) && /^\d{4}$/.test(rawBirthday)) {
-    return `${rawBirthyear}-${rawBirthday.slice(0, 2)}-${rawBirthday.slice(2)}`;
-  }
-
-  return '';
-};
-
-const normalizeSocialProfile = data => {
-  const profile = data?.profile || data?.socialProfile || {};
-  return {
-    email: cleanKakaoValue(profile.email || data?.email),
-    nickname: cleanKakaoValue(profile.nickname || data?.nickname),
-    name: cleanKakaoValue(profile.name || data?.name),
-    birthday: normalizeBirthday({
-      birthday: profile.birthday || data?.birthday,
-      birthyear: profile.birthyear || data?.birthyear,
-    }),
-    gender: normalizeGender(profile.gender || data?.gender),
-  };
-};
-
-const mergeSocialProfiles = (...profiles) =>
-  profiles.reduce(
-    (merged, profile = {}) => ({
-      email: merged.email || profile.email || '',
-      nickname: merged.nickname || profile.nickname || '',
-      name: merged.name || profile.name || '',
-      birthday: merged.birthday || profile.birthday || '',
-      gender: merged.gender || profile.gender || '',
-    }),
-    {},
-  );
+const shouldContinueSocialSignUp = data =>
+  data?.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
+  (data?.status == null && data?.isNewUser);
 
 const getKakaoProfileFallback = async () => {
   try {
@@ -113,7 +60,7 @@ export const tryKakaoLoginNative = async (userRole) => {
     const res = await authApi.loginKakao(kakaoToken.accessToken);
     const data = res.data || {};
 
-    if (data.isNewUser) {
+    if (shouldContinueSocialSignUp(data)) {
       const backendProfile = normalizeSocialProfile(data);
       const sdkProfile = await getKakaoProfileFallback();
 
@@ -149,9 +96,66 @@ export const tryKakaoLoginNative = async (userRole) => {
   }
 };
 
-export const tryAutoLogin = async () => {
+export const tryGoogleLoginNative = async (userRole) => {
+  log.info('tryGoogleLoginNative: role=', userRole);
+  try {
+    const googleResult = await signInWithGoogle();
+
+    if (googleResult?.cancelled) {
+      return {
+        success: false,
+        cancelled: true,
+        message: 'cancelled',
+      };
+    }
+
+    const res = await authApi.loginGoogle(googleResult.idToken);
+    const data = res.data || {};
+
+    if (shouldContinueSocialSignUp(data)) {
+      const backendProfile = normalizeSocialProfile(data);
+
+      return {
+        success: true,
+        isNewUser: true,
+        provider: 'GOOGLE',
+        socialSignupToken: data.socialSignupToken,
+        socialProfile: mergeSocialProfiles(
+          backendProfile,
+          googleResult.profile,
+        ),
+        message: data.message,
+      };
+    }
+
+    await storeLoginInfo(res, userRole);
+    await syncFcmToken();
+
+    return {
+      success: true,
+      isNewUser: false,
+      provider: 'GOOGLE',
+    };
+  } catch (err) {
+    log.warn('❌ tryGoogleLoginNative failed:', err?.message);
+    useUserStore.getState().clearUser();
+
+    return {
+      success: false,
+      message: err?.message,
+    };
+  }
+};
+
+export const tryAutoLogin = async ({loadProfile = true} = {}) => {
   log.info('🚪 tryAutoLogin: start');
   try {
+    if (Platform.OS === 'web') {
+      const ok = await tryRefresh({ silent: true });
+      log.info('🚪 tryAutoLogin: web refresh result =', ok);
+      return ok;
+    }
+
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🔐 has refreshToken?', !!storedRefresh);
     if (!storedRefresh) {
@@ -160,7 +164,7 @@ export const tryAutoLogin = async () => {
 
     const ok = await tryRefresh({ silent: true });
     log.info('🚪 tryAutoLogin: refresh result =', ok);
-    if (ok) {
+    if (ok && loadProfile) {
       const { userRole } = useUserStore.getState();
       log.info('👤 tryAutoLogin: userRole =', userRole);
       if (userRole) {
@@ -178,7 +182,6 @@ export const storeLoginTokens = async ({
   accessToken,
   refreshToken,
   userRole,
-  needVerification,
 }) => {
   log.info(
     '✅ login success: accessToken=',
@@ -187,21 +190,14 @@ export const storeLoginTokens = async ({
     mask(refreshToken),
     'role=',
     userRole,
-    'needVerification=',
-    needVerification,
   );
 
-  const { setTokens, setUserRole, setIsVerified } = useUserStore.getState();
+  const { setTokens, setUserRole } = useUserStore.getState();
   if (accessToken) {
     setTokens({ accessToken });
   }
   if (userRole) {
     setUserRole(userRole);
-  }
-
-  // needVerification이 'true'면 본인 인증이 안 된 상태이므로 false 저장
-  if (setIsVerified) {
-    setIsVerified(needVerification !== 'true');
   }
 
   if (refreshToken) {
@@ -216,15 +212,49 @@ export const storeLoginTokens = async ({
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const { accessToken, refreshToken, needVerification } = res.data || {};
+  const { accessToken, refreshToken } = res.data || {};
 
-  await storeLoginTokens({ accessToken, refreshToken, userRole, needVerification });
+  await storeLoginTokens({ accessToken, refreshToken, userRole });
+};
+
+export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
+  const {
+    setTokens,
+    setUserRole,
+    setUserProfile,
+  } = useUserStore.getState();
+  const role = data.role || fallbackRole || 'USER';
+  const accessToken =
+    data.accessToken || data.token || data.jwt || WEB_SESSION_ACCESS_TOKEN;
+
+  setTokens({ accessToken });
+  setUserRole(role);
+  setUserProfile?.({
+    userId: data.userId ?? null,
+    name: data.name ?? '',
+    nickname: data.nickname ?? data.name ?? '',
+    photoUrl: data.photoUrl ?? null,
+    phone: data.phone ?? '',
+    email: data.email ?? '',
+    mbti: data.mbti ?? '',
+    instagramId: data.instagramId ?? '',
+    gender: data.gender ?? 'F',
+    birthDate: data.birthDate ?? null,
+    age: calculateAge(data.birthDate),
+  });
+
+  await updateProfile(role);
 };
 
 export const tryLogin = async (email, password, userRole) => {
   log.info('🔓 tryLogin: role=', userRole);
   try {
     const res = await authApi.login(email, password, userRole);
+    if (Platform.OS === 'web') {
+      await storeWebSessionInfo(res.data, userRole);
+      return res.data;
+    }
+
     await storeLoginInfo(res, userRole);
 
     log.info('🔓 tryLogin: sync FCM token');
@@ -256,7 +286,7 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
   try {
     const res = await authApi.loginKakao(accessCode);
     const data = res.data || {};
-    if (data.isNewUser) {
+    if (shouldContinueSocialSignUp(data)) {
       const backendProfile = normalizeSocialProfile(data);
 
       return {
@@ -283,6 +313,12 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
 export const tryRefresh = async ({ silent = false } = {}) => {
   log.info('🔄 tryRefresh: start');
   try {
+    if (Platform.OS === 'web') {
+      const res = await authApi.refreshToken();
+      await storeWebSessionInfo(res.data);
+      return true;
+    }
+
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');
@@ -329,6 +365,8 @@ export const tryLogout = async () => {
     useUserStore.getState().clearUser();
   }
 };
+
+export const refreshUserProfile = async role => updateProfile(role);
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);

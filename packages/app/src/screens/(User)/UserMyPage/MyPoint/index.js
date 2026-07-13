@@ -17,7 +17,6 @@ import userMyApi from '@utils/api/userMyApi';
 import styles from './MyPoint.styles';
 
 const PAGE_SIZE = 20;
-const EXPIRING_CALC_SIZE = 1000;
 
 const POINT_TYPE_LABELS = {
   EARN: '적립',
@@ -195,16 +194,11 @@ const MyPoint = () => {
     }
 
     try {
-      const [balanceRes, historyRes, expiringHistoryRes] = await Promise.all([
+      const [balanceRes, historyRes] = await Promise.all([
         userMyApi.getPointBalance(),
         userMyApi.getPointHistory({
           page: nextPage,
           size: PAGE_SIZE,
-          sort: ['transactionDate,desc'],
-        }),
-        userMyApi.getPointHistory({
-          page: 0,
-          size: EXPIRING_CALC_SIZE,
           sort: ['transactionDate,desc'],
         }),
       ]);
@@ -212,15 +206,12 @@ const MyPoint = () => {
       const historyData = historyRes?.data;
       const nextCurrentPoints = balanceData?.currentPoints ?? 0;
       const serverExpiringPoints = getServerExpiringPoints(balanceData);
+      const nextExpiringPoints =
+        serverExpiringPoints ??
+        calculateExpiringSoonPoints(historyData?.content || [], nextCurrentPoints);
 
       setCurrentPoints(nextCurrentPoints);
-      setExpiringPoints(
-        serverExpiringPoints ??
-          calculateExpiringSoonPoints(
-            expiringHistoryRes?.data?.content || [],
-            nextCurrentPoints,
-          ),
-      );
+      setExpiringPoints(nextExpiringPoints);
       setHistories(prev =>
         append
           ? [...prev, ...(historyData?.content || [])]

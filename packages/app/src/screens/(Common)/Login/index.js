@@ -2,7 +2,6 @@ import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {CommonActions, useNavigation} from '@react-navigation/native';
-import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {
   LoginIntro,
   LoginByEmail,
@@ -11,6 +10,12 @@ import {
   FindId,
   FindPassword,
   SocialLogin,
+  RegisterAgree,
+  AgreeDetail,
+  PhoneCertificate,
+  EmailCertificate,
+  UserRegisterProfile,
+  Result,
 } from '@screens';
 import XIcon from '@assets/images/x_gray.svg';
 import styles from './Login.styles';
@@ -19,15 +24,16 @@ const Stack = createNativeStackNavigator();
 
 export default function Login() {
   const navigation = useNavigation();
-  const insets = useSafeAreaInsets();
 
-  const handleClose = () => {
-    if (navigation.canGoBack()) {
-      navigation.goBack();
+  const handleClose = headerNavigation => {
+    const activeNavigation = headerNavigation || navigation;
+
+    if (activeNavigation.canGoBack?.()) {
+      activeNavigation.goBack();
       return;
     }
 
-    navigation.dispatch(
+    activeNavigation.dispatch(
       CommonActions.reset({
         index: 0,
         routes: [{name: 'MainTabs'}],
@@ -35,16 +41,16 @@ export default function Login() {
     );
   };
 
-  const renderHeader = () => (
+  const renderHeader = ({navigation: headerNavigation} = {}) => (
     <View
       pointerEvents="box-none"
-      style={[styles.loginHeader, {top: 20}]}>
+      style={[styles.loginHeader, styles.loginHeaderOffset]}>
       <TouchableOpacity
         activeOpacity={0.8}
         accessibilityRole="button"
         accessibilityLabel="로그인 닫기"
         style={styles.loginCloseButton}
-        onPress={handleClose}>
+        onPress={() => handleClose(headerNavigation)}>
         <XIcon width={22} height={22} />
       </TouchableOpacity>
     </View>
@@ -65,6 +71,36 @@ export default function Login() {
         <Stack.Screen name="FindId" component={FindId} />
         <Stack.Screen name="FindPassword" component={FindPassword} />
         <Stack.Screen name="SocialLogin" component={SocialLogin} />
+        <Stack.Screen
+          name="RegisterAgree"
+          component={RegisterAgree}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="AgreeDetail"
+          component={AgreeDetail}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="PhoneCertificate"
+          component={PhoneCertificate}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="EmailCertificate"
+          component={EmailCertificate}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="UserRegisterProfile"
+          component={UserRegisterProfile}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="Result"
+          component={Result}
+          options={{headerShown: false}}
+        />
       </Stack.Navigator>
     </View>
   );

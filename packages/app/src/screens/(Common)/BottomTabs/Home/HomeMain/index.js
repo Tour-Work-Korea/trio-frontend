@@ -1,5 +1,7 @@
-import React, {useCallback, /* useEffect, */ useRef, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
+  InteractionManager,
+  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -28,8 +30,8 @@ import userMeetApi from '@utils/api/userMeetApi';
 import {getRecentGuesthouses} from '@utils/recentGuesthouses';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {FONTS} from '@constants/fonts';
-import Loading from '@components/Loading';
 import Header from '@components/Header';
+import {prefetchImageUrls} from '@components/AppImage';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -38,6 +40,7 @@ import CategoryReading from '@assets/images/category_reading.svg';
 import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
 import CategoryProgram from '@assets/images/category_program.svg';
 import CategoryRelax from '@assets/images/category_relax.svg';
+import JejuAirplane from '@assets/images/jeju_airplane.svg';
 // import GuesthouseIcon from '@assets/images/guesthouse_gray.svg';
 // import ChevronRight from '@assets/images/chevron_right_gray.svg';
 
@@ -70,6 +73,28 @@ const HOME_AGREEMENT_LINKS = [
   {id: 'TERMS_OF_SERVICE', label: '서비스 이용약관'},
   {id: 'PRIVACY_POLICY', label: '개인정보 처리방침'},
 ];
+const HOME_DATA_CACHE_TTL_MS = 60 * 1000;
+const HOME_TAB_BAR_STYLE = Platform.OS === 'android'
+  ? {
+      position: 'relative',
+      backgroundColor: COLORS.grayscale_0,
+      height: 64,
+      paddingTop: 6,
+      paddingBottom: 6,
+      paddingHorizontal: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.grayscale_200,
+    }
+  : {
+      position: 'relative',
+      backgroundColor: COLORS.grayscale_0,
+      height: 84,
+      paddingTop: 6,
+      paddingBottom: 18,
+      paddingHorizontal: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.grayscale_200,
+    };
 const BUSINESS_INFO = [
   '상호명 : 워커웨이',
   '사업자등록번호: 888-25-02003',
@@ -78,6 +103,13 @@ const BUSINESS_INFO = [
   '주소: 제주시 연동 263-13 레지던스이타스3',
   '대표자 : 이하늘, 정재원',
 ];
+
+const getBannerImageUrl = item =>
+  item?.url
+  ?? item?.adminImageUrl
+  ?? item?.imageUrl
+  ?? item?.bannerImageUrl
+  ?? item?.thumbnailUrl;
 
 const HomeMain = () => {
   const navigation = useNavigation();
@@ -92,6 +124,7 @@ const HomeMain = () => {
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [isMeetLoading, setIsMeetLoading] = useState(true);
+  const [shouldRenderAdBanner, setShouldRenderAdBanner] = useState(false);
   // const [searchKeyword, setSearchKeyword] = useState('');
   // const [searchedGuesthouses, setSearchedGuesthouses] = useState([]);
   // const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -99,6 +132,8 @@ const HomeMain = () => {
   const scrollRef = useRef(null);
   const stayYRef = useRef(0);
   const meetYRef = useRef(0);
+  const isFetchingHomeDataRef = useRef(false);
+  const lastHomeDataFetchAtRef = useRef(0);
   // const searchDebounceRef = useRef(null);
   // const searchRequestIdRef = useRef(0);
 
@@ -110,7 +145,9 @@ const HomeMain = () => {
   const tryFetchBanners = useCallback(async () => {
     try {
       const {data} = await adminApi.getAdminBanners();
-      setBannerList(data || []);
+      const list = data || [];
+      setBannerList(list);
+      prefetchImageUrls(list.map(getBannerImageUrl), {limit: 3});
     } catch (e) {
       console.warn('배너 조회 실패', e);
       setBannerList([]);
@@ -122,7 +159,9 @@ const HomeMain = () => {
   const tryFetchGuesthouses = useCallback(async () => {
     try {
       const {data} = await userGuesthouseApi.getPopularGuesthouses();
-      setGuesthouseList(data.content || []);
+      const list = data.content || [];
+      setGuesthouseList(list);
+      prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 6});
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);
       setGuesthouseList([]);
@@ -138,6 +177,7 @@ const HomeMain = () => {
         ? data
         : data?.content || (data ? [data] : []);
       setEventList(list);
+      prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 4});
     } catch (error) {
       console.warn('콘텐츠 조회 실패', error);
       setEventList([]);
@@ -150,6 +190,7 @@ const HomeMain = () => {
     try {
       const list = await getRecentGuesthouses();
       setRecentGuesthouseList(list);
+      prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 6});
     } catch (error) {
       console.warn('최근 본 게하 조회 실패', error);
       setRecentGuesthouseList([]);
@@ -158,17 +199,45 @@ const HomeMain = () => {
 
   useFocusEffect(
     useCallback(() => {
-      tryFetchGuesthouses();
-      tryFetchBanners();
-      tryFetchMeets();
+      navigation.getParent()?.setOptions({tabBarStyle: HOME_TAB_BAR_STYLE});
+
+      const now = Date.now();
+      const hasFreshHomeData =
+        lastHomeDataFetchAtRef.current > 0 &&
+        now - lastHomeDataFetchAtRef.current < HOME_DATA_CACHE_TTL_MS;
+
+      if (!hasFreshHomeData && !isFetchingHomeDataRef.current) {
+        isFetchingHomeDataRef.current = true;
+        lastHomeDataFetchAtRef.current = now;
+
+        Promise.allSettled([
+          tryFetchGuesthouses(),
+          tryFetchBanners(),
+          tryFetchMeets(),
+        ]).finally(() => {
+          isFetchingHomeDataRef.current = false;
+        });
+      }
+
       tryLoadRecentGuesthouses();
     }, [
+      navigation,
       tryFetchBanners,
       tryFetchGuesthouses,
       tryFetchMeets,
       tryLoadRecentGuesthouses,
     ]),
   );
+
+  useEffect(() => {
+    const handle = InteractionManager.runAfterInteractions(() => {
+      setShouldRenderAdBanner(true);
+    });
+
+    return () => {
+      handle.cancel?.();
+    };
+  }, []);
 
   // useEffect(() => {
   //   return () => {
@@ -253,6 +322,10 @@ const HomeMain = () => {
       who: 'USER',
       headerTitle: agreement.label,
     });
+  };
+
+  const handlePressStaffNoticeBanner = () => {
+    navigation.navigate('커뮤니티', {tab: 'STAFF'});
   };
 
   // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
@@ -446,9 +519,6 @@ const HomeMain = () => {
     </View>
   );
 
-  if (isBannerLoading || isMeetLoading || isGHLoading) {
-    return <Loading />;
-  }
   return (
     // <TouchableWithoutFeedback onPress={dismissSearchUI} accessible={false}>
     <View style={styles.container}>
@@ -496,18 +566,22 @@ const HomeMain = () => {
           </View>
 
           {/* 배너 */}
-          <View style={styles.boxContainer}>
-            <Banner banners={bannerList} />
-          </View>
+          {!isBannerLoading && (
+            <View style={styles.boxContainer}>
+              <Banner banners={bannerList} />
+            </View>
+          )}
 
           {/* 임시 */}
-          <View
-            onLayout={e => {
-              stayYRef.current = e.nativeEvent.layout.y;
-            }}
-            style={styles.boxContainer}>
-            <Guesthouses guesthouses={guesthouseList} />
-          </View>
+          {!isGHLoading && (
+            <View
+              onLayout={e => {
+                stayYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              <Guesthouses guesthouses={guesthouseList} />
+            </View>
+          )}
           {/* 콘텐츠 섹션 */}
           {/* <View
                 onLayout={e => {
@@ -516,6 +590,28 @@ const HomeMain = () => {
                 style={styles.boxContainer}>
                 <Meets events={eventList} setEventList={setEventList} />
               </View> */}
+
+          {/* 제주 한달살기 공고 배너 시작: 필요 없을 때 이 블록과 관련 스타일을 삭제해주세요. */}
+          <View style={styles.boxContainer}>
+            <View style={styles.staffNoticeBanner}>
+              <View style={styles.staffNoticeBannerLeft}>
+                <JejuAirplane width={14} height={14} />
+                <Text style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}>
+                  제주 <Text style={styles.staffNoticeHighlight}>한달살기</Text>{' '}
+                  어때?
+                </Text>
+              </View>
+              <TouchableOpacity
+                activeOpacity={0.85}
+                style={styles.staffNoticeButton}
+                onPress={handlePressStaffNoticeBanner}>
+                <Text style={styles.staffNoticeButtonText}>
+                  현재 모집 중인 스탭 공고 보러가기
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+          {/* 제주 한달살기 공고 배너 끝 */}
 
           <View style={styles.boxContainer}>
             <RecentGuesthouses guesthouses={recentGuesthouseList} />
@@ -531,15 +627,17 @@ const HomeMain = () => {
               </View> */}
 
           {/* 임시 */}
-          <View
-            onLayout={e => {
-              meetYRef.current = e.nativeEvent.layout.y;
-            }}
-            style={styles.boxContainer}>
-            <Meets events={eventList} setEventList={setEventList} />
-          </View>
+          {!isMeetLoading && (
+            <View
+              onLayout={e => {
+                meetYRef.current = e.nativeEvent.layout.y;
+              }}
+              style={styles.boxContainer}>
+              <Meets events={eventList} setEventList={setEventList} />
+            </View>
+          )}
 
-          {mainPageBannerAdUnitId && (
+          {shouldRenderAdBanner && mainPageBannerAdUnitId && (
             <View style={styles.adBannerContainer}>
               <BannerAd
                 unitId={mainPageBannerAdUnitId}

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useEffect} from 'react';
 import {StatusBar, StyleSheet, View} from 'react-native';
 import {SafeAreaProvider, SafeAreaView} from 'react-native-safe-area-context';
 import Toast from 'react-native-toast-message';
@@ -8,6 +8,38 @@ import {COLORS} from '@constants/colors';
 import GlobalAlertModal from '@components/modals/GlobalAlertModal';
 import BasicToast from '@components/toasts/BasicToast';
 import ErrorToast from '@components/toasts/ErrorToast';
+import {tryAutoLogin} from '@utils/auth/login';
+import useUserStore from '@stores/userStore';
+
+const LOGOUT_HOME_LOCK_KEY = '__TRIO_LOGOUT_HOME_LOCK__';
+
+const PROTECTED_WEB_PATH_PREFIXES = [
+  '/my',
+  '/settings',
+  '/community/write',
+  '/guesthouse-payment',
+  '/guesthouse-reservation',
+  '/contents-payment',
+  '/contents-reservation',
+  '/employ/apply',
+];
+
+const PROTECTED_WEB_PATHS = new Set([
+  '/guesthouses/reviews',
+]);
+
+const isProtectedWebPath = pathname => {
+  const normalizedPath = pathname || '/';
+
+  if (PROTECTED_WEB_PATHS.has(normalizedPath)) {
+    return true;
+  }
+
+  return PROTECTED_WEB_PATH_PREFIXES.some(
+    prefix =>
+      normalizedPath === prefix || normalizedPath.startsWith(`${prefix}/`),
+  );
+};
 
 const toastConfig = {
   success: props => <BasicToast {...props} />,
@@ -15,6 +47,54 @@ const toastConfig = {
 };
 
 export default function App() {
+  useEffect(() => {
+    const initializeAuth = async () => {
+      const restored = await tryAutoLogin();
+      const {accessToken, userRole} = useUserStore.getState();
+      const isLoggedIn =
+        restored ||
+        Boolean(accessToken && (userRole === 'USER' || userRole === 'ADMIN'));
+
+      if (
+        typeof window !== 'undefined' &&
+        !isLoggedIn &&
+        isProtectedWebPath(window.location.pathname)
+      ) {
+        window.location.replace('/login');
+      }
+    };
+
+    initializeAuth();
+  }, []);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') {
+      return undefined;
+    }
+
+    const handlePopState = () => {
+      if (window.sessionStorage.getItem(LOGOUT_HOME_LOCK_KEY) !== '1') {
+        return;
+      }
+
+      if (window.location.pathname !== '/') {
+        window.history.replaceState(
+          {__trioLogoutHomeLock: true},
+          '',
+          '/',
+        );
+      }
+
+      window.history.pushState({__trioLogoutHomeLock: true}, '', '/');
+    };
+
+    window.addEventListener('popstate', handlePopState);
+
+    return () => {
+      window.removeEventListener('popstate', handlePopState);
+    };
+  }, []);
+
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>

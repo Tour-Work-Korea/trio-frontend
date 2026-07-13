@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useState} from 'react';
-import {Image, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -20,6 +20,7 @@ import EmployTagModal from '@components/modals/Employ/EmployTagModal';
 import Loading from '@components/Loading';
 import Header from '@components/Header';
 import EmptyState from '@components/EmptyState';
+import AppImage from '@components/AppImage';
 
 import styles from './MyResumeDetail.styles';
 import EmploySuccessIcon from '@assets/images/wa_employ_success';
@@ -258,7 +259,7 @@ const ResumeDetail = ({route}) => {
 
           {photos.map((photoUrl, index) => (
             <View key={`${photoUrl}-${index}`} style={styles.photoItem}>
-              <Image source={{uri: photoUrl}} style={styles.resumePhoto} />
+              <AppImage uri={photoUrl} style={styles.resumePhoto} />
               {isEditable ? (
                 <TouchableOpacity
                   activeOpacity={0.8}

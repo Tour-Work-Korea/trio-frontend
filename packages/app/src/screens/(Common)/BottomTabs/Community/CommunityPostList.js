@@ -1,8 +1,7 @@
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
-  Image,
   Platform,
   RefreshControl,
   ScrollView,
@@ -16,6 +15,7 @@ import {FONTS} from '@constants/fonts';
 import Avatar from '@components/Avatar';
 import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
+import AppImage from '@components/AppImage';
 import Loading from '@components/Loading';
 import communityApi from '@utils/api/communityApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -78,7 +78,8 @@ const CommunityPostList = ({
 }) => {
   const navigation = useNavigation();
   const listRef = useRef(null);
-  const pageRef = useRef(0);
+  const hasUserScrolledRef = useRef(false);
+  const isFetchingRef = useRef(false);
   const postsLengthRef = useRef(0);
   const scrollOffsetRef = useRef(0);
   const hasRestoredScrollRef = useRef(false);
@@ -100,15 +101,12 @@ const CommunityPostList = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
 
   useEffect(() => {
-    pageRef.current = page;
-  }, [page]);
-
-  useEffect(() => {
     postsLengthRef.current = posts.length;
   }, [posts.length]);
 
   useEffect(() => {
     hasRestoredScrollRef.current = false;
+    hasUserScrolledRef.current = false;
   }, [scrollStoreKey]);
 
   useEffect(() => {
@@ -140,6 +138,12 @@ const CommunityPostList = ({
 
   const fetchPosts = useCallback(
     async (pageToFetch = 0, isLoadMore = false, isRefresh = false) => {
+      if (isFetchingRef.current) {
+        return;
+      }
+
+      isFetchingRef.current = true;
+
       try {
         if (isRefresh) {
           setIsRefreshing(true);
@@ -174,6 +178,8 @@ const CommunityPostList = ({
           buttonText: '확인',
         });
       } finally {
+        isFetchingRef.current = false;
+
         if (isRefresh) {
           setIsRefreshing(false);
         } else if (isLoadMore) {
@@ -186,35 +192,6 @@ const CommunityPostList = ({
     [category, selectedSort],
   );
 
-  const refreshVisiblePosts = useCallback(async () => {
-    const lastLoadedPage = pageRef.current;
-    const pages = Array.from({length: lastLoadedPage + 1}, (_, index) => index);
-
-    try {
-      const results = await Promise.all(
-        pages.map(pageToFetch =>
-          communityApi.getPosts({
-            ...(category?.code ? {categoryCode: category.code} : {}),
-            sort: sortCodeMap[selectedSort],
-            page: pageToFetch,
-            size: PAGE_SIZE,
-          }),
-        ),
-      );
-      const nextPosts = results.flatMap(
-        response => response.data?.content ?? [],
-      );
-      const lastPageData = results[results.length - 1]?.data;
-
-      setPosts(nextPosts);
-      setPage(lastPageData?.number ?? lastLoadedPage);
-      setHasNext(!lastPageData?.last);
-      setLoadedSort(selectedSort);
-    } catch (error) {
-      console.warn('refreshCommunityPosts 실패:', error);
-    }
-  }, [category, selectedSort]);
-
   useFocusEffect(
     useCallback(() => {
       if (!isActive) {
@@ -223,32 +200,46 @@ const CommunityPostList = ({
 
       if (postsLengthRef.current === 0 || loadedSort !== selectedSort) {
         fetchPosts(0, false, false);
-        return;
       }
-
-      refreshVisiblePosts();
     }, [
       fetchPosts,
       isActive,
       loadedSort,
-      refreshVisiblePosts,
       selectedSort,
     ]),
   );
 
-  const handleRefresh = () => {
+  const handleRefresh = useCallback(() => {
+    hasUserScrolledRef.current = false;
     fetchPosts(0, false, true);
-  };
+  }, [fetchPosts]);
 
-  const handleEndReached = () => {
-    if (isInitialLoading || isMoreLoading || isRefreshing || !hasNext) {
+  const handleEndReached = useCallback(() => {
+    if (
+      (Platform.OS !== 'web' && !hasUserScrolledRef.current) ||
+      isInitialLoading ||
+      isMoreLoading ||
+      isRefreshing ||
+      !hasNext
+    ) {
       return;
     }
 
     fetchPosts(page + 1, true, false);
-  };
+  }, [
+    fetchPosts,
+    hasNext,
+    isInitialLoading,
+    isMoreLoading,
+    isRefreshing,
+    page,
+  ]);
 
-  const handleToggleLike = item => {
+  const handleScrollBeginDrag = useCallback(() => {
+    hasUserScrolledRef.current = true;
+  }, []);
+
+  const handleToggleLike = useCallback(item => {
     const nextLikeCount = Math.max(
       0,
       Number(item.likeCount || 0) + (item.isLiked ? -1 : 1),
@@ -271,9 +262,9 @@ const CommunityPostList = ({
           : post,
       ),
     );
-  };
+  }, []);
 
-  const handleOpenImageModal = (postItem, index) => {
+  const handleOpenImageModal = useCallback((postItem, index) => {
     const sortedImages = [...(postItem.images ?? [])].sort(
       (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
     );
@@ -284,7 +275,7 @@ const CommunityPostList = ({
     setModalImages(mappedImages);
     setSelectedImageIndex(index);
     setImageModalVisible(true);
-  };
+  }, []);
 
   const rememberWebScrollOffset = useCallback(() => {
     if (Platform.OS !== 'web') {
@@ -309,16 +300,16 @@ const CommunityPostList = ({
     [scrollStoreKey],
   );
 
-  const handlePressCommentCount = item => {
+  const handlePressCommentCount = useCallback(item => {
     rememberWebScrollOffset();
     navigation.navigate('CommunityDetail', {
       postId: item.postId,
       focusCommentInput: true,
       sourceTab: sourceRouteTab,
     });
-  };
+  }, [navigation, rememberWebScrollOffset, sourceRouteTab]);
 
-  const renderPostImages = (images, postItem) => {
+  const renderPostImages = useCallback((images, postItem) => {
     if (!images?.length) {
       return null;
     }
@@ -331,8 +322,8 @@ const CommunityPostList = ({
         <TouchableOpacity
           activeOpacity={0.9}
           onPress={() => handleOpenImageModal(postItem, 0)}>
-          <Image
-            source={{uri: sortedImages[0].imageUrl}}
+          <AppImage
+            uri={sortedImages[0].imageUrl}
             style={styles.singlePostImage}
             resizeMode="cover"
           />
@@ -352,8 +343,8 @@ const CommunityPostList = ({
             key={image.imageId ?? index}
             activeOpacity={0.9}
             onPress={() => handleOpenImageModal(postItem, index)}>
-            <Image
-              source={{uri: image.imageUrl}}
+            <AppImage
+              uri={image.imageUrl}
               style={styles.multiPostImage}
               resizeMode="cover"
             />
@@ -361,80 +352,92 @@ const CommunityPostList = ({
         ))}
       </ScrollView>
     );
-  };
+  }, [handleOpenImageModal]);
 
-  const renderPost = ({item}) => (
-    <View style={styles.postContainer}>
-      <TouchableOpacity
-        activeOpacity={0.8}
-        onPress={() => {
-          rememberWebScrollOffset();
-          navigation.navigate('CommunityDetail', {
-            postId: item.postId,
-            sourceTab: sourceRouteTab,
-          });
-        }}>
-        <View style={styles.postHeader}>
-          <Avatar
-            uri={item.author?.profileImageUrl}
-            size={30}
-            iconSize={16}
-            style={styles.avatar}
-          />
-          <Text style={[FONTS.fs_16_medium, styles.nickname]}>
-            {item.author?.nickname}
+  const renderPost = useCallback(
+    ({item}) => (
+      <View style={styles.postContainer}>
+        <TouchableOpacity
+          activeOpacity={0.8}
+          onPress={() => {
+            rememberWebScrollOffset();
+            navigation.navigate('CommunityDetail', {
+              postId: item.postId,
+              sourceTab: sourceRouteTab,
+            });
+          }}>
+          <View style={styles.postHeader}>
+            <Avatar
+              uri={item.author?.profileImageUrl}
+              size={30}
+              iconSize={16}
+              style={styles.avatar}
+            />
+            <Text style={[FONTS.fs_16_medium, styles.nickname]}>
+              {item.author?.nickname}
+            </Text>
+            <Text style={[FONTS.fs_14_regular, styles.time]}>
+              {formatRelativeTime(item.createdAt)}
+            </Text>
+          </View>
+
+          <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
+            {item.title}
           </Text>
-          <Text style={[FONTS.fs_14_regular, styles.time]}>
-            {formatRelativeTime(item.createdAt)}
+          <Text
+            style={[FONTS.fs_16_regular, styles.postContent]}
+            numberOfLines={2}
+            ellipsizeMode="tail">
+            {item.content}
           </Text>
+        </TouchableOpacity>
+
+        {renderPostImages(item.images, item)}
+
+        <View style={styles.postActions}>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.actionItem}
+            onPress={() => handleToggleLike(item)}>
+            {item.isLiked ? (
+              <FilledHeartIcon width={20} height={20} />
+            ) : (
+              <HeartIcon width={20} height={20} />
+            )}
+            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+              {item.likeCount}
+            </Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.actionItem}
+            onPress={() => handlePressCommentCount(item)}>
+            <CommentIcon width={20} height={20} />
+            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+              {item.commentCount}
+            </Text>
+          </TouchableOpacity>
         </View>
-
-        <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-          {item.title}
-        </Text>
-        <Text
-          style={[FONTS.fs_16_regular, styles.postContent]}
-          numberOfLines={2}
-          ellipsizeMode="tail">
-          {item.content}
-        </Text>
-      </TouchableOpacity>
-
-      {renderPostImages(item.images, item)}
-
-      <View style={styles.postActions}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.actionItem}
-          onPress={() => handleToggleLike(item)}>
-          {item.isLiked ? (
-            <FilledHeartIcon width={20} height={20} />
-          ) : (
-            <HeartIcon width={20} height={20} />
-          )}
-          <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-            {item.likeCount}
-          </Text>
-        </TouchableOpacity>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          style={styles.actionItem}
-          onPress={() => handlePressCommentCount(item)}>
-          <CommentIcon width={20} height={20} />
-          <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-            {item.commentCount}
-          </Text>
-        </TouchableOpacity>
       </View>
-    </View>
+    ),
+    [
+      handlePressCommentCount,
+      handleToggleLike,
+      navigation,
+      rememberWebScrollOffset,
+      renderPostImages,
+      sourceRouteTab,
+    ],
   );
+
+  const keyExtractor = useCallback(item => item.postId.toString(), []);
 
   return (
     <View style={styles.container}>
       <FlatList
         ref={listRef}
         data={posts}
-        keyExtractor={item => item.postId.toString()}
+        keyExtractor={keyExtractor}
         renderItem={renderPost}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={[styles.listContent, contentContainerStyle]}
@@ -443,6 +446,7 @@ const CommunityPostList = ({
         scrollEventThrottle={16}
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        onScrollBeginDrag={handleScrollBeginDrag}
         refreshControl={
           <RefreshControl
             refreshing={isRefreshing}
@@ -487,4 +491,4 @@ const CommunityPostList = ({
   );
 };
 
-export default CommunityPostList;
+export default memo(CommunityPostList);

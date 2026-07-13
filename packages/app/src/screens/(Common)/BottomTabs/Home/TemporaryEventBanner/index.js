@@ -1,13 +1,13 @@
 import React, { useCallback, useMemo } from 'react';
-import { Image, View, Linking, Platform } from 'react-native';
+import { Image, View, Linking, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
 
 import styles from './TemporaryEventBanner.styles';
+import {COLORS} from '@constants/colors';
 import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
 import AlertModal from '@components/modals/AlertModal';
-import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { showErrorModal } from '@utils/loginModalHub';
@@ -21,6 +21,27 @@ const couponEventImageUri =
   typeof Image.resolveAssetSource === 'function'
     ? Image.resolveAssetSource(couponEventImage)?.uri
     : couponEventImage;
+const defaultTabBarStyle = Platform.OS === 'android'
+  ? {
+      position: 'relative',
+      backgroundColor: COLORS.grayscale_0,
+      height: 64,
+      paddingTop: 6,
+      paddingBottom: 6,
+      paddingHorizontal: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.grayscale_200,
+    }
+  : {
+      position: 'relative',
+      backgroundColor: COLORS.grayscale_0,
+      height: 84,
+      paddingTop: 6,
+      paddingBottom: 18,
+      paddingHorizontal: 12,
+      borderTopWidth: StyleSheet.hairlineWidth,
+      borderTopColor: COLORS.grayscale_200,
+    };
 
 const FALLBACK_HTML_FRAGMENT = `
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
@@ -205,7 +226,6 @@ const TemporaryEventBanner = () => {
     message: '',
     navigateOnConfirm: false,
   });
-  const [loginPromptVisible, setLoginPromptVisible] = React.useState(false);
 
   useFocusEffect(
     useCallback(() => {
@@ -214,7 +234,7 @@ const TemporaryEventBanner = () => {
       tabNavigation?.setOptions({ tabBarStyle: { display: 'none' } });
 
       return () => {
-        tabNavigation?.setOptions({ tabBarStyle: undefined });
+        tabNavigation?.setOptions({ tabBarStyle: defaultTabBarStyle });
       };
     }, [navigation]),
   );
@@ -304,7 +324,7 @@ const TemporaryEventBanner = () => {
 
   const showLoginRequiredModal = useCallback(() => {
     if (Platform.OS === 'web') {
-      setLoginPromptVisible(true);
+      navigation.navigate('Login');
       return;
     }
 
@@ -432,10 +452,6 @@ const TemporaryEventBanner = () => {
         buttonText="확인"
         onPress={closeAlert}
         onRequestClose={closeAlert}
-      />
-      <LoginAppPromptModal
-        visible={loginPromptVisible}
-        onClose={() => setLoginPromptVisible(false)}
       />
     </View>
   );

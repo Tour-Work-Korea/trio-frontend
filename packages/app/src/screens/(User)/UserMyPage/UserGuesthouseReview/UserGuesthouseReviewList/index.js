@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { View, Text, Image, FlatList, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
 import Toast from 'react-native-toast-message';
 
 import { FONTS } from '@constants/fonts';
@@ -15,6 +15,7 @@ import {
 import StarIcon from '@assets/images/star_white.svg';
 import TrashIcon from '@assets/images/delete_gray.svg';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
+import AppImage from '@components/AppImage';
 
 const getDisplayRating = rating => {
   const ratingNumber = Number(rating);
@@ -131,7 +132,7 @@ const UserGuesthouseReviewList = () => {
               contentContainerStyle={styles.imageRowContent}
             >
               {item.reviewImageUrls.map((img, idx) => (
-                <Image key={idx} source={{ uri: img }} style={styles.reviewImage} />
+                <AppImage key={idx} uri={img} style={styles.reviewImage} />
               ))}
             </ScrollView>
           )}

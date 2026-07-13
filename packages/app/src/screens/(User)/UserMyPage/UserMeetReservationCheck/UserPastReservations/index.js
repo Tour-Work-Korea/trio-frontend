@@ -3,7 +3,6 @@ import {
   View,
   Text,
   FlatList,
-  Image,
   StyleSheet,
   TouchableOpacity,
 } from 'react-native';
@@ -16,6 +15,7 @@ import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
 import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
+import AppImage from '@components/AppImage';
 
 export default function UserPastReservations({data}) {
   const navigation = useNavigation();
@@ -76,7 +76,7 @@ export default function UserPastReservations({data}) {
 
           {/* 썸네일 */}
           <View style={styles.imageWrap}>
-            <Image source={imageSource} style={styles.image} resizeMode="cover" />
+            <AppImage source={imageSource} style={styles.image} resizeMode="cover" />
           </View>
         </TouchableOpacity>
         {index !== data.length - 1 && <View style={styles.devide} />}

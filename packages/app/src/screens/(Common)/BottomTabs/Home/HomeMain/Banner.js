@@ -1,7 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
-  Image,
   Text,
   Dimensions,
   TouchableOpacity,
@@ -12,6 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import styles from './Home.styles';
 import { COLORS } from '@trio/app/src/constants/colors';
 import { FONTS } from '@trio/app/src/constants/fonts';
+import AppImage from '@components/AppImage';
 
 const { width } = Dimensions.get('window');
 const BANNER_HORIZONTAL_PADDING = 36;
@@ -31,7 +31,7 @@ const getBannerImageUrl = item => {
     : null;
 };
 
-export default function Banner({ banners = [] }) {
+function Banner({ banners = [] }) {
   const navigation = useNavigation();
   const [currentIndex, setCurrentIndex] = useState(0);
   const [layoutWidth, setLayoutWidth] = useState(width);
@@ -54,8 +54,8 @@ export default function Banner({ banners = [] }) {
 
   const renderBannerImage = imageUrl =>
     imageUrl ? (
-      <Image
-        source={{ uri: imageUrl }}
+      <AppImage
+        uri={imageUrl}
         style={{ width: '100%', height: '100%' }}
         resizeMode="cover"
       />
@@ -345,3 +345,5 @@ export default function Banner({ banners = [] }) {
     </View>
   );
 }
+
+export default memo(Banner);

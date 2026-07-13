@@ -1,7 +1,8 @@
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React from 'react';
-import {View, Text, TouchableOpacity, Image, StyleSheet} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
+import AppImage from '@components/AppImage';
 
 const ApplicantItem = ({
   item,
@@ -13,8 +14,8 @@ const ApplicantItem = ({
     <TouchableOpacity onPress={() => onPress(item)}>
       <View style={styles.postingCard}>
         <View style={{flexDirection: 'row', gap: 10, alignItems: 'flex-start'}}>
-          <Image
-            source={{uri: item.thumbnailImage}}
+          <AppImage
+            uri={item.thumbnailImage}
             style={{width: 80, height: 80, borderRadius: 4}}
           />
 

@@ -14,9 +14,6 @@ def localPropsFile = rootProject.file("local.properties")
 if (localPropsFile.exists()) {
     localProps.load(new FileInputStream(localPropsFile))
 }
-def MAPS_API_KEY_LOCAL   = localProps.getProperty("MAPS_API_KEY", "")
-// def MAPS_API_KEY_DEBUG   = localProps.getProperty("MAPS_API_KEY_DEBUG", MAPS_API_KEY_LOCAL)
-// def MAPS_API_KEY_RELEASE = localProps.getProperty("MAPS_API_KEY_RELEASE", MAPS_API_KEY_LOCAL)
 
 /**
  * This is the configuration block to customize your React Native Android app.
@@ -116,7 +113,6 @@ android {
         versionCode (ciVersionCode ?: 1)          // 로컬 기본값 1
         versionName (ciVersionName ?: "1.0.0")    // 로컬 기본값 1.0.0
 
-        resValue "string", "google_maps_api_key", MAPS_API_KEY_LOCAL
         resValue "string", "naver_client_id", project.env.get("NAVER_CLIENT_ID") ?: ""
         resValue "string", "KAKAO_NATIVEAPP_KEY", project.env.get("KAKAO_NATIVEAPP_KEY") ?: ""
         resValue "string", "kakao_app_key", project.env.get("KAKAO_NATIVEAPP_KEY") ?: ""
@@ -176,8 +172,6 @@ dependencies {
     } else {
         implementation jscFlavor
     }
-
-    implementation 'com.google.android.gms:play-services-maps:18.2.0'
 
     // firebase
     implementation platform('com.google.firebase:firebase-bom:33.16.0')

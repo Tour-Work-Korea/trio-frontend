@@ -2,7 +2,6 @@ import React, {useState} from 'react';
 import {
   View,
   Text,
-  Image,
   TouchableOpacity,
   Alert,
   Linking,
@@ -19,6 +18,7 @@ import {showErrorModal} from '@utils/loginModalHub';
 import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
+import AppImage from '@components/AppImage';
 
 import RightArrow from '@assets/images/chevron_right_blue.svg';
 
@@ -207,7 +207,7 @@ const RoomList = ({
           onPress={() => goRoomDetail(room, totalGuestCount)}
         >
           {thumbnailImage ? (
-            <Image source={{uri: thumbnailImage}} style={styles.roomImage} />
+            <AppImage uri={thumbnailImage} style={styles.roomImage} />
           ) : (
             <View
               style={[styles.roomImage, {backgroundColor: COLORS.grayscale_0}]}

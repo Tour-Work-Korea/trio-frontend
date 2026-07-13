@@ -10,6 +10,7 @@ export const KAKAO_REDIRECT_URI = env.KAKAO_REDIRECT_URI || '';
 export const KAKAO_RESTAPI_KEY = env.KAKAO_RESTAPI_KEY || '';
 export const WEB_BASE_URL = env.WEB_BASE_URL || '';
 export const NAVER_CLIENT_ID = env.NAVER_CLIENT_ID || '';
+export const NAVER_REDIRECT_URI = env.NAVER_REDIRECT_URI || '';
 export const NAVER_CLIENT_SECRET = '';
 export const NAVER_SEARCH_CLIENT_ID = env.NAVER_SEARCH_CLIENT_ID || '';
 export const NAVER_SEARCH_CLIENT_SECRET = env.NAVER_SEARCH_CLIENT_SECRET || '';

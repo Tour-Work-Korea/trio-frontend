@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, Image, ScrollView, TouchableOpacity} from 'react-native';
+import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 
@@ -13,6 +13,7 @@ import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import AlertModal from '@components/modals/AlertModal';
+import AppImage from '@components/AppImage';
 
 export default function MeetPaymentReceipt() {
   const navigation = useNavigation();
@@ -167,8 +168,8 @@ export default function MeetPaymentReceipt() {
                   }
                 }}
               >
-                <Image
-                  source={{uri: reservationDetail.partyImage}}
+                <AppImage
+                  uri={reservationDetail.partyImage}
                   style={styles.image}
                 />
               </TouchableOpacity>

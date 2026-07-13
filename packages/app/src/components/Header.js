@@ -1,12 +1,11 @@
-import React, {useState} from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Platform } from 'react-native';
+import React from 'react';
+import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { COLORS } from '@constants/colors';
 import { FONTS } from '@constants/fonts';
 import ChevronLeft from '@assets/images/chevron_left_gray.svg';
 import Logo from '@assets/images/logo_orange.svg';
 import useUserStore from '@stores/userStore';
-import LoginAppPromptModal from '@components/modals/LoginAppPromptModal';
 
 // Header 사용법
 // - title이 있으면 중앙 제목 헤더, 없으면 중앙 로고 헤더를 렌더링
@@ -21,7 +20,6 @@ const Header = ({
   rightComponent = null,
 }) => {
   const navigation = useNavigation();
-  const [loginPromptVisible, setLoginPromptVisible] = useState(false);
   const handleOnPress = () => {
     if (onPress) {
       onPress();
@@ -34,11 +32,6 @@ const Header = ({
   const isLoggedIn = !!accessToken;
 
   const handlePressLogin = () => {
-    if (Platform.OS === 'web') {
-      setLoginPromptVisible(true);
-      return;
-    }
-
     navigation.navigate('Login');
   };
 
@@ -90,10 +83,6 @@ const Header = ({
           {rightElement}
         </View>
       )}
-      <LoginAppPromptModal
-        visible={loginPromptVisible}
-        onClose={() => setLoginPromptVisible(false)}
-      />
     </View>
   );
 };

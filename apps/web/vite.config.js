@@ -16,6 +16,8 @@ const exposedEnvKeys = [
   'KAKAO_REDIRECT_URI',
   'KAKAO_RESTAPI_KEY',
   'NAVER_CLIENT_ID',
+  'NAVER_SEARCH_CLIENT_ID',
+  'NAVER_REDIRECT_URI',
   'WEB_BASE_URL',
 ];
 
@@ -160,6 +162,18 @@ export default defineConfig(({mode}) => {
   },
   server: {
     port: 5173,
+    proxy: {
+      '/naver-search': {
+        target: 'https://openapi.naver.com',
+        changeOrigin: true,
+        rewrite: proxyPath =>
+          proxyPath.replace(/^\/naver-search/, '/v1/search'),
+        headers: {
+          'X-Naver-Client-Id': rootEnv.NAVER_SEARCH_CLIENT_ID ?? '',
+          'X-Naver-Client-Secret': rootEnv.NAVER_SEARCH_CLIENT_SECRET ?? '',
+        },
+      },
+    },
   },
   optimizeDeps: {
     exclude: [

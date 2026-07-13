@@ -86,3 +86,8 @@ yarn.lock
 
 # Local agent instructions
 AGENTS.md
+
+# Local performance test reports
+ANDROID_PERFORMANCE_TEST_REPORT.md
+IOS_PERFORMANCE_TEST_REPORT.md
+WEB_PERFORMANCE_TEST_REPORT.md

@@ -1,10 +1,11 @@
 import React, {useEffect} from 'react';
+import {InteractionManager} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {NavigationContainer} from '@react-navigation/native';
 import {navigationRef} from '@utils/navigationService';
 import useAmenityStore from '@stores/amenityStore';
 
-import undefinedStack from './undefinedStack';
+import UndefinedStack from './undefinedStack';
 import BottomTabs from '@screens/(Common)/BottomTabs';
 
 import {
@@ -27,6 +28,7 @@ import {
   GuesthousePaymentSuccess,
   RecentGuesthouseList,
   Login,
+  SocialLogin,
   RegisterIntro,
   RegisterAgree,
   PhoneCertificate,
@@ -74,6 +76,9 @@ import {
   CommunityPlaceSearch,
   CommunityLocationMap,
   CommunityStaffDetail,
+  EmployIntro,
+  EmploySearchList,
+  EmployMap,
 } from '@screens';
 
 const Stack = createNativeStackNavigator();
@@ -82,7 +87,13 @@ const RootNavigation = () => {
   const fetchAmenities = useAmenityStore(state => state.fetchAmenities);
 
   useEffect(() => {
-    fetchAmenities({force: true});
+    const handle = InteractionManager.runAfterInteractions(() => {
+      fetchAmenities();
+    });
+
+    return () => {
+      handle.cancel?.();
+    };
   }, [fetchAmenities]);
 
   return (
@@ -90,7 +101,8 @@ const RootNavigation = () => {
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="MainTabs" component={BottomTabs} />
         <Stack.Screen name="Login" component={Login} />
-        <Stack.Screen name="undefined" component={undefinedStack} />
+        <Stack.Screen name="SocialLogin" component={SocialLogin} />
+        <Stack.Screen name="undefined" component={UndefinedStack} />
         <Stack.Screen name="Setting" component={Setting} />
         <Stack.Screen name="Terms" component={Terms} />
 
@@ -137,6 +149,9 @@ const RootNavigation = () => {
         />
 
         <Stack.Screen name="EmployDetail" component={EmployDetail} />
+        <Stack.Screen name="EmployIntro" component={EmployIntro} />
+        <Stack.Screen name="EmploySearchList" component={EmploySearchList} />
+        <Stack.Screen name="EmployMap" component={EmployMap} />
         <Stack.Screen name="ApplicantInfo" component={ApplicantInfo} />
         <Stack.Screen name="ApplicantForm" component={ApplicantForm} />
         <Stack.Screen name="ResumeDetail" component={ResumeDetail} />

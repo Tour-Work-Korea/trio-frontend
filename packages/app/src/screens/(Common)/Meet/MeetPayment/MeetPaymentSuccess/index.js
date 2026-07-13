@@ -1,5 +1,5 @@
 import React from 'react';
-import {View, Text, StyleSheet, Image} from 'react-native';
+import {View, Text, StyleSheet} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -8,6 +8,7 @@ dayjs.locale('ko');
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
+import AppImage from '@components/AppImage';
 
 import Logo from '@assets/images/meet_reservation_success.svg';
 
@@ -67,7 +68,7 @@ const MeetPaymentSuccess = () => {
       <View style={styles.bottomRow}>
         <View style={styles.infoCard}>
           {eventThumbnailSource ? (
-            <Image
+            <AppImage
               source={eventThumbnailSource}
               style={styles.thumbnail}
               resizeMode="cover"

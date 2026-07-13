@@ -1,4 +1,4 @@
-import React, {useState, useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -20,6 +20,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import {validateRegisterProfile} from '@utils/validation/registerValidation';
 import AlertModal from '@components/modals/AlertModal';
 import {storeLoginTokens, tryLogin} from '@utils/auth/login';
+import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 
 import styles from './UserRegisterProfile.styles';
@@ -29,11 +30,26 @@ import HidePassword from '@assets/images/hide_password.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
+const normalizeRegisterProfileData = data => ({
+  ...data,
+  nickname: data?.nickname || '',
+  password: data?.password || '',
+  passwordConfirm: data?.passwordConfirm || '',
+  name: data?.name || '',
+  birthday: data?.birthday || '',
+  gender: data?.gender || '',
+  agreements: data?.agreements || [],
+});
+
 const UserRegisterProfile = () => {
   const route = useRoute();
   const {prevData} = route.params;
+  const normalizedPrevData = useMemo(
+    () => normalizeRegisterProfileData(prevData),
+    [prevData],
+  );
   const navigation = useNavigation();
-  const [formData, setFormData] = useState(prevData);
+  const [formData, setFormData] = useState(normalizedPrevData);
   const isSocialSignUp = !!formData?.isSocial;
   const [formValid, setFormValid] = useState({
     nickname: [],
@@ -78,7 +94,7 @@ const UserRegisterProfile = () => {
 
   useFocusEffect(
     useCallback(() => {
-      setFormData(prevData);
+      setFormData(normalizedPrevData);
       setFormValid({
         nickname: [],
         password: [],
@@ -97,7 +113,7 @@ const UserRegisterProfile = () => {
       });
       setPendingAfterLogin(false);
       setIsIntegrationNoticeShown(false);
-    }, [prevData]),
+    }, [normalizedPrevData]),
   );
 
   const handleNicknameChange = text => {
@@ -225,6 +241,7 @@ const UserRegisterProfile = () => {
           refreshToken,
           userRole: 'USER',
         });
+        await storeLastLoginProvider(formData.provider);
 
         navigation.dispatch(
           CommonActions.reset({
