@@ -595,8 +595,8 @@ const HomeMain = () => {
           <View style={styles.boxContainer}>
             <View style={styles.staffNoticeBanner}>
               <View style={styles.staffNoticeBannerLeft}>
-                <JejuAirplane width={16} height={16} />
-                <Text style={[FONTS.fs_16_semibold, styles.staffNoticeTitle]}>
+                <JejuAirplane width={14} height={14} />
+                <Text style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}>
                   제주 <Text style={styles.staffNoticeHighlight}>한달살기</Text>{' '}
                   어때?
                 </Text>

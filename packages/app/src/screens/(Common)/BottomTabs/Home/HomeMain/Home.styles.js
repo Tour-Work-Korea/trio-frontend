@@ -274,7 +274,7 @@ export default StyleSheet.create({
     marginHorizontal: 16,
     marginVertical: 8,
     paddingHorizontal: 14,
-    paddingVertical: 14,
+    paddingVertical: 12,
     borderRadius: 16,
     backgroundColor: '#FFFAE3',
     flexDirection: 'row',
