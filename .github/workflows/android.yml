@@ -202,4 +202,4 @@ jobs:
               \"color\": $COLOR
             }]
           }" \
-          ${{ secrets.DISCORD_WEBHOOK_URL }}
+          ${{ secrets.DISCORD_WEBHOOK_URL }} 
