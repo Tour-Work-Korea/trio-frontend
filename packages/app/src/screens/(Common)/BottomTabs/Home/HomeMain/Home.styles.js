@@ -271,7 +271,7 @@ export default StyleSheet.create({
   },
   // 제주 한달살기 공고 배너 시작: 필요 없을 때 이 스타일 묶음을 삭제해주세요.
   staffNoticeBanner: {
-    marginHorizontal: 16,
+    marginHorizontal: 20,
     marginVertical: 8,
     paddingHorizontal: 14,
     paddingVertical: 12,
