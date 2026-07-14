@@ -51,6 +51,7 @@ export function NavigationContainer({children, ref: navigationRef}) {
       reset: () => {},
       setOptions: () => {},
       getParent: () => null,
+      isFocused: () => true,
       __isRootFallback: true,
     }),
     [],
@@ -78,6 +79,7 @@ export function useNavigation() {
     reset: () => {},
     setOptions: () => {},
     getParent: () => null,
+    isFocused: () => true,
   };
 }
 
@@ -1027,6 +1029,7 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         setParams,
         setOptions: () => {},
         getParent: () => parentNavigation ?? null,
+        isFocused: () => true,
       }),
       [firstScreen, goBack, navigate, parentNavigation, reset, setParams],
     );
@@ -1091,9 +1094,16 @@ export function createNavigatorFactory(defaultKind = 'stack') {
                       style={[styles.tabItem, options.tabBarItemStyle]}
                       onPress={() => {
                         const event = createNavigationEvent();
+                        const listenerNavigation = {
+                          ...navigation,
+                          isFocused: () => focused,
+                        };
                         const listeners =
                           typeof child.props.listeners === 'function'
-                            ? child.props.listeners({navigation, route: childRoute})
+                            ? child.props.listeners({
+                                navigation: listenerNavigation,
+                                route: childRoute,
+                              })
                             : child.props.listeners;
 
                         listeners?.tabPress?.(event);
