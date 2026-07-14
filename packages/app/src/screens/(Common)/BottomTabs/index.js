@@ -79,10 +79,6 @@ const BottomTabs = () => {
           component={Guesthouse}
           listeners={({navigation}) => ({
             tabPress: e => {
-              if (!navigation.isFocused()) {
-                return;
-              }
-
               e.preventDefault();
               navigation.navigate('지도', {
                 screen: 'GuesthouseList',
