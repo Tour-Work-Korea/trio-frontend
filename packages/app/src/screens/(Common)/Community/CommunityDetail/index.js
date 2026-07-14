@@ -1556,7 +1556,8 @@ const CommunityDetail = ({route}) => {
       <View
         style={[
           styles.commentBottomBar,
-          keyboardHeight > 0 && {bottom: keyboardHeight},
+          Platform.OS === 'ios' &&
+            keyboardHeight > 0 && {bottom: keyboardHeight},
         ]}>
         {editingTarget ? (
           <View style={styles.replyTargetBox}>
