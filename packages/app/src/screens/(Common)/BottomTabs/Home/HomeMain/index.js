@@ -596,7 +596,11 @@ const HomeMain = () => {
             <View style={styles.staffNoticeBanner}>
               <View style={styles.staffNoticeBannerLeft}>
                 <JejuAirplane width={14} height={14} />
-                <Text style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}>
+                <Text
+                  style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}
+                  numberOfLines={1}
+                  adjustsFontSizeToFit
+                  minimumFontScale={0.75}>
                   제주 <Text style={styles.staffNoticeHighlight}>한달살기</Text>{' '}
                   어때?
                 </Text>
@@ -606,7 +610,7 @@ const HomeMain = () => {
                 style={styles.staffNoticeButton}
                 onPress={handlePressStaffNoticeBanner}>
                 <Text style={styles.staffNoticeButtonText}>
-                  현재 모집 중인 스탭 공고 보러가기
+                  모집 중인 스탭 공고 보러가기
                 </Text>
               </TouchableOpacity>
             </View>

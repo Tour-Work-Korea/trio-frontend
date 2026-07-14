@@ -51,9 +51,9 @@ export default function LoginByEmail({route}) {
   };
 
   const getLoginUserRole = () => {
-    if (email.trim().toLowerCase().endsWith('@ddakji.kr')) {
-      return 'ADMIN';
-    }
+    // if (email.trim().toLowerCase().endsWith('@ddakji.kr')) {
+    //   return 'ADMIN';
+    // }
 
     return userRole;
   };
