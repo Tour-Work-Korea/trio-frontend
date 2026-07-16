@@ -17,6 +17,9 @@ import {useFocusEffect} from '@react-navigation/native';
 import authApi from '@utils/api/authApi';
 
 export const Email = ({user, onPress}) => {
+  const MainLogo = LogoOrange;
+  const mainColor = COLORS.primary_orange;
+
   const [email, setEmail] = useState('');
   const [isEmailValid, setIsEmailValid] = useState(false);
   const [code, setCode] = useState('');
@@ -35,9 +38,6 @@ export const Email = ({user, onPress}) => {
   const [loading, setLoading] = useState(false);
   const [hasRequestedCode, setHasRequestedCode] = useState(false); // 인증 요청 누름 여부
   const [isResendEnabled, setIsResendEnabled] = useState(false); // 재전송 버튼 활성 여부
-
-  const MainLogo = LogoOrange;
-  const mainColor = COLORS.primary_orange;
 
   useFocusEffect(
     useCallback(() => {
