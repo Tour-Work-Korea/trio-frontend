@@ -188,6 +188,9 @@ const UserRegisterProfile = () => {
   };
 
   const isFormValid = () => {
+    const nameValid = !!formData.name?.trim();
+    const birthdayValid = /^\d{4}-\d{2}-\d{2}$/.test(formData.birthday || '');
+    const genderValid = formData.gender === 'M' || formData.gender === 'F';
     const nicknameValid =
       formValid.nickname?.hasNoSpecialChars &&
       formValid.nickname?.isLengthValid &&
@@ -203,16 +206,17 @@ const UserRegisterProfile = () => {
     const confirmValid = formValid.passwordConfirm?.isMatched;
 
     if (isSocialSignUp) {
-      const nameValid = !!formData.name?.trim();
-      const birthdayValid = /^\d{4}-\d{2}-\d{2}$/.test(
-        formData.birthday || '',
-      );
-      const genderValid = formData.gender === 'M' || formData.gender === 'F';
-
       return nameValid && birthdayValid && genderValid;
     }
 
-    return nicknameValid && passwordValid && confirmValid;
+    return (
+      nameValid &&
+      birthdayValid &&
+      genderValid &&
+      nicknameValid &&
+      passwordValid &&
+      confirmValid
+    );
   };
 
   const handleSubmit = async () => {
@@ -257,6 +261,9 @@ const UserRegisterProfile = () => {
         password: formData.password,
         passwordConfirm: formData.passwordConfirm,
         nickname: formData.nickname,
+        name: formData.name.trim(),
+        birthday: formData.birthday,
+        gender: formData.gender,
         userRole: formData.userRole,
         phoneNum: formData.phoneNum,
         agreements: formData.agreements,
@@ -313,24 +320,8 @@ const UserRegisterProfile = () => {
     if (isSuccessLogin) {
       navigation.dispatch(
         CommonActions.reset({
-          index: 1,
-          routes: [
-            {name: 'MainTabs', params: {screen: '홈'}},
-            {
-              name: 'Result',
-              params: {
-                nickname: formData.nickname,
-                role: formData.userRole,
-                onPress: () =>
-                  navigation.dispatch(
-                    CommonActions.reset({
-                      index: 0,
-                      routes: [{name: 'MainTabs', params: {screen: '홈'}}],
-                    }),
-                  ),
-              },
-            },
-          ],
+          index: 0,
+          routes: [{name: 'MainTabs', params: {screen: '홈'}}],
         }),
       );
     } else {
@@ -368,82 +359,40 @@ const UserRegisterProfile = () => {
               </View>
             </View>
             <View style={styles.inputGroup}>
-              {isSocialSignUp && (
-                <>
-                  <View
-                    style={styles.inputContainer}
-                    onLayout={nameField.onLayout}>
-                    <Text style={styles.inputLabel}>이름</Text>
-                    <View style={styles.inputBox}>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="이름을 입력해주세요"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={formData.name}
-                        onChangeText={handleNameChange}
-                        onFocus={nameField.onFocus}
-                        maxLength={20}
-                      />
-                    </View>
-                  </View>
+              <View
+                style={styles.inputContainer}
+                onLayout={nameField.onLayout}>
+                <Text style={styles.inputLabel}>이름</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="이름을 입력해주세요"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={formData.name}
+                    onChangeText={handleNameChange}
+                    onFocus={nameField.onFocus}
+                    maxLength={20}
+                  />
+                </View>
+              </View>
 
-                  <View
-                    style={styles.inputContainer}
-                    onLayout={birthdayField.onLayout}>
-                    <Text style={styles.inputLabel}>생년월일</Text>
-                    <View style={styles.inputBox}>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="YYYY-MM-DD"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={formData.birthday}
-                        onChangeText={handleBirthdayChange}
-                        onFocus={birthdayField.onFocus}
-                        keyboardType="number-pad"
-                        maxLength={10}
-                      />
-                    </View>
-                  </View>
-
-                  <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>성별</Text>
-                    <View style={styles.genderGroup}>
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        style={[
-                          styles.genderButton,
-                          formData.gender === 'F' && styles.genderButtonActive,
-                        ]}
-                        onPress={() => handleGenderChange('F')}>
-                        <Text
-                          style={[
-                            styles.genderButtonText,
-                            formData.gender === 'F' &&
-                              styles.genderButtonTextActive,
-                          ]}>
-                          여성
-                        </Text>
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        activeOpacity={0.8}
-                        style={[
-                          styles.genderButton,
-                          formData.gender === 'M' && styles.genderButtonActive,
-                        ]}
-                        onPress={() => handleGenderChange('M')}>
-                        <Text
-                          style={[
-                            styles.genderButtonText,
-                            formData.gender === 'M' &&
-                              styles.genderButtonTextActive,
-                          ]}>
-                          남성
-                        </Text>
-                      </TouchableOpacity>
-                    </View>
-                  </View>
-                </>
-              )}
+              <View
+                style={styles.inputContainer}
+                onLayout={birthdayField.onLayout}>
+                <Text style={styles.inputLabel}>생년월일</Text>
+                <View style={styles.inputBox}>
+                  <TextInput
+                    style={styles.textInput}
+                    placeholder="YYYY-MM-DD"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={formData.birthday}
+                    onChangeText={handleBirthdayChange}
+                    onFocus={birthdayField.onFocus}
+                    keyboardType="number-pad"
+                    maxLength={10}
+                  />
+                </View>
+              </View>
 
               {!isSocialSignUp && (
                 <View
@@ -633,11 +582,48 @@ const UserRegisterProfile = () => {
                   </View>
                 </>
               )}
+              <View style={styles.inputContainer}>
+                <Text style={styles.inputLabel}>성별</Text>
+                <View style={styles.genderGroup}>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[
+                      styles.genderButton,
+                      formData.gender === 'F' && styles.genderButtonActive,
+                    ]}
+                    onPress={() => handleGenderChange('F')}>
+                    <Text
+                      style={[
+                        styles.genderButtonText,
+                        formData.gender === 'F' &&
+                          styles.genderButtonTextActive,
+                      ]}>
+                      여성
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={0.8}
+                    style={[
+                      styles.genderButton,
+                      formData.gender === 'M' && styles.genderButtonActive,
+                    ]}
+                    onPress={() => handleGenderChange('M')}>
+                    <Text
+                      style={[
+                        styles.genderButtonText,
+                        formData.gender === 'M' &&
+                          styles.genderButtonTextActive,
+                      ]}>
+                      남성
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              </View>
             </View>
           </View>
           <View>
             <ButtonScarlet
-              title="다음"
+              title="가입하기"
               onPress={handleSubmit}
               disabled={!isFormValid()}
             />
