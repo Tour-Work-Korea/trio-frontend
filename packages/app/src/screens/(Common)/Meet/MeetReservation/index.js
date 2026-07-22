@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -29,6 +29,8 @@ import AppImage from '@components/AppImage';
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
 import WarningAlarm from '@assets/images/notice_bubble_orange.svg';
+import ChevronDown from '@assets/images/chevron_down_gray.svg';
+import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import { COLORS } from '@constants/colors';
 
 const TERM_DOCUMENT_MAP = {
@@ -42,6 +44,11 @@ const formatPhoneNumber = phone => {
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
 };
 
+const isDateOptionClosed = option =>
+  option?.isClosed === true ||
+  option?.isApplyOpen === false ||
+  (option?.partyStatus && option.partyStatus !== 'RECRUIT');
+
 const MeetReservation = () => {
   const navigation = useNavigation();
   const route = useRoute();
@@ -51,6 +58,8 @@ const MeetReservation = () => {
     partyStartDateTime: routePartyStartDateTime,
     partyStartTime: routePartyStartTime,
     partyEndTime: routePartyEndTime,
+    applicationType: routeApplicationType,
+    partyDateOptions: routePartyDateOptions,
     thumbnailUrl: routeThumbnailUrl,
     partyAnnouncements,
     selectedCoupon,
@@ -69,6 +78,7 @@ const MeetReservation = () => {
   const [guideAgreed, setGuideAgreed] = useState(false);
   const [reservationInfo, setReservationInfo] = useState(null);
   const [appPromptVisible, setAppPromptVisible] = useState(false);
+  const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
 
   useEffect(() => {
     if (selectedCoupon) {
@@ -113,17 +123,131 @@ const MeetReservation = () => {
     run();
   }, [partyId, navigation]);
 
+  const normalizeDateOptions = useCallback(source => {
+    const candidates = [
+      source?.applicationStatuses,
+      source?.partySchedules,
+      source?.schedules,
+      source?.availableSchedules,
+      source?.availableParties,
+      source?.partyDates,
+      source?.partyDateTimes,
+    ].find(Array.isArray);
+    const list = candidates?.length
+      ? candidates
+      : Array.isArray(routePartyDateOptions) && routePartyDateOptions.length
+        ? routePartyDateOptions
+        : [source].filter(Boolean);
+
+    return list
+      .map((item, index) => {
+        if (typeof item === 'string') {
+          return {
+            id: `${item}-${index}`,
+            partyId,
+            partyStartDateTime: item,
+            partyStartTime: item,
+            partyEndTime: routePartyEndTime,
+            partyEndDateTime: routePartyEndTime,
+            isApplyOpen: true,
+            isClosed: false,
+          };
+        }
+
+        return {
+          id: item?.partyId ?? item?.id ?? `${item?.partyStartDateTime ?? index}`,
+          partyId: item?.partyId ?? item?.id ?? partyId,
+          partyStartDateTime:
+            item?.partyStartDateTime ??
+            item?.startDateTime ??
+            item?.dateTime ??
+            item?.date ??
+            source?.partyStartDateTime ??
+            routePartyStartDateTime,
+          partyStartTime:
+            item?.partyStartTime ??
+            item?.startTime ??
+            item?.partyStartDateTime ??
+            source?.partyStartTime ??
+            source?.partyStartDateTime ??
+            routePartyStartTime ??
+            routePartyStartDateTime,
+          partyEndTime:
+            item?.partyEndTime ??
+            item?.endTime ??
+            item?.partyEndDateTime ??
+            source?.partyEndTime ??
+            source?.partyEndDateTime ??
+            routePartyEndTime,
+          partyEndDateTime:
+            item?.partyEndDateTime ??
+            item?.endDateTime ??
+            item?.partyEndTime ??
+            source?.partyEndDateTime ??
+            source?.partyEndTime ??
+            routePartyEndTime,
+          partyStatus: item?.partyStatus ?? item?.status,
+          isApplyOpen: item?.isApplyOpen ?? source?.isApplyOpen ?? true,
+          isClosed: item?.isClosed ?? false,
+        };
+      })
+      .filter(item => !!item.partyStartDateTime);
+  }, [
+    partyId,
+    routePartyDateOptions,
+    routePartyEndTime,
+    routePartyStartDateTime,
+    routePartyStartTime,
+  ]);
+
+  const dateOptions = useMemo(
+    () => normalizeDateOptions(reservationInfo),
+    [normalizeDateOptions, reservationInfo],
+  );
+  const [selectedDateIndex, setSelectedDateIndex] = useState(0);
+  const selectedDateOption = dateOptions[selectedDateIndex] ?? dateOptions[0];
+  const applicationType =
+    reservationInfo?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
+  const shouldShowDateSelector =
+    applicationType !== 'SAME_DAY' && dateOptions.length > 0;
   const title = reservationInfo?.partyTitle ?? routePartyTitle ?? '';
-  const checkInDate = reservationInfo?.partyStartDateTime ?? routePartyStartDateTime ?? null;
+  const checkInDate =
+    selectedDateOption?.partyStartDateTime ??
+    reservationInfo?.partyStartDateTime ??
+    routePartyStartDateTime ??
+    null;
   const checkInTime =
+    selectedDateOption?.partyStartTime ??
+    selectedDateOption?.partyStartDateTime ??
     reservationInfo?.partyStartDateTime ??
     routePartyStartTime ??
     routePartyStartDateTime ??
     null;
   const checkOutTime =
-    reservationInfo?.partyEndDateTime ?? routePartyEndTime ?? null;
+    selectedDateOption?.partyEndDateTime ??
+    selectedDateOption?.partyEndTime ??
+    reservationInfo?.partyEndDateTime ??
+    routePartyEndTime ??
+    null;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
+
+  useEffect(() => {
+    if (selectedDateIndex >= dateOptions.length) {
+      setSelectedDateIndex(0);
+      return;
+    }
+
+    if (isDateOptionClosed(dateOptions[selectedDateIndex])) {
+      const firstOpenIndex = dateOptions.findIndex(
+        option => !isDateOptionClosed(option),
+      );
+
+      if (firstOpenIndex >= 0 && firstOpenIndex !== selectedDateIndex) {
+        setSelectedDateIndex(firstOpenIndex);
+      }
+    }
+  }, [dateOptions, selectedDateIndex]);
   const [requestMessage, setRequestMessage] = useState('');
   const {
     scrollRef,
@@ -184,6 +308,11 @@ const MeetReservation = () => {
     if (!date.isValid()) {return '-';}
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
+  const formatReservationOption = option => {
+    const date = dayjs(option?.partyStartDateTime);
+    const dateText = date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-';
+    return `${dateText} ${formatTime(option?.partyStartTime ?? option?.partyStartDateTime)}`;
+  };
 
   const eventDateText = formatDateWithDay(checkInDate);
   const eventTimeText = `${formatTime(checkInTime)}~${formatTime(checkOutTime)}`;
@@ -198,6 +327,7 @@ const MeetReservation = () => {
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.personalInfo;
+  const canApplySelectedDate = !isDateOptionClosed(selectedDateOption);
 
   const toggleAgreement = key => {
     setAgreements(prev => ({
@@ -240,8 +370,9 @@ const MeetReservation = () => {
     try {
       const requestText = requestMessage?.trim() || '';
       const amount = Number(reservationInfo?.amount ?? 0);
+      const reservationPartyId = selectedDateOption?.partyId ?? partyId;
       const { data } = await reservationPaymentApi.createPartyReservation(
-        partyId,
+        reservationPartyId,
         {
           amount,
           request: requestText,
@@ -311,6 +442,11 @@ const MeetReservation = () => {
     }
 
     setStep(2);
+  };
+
+  const handleSelectDate = index => {
+    setSelectedDateIndex(index);
+    setIsDateDropdownOpen(false);
   };
 
   const renderGuideStep = () => {
@@ -429,6 +565,73 @@ const MeetReservation = () => {
 
           <View style={styles.devide} />
 
+          {shouldShowDateSelector && (
+            <>
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  참여 일정
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={[
+                    styles.dateSelector,
+                    isDateDropdownOpen && styles.dateSelectorOpen,
+                  ]}
+                  onPress={() => setIsDateDropdownOpen(prev => !prev)}>
+                  <Text style={[FONTS.fs_14_medium, styles.dateSelectorText]}>
+                    {formatReservationOption(selectedDateOption)}
+                  </Text>
+                  {isDateDropdownOpen ? (
+                    <ChevronUp width={16} height={16} />
+                  ) : (
+                    <ChevronDown width={16} height={16} />
+                  )}
+                </TouchableOpacity>
+                {isDateDropdownOpen && (
+                  <View style={styles.dateDropdownList}>
+                    {dateOptions.map((option, index) => {
+                      const disabled = isDateOptionClosed(option);
+                      const selected = index === selectedDateIndex;
+
+                      return (
+                        <TouchableOpacity
+                          activeOpacity={1}
+                          key={option.id}
+                          style={[
+                            styles.dateDropdownItem,
+                            selected && styles.dateDropdownItemSelected,
+                            disabled && styles.dateDropdownItemDisabled,
+                          ]}
+                          disabled={disabled}
+                          onPress={() => handleSelectDate(index)}>
+                          <Text
+                            style={[
+                              FONTS.fs_14_medium,
+                              styles.dateDropdownText,
+                              disabled && styles.dateDropdownTextDisabled,
+                            ]}>
+                            {formatReservationOption(option)}
+                          </Text>
+                          {disabled && (
+                            <Text
+                              style={[
+                                FONTS.fs_12_medium,
+                                styles.dateDropdownClosedText,
+                              ]}>
+                              마감
+                            </Text>
+                          )}
+                        </TouchableOpacity>
+                      );
+                    })}
+                  </View>
+                )}
+              </View>
+
+              <View style={styles.devide} />
+            </>
+          )}
+
           {/* 예약자 정보 */}
           <View style={styles.section}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
@@ -513,7 +716,7 @@ const MeetReservation = () => {
           <View style={styles.fixedButton}>
             <ButtonScarlet
               title="신청하기"
-              disabled={!isAllRequiredAgreed}
+              disabled={!isAllRequiredAgreed || !canApplySelectedDate}
               onPress={handleCreateReservation}
             />
           </View>

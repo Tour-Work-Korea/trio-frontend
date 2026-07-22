@@ -53,18 +53,19 @@ const styles = StyleSheet.create({
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
-    width: '75%',
+    width: '100%',
   },
   filterButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    padding: 10,
-    borderRadius: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+    borderRadius: 18,
     backgroundColor: COLORS.grayscale_100,
   },
   filterText: {
-    marginLeft: 8,
+    marginLeft: 6,
     color: COLORS.grayscale_800,
   },
   quickTagScroll: {
@@ -73,14 +74,14 @@ const styles = StyleSheet.create({
   },
   quickTagChip: {
     paddingHorizontal: 12,
-    paddingVertical: 4,
+    paddingVertical: 8,
     borderRadius: 100,
     backgroundColor: COLORS.grayscale_100,
     alignItems: 'center',
     justifyContent: 'center',
   },
   quickTagText: {
-    color: COLORS.primary_blue,
+    color: COLORS.grayscale_900,
   },
   sortButton: {
     flexDirection: 'row',
@@ -177,10 +178,18 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     gap: 4,
     alignItems: 'center',
-    marginTop: 4,
+  },
+  partyMetaRow: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+  },
+  partyMetaText: {
+    color: COLORS.grayscale_500,
+    flexShrink: 1,
   },
   partyPeople: {
-    color: COLORS.grayscale_400,
+    color: COLORS.grayscale_500,
   },
   partyTime: {
     color: COLORS.primary_orange,

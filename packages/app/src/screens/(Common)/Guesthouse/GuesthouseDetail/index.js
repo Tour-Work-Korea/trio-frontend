@@ -72,6 +72,10 @@ const prefetchGuesthouseImages = images => {
 };
 
 const SHORT_INTRO_COLLAPSED_LINES = 6;
+const TODAY_PARTY_CARD_WIDTH =
+  (Platform.OS === 'web'
+    ? Math.min(Dimensions.get('window').width, 430)
+    : Dimensions.get('window').width) - 40;
 
 // 안심번호 일 경우만 공개
 const is050Number = phone => {
@@ -707,9 +711,20 @@ const GuesthouseDetail = ({route}) => {
               <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
                 오늘의 콘텐츠
               </Text>
-              <View style={styles.todayPartyList}>
-                {todayParties.map(renderTodayParty)}
-              </View>
+              {todayParties.length > 1 ? (
+                <ScrollView
+                  horizontal
+                  showsHorizontalScrollIndicator={false}
+                  decelerationRate="fast"
+                  snapToInterval={TODAY_PARTY_CARD_WIDTH + 12}
+                  contentContainerStyle={styles.todayPartyListHorizontal}>
+                  {todayParties.map(renderTodayParty)}
+                </ScrollView>
+              ) : (
+                <View style={styles.todayPartyList}>
+                  {todayParties.map(renderTodayParty)}
+                </View>
+              )}
             </View>
           )}
 
