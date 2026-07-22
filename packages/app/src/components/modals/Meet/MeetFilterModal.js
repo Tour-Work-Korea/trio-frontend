@@ -1,4 +1,4 @@
-import React, {useRef, useState, useEffect} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -6,100 +6,245 @@ import {
   StyleSheet,
   ScrollView,
   Dimensions,
+  TextInput,
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import MultiSlider from '@ptomasroos/react-native-multi-slider';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {meetScales, stayTypes, meetTags} from '@constants/meetOptions';
+import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 
 import XBtn from '@assets/images/x_gray.svg';
+import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
+import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
 
 const {height} = Dimensions.get('window');
 
-const tabList = [
-  {key: 'price', label: '가격 범위'},
-  {key: 'scale', label: '규모'},
-  {key: 'stay', label: '숙박 여부'},
-  {key: 'tags', label: '시설/서비스'},
+const CATEGORY_OPTIONS = [
+  {id: null, label: '전체'},
+  {id: 'POTLUCK', label: '포틀럭'},
+  {id: 'DINNER_PARTY', label: '디너파티'},
+  {id: 'BOOK', label: '독서'},
+  {id: 'WALK', label: '산책'},
 ];
 
-const MeetFilterModal = ({visible, onClose, onApply}) => {
-  const scrollViewRef = useRef();
+const GUEST_OPTIONS = [
+  {id: null, label: '누구나 참여'},
+  {id: true, label: '숙박객 전용'},
+];
 
-  const [sectionPositions, setSectionPositions] = useState({});
-  const [activeTab, setActiveTab] = useState('price');
-  const [priceRange, setPriceRange] = useState([0, 1000000]);
-  const [selectedScale, setSelectedScale] = useState(null);
-  const [selectedStay, setSelectedStay] = useState(null);
-  const [selectedTags, setSelectedTags] = useState(meetTags.map(tag => tag.id));
+const CAPACITY_OPTIONS = [
+  {id: null, label: '전체', isBigParty: null},
+  {id: '3-10', label: '3~10명', isBigParty: false},
+  {id: '11-20', label: '11~20명', isBigParty: true},
+  {id: '21-30', label: '21~30명', isBigParty: true},
+  {id: '31-60', label: '31~60명', isBigParty: true},
+];
 
-  const [initialState, setInitialState] = useState({
-    priceRange: [0, 1000000],
-    scale: null,
-    stay: null,
-    tags: meetTags.map(tag => tag.id),
+const PRICE_OPTIONS = [
+  {id: 'all', label: '전체'},
+  {id: 'free', label: '무료', minPrice: 0, maxPrice: 0, chargeTypes: ['FREE']},
+  {id: 'under10000', label: '1만원 이하', minPrice: 0, maxPrice: 10000},
+  {id: 'under30000', label: '3만원 이하', minPrice: 0, maxPrice: 30000},
+  {id: 'under50000', label: '5만원 이하', minPrice: 0, maxPrice: 50000},
+  {id: 'custom', label: '직접 입력'},
+];
+
+const DEFAULT_FILTERS = {
+  contentType: null,
+  isGuest: null,
+  capacityId: null,
+  isBigParty: null,
+  priceOption: 'all',
+  minPrice: '',
+  maxPrice: '',
+  chargeTypes: undefined,
+};
+
+const onlyNumbers = value => String(value ?? '').replace(/[^0-9]/g, '');
+
+const buildAppliedFilters = state => {
+  const price = PRICE_OPTIONS.find(option => option.id === state.priceOption);
+  const isAll = state.priceOption === 'all';
+  const isCustom = state.priceOption === 'custom';
+
+  return {
+    contentTypes: state.contentType ? [state.contentType] : undefined,
+    isGuest: state.isGuest,
+    capacityId: state.capacityId,
+    isBigParty: state.isBigParty,
+    chargeTypes: isAll || isCustom ? undefined : price?.chargeTypes,
+    minPrice: isAll
+      ? undefined
+      : isCustom
+      ? state.minPrice
+        ? Number(state.minPrice)
+        : undefined
+      : price?.minPrice,
+    maxPrice: isAll
+      ? undefined
+      : isCustom
+      ? state.maxPrice
+        ? Number(state.maxPrice)
+        : undefined
+      : price?.maxPrice,
+  };
+};
+
+const MeetFilterModal = ({
+  visible,
+  onClose,
+  onApply,
+  initialFilters,
+  initialScrollTarget,
+}) => {
+  const {
+    scrollRef,
+    contentContainerStyle: keyboardAwareContentStyle,
+  } = useKeyboardAwareScrollView({
+    basePaddingBottom: 180,
+    extraScrollOffset: 40,
+    scrollDelay: 160,
+    iosOnly: false,
+  });
+  const sectionPositionsRef = useRef({});
+
+  const initialState = useMemo(
+    () => ({
+      ...DEFAULT_FILTERS,
+      ...(initialFilters ?? {}),
+      contentType: initialFilters?.contentTypes?.[0] ?? null,
+      priceOption: initialFilters?.hasApplied
+        ? initialFilters?.priceOption ?? DEFAULT_FILTERS.priceOption
+        : DEFAULT_FILTERS.priceOption,
+      minPrice:
+        initialFilters?.hasApplied && initialFilters?.minPrice != null
+          ? String(initialFilters.minPrice)
+          : '',
+      maxPrice:
+        initialFilters?.hasApplied && initialFilters?.maxPrice != null
+          ? String(initialFilters.maxPrice)
+          : '',
+    }),
+    [initialFilters],
+  );
+
+  const [filters, setFilters] = useState(initialState);
+  const isCustomPrice = filters.priceOption === 'custom';
+
+  const isDirty = useMemo(
+    () =>
+      JSON.stringify(buildAppliedFilters(filters)) !==
+      JSON.stringify(buildAppliedFilters(initialState)),
+    [filters, initialState],
+  );
+
+  const setFilter = next => {
+    setFilters(prev => ({
+      ...prev,
+      ...next,
+    }));
+  };
+
+  const handleReset = () => {
+    setFilters(DEFAULT_FILTERS);
+  };
+
+  const scrollToSection = useCallback(key => {
+    const y = sectionPositionsRef.current[key] ?? 0;
+
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollRef.current?.scrollTo?.({
+          y: Math.max(0, y - 12),
+          animated: true,
+        });
+      }, 180);
+    });
+  }, [scrollRef]);
+
+  const scrollToPriceInput = useCallback(() => {
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        scrollRef.current?.scrollToEnd?.({animated: true});
+      }, 220);
+    });
+  }, [scrollRef]);
+
+  const registerSection = key => ({
+    onLayout: e => {
+      sectionPositionsRef.current[key] = e?.nativeEvent?.layout?.y ?? 0;
+    },
   });
 
-  const isDirty =
-    priceRange[0] !== initialState.priceRange[0] ||
-    priceRange[1] !== initialState.priceRange[1] ||
-    selectedScale !== initialState.scale ||
-    selectedStay !== initialState.stay ||
-    selectedTags.length !== initialState.tags.length ||
-    !selectedTags.every(t => initialState.tags.includes(t));
+  const renderRadio = selected =>
+    selected ? (
+      <CheckedCircleIcon width={24} height={24} />
+    ) : (
+      <UncheckedCircleIcon width={24} height={24} />
+    );
 
-  // 현재 영역 감지
-  const handleScroll = e => {
-    const y = e.nativeEvent.contentOffset.y;
+  useEffect(() => {
+    if (visible) {
+      setFilters(initialState);
+    }
+  }, [visible, initialState]);
 
-    const entries = Object.entries(sectionPositions);
-    let currentTab = activeTab;
-
-    for (let i = 0; i < entries.length; i++) {
-      const [key, positionY] = entries[i];
-      const nextPositionY = entries[i + 1]?.[1] ?? Infinity;
-
-      if (y >= positionY && y < nextPositionY) {
-        currentTab = key;
-        break;
-      }
+  useEffect(() => {
+    if (!visible || !initialScrollTarget) {
+      return;
     }
 
-    if (currentTab !== activeTab) {
-      setActiveTab(currentTab);
-    }
-  };
+    scrollToSection(initialScrollTarget);
+  }, [initialScrollTarget, scrollToSection, visible]);
 
-  // 탭 클릭 → 스크롤 이동
-  const handleTabPress = key => {
-    const y = sectionPositions[key];
-    if (y !== undefined) {
-      scrollViewRef.current?.scrollTo({y, animated: true});
-    }
-  };
+  const renderRadioOption = ({key, label, selected, onPress}) => (
+    <TouchableOpacity
+      activeOpacity={1}
+      key={key}
+      style={styles.radioOption}
+      onPress={onPress}>
+      {renderRadio(selected)}
+      <Text style={[FONTS.fs_14_medium, styles.radioLabel]}>{label}</Text>
+    </TouchableOpacity>
+  );
 
-  // 초기화
-  const handleReset = () => {
-    setPriceRange([0, 1000000]);
-    setSelectedScale(null);
-    setSelectedStay(null);
-    setSelectedTags(meetTags.map(tag => tag.id));
+  const renderPriceChip = option => {
+    const selected = filters.priceOption === option.id;
 
-    setInitialState({
-      priceRange: [0, 1000000],
-      scale: null,
-      stay: null,
-      tags: meetTags.map(tag => tag.id),
-    });
-  };
-
-  const toggleTag = id => {
-    setSelectedTags(prev =>
-      prev.includes(id) ? prev.filter(t => t !== id) : [...prev, id],
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        key={option.id}
+        style={[styles.priceChip, selected && styles.priceChipSelected]}
+        onPress={() => {
+          setFilter({
+            priceOption: option.id,
+            minPrice:
+              option.id === 'custom'
+                ? filters.minPrice
+                : String(option.minPrice ?? ''),
+            maxPrice:
+              option.id === 'custom'
+                ? filters.maxPrice
+                : String(option.maxPrice ?? ''),
+            chargeTypes: option.chargeTypes,
+          });
+          if (option.id === 'custom') {
+            scrollToPriceInput();
+          }
+        }}>
+        <Text
+          style={[
+            FONTS.fs_13_medium,
+            styles.priceChipText,
+            selected && styles.priceChipTextSelected,
+          ]}>
+          {option.label}
+        </Text>
+      </TouchableOpacity>
     );
   };
 
@@ -107,190 +252,64 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
     <Modal visible={visible} animationType="slide" transparent>
       <View style={styles.overlay}>
         <View style={styles.container}>
-          {/* 헤더 */}
           <View style={styles.header}>
             <Text style={[FONTS.fs_20_semibold]}>필터</Text>
             <TouchableOpacity
-              activeOpacity={1} style={styles.xBtn} onPress={onClose}>
+              activeOpacity={1}
+              style={styles.xBtn}
+              onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
 
-          {/* 탭 */}
-          <View style={styles.tabRow}>
-            {tabList.map(tab => (
-              <TouchableOpacity
-                activeOpacity={1}
-                key={tab.key}
-                onPress={() => handleTabPress(tab.key)}>
-                <Text
-                  style={[
-                    FONTS.fs_16_regular,
-                    styles.tabText,
-                    activeTab === tab.key && styles.tabTextActive,
-                    activeTab === tab.key && FONTS.fs_16_semibold,
-                  ]}>
-                  {tab.label}
-                </Text>
-              </TouchableOpacity>
-            ))}
-          </View>
-
-          {/* 부문 */}
           <ScrollView
-            ref={scrollViewRef}
-            onScroll={handleScroll}
-            contentContainerStyle={{paddingBottom: 120}}>
-            {/* 가격 범위 */}
-            <View
-              onLayout={e => {
-                const y = e.nativeEvent.layout?.y;
-                if (y != null)
-                  setSectionPositions(prev => ({...prev, price: y}));
-              }}
-              style={styles.section}>
-              <View style={styles.priceSectionHeader}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                  가격 범위
-                </Text>
-              </View>
-              <View style={styles.priceMultislider}>
-                <MultiSlider
-                  values={priceRange}
-                  min={0}
-                  max={1000000}
-                  step={10000}
-                  sliderLength={300}
-                  onValuesChange={values => {
-                    setPriceRange(values);
-                  }}
-                  selectedStyle={styles.sliderSelected}
-                  unselectedStyle={styles.sliderUnselected}
-                  markerStyle={styles.sliderMarker}
-                />
-              </View>
-              <View style={styles.priceRangeTextContainer}>
-                <View style={styles.priceTextContainer}>
-                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
-                    최소 금액
-                  </Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                      {priceRange[0].toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
-                <View style={styles.priceTextContainer}>
-                  <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
-                    최대 금액
-                  </Text>
-                  <View style={styles.priceContainer}>
-                    <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-                      {priceRange[1].toLocaleString()}
-                    </Text>
-                  </View>
-                </View>
+            ref={scrollRef}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={[
+              styles.scrollContent,
+              keyboardAwareContentStyle,
+            ]}
+            keyboardDismissMode="on-drag"
+            keyboardShouldPersistTaps="handled">
+            <View style={styles.section} {...registerSection('category')}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                카테고리
+              </Text>
+              <View style={styles.radioGrid}>
+                {CATEGORY_OPTIONS.map(option =>
+                  renderRadioOption({
+                    key: option.label,
+                    label: option.label,
+                    selected: filters.contentType === option.id,
+                    onPress: () => setFilter({contentType: option.id}),
+                  }),
+                )}
               </View>
             </View>
 
-            <View style={styles.devide} />
+            <View style={styles.divider} />
 
-            {/* 규모 */}
-            <View
-              onLayout={e => {
-                const y = e.nativeEvent.layout?.y;
-                if (y != null)
-                  setSectionPositions(prev => ({...prev, scale: y}));
-              }}
-              style={styles.section}>
+            <View style={styles.section} {...registerSection('guest')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                규모
+                참여 대상
               </Text>
-              <View style={styles.optionRow}>
-                {meetScales.map(opt => (
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    key={opt.id}
-                    style={[
-                      styles.optionBox,
-                      selectedScale === opt.id && styles.optionBoxSelected,
-                    ]}
-                    onPress={() => setSelectedScale(opt.id)}>
-                    <Text
-                      style={[
-                        FONTS.fs_14_semibold,
-                        styles.optionText,
-                        selectedScale === opt.id && styles.optionTextSelected,
-                      ]}>
-                      {opt.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+              <View style={styles.segmented}>
+                {GUEST_OPTIONS.map(option => {
+                  const selected = filters.isGuest === option.id;
 
-            <View style={styles.devide} />
-
-            {/* 숙박 여부 */}
-            <View
-              onLayout={e => {
-                const y = e.nativeEvent.layout?.y;
-                if (y != null)
-                  setSectionPositions(prev => ({...prev, stay: y}));
-              }}
-              style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                숙박 여부
-              </Text>
-              <View style={styles.optionRow}>
-                {stayTypes.map(opt => (
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    key={opt.id}
-                    style={styles.optionBox}
-                    onPress={() => setSelectedStay(opt.id)}>
-                    <Text
-                      style={[
-                        FONTS.fs_14_medium,
-                        styles.optionText,
-                        selectedStay === opt.id && styles.optionTextSelected,
-                      ]}>
-                      {opt.name}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-
-            <View style={styles.devide} />
-
-            {/* 태그 */}
-            <View
-              onLayout={e => {
-                const y = e.nativeEvent.layout?.y;
-                if (y != null)
-                  setSectionPositions(prev => ({...prev, tags: y}));
-              }}
-              style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                시설/서비스
-              </Text>
-              <View style={styles.optionRow}>
-                {meetTags.map(tag => {
-                  const isSelected = selectedTags.includes(tag.id);
                   return (
                     <TouchableOpacity
                       activeOpacity={1}
-                      key={tag.id}
-                      style={styles.optionBox}
-                      onPress={() => toggleTag(tag.id)}>
+                      key={option.label}
+                      style={styles.segment}
+                      onPress={() => setFilter({isGuest: option.id})}>
                       <Text
                         style={[
                           FONTS.fs_14_medium,
-                          styles.optionText,
-                          isSelected && styles.optionTextSelected,
+                          styles.segmentText,
+                          selected && styles.segmentTextSelected,
                         ]}>
-                        {tag.name}
+                        {option.label}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -298,10 +317,71 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
               </View>
             </View>
 
-            <View style={styles.devide} />
+            <View style={styles.divider} />
+
+            <View style={styles.section} {...registerSection('capacity')}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                정원
+              </Text>
+              <View style={styles.radioGrid}>
+                {CAPACITY_OPTIONS.map(option =>
+                  renderRadioOption({
+                    key: option.label,
+                    label: option.label,
+                    selected: filters.capacityId === option.id,
+                    onPress: () =>
+                      setFilter({
+                        capacityId: option.id,
+                        isBigParty: option.isBigParty,
+                      }),
+                  }),
+                )}
+              </View>
+            </View>
+
+            <View style={styles.divider} />
+
+            <View style={styles.section} {...registerSection('price')}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                가격 범위
+              </Text>
+              <View style={styles.priceRow}>
+                {PRICE_OPTIONS.map(renderPriceChip)}
+              </View>
+
+              {isCustomPrice && (
+                <View style={styles.customPriceRow}>
+                  <TextInput
+                    value={filters.minPrice}
+                    onChangeText={value =>
+                      setFilter({minPrice: onlyNumbers(value)})
+                    }
+                    onFocus={scrollToPriceInput}
+                    placeholder="최소 금액"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    keyboardType="number-pad"
+                    style={[FONTS.fs_14_medium, styles.priceInput]}
+                  />
+                  <Text style={[FONTS.fs_14_medium, styles.priceDivider]}>
+                    ~
+                  </Text>
+                  <TextInput
+                    value={filters.maxPrice}
+                    onChangeText={value =>
+                      setFilter({maxPrice: onlyNumbers(value)})
+                    }
+                    onFocus={scrollToPriceInput}
+                    placeholder="최대 금액"
+                    placeholderTextColor={COLORS.grayscale_400}
+                    keyboardType="number-pad"
+                    style={[FONTS.fs_14_medium, styles.priceInput]}
+                  />
+                  <Text style={[FONTS.fs_14_medium, styles.wonText]}>원</Text>
+                </View>
+              )}
+            </View>
           </ScrollView>
 
-          {/* 하단 버튼 */}
           <View style={styles.sticky}>
             <View style={styles.resetButton}>
               <ButtonWhite
@@ -314,18 +394,10 @@ const MeetFilterModal = ({visible, onClose, onApply}) => {
               <ButtonScarlet
                 title="콘텐츠 보기"
                 onPress={() => {
-                  const next = {
-                    priceRange,
-                    selectedScale,
-                    selectedStay,
-                    selectedTags,
-                  };
-                  onApply(next);
-                  setInitialState({
-                    priceRange,
-                    scale: selectedScale,
-                    stay: selectedStay,
-                    tags: selectedTags,
+                  onApply({
+                    ...buildAppliedFilters(filters),
+                    hasApplied: true,
+                    priceOption: filters.priceOption,
                   });
                   onClose();
                 }}
@@ -362,110 +434,95 @@ const styles = StyleSheet.create({
     position: 'absolute',
     right: 0,
   },
-
-  // 탭
-  tabRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    borderBottomWidth: 1,
-    borderBottomColor: COLORS.grayscale_300,
-    marginTop: 20,
+  scrollContent: {
+    paddingBottom: 120,
   },
-  tabText: {
-    paddingBottom: 12,
-    color: COLORS.grayscale_600,
-  },
-  tabTextActive: {
-    color: COLORS.primary_orange,
-  },
-
-  // 선택 섹션
   section: {
     paddingVertical: 20,
   },
-  sectionTitle: {},
-  devide: {
+  sectionTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 16,
+  },
+  divider: {
     height: 0.8,
     backgroundColor: COLORS.grayscale_200,
   },
-
-  // 가격
-  priceSectionHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  priceSubtitle: {
-    color: COLORS.grayscale_500,
-  },
-  // 가격 슬라이더
-  priceMultislider: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  sliderSelected: {
-    backgroundColor: COLORS.grayscale_900,
-    height: 4,
-  },
-  sliderUnselected: {
-    backgroundColor: COLORS.grayscale_200,
-    height: 4,
-  },
-  sliderMarker: {
-    backgroundColor: COLORS.secondary_blue,
-    width: 18,
-    height: 18,
-    borderWidth: 0,
-    shadowOpacity: 0,
-    elevation: 0,
-    marginTop: 4,
-  },
-  // 가격 출력
-  priceRangeTextContainer: {
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    flexDirection: 'row',
-    gap: 4,
-  },
-  priceTextContainer: {
-    flex: 1,
-  },
-  priceTitle: {
-    marginBottom: 4,
-  },
-  priceContainer: {
-    borderWidth: 1,
-    borderColor: COLORS.grayscale_200,
-    padding: 12,
-    borderRadius: 20,
-  },
-  priceText: {},
-
-  // 규모, 숙박여부, 태그
-  optionRow: {
+  radioGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
-    marginTop: 12,
-    backgroundColor: COLORS.grayscale_100,
-    borderRadius: 8,
-    alignContent: 'center',
+    rowGap: 18,
   },
-  optionBox: {
-    padding: 10,
+  radioOption: {
+    width: '50%',
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 10,
+  },
+  radioLabel: {
+    color: COLORS.grayscale_900,
+  },
+  segmented: {
+    height: 42,
+    borderRadius: 8,
+    backgroundColor: COLORS.grayscale_100,
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
+  segment: {
+    flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    width: '48%',
   },
-  optionText: {
-    textAlign: 'center',
+  segmentText: {
     color: COLORS.grayscale_400,
   },
-  optionTextSelected: {
+  segmentTextSelected: {
     color: COLORS.primary_orange,
   },
-
-  // 하단 버튼
+  priceRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: 8,
+  },
+  priceChip: {
+    minHeight: 36,
+    paddingHorizontal: 14,
+    borderRadius: 18,
+    backgroundColor: COLORS.grayscale_100,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  priceChipSelected: {
+    backgroundColor: COLORS.primary_orange,
+  },
+  priceChipText: {
+    color: COLORS.grayscale_900,
+  },
+  priceChipTextSelected: {
+    color: COLORS.grayscale_0,
+  },
+  customPriceRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 16,
+    gap: 8,
+  },
+  priceInput: {
+    flex: 1,
+    height: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    paddingHorizontal: 14,
+    color: COLORS.grayscale_900,
+  },
+  priceDivider: {
+    color: COLORS.grayscale_500,
+  },
+  wonText: {
+    color: COLORS.grayscale_900,
+  },
   sticky: {
     position: 'absolute',
     left: 0,

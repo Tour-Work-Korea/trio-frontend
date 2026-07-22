@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     top: 0,
-    backgroundColor: 'rgba(0,0,0,0.14)',
+    backgroundColor: COLORS.modal_background,
     alignItems: 'center',
     justifyContent: 'center',
     width: 28,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   shareButton: {
-    backgroundColor: 'rgba(0,0,0,0.14)',
+    backgroundColor: COLORS.modal_background,
     position: 'absolute',
     right: 12,
     top: 0,
@@ -192,6 +192,28 @@ const styles = StyleSheet.create({
     paddingBottom: 180,
   },
   // 상세 안내
+  partyInfoSummary: {
+    gap: 8,
+    marginBottom: 18,
+  },
+  partyInfoSummaryTitle: {
+    color: COLORS.grayscale_900,
+  },
+  partyInfoSummarySubTitle: {
+    color: COLORS.grayscale_600,
+    marginBottom: 8,
+  },
+  partyInfoSummaryList: {
+    gap: 10,
+  },
+  partyInfoSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  partyInfoSummaryText: {
+    color: COLORS.grayscale_600,
+  },
   infoTextContainer: {
     borderRadius: 8,
     marginBottom: 20,

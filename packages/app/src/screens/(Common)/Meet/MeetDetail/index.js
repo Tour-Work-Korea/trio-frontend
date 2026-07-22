@@ -53,6 +53,10 @@ import EmptyIcon from '@assets/images/meet_reservation_success.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import BellIcon from '@assets/images/warning_alarm_orange.svg';
 import HomeIcon from '@assets/images/home_white_filled.svg';
+import PartyInfoCategoryIcon from '@assets/images/party_info_category.svg';
+import PartyInfoCapacityIcon from '@assets/images/party_info_capacity.svg';
+import PartyInfoPriceIcon from '@assets/images/party_info_price.svg';
+import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg';
 
 const TABS = [
   { key: 'intro', label: '콘텐츠 소개' },
@@ -74,6 +78,13 @@ const PARKING_TAG_LABEL = {
   PARTY_PUBLIC_PARKING: '공용 주차장',
   PARTY_STREET_PARKING: '대로변 주차',
   PARTY_NO_PARKING: '주차 불가',
+};
+
+const CONTENT_TYPE_LABEL = {
+  POTLUCK: '포틀럭',
+  DINNER_PARTY: '디너파티',
+  BOOK: '독서',
+  WALK: '산책',
 };
 
 const { width: SCREEN_W } = Dimensions.get('window');
@@ -277,13 +288,69 @@ const MeetDetail = () => {
     partyStartDateTime,
     partyStartTime,
     partyEndTime,
+    applicationType,
     partyStatus,
     isApplyOpen,
+    contentType,
+    chargeType,
+    isGuest,
+    maxAttendance,
     amount, // 숙박객 남자
+    femaleAmount,
     maleNonAmount, // 비숙박객 남자
+    femaleNonAmount,
     partyImages,
     profileSummary,
   } = detail ?? {};
+
+  const partyDateOptions = useMemo(() => {
+    const candidates = [
+      detail?.partySchedules,
+      detail?.schedules,
+      detail?.availableSchedules,
+      detail?.availableParties,
+      detail?.partyDates,
+      detail?.partyDateTimes,
+    ].find(Array.isArray);
+    const list = candidates?.length ? candidates : [detail].filter(Boolean);
+
+    return list
+      .map((item, index) => {
+        if (typeof item === 'string') {
+          return {
+            id: `${item}-${index}`,
+            partyStartDateTime: item,
+            partyStartTime,
+            partyEndTime,
+            partyId,
+          };
+        }
+
+        return {
+          id: item?.partyId ?? item?.id ?? `${item?.partyStartDateTime ?? index}`,
+          partyId: item?.partyId ?? item?.id ?? partyId,
+          partyStartDateTime:
+            item?.partyStartDateTime ??
+            item?.startDateTime ??
+            item?.dateTime ??
+            item?.date ??
+            partyStartDateTime,
+          partyStartTime: item?.partyStartTime ?? item?.startTime ?? partyStartTime,
+          partyEndTime: item?.partyEndTime ?? item?.endTime ?? partyEndTime,
+          partyStatus: item?.partyStatus ?? item?.status ?? partyStatus,
+          isApplyOpen: item?.isApplyOpen ?? isApplyOpen,
+        };
+      })
+      .filter(item => !!item.partyStartDateTime);
+  }, [
+    detail,
+    isApplyOpen,
+    partyEndTime,
+    partyId,
+    partyStartDateTime,
+    partyStartTime,
+    partyStatus,
+  ]);
 
   // 썸네일/갤러리
   const sortedImages = useMemo(() => {
@@ -337,16 +404,71 @@ const MeetDetail = () => {
   const parkingPlaceList = useMemo(() => toArray(parkingPlace), [parkingPlace]);
 
   const scheduleText = useMemo(() => {
-    const date = dayjs(partyStartDateTime);
+    const primaryDateTime = partyDateOptions[0]?.partyStartDateTime ?? partyStartDateTime;
+    const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
       ? `${date.format('MM.DD')} ${date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
       }`
       : '-';
-    return `${dateLabel} ${formatTime(partyStartTime)}~${formatTime(partyEndTime)}`;
-  }, [partyStartDateTime, partyStartTime, partyEndTime]);
+    const timeLabel = `${formatTime(
+      partyDateOptions[0]?.partyStartTime ?? primaryDateTime ?? partyStartTime,
+    )}~${formatTime(partyDateOptions[0]?.partyEndTime ?? partyEndTime)}`;
+
+    if (applicationType === 'ADVANCE') {
+      return timeLabel;
+    }
+
+    const extraCount =
+      applicationType === 'ADVANCE' && partyDateOptions.length > 1
+        ? ` 외 ${partyDateOptions.length - 1}개 일정`
+        : '';
+
+    return `${dateLabel} ${timeLabel}${extraCount}`;
+  }, [applicationType, partyDateOptions, partyStartDateTime, partyStartTime, partyEndTime]);
   const isRecruiting = partyStatus === 'RECRUIT';
   const showReservationButton = isApplyOpen !== false;
+  const isSameDayApplication = applicationType === 'SAME_DAY';
   const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
+  const infoPriceText = useMemo(() => {
+    if (chargeType === 'FREE') {
+      return '무료';
+    }
+
+    const prices = [amount, femaleAmount, maleNonAmount, femaleNonAmount]
+      .map(Number)
+      .filter(price => Number.isFinite(price) && price > 0);
+
+    if (prices.length === 0) {
+      return '무료';
+    }
+
+    return `${Math.min(...prices).toLocaleString()}원`;
+  }, [amount, chargeType, femaleAmount, femaleNonAmount, maleNonAmount]);
+  const detailInfoItems = useMemo(
+    () => [
+      {
+        key: 'category',
+        Icon: PartyInfoCategoryIcon,
+        text: CONTENT_TYPE_LABEL[contentType] ?? '콘텐츠',
+      },
+      {
+        key: 'capacity',
+        Icon: PartyInfoCapacityIcon,
+        text: maxAttendance ? `최대인원 ${maxAttendance}명` : '최대인원 정보 없음',
+      },
+      {
+        key: 'price',
+        Icon: PartyInfoPriceIcon,
+        text: infoPriceText,
+      },
+      {
+        key: 'eligibility',
+        Icon: PartyInfoEligibilityIcon,
+        text: isGuest ? '숙박객 전용' : '누구나 참여 가능',
+      },
+    ],
+    [contentType, infoPriceText, isGuest, maxAttendance],
+  );
 
   // 콘텐츠 좋아요 토글
   const onToggleLike = async () => {
@@ -427,6 +549,8 @@ const MeetDetail = () => {
       partyStartDateTime,
       partyStartTime,
       partyEndTime,
+      applicationType,
+      partyDateOptions,
       amount,
       maleNonAmount,
       thumbnailUrl: thumbnailSource?.uri,
@@ -618,6 +742,24 @@ const MeetDetail = () => {
     if (tabKey === 'detail') {
       return (
         <View style={styles.tabContent}>
+          <View style={styles.partyInfoSummary}>
+            <Text style={[FONTS.fs_20_bold, styles.partyInfoSummaryTitle]}>
+              안내사항
+            </Text>
+            <Text style={[FONTS.fs_14_regular, styles.partyInfoSummarySubTitle]}>
+              자세한 정보를 알려드릴게요
+            </Text>
+            <View style={styles.partyInfoSummaryList}>
+              {detailInfoItems.map(({key, Icon, text}) => (
+                <View key={key} style={styles.partyInfoSummaryRow}>
+                  <Icon width={16} height={16} />
+                  <Text style={[FONTS.fs_14_medium, styles.partyInfoSummaryText]}>
+                    {text}
+                  </Text>
+                </View>
+              ))}
+            </View>
+          </View>
           <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
           <View style={styles.infoTextContainer}>
             <Text style={[FONTS.fs_16_regular, styles.infoText]}>
@@ -922,11 +1064,11 @@ const MeetDetail = () => {
 
       </ScrollView>
 
-      {isRecruiting && showReservationButton && (
+      {isRecruiting && showReservationButton && isSameDayApplication && (
         <View style={styles.fixedNotice}>
           <BellIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
-            게스트하우스 파티는 당일에만 신청이 가능해요!
+            이 콘텐츠는 당일에만 신청할 수 있어요!
           </Text>
         </View>
       )}
