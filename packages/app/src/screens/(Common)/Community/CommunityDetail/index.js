@@ -48,6 +48,8 @@ const COMMENT_PAGE_SIZE = 20;
 const COMMENT_HIGHLIGHT_DURATION = 1700;
 const COMMENT_INPUT_MIN_HEIGHT = 44;
 const COMMENT_INPUT_MAX_HEIGHT = 88;
+const COMMENT_THREAD_CONNECTOR_TOP = 40;
+const COMMENT_REPLY_AVATAR_CENTER_Y = 30;
 const MB = 1024 * 1024;
 const JPEG_CONTENT_TYPE = 'image/jpeg';
 const COMMENT_IMAGE_LIMITS = {
@@ -149,6 +151,8 @@ const CommunityDetail = ({route}) => {
   const commentLayoutMapRef = useRef({});
   const commentListOffsetYRef = useRef(0);
   const replySectionLayoutMapRef = useRef({});
+  const replySectionOffsetMapRef = useRef({});
+  const lastReplyOffsetMapRef = useRef({});
   const highlightTimerRef = useRef(null);
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -172,6 +176,7 @@ const CommunityDetail = ({route}) => {
   const [isTogglingLike, setIsTogglingLike] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [replyConnectorEndYMap, setReplyConnectorEndYMap] = useState({});
   const [commentAlert, setCommentAlert] = useState({
     visible: false,
     title: '',
@@ -236,6 +241,9 @@ const CommunityDetail = ({route}) => {
         commentLayoutMapRef.current = {};
         commentListOffsetYRef.current = 0;
         replySectionLayoutMapRef.current = {};
+        replySectionOffsetMapRef.current = {};
+        lastReplyOffsetMapRef.current = {};
+        setReplyConnectorEndYMap({});
         const anchor = await resolveCommentAnchor();
         const initialCommentPage = getAnchorPage(anchor);
         const anchorCommentId = getAnchorCommentId(anchor, targetCommentId);
@@ -1069,6 +1077,19 @@ const CommunityDetail = ({route}) => {
     }
   };
 
+  const updateReplyConnectorEndY = useCallback((commentId, endY) => {
+    setReplyConnectorEndYMap(prev => {
+      if (Math.abs((prev[commentId] ?? 0) - endY) < 0.5) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [commentId]: endY,
+      };
+    });
+  }, []);
+
   const renderPostImages = images => {
     if (!images?.length) {
       return null;
@@ -1351,7 +1372,20 @@ const CommunityDetail = ({route}) => {
           event.nativeEvent.layout.y;
       }}>
       {comment.replies?.length ? (
-        <View style={styles.commentThreadConnector} />
+        <View
+          style={[
+            styles.commentThreadConnector,
+            replyConnectorEndYMap[comment.commentId]
+              ? {
+                  height: Math.max(
+                    replyConnectorEndYMap[comment.commentId] -
+                      COMMENT_THREAD_CONNECTOR_TOP,
+                    0,
+                  ),
+                }
+              : styles.commentThreadConnectorFallback,
+          ]}
+        />
       ) : null}
 
       <View
@@ -1402,12 +1436,22 @@ const CommunityDetail = ({route}) => {
         <View
           style={styles.replySection}
           onLayout={event => {
+            replySectionOffsetMapRef.current[comment.commentId] =
+              event.nativeEvent.layout.y;
             replySectionLayoutMapRef.current[comment.commentId] =
               (commentLayoutMapRef.current[comment.commentId] ?? 0) +
               event.nativeEvent.layout.y;
+            if (lastReplyOffsetMapRef.current[comment.commentId] != null) {
+              updateReplyConnectorEndY(
+                comment.commentId,
+                event.nativeEvent.layout.y +
+                  lastReplyOffsetMapRef.current[comment.commentId] +
+                  COMMENT_REPLY_AVATAR_CENTER_Y,
+              );
+            }
           }}>
           <View style={styles.replyList}>
-            {comment.replies.map(reply => (
+            {comment.replies.map((reply, index) => (
               <View
                 key={reply.commentId}
                 style={[
@@ -1420,6 +1464,17 @@ const CommunityDetail = ({route}) => {
                     (replySectionLayoutMapRef.current[comment.commentId] ??
                       commentLayoutMapRef.current[comment.commentId] ??
                       0) + event.nativeEvent.layout.y;
+                  if (index === comment.replies.length - 1) {
+                    lastReplyOffsetMapRef.current[comment.commentId] =
+                      event.nativeEvent.layout.y;
+                    updateReplyConnectorEndY(
+                      comment.commentId,
+                      (replySectionOffsetMapRef.current[comment.commentId] ??
+                        0) +
+                        event.nativeEvent.layout.y +
+                        COMMENT_REPLY_AVATAR_CENTER_Y,
+                    );
+                  }
                 }}>
                 <Avatar
                   uri={reply.author?.profileImageUrl}

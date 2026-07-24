@@ -14,7 +14,7 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import ButtonScarlet from '@components/ButtonScarlet';
-import ButtonWhite from '@components/ButtonWhite';
+// import ButtonWhite from '@components/ButtonWhite';
 
 import XBtn from '@assets/images/x_gray.svg';
 import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
@@ -134,12 +134,12 @@ const MeetFilterModal = ({
   const [filters, setFilters] = useState(initialState);
   const isCustomPrice = filters.priceOption === 'custom';
 
-  const isDirty = useMemo(
-    () =>
-      JSON.stringify(buildAppliedFilters(filters)) !==
-      JSON.stringify(buildAppliedFilters(initialState)),
-    [filters, initialState],
-  );
+  // const isDirty = useMemo(
+  //   () =>
+  //     JSON.stringify(buildAppliedFilters(filters)) !==
+  //     JSON.stringify(buildAppliedFilters(initialState)),
+  //   [filters, initialState],
+  // );
 
   const setFilter = next => {
     setFilters(prev => ({
@@ -148,9 +148,9 @@ const MeetFilterModal = ({
     }));
   };
 
-  const handleReset = () => {
-    setFilters(DEFAULT_FILTERS);
-  };
+  // const handleReset = () => {
+  //   setFilters(DEFAULT_FILTERS);
+  // };
 
   const scrollToSection = useCallback(key => {
     const y = sectionPositionsRef.current[key] ?? 0;
@@ -383,13 +383,13 @@ const MeetFilterModal = ({
           </ScrollView>
 
           <View style={styles.sticky}>
-            <View style={styles.resetButton}>
+            {/* <View style={styles.resetButton}>
               <ButtonWhite
                 title="초기화"
                 onPress={handleReset}
                 disabled={!isDirty}
               />
-            </View>
+            </View> */}
             <View style={styles.confirmButton}>
               <ButtonScarlet
                 title="콘텐츠 보기"

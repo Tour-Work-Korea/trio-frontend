@@ -31,6 +31,7 @@ import userMeetApi from '@utils/api/userMeetApi';
 import { toggleFavorite } from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
 import { showErrorModal } from '@utils/loginModalHub';
+import {trimJejuPrefix} from '@utils/formatAddress';
 import {
   partyDetailDeeplink,
   partyDetailShareUrl,
@@ -38,7 +39,6 @@ import {
 } from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
-import MeetDetailInfoModal from '@components/modals/Meet/MeetDetailInfoModal';
 import ImageModal from '@components/modals/ImageModal';
 import PartyApplicationAppPromptModal from '@components/modals/PartyApplicationAppPromptModal';
 import {replaceWebPath} from '@web/navigation';
@@ -48,7 +48,6 @@ import ChevronLeft from '@assets/images/chevron_left_white.svg';
 import ShareIcon from '@assets/images/share_white.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
-import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyIcon from '@assets/images/meet_reservation_success.svg';
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import BellIcon from '@assets/images/warning_alarm_orange.svg';
@@ -179,13 +178,6 @@ const MeetDetail = () => {
   const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
 
-  // 모달
-  const [infoModalVisible, setInfoModalVisible] = useState(false);
-  const [infoModalType, setInfoModalType] = useState("tag"); // "tag" | "section"
-  const [infoModalTitle, setInfoModalTitle] = useState("");
-  const [infoModalTags, setInfoModalTags] = useState([]);
-  const [infoModalContent, setInfoModalContent] = useState("");
-  const [infoModalSections, setInfoModalSections] = useState([]);
   const [renderedTabs, setRenderedTabs] = useState(
     () => new Set([TABS[0].key]),
   );
@@ -218,27 +210,12 @@ const MeetDetail = () => {
     });
   }, [activeKey]);
 
-  const openTagModal = (title, tags, content) => {
-    setInfoModalTitle(title);
-    setInfoModalType("tag");
-    setInfoModalTags(tags);
-    setInfoModalContent(content);
-    setInfoModalSections([]);
-    setInfoModalVisible(true);
-  };
-
-  const openSectionModal = (title, sections) => {
-    setInfoModalTitle(title);
-    setInfoModalType("section");
-    setInfoModalSections(sections);
-    setInfoModalTags([]);
-    setInfoModalContent("");
-    setInfoModalVisible(true);
-  };
-
   // 날짜 처리
   const formatTime = timeStr => {
-    if (!timeStr) return '시간 없음';
+    if (!timeStr) {
+      return '시간 없음';
+    }
+
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
@@ -250,16 +227,24 @@ const MeetDetail = () => {
       try {
         setLoading(true);
         const { data } = await userMeetApi.getPartyDetail(partyId);
-        if (!mounted) return;
+        if (!mounted) {
+          return;
+        }
+
         setDetail(data);
         setLiked(!!data?.isLiked);
       } catch (e) {
         console.warn('getPartyDetail error', e?.response?.data || e?.message);
       } finally {
-        if (mounted) setLoading(false);
+        if (mounted) {
+          setLoading(false);
+        }
       }
     };
-    if (partyId != null) fetchDetail();
+    if (partyId != null) {
+      fetchDetail();
+    }
+
     return () => {
       mounted = false;
     };
@@ -428,6 +413,12 @@ const MeetDetail = () => {
   const isRecruiting = partyStatus === 'RECRUIT';
   const showReservationButton = isApplyOpen !== false;
   const isSameDayApplication = applicationType === 'SAME_DAY';
+  const isAdvanceApplication = applicationType === 'ADVANCE';
+  const applicationNoticeText = isSameDayApplication
+    ? '이 콘텐츠는 당일에만 신청할 수 있어요!'
+    : isAdvanceApplication
+    ? '이 파티는 진행일 7일 전부터 참여 신청이 가능해요!'
+    : '';
   const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
   const infoPriceText = useMemo(() => {
     if (chargeType === 'FREE') {
@@ -574,11 +565,6 @@ const MeetDetail = () => {
       ?.filter(Boolean); // 혹시 모를 undefined 제거
   }, [snackTags]);
 
-  // 교통 정보 제목
-  const trafficTitleLine = useMemo(() => {
-    return trafficInfoList.map(t => t.title).filter(Boolean).join(' · ');
-  }, [trafficInfoList]);
-
   // 주차 내용
   const parkingContentText = useMemo(() => {
     return parkingPlaceList
@@ -625,7 +611,7 @@ const MeetDetail = () => {
       zoom: 16,
     };
   }, [mapCoordinate]);
-  const displayLocation = meetingPlace || location;
+  const displayLocation = trimJejuPrefix(meetingPlace || location);
 
   const handlePressLocationMap = () => {
     if (!mapCoordinate) {
@@ -827,68 +813,81 @@ const MeetDetail = () => {
             {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
-                <View style={styles.detailInfoText}>
-                  <View style={styles.tagWrapper}>
-                    <Text
-                      style={[FONTS.fs_14_medium, styles.tagText]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      {trafficTitleLine}
-                    </Text>
-                  </View>
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    style={styles.detailInfoBtn}
-                    onPress={() =>
-                      openSectionModal(
-                        '교통 정보',
-                        trafficInfoList.map(it => ({
-                          subtitle: it.title,
-                          body: it.content,
-                        })),
-                      )
-                    }>
-                    <Text
-                      style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      내용 확인하기
-                    </Text>
-                    <ChevronRight width={16} height={16} />
-                  </TouchableOpacity>
+                <View style={styles.ruleList}>
+                  {trafficInfoList.map((item, index) => {
+                    if (typeof item === 'string') {
+                      return (
+                        <Text
+                          key={`${item}-${index}`}
+                          style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                          {item}
+                        </Text>
+                      );
+                    }
+
+                    return (
+                      <View
+                        key={item.id ?? `${item.title ?? 'traffic'}-${index}`}
+                        style={styles.ruleItem}>
+                        {!!item.title && (
+                          <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
+                            {item.title}
+                          </Text>
+                        )}
+                        {!!item.content && (
+                          <Text style={[FONTS.fs_14_regular, styles.ruleContent]}>
+                            {item.content}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
               </View>
             )}
             {!!parkingContentText && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
-                <View style={styles.detailInfoText}>
-                  <View style={styles.tagWrapper}>
-                    <Text
-                      style={[FONTS.fs_14_medium, styles.tagText]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      {parkingTagTexts?.map(t => `#${t}`).join('  ')}
-                    </Text>
+                {parkingTagTexts.length > 0 && (
+                  <View style={styles.tagChipRow}>
+                    {parkingTagTexts.map((tag, idx) => (
+                      <View key={idx} style={styles.tagChip}>
+                        <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>
+                          {tag}
+                        </Text>
+                      </View>
+                    ))}
                   </View>
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    style={styles.detailInfoBtn}
-                    onPress={() =>
-                      openTagModal(
-                        '주차 정보',
-                        parkingTagTexts?.map(t => `#${t}`),
-                        parkingContentText,
-                      )
-                    }>
-                    <Text
-                      style={[FONTS.fs_14_medium, styles.detailInfoBtnText]}
-                      numberOfLines={1}
-                      ellipsizeMode="tail">
-                      내용 확인하기
-                    </Text>
-                    <ChevronRight width={16} height={16} />
-                  </TouchableOpacity>
+                )}
+                <View style={styles.ruleList}>
+                  {parkingPlaceList.map((item, index) => {
+                    if (typeof item === 'string') {
+                      return (
+                        <Text
+                          key={`${item}-${index}`}
+                          style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                          {item}
+                        </Text>
+                      );
+                    }
+
+                    return (
+                      <View
+                        key={item.id ?? `${item.title ?? 'parking'}-${index}`}
+                        style={styles.ruleItem}>
+                        {!!item.title && (
+                          <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
+                            {item.title}
+                          </Text>
+                        )}
+                        {!!item.content && (
+                          <Text style={[FONTS.fs_14_regular, styles.ruleContent]}>
+                            {item.content}
+                          </Text>
+                        )}
+                      </View>
+                    );
+                  })}
                 </View>
               </View>
             )}
@@ -1064,11 +1063,11 @@ const MeetDetail = () => {
 
       </ScrollView>
 
-      {isRecruiting && showReservationButton && isSameDayApplication && (
+      {isRecruiting && showReservationButton && !!applicationNoticeText && (
         <View style={styles.fixedNotice}>
           <BellIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
-            이 콘텐츠는 당일에만 신청할 수 있어요!
+            {applicationNoticeText}
           </Text>
         </View>
       )}
@@ -1100,16 +1099,6 @@ const MeetDetail = () => {
         )}
       </View>
 
-      {/* 모달 */}
-      <MeetDetailInfoModal
-        visible={infoModalVisible}
-        onClose={() => setInfoModalVisible(false)}
-        title={infoModalTitle}
-        type={infoModalType}
-        tags={infoModalTags}
-        content={infoModalContent}
-        sections={infoModalSections}
-      />
       {hasImages && (
         <ImageModal
           visible={imageModalVisible}
