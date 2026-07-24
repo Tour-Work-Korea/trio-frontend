@@ -31,10 +31,13 @@ import {getRecentGuesthouses} from '@utils/recentGuesthouses';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
+import AppInstallPromptModal from '@components/modals/AppInstallPromptModal';
 import {prefetchImageUrls} from '@components/AppImage';
+import {getStoreUrlForWebDevice} from '@utils/webOpenApp';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
+import LogoOrange from '@assets/images/logo_orange.svg';
 import CategoryFood from '@assets/images/category_food.svg';
 import CategoryReading from '@assets/images/category_reading.svg';
 import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
@@ -125,6 +128,8 @@ const HomeMain = () => {
   const [isBannerLoading, setIsBannerLoading] = useState(true);
   const [isMeetLoading, setIsMeetLoading] = useState(true);
   const [shouldRenderAdBanner, setShouldRenderAdBanner] = useState(false);
+  const [isAppInstallPromptVisible, setIsAppInstallPromptVisible] =
+    useState(false);
   // const [searchKeyword, setSearchKeyword] = useState('');
   // const [searchedGuesthouses, setSearchedGuesthouses] = useState([]);
   // const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -328,6 +333,17 @@ const HomeMain = () => {
     navigation.navigate('커뮤니티', {tab: 'STAFF'});
   };
 
+  const handlePressAppDownload = () => {
+    const storeUrl = getStoreUrlForWebDevice();
+
+    if (storeUrl) {
+      window.location.assign(storeUrl);
+      return;
+    }
+
+    setIsAppInstallPromptVisible(true);
+  };
+
   // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
   // const scrollToY = y => {
   //   scrollRef.current?.scrollTo({y, animated: true});
@@ -359,6 +375,33 @@ const HomeMain = () => {
         zIndex: 30,
         elevation: Platform.OS === 'android' ? 0 : 30,
       }}>
+      {Platform.OS === 'web' ? (
+        <View style={webDownloadStyles.container}>
+          <View style={webDownloadStyles.appIcon}>
+            <LogoOrange width={36} height={36} />
+          </View>
+          <View style={webDownloadStyles.textContainer}>
+            <Text
+              numberOfLines={1}
+              style={[FONTS.fs_14_semibold, webDownloadStyles.title]}>
+              게딱지(게스트하우스 딱, 지금!)
+            </Text>
+            <Text
+              numberOfLines={1}
+              style={[FONTS.fs_12_medium, webDownloadStyles.description]}>
+              지금 회원가입 시 20% 할인 쿠폰 제공
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            onPress={handlePressAppDownload}
+            style={webDownloadStyles.button}>
+            <Text style={[FONTS.fs_14_semibold, webDownloadStyles.buttonText]}>
+              다운로드
+            </Text>
+          </TouchableOpacity>
+        </View>
+      ) : null}
       <Header />
 
       <View style={styles.searchArea}>
@@ -676,6 +719,15 @@ const HomeMain = () => {
           </View>
         </>
       </ScrollView>
+      {Platform.OS === 'web' ? (
+        <AppInstallPromptModal
+          visible={isAppInstallPromptVisible}
+          onClose={() => setIsAppInstallPromptVisible(false)}
+          title="게딱지 앱 다운로드"
+          message="스토어 QR 코드를 휴대폰으로 스캔해 주세요."
+          buttonText="다운로드"
+        />
+      ) : null}
       {/* )} */}
     </View>
     // </TouchableWithoutFeedback>
@@ -683,6 +735,52 @@ const HomeMain = () => {
 };
 
 export default HomeMain;
+
+const webDownloadStyles = StyleSheet.create({
+  container: {
+    minHeight: 68,
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderBottomWidth: 1,
+    borderBottomColor: COLORS.grayscale_200,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+  },
+  appIcon: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    backgroundColor: COLORS.grayscale_0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  textContainer: {
+    flex: 1,
+    minWidth: 0,
+  },
+  title: {
+    color: COLORS.grayscale_900,
+    lineHeight: 20,
+  },
+  description: {
+    marginTop: 2,
+    color: COLORS.grayscale_600,
+    lineHeight: 18,
+  },
+  button: {
+    paddingHorizontal: 16,
+    paddingVertical: 10,
+    borderRadius: 10,
+    backgroundColor: COLORS.primary_orange,
+  },
+  buttonText: {
+    color: COLORS.grayscale_0,
+  },
+});
 
 // 홈 탭/오늘의 게하 관련: 나중에 탭 UI 복구할 때 다시 사용
 // const headerStyles = {

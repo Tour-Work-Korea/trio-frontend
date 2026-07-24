@@ -231,7 +231,7 @@ const RoomList = ({
                   </Text>
                 </View>
                 <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
-                  {room.roomPrice?.toLocaleString()}원
+                  {(room.totalPrice ?? room.roomPrice)?.toLocaleString()}원
                 </Text>
               </View>
 

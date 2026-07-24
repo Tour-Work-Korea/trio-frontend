@@ -125,6 +125,11 @@ const GuesthouseReservationEntry = ({route}) => {
       }, Number.isFinite(Number(roomInfo.remaining)) ? Number(roomInfo.remaining) : null)
     : null;
   const baseRoomPrice = Number(roomInfo.roomPrice || roomPrice || 0) * nights;
+  const displayBaseRoomPrice = Math.max(
+    Number(roomInfo.totalPrice ?? totalPrice ?? baseRoomPrice) -
+      Number(roomInfo.extraPersonTotalPrice || 0),
+    0,
+  );
   const extraGuestTotalPrice =
     Number(roomInfo.extraPersonCount) === extraGuestCount &&
     roomInfo.extraPersonTotalPrice != null
@@ -482,7 +487,7 @@ const GuesthouseReservationEntry = ({route}) => {
           <>
             <View style={styles.baseRoomPriceBlock}>
               <Text style={[FONTS.fs_20_bold, styles.priceText]}>
-                {formatCurrency(baseRoomPrice)}
+                {formatCurrency(displayBaseRoomPrice)}
               </Text>
               <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
                 {baseCapacity}인 기준
