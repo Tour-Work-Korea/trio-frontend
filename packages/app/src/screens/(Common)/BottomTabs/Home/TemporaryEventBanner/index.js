@@ -7,7 +7,9 @@ import styles from './TemporaryEventBanner.styles';
 import {COLORS} from '@constants/colors';
 import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
+import CouponAppInstall20 from '@assets/images/coupon_app_install_20.svg';
 import AlertModal from '@components/modals/AlertModal';
+import AppInstallPromptModal from '@components/modals/AppInstallPromptModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { showErrorModal } from '@utils/loginModalHub';
@@ -221,6 +223,7 @@ const TemporaryEventBanner = () => {
   const userRole = useUserStore(state => state.userRole);
   const accessToken = useUserStore(state => state.accessToken);
   const [issuing, setIssuing] = React.useState(false);
+  const [appPromptVisible, setAppPromptVisible] = React.useState(false);
   const [alertState, setAlertState] = React.useState({
     visible: false,
     message: '',
@@ -342,6 +345,11 @@ const TemporaryEventBanner = () => {
       return;
     }
 
+    if (Platform.OS === 'web') {
+      setAppPromptVisible(true);
+      return;
+    }
+
     if (!accessToken || userRole !== 'USER') {
       showLoginRequiredModal();
       return;
@@ -452,6 +460,14 @@ const TemporaryEventBanner = () => {
         buttonText="확인"
         onPress={closeAlert}
         onRequestClose={closeAlert}
+      />
+      <AppInstallPromptModal
+        visible={appPromptVisible}
+        onClose={() => setAppPromptVisible(false)}
+        title="쿠폰 다운로드는 앱에서만 가능해요"
+        message="회원가입 시 20% 할인 쿠폰 제공"
+        ImageComponent={CouponAppInstall20}
+        buttonText="앱 설치하고 혜택받기"
       />
     </View>
   );

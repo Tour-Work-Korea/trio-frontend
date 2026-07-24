@@ -127,12 +127,14 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 20,
     top: 40,
-    bottom: 32,
     width: 46,
     borderLeftWidth: 2,
     borderBottomWidth: 2,
     borderBottomLeftRadius: 18,
     borderColor: COLORS.grayscale_200,
+  },
+  commentThreadConnectorFallback: {
+    bottom: 32,
   },
   commentContentRow: {
     flexDirection: 'row',
