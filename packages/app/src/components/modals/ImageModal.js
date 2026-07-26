@@ -1,13 +1,8 @@
-import React, {
-  useCallback,
-  useEffect,
-  useMemo,
-  useRef,
-  useState,
-} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Animated,
   Dimensions,
+  Easing,
   FlatList,
   Modal,
   Platform,
@@ -24,9 +19,20 @@ import XIcon from '@assets/images/x_gray.svg';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 const {width: FALLBACK_SCREEN_WIDTH} = Dimensions.get('window');
-const SWIPE_CLOSE_DISTANCE = 80;
-const SWIPE_CLOSE_VELOCITY = -0.6;
-const SWIPE_CLOSE_DURATION = 180;
+const SWIPE_CLOSE_DISTANCE = Platform.select({
+  ios: 96,
+  android: 112,
+  default: 88,
+});
+const SWIPE_CLOSE_VELOCITY = Platform.select({
+  ios: -0.72,
+  android: -0.82,
+  default: -0.68,
+});
+const SWIPE_INTENT_DISTANCE = 8;
+const SWIPE_VERTICAL_RATIO = 1.15;
+const SWIPE_CLOSE_MIN_DURATION = 520;
+const SWIPE_CLOSE_MAX_DURATION = 720;
 
 const getImageUrl = image =>
   image?.imageUrl ??
@@ -43,7 +49,10 @@ const ImageModal = ({
   images = [],
   selectedImageIndex = 0,
   onClose,
+  onImageIndexChange,
   enableSwipeToClose = true,
+  sourceRect,
+  sourceBorderRadius = 0,
 }) => {
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const pageWidth = screenWidth || FALLBACK_SCREEN_WIDTH;
@@ -51,8 +60,20 @@ const ImageModal = ({
   const listRef = useRef(null);
   const closeTimeoutRef = useRef(null);
   const isClosingRef = useRef(false);
+  const wheelResetTimeoutRef = useRef(null);
   const touchStartRef = useRef(null);
   const swipeY = useRef(new Animated.Value(0)).current;
+  const swipeChrome = useRef(new Animated.Value(0)).current;
+  const returnProgress = useRef(new Animated.Value(0)).current;
+  const closeFade = useRef(new Animated.Value(1)).current;
+  const swipePositionRef = useRef(0);
+  const returnProgressRef = useRef(0);
+  const imageAspectRatiosRef = useRef(new Map());
+  const hasSourceRect =
+    Number.isFinite(sourceRect?.x) &&
+    Number.isFinite(sourceRect?.y) &&
+    sourceRect?.width > 0 &&
+    sourceRect?.height > 0;
   const imageList = useMemo(
     () => (Array.isArray(images) ? images : []),
     [images],
@@ -66,6 +87,7 @@ const ImageModal = ({
       : 0;
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPresented, setIsPresented] = useState(visible);
+  const [activeImageAspectRatio, setActiveImageAspectRatio] = useState(null);
   const finishClose = useCallback(() => {
     if (!isClosingRef.current) {
       return;
@@ -77,54 +99,175 @@ const ImageModal = ({
     }
 
     isClosingRef.current = false;
-    touchStartRef.current = null;
     setIsPresented(false);
     onClose?.();
   }, [onClose]);
   const resetSwipeAnimation = useCallback(() => {
-    Animated.spring(swipeY, {
-      toValue: 0,
-      useNativeDriver: true,
-      isInteraction: false,
-      tension: 90,
-      friction: 12,
-    }).start();
-  }, [swipeY]);
-  const animateClose = useCallback(() => {
     if (isClosingRef.current) {
       return;
     }
 
-    isClosingRef.current = true;
-    closeTimeoutRef.current = setTimeout(
-      finishClose,
-      SWIPE_CLOSE_DURATION + 120,
-    );
+    Animated.parallel([
+      Animated.spring(swipeY, {
+        toValue: 0,
+        useNativeDriver: false,
+        isInteraction: false,
+        stiffness: Platform.OS === 'android' ? 280 : 240,
+        damping: Platform.OS === 'android' ? 30 : 26,
+        mass: 0.85,
+      }),
+      Animated.spring(swipeChrome, {
+        toValue: 0,
+        useNativeDriver: false,
+        isInteraction: false,
+        stiffness: Platform.OS === 'android' ? 280 : 240,
+        damping: Platform.OS === 'android' ? 30 : 26,
+        mass: 0.85,
+      }),
+      Animated.spring(returnProgress, {
+        toValue: 0,
+        useNativeDriver: false,
+        isInteraction: false,
+        stiffness: 240,
+        damping: 26,
+        mass: 0.85,
+      }),
+      Animated.timing(closeFade, {
+        toValue: 1,
+        duration: 120,
+        useNativeDriver: false,
+        isInteraction: false,
+      }),
+    ]).start(({finished}) => {
+      if (finished) {
+        swipePositionRef.current = 0;
+        returnProgressRef.current = 0;
+      }
+    });
+  }, [closeFade, returnProgress, swipeChrome, swipeY]);
+  const animateClose = useCallback(
+    (velocity = 0) => {
+      if (isClosingRef.current) {
+        return;
+      }
 
-    Animated.timing(swipeY, {
-      toValue: -screenHeight,
-      duration: SWIPE_CLOSE_DURATION,
-      useNativeDriver: true,
-      isInteraction: false,
-    }).start(finishClose);
-  }, [finishClose, screenHeight, swipeY]);
+      isClosingRef.current = true;
+      if (wheelResetTimeoutRef.current) {
+        clearTimeout(wheelResetTimeoutRef.current);
+        wheelResetTimeoutRef.current = null;
+      }
+      const closeTarget = -Math.max(screenHeight, 600) * 1.08;
+      const remainingDistance = Math.abs(
+        closeTarget - swipePositionRef.current,
+      );
+      const velocityBoost = Math.min(Math.abs(velocity) * 24, 36);
+      const slideDuration = Math.max(
+        SWIPE_CLOSE_MIN_DURATION,
+        Math.min(
+          SWIPE_CLOSE_MAX_DURATION,
+          460 + remainingDistance * 0.16 - velocityBoost,
+        ),
+      );
+      const returnDuration = Math.max(
+        300,
+        Math.min(
+          520,
+          260 + (1 - returnProgressRef.current) * 260 - velocityBoost,
+        ),
+      );
+      const duration = hasSourceRect ? returnDuration : slideDuration;
+
+      closeTimeoutRef.current = setTimeout(finishClose, duration + 120);
+      if (hasSourceRect) {
+        Animated.parallel([
+          Animated.timing(swipeY, {
+            toValue: 0,
+            duration,
+            easing: Easing.bezier(0.2, 0.68, 0.28, 1),
+            useNativeDriver: false,
+            isInteraction: false,
+          }),
+          Animated.timing(swipeChrome, {
+            toValue: 120,
+            duration,
+            easing: Easing.bezier(0.2, 0.68, 0.28, 1),
+            useNativeDriver: false,
+            isInteraction: false,
+          }),
+          Animated.timing(returnProgress, {
+            toValue: 1,
+            duration,
+            easing: Easing.bezier(0.2, 0.68, 0.28, 1),
+            useNativeDriver: false,
+            isInteraction: false,
+          }),
+        ]).start(({finished}) => {
+          if (finished) {
+            finishClose();
+          }
+        });
+        return;
+      }
+
+      Animated.parallel([
+        Animated.timing(swipeY, {
+          toValue: closeTarget,
+          duration,
+          easing: Easing.bezier(0.22, 0.45, 0.25, 1),
+          useNativeDriver: false,
+          isInteraction: false,
+        }),
+        Animated.timing(swipeChrome, {
+          toValue: Math.abs(closeTarget),
+          duration,
+          easing: Easing.bezier(0.22, 0.45, 0.25, 1),
+          useNativeDriver: false,
+          isInteraction: false,
+        }),
+      ]).start(({finished}) => {
+        if (finished) {
+          finishClose();
+        }
+      });
+    },
+    [
+      finishClose,
+      hasSourceRect,
+      returnProgress,
+      screenHeight,
+      swipeChrome,
+      swipeY,
+    ],
+  );
   const updateSwipeAnimation = useCallback(
     dy => {
-      swipeY.setValue(Math.min(dy, 0));
+      const nextPosition = Math.min(dy, 0);
+      swipePositionRef.current = nextPosition;
+      swipeY.setValue(nextPosition);
+      swipeChrome.setValue(Math.abs(nextPosition));
+      if (hasSourceRect) {
+        const nextProgress = Math.min(
+          Math.abs(nextPosition) / Math.max(screenHeight * 0.55, 320),
+          0.72,
+        );
+        returnProgressRef.current = nextProgress;
+        returnProgress.setValue(nextProgress);
+      }
     },
-    [swipeY],
+    [hasSourceRect, returnProgress, screenHeight, swipeChrome, swipeY],
   );
   const closeIfSwipeUp = useCallback(
     ({dx = 0, dy = 0, vy = 0}) => {
-      const isMostlyVertical = Math.abs(dy) > Math.abs(dx) * 1.2;
+      const isMostlyVertical =
+        Math.abs(dy) > Math.abs(dx) * SWIPE_VERTICAL_RATIO;
 
       if (dy <= -SWIPE_CLOSE_DISTANCE && isMostlyVertical) {
-        animateClose();
+        animateClose(vy);
         return true;
       }
 
       if (vy <= SWIPE_CLOSE_VELOCITY && isMostlyVertical) {
-        animateClose();
+        animateClose(vy);
         return true;
       }
 
@@ -133,35 +276,148 @@ const ImageModal = ({
     },
     [animateClose, resetSwipeAnimation],
   );
-  const animatedOverlayStyle = {
-    opacity: swipeY.interpolate({
-      inputRange: [-SWIPE_CLOSE_DISTANCE, 0],
-      outputRange: [0.35, 1],
-      extrapolate: 'clamp',
-    }),
-    transform: [{translateY: swipeY}],
+  const dragImageOpacity = swipeY.interpolate({
+    inputRange: [-Math.max(screenHeight * 0.78, 480), -160, 0],
+    outputRange: [0, 1, 1],
+    extrapolate: 'clamp',
+  });
+  const imageViewportWidth = Math.max(pageWidth - 24, 1);
+  const imageViewportHeight = Math.max(pageHeight - 122, 1);
+  const displayAspectRatio = activeImageAspectRatio;
+  const imageDisplayWidth = displayAspectRatio
+    ? Math.min(imageViewportWidth, imageViewportHeight * displayAspectRatio)
+    : imageViewportWidth;
+  const imageDisplayHeight = displayAspectRatio
+    ? Math.min(imageViewportHeight, imageViewportWidth / displayAspectRatio)
+    : imageViewportHeight;
+  const imageViewportCenterY = 88 + imageViewportHeight / 2;
+  const returnTranslateX = returnProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      0,
+      hasSourceRect ? sourceRect.x + sourceRect.width / 2 - pageWidth / 2 : 0,
+    ],
+  });
+  const returnTranslateY = returnProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      0,
+      hasSourceRect
+        ? sourceRect.y + sourceRect.height / 2 - imageViewportCenterY
+        : 0,
+    ],
+  });
+  const returnWidth = returnProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      imageDisplayWidth,
+      hasSourceRect ? sourceRect.width : imageDisplayWidth,
+    ],
+  });
+  const returnHeight = returnProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [
+      imageDisplayHeight,
+      hasSourceRect ? sourceRect.height : imageDisplayHeight,
+    ],
+  });
+  const animatedImageStyle = {
+    width: returnWidth,
+    height: returnHeight,
+    opacity: hasSourceRect ? 1 : dragImageOpacity,
+    borderRadius: hasSourceRect
+      ? returnProgress.interpolate({
+          inputRange: [0, 0.08, 0.45, 0.82, 1],
+          outputRange: [0, 10, 24, 14, sourceBorderRadius],
+          extrapolate: 'clamp',
+        })
+      : swipeChrome.interpolate({
+          inputRange: [0, 120],
+          outputRange: [0, 28],
+          extrapolate: 'clamp',
+        }),
+    transform: [
+      {translateX: returnTranslateX},
+      {
+        translateY: hasSourceRect
+          ? returnTranslateY
+          : Animated.add(swipeY, returnTranslateY),
+      },
+      {
+        scale: hasSourceRect
+          ? 1
+          : swipeY.interpolate({
+              inputRange: [-160, 0],
+              outputRange: [0.94, 1],
+              extrapolate: 'clamp',
+            }),
+      },
+    ],
   };
-  const handleTouchStart = useCallback(event => {
-    const touch = event.nativeEvent?.touches?.[0] ?? event.nativeEvent;
+  const dragBackdropOpacity = swipeY.interpolate({
+    inputRange: [-180, 0],
+    outputRange: [0.35, 1],
+    extrapolate: 'clamp',
+  });
+  const returnBackdropOpacity = returnProgress.interpolate({
+    inputRange: [0, 1],
+    outputRange: [1, hasSourceRect ? 0 : 1],
+    extrapolate: 'clamp',
+  });
+  const animatedBackdropStyle = {
+    opacity: hasSourceRect
+      ? Animated.multiply(returnBackdropOpacity, closeFade)
+      : Animated.multiply(dragBackdropOpacity, closeFade),
+  };
+  const animatedHeaderStyle = {
+    opacity: hasSourceRect ? returnBackdropOpacity : closeFade,
+  };
+  const getTouchPoint = event =>
+    event.nativeEvent?.changedTouches?.[0] ??
+    event.nativeEvent?.touches?.[0] ??
+    event.nativeEvent;
+  const handleTouchStart = useCallback(
+    event => {
+      const touch = getTouchPoint(event);
 
-    touchStartRef.current = {
-      x: touch?.pageX ?? touch?.clientX ?? 0,
-      y: touch?.pageY ?? touch?.clientY ?? 0,
-    };
-  }, []);
+      swipeY.stopAnimation();
+      swipeChrome.stopAnimation();
+      returnProgress.stopAnimation();
+      closeFade.stopAnimation();
+      swipePositionRef.current = 0;
+      returnProgressRef.current = 0;
+      swipeY.setValue(0);
+      swipeChrome.setValue(0);
+      returnProgress.setValue(0);
+      closeFade.setValue(1);
+      touchStartRef.current = {
+        x: touch?.pageX ?? touch?.clientX ?? 0,
+        y: touch?.pageY ?? touch?.clientY ?? 0,
+        lastX: touch?.pageX ?? touch?.clientX ?? 0,
+        lastY: touch?.pageY ?? touch?.clientY ?? 0,
+        timestamp: Date.now(),
+      };
+    },
+    [closeFade, returnProgress, swipeChrome, swipeY],
+  );
   const handleTouchMove = useCallback(
     event => {
       const start = touchStartRef.current;
-      const touch = event.nativeEvent?.touches?.[0] ?? event.nativeEvent;
+      const touch = getTouchPoint(event);
 
-      if (!start) {
+      if (!start || isClosingRef.current) {
         return;
       }
 
       const dx = (touch?.pageX ?? touch?.clientX ?? start.x) - start.x;
       const dy = (touch?.pageY ?? touch?.clientY ?? start.y) - start.y;
+      start.lastX = touch?.pageX ?? touch?.clientX ?? start.lastX;
+      start.lastY = touch?.pageY ?? touch?.clientY ?? start.lastY;
 
-      if (dy < 0 && Math.abs(dy) > Math.abs(dx) * 1.2) {
+      if (
+        dy < -SWIPE_INTENT_DISTANCE &&
+        Math.abs(dy) > Math.abs(dx) * SWIPE_VERTICAL_RATIO
+      ) {
         updateSwipeAnimation(dy);
       }
     },
@@ -170,92 +426,203 @@ const ImageModal = ({
   const handleTouchEnd = useCallback(
     event => {
       const start = touchStartRef.current;
-      const touch =
-        event.nativeEvent?.changedTouches?.[0] ??
-        event.nativeEvent?.touches?.[0] ??
-        event.nativeEvent;
-
+      const touch = getTouchPoint(event);
       touchStartRef.current = null;
 
-      if (!start) {
+      if (!start || isClosingRef.current) {
         return;
       }
 
-      closeIfSwipeUp({
-        dx: (touch?.pageX ?? touch?.clientX ?? start.x) - start.x,
-        dy: (touch?.pageY ?? touch?.clientY ?? start.y) - start.y,
-      });
+      const endX = touch?.pageX ?? touch?.clientX ?? start.lastX;
+      const endY = touch?.pageY ?? touch?.clientY ?? start.lastY;
+      const dx = endX - start.x;
+      const dy = endY - start.y;
+      const elapsedSeconds = Math.max(
+        (Date.now() - start.timestamp) / 1000,
+        0.05,
+      );
+
+      closeIfSwipeUp({dx, dy, vy: dy / elapsedSeconds / 1000});
     },
     [closeIfSwipeUp],
   );
+  const handleTouchCancel = useCallback(() => {
+    touchStartRef.current = null;
+    resetSwipeAnimation();
+  }, [resetSwipeAnimation]);
+  const shouldCaptureSwipe = useCallback(event => {
+    const start = touchStartRef.current;
+    const touch = getTouchPoint(event);
+
+    if (!start || isClosingRef.current) {
+      return false;
+    }
+
+    const dx = (touch?.pageX ?? touch?.clientX ?? start.x) - start.x;
+    const dy = (touch?.pageY ?? touch?.clientY ?? start.y) - start.y;
+
+    return (
+      dy < -SWIPE_INTENT_DISTANCE &&
+      Math.abs(dy) > Math.abs(dx) * SWIPE_VERTICAL_RATIO
+    );
+  }, []);
+  const touchHandlers = enableSwipeToClose
+    ? {
+        onTouchStart: handleTouchStart,
+        onTouchMove: handleTouchMove,
+        onTouchEnd: handleTouchEnd,
+        onTouchCancel: handleTouchCancel,
+        onMoveShouldSetResponderCapture: shouldCaptureSwipe,
+        onResponderMove: handleTouchMove,
+        onResponderRelease: handleTouchEnd,
+        onResponderTerminate: handleTouchCancel,
+        onResponderTerminationRequest: () => false,
+      }
+    : {};
   const handleWheel = useCallback(
     event => {
       const {deltaX = 0, deltaY = 0} = event.nativeEvent ?? event;
 
       if (
-        enableSwipeToClose &&
-        Math.abs(deltaY) >= 60 &&
-        Math.abs(deltaY) > Math.abs(deltaX) * 1.2
+        !enableSwipeToClose ||
+        deltaY <= 0 ||
+        Math.abs(deltaY) <= Math.abs(deltaX) * SWIPE_VERTICAL_RATIO
       ) {
-        animateClose();
+        return;
+      }
+
+      swipeY.stopAnimation();
+      swipeChrome.stopAnimation();
+      const nextPosition = Math.min(swipePositionRef.current - deltaY, 0);
+      swipePositionRef.current = nextPosition;
+      swipeY.setValue(nextPosition);
+      swipeChrome.setValue(Math.abs(nextPosition));
+      if (hasSourceRect) {
+        const nextProgress = Math.min(
+          Math.abs(nextPosition) / Math.max(screenHeight * 0.55, 320),
+          0.72,
+        );
+        returnProgressRef.current = nextProgress;
+        returnProgress.setValue(nextProgress);
+      }
+
+      if (nextPosition <= -SWIPE_CLOSE_DISTANCE) {
+        animateClose(-deltaY / 16);
+      }
+
+      if (wheelResetTimeoutRef.current) {
+        clearTimeout(wheelResetTimeoutRef.current);
+      }
+      if (!isClosingRef.current) {
+        wheelResetTimeoutRef.current = setTimeout(resetSwipeAnimation, 110);
       }
     },
-    [animateClose, enableSwipeToClose],
+    [
+      animateClose,
+      enableSwipeToClose,
+      hasSourceRect,
+      resetSwipeAnimation,
+      returnProgress,
+      screenHeight,
+      swipeChrome,
+      swipeY,
+    ],
   );
-  const canSwipeToClose = enableSwipeToClose && Platform.OS !== 'android';
-  const touchHandlers = canSwipeToClose
-    ? {
-        onTouchStart: handleTouchStart,
-        onTouchMove: handleTouchMove,
-        onTouchEnd: handleTouchEnd,
-      }
-    : {};
   const webWheelHandlers =
-    canSwipeToClose && Platform.OS === 'web' ? {onWheel: handleWheel} : {};
+    enableSwipeToClose && Platform.OS === 'web' ? {onWheel: handleWheel} : {};
 
   const clearCloseTimeout = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
     }
+    if (wheelResetTimeoutRef.current) {
+      clearTimeout(wheelResetTimeoutRef.current);
+      wheelResetTimeoutRef.current = null;
+    }
   }, []);
   const handleRequestClose = useCallback(() => {
     clearCloseTimeout();
     isClosingRef.current = false;
-    touchStartRef.current = null;
     swipeY.stopAnimation();
+    swipeChrome.stopAnimation();
+    returnProgress.stopAnimation();
+    closeFade.stopAnimation();
+    swipePositionRef.current = 0;
+    returnProgressRef.current = 0;
     swipeY.setValue(0);
+    swipeChrome.setValue(0);
+    returnProgress.setValue(0);
+    closeFade.setValue(1);
     setIsPresented(false);
     onClose?.();
-  }, [clearCloseTimeout, onClose, swipeY]);
+  }, [
+    clearCloseTimeout,
+    closeFade,
+    onClose,
+    returnProgress,
+    swipeChrome,
+    swipeY,
+  ]);
 
   useEffect(() => {
     if (visible) {
       clearCloseTimeout();
       isClosingRef.current = false;
-      touchStartRef.current = null;
       swipeY.stopAnimation();
+      swipeChrome.stopAnimation();
+      returnProgress.stopAnimation();
+      closeFade.stopAnimation();
+      swipePositionRef.current = 0;
+      returnProgressRef.current = 0;
       swipeY.setValue(0);
+      swipeChrome.setValue(0);
+      returnProgress.setValue(0);
+      closeFade.setValue(1);
       setCurrentIndex(Platform.OS === 'android' ? 0 : initialIndex);
+      setActiveImageAspectRatio(
+        imageAspectRatiosRef.current.get(
+          getImageUrl(imageList[initialIndex]),
+        ) ?? null,
+      );
       setIsPresented(true);
       return;
     }
 
     if (!isClosingRef.current) {
       clearCloseTimeout();
-      touchStartRef.current = null;
       swipeY.stopAnimation();
+      swipeChrome.stopAnimation();
+      returnProgress.stopAnimation();
+      closeFade.stopAnimation();
+      swipePositionRef.current = 0;
+      returnProgressRef.current = 0;
       swipeY.setValue(0);
+      swipeChrome.setValue(0);
+      returnProgress.setValue(0);
+      closeFade.setValue(1);
       setIsPresented(false);
     }
-  }, [clearCloseTimeout, initialIndex, swipeY, visible]);
+  }, [
+    clearCloseTimeout,
+    closeFade,
+    imageList,
+    initialIndex,
+    returnProgress,
+    swipeChrome,
+    swipeY,
+    visible,
+  ]);
 
   useEffect(
     () => () => {
       clearCloseTimeout();
       swipeY.stopAnimation();
+      swipeChrome.stopAnimation();
+      returnProgress.stopAnimation();
+      closeFade.stopAnimation();
     },
-    [clearCloseTimeout, swipeY],
+    [clearCloseTimeout, closeFade, returnProgress, swipeChrome, swipeY],
   );
 
   useEffect(() => {
@@ -273,7 +640,18 @@ const ImageModal = ({
     });
   }, [imageList, imageList.length, initialIndex, visible]);
 
-  const renderImage = ({item}) => {
+  const updateActiveImageAspectRatio = (imageUrl, index, event) => {
+    const {width, height} = event.nativeEvent?.source ?? {};
+
+    if (width > 0 && height > 0) {
+      const nextAspectRatio = width / height;
+      imageAspectRatiosRef.current.set(imageUrl, nextAspectRatio);
+      if (index === currentIndex) {
+        setActiveImageAspectRatio(nextAspectRatio);
+      }
+    }
+  };
+  const renderImage = ({item, index}) => {
     const imageUrl = getImageUrl(item);
 
     return (
@@ -285,23 +663,33 @@ const ImageModal = ({
             height: pageHeight,
           },
         ]}>
-        <AppImage
-          uri={imageUrl}
-          style={styles.image}
-          resizeMode="contain"
-        />
+        <Animated.View style={[styles.imageMotion, animatedImageStyle]}>
+          <AppImage
+            uri={imageUrl}
+            style={styles.image}
+            resizeMode={
+              hasSourceRect && activeImageAspectRatio ? 'cover' : 'contain'
+            }
+            onLoad={event =>
+              updateActiveImageAspectRatio(imageUrl, index, event)
+            }
+          />
+        </Animated.View>
       </View>
     );
   };
 
   if (Platform.OS === 'android') {
-    if (!visible) {
+    if (!isPresented) {
       return null;
     }
 
     const androidImages =
       imageList.length > 0
-        ? [...imageList.slice(initialIndex), ...imageList.slice(0, initialIndex)]
+        ? [
+            ...imageList.slice(initialIndex),
+            ...imageList.slice(0, initialIndex),
+          ]
         : [];
     const androidDisplayIndex =
       imageList.length > 0
@@ -310,70 +698,100 @@ const ImageModal = ({
 
     return (
       <Modal
-        visible={visible}
+        visible={isPresented}
         transparent
-        animationType="fade"
+        animationType="none"
         onRequestClose={handleRequestClose}
         statusBarTranslucent
         navigationBarTranslucent
         hardwareAccelerated>
-        <View style={styles.overlay}>
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_14_medium, styles.counter]}>
-              {imageList.length > 1
-                ? `${androidDisplayIndex}/${imageList.length}`
-                : ''}
-            </Text>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.closeButton}
-              onPress={handleRequestClose}>
-              <XIcon width={24} height={24} />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.modalRoot}>
+          <Animated.View
+            pointerEvents="none"
+            style={[styles.backdrop, animatedBackdropStyle]}
+          />
+          <View style={styles.overlay}>
+            <Animated.View style={[styles.header, animatedHeaderStyle]}>
+              <Text style={[FONTS.fs_14_medium, styles.counter]}>
+                {imageList.length > 1
+                  ? `${androidDisplayIndex}/${imageList.length}`
+                  : ''}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={0.8}
+                style={styles.closeButton}
+                onPress={handleRequestClose}>
+                <XIcon width={24} height={24} />
+              </TouchableOpacity>
+            </Animated.View>
 
-          <View style={styles.androidImageStage}>
-            <FlatList
-              data={androidImages}
-              horizontal
-              pagingEnabled
-              bounces={false}
-              showsHorizontalScrollIndicator={false}
-              keyExtractor={(item, index) =>
-                `${item?.id ?? getImageUrl(item) ?? item}-${index}`
-              }
-              renderItem={({item}) => {
-                const imageUrl = getImageUrl(item);
+            <View style={styles.androidImageStage} {...touchHandlers}>
+              <FlatList
+                data={androidImages}
+                horizontal
+                pagingEnabled
+                bounces={false}
+                showsHorizontalScrollIndicator={false}
+                keyExtractor={(item, index) =>
+                  `${item?.id ?? getImageUrl(item) ?? item}-${index}`
+                }
+                renderItem={({item, index}) => {
+                  const imageUrl = getImageUrl(item);
 
-                return (
-                  <View
-                    style={[
-                      styles.imagePage,
-                      {
-                        width: pageWidth,
-                        height: pageHeight,
-                      },
-                    ]}>
-                    {!!imageUrl && (
-                      <AppImage
-                        uri={imageUrl}
-                        style={styles.image}
-                        resizeMode="contain"
-                      />
-                    )}
-                  </View>
-                );
-              }}
-              onMomentumScrollEnd={event => {
-                const nextIndex = Math.round(
-                  event.nativeEvent.contentOffset.x / pageWidth,
-                );
-                setCurrentIndex(
-                  Math.max(0, Math.min(nextIndex, androidImages.length - 1)),
-                );
-              }}
-              removeClippedSubviews={false}
-            />
+                  return (
+                    <View
+                      style={[
+                        styles.imagePage,
+                        {
+                          width: pageWidth,
+                          height: pageHeight,
+                        },
+                      ]}>
+                      {!!imageUrl && (
+                        <Animated.View
+                          style={[styles.imageMotion, animatedImageStyle]}>
+                          <AppImage
+                            uri={imageUrl}
+                            style={styles.image}
+                            resizeMode={
+                              hasSourceRect && activeImageAspectRatio
+                                ? 'cover'
+                                : 'contain'
+                            }
+                            onLoad={event =>
+                              updateActiveImageAspectRatio(
+                                imageUrl,
+                                index,
+                                event,
+                              )
+                            }
+                          />
+                        </Animated.View>
+                      )}
+                    </View>
+                  );
+                }}
+                onMomentumScrollEnd={event => {
+                  const nextIndex = Math.round(
+                    event.nativeEvent.contentOffset.x / pageWidth,
+                  );
+                  const safeNextIndex = Math.max(
+                    0,
+                    Math.min(nextIndex, androidImages.length - 1),
+                  );
+                  const sourceIndex =
+                    (initialIndex + safeNextIndex) % imageList.length;
+                  setActiveImageAspectRatio(
+                    imageAspectRatiosRef.current.get(
+                      getImageUrl(androidImages[safeNextIndex]),
+                    ) ?? null,
+                  );
+                  setCurrentIndex(safeNextIndex);
+                  onImageIndexChange?.(sourceIndex);
+                }}
+                removeClippedSubviews={false}
+              />
+            </View>
           </View>
         </View>
       </Modal>
@@ -382,9 +800,11 @@ const ImageModal = ({
 
   const contentBody = (
     <>
-      <View style={styles.header}>
+      <Animated.View style={[styles.header, animatedHeaderStyle]}>
         <Text style={[FONTS.fs_14_medium, styles.counter]}>
-          {imageList.length > 1 ? `${currentIndex + 1}/${imageList.length}` : ''}
+          {imageList.length > 1
+            ? `${currentIndex + 1}/${imageList.length}`
+            : ''}
         </Text>
         <TouchableOpacity
           activeOpacity={0.8}
@@ -392,12 +812,9 @@ const ImageModal = ({
           onPress={handleRequestClose}>
           <XIcon width={24} height={24} />
         </TouchableOpacity>
-      </View>
+      </Animated.View>
 
-      <View
-        style={styles.imageStage}
-        {...touchHandlers}
-        {...webWheelHandlers}>
+      <View style={styles.imageStage} {...touchHandlers} {...webWheelHandlers}>
         <FlatList
           ref={listRef}
           data={imageList}
@@ -419,9 +836,17 @@ const ImageModal = ({
             const nextIndex = Math.round(
               event.nativeEvent.contentOffset.x / pageWidth,
             );
-            setCurrentIndex(
-              Math.max(0, Math.min(nextIndex, imageList.length - 1)),
+            const safeNextIndex = Math.max(
+              0,
+              Math.min(nextIndex, imageList.length - 1),
             );
+            setActiveImageAspectRatio(
+              imageAspectRatiosRef.current.get(
+                getImageUrl(imageList[safeNextIndex]),
+              ) ?? null,
+            );
+            setCurrentIndex(safeNextIndex);
+            onImageIndexChange?.(safeNextIndex);
           }}
           removeClippedSubviews={false}
           onScrollToIndexFailed={({index}) => {
@@ -434,15 +859,16 @@ const ImageModal = ({
     </>
   );
 
-  const modalVisible = Platform.OS === 'android' ? visible : isPresented;
-  const content =
-    Platform.OS === 'android' ? (
+  const modalVisible = isPresented;
+  const content = (
+    <View style={styles.modalRoot}>
+      <Animated.View
+        pointerEvents="none"
+        style={[styles.backdrop, animatedBackdropStyle]}
+      />
       <View style={styles.overlay}>{contentBody}</View>
-    ) : (
-      <Animated.View style={[styles.overlay, animatedOverlayStyle]}>
-        {contentBody}
-      </Animated.View>
-    );
+    </View>
+  );
 
   if (!modalVisible) {
     return null;
@@ -463,9 +889,17 @@ const ImageModal = ({
 };
 
 const styles = StyleSheet.create({
+  modalRoot: {
+    flex: 1,
+    backgroundColor: 'transparent',
+  },
+  backdrop: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: COLORS.grayscale_900,
+  },
   overlay: {
     flex: 1,
-    backgroundColor: COLORS.modal_background,
+    backgroundColor: 'transparent',
   },
   header: {
     position: 'absolute',
@@ -511,6 +945,9 @@ const styles = StyleSheet.create({
   image: {
     width: '100%',
     height: '100%',
+  },
+  imageMotion: {
+    overflow: 'hidden',
   },
 });
 

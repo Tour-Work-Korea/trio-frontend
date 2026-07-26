@@ -171,6 +171,32 @@ const CommunityDetail = ({route}) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [modalSourceKeys, setModalSourceKeys] = useState([]);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback(sourceKey => {
+    const target = imageSourceRefs.current.get(sourceKey);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height});
+      }
+    });
+  }, []);
   const [editingTarget, setEditingTarget] = useState(null);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isTogglingLike, setIsTogglingLike] = useState(false);
@@ -1101,17 +1127,38 @@ const CommunityDetail = ({route}) => {
       id: image.imageId ?? image.objectKey ?? index,
       imageUrl: image.imageUrl,
     }));
+    const sourceKeys = sortedImages.map(
+      (image, index) =>
+        `community:${image.imageId ?? image.objectKey ?? image.imageUrl ?? index}`,
+    );
     const openPostImageModal = index => {
       setModalImages(imageModalItems);
+      setModalSourceKeys(sourceKeys);
       setSelectedImageIndex(index);
+      setImageSourceRect(null);
       setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
     };
 
     if (sortedImages.length === 1) {
       return (
         <TouchableOpacity
+          ref={node => {
+            const sourceKey = sourceKeys[0];
+            if (node) {
+              imageSourceRefs.current.set(sourceKey, node);
+            } else {
+              imageSourceRefs.current.delete(sourceKey);
+            }
+          }}
           activeOpacity={0.9}
-          style={styles.singlePostImage}
+          style={[
+            styles.singlePostImage,
+            imageModalVisible &&
+              modalSourceKeys[selectedImageIndex] === sourceKeys[0] && {
+                opacity: 0,
+              },
+          ]}
           onPress={() => openPostImageModal(0)}>
           <AppImage
             uri={sortedImages[0].imageUrl}
@@ -1130,8 +1177,22 @@ const CommunityDetail = ({route}) => {
         {sortedImages.map((image, index) => (
           <TouchableOpacity
             key={image.imageId ?? index}
+            ref={node => {
+              const sourceKey = sourceKeys[index];
+              if (node) {
+                imageSourceRefs.current.set(sourceKey, node);
+              } else {
+                imageSourceRefs.current.delete(sourceKey);
+              }
+            }}
             activeOpacity={0.9}
-            style={styles.multiPostImage}
+            style={[
+              styles.multiPostImage,
+              imageModalVisible &&
+                modalSourceKeys[selectedImageIndex] === sourceKeys[index] && {
+                  opacity: 0,
+                },
+            ]}
             onPress={() => openPostImageModal(index)}>
             <AppImage
               uri={image.imageUrl}
@@ -1224,17 +1285,38 @@ const CommunityDetail = ({route}) => {
       id: image.imageId ?? image.objectKey ?? index,
       imageUrl: image.imageUrl,
     }));
+    const sourceKeys = sortedImages.map(
+      (image, index) =>
+        `community:${image.imageId ?? image.objectKey ?? image.imageUrl ?? index}`,
+    );
     const openCommentImageModal = index => {
       setModalImages(imageModalItems);
+      setModalSourceKeys(sourceKeys);
       setSelectedImageIndex(index);
+      setImageSourceRect(null);
       setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
     };
 
     if (sortedImages.length === 1) {
       return (
         <TouchableOpacity
+          ref={node => {
+            const sourceKey = sourceKeys[0];
+            if (node) {
+              imageSourceRefs.current.set(sourceKey, node);
+            } else {
+              imageSourceRefs.current.delete(sourceKey);
+            }
+          }}
           activeOpacity={0.9}
-          style={styles.singleCommentImageButton}
+          style={[
+            styles.singleCommentImageButton,
+            imageModalVisible &&
+              modalSourceKeys[selectedImageIndex] === sourceKeys[0] && {
+                opacity: 0,
+              },
+          ]}
           onPress={() => openCommentImageModal(0)}>
           <AppImage
             uri={sortedImages[0].imageUrl}
@@ -1255,8 +1337,22 @@ const CommunityDetail = ({route}) => {
         {sortedImages.map((image, index) => (
           <TouchableOpacity
             key={image.imageId ?? image.objectKey ?? index}
+            ref={node => {
+              const sourceKey = sourceKeys[index];
+              if (node) {
+                imageSourceRefs.current.set(sourceKey, node);
+              } else {
+                imageSourceRefs.current.delete(sourceKey);
+              }
+            }}
             activeOpacity={0.9}
-            style={styles.commentImageButton}
+            style={[
+              styles.commentImageButton,
+              imageModalVisible &&
+                modalSourceKeys[selectedImageIndex] === sourceKeys[index] && {
+                  opacity: 0,
+                },
+            ]}
             onPress={() => openCommentImageModal(index)}>
             <AppImage
               uri={image.imageUrl}
@@ -1748,6 +1844,12 @@ const CommunityDetail = ({route}) => {
         visible={imageModalVisible}
         images={modalImages}
         selectedImageIndex={selectedImageIndex}
+        sourceRect={imageSourceRect}
+        sourceBorderRadius={8}
+        onImageIndexChange={index => {
+          setSelectedImageIndex(index);
+          measureImageSource(modalSourceKeys[index]);
+        }}
         onClose={() => setImageModalVisible(false)}
       />
     </KeyboardAvoidingView>

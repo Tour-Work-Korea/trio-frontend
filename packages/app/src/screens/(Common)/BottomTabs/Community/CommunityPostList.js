@@ -99,6 +99,33 @@ const CommunityPostList = ({
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [modalSourceKeys, setModalSourceKeys] = useState([]);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+
+  const measureImageSource = useCallback(sourceKey => {
+    const target = imageSourceRefs.current.get(sourceKey);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height});
+      }
+    });
+  }, []);
 
   useEffect(() => {
     postsLengthRef.current = posts.length;
@@ -159,8 +186,11 @@ const CommunityPostList = ({
           page: pageToFetch,
           size: PAGE_SIZE,
         });
-        const {content = [], last = true, number = pageToFetch} =
-          response.data ?? {};
+        const {
+          content = [],
+          last = true,
+          number = pageToFetch,
+        } = response.data ?? {};
 
         setPosts(prev => (pageToFetch === 0 ? content : [...prev, ...content]));
         setPage(number);
@@ -174,7 +204,8 @@ const CommunityPostList = ({
 
         setErrorModal({
           visible: true,
-          message: '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
+          message:
+            '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
           buttonText: '확인',
         });
       } finally {
@@ -201,12 +232,7 @@ const CommunityPostList = ({
       if (postsLengthRef.current === 0 || loadedSort !== selectedSort) {
         fetchPosts(0, false, false);
       }
-    }, [
-      fetchPosts,
-      isActive,
-      loadedSort,
-      selectedSort,
-    ]),
+    }, [fetchPosts, isActive, loadedSort, selectedSort]),
   );
 
   const handleRefresh = useCallback(() => {
@@ -264,18 +290,28 @@ const CommunityPostList = ({
     );
   }, []);
 
-  const handleOpenImageModal = useCallback((postItem, index) => {
-    const sortedImages = [...(postItem.images ?? [])].sort(
-      (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
-    );
-    const mappedImages = sortedImages.map(img => ({
-      id: img.imageId ?? img.id,
-      imageUrl: img.imageUrl,
-    }));
-    setModalImages(mappedImages);
-    setSelectedImageIndex(index);
-    setImageModalVisible(true);
-  }, []);
+  const handleOpenImageModal = useCallback(
+    (postItem, index) => {
+      const sortedImages = [...(postItem.images ?? [])].sort(
+        (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
+      );
+      const mappedImages = sortedImages.map(img => ({
+        id: img.imageId ?? img.id,
+        imageUrl: img.imageUrl,
+      }));
+      const sourceKeys = sortedImages.map(
+        (img, imageIndex) =>
+          `${postItem.postId}:${img.imageId ?? img.id ?? imageIndex}`,
+      );
+      setModalImages(mappedImages);
+      setModalSourceKeys(sourceKeys);
+      setSelectedImageIndex(index);
+      setImageSourceRect(null);
+      setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+    },
+    [measureImageSource],
+  );
 
   const rememberWebScrollOffset = useCallback(() => {
     if (Platform.OS !== 'web') {
@@ -300,59 +336,104 @@ const CommunityPostList = ({
     [scrollStoreKey],
   );
 
-  const handlePressCommentCount = useCallback(item => {
-    rememberWebScrollOffset();
-    navigation.navigate('CommunityDetail', {
-      postId: item.postId,
-      focusCommentInput: true,
-      sourceTab: sourceRouteTab,
-    });
-  }, [navigation, rememberWebScrollOffset, sourceRouteTab]);
+  const handlePressCommentCount = useCallback(
+    item => {
+      rememberWebScrollOffset();
+      navigation.navigate('CommunityDetail', {
+        postId: item.postId,
+        focusCommentInput: true,
+        sourceTab: sourceRouteTab,
+      });
+    },
+    [navigation, rememberWebScrollOffset, sourceRouteTab],
+  );
 
-  const renderPostImages = useCallback((images, postItem) => {
-    if (!images?.length) {
-      return null;
-    }
-    const sortedImages = [...images].sort(
-      (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
-    );
-
-    if (sortedImages.length === 1) {
-      return (
-        <TouchableOpacity
-          activeOpacity={0.9}
-          onPress={() => handleOpenImageModal(postItem, 0)}>
-          <AppImage
-            uri={sortedImages[0].imageUrl}
-            style={styles.singlePostImage}
-            resizeMode="cover"
-          />
-        </TouchableOpacity>
+  const renderPostImages = useCallback(
+    (images, postItem) => {
+      if (!images?.length) {
+        return null;
+      }
+      const sortedImages = [...images].sort(
+        (a, b) => (a.imageOrder ?? 0) - (b.imageOrder ?? 0),
       );
-    }
 
-    return (
-      <ScrollView
-        horizontal
-        nestedScrollEnabled
-        directionalLockEnabled
-        showsHorizontalScrollIndicator={false}
-        contentContainerStyle={styles.multiImageContainer}>
-        {sortedImages.map((image, index) => (
+      if (sortedImages.length === 1) {
+        return (
           <TouchableOpacity
-            key={image.imageId ?? index}
+            ref={node => {
+              const sourceKey = `${postItem.postId}:${
+                sortedImages[0].imageId ?? sortedImages[0].id ?? 0
+              }`;
+              if (node) {
+                imageSourceRefs.current.set(sourceKey, node);
+              } else {
+                imageSourceRefs.current.delete(sourceKey);
+              }
+            }}
             activeOpacity={0.9}
-            onPress={() => handleOpenImageModal(postItem, index)}>
+            onPress={() => handleOpenImageModal(postItem, 0)}>
             <AppImage
-              uri={image.imageUrl}
-              style={styles.multiPostImage}
+              uri={sortedImages[0].imageUrl}
+              style={[
+                styles.singlePostImage,
+                imageModalVisible &&
+                  modalSourceKeys[selectedImageIndex] ===
+                    `${postItem.postId}:${
+                      sortedImages[0].imageId ?? sortedImages[0].id ?? 0
+                    }` && {opacity: 0},
+              ]}
               resizeMode="cover"
             />
           </TouchableOpacity>
-        ))}
-      </ScrollView>
-    );
-  }, [handleOpenImageModal]);
+        );
+      }
+
+      return (
+        <ScrollView
+          horizontal
+          nestedScrollEnabled
+          directionalLockEnabled
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.multiImageContainer}>
+          {sortedImages.map((image, index) => (
+            <TouchableOpacity
+              key={image.imageId ?? index}
+              ref={node => {
+                const sourceKey = `${postItem.postId}:${
+                  image.imageId ?? image.id ?? index
+                }`;
+                if (node) {
+                  imageSourceRefs.current.set(sourceKey, node);
+                } else {
+                  imageSourceRefs.current.delete(sourceKey);
+                }
+              }}
+              activeOpacity={0.9}
+              onPress={() => handleOpenImageModal(postItem, index)}>
+              <AppImage
+                uri={image.imageUrl}
+                style={[
+                  styles.multiPostImage,
+                  imageModalVisible &&
+                    modalSourceKeys[selectedImageIndex] ===
+                      `${postItem.postId}:${
+                        image.imageId ?? image.id ?? index
+                      }` && {opacity: 0},
+                ]}
+                resizeMode="cover"
+              />
+            </TouchableOpacity>
+          ))}
+        </ScrollView>
+      );
+    },
+    [
+      handleOpenImageModal,
+      imageModalVisible,
+      modalSourceKeys,
+      selectedImageIndex,
+    ],
+  );
 
   const renderPost = useCallback(
     ({item}) => (
@@ -485,6 +566,12 @@ const CommunityPostList = ({
         visible={imageModalVisible}
         images={modalImages}
         selectedImageIndex={selectedImageIndex}
+        sourceRect={imageSourceRect}
+        sourceBorderRadius={12}
+        onImageIndexChange={index => {
+          setSelectedImageIndex(index);
+          measureImageSource(modalSourceKeys[index]);
+        }}
         onClose={() => setImageModalVisible(false)}
       />
     </View>

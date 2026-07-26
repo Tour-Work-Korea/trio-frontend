@@ -1,5 +1,14 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
@@ -33,6 +42,32 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [modalIndex, setModalIndex] = useState(0);
+  const [modalSourceKeys, setModalSourceKeys] = useState([]);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback(sourceKey => {
+    const target = imageSourceRefs.current.get(sourceKey);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height});
+      }
+    });
+  }, []);
 
   // 첫 로드 or 새로고침
   const fetchReviews = useCallback(
@@ -115,11 +150,22 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   }, [fetchReviews]);
 
   // 이미지 모달
-  const openImageModal = useCallback((images, index) => {
-    setModalImages(images.map((url, i) => ({ id: i.toString(), imageUrl: url })));
-    setModalIndex(index);
-    setImageModalVisible(true);
-  }, []);
+  const openImageModal = useCallback(
+    (reviewId, images, index) => {
+      const sourceKeys = images.map((url, imageIndex) =>
+        `review:${reviewId}:${url ?? imageIndex}`,
+      );
+      setModalImages(
+        images.map((url, i) => ({id: i.toString(), imageUrl: url})),
+      );
+      setModalSourceKeys(sourceKeys);
+      setModalIndex(index);
+      setImageSourceRect(null);
+      setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+    },
+    [measureImageSource],
+  );
 
   const renderItem = useCallback(
     ({ item, index }) => {
@@ -153,8 +199,28 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
               >
                 {item.imgUrls.map((imgUrl, i) => (
                   <TouchableOpacity
-                    activeOpacity={1} key={i} onPress={() => openImageModal(item.imgUrls, i)}>
-                    <AppImage uri={imgUrl} style={styles.reviewImage} />
+                    ref={node => {
+                      const sourceKey = `review:${item.id}:${
+                        imgUrl ?? i
+                      }`;
+                      if (node) {
+                        imageSourceRefs.current.set(sourceKey, node);
+                      } else {
+                        imageSourceRefs.current.delete(sourceKey);
+                      }
+                    }}
+                    activeOpacity={1} key={i} onPress={() => openImageModal(item.id, item.imgUrls, i)}>
+                    <AppImage
+                      uri={imgUrl}
+                      style={[
+                        styles.reviewImage,
+                        imageModalVisible &&
+                          modalSourceKeys[modalIndex] ===
+                            `review:${item.id}:${imgUrl ?? i}` && {
+                            opacity: 0,
+                          },
+                      ]}
+                    />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
@@ -175,7 +241,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         </View>
       );
     },
-    [openImageModal]
+    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal]
   );
 
   const keyExtractor = useCallback(item => item.id?.toString(), []);
@@ -211,6 +277,12 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           visible={imageModalVisible}
           images={modalImages}
           selectedImageIndex={modalIndex}
+          sourceRect={imageSourceRect}
+          sourceBorderRadius={4}
+          onImageIndexChange={index => {
+            setModalIndex(index);
+            measureImageSource(modalSourceKeys[index]);
+          }}
           onClose={() => setImageModalVisible(false)}
         />
       )}
