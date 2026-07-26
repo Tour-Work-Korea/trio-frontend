@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 
 import {FONTS} from '@constants/fonts';
@@ -104,6 +105,22 @@ export default function MeetPaymentReceipt() {
   }, [reservationDetail?.partyAnnouncements]);
   const hasPartyAnnouncements = partyAnnouncementItems.length > 0;
   const reservationRequest = reservationDetail?.reservationRequest?.trim() ?? '';
+  const locationText =
+    trimJejuPrefix(reservationDetail?.partyLocation) ||
+    reservationDetail?.meetingPlace ||
+    '';
+  const handleCopyLocation = () => {
+    if (!locationText) {
+      return;
+    }
+
+    Clipboard.setString(locationText);
+    Toast.show({
+      type: 'success',
+      text1: '장소를 복사했어요!',
+      position: 'top',
+    });
+  };
   const handlePressCancel = () => {
     const startDate = reservationDetail?.startDateTime
       ? new Date(reservationDetail.startDateTime)
@@ -195,11 +212,19 @@ export default function MeetPaymentReceipt() {
 
           <View style={styles.infoRow}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>장소</Text>
-            <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {trimJejuPrefix(reservationDetail?.partyLocation) ||
-                reservationDetail?.meetingPlace ||
-                '-'}
-            </Text>
+            <TouchableOpacity
+              activeOpacity={0.7}
+              disabled={!locationText}
+              onPress={handleCopyLocation}>
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  styles.value,
+                  locationText && styles.copyableLocation,
+                ]}>
+                {locationText || '-'}
+              </Text>
+            </TouchableOpacity>
           </View>
 
           {/* 안내 박스 */}

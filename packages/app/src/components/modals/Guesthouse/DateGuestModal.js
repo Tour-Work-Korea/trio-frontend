@@ -168,6 +168,7 @@ const DateGuestModal = ({
   const decreaseGuest = () => setGuestCount(Math.max(1, guestCount - 1));
 
   const formattedGuestText = `인원 ${guestCount}`;
+  const canApply = Boolean(checkInDate && checkOutDate);
 
   // 아코디언 효과
 
@@ -301,7 +302,11 @@ const DateGuestModal = ({
         <View style={styles.applyButton}>
           <ButtonScarlet
             title="적용하기"
+            disabled={!canApply}
             onPress={() => {
+              if (!canApply) {
+                return;
+              }
               onApply(checkInDate, checkOutDate, guestCount, 0);
             }}
           />

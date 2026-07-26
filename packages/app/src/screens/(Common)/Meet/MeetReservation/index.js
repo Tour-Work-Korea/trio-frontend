@@ -231,6 +231,25 @@ const MeetReservation = () => {
     null;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
+  const reservationAmount = Number(reservationInfo?.amount ?? 0);
+  const isPaidContent =
+    reservationInfo?.chargeType !== 'FREE' &&
+    Number.isFinite(reservationAmount) &&
+    reservationAmount > 0;
+  const genderLabel =
+    ['F', 'FEMALE'].includes(reservationInfo?.gender)
+      ? '여성'
+      : ['M', 'MALE'].includes(reservationInfo?.gender)
+        ? '남성'
+        : null;
+  const isReservationGuest =
+    reservationInfo?.guest ?? reservationInfo?.isGuest ?? false;
+  const attendeeTypeLabel = [
+    isReservationGuest ? '숙박객' : '비숙박객',
+    genderLabel,
+  ]
+    .filter(Boolean)
+    .join(' · ');
 
   useEffect(() => {
     if (selectedDateIndex >= dateOptions.length) {
@@ -369,7 +388,7 @@ const MeetReservation = () => {
 
     try {
       const requestText = requestMessage?.trim() || '';
-      const amount = Number(reservationInfo?.amount ?? 0);
+      const amount = reservationAmount;
       const reservationPartyId = selectedDateOption?.partyId ?? partyId;
       const { data } = await reservationPaymentApi.createPartyReservation(
         reservationPartyId,
@@ -652,6 +671,28 @@ const MeetReservation = () => {
           </View>
 
           <View style={styles.devide} />
+
+          {/* 유료 콘텐츠 예약 정보 */}
+          {isPaidContent && (
+            <>
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  예약 정보
+                </Text>
+                <View style={styles.userInfo}>
+                  <Text style={FONTS.fs_14_medium}>
+                    {attendeeTypeLabel}
+                  </Text>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.reservationPriceText]}>
+                    {reservationAmount.toLocaleString('ko-KR')}원
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.devide} />
+            </>
+          )}
 
           {/* 요청사항 */}
           <View style={styles.section} ref={requestInputRef}>

@@ -61,12 +61,11 @@ const MeetMain = () => {
     hasApplied: false,
     contentTypes: undefined,
     isGuest: null,
-    capacityId: null,
-    isBigParty: null,
+    attendeeRange: undefined,
     priceOption: 'all',
+    priceRange: undefined,
     minPrice: undefined,
     maxPrice: undefined,
-    chargeTypes: undefined,
   });
 
   const [scaleId, setScaleId] = useState(null);
@@ -120,11 +119,11 @@ const MeetMain = () => {
       if (filters.isGuest !== null && filters.isGuest !== undefined) {
         params.isGuest = filters.isGuest;
       }
-      if (filters.isBigParty !== null && filters.isBigParty !== undefined) {
-        params.isBigParty = filters.isBigParty;
+      if (filters.attendeeRange) {
+        params.attendeeRange = filters.attendeeRange;
       }
-      if (filters.chargeTypes?.length) {
-        params.chargeTypes = filters.chargeTypes;
+      if (filters.priceRange) {
+        params.priceRange = filters.priceRange;
       }
       if (filters.minPrice !== undefined) {
         params.minPrice = filters.minPrice;

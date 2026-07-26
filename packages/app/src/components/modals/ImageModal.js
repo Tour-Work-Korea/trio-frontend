@@ -60,7 +60,6 @@ const ImageModal = ({
   const listRef = useRef(null);
   const closeTimeoutRef = useRef(null);
   const isClosingRef = useRef(false);
-  const wheelResetTimeoutRef = useRef(null);
   const touchStartRef = useRef(null);
   const swipeY = useRef(new Animated.Value(0)).current;
   const swipeChrome = useRef(new Animated.Value(0)).current;
@@ -88,6 +87,7 @@ const ImageModal = ({
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPresented, setIsPresented] = useState(visible);
   const [activeImageAspectRatio, setActiveImageAspectRatio] = useState(null);
+  const swipeToCloseEnabled = enableSwipeToClose && Platform.OS !== 'web';
   const finishClose = useCallback(() => {
     if (!isClosingRef.current) {
       return;
@@ -152,10 +152,6 @@ const ImageModal = ({
       }
 
       isClosingRef.current = true;
-      if (wheelResetTimeoutRef.current) {
-        clearTimeout(wheelResetTimeoutRef.current);
-        wheelResetTimeoutRef.current = null;
-      }
       const closeTarget = -Math.max(screenHeight, 600) * 1.08;
       const remainingDistance = Math.abs(
         closeTarget - swipePositionRef.current,
@@ -281,8 +277,14 @@ const ImageModal = ({
     outputRange: [0, 1, 1],
     extrapolate: 'clamp',
   });
-  const imageViewportWidth = Math.max(pageWidth - 24, 1);
-  const imageViewportHeight = Math.max(pageHeight - 122, 1);
+  const imageViewportWidth =
+    Platform.OS === 'web'
+      ? Math.max(Math.min(pageWidth - 48, 1200), 1)
+      : Math.max(pageWidth - 24, 1);
+  const imageViewportHeight =
+    Platform.OS === 'web'
+      ? Math.max(pageHeight - 104, 1)
+      : Math.max(pageHeight - 122, 1);
   const displayAspectRatio = activeImageAspectRatio;
   const imageDisplayWidth = displayAspectRatio
     ? Math.min(imageViewportWidth, imageViewportHeight * displayAspectRatio)
@@ -466,7 +468,7 @@ const ImageModal = ({
       Math.abs(dy) > Math.abs(dx) * SWIPE_VERTICAL_RATIO
     );
   }, []);
-  const touchHandlers = enableSwipeToClose
+  const touchHandlers = swipeToCloseEnabled
     ? {
         onTouchStart: handleTouchStart,
         onTouchMove: handleTouchMove,
@@ -479,66 +481,61 @@ const ImageModal = ({
         onResponderTerminationRequest: () => false,
       }
     : {};
-  const handleWheel = useCallback(
+  const handleAndroidTouchEnd = useCallback(
     event => {
-      const {deltaX = 0, deltaY = 0} = event.nativeEvent ?? event;
+      const start = touchStartRef.current;
+      const touch = getTouchPoint(event);
 
-      if (
-        !enableSwipeToClose ||
-        deltaY <= 0 ||
-        Math.abs(deltaY) <= Math.abs(deltaX) * SWIPE_VERTICAL_RATIO
-      ) {
-        return;
+      if (start && !isClosingRef.current) {
+        const endX = touch?.pageX ?? touch?.clientX ?? start.lastX;
+        const endY = touch?.pageY ?? touch?.clientY ?? start.lastY;
+        const dx = endX - start.x;
+        const dy = endY - start.y;
+        const isHorizontalSwipe =
+          Math.abs(dx) >= 48 &&
+          Math.abs(dx) > Math.abs(dy) * SWIPE_VERTICAL_RATIO;
+
+        if (isHorizontalSwipe && imageList.length > 1) {
+          touchStartRef.current = null;
+          const nextIndex = Math.max(
+            0,
+            Math.min(currentIndex + (dx < 0 ? 1 : -1), imageList.length - 1),
+          );
+          const sourceIndex = (initialIndex + nextIndex) % imageList.length;
+          setActiveImageAspectRatio(
+            imageAspectRatiosRef.current.get(
+              getImageUrl(imageList[sourceIndex]),
+            ) ?? null,
+          );
+          setCurrentIndex(nextIndex);
+          onImageIndexChange?.(sourceIndex);
+          resetSwipeAnimation();
+          return;
+        }
       }
 
-      swipeY.stopAnimation();
-      swipeChrome.stopAnimation();
-      const nextPosition = Math.min(swipePositionRef.current - deltaY, 0);
-      swipePositionRef.current = nextPosition;
-      swipeY.setValue(nextPosition);
-      swipeChrome.setValue(Math.abs(nextPosition));
-      if (hasSourceRect) {
-        const nextProgress = Math.min(
-          Math.abs(nextPosition) / Math.max(screenHeight * 0.55, 320),
-          0.72,
-        );
-        returnProgressRef.current = nextProgress;
-        returnProgress.setValue(nextProgress);
-      }
-
-      if (nextPosition <= -SWIPE_CLOSE_DISTANCE) {
-        animateClose(-deltaY / 16);
-      }
-
-      if (wheelResetTimeoutRef.current) {
-        clearTimeout(wheelResetTimeoutRef.current);
-      }
-      if (!isClosingRef.current) {
-        wheelResetTimeoutRef.current = setTimeout(resetSwipeAnimation, 110);
-      }
+      handleTouchEnd(event);
     },
     [
-      animateClose,
-      enableSwipeToClose,
-      hasSourceRect,
+      currentIndex,
+      handleTouchEnd,
+      imageList,
+      initialIndex,
+      onImageIndexChange,
       resetSwipeAnimation,
-      returnProgress,
-      screenHeight,
-      swipeChrome,
-      swipeY,
     ],
   );
-  const webWheelHandlers =
-    enableSwipeToClose && Platform.OS === 'web' ? {onWheel: handleWheel} : {};
-
+  const androidTouchHandlers = swipeToCloseEnabled
+    ? {
+        ...touchHandlers,
+        onTouchEnd: handleAndroidTouchEnd,
+        onResponderRelease: handleAndroidTouchEnd,
+      }
+    : {};
   const clearCloseTimeout = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
       closeTimeoutRef.current = null;
-    }
-    if (wheelResetTimeoutRef.current) {
-      clearTimeout(wheelResetTimeoutRef.current);
-      wheelResetTimeoutRef.current = null;
     }
   }, []);
   const handleRequestClose = useCallback(() => {
@@ -651,6 +648,27 @@ const ImageModal = ({
       }
     }
   };
+  const navigateWebImage = useCallback(
+    direction => {
+      const nextIndex = Math.max(
+        0,
+        Math.min(currentIndex + direction, imageList.length - 1),
+      );
+
+      if (nextIndex === currentIndex) {
+        return;
+      }
+
+      setActiveImageAspectRatio(
+        imageAspectRatiosRef.current.get(getImageUrl(imageList[nextIndex])) ??
+          null,
+      );
+      setCurrentIndex(nextIndex);
+      onImageIndexChange?.(nextIndex);
+      listRef.current?.scrollToIndex({index: nextIndex, animated: true});
+    },
+    [currentIndex, imageList, onImageIndexChange],
+  );
   const renderImage = ({item, index}) => {
     const imageUrl = getImageUrl(item);
 
@@ -695,6 +713,8 @@ const ImageModal = ({
       imageList.length > 0
         ? ((initialIndex + currentIndex) % imageList.length) + 1
         : 0;
+    const currentAndroidItem = androidImages[currentIndex] ?? androidImages[0];
+    const currentAndroidImageUrl = getImageUrl(currentAndroidItem);
 
     return (
       <Modal
@@ -703,15 +723,42 @@ const ImageModal = ({
         animationType="none"
         onRequestClose={handleRequestClose}
         statusBarTranslucent
-        navigationBarTranslucent
-        hardwareAccelerated>
-        <View style={styles.modalRoot}>
+        navigationBarTranslucent>
+        <View
+          style={[
+            styles.modalRoot,
+            {
+              width: pageWidth,
+              height: pageHeight,
+            },
+          ]}>
           <Animated.View
             pointerEvents="none"
-            style={[styles.backdrop, animatedBackdropStyle]}
+            style={[
+              styles.backdrop,
+              {
+                width: pageWidth,
+                height: pageHeight,
+              },
+              styles.androidBackdropLayer,
+              animatedBackdropStyle,
+            ]}
           />
-          <View style={styles.overlay}>
-            <Animated.View style={[styles.header, animatedHeaderStyle]}>
+          <View
+            style={[
+              styles.overlay,
+              {
+                width: pageWidth,
+                height: pageHeight,
+              },
+              styles.androidOverlayLayer,
+            ]}>
+            <Animated.View
+              style={[
+                styles.header,
+                styles.androidHeader,
+                animatedHeaderStyle,
+              ]}>
               <Text style={[FONTS.fs_14_medium, styles.counter]}>
                 {imageList.length > 1
                   ? `${androidDisplayIndex}/${imageList.length}`
@@ -721,76 +768,50 @@ const ImageModal = ({
                 activeOpacity={0.8}
                 style={styles.closeButton}
                 onPress={handleRequestClose}>
-                <XIcon width={24} height={24} />
+                <Text style={styles.androidCloseIcon}>×</Text>
               </TouchableOpacity>
             </Animated.View>
 
-            <View style={styles.androidImageStage} {...touchHandlers}>
-              <FlatList
-                data={androidImages}
-                horizontal
-                pagingEnabled
-                bounces={false}
-                showsHorizontalScrollIndicator={false}
-                keyExtractor={(item, index) =>
-                  `${item?.id ?? getImageUrl(item) ?? item}-${index}`
-                }
-                renderItem={({item, index}) => {
-                  const imageUrl = getImageUrl(item);
-
-                  return (
-                    <View
-                      style={[
-                        styles.imagePage,
-                        {
-                          width: pageWidth,
-                          height: pageHeight,
-                        },
-                      ]}>
-                      {!!imageUrl && (
-                        <Animated.View
-                          style={[styles.imageMotion, animatedImageStyle]}>
-                          <AppImage
-                            uri={imageUrl}
-                            style={styles.image}
-                            resizeMode={
-                              hasSourceRect && activeImageAspectRatio
-                                ? 'cover'
-                                : 'contain'
-                            }
-                            onLoad={event =>
-                              updateActiveImageAspectRatio(
-                                imageUrl,
-                                index,
-                                event,
-                              )
-                            }
-                          />
-                        </Animated.View>
-                      )}
-                    </View>
-                  );
-                }}
-                onMomentumScrollEnd={event => {
-                  const nextIndex = Math.round(
-                    event.nativeEvent.contentOffset.x / pageWidth,
-                  );
-                  const safeNextIndex = Math.max(
-                    0,
-                    Math.min(nextIndex, androidImages.length - 1),
-                  );
-                  const sourceIndex =
-                    (initialIndex + safeNextIndex) % imageList.length;
-                  setActiveImageAspectRatio(
-                    imageAspectRatiosRef.current.get(
-                      getImageUrl(androidImages[safeNextIndex]),
-                    ) ?? null,
-                  );
-                  setCurrentIndex(safeNextIndex);
-                  onImageIndexChange?.(sourceIndex);
-                }}
-                removeClippedSubviews={false}
-              />
+            <View
+              style={[
+                styles.androidImageStage,
+                {
+                  width: pageWidth,
+                  height: pageHeight,
+                },
+              ]}
+              {...androidTouchHandlers}>
+              <View
+                style={[
+                  styles.imagePage,
+                  {
+                    width: pageWidth,
+                    height: pageHeight,
+                  },
+                  styles.androidImagePage,
+                ]}>
+                {!!currentAndroidImageUrl && (
+                  <Animated.View
+                    style={[styles.imageMotion, animatedImageStyle]}>
+                    <AppImage
+                      uri={currentAndroidImageUrl}
+                      style={styles.image}
+                      resizeMode={
+                        hasSourceRect && activeImageAspectRatio
+                          ? 'cover'
+                          : 'contain'
+                      }
+                      onLoad={event =>
+                        updateActiveImageAspectRatio(
+                          currentAndroidImageUrl,
+                          currentIndex,
+                          event,
+                        )
+                      }
+                    />
+                  </Animated.View>
+                )}
+              </View>
             </View>
           </View>
         </View>
@@ -810,11 +831,43 @@ const ImageModal = ({
           activeOpacity={0.8}
           style={styles.closeButton}
           onPress={handleRequestClose}>
-          <XIcon width={24} height={24} />
+          {Platform.OS === 'web' ? (
+            <Text style={styles.webCloseIcon}>×</Text>
+          ) : (
+            <XIcon width={24} height={24} />
+          )}
         </TouchableOpacity>
       </Animated.View>
 
-      <View style={styles.imageStage} {...touchHandlers} {...webWheelHandlers}>
+      {Platform.OS === 'web' && imageList.length > 1 && (
+        <>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            disabled={currentIndex === 0}
+            style={[
+              styles.webNavigationButton,
+              styles.webNavigationPrevious,
+              currentIndex === 0 && styles.webNavigationButtonDisabled,
+            ]}
+            onPress={() => navigateWebImage(-1)}>
+            <Text style={styles.webNavigationIcon}>‹</Text>
+          </TouchableOpacity>
+          <TouchableOpacity
+            activeOpacity={0.75}
+            disabled={currentIndex === imageList.length - 1}
+            style={[
+              styles.webNavigationButton,
+              styles.webNavigationNext,
+              currentIndex === imageList.length - 1 &&
+                styles.webNavigationButtonDisabled,
+            ]}
+            onPress={() => navigateWebImage(1)}>
+            <Text style={styles.webNavigationIcon}>›</Text>
+          </TouchableOpacity>
+        </>
+      )}
+
+      <View style={styles.imageStage} {...touchHandlers}>
         <FlatList
           ref={listRef}
           data={imageList}
@@ -928,8 +981,59 @@ const styles = StyleSheet.create({
   imageStage: {
     flex: 1,
   },
+  webNavigationButton: {
+    position: 'absolute',
+    top: '50%',
+    zIndex: 3,
+    width: 48,
+    height: 48,
+    marginTop: -24,
+    borderRadius: 24,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255, 255, 255, 0.14)',
+  },
+  webNavigationPrevious: {
+    left: 20,
+  },
+  webNavigationNext: {
+    right: 20,
+  },
+  webNavigationButtonDisabled: {
+    opacity: 0.25,
+  },
+  webNavigationIcon: {
+    color: COLORS.grayscale_0,
+    fontSize: 42,
+    fontWeight: '300',
+    lineHeight: 44,
+  },
+  webCloseIcon: {
+    color: '#B8B8B8',
+    fontSize: 40,
+    fontWeight: '200',
+    lineHeight: 42,
+  },
   androidImageStage: {
     flex: 1,
+  },
+  androidBackdropLayer: {
+    zIndex: 0,
+  },
+  androidOverlayLayer: {
+    zIndex: 1,
+  },
+  androidHeader: {
+    elevation: 3,
+  },
+  androidCloseIcon: {
+    color: '#B8B8B8',
+    fontSize: 42,
+    fontWeight: '200',
+    lineHeight: 44,
+  },
+  androidImagePage: {
+    flex: 0,
   },
   androidImage: {
     flexShrink: 0,
