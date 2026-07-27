@@ -1,4 +1,4 @@
-import React, {useCallback, useEffect, useState} from 'react';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -130,8 +130,6 @@ const GuesthouseDetail = ({route}) => {
   // 썸네일을 맨 앞으로 정렬한 이미지 리스트
   const sortedImages = getSortedGuesthouseImages(rawImages);
   const hasImages = sortedImages.length > 0;
-  const hideHeaderCarouselForImageModal =
-    Platform.OS === 'android' && imageModalVisible;
   const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
   const modalImages = sortedImages;
 
@@ -140,12 +138,53 @@ const GuesthouseDetail = ({route}) => {
     ? Math.min(SCREEN_W, 430)
     : SCREEN_W;
   const HEADER_IMAGE_H = Platform.OS === 'web' ? 220 : 280;
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const headerCarouselRef = useRef(null);
+  const openImageModal = useCallback(index => {
+    const fallbackRect = {
+      x:
+        Platform.OS === 'web'
+          ? Math.max((SCREEN_W - HEADER_IMAGE_W) / 2, 0)
+          : 0,
+      y: 0,
+      width: HEADER_IMAGE_W,
+      height: HEADER_IMAGE_H,
+    };
+    const target = imageSourceRefs.current.get(index);
+
+    setImageSourceRect(fallbackRect);
+    setImageModalVisible(true);
+
+    if (Platform.OS === 'web' && target?.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    if (typeof target?.measureInWindow === 'function') {
+      target.measureInWindow((pageX, pageY, width, height) => {
+        if (width > 0 && height > 0) {
+          setImageSourceRect({x: pageX, y: pageY, width, height});
+        }
+      });
+    }
+  }, [HEADER_IMAGE_H, HEADER_IMAGE_W, SCREEN_W]);
 
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
   );
   const [imageIndex, setImageIndex] = useState(thumbnailIndex);
+  const syncHeaderImageIndex = useCallback(index => {
+    setImageIndex(index);
+    headerCarouselRef.current?.scrollTo({index, animated: false});
+  }, []);
   useEffect(() => {
     // detail이 갱신되어 썸네일 위치가 달라져도 현재 인덱스를 맞춰줌
     setImageIndex(thumbnailIndex);
@@ -485,8 +524,9 @@ const GuesthouseDetail = ({route}) => {
       <ScrollView style={styles.container}>
         <View>
         {/* 대표 이미지 */}
-        {hasImages && !hideHeaderCarouselForImageModal ? (
+        {hasImages ? (
           <Carousel
+            ref={headerCarouselRef}
             width={HEADER_IMAGE_W}
             height={HEADER_IMAGE_H}
             data={sortedImages}
@@ -495,16 +535,24 @@ const GuesthouseDetail = ({route}) => {
             autoPlay={false}
             pagingEnabled
             onSnapToItem={idx => setImageIndex(idx)}
-            renderItem={({item}) => (
+            renderItem={({item, index}) => (
               <TouchableOpacity
+                ref={node => {
+                  if (node) {
+                    imageSourceRefs.current.set(index, node);
+                  } else {
+                    imageSourceRefs.current.delete(index);
+                  }
+                }}
                 activeOpacity={1}
-                onPress={() => setImageModalVisible(true)}
+                onPress={() => openImageModal(index)}
               >
                 <AppImage
                   uri={item.guesthouseImageUrl}
                   style={[
                     styles.mainImage,
                     Platform.OS === 'web' && styles.mainImageWeb,
+                    imageModalVisible && imageIndex === index && {opacity: 0},
                   ]}
                 />
               </TouchableOpacity>
@@ -812,6 +860,8 @@ const GuesthouseDetail = ({route}) => {
           visible={imageModalVisible}
           images={modalImages}
           selectedImageIndex={imageIndex}
+          sourceRect={imageSourceRect}
+          onImageIndexChange={syncHeaderImageIndex}
           onClose={() => setImageModalVisible(false)}
         />
       )}

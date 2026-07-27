@@ -36,60 +36,52 @@ const GUEST_OPTIONS = [
 ];
 
 const CAPACITY_OPTIONS = [
-  {id: null, label: '전체', isBigParty: null},
-  {id: '3-10', label: '3~10명', isBigParty: false},
-  {id: '11-20', label: '11~20명', isBigParty: true},
-  {id: '21-30', label: '21~30명', isBigParty: true},
-  {id: '31-60', label: '31~60명', isBigParty: true},
+  {id: null, label: '전체'},
+  {id: 'FROM_3_TO_10', label: '3~10명'},
+  {id: 'FROM_11_TO_20', label: '11~20명'},
+  {id: 'FROM_21_TO_30', label: '21~30명'},
+  {id: 'FROM_31_TO_60', label: '31~60명'},
 ];
 
 const PRICE_OPTIONS = [
   {id: 'all', label: '전체'},
-  {id: 'free', label: '무료', minPrice: 0, maxPrice: 0, chargeTypes: ['FREE']},
-  {id: 'under10000', label: '1만원 이하', minPrice: 0, maxPrice: 10000},
-  {id: 'under30000', label: '3만원 이하', minPrice: 0, maxPrice: 30000},
-  {id: 'under50000', label: '5만원 이하', minPrice: 0, maxPrice: 50000},
+  {id: 'FREE', label: '무료'},
+  {id: 'UNDER_10000', label: '1만원 이하'},
+  {id: 'UNDER_30000', label: '3만원 이하'},
+  {id: 'UNDER_50000', label: '5만원 이하'},
   {id: 'custom', label: '직접 입력'},
 ];
 
 const DEFAULT_FILTERS = {
   contentType: null,
   isGuest: null,
-  capacityId: null,
-  isBigParty: null,
+  attendeeRange: null,
   priceOption: 'all',
   minPrice: '',
   maxPrice: '',
-  chargeTypes: undefined,
 };
 
 const onlyNumbers = value => String(value ?? '').replace(/[^0-9]/g, '');
 
 const buildAppliedFilters = state => {
-  const price = PRICE_OPTIONS.find(option => option.id === state.priceOption);
   const isAll = state.priceOption === 'all';
   const isCustom = state.priceOption === 'custom';
 
   return {
     contentTypes: state.contentType ? [state.contentType] : undefined,
     isGuest: state.isGuest,
-    capacityId: state.capacityId,
-    isBigParty: state.isBigParty,
-    chargeTypes: isAll || isCustom ? undefined : price?.chargeTypes,
-    minPrice: isAll
-      ? undefined
-      : isCustom
+    attendeeRange: state.attendeeRange ?? undefined,
+    priceRange: isAll || isCustom ? undefined : state.priceOption,
+    minPrice: isCustom
       ? state.minPrice
         ? Number(state.minPrice)
         : undefined
-      : price?.minPrice,
-    maxPrice: isAll
-      ? undefined
-      : isCustom
+      : undefined,
+    maxPrice: isCustom
       ? state.maxPrice
         ? Number(state.maxPrice)
         : undefined
-      : price?.maxPrice,
+      : undefined,
   };
 };
 
@@ -222,15 +214,8 @@ const MeetFilterModal = ({
         onPress={() => {
           setFilter({
             priceOption: option.id,
-            minPrice:
-              option.id === 'custom'
-                ? filters.minPrice
-                : String(option.minPrice ?? ''),
-            maxPrice:
-              option.id === 'custom'
-                ? filters.maxPrice
-                : String(option.maxPrice ?? ''),
-            chargeTypes: option.chargeTypes,
+            minPrice: option.id === 'custom' ? filters.minPrice : '',
+            maxPrice: option.id === 'custom' ? filters.maxPrice : '',
           });
           if (option.id === 'custom') {
             scrollToPriceInput();
@@ -328,11 +313,10 @@ const MeetFilterModal = ({
                   renderRadioOption({
                     key: option.label,
                     label: option.label,
-                    selected: filters.capacityId === option.id,
+                    selected: filters.attendeeRange === option.id,
                     onPress: () =>
                       setFilter({
-                        capacityId: option.id,
-                        isBigParty: option.isBigParty,
+                        attendeeRange: option.id,
                       }),
                   }),
                 )}

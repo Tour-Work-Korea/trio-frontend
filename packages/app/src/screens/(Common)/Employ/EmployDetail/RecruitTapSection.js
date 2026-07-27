@@ -1,10 +1,11 @@
-import React, {useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
   ScrollView,
   TouchableOpacity,
   StyleSheet,
+  Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import {
@@ -29,6 +30,31 @@ export default function RecruitTapSection({recruit}) {
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback(index => {
+    const target = imageSourceRefs.current.get(index);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height});
+      }
+    });
+  }, []);
   const [renderedTabs, setRenderedTabs] = useState(
     () => new Set([recruitTabs[0]]),
   );
@@ -231,15 +257,28 @@ export default function RecruitTapSection({recruit}) {
               style={styles.photoScroll}>
               {recruit?.recruitImages?.map((item, idx) => (
                 <TouchableOpacity
+                  ref={node => {
+                    if (node) {
+                      imageSourceRefs.current.set(idx, node);
+                    } else {
+                      imageSourceRefs.current.delete(idx);
+                    }
+                  }}
                   activeOpacity={1}
                   key={idx}
                   onPress={() => {
                     setSelectedImageId(idx);
+                    setImageSourceRect(null);
                     setImageModalVisible(true);
+                    requestAnimationFrame(() => measureImageSource(idx));
                   }}>
                   <AppImage
                     uri={item.recruitImageUrl}
-                    style={styles.workplacePhoto}
+                    style={[
+                      styles.workplacePhoto,
+                      imageModalVisible &&
+                        selectedImageId === idx && {opacity: 0},
+                    ]}
                   />
                 </TouchableOpacity>
               ))}
@@ -263,11 +302,12 @@ export default function RecruitTapSection({recruit}) {
                   style={styles.guesthouseLinkActionButton}
                   onPress={handlePressGuesthouse}
                   disabled={
-                    !(recruit?.guesthouseId ?? recruit?.profileSummary?.guesthouseId)
+                    !(
+                      recruit?.guesthouseId ??
+                      recruit?.profileSummary?.guesthouseId
+                    )
                   }>
-                  <Text style={styles.guesthouseLinkAction}>
-                    게하 보러가기
-                  </Text>
+                  <Text style={styles.guesthouseLinkAction}>게하 보러가기</Text>
                   <ChevroRight width={14} height={14} />
                 </TouchableOpacity>
               </View>
@@ -357,6 +397,12 @@ export default function RecruitTapSection({recruit}) {
           imageUrl: item.recruitImageUrl,
         }))}
         selectedImageIndex={selectedImageId}
+        sourceRect={imageSourceRect}
+        sourceBorderRadius={6}
+        onImageIndexChange={index => {
+          setSelectedImageId(index);
+          measureImageSource(index);
+        }}
         onClose={() => setImageModalVisible(false)}
       />
     </>

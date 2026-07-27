@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import {
   View,
   Text,
@@ -177,6 +177,49 @@ const MeetDetail = () => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const headerCarouselRef = useRef(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback(index => {
+    const target = imageSourceRefs.current.get(index);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height});
+      }
+    });
+  }, []);
+  const syncHeaderImageIndex = useCallback(
+    index => {
+      setImageIndex(index);
+      headerCarouselRef.current?.scrollTo({index, animated: false});
+      requestAnimationFrame(() => measureImageSource(index));
+    },
+    [measureImageSource],
+  );
+  const openImageModal = useCallback(
+    index => {
+      setImageIndex(index);
+      setImageSourceRect(null);
+      setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(index));
+    },
+    [measureImageSource],
+  );
 
   const [renderedTabs, setRenderedTabs] = useState(
     () => new Set([TABS[0].key]),
@@ -350,8 +393,6 @@ const MeetDetail = () => {
       );
   }, [partyImages]);
   const hasImages = sortedImages.length > 0;
-  const hideHeaderCarouselForImageModal =
-    Platform.OS === 'android' && imageModalVisible;
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
@@ -912,17 +953,28 @@ const MeetDetail = () => {
         <View style={styles.header}>
           {hasImages && Platform.OS === 'web' ? (
             <TouchableOpacity
+              ref={node => {
+                if (node) {
+                  imageSourceRefs.current.set(imageIndex, node);
+                } else {
+                  imageSourceRefs.current.delete(imageIndex);
+                }
+              }}
               style={styles.thumbnail}
               activeOpacity={1}
-              onPress={() => setImageModalVisible(true)}>
+              onPress={() => openImageModal(imageIndex)}>
               <AppImage
-                uri={sortedImages[thumbnailIndex]?.imageUrl}
-                style={styles.thumbnail}
+                uri={sortedImages[imageIndex]?.imageUrl}
+                style={[
+                  styles.thumbnail,
+                  imageModalVisible && {opacity: 0},
+                ]}
                 resizeMode="cover"
               />
             </TouchableOpacity>
-          ) : hasImages && !hideHeaderCarouselForImageModal ? (
+          ) : hasImages ? (
             <Carousel
+              ref={headerCarouselRef}
               width={SCREEN_W}
               height={IMAGE_H}
               data={sortedImages}
@@ -931,14 +983,24 @@ const MeetDetail = () => {
               autoPlay={false}
               pagingEnabled
               onSnapToItem={idx => setImageIndex(idx)}
-              renderItem={({ item }) => (
+              renderItem={({ item, index }) => (
                 <TouchableOpacity
+                  ref={node => {
+                    if (node) {
+                      imageSourceRefs.current.set(index, node);
+                    } else {
+                      imageSourceRefs.current.delete(index);
+                    }
+                  }}
                   style={styles.thumbnail}
                   activeOpacity={1}
-                  onPress={() => setImageModalVisible(true)}>
+                  onPress={() => openImageModal(index)}>
                   <AppImage
                     uri={item.imageUrl}
-                    style={styles.thumbnail}
+                    style={[
+                      styles.thumbnail,
+                      imageModalVisible && imageIndex === index && {opacity: 0},
+                    ]}
                     resizeMode="cover"
                   />
                 </TouchableOpacity>
@@ -1104,6 +1166,8 @@ const MeetDetail = () => {
           visible={imageModalVisible}
           images={modalImages}
           selectedImageIndex={imageIndex}
+          sourceRect={imageSourceRect}
+          onImageIndexChange={syncHeaderImageIndex}
           onClose={() => setImageModalVisible(false)}
         />
       )}

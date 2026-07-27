@@ -54,6 +54,9 @@ const styles = StyleSheet.create({
   userInfoTitle: {
     color: COLORS.grayscale_600,
   },
+  reservationPriceText: {
+    color: COLORS.grayscale_600,
+  },
   dateSelector: {
     minHeight: 44,
     borderRadius: 22,
