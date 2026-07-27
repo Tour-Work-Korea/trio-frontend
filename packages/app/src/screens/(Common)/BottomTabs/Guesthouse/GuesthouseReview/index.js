@@ -29,7 +29,11 @@ const getDisplayRating = rating => {
   return Number.isFinite(ratingNumber) ? ratingNumber.toFixed(1) : '0.0';
 };
 
-const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) => {
+const GuesthouseReview = ({
+  guesthouseId,
+  averageRating = 0,
+  totalCount = 0,
+}) => {
   const loadingRef = useRef(false);
   const lastPageRef = useRef(false);
   const hasUserScrolledRef = useRef(false);
@@ -45,7 +49,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const [modalSourceKeys, setModalSourceKeys] = useState([]);
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const imageSourceRefs = useRef(new Map());
-  const measureImageSource = useCallback(sourceKey => {
+  const measureImageSource = useCallback((sourceKey, imageIndex) => {
     const target = imageSourceRefs.current.get(sourceKey);
     if (!target) {
       return;
@@ -58,13 +62,14 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         y: rect.top,
         width: rect.width,
         height: rect.height,
+        imageIndex,
       });
       return;
     }
 
     target.measureInWindow?.((x, y, width, height) => {
       if (width > 0 && height > 0) {
-        setImageSourceRect({x, y, width, height});
+        setImageSourceRect({x, y, width, height, imageIndex});
       }
     });
   }, []);
@@ -152,8 +157,8 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   // 이미지 모달
   const openImageModal = useCallback(
     (reviewId, images, index) => {
-      const sourceKeys = images.map((url, imageIndex) =>
-        `review:${reviewId}:${url ?? imageIndex}`,
+      const sourceKeys = images.map(
+        (url, imageIndex) => `review:${reviewId}:${url ?? imageIndex}`,
       );
       setModalImages(
         images.map((url, i) => ({id: i.toString(), imageUrl: url})),
@@ -162,13 +167,13 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
       setModalIndex(index);
       setImageSourceRect(null);
       setImageModalVisible(true);
-      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     },
     [measureImageSource],
   );
 
   const renderItem = useCallback(
-    ({ item, index }) => {
+    ({item, index}) => {
       const hasImages = item.imgUrls && item.imgUrls.length > 0;
       const displayRating = getDisplayRating(item.reviewRating);
 
@@ -176,12 +181,21 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         <View style={styles.reviewContainer}>
           <View style={styles.reviewHeaderContainer}>
             <View style={styles.userProfileContainer}>
-              <Avatar uri={item.userImgUrl} size={44} iconSize={18} style={styles.userImage} />
-              <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
+              <Avatar
+                uri={item.userImgUrl}
+                size={44}
+                iconSize={18}
+                style={styles.userImage}
+              />
+              <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>
+                {item.nickname}
+              </Text>
             </View>
             <View style={styles.userRatingContainer}>
               <Star width={14} height={14} />
-              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{displayRating}</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>
+                {displayRating}
+              </Text>
             </View>
           </View>
 
@@ -195,21 +209,24 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
                 showsHorizontalScrollIndicator={false}
                 onStartShouldSetResponderCapture={() => true}
                 onMoveShouldSetResponderCapture={() => true}
-                contentContainerStyle={{ flexDirection: 'row', marginBottom: 6, gap: 4 }}
-              >
+                contentContainerStyle={{
+                  flexDirection: 'row',
+                  marginBottom: 6,
+                  gap: 4,
+                }}>
                 {item.imgUrls.map((imgUrl, i) => (
                   <TouchableOpacity
                     ref={node => {
-                      const sourceKey = `review:${item.id}:${
-                        imgUrl ?? i
-                      }`;
+                      const sourceKey = `review:${item.id}:${imgUrl ?? i}`;
                       if (node) {
                         imageSourceRefs.current.set(sourceKey, node);
                       } else {
                         imageSourceRefs.current.delete(sourceKey);
                       }
                     }}
-                    activeOpacity={1} key={i} onPress={() => openImageModal(item.id, item.imgUrls, i)}>
+                    activeOpacity={1}
+                    key={i}
+                    onPress={() => openImageModal(item.id, item.imgUrls, i)}>
                     <AppImage
                       uri={imgUrl}
                       style={[
@@ -227,10 +244,14 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
             </View>
           )}
 
-          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>{item.reviewDetail}</Text>
+          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>
+            {item.reviewDetail}
+          </Text>
           {item.replies && item.replies.length > 0 && (
             <View style={styles.replyContainer}>
-              <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>사장님의 한마디</Text>
+              <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>
+                사장님의 한마디
+              </Text>
               {item.replies.map((reply, ri) => (
                 <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
                   {reply}
@@ -241,7 +262,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         </View>
       );
     },
-    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal]
+    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
   );
 
   const keyExtractor = useCallback(item => item.id?.toString(), []);
@@ -255,19 +276,22 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         onScrollBeginDrag={handleScrollBeginDrag}
-        ListFooterComponent={loading && !refreshing ? <ActivityIndicator /> : null}
+        ListFooterComponent={
+          loading && !refreshing ? <ActivityIndicator /> : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          !loading &&
-          <View style={styles.emptyReviewContainer}>
-            <NoReviewIcon />
-            <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-              아직 등록된 리뷰가 없어요.{'\n'}
-              당신의 첫 리뷰를 남겨주세요!
-            </Text>
-          </View>
+          !loading && (
+            <View style={styles.emptyReviewContainer}>
+              <NoReviewIcon />
+              <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
+                아직 등록된 리뷰가 없어요.{'\n'}
+                당신의 첫 리뷰를 남겨주세요!
+              </Text>
+            </View>
+          )
         }
       />
 
@@ -279,9 +303,10 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           selectedImageIndex={modalIndex}
           sourceRect={imageSourceRect}
           sourceBorderRadius={4}
+          fallbackDismissMode="fade"
           onImageIndexChange={index => {
             setModalIndex(index);
-            measureImageSource(modalSourceKeys[index]);
+            measureImageSource(modalSourceKeys[index], index);
           }}
           onClose={() => setImageModalVisible(false)}
         />

@@ -12,7 +12,11 @@ const ReviewSuccessModal = ({ visible, onClose, hasPhotoReview }) => {
   const pointAmount = hasPhotoReview ? '1,000' : '300';
 
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
         <TouchableWithoutFeedback>

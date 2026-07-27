@@ -103,7 +103,7 @@ const CommunityPostList = ({
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const imageSourceRefs = useRef(new Map());
 
-  const measureImageSource = useCallback(sourceKey => {
+  const measureImageSource = useCallback((sourceKey, imageIndex) => {
     const target = imageSourceRefs.current.get(sourceKey);
     if (!target) {
       return;
@@ -116,13 +116,14 @@ const CommunityPostList = ({
         y: rect.top,
         width: rect.width,
         height: rect.height,
+        imageIndex,
       });
       return;
     }
 
     target.measureInWindow?.((x, y, width, height) => {
       if (width > 0 && height > 0) {
-        setImageSourceRect({x, y, width, height});
+        setImageSourceRect({x, y, width, height, imageIndex});
       }
     });
   }, []);
@@ -308,7 +309,7 @@ const CommunityPostList = ({
       setSelectedImageIndex(index);
       setImageSourceRect(null);
       setImageModalVisible(true);
-      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     },
     [measureImageSource],
   );
@@ -568,9 +569,10 @@ const CommunityPostList = ({
         selectedImageIndex={selectedImageIndex}
         sourceRect={imageSourceRect}
         sourceBorderRadius={12}
+        fallbackDismissMode="fade"
         onImageIndexChange={index => {
           setSelectedImageIndex(index);
-          measureImageSource(modalSourceKeys[index]);
+          measureImageSource(modalSourceKeys[index], index);
         }}
         onClose={() => setImageModalVisible(false)}
       />

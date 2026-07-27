@@ -28,7 +28,11 @@ const ReservationConfirmModal = ({
   checkOutLabel = '',
 }) => {
   return (
-    <Modal visible={visible} transparent animationType="fade">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="fade"
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback>
         <View style={s.backdrop}>
           <TouchableWithoutFeedback>
