@@ -162,6 +162,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
+    marginBottom: 12,
   },
 
   // 리스트
