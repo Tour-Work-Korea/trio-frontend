@@ -140,8 +140,7 @@ const CommunityDetail = ({route}) => {
     focusCommentInput,
     fallbackRouteName,
     sourceTab,
-  } =
-    route.params ?? {};
+  } = route.params ?? {};
   const currentUserPhotoUrl = useUserStore(
     state => state.userProfile?.photoUrl,
   );
@@ -174,7 +173,7 @@ const CommunityDetail = ({route}) => {
   const [modalSourceKeys, setModalSourceKeys] = useState([]);
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const imageSourceRefs = useRef(new Map());
-  const measureImageSource = useCallback(sourceKey => {
+  const measureImageSource = useCallback((sourceKey, imageIndex) => {
     const target = imageSourceRefs.current.get(sourceKey);
     if (!target) {
       return;
@@ -187,13 +186,14 @@ const CommunityDetail = ({route}) => {
         y: rect.top,
         width: rect.width,
         height: rect.height,
+        imageIndex,
       });
       return;
     }
 
     target.measureInWindow?.((x, y, width, height) => {
       if (width > 0 && height > 0) {
-        setImageSourceRect({x, y, width, height});
+        setImageSourceRect({x, y, width, height, imageIndex});
       }
     });
   }, []);
@@ -464,10 +464,7 @@ const CommunityDetail = ({route}) => {
     }
 
     const nextHeight = Math.min(
-      Math.max(
-        event.nativeEvent.contentSize.height,
-        COMMENT_INPUT_MIN_HEIGHT,
-      ),
+      Math.max(event.nativeEvent.contentSize.height, COMMENT_INPUT_MIN_HEIGHT),
       COMMENT_INPUT_MAX_HEIGHT,
     );
 
@@ -869,10 +866,7 @@ const CommunityDetail = ({route}) => {
 
     const wasLiked = Boolean(post.isLiked);
     const previousLikeCount = Number(post.likeCount || 0);
-    const nextLikeCount = Math.max(
-      0,
-      previousLikeCount + (wasLiked ? -1 : 1),
-    );
+    const nextLikeCount = Math.max(0, previousLikeCount + (wasLiked ? -1 : 1));
 
     setPost(prev =>
       prev
@@ -1032,10 +1026,7 @@ const CommunityDetail = ({route}) => {
   const handleToggleCommentLike = async item => {
     const wasLiked = Boolean(item.isLiked);
     const previousLikeCount = Number(item.likeCount || 0);
-    const nextLikeCount = Math.max(
-      0,
-      previousLikeCount + (wasLiked ? -1 : 1),
-    );
+    const nextLikeCount = Math.max(0, previousLikeCount + (wasLiked ? -1 : 1));
 
     updateCommentLikeState(item.commentId, !wasLiked, nextLikeCount);
 
@@ -1129,7 +1120,9 @@ const CommunityDetail = ({route}) => {
     }));
     const sourceKeys = sortedImages.map(
       (image, index) =>
-        `community:${image.imageId ?? image.objectKey ?? image.imageUrl ?? index}`,
+        `community:${
+          image.imageId ?? image.objectKey ?? image.imageUrl ?? index
+        }`,
     );
     const openPostImageModal = index => {
       setModalImages(imageModalItems);
@@ -1137,7 +1130,7 @@ const CommunityDetail = ({route}) => {
       setSelectedImageIndex(index);
       setImageSourceRect(null);
       setImageModalVisible(true);
-      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     };
 
     if (sortedImages.length === 1) {
@@ -1287,7 +1280,9 @@ const CommunityDetail = ({route}) => {
     }));
     const sourceKeys = sortedImages.map(
       (image, index) =>
-        `community:${image.imageId ?? image.objectKey ?? image.imageUrl ?? index}`,
+        `community:${
+          image.imageId ?? image.objectKey ?? image.imageUrl ?? index
+        }`,
     );
     const openCommentImageModal = index => {
       setModalImages(imageModalItems);
@@ -1295,7 +1290,7 @@ const CommunityDetail = ({route}) => {
       setSelectedImageIndex(index);
       setImageSourceRect(null);
       setImageModalVisible(true);
-      requestAnimationFrame(() => measureImageSource(sourceKeys[index]));
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     };
 
     if (sortedImages.length === 1) {
@@ -1580,7 +1575,8 @@ const CommunityDetail = ({route}) => {
                 />
                 <View style={styles.commentBody}>
                   <View style={styles.commentHeader}>
-                    <Text style={[FONTS.fs_14_semibold, styles.commentNickname]}>
+                    <Text
+                      style={[FONTS.fs_14_semibold, styles.commentNickname]}>
                       {reply.author?.nickname}
                     </Text>
                     <Text style={[FONTS.fs_14_regular, styles.commentTime]}>
@@ -1599,7 +1595,8 @@ const CommunityDetail = ({route}) => {
                   <View
                     style={[
                       styles.commentMetaActions,
-                      reply.images?.length && styles.commentMetaActionsWithImages,
+                      reply.images?.length &&
+                        styles.commentMetaActionsWithImages,
                     ]}>
                     {renderActionRow(reply, {
                       showComment: false,
@@ -1628,9 +1625,7 @@ const CommunityDetail = ({route}) => {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={undefined}>
       <Header
         title={post?.categoryDisplayName || ''}
         onPress={handlePressBack}
@@ -1642,65 +1637,65 @@ const CommunityDetail = ({route}) => {
         <TouchableWithoutFeedback
           onPress={handleDismissCommentInput}
           accessible={false}>
-        <ScrollView
-          ref={scrollViewRef}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          onStartShouldSetResponderCapture={handleDismissCommentInput}
-          onScrollBeginDrag={Keyboard.dismiss}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={styles.content}>
-          <View style={styles.postHeader}>
-            <Avatar
-              uri={post?.author?.profileImageUrl}
-              size={32}
-              iconSize={16}
-              style={styles.postAvatar}
-            />
-            <Text style={[FONTS.fs_16_medium, styles.postNickname]}>
-              {post?.author?.nickname}
-            </Text>
-            <Text style={[FONTS.fs_14_regular, styles.postTime]}>
-              {formatRelativeTime(post?.createdAt)}
-            </Text>
-          </View>
-
-          <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-            {post?.title}
-          </Text>
-          <Text style={[FONTS.fs_16_regular, styles.postContent]}>
-            {post?.content}
-          </Text>
-
-          {renderPostLocation(post?.location)}
-          {renderPostImages(post.images)}
-          {renderActionRow(post, {likeable: true})}
-
-          {shouldShowAd ? (
-            <View style={styles.adBannerContainer}>
-              <BannerAd
-                unitId={communityDetailBannerAdUnitId}
-                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          <ScrollView
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            onStartShouldSetResponderCapture={handleDismissCommentInput}
+            onScrollBeginDrag={Keyboard.dismiss}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.content}>
+            <View style={styles.postHeader}>
+              <Avatar
+                uri={post?.author?.profileImageUrl}
+                size={32}
+                iconSize={16}
+                style={styles.postAvatar}
               />
+              <Text style={[FONTS.fs_16_medium, styles.postNickname]}>
+                {post?.author?.nickname}
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.postTime]}>
+                {formatRelativeTime(post?.createdAt)}
+              </Text>
             </View>
-          ) : null}
 
-          <View
-            style={styles.commentList}
-            onLayout={event => {
-              commentListOffsetYRef.current = event.nativeEvent.layout.y;
-            }}>
-            {comments.map(renderComment)}
-          </View>
-          {isMoreCommentsLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.grayscale_500}
-              style={styles.commentFooterLoading}
-            />
-          ) : null}
-        </ScrollView>
+            <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
+              {post?.title}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.postContent]}>
+              {post?.content}
+            </Text>
+
+            {renderPostLocation(post?.location)}
+            {renderPostImages(post.images)}
+            {renderActionRow(post, {likeable: true})}
+
+            {shouldShowAd ? (
+              <View style={styles.adBannerContainer}>
+                <BannerAd
+                  unitId={communityDetailBannerAdUnitId}
+                  size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                />
+              </View>
+            ) : null}
+
+            <View
+              style={styles.commentList}
+              onLayout={event => {
+                commentListOffsetYRef.current = event.nativeEvent.layout.y;
+              }}>
+              {comments.map(renderComment)}
+            </View>
+            {isMoreCommentsLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={COLORS.grayscale_500}
+                style={styles.commentFooterLoading}
+              />
+            ) : null}
+          </ScrollView>
         </TouchableWithoutFeedback>
       )}
 
@@ -1718,9 +1713,7 @@ const CommunityDetail = ({route}) => {
                 numberOfLines={1}>
                 댓글 수정 중
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={clearEditingState}>
+              <TouchableOpacity activeOpacity={0.8} onPress={clearEditingState}>
                 <Text style={[FONTS.fs_14_medium, styles.replyTargetCancel]}>
                   취소
                 </Text>
@@ -1846,9 +1839,10 @@ const CommunityDetail = ({route}) => {
         selectedImageIndex={selectedImageIndex}
         sourceRect={imageSourceRect}
         sourceBorderRadius={8}
+        fallbackDismissMode="fade"
         onImageIndexChange={index => {
           setSelectedImageIndex(index);
-          measureImageSource(modalSourceKeys[index]);
+          measureImageSource(modalSourceKeys[index], index);
         }}
         onClose={() => setImageModalVisible(false)}
       />

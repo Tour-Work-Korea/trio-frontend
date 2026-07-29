@@ -159,7 +159,11 @@ export default function EmployFilterModal({
     setIsDirty(false);
   };
   return (
-    <Modal visible={visible} animationType="slide" transparent>
+    <Modal
+      visible={visible}
+      animationType="slide"
+      transparent
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.container}>
           {/* 헤더 */}

@@ -25,6 +25,7 @@ const ReviewConfirmModal = ({ visible, onCancel, guesthouseId, data, onSuccess }
       visible={visible}
       transparent
       animationType="fade"
+      onRequestClose={onCancel}
     >
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>

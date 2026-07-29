@@ -45,13 +45,14 @@ export default function RecruitTapSection({recruit}) {
         y: rect.top,
         width: rect.width,
         height: rect.height,
+        imageIndex: index,
       });
       return;
     }
 
     target.measureInWindow?.((x, y, width, height) => {
       if (width > 0 && height > 0) {
-        setImageSourceRect({x, y, width, height});
+        setImageSourceRect({x, y, width, height, imageIndex: index});
       }
     });
   }, []);
@@ -399,6 +400,7 @@ export default function RecruitTapSection({recruit}) {
         selectedImageIndex={selectedImageId}
         sourceRect={imageSourceRect}
         sourceBorderRadius={6}
+        fallbackDismissMode="fade"
         onImageIndexChange={index => {
           setSelectedImageId(index);
           measureImageSource(index);

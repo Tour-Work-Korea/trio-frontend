@@ -27,7 +27,7 @@ import {
 import Loading from '@components/Loading';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import {formatGuesthouseAddress} from '@utils/formatAddress';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {addRecentGuesthouse} from '@utils/recentGuesthouses';
@@ -134,57 +134,77 @@ const GuesthouseDetail = ({route}) => {
   const modalImages = sortedImages;
 
   const {width: SCREEN_W} = Dimensions.get('window');
-  const HEADER_IMAGE_W = Platform.OS === 'web'
-    ? Math.min(SCREEN_W, 430)
-    : SCREEN_W;
+  const HEADER_IMAGE_W =
+    Platform.OS === 'web' ? Math.min(SCREEN_W, 430) : SCREEN_W;
   const HEADER_IMAGE_H = Platform.OS === 'web' ? 220 : 280;
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const imageSourceRefs = useRef(new Map());
   const headerCarouselRef = useRef(null);
-  const openImageModal = useCallback(index => {
-    const fallbackRect = {
-      x:
-        Platform.OS === 'web'
-          ? Math.max((SCREEN_W - HEADER_IMAGE_W) / 2, 0)
-          : 0,
-      y: 0,
-      width: HEADER_IMAGE_W,
-      height: HEADER_IMAGE_H,
-    };
-    const target = imageSourceRefs.current.get(index);
+  const measureImageSource = useCallback(
+    index => {
+      const fallbackRect = {
+        x:
+          Platform.OS === 'web'
+            ? Math.max((SCREEN_W - HEADER_IMAGE_W) / 2, 0)
+            : 0,
+        y: 0,
+        width: HEADER_IMAGE_W,
+        height: HEADER_IMAGE_H,
+        imageIndex: index,
+      };
+      const target = imageSourceRefs.current.get(index);
 
-    setImageSourceRect(fallbackRect);
-    setImageModalVisible(true);
+      setImageSourceRect(fallbackRect);
 
-    if (Platform.OS === 'web' && target?.getBoundingClientRect) {
-      const rect = target.getBoundingClientRect();
-      setImageSourceRect({
-        x: rect.left,
-        y: rect.top,
-        width: rect.width,
-        height: rect.height,
-      });
-      return;
-    }
+      if (Platform.OS === 'web' && target?.getBoundingClientRect) {
+        const rect = target.getBoundingClientRect();
+        setImageSourceRect({
+          x: rect.left,
+          y: rect.top,
+          width: rect.width,
+          height: rect.height,
+          imageIndex: index,
+        });
+        return;
+      }
 
-    if (typeof target?.measureInWindow === 'function') {
-      target.measureInWindow((pageX, pageY, width, height) => {
-        if (width > 0 && height > 0) {
-          setImageSourceRect({x: pageX, y: pageY, width, height});
-        }
-      });
-    }
-  }, [HEADER_IMAGE_H, HEADER_IMAGE_W, SCREEN_W]);
+      if (typeof target?.measureInWindow === 'function') {
+        target.measureInWindow((pageX, pageY, width, height) => {
+          if (width > 0 && height > 0) {
+            setImageSourceRect({
+              x: pageX,
+              y: pageY,
+              width,
+              height,
+              imageIndex: index,
+            });
+          }
+        });
+      }
+    },
+    [HEADER_IMAGE_H, HEADER_IMAGE_W, SCREEN_W],
+  );
+  const openImageModal = useCallback(
+    index => {
+      measureImageSource(index);
+      setImageModalVisible(true);
+    },
+    [measureImageSource],
+  );
 
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
   );
   const [imageIndex, setImageIndex] = useState(thumbnailIndex);
-  const syncHeaderImageIndex = useCallback(index => {
-    setImageIndex(index);
-    headerCarouselRef.current?.scrollTo({index, animated: false});
-  }, []);
+  const syncHeaderImageIndex = useCallback(
+    index => {
+      setImageIndex(index);
+      headerCarouselRef.current?.scrollTo({index, animated: false});
+      requestAnimationFrame(() => measureImageSource(index));
+    },
+    [measureImageSource],
+  );
   useEffect(() => {
     // detail이 갱신되어 썸네일 위치가 달라져도 현재 인덱스를 맞춰줌
     setImageIndex(thumbnailIndex);
@@ -226,7 +246,10 @@ const GuesthouseDetail = ({route}) => {
         const data = response.data;
         setDetail({
           ...data,
-          isLiked: typeof data.isLiked === 'boolean' ? data.isLiked : !!data.isFavorite,
+          isLiked:
+            typeof data.isLiked === 'boolean'
+              ? data.isLiked
+              : !!data.isFavorite,
         });
         prefetchGuesthouseImages(data.guesthouseImages);
         addRecentGuesthouse({...data, guesthouseId: id}).catch(error => {
@@ -250,9 +273,12 @@ const GuesthouseDetail = ({route}) => {
       const data = res.data;
       setDetail(prev => ({
         ...data,
-        isLiked: typeof data.isLiked === 'boolean'
-          ? data.isLiked
-          : (typeof prev?.isLiked === 'boolean' ? prev.isLiked : !!data.isFavorite),
+        isLiked:
+          typeof data.isLiked === 'boolean'
+            ? data.isLiked
+            : typeof prev?.isLiked === 'boolean'
+            ? prev.isLiked
+            : !!data.isFavorite,
       }));
       prefetchGuesthouseImages(data.guesthouseImages);
     } catch (e) {
@@ -345,7 +371,8 @@ const GuesthouseDetail = ({route}) => {
   );
   const displayRating = getDisplayRating(detail.averageRating);
   const shortIntroText = detail?.guesthouseShortIntro ?? '';
-  const hasShortIntroOverflow = shortIntroLineCount > SHORT_INTRO_COLLAPSED_LINES;
+  const hasShortIntroOverflow =
+    shortIntroLineCount > SHORT_INTRO_COLLAPSED_LINES;
   const todayParties = Array.isArray(detail?.todayParties)
     ? detail.todayParties
     : [];
@@ -358,8 +385,9 @@ const GuesthouseDetail = ({route}) => {
         key={String(party.partyId)}
         activeOpacity={1}
         style={styles.todayPartyCard}
-        onPress={() => navigation.navigate('MeetDetail', {partyId: party.partyId})}
-      >
+        onPress={() =>
+          navigation.navigate('MeetDetail', {partyId: party.partyId})
+        }>
         {party.partyImage ? (
           <AppImage uri={party.partyImage} style={styles.todayPartyImage} />
         ) : (
@@ -375,8 +403,7 @@ const GuesthouseDetail = ({route}) => {
             <View style={styles.todayPartyTitleWrapper}>
               <Text
                 style={[FONTS.fs_14_semibold, styles.todayPartyTitle]}
-                numberOfLines={2}
-              >
+                numberOfLines={2}>
                 {party.partyTitle || '게스트하우스 콘텐츠'}
               </Text>
               <View style={styles.todayPartyPeopleRow}>
@@ -457,14 +484,15 @@ const GuesthouseDetail = ({route}) => {
               </View>
             </>
           )}
-          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>취소 수수료</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+            취소 수수료
+          </Text>
           {refundPolicies.length > 0 ? (
             <View style={styles.refundPolicyContainer}>
               {refundPolicies.map((policy, index) => (
                 <View
                   key={`${policy.daysBeforeCheckin}-${index}`}
-                  style={styles.refundPolicyRow}
-                >
+                  style={styles.refundPolicyRow}>
                   <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
                     방문 {policy.daysBeforeCheckin}일 전
                   </Text>
@@ -523,336 +551,331 @@ const GuesthouseDetail = ({route}) => {
     <View style={{flex: 1}}>
       <ScrollView style={styles.container}>
         <View>
-        {/* 대표 이미지 */}
-        {hasImages ? (
-          <Carousel
-            ref={headerCarouselRef}
-            width={HEADER_IMAGE_W}
-            height={HEADER_IMAGE_H}
-            data={sortedImages}
-            defaultIndex={thumbnailIndex} // 썸네일부터 시작
-            loop={false}
-            autoPlay={false}
-            pagingEnabled
-            onSnapToItem={idx => setImageIndex(idx)}
-            renderItem={({item, index}) => (
-              <TouchableOpacity
-                ref={node => {
-                  if (node) {
-                    imageSourceRefs.current.set(index, node);
-                  } else {
-                    imageSourceRefs.current.delete(index);
-                  }
-                }}
-                activeOpacity={1}
-                onPress={() => openImageModal(index)}
-              >
-                <AppImage
-                  uri={item.guesthouseImageUrl}
-                  style={[
-                    styles.mainImage,
-                    Platform.OS === 'web' && styles.mainImageWeb,
-                    imageModalVisible && imageIndex === index && {opacity: 0},
-                  ]}
-                />
-              </TouchableOpacity>
-            )}
-          />
-        ) : (
-          <View
-            style={[
-              styles.mainImage,
-              Platform.OS === 'web' && styles.mainImageWeb,
-              {backgroundColor: COLORS.grayscale_200},
-            ]}
-          />
-        )}
-
-        <TouchableOpacity
-          activeOpacity={1}
-          style={styles.backButton}
-          // onPress={() => {
-          //   console.log('isFromDeeplink:', isFromDeeplink);
-          //   if (isFromDeeplink) {
-          //     navigation.navigate('MainTabs', {
-          //       screen: '게하',
-          //       params: {
-          //         screen: 'GuesthouseSearch',
-          //       },
-          //     });
-          //   } else {
-          //     navigation.goBack(); // 일반 뒤로가기
-          //   }
-          // }}
-          onPress={() => {
-            console.log('isFromDeeplink:', isFromDeeplink);
-            if (isFromDeeplink) {
-              navigation.reset({
-                index: 0,
-                routes: [
-                  {
-                    name: 'MainTabs',
-                    state: {
-                      routes: [
-                        {
-                          name: '게하',
-                          state: {
-                            routes: [{name: 'GuesthouseSearch'}],
-                          },
-                        },
-                      ],
-                    },
-                  },
-                ],
-              });
-            } else {
-              // 변경된 값이 있으면 먼저 부모 콜백 호출
-              if (
-                hasChanged &&
-                typeof route.params?.onDateGuestChange === 'function'
-              ) {
-                route.params.onDateGuestChange({
-                  checkIn: localCheckIn,
-                  checkOut: localCheckOut,
-                  adults: localAdults,
-                  children: localChildren,
-                });
-              }
-              if (
-                Platform.OS === 'web'
-                && route.params?.webBackTo === WEB_ROUTES.MAP
-              ) {
-                navigateWebBackToMap(navigation, route.params?.webBackParams);
-                return;
-              }
-              if (
-                Platform.OS === 'web'
-                && route.params?.webBackToHome
-              ) {
-                navigateWebHome();
-                return;
-              }
-              navigation.goBack(); // 일반 뒤로가기
-            }
-          }}>
-          <LeftArrow width={28} height={28} />
-        </TouchableOpacity>
-        <View style={styles.tagContainer}>
-          {detail.hashtags?.map((tag, index) => (
-            <View key={tag.id || index} style={styles.tagBox}>
-              <Text style={[FONTS.fs_12_medium, styles.tagText]}>
-                {tag.hashtag}
-              </Text>
-            </View>
-          ))}
-          <View style={styles.tagBox}>
-            <Text style={[FONTS.fs_12_medium, styles.tagText]}>#</Text>
-          </View>
-        </View>
-      </View>
-
-      <View style={styles.contentWrapper}>
-        <View style={styles.contentTopWrapper}>
-          <View style={styles.nameIconContainer}>
-            <View style={styles.nameWrapper}>
-              <Text style={[FONTS.fs_20_semibold, styles.name]}>
-                {detail.guesthouseName}
-              </Text>
-            </View>
-            <View style={styles.topIcons}>
-              <TouchableOpacity
-                activeOpacity={1} onPress={handleCopyLink}>
-                <ShareIcon width={20} height={20} />
-              </TouchableOpacity>
-              <TouchableOpacity
-                activeOpacity={1} onPress={handleToggleFavorite}>
-                {detail?.isLiked ? (
-                  <FilledHeart width={20} height={20} />
-                ) : (
-                  <EmptyHeart width={20} height={20} />
-                )}
-              </TouchableOpacity>
-            </View>
-          </View>
+          {/* 대표 이미지 */}
+          {hasImages ? (
+            <Carousel
+              ref={headerCarouselRef}
+              width={HEADER_IMAGE_W}
+              height={HEADER_IMAGE_H}
+              data={sortedImages}
+              defaultIndex={thumbnailIndex} // 썸네일부터 시작
+              loop={false}
+              autoPlay={false}
+              pagingEnabled
+              onSnapToItem={idx => setImageIndex(idx)}
+              renderItem={({item, index}) => (
+                <TouchableOpacity
+                  ref={node => {
+                    if (node) {
+                      imageSourceRefs.current.set(index, node);
+                    } else {
+                      imageSourceRefs.current.delete(index);
+                    }
+                  }}
+                  activeOpacity={1}
+                  onPress={() => openImageModal(index)}>
+                  <AppImage
+                    uri={item.guesthouseImageUrl}
+                    style={[
+                      styles.mainImage,
+                      Platform.OS === 'web' && styles.mainImageWeb,
+                      imageModalVisible && imageIndex === index && {opacity: 0},
+                    ]}
+                  />
+                </TouchableOpacity>
+              )}
+            />
+          ) : (
+            <View
+              style={[
+                styles.mainImage,
+                Platform.OS === 'web' && styles.mainImageWeb,
+                {backgroundColor: COLORS.grayscale_200},
+              ]}
+            />
+          )}
 
           <TouchableOpacity
             activeOpacity={1}
-            onPress={handlePressAddress}
-            style={styles.addressSection}
-          >
-            <MapPinIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_14_regular, styles.address]}>
-              {formatGuesthouseAddress(
-                detail.guesthouseAddress,
-                detail.guesthouseAddressDetail,
-              )}
-            </Text>
-            <RightChevronBlack width={12} height={12}/>
+            style={styles.backButton}
+            // onPress={() => {
+            //   console.log('isFromDeeplink:', isFromDeeplink);
+            //   if (isFromDeeplink) {
+            //     navigation.navigate('MainTabs', {
+            //       screen: '게하',
+            //       params: {
+            //         screen: 'GuesthouseSearch',
+            //       },
+            //     });
+            //   } else {
+            //     navigation.goBack(); // 일반 뒤로가기
+            //   }
+            // }}
+            onPress={() => {
+              console.log('isFromDeeplink:', isFromDeeplink);
+              if (isFromDeeplink) {
+                navigation.reset({
+                  index: 0,
+                  routes: [
+                    {
+                      name: 'MainTabs',
+                      state: {
+                        routes: [
+                          {
+                            name: '게하',
+                            state: {
+                              routes: [{name: 'GuesthouseSearch'}],
+                            },
+                          },
+                        ],
+                      },
+                    },
+                  ],
+                });
+              } else {
+                // 변경된 값이 있으면 먼저 부모 콜백 호출
+                if (
+                  hasChanged &&
+                  typeof route.params?.onDateGuestChange === 'function'
+                ) {
+                  route.params.onDateGuestChange({
+                    checkIn: localCheckIn,
+                    checkOut: localCheckOut,
+                    adults: localAdults,
+                    children: localChildren,
+                  });
+                }
+                if (
+                  Platform.OS === 'web' &&
+                  route.params?.webBackTo === WEB_ROUTES.MAP
+                ) {
+                  navigateWebBackToMap(navigation, route.params?.webBackParams);
+                  return;
+                }
+                if (Platform.OS === 'web' && route.params?.webBackToHome) {
+                  navigateWebHome();
+                  return;
+                }
+                navigation.goBack(); // 일반 뒤로가기
+              }
+            }}>
+            <LeftArrow width={28} height={28} />
           </TouchableOpacity>
+          <View style={styles.tagContainer}>
+            {detail.hashtags?.map((tag, index) => (
+              <View key={tag.id || index} style={styles.tagBox}>
+                <Text style={[FONTS.fs_12_medium, styles.tagText]}>
+                  {tag.hashtag}
+                </Text>
+              </View>
+            ))}
+            <View style={styles.tagBox}>
+              <Text style={[FONTS.fs_12_medium, styles.tagText]}>#</Text>
+            </View>
+          </View>
+        </View>
 
-          {is050Number(detail.guesthousePhone) && (
+        <View style={styles.contentWrapper}>
+          <View style={styles.contentTopWrapper}>
+            <View style={styles.nameIconContainer}>
+              <View style={styles.nameWrapper}>
+                <Text style={[FONTS.fs_20_semibold, styles.name]}>
+                  {detail.guesthouseName}
+                </Text>
+              </View>
+              <View style={styles.topIcons}>
+                <TouchableOpacity activeOpacity={1} onPress={handleCopyLink}>
+                  <ShareIcon width={20} height={20} />
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={handleToggleFavorite}>
+                  {detail?.isLiked ? (
+                    <FilledHeart width={20} height={20} />
+                  ) : (
+                    <EmptyHeart width={20} height={20} />
+                  )}
+                </TouchableOpacity>
+              </View>
+            </View>
+
             <TouchableOpacity
               activeOpacity={1}
-              onPress={handleCopyPhone}
-              style={styles.phoneButton}>
-              <Text style={[FONTS.fs_14_regular, styles.phone]}>
-                숙소 문의 : <Text style={styles.copyableText}>{detail.guesthousePhone}</Text>
+              onPress={handlePressAddress}
+              style={styles.addressSection}>
+              <MapPinIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_regular, styles.address]}>
+                {formatGuesthouseAddress(
+                  detail.guesthouseAddress,
+                  detail.guesthouseAddressDetail,
+                )}
               </Text>
+              <RightChevronBlack width={12} height={12} />
             </TouchableOpacity>
-          )}
 
-          {displayRating && (
-            <View style={[styles.reviewRow, {marginTop: 20}]}>
-              <View style={styles.reviewBox}>
-                <Star width={14} height={14} />
-                <Text style={[FONTS.fs_12_medium, styles.rating]}>
-                  {displayRating}
-                </Text>
-                <Text style={styles.ratingDevide}>·</Text>
-                <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                  {detail.reviewCount} 리뷰
-                </Text>
-              </View>
-            </View>
-          )}
-
-          <View style={styles.shortIntroContainer}>
-            <Text
-              style={[
-                FONTS.fs_14_regular,
-                styles.shortIntroText,
-                styles.shortIntroMeasureText,
-              ]}
-              onTextLayout={event => {
-                const lineCount = event.nativeEvent.lines?.length ?? 0;
-                setShortIntroLineCount(prev =>
-                  prev === lineCount ? prev : lineCount,
-                );
-              }}
-            >
-              {shortIntroText}
-            </Text>
-            <Text
-              style={[FONTS.fs_14_regular, styles.shortIntroText]}
-              numberOfLines={
-                shortIntroExpanded ? undefined : SHORT_INTRO_COLLAPSED_LINES
-              }
-              ellipsizeMode="tail"
-            >
-              {shortIntroText}
-            </Text>
-            {hasShortIntroOverflow && (
+            {is050Number(detail.guesthousePhone) && (
               <TouchableOpacity
                 activeOpacity={1}
-                style={styles.shortIntroToggleButton}
-                onPress={() => setShortIntroExpanded(prev => !prev)}
-              >
-                <Text style={[FONTS.fs_14_medium, styles.shortIntroToggleText]}>
-                  {shortIntroExpanded ? '닫기' : '더보기'}
+                onPress={handleCopyPhone}
+                style={styles.phoneButton}>
+                <Text style={[FONTS.fs_14_regular, styles.phone]}>
+                  숙소 문의 :{' '}
+                  <Text style={styles.copyableText}>
+                    {detail.guesthousePhone}
+                  </Text>
                 </Text>
               </TouchableOpacity>
             )}
-          </View>
 
-          {todayParties.length > 0 && (
-            <View style={styles.todayPartiesContainer}>
-              <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
-                오늘의 콘텐츠
-              </Text>
-              {todayParties.length > 1 ? (
-                <ScrollView
-                  horizontal
-                  showsHorizontalScrollIndicator={false}
-                  decelerationRate="fast"
-                  snapToInterval={TODAY_PARTY_CARD_WIDTH + 12}
-                  contentContainerStyle={styles.todayPartyListHorizontal}>
-                  {todayParties.map(renderTodayParty)}
-                </ScrollView>
-              ) : (
-                <View style={styles.todayPartyList}>
-                  {todayParties.map(renderTodayParty)}
+            {displayRating && (
+              <View style={[styles.reviewRow, {marginTop: 20}]}>
+                <View style={styles.reviewBox}>
+                  <Star width={14} height={14} />
+                  <Text style={[FONTS.fs_12_medium, styles.rating]}>
+                    {displayRating}
+                  </Text>
+                  <Text style={styles.ratingDevide}>·</Text>
+                  <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
+                    {detail.reviewCount} 리뷰
+                  </Text>
                 </View>
+              </View>
+            )}
+
+            <View style={styles.shortIntroContainer}>
+              <Text
+                style={[
+                  FONTS.fs_14_regular,
+                  styles.shortIntroText,
+                  styles.shortIntroMeasureText,
+                ]}
+                onTextLayout={event => {
+                  const lineCount = event.nativeEvent.lines?.length ?? 0;
+                  setShortIntroLineCount(prev =>
+                    prev === lineCount ? prev : lineCount,
+                  );
+                }}>
+                {shortIntroText}
+              </Text>
+              <Text
+                style={[FONTS.fs_14_regular, styles.shortIntroText]}
+                numberOfLines={
+                  shortIntroExpanded ? undefined : SHORT_INTRO_COLLAPSED_LINES
+                }
+                ellipsizeMode="tail">
+                {shortIntroText}
+              </Text>
+              {hasShortIntroOverflow && (
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={styles.shortIntroToggleButton}
+                  onPress={() => setShortIntroExpanded(prev => !prev)}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.shortIntroToggleText]}>
+                    {shortIntroExpanded ? '닫기' : '더보기'}
+                  </Text>
+                </TouchableOpacity>
               )}
             </View>
-          )}
 
-          <View style={styles.devide} />
-
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.displayDateGuestRow}
-            onPress={() => setDateGuestModalVisible(true)}>
-            <View style={styles.dateInfoContainer}>
-              <CalendarIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-                {dayjs(localCheckIn).format('M.D ddd')} -{' '}
-                {dayjs(localCheckOut).format('M.D ddd')}
-              </Text>
-            </View>
-            <View style={styles.guestInfoContainer}>
-              <PersonIcon width={20} height={20} />
-              <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-                인원 {localAdults + localChildren}
-              </Text>
-            </View>
-          </TouchableOpacity>
-        </View>
-
-        {/* 탭 메뉴 */}
-        <ScrollView
-          horizontal
-          showsHorizontalScrollIndicator={false}
-          style={styles.tabMenuWrapper}
-          contentContainerStyle={styles.tabMenuContent}
-        >
-          {TAB_OPTIONS.map((tab, index) => (
-            <TouchableOpacity
-              activeOpacity={1} key={tab.key} onPress={() => onTabPress(index)}>
-              <View style={styles.tabButton}>
-                <Text
-                  style={[
-                    FONTS.fs_14_semibold,
-                    {
-                      color:
-                        isActive(tab.key)
-                          ? COLORS.primary_blue
-                          : COLORS.grayscale_800,
-                    },
-                  ]}>
-                  {tab.label}
+            {todayParties.length > 0 && (
+              <View style={styles.todayPartiesContainer}>
+                <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
+                  오늘의 콘텐츠
                 </Text>
-                {isActive(tab.key) && <View style={styles.tabUnderline} />}
+                {todayParties.length > 1 ? (
+                  <ScrollView
+                    horizontal
+                    showsHorizontalScrollIndicator={false}
+                    decelerationRate="fast"
+                    snapToInterval={TODAY_PARTY_CARD_WIDTH + 12}
+                    contentContainerStyle={styles.todayPartyListHorizontal}>
+                    {todayParties.map(renderTodayParty)}
+                  </ScrollView>
+                ) : (
+                  <View style={styles.todayPartyList}>
+                    {todayParties.map(renderTodayParty)}
+                  </View>
+                )}
+              </View>
+            )}
+
+            <View style={styles.devide} />
+
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.displayDateGuestRow}
+              onPress={() => setDateGuestModalVisible(true)}>
+              <View style={styles.dateInfoContainer}>
+                <CalendarIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+                  {dayjs(localCheckIn).format('M.D ddd')} -{' '}
+                  {dayjs(localCheckOut).format('M.D ddd')}
+                </Text>
+              </View>
+              <View style={styles.guestInfoContainer}>
+                <PersonIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
+                  인원 {localAdults + localChildren}
+                </Text>
               </View>
             </TouchableOpacity>
-          ))}
-        </ScrollView>
-        <ScrollView
-          ref={pagerRef}
-          horizontal
-          scrollEnabled={swipeEnabled}
-          directionalLockEnabled
-          pagingEnabled
-          nestedScrollEnabled
-          bounces={false}
-          showsHorizontalScrollIndicator={false}
-          onLayout={onPagerLayout}
-          onScroll={onScroll}
-          onScrollEndDrag={onScrollEndDrag}
-          onMomentumScrollEnd={onMomentumScrollEnd}
-          scrollEventThrottle={16}
-          contentContainerStyle={styles.tabPagerContent}
-          {...webSwipeHandlers}
-          style={styles.tabPager}>
-          {TAB_OPTIONS.map(tab => (
-            <View
-              key={tab.key}
-              style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
-              {renderTabContent(tab.key)}
-            </View>
-          ))}
-        </ScrollView>
-      </View>
+          </View>
 
+          {/* 탭 메뉴 */}
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={styles.tabMenuWrapper}
+            contentContainerStyle={styles.tabMenuContent}>
+            {TAB_OPTIONS.map((tab, index) => (
+              <TouchableOpacity
+                activeOpacity={1}
+                key={tab.key}
+                onPress={() => onTabPress(index)}>
+                <View style={styles.tabButton}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_semibold,
+                      {
+                        color: isActive(tab.key)
+                          ? COLORS.primary_blue
+                          : COLORS.grayscale_800,
+                      },
+                    ]}>
+                    {tab.label}
+                  </Text>
+                  {isActive(tab.key) && <View style={styles.tabUnderline} />}
+                </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+          <ScrollView
+            ref={pagerRef}
+            horizontal
+            scrollEnabled={swipeEnabled}
+            directionalLockEnabled
+            pagingEnabled
+            nestedScrollEnabled
+            bounces={false}
+            showsHorizontalScrollIndicator={false}
+            onLayout={onPagerLayout}
+            onScroll={onScroll}
+            onScrollEndDrag={onScrollEndDrag}
+            onMomentumScrollEnd={onMomentumScrollEnd}
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.tabPagerContent}
+            {...webSwipeHandlers}
+            style={styles.tabPager}>
+            {TAB_OPTIONS.map(tab => (
+              <View
+                key={tab.key}
+                style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
+                {renderTabContent(tab.key)}
+              </View>
+            ))}
+          </ScrollView>
+        </View>
       </ScrollView>
       {/* 이미지 모달 */}
       {hasImages && (

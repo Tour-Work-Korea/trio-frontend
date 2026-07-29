@@ -20,7 +20,11 @@ const {height} = Dimensions.get('window');
 
 const MeetSortModal = ({visible, onClose, selected, onSelect}) => {  
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
       <View style={styles.overlay}>
         <TouchableWithoutFeedback>{/* 막기 위해 중첩 */}

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -10,7 +10,7 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -22,15 +22,15 @@ import {
 
 dayjs.locale('ko');
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
 import Avatar from '@components/Avatar';
 import AppImage from '@components/AppImage';
 import userMeetApi from '@utils/api/userMeetApi';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
-import { showErrorModal } from '@utils/loginModalHub';
+import {showErrorModal} from '@utils/loginModalHub';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {
   partyDetailDeeplink,
@@ -58,9 +58,9 @@ import PartyInfoPriceIcon from '@assets/images/party_info_price.svg';
 import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg';
 
 const TABS = [
-  { key: 'intro', label: '콘텐츠 소개' },
-  { key: 'detail', label: '상세 안내' },
-  { key: 'way', label: '오시는 길' },
+  {key: 'intro', label: '콘텐츠 소개'},
+  {key: 'detail', label: '상세 안내'},
+  {key: 'way', label: '오시는 길'},
 ];
 
 const SNACK_TAG_LABEL = {
@@ -86,7 +86,7 @@ const CONTENT_TYPE_LABEL = {
   WALK: '산책',
 };
 
-const { width: SCREEN_W } = Dimensions.get('window');
+const {width: SCREEN_W} = Dimensions.get('window');
 const IMAGE_H = 280;
 const TAB_CONTENT_HORIZONTAL_PADDING = 20;
 
@@ -100,12 +100,12 @@ const PARTY_STATUS_LABEL = {
 };
 
 const getPartyImageUrl = image =>
-  image?.imageUrl
-  ?? image?.partyImageUrl
-  ?? image?.url
-  ?? image?.adminImageUrl
-  ?? image?.thumbnailUrl
-  ?? null;
+  image?.imageUrl ??
+  image?.partyImageUrl ??
+  image?.url ??
+  image?.adminImageUrl ??
+  image?.thumbnailUrl ??
+  null;
 
 const toArray = value => {
   if (Array.isArray(value)) {
@@ -117,7 +117,7 @@ const toArray = value => {
   return [value];
 };
 
-const PartyEventImage = ({ uri, width }) => {
+const PartyEventImage = ({uri, width}) => {
   const [aspectRatio, setAspectRatio] = useState(null);
 
   useEffect(() => {
@@ -164,7 +164,7 @@ const PartyEventImage = ({ uri, width }) => {
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const { partyId } = route.params ?? {};
+  const {partyId} = route.params ?? {};
 
   const navigateWebHome = useCallback(() => {
     replaceWebPath(WEB_ROUTES.HOME);
@@ -193,13 +193,14 @@ const MeetDetail = () => {
         y: rect.top,
         width: rect.width,
         height: rect.height,
+        imageIndex: index,
       });
       return;
     }
 
     target.measureInWindow?.((x, y, width, height) => {
       if (width > 0 && height > 0) {
-        setImageSourceRect({x, y, width, height});
+        setImageSourceRect({x, y, width, height, imageIndex: index});
       }
     });
   }, []);
@@ -269,7 +270,7 @@ const MeetDetail = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const { data } = await userMeetApi.getPartyDetail(partyId);
+        const {data} = await userMeetApi.getPartyDetail(partyId);
         if (!mounted) {
           return;
         }
@@ -355,7 +356,8 @@ const MeetDetail = () => {
         }
 
         return {
-          id: item?.partyId ?? item?.id ?? `${item?.partyStartDateTime ?? index}`,
+          id:
+            item?.partyId ?? item?.id ?? `${item?.partyStartDateTime ?? index}`,
           partyId: item?.partyId ?? item?.id ?? partyId,
           partyStartDateTime:
             item?.partyStartDateTime ??
@@ -363,7 +365,8 @@ const MeetDetail = () => {
             item?.dateTime ??
             item?.date ??
             partyStartDateTime,
-          partyStartTime: item?.partyStartTime ?? item?.startTime ?? partyStartTime,
+          partyStartTime:
+            item?.partyStartTime ?? item?.startTime ?? partyStartTime,
           partyEndTime: item?.partyEndTime ?? item?.endTime ?? partyEndTime,
           partyStatus: item?.partyStatus ?? item?.status ?? partyStatus,
           isApplyOpen: item?.isApplyOpen ?? isApplyOpen,
@@ -400,10 +403,10 @@ const MeetDetail = () => {
   const modalImages = sortedImages;
   const thumbnailSource = useMemo(() => {
     if (sortedImages[thumbnailIndex]?.imageUrl) {
-      return { uri: sortedImages[thumbnailIndex].imageUrl };
+      return {uri: sortedImages[thumbnailIndex].imageUrl};
     }
     if (sortedImages[0]?.imageUrl) {
-      return { uri: sortedImages[0].imageUrl };
+      return {uri: sortedImages[0].imageUrl};
     }
   }, [sortedImages, thumbnailIndex]);
 
@@ -412,7 +415,9 @@ const MeetDetail = () => {
   }, [thumbnailIndex]);
 
   const tagList = useMemo(() => {
-    const tags = Array.isArray(partyTags) ? partyTags : `${partyTags ?? ''}`.split(/\s+/);
+    const tags = Array.isArray(partyTags)
+      ? partyTags
+      : `${partyTags ?? ''}`.split(/\s+/);
     return tags
       .map(tag => tag.trim())
       .map(tag => tag.replace(/^#+/, ''))
@@ -430,11 +435,13 @@ const MeetDetail = () => {
   const parkingPlaceList = useMemo(() => toArray(parkingPlace), [parkingPlace]);
 
   const scheduleText = useMemo(() => {
-    const primaryDateTime = partyDateOptions[0]?.partyStartDateTime ?? partyStartDateTime;
+    const primaryDateTime =
+      partyDateOptions[0]?.partyStartDateTime ?? partyStartDateTime;
     const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
-      ? `${date.format('MM.DD')} ${date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
-      }`
+      ? `${date.format('MM.DD')} ${
+          date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
+        }`
       : '-';
     const timeLabel = `${formatTime(
       partyDateOptions[0]?.partyStartTime ?? primaryDateTime ?? partyStartTime,
@@ -450,7 +457,13 @@ const MeetDetail = () => {
         : '';
 
     return `${dateLabel} ${timeLabel}${extraCount}`;
-  }, [applicationType, partyDateOptions, partyStartDateTime, partyStartTime, partyEndTime]);
+  }, [
+    applicationType,
+    partyDateOptions,
+    partyStartDateTime,
+    partyStartTime,
+    partyEndTime,
+  ]);
   const isRecruiting = partyStatus === 'RECRUIT';
   const showReservationButton = isApplyOpen !== false;
   const isSameDayApplication = applicationType === 'SAME_DAY';
@@ -486,7 +499,9 @@ const MeetDetail = () => {
       {
         key: 'capacity',
         Icon: PartyInfoCapacityIcon,
-        text: maxAttendance ? `최대인원 ${maxAttendance}명` : '최대인원 정보 없음',
+        text: maxAttendance
+          ? `최대인원 ${maxAttendance}명`
+          : '최대인원 정보 없음',
       },
       {
         key: 'price',
@@ -536,7 +551,10 @@ const MeetDetail = () => {
   };
 
   const handlePressGuesthouse = () => {
-    const guesthouseId = detail?.guesthouseId ?? detail?.guesthouse?.id ?? detail?.profileSummary?.guesthouseId;
+    const guesthouseId =
+      detail?.guesthouseId ??
+      detail?.guesthouse?.id ??
+      detail?.profileSummary?.guesthouseId;
     if (!guesthouseId) {
       return;
     }
@@ -570,7 +588,7 @@ const MeetDetail = () => {
         buttonText2: '취소',
         buttonText: '로그인하기',
         onPress: () => navigation.navigate('Login'),
-        onPress2: () => { },
+        onPress2: () => {},
       });
       return;
     }
@@ -693,9 +711,7 @@ const MeetDetail = () => {
             height={56}
             anchor={{x: 0.5, y: 1}}
             onTap={handlePressLocationMap}>
-            <View
-              collapsable={false}
-              style={styles.markerContainer}>
+            <View collapsable={false} style={styles.markerContainer}>
               <View style={styles.homeMarker}>
                 <HomeIcon width={24} height={24} />
               </View>
@@ -719,49 +735,45 @@ const MeetDetail = () => {
 
   // 오시는길 값 유무
   const isEmptyWayInfo =
-    !displayLocation &&
-    !(trafficInfoList.length > 0) &&
-    !parkingContentText;
+    !displayLocation && !(trafficInfoList.length > 0) && !parkingContentText;
 
   const renderTabContent = tabKey => {
     if (tabKey === 'intro') {
       return (
         <View style={styles.tabContent}>
-          {eventList.length === 0 ? (
-            renderEmptyInfo()
-          ) : (
-            eventList.map((ev, evIndex) => {
-              const images = toArray(ev.partyEventImageUrls);
+          {eventList.length === 0
+            ? renderEmptyInfo()
+            : eventList.map((ev, evIndex) => {
+                const images = toArray(ev.partyEventImageUrls);
 
-              return (
-                <View key={ev.id ?? evIndex} style={styles.eventBlock}>
-                  {images.length > 0 && (
-                    <ScrollView
-                      horizontal
-                      nestedScrollEnabled
-                      showsHorizontalScrollIndicator={false}
-                      contentContainerStyle={styles.eventImageRow}>
-                      {images.map((url, idx) => (
-                        <PartyEventImage
-                          key={`${ev.id ?? evIndex}-${idx}`}
-                          uri={url}
-                          width={eventImageWidth}
-                        />
-                      ))}
-                    </ScrollView>
-                  )}
-                  <Text style={[FONTS.fs_18_semibold, styles.eventTitle]}>
-                    {ev.eventName}
-                  </Text>
-                  {!!ev.eventDescription && (
-                    <Text style={[FONTS.fs_16_regular, styles.eventBody]}>
-                      {ev.eventDescription}
+                return (
+                  <View key={ev.id ?? evIndex} style={styles.eventBlock}>
+                    {images.length > 0 && (
+                      <ScrollView
+                        horizontal
+                        nestedScrollEnabled
+                        showsHorizontalScrollIndicator={false}
+                        contentContainerStyle={styles.eventImageRow}>
+                        {images.map((url, idx) => (
+                          <PartyEventImage
+                            key={`${ev.id ?? evIndex}-${idx}`}
+                            uri={url}
+                            width={eventImageWidth}
+                          />
+                        ))}
+                      </ScrollView>
+                    )}
+                    <Text style={[FONTS.fs_18_semibold, styles.eventTitle]}>
+                      {ev.eventName}
                     </Text>
-                  )}
-                </View>
-              );
-            })
-          )}
+                    {!!ev.eventDescription && (
+                      <Text style={[FONTS.fs_16_regular, styles.eventBody]}>
+                        {ev.eventDescription}
+                      </Text>
+                    )}
+                  </View>
+                );
+              })}
         </View>
       );
     }
@@ -773,14 +785,16 @@ const MeetDetail = () => {
             <Text style={[FONTS.fs_20_bold, styles.partyInfoSummaryTitle]}>
               안내사항
             </Text>
-            <Text style={[FONTS.fs_14_regular, styles.partyInfoSummarySubTitle]}>
+            <Text
+              style={[FONTS.fs_14_regular, styles.partyInfoSummarySubTitle]}>
               자세한 정보를 알려드릴게요
             </Text>
             <View style={styles.partyInfoSummaryList}>
               {detailInfoItems.map(({key, Icon, text}) => (
                 <View key={key} style={styles.partyInfoSummaryRow}>
                   <Icon width={16} height={16} />
-                  <Text style={[FONTS.fs_14_medium, styles.partyInfoSummaryText]}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.partyInfoSummaryText]}>
                     {text}
                   </Text>
                 </View>
@@ -795,12 +809,16 @@ const MeetDetail = () => {
           </View>
           {!!snackInfo && (
             <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>음식 • 음료</Text>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
+                음식 • 음료
+              </Text>
               {snackTagTexts.length > 0 && (
                 <View style={styles.tagChipRow}>
                   {snackTagTexts.map((tag, idx) => (
                     <View key={idx} style={styles.tagChip}>
-                      <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>{tag}</Text>
+                      <Text style={[FONTS.fs_12_medium, styles.tagChipText]}>
+                        {tag}
+                      </Text>
                     </View>
                   ))}
                 </View>
@@ -812,10 +830,14 @@ const MeetDetail = () => {
           )}
           {ruleList.length > 0 && (
             <View style={styles.detailInfoContainer}>
-              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>이용규칙</Text>
+              <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
+                이용규칙
+              </Text>
               <View style={styles.ruleList}>
                 {ruleList.map((rule, index) => (
-                  <View key={rule.id ?? `${rule.title ?? 'rule'}-${index}`} style={styles.ruleItem}>
+                  <View
+                    key={rule.id ?? `${rule.title ?? 'rule'}-${index}`}
+                    style={styles.ruleItem}>
                     {!!rule.title && (
                       <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
                         {rule.title}
@@ -844,7 +866,9 @@ const MeetDetail = () => {
           </>
         ) : (
           <>
-            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>위치</Text>
+            <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>
+              위치
+            </Text>
             {!!displayLocation && (
               <Text style={[FONTS.fs_16_regular, styles.infoText]}>
                 만나는 장소 : {displayLocation}
@@ -853,14 +877,19 @@ const MeetDetail = () => {
             {renderLocationMap()}
             {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
-                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>교통 정보</Text>
+                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
+                  교통 정보
+                </Text>
                 <View style={styles.ruleList}>
                   {trafficInfoList.map((item, index) => {
                     if (typeof item === 'string') {
                       return (
                         <Text
                           key={`${item}-${index}`}
-                          style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                          style={[
+                            FONTS.fs_14_regular,
+                            styles.detailContentText,
+                          ]}>
                           {item}
                         </Text>
                       );
@@ -871,12 +900,14 @@ const MeetDetail = () => {
                         key={item.id ?? `${item.title ?? 'traffic'}-${index}`}
                         style={styles.ruleItem}>
                         {!!item.title && (
-                          <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
+                          <Text
+                            style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
                             {item.title}
                           </Text>
                         )}
                         {!!item.content && (
-                          <Text style={[FONTS.fs_14_regular, styles.ruleContent]}>
+                          <Text
+                            style={[FONTS.fs_14_regular, styles.ruleContent]}>
                             {item.content}
                           </Text>
                         )}
@@ -888,7 +919,9 @@ const MeetDetail = () => {
             )}
             {!!parkingContentText && (
               <View style={styles.detailInfoContainer}>
-                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>주차 정보</Text>
+                <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
+                  주차 정보
+                </Text>
                 {parkingTagTexts.length > 0 && (
                   <View style={styles.tagChipRow}>
                     {parkingTagTexts.map((tag, idx) => (
@@ -906,7 +939,10 @@ const MeetDetail = () => {
                       return (
                         <Text
                           key={`${item}-${index}`}
-                          style={[FONTS.fs_14_regular, styles.detailContentText]}>
+                          style={[
+                            FONTS.fs_14_regular,
+                            styles.detailContentText,
+                          ]}>
                           {item}
                         </Text>
                       );
@@ -917,12 +953,14 @@ const MeetDetail = () => {
                         key={item.id ?? `${item.title ?? 'parking'}-${index}`}
                         style={styles.ruleItem}>
                         {!!item.title && (
-                          <Text style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
+                          <Text
+                            style={[FONTS.fs_14_semibold, styles.ruleTitle]}>
                             {item.title}
                           </Text>
                         )}
                         {!!item.content && (
-                          <Text style={[FONTS.fs_14_regular, styles.ruleContent]}>
+                          <Text
+                            style={[FONTS.fs_14_regular, styles.ruleContent]}>
                             {item.content}
                           </Text>
                         )}
@@ -965,10 +1003,7 @@ const MeetDetail = () => {
               onPress={() => openImageModal(imageIndex)}>
               <AppImage
                 uri={sortedImages[imageIndex]?.imageUrl}
-                style={[
-                  styles.thumbnail,
-                  imageModalVisible && {opacity: 0},
-                ]}
+                style={[styles.thumbnail, imageModalVisible && {opacity: 0}]}
                 resizeMode="cover"
               />
             </TouchableOpacity>
@@ -983,7 +1018,7 @@ const MeetDetail = () => {
               autoPlay={false}
               pagingEnabled
               onSnapToItem={idx => setImageIndex(idx)}
-              renderItem={({ item, index }) => (
+              renderItem={({item, index}) => (
                 <TouchableOpacity
                   ref={node => {
                     if (node) {
@@ -1017,7 +1052,9 @@ const MeetDetail = () => {
               <ChevronLeft width={28} height={28} />
             </TouchableOpacity>
             <TouchableOpacity
-              activeOpacity={1} style={styles.shareButton} onPress={handleCopyLink}>
+              activeOpacity={1}
+              style={styles.shareButton}
+              onPress={handleCopyLink}>
               <ShareIcon width={20} height={20} />
             </TouchableOpacity>
             {tagList.length > 0 && (
@@ -1030,7 +1067,9 @@ const MeetDetail = () => {
                   </View>
                 ))}
                 <View style={styles.heroTagChip}>
-                  <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>#</Text>
+                  <Text style={[FONTS.fs_12_medium, styles.heroTagText]}>
+                    #
+                  </Text>
                 </View>
               </View>
             )}
@@ -1043,10 +1082,15 @@ const MeetDetail = () => {
             <TouchableOpacity
               activeOpacity={0.8}
               onPress={handlePressGuesthouse}
-              style={styles.guesthousePressArea}
-            >
-              <Avatar uri={displayHostImage} size={40} iconSize={16} style={styles.summaryAvatar} />
-              <Text style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
+              style={styles.guesthousePressArea}>
+              <Avatar
+                uri={displayHostImage}
+                size={40}
+                iconSize={16}
+                style={styles.summaryAvatar}
+              />
+              <Text
+                style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
                 {displayGuesthouseName}
               </Text>
             </TouchableOpacity>
@@ -1116,13 +1160,12 @@ const MeetDetail = () => {
             {TABS.map(tab => (
               <View
                 key={tab.key}
-                style={[styles.tabPage, pageWidth > 0 && { width: pageWidth }]}>
+                style={[styles.tabPage, pageWidth > 0 && {width: pageWidth}]}>
                 {renderedTabs.has(tab.key) ? renderTabContent(tab.key) : null}
               </View>
             ))}
           </ScrollView>
         </View>
-
       </ScrollView>
 
       {isRecruiting && showReservationButton && !!applicationNoticeText && (
@@ -1137,7 +1180,9 @@ const MeetDetail = () => {
       {/* 하단 고정 영역 */}
       <View style={styles.fixedBottomBar}>
         <TouchableOpacity
-          activeOpacity={1} style={styles.bottomLikeButton} onPress={onToggleLike}>
+          activeOpacity={1}
+          style={styles.bottomLikeButton}
+          onPress={onToggleLike}>
           {liked ? (
             <HeartFilled width={28} height={28} />
           ) : (
@@ -1154,7 +1199,7 @@ const MeetDetail = () => {
             ]}
             disabled={!isRecruiting}
             onPress={handlePressReservation}>
-            <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_0 }]}>
+            <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>
               {reservationButtonText}
             </Text>
           </TouchableOpacity>

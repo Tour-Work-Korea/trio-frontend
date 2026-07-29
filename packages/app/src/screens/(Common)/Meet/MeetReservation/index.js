@@ -60,6 +60,7 @@ const MeetReservation = () => {
     partyEndTime: routePartyEndTime,
     applicationType: routeApplicationType,
     partyDateOptions: routePartyDateOptions,
+    amount: routeAmount,
     thumbnailUrl: routeThumbnailUrl,
     partyAnnouncements,
     selectedCoupon,
@@ -231,7 +232,9 @@ const MeetReservation = () => {
     null;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
-  const reservationAmount = Number(reservationInfo?.amount ?? 0);
+  const reservationAmount = Number(
+    reservationInfo?.amount ?? routeAmount ?? 0,
+  );
   const isPaidContent =
     reservationInfo?.chargeType !== 'FREE' &&
     Number.isFinite(reservationAmount) &&

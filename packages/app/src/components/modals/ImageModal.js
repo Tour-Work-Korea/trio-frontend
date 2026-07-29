@@ -53,6 +53,7 @@ const ImageModal = ({
   enableSwipeToClose = true,
   sourceRect,
   sourceBorderRadius = 0,
+  fallbackDismissMode = 'slide',
 }) => {
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const pageWidth = screenWidth || FALLBACK_SCREEN_WIDTH;
@@ -68,26 +69,61 @@ const ImageModal = ({
   const swipePositionRef = useRef(0);
   const returnProgressRef = useRef(0);
   const imageAspectRatiosRef = useRef(new Map());
-  const hasSourceRect =
-    Number.isFinite(sourceRect?.x) &&
-    Number.isFinite(sourceRect?.y) &&
-    sourceRect?.width > 0 &&
-    sourceRect?.height > 0;
   const imageList = useMemo(
     () => (Array.isArray(images) ? images : []),
     [images],
   );
+  const imageUrlsKey = imageList.map(getImageUrl).join('\u0001');
   const safeSelectedImageIndex = Number.isFinite(selectedImageIndex)
     ? selectedImageIndex
     : 0;
-  const initialIndex =
+  const requestedInitialIndex =
     imageList.length > 0
       ? Math.min(Math.max(safeSelectedImageIndex, 0), imageList.length - 1)
       : 0;
+  const openingIndexRef = useRef(requestedInitialIndex);
+  const wasVisibleRef = useRef(false);
+
+  if (visible && !wasVisibleRef.current) {
+    openingIndexRef.current = requestedInitialIndex;
+  }
+  wasVisibleRef.current = visible;
+
+  const initialIndex = visible
+    ? Math.min(openingIndexRef.current, Math.max(imageList.length - 1, 0))
+    : requestedInitialIndex;
+  const initialImageUrl = getImageUrl(imageList[initialIndex]);
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isPresented, setIsPresented] = useState(visible);
   const [activeImageAspectRatio, setActiveImageAspectRatio] = useState(null);
   const swipeToCloseEnabled = enableSwipeToClose && Platform.OS !== 'web';
+  const activeSourceIndex =
+    Platform.OS === 'android' && imageList.length > 0
+      ? (initialIndex + currentIndex) % imageList.length
+      : currentIndex;
+  const sourceRectMatchesActiveImage =
+    !Number.isFinite(sourceRect?.imageIndex) ||
+    sourceRect.imageIndex === activeSourceIndex;
+  const visibleSourceWidth = Math.max(
+    0,
+    Math.min(sourceRect?.x + sourceRect?.width, pageWidth) -
+      Math.max(sourceRect?.x, 0),
+  );
+  const visibleSourceHeight = Math.max(
+    0,
+    Math.min(sourceRect?.y + sourceRect?.height, pageHeight) -
+      Math.max(sourceRect?.y, 0),
+  );
+  const sourceRectIsVisible =
+    visibleSourceWidth >= sourceRect?.width * 0.6 &&
+    visibleSourceHeight >= sourceRect?.height * 0.6;
+  const hasSourceRect =
+    sourceRectMatchesActiveImage &&
+    sourceRectIsVisible &&
+    Number.isFinite(sourceRect?.x) &&
+    Number.isFinite(sourceRect?.y) &&
+    sourceRect?.width > 0 &&
+    sourceRect?.height > 0;
   const finishClose = useCallback(() => {
     if (!isClosingRef.current) {
       return;
@@ -171,7 +207,12 @@ const ImageModal = ({
           260 + (1 - returnProgressRef.current) * 260 - velocityBoost,
         ),
       );
-      const duration = hasSourceRect ? returnDuration : slideDuration;
+      const shouldFadeClose = !hasSourceRect && fallbackDismissMode === 'fade';
+      const duration = shouldFadeClose
+        ? 380
+        : hasSourceRect
+        ? returnDuration
+        : slideDuration;
 
       closeTimeoutRef.current = setTimeout(finishClose, duration + 120);
       if (hasSourceRect) {
@@ -194,6 +235,39 @@ const ImageModal = ({
             toValue: 1,
             duration,
             easing: Easing.bezier(0.2, 0.68, 0.28, 1),
+            useNativeDriver: false,
+            isInteraction: false,
+          }),
+        ]).start(({finished}) => {
+          if (finished) {
+            finishClose();
+          }
+        });
+        return;
+      }
+
+      if (shouldFadeClose) {
+        Animated.sequence([
+          Animated.parallel([
+            Animated.timing(swipeY, {
+              toValue: Math.min(swipePositionRef.current, -24),
+              duration: 220,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: false,
+              isInteraction: false,
+            }),
+            Animated.timing(returnProgress, {
+              toValue: 1,
+              duration: 220,
+              easing: Easing.out(Easing.cubic),
+              useNativeDriver: false,
+              isInteraction: false,
+            }),
+          ]),
+          Animated.timing(closeFade, {
+            toValue: 0,
+            duration: 160,
+            easing: Easing.out(Easing.cubic),
             useNativeDriver: false,
             isInteraction: false,
           }),
@@ -228,7 +302,9 @@ const ImageModal = ({
     },
     [
       finishClose,
+      fallbackDismissMode,
       hasSourceRect,
+      closeFade,
       returnProgress,
       screenHeight,
       swipeChrome,
@@ -326,7 +402,18 @@ const ImageModal = ({
   const animatedImageStyle = {
     width: returnWidth,
     height: returnHeight,
-    opacity: hasSourceRect ? 1 : dragImageOpacity,
+    opacity: hasSourceRect
+      ? 1
+      : Animated.multiply(
+          dragImageOpacity,
+          fallbackDismissMode === 'fade'
+            ? returnProgress.interpolate({
+                inputRange: [0, 1],
+                outputRange: [1, 0],
+                extrapolate: 'clamp',
+              })
+            : closeFade,
+        ),
     borderRadius: hasSourceRect
       ? returnProgress.interpolate({
           inputRange: [0, 0.08, 0.45, 0.82, 1],
@@ -369,6 +456,8 @@ const ImageModal = ({
   const animatedBackdropStyle = {
     opacity: hasSourceRect
       ? Animated.multiply(returnBackdropOpacity, closeFade)
+      : fallbackDismissMode === 'fade'
+      ? closeFade
       : Animated.multiply(dragBackdropOpacity, closeFade),
   };
   const animatedHeaderStyle = {
@@ -474,11 +563,6 @@ const ImageModal = ({
         onTouchMove: handleTouchMove,
         onTouchEnd: handleTouchEnd,
         onTouchCancel: handleTouchCancel,
-        onMoveShouldSetResponderCapture: shouldCaptureSwipe,
-        onResponderMove: handleTouchMove,
-        onResponderRelease: handleTouchEnd,
-        onResponderTerminate: handleTouchCancel,
-        onResponderTerminationRequest: () => false,
       }
     : {};
   const handleAndroidTouchEnd = useCallback(
@@ -529,9 +613,85 @@ const ImageModal = ({
     ? {
         ...touchHandlers,
         onTouchEnd: handleAndroidTouchEnd,
+        onMoveShouldSetResponderCapture: shouldCaptureSwipe,
+        onResponderMove: handleTouchMove,
         onResponderRelease: handleAndroidTouchEnd,
+        onResponderTerminate: handleTouchCancel,
+        onResponderTerminationRequest: () => false,
       }
     : {};
+  const shouldCaptureIosHorizontalSwipe = useCallback(event => {
+    const start = touchStartRef.current;
+    const touch = getTouchPoint(event);
+
+    if (!start || isClosingRef.current) {
+      return false;
+    }
+
+    const dx = (touch?.pageX ?? touch?.clientX ?? start.x) - start.x;
+    const dy = (touch?.pageY ?? touch?.clientY ?? start.y) - start.y;
+
+    return (
+      Math.abs(dx) >= SWIPE_INTENT_DISTANCE &&
+      Math.abs(dx) > Math.abs(dy) * SWIPE_VERTICAL_RATIO
+    );
+  }, []);
+  const handleIosTouchEnd = useCallback(
+    event => {
+      const start = touchStartRef.current;
+      const touch = getTouchPoint(event);
+
+      if (start && !isClosingRef.current) {
+        const endX = touch?.pageX ?? touch?.clientX ?? start.lastX;
+        const endY = touch?.pageY ?? touch?.clientY ?? start.lastY;
+        const dx = endX - start.x;
+        const dy = endY - start.y;
+        const isHorizontalSwipe =
+          Math.abs(dx) >= 48 &&
+          Math.abs(dx) > Math.abs(dy) * SWIPE_VERTICAL_RATIO;
+
+        if (isHorizontalSwipe && imageList.length > 1) {
+          touchStartRef.current = null;
+          const nextIndex = Math.max(
+            0,
+            Math.min(currentIndex + (dx < 0 ? 1 : -1), imageList.length - 1),
+          );
+          setActiveImageAspectRatio(
+            imageAspectRatiosRef.current.get(
+              getImageUrl(imageList[nextIndex]),
+            ) ?? null,
+          );
+          setCurrentIndex(nextIndex);
+          onImageIndexChange?.(nextIndex);
+          resetSwipeAnimation();
+          requestAnimationFrame(() => {
+            listRef.current?.scrollToIndex({index: nextIndex, animated: true});
+          });
+          return;
+        }
+      }
+
+      handleTouchEnd(event);
+    },
+    [
+      currentIndex,
+      handleTouchEnd,
+      imageList,
+      onImageIndexChange,
+      resetSwipeAnimation,
+    ],
+  );
+  const nativeListTouchHandlers =
+    Platform.OS === 'ios' && swipeToCloseEnabled
+      ? {
+          ...touchHandlers,
+          onTouchEnd: handleIosTouchEnd,
+          onMoveShouldSetResponderCapture: shouldCaptureIosHorizontalSwipe,
+          onResponderRelease: handleIosTouchEnd,
+          onResponderTerminate: handleTouchCancel,
+          onResponderTerminationRequest: () => false,
+        }
+      : touchHandlers;
   const clearCloseTimeout = useCallback(() => {
     if (closeTimeoutRef.current) {
       clearTimeout(closeTimeoutRef.current);
@@ -578,9 +738,7 @@ const ImageModal = ({
       closeFade.setValue(1);
       setCurrentIndex(Platform.OS === 'android' ? 0 : initialIndex);
       setActiveImageAspectRatio(
-        imageAspectRatiosRef.current.get(
-          getImageUrl(imageList[initialIndex]),
-        ) ?? null,
+        imageAspectRatiosRef.current.get(initialImageUrl) ?? null,
       );
       setIsPresented(true);
       return;
@@ -603,8 +761,8 @@ const ImageModal = ({
   }, [
     clearCloseTimeout,
     closeFade,
-    imageList,
     initialIndex,
+    initialImageUrl,
     returnProgress,
     swipeChrome,
     swipeY,
@@ -623,11 +781,11 @@ const ImageModal = ({
   );
 
   useEffect(() => {
-    if (!visible || imageList.length === 0) {
+    if (!visible || !imageUrlsKey) {
       return;
     }
 
-    prefetchImageUrls(imageList.map(getImageUrl), {limit: 6});
+    prefetchImageUrls(imageUrlsKey.split('\u0001'), {limit: 6});
 
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({
@@ -635,7 +793,7 @@ const ImageModal = ({
         animated: false,
       });
     });
-  }, [imageList, imageList.length, initialIndex, visible]);
+  }, [imageUrlsKey, initialIndex, visible]);
 
   const updateActiveImageAspectRatio = (imageUrl, index, event) => {
     const {width, height} = event.nativeEvent?.source ?? {};
@@ -867,8 +1025,9 @@ const ImageModal = ({
         </>
       )}
 
-      <View style={styles.imageStage} {...touchHandlers}>
+      <View style={styles.imageStage}>
         <FlatList
+          {...nativeListTouchHandlers}
           ref={listRef}
           data={imageList}
           horizontal

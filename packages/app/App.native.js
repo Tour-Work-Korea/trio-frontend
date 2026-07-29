@@ -32,6 +32,7 @@ import {
 } from 'react-native-safe-area-context';
 import GlobalAlertModal from '@components/modals/GlobalAlertModal';
 import AlertModal from '@components/modals/AlertModal';
+import {AdaptiveModalProvider} from '@components/modals/AdaptiveModal';
 import LogoOrange from '@assets/images/meet_reservation_success.svg';
 import useUserStore from '@stores/userStore';
 import authApi from '@utils/api/authApi';
@@ -343,7 +344,9 @@ export default function App() {
   return (
     <SafeAreaProvider>
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <AppContent />
+        <AdaptiveModalProvider>
+          <AppContent />
+        </AdaptiveModalProvider>
       </SafeAreaView>
     </SafeAreaProvider>
   );

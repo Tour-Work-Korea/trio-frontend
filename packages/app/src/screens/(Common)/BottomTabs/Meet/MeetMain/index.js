@@ -29,8 +29,6 @@ import MapPinIcon from '@assets/images/map_pin_fill_gray.svg';
 
 import {meetScales, stayTypes} from '@constants/meetOptions';
 
-const MEET_CACHE_TTL_MS = 60 * 1000;
-
 const getPartyDisplayKey = party => {
   if (party?.applicationType === 'ADVANCE') {
     return [
@@ -50,7 +48,6 @@ const getPartyDisplayKey = party => {
 const MeetMain = () => {
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
-  const lastFetchRef = useRef({key: null, time: 0});
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterInitialScrollTarget, setFilterInitialScrollTarget] =
@@ -89,16 +86,7 @@ const MeetMain = () => {
   );
 
   const fetchRecent = useCallback(async () => {
-    const now = Date.now();
-
     if (inFlightKeyRef.current === requestKey) {
-      return;
-    }
-
-    if (
-      lastFetchRef.current.key === requestKey &&
-      now - lastFetchRef.current.time < MEET_CACHE_TTL_MS
-    ) {
       return;
     }
 
@@ -136,10 +124,6 @@ const MeetMain = () => {
       const list = Array.isArray(data) ? data : [];
       setMeets(list);
       prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 8});
-      lastFetchRef.current = {
-        key: requestKey,
-        time: Date.now(),
-      };
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
