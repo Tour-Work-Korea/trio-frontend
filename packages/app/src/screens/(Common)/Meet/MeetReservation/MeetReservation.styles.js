@@ -94,7 +94,7 @@ const styles = StyleSheet.create({
     borderTopColor: COLORS.grayscale_200,
   },
   dateDropdownItemSelected: {
-    backgroundColor: COLORS.grayscale_100,
+    backgroundColor: COLORS.grayscale_0,
   },
   dateDropdownItemDisabled: {
     backgroundColor: COLORS.grayscale_100,
@@ -105,6 +105,9 @@ const styles = StyleSheet.create({
   dateDropdownTextDisabled: {
     color: COLORS.grayscale_400,
     textDecorationLine: 'line-through',
+  },
+  dateDropdownStatusText: {
+    color: COLORS.primary_orange,
   },
   dateDropdownClosedText: {
     color: COLORS.grayscale_400,

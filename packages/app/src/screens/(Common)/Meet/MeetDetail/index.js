@@ -94,9 +94,54 @@ const PARTY_STATUS_LABEL = {
   RECRUIT_BEFORE: '모집 예정',
   RECRUIT: '신청하기',
   RECRUIT_END: '모집 마감',
+  RECRUIT_BLOCK: '따로 문의해 주세요',
   PARTY_END: '종료된 파티',
   CANCELED: '취소된 파티',
   DELETED: '삭제된 파티',
+};
+
+const UNKNOWN_PARTY_STATUS_NOTICE =
+  '파티 상태를 확인할 수 없어요. 업체로 문의해 주세요.';
+const NO_RECRUIT_NOTICE = '업체로 문의해 주세요.';
+
+const isPartyDateOpen = option =>
+  option?.partyStatus === 'RECRUIT' &&
+  option?.isApplyOpen !== false &&
+  option?.isClosed !== true &&
+  dayjs(option?.partyStartDateTime).isAfter(dayjs());
+
+const getPartyDateStatusLabel = option => {
+  if (isPartyDateOpen(option)) {
+    return '신청 가능';
+  }
+
+  const statusLabel = {
+    CANCELED: '취소',
+    DELETED: '삭제',
+    PARTY_END: '종료',
+    RECRUIT_BEFORE: '모집 예정',
+    RECRUIT_BLOCK: '문의',
+    RECRUIT_END: '마감',
+  }[option?.partyStatus];
+
+  if (statusLabel) {
+    return statusLabel;
+  }
+
+  const startDateTime = dayjs(option?.partyStartDateTime);
+  if (startDateTime.isValid() && !startDateTime.isAfter(dayjs())) {
+    return '마감';
+  }
+
+  if (
+    option?.isClosed === true ||
+    option?.isApplyOpen === false ||
+    Number(option?.numOfAttendance) >= Number(option?.maxAttendance)
+  ) {
+    return '마감';
+  }
+
+  return '신청 불가';
 };
 
 const getPartyImageUrl = image =>
@@ -178,6 +223,7 @@ const MeetDetail = () => {
   const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [imageSourceRect, setImageSourceRect] = useState(null);
+  const [selectedPartyDateId, setSelectedPartyDateId] = useState(null);
   const headerCarouselRef = useRef(null);
   const imageSourceRefs = useRef(new Map());
   const measureImageSource = useCallback(index => {
@@ -333,15 +379,12 @@ const MeetDetail = () => {
   } = detail ?? {};
 
   const partyDateOptions = useMemo(() => {
-    const candidates = [
-      detail?.partySchedules,
-      detail?.schedules,
-      detail?.availableSchedules,
-      detail?.availableParties,
-      detail?.partyDates,
-      detail?.partyDateTimes,
-    ].find(Array.isArray);
-    const list = candidates?.length ? candidates : [detail].filter(Boolean);
+    const list =
+      applicationType === 'ADVANCE'
+        ? Array.isArray(detail?.applicationStatuses)
+          ? detail.applicationStatuses
+          : []
+        : [detail].filter(Boolean);
 
     return list
       .map((item, index) => {
@@ -367,13 +410,21 @@ const MeetDetail = () => {
             partyStartDateTime,
           partyStartTime:
             item?.partyStartTime ?? item?.startTime ?? partyStartTime,
-          partyEndTime: item?.partyEndTime ?? item?.endTime ?? partyEndTime,
+          partyEndTime:
+            item?.partyEndDateTime ??
+            item?.partyEndTime ??
+            item?.endTime ??
+            partyEndTime,
           partyStatus: item?.partyStatus ?? item?.status ?? partyStatus,
           isApplyOpen: item?.isApplyOpen ?? isApplyOpen,
+          isClosed: item?.isClosed ?? false,
+          numOfAttendance: item?.numOfAttendance,
+          maxAttendance: item?.maxAttendance,
         };
       })
       .filter(item => !!item.partyStartDateTime);
   }, [
+    applicationType,
     detail,
     isApplyOpen,
     partyEndTime,
@@ -382,6 +433,11 @@ const MeetDetail = () => {
     partyStartTime,
     partyStatus,
   ]);
+  const firstOpenPartyDate =
+    partyDateOptions.find(isPartyDateOpen) ?? partyDateOptions[0];
+  const selectedPartyDate =
+    partyDateOptions.find(option => option.id === selectedPartyDateId) ??
+    firstOpenPartyDate;
 
   // 썸네일/갤러리
   const sortedImages = useMemo(() => {
@@ -436,7 +492,7 @@ const MeetDetail = () => {
 
   const scheduleText = useMemo(() => {
     const primaryDateTime =
-      partyDateOptions[0]?.partyStartDateTime ?? partyStartDateTime;
+      selectedPartyDate?.partyStartDateTime ?? partyStartDateTime;
     const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
       ? `${date.format('MM.DD')} ${
@@ -444,36 +500,61 @@ const MeetDetail = () => {
         }`
       : '-';
     const timeLabel = `${formatTime(
-      partyDateOptions[0]?.partyStartTime ?? primaryDateTime ?? partyStartTime,
-    )}~${formatTime(partyDateOptions[0]?.partyEndTime ?? partyEndTime)}`;
+      selectedPartyDate?.partyStartTime ?? primaryDateTime ?? partyStartTime,
+    )}~${formatTime(selectedPartyDate?.partyEndTime ?? partyEndTime)}`;
 
-    if (applicationType === 'ADVANCE') {
-      return timeLabel;
-    }
-
-    const extraCount =
-      applicationType === 'ADVANCE' && partyDateOptions.length > 1
-        ? ` 외 ${partyDateOptions.length - 1}개 일정`
-        : '';
-
-    return `${dateLabel} ${timeLabel}${extraCount}`;
+    return `${dateLabel} ${timeLabel}`;
   }, [
-    applicationType,
-    partyDateOptions,
+    selectedPartyDate,
     partyStartDateTime,
     partyStartTime,
     partyEndTime,
   ]);
-  const isRecruiting = partyStatus === 'RECRUIT';
-  const showReservationButton = isApplyOpen !== false;
+  const openAdvanceDate =
+    applicationType === 'ADVANCE'
+      ? selectedPartyDate
+      : null;
+  const effectivePartyStatus = openAdvanceDate
+    ? isPartyDateOpen(openAdvanceDate)
+      ? 'RECRUIT'
+      : openAdvanceDate?.partyStatus === 'RECRUIT'
+        ? 'RECRUIT_END'
+        : openAdvanceDate?.partyStatus
+    : partyStatus;
+  const effectiveIsApplyOpen = openAdvanceDate
+    ? isPartyDateOpen(openAdvanceDate)
+    : isApplyOpen;
+  const isNoRecruit = effectivePartyStatus === 'NO_RECRUIT';
+  const isKnownPartyStatus = PARTY_STATUS_LABEL[effectivePartyStatus] != null;
+  const hasRecognizedPartyStatus = isKnownPartyStatus || isNoRecruit;
+  const isRecruiting =
+    effectivePartyStatus === 'RECRUIT' && effectiveIsApplyOpen !== false;
+  const showReservationButton = isKnownPartyStatus && !isNoRecruit;
   const isSameDayApplication = applicationType === 'SAME_DAY';
   const isAdvanceApplication = applicationType === 'ADVANCE';
+  const showPartyDateSelector =
+    showReservationButton &&
+    isAdvanceApplication &&
+    partyDateOptions.length > 0;
+  const selectedStartDateTime = dayjs(
+    selectedPartyDate?.partyStartDateTime ?? partyStartDateTime,
+  );
+  const hasApplicationEnded =
+    (isSameDayApplication || isAdvanceApplication) &&
+    selectedStartDateTime.isValid() &&
+    !selectedStartDateTime.isAfter(dayjs());
+  const canApply = isRecruiting && !hasApplicationEnded;
   const applicationNoticeText = isSameDayApplication
     ? '이 콘텐츠는 당일에만 신청할 수 있어요!'
     : isAdvanceApplication
     ? '이 파티는 진행일 7일 전부터 참여 신청이 가능해요!'
     : '';
-  const reservationButtonText = PARTY_STATUS_LABEL[partyStatus] ?? '신청하기';
+  const reservationButtonText =
+    hasApplicationEnded
+      ? '신청 마감'
+      : effectivePartyStatus === 'RECRUIT_BLOCK'
+      ? '따로 문의해 주세요'
+      : PARTY_STATUS_LABEL[effectivePartyStatus];
   const infoPriceText = useMemo(() => {
     if (chargeType === 'FREE') {
       return '무료';
@@ -567,7 +648,7 @@ const MeetDetail = () => {
   };
 
   const handlePressReservation = () => {
-    if (!isRecruiting || !showReservationButton) {
+    if (!canApply) {
       return;
     }
 
@@ -594,11 +675,15 @@ const MeetDetail = () => {
     }
 
     navigation.navigate('MeetReservation', {
-      partyId,
+      partyId: selectedPartyDate?.partyId ?? partyId,
       partyTitle,
-      partyStartDateTime,
-      partyStartTime,
-      partyEndTime,
+      partyStartDateTime:
+        selectedPartyDate?.partyStartDateTime ?? partyStartDateTime,
+      partyStartTime:
+        selectedPartyDate?.partyStartTime ??
+        selectedPartyDate?.partyStartDateTime ??
+        partyStartTime,
+      partyEndTime: selectedPartyDate?.partyEndTime ?? partyEndTime,
       applicationType,
       partyDateOptions,
       amount,
@@ -1102,12 +1187,78 @@ const MeetDetail = () => {
             </Text>
           </View>
 
+          {isNoRecruit && (
+            <Text style={[FONTS.fs_14_semibold, styles.noRecruitNotice]}>
+              {NO_RECRUIT_NOTICE}
+            </Text>
+          )}
+
+          {!hasRecognizedPartyStatus && (
+            <Text style={[FONTS.fs_14_semibold, styles.unknownStatusNotice]}>
+              {UNKNOWN_PARTY_STATUS_NOTICE}
+            </Text>
+          )}
+
           <View style={styles.scheduleBar}>
             <CalendarIcon width={18} height={18} />
             <Text style={[FONTS.fs_14_regular, styles.scheduleText]}>
               {scheduleText}
             </Text>
           </View>
+
+          {showPartyDateSelector && (
+            <View style={styles.partyDateSection}>
+              <View style={styles.partyDateHeader}>
+                <Text style={[FONTS.fs_16_semibold, styles.partyDateTitle]}>
+                  참여 일정 선택
+                </Text>
+                <Text style={[FONTS.fs_12_medium, styles.partyDateGuide]}>
+                  * 일주일 단위 신청 가능
+                </Text>
+              </View>
+              <ScrollView
+                horizontal
+                nestedScrollEnabled
+                showsHorizontalScrollIndicator={false}
+                contentContainerStyle={styles.partyDateList}>
+                {partyDateOptions.map(option => {
+                  const open = isPartyDateOpen(option);
+                  const selected = option.id === selectedPartyDate?.id;
+                  const date = dayjs(option.partyStartDateTime);
+
+                  return (
+                    <TouchableOpacity
+                      key={String(option.id)}
+                      activeOpacity={0.8}
+                      disabled={!open}
+                      onPress={() => setSelectedPartyDateId(option.id)}
+                      style={[
+                        styles.partyDateCard,
+                        selected && styles.partyDateCardSelected,
+                        !open && styles.partyDateCardDisabled,
+                      ]}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          styles.partyDateCardDate,
+                          !open && styles.partyDateCardTextDisabled,
+                        ]}>
+                        {date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-'}
+                      </Text>
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          styles.partyDateCardStatus,
+                          !open && styles.partyDateCardTextDisabled,
+                        ]}>
+                        {getPartyDateStatusLabel(option)}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
+              </ScrollView>
+            </View>
+          )}
 
           {/* 설명 */}
           {!!description && (
@@ -1119,7 +1270,11 @@ const MeetDetail = () => {
           )}
 
           {/* 하단 탭 */}
-          <View style={styles.tabContainer}>
+          <View
+            style={[
+              styles.tabContainer,
+              showPartyDateSelector && styles.tabContainerAdvance,
+            ]}>
             {TABS.map((tab, index) => (
               <Pressable
                 key={tab.key}
@@ -1168,7 +1323,7 @@ const MeetDetail = () => {
         </View>
       </ScrollView>
 
-      {isRecruiting && showReservationButton && !!applicationNoticeText && (
+      {canApply && showReservationButton && !!applicationNoticeText && (
         <View style={styles.fixedNotice}>
           <BellIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.fixedNoticeText]}>
@@ -1195,9 +1350,9 @@ const MeetDetail = () => {
             activeOpacity={1}
             style={[
               styles.bottomButton,
-              !isRecruiting && styles.bottomButtonDisabled,
+              !canApply && styles.bottomButtonDisabled,
             ]}
-            disabled={!isRecruiting}
+            disabled={!canApply}
             onPress={handlePressReservation}>
             <Text style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_0}]}>
               {reservationButtonText}

@@ -47,7 +47,39 @@ const formatPhoneNumber = phone => {
 const isDateOptionClosed = option =>
   option?.isClosed === true ||
   option?.isApplyOpen === false ||
-  (option?.partyStatus && option.partyStatus !== 'RECRUIT');
+  (option?.partyStatus && option.partyStatus !== 'RECRUIT') ||
+  !dayjs(option?.partyStartDateTime).isAfter(dayjs());
+
+const getDateOptionStatusLabel = option => {
+  if (!isDateOptionClosed(option)) {
+    return '신청 가능';
+  }
+
+  const statusLabel = {
+    CANCELED: '취소',
+    DELETED: '삭제',
+    NO_RECRUIT: '문의',
+    PARTY_END: '종료',
+    RECRUIT_BEFORE: '모집 예정',
+    RECRUIT_BLOCK: '문의',
+    RECRUIT_END: '마감',
+  }[option?.partyStatus];
+
+  if (statusLabel) {
+    return statusLabel;
+  }
+
+  const startDateTime = dayjs(option?.partyStartDateTime);
+  if (startDateTime.isValid() && !startDateTime.isAfter(dayjs())) {
+    return '마감';
+  }
+
+  if (option?.isClosed === true || option?.isApplyOpen === false) {
+    return '마감';
+  }
+
+  return '신청 불가';
+};
 
 const MeetReservation = () => {
   const navigation = useNavigation();
@@ -98,10 +130,7 @@ const MeetReservation = () => {
         const msg = e?.response?.data?.message || e?.message;
         const status = e?.response?.status;
         // 숙박객 전용 접근 제한
-        if (
-          status === 403 ||
-          (typeof msg === 'string' && msg.includes('숙박'))
-        ) {
+        if (typeof msg === 'string' && msg.includes('숙박')) {
           Toast.show({
             type: 'error',
             text1: '숙박객만 참여할 수 있어요',
@@ -110,6 +139,22 @@ const MeetReservation = () => {
           });
           // 디테일 페이지로 이동
           // navigation.replace('MeetDetail', { partyId });
+          navigation.goBack();
+          return;
+        }
+        if (status === 403) {
+          const forbiddenMessage =
+            typeof msg === 'string' && msg.includes('당일 신청만 가능')
+              ? '모임 시작 시간이 지나 신청할 수 없어요.'
+              : typeof msg === 'string' && msg.trim()
+                ? msg
+                : '현재 신청할 수 없는 콘텐츠예요.';
+          Toast.show({
+            type: 'error',
+            text1: forbiddenMessage,
+            position: 'top',
+            visibilityTime: 3000,
+          });
           navigation.goBack();
           return;
         }
@@ -125,19 +170,15 @@ const MeetReservation = () => {
   }, [partyId, navigation]);
 
   const normalizeDateOptions = useCallback(source => {
-    const candidates = [
-      source?.applicationStatuses,
-      source?.partySchedules,
-      source?.schedules,
-      source?.availableSchedules,
-      source?.availableParties,
-      source?.partyDates,
-      source?.partyDateTimes,
-    ].find(Array.isArray);
-    const list = candidates?.length
-      ? candidates
-      : Array.isArray(routePartyDateOptions) && routePartyDateOptions.length
-        ? routePartyDateOptions
+    const sourceApplicationType =
+      source?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
+    const list =
+      sourceApplicationType === 'ADVANCE'
+        ? Array.isArray(source?.applicationStatuses)
+          ? source.applicationStatuses
+          : Array.isArray(routePartyDateOptions)
+            ? routePartyDateOptions
+            : []
         : [source].filter(Boolean);
 
     return list
@@ -195,6 +236,7 @@ const MeetReservation = () => {
       .filter(item => !!item.partyStartDateTime);
   }, [
     partyId,
+    routeApplicationType,
     routePartyDateOptions,
     routePartyEndTime,
     routePartyStartDateTime,
@@ -206,6 +248,28 @@ const MeetReservation = () => {
     [normalizeDateOptions, reservationInfo],
   );
   const [selectedDateIndex, setSelectedDateIndex] = useState(0);
+
+  useEffect(() => {
+    if (dateOptions.length === 0) {
+      return;
+    }
+
+    const routeDateIndex = dateOptions.findIndex(
+      option => String(option?.partyId) === String(partyId),
+    );
+    const firstOpenDateIndex = dateOptions.findIndex(
+      option => !isDateOptionClosed(option),
+    );
+
+    setSelectedDateIndex(
+      routeDateIndex >= 0
+        ? routeDateIndex
+        : firstOpenDateIndex >= 0
+          ? firstOpenDateIndex
+          : 0,
+    );
+  }, [dateOptions, partyId]);
+
   const selectedDateOption = dateOptions[selectedDateIndex] ?? dateOptions[0];
   const applicationType =
     reservationInfo?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
@@ -614,6 +678,7 @@ const MeetReservation = () => {
                     {dateOptions.map((option, index) => {
                       const disabled = isDateOptionClosed(option);
                       const selected = index === selectedDateIndex;
+                      const statusLabel = getDateOptionStatusLabel(option);
 
                       return (
                         <TouchableOpacity
@@ -634,15 +699,14 @@ const MeetReservation = () => {
                             ]}>
                             {formatReservationOption(option)}
                           </Text>
-                          {disabled && (
-                            <Text
-                              style={[
-                                FONTS.fs_12_medium,
-                                styles.dateDropdownClosedText,
-                              ]}>
-                              마감
-                            </Text>
-                          )}
+                          <Text
+                            style={[
+                              FONTS.fs_12_medium,
+                              styles.dateDropdownStatusText,
+                              disabled && styles.dateDropdownClosedText,
+                            ]}>
+                            {statusLabel}
+                          </Text>
                         </TouchableOpacity>
                       );
                     })}
