@@ -33,6 +33,15 @@ const styles = StyleSheet.create({
   dateTimeText: {
     color: COLORS.grayscale_700,
   },
+  statusRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  statusText: {
+    color: COLORS.semantic_red,
+  },
   divide: {
     marginBottom: 12,
     marginTop: 4,
@@ -41,6 +50,7 @@ const styles = StyleSheet.create({
   },
   infoRow: {
     flexDirection: 'row',
+    minWidth: 0,
   },
   image: {
     width: 72,
@@ -49,15 +59,21 @@ const styles = StyleSheet.create({
     marginRight: 12,
   },
   infoContent: {
+    flex: 1,
+    minWidth: 0,
     justifyContent: 'space-between',
     paddingVertical: 12,
   },
   partyTitle: {
     color: COLORS.grayscale_700,
+    flexShrink: 1,
+    width: '100%',
+    minWidth: 0,
   },
   guesthouseText: {
     color: COLORS.grayscale_500,
     flexShrink: 1,
+    minWidth: 0,
   },
 });
 

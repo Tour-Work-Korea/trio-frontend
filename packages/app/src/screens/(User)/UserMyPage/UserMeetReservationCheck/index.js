@@ -1,6 +1,7 @@
 import React, {useState, useCallback} from 'react';
 import {View, Text, TouchableOpacity, BackHandler, ScrollView} from 'react-native';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import dayjs from 'dayjs';
 
 import styles from './UserMeetReservationCheck.styles';
 import Header from '@components/Header';
@@ -86,8 +87,11 @@ const UserMeetReservationCheck = () => {
 
   // 상태별로 분리
   const filteredReservations = {
-    upcoming: reservations.filter(r =>
-      ['PENDING', 'CONFIRMED'].includes(r.reservationStatus),
+    upcoming: reservations.filter(
+      r =>
+        ['PENDING', 'CONFIRMED'].includes(r.reservationStatus) ||
+        (r.approvalStatus === 'REJECTED' &&
+          dayjs(r.startDateTime).isAfter(dayjs())),
     ),
     past: reservations.filter(r => r.reservationStatus === 'COMPLETED'),
     cancelled: reservations.filter(r => r.reservationStatus === 'CANCELLED'),

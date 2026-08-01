@@ -40,7 +40,9 @@ const UserMeetReservationCancelled = () => {
   }, [fetchReservationList]);
 
   const cancelledReservations = reservations.filter(
-    r => r.reservationStatus === 'CANCELLED',
+    r =>
+      r.reservationStatus === 'CANCELLED' ||
+      r.approvalStatus === 'REJECTED',
   );
 
   const renderItem = ({item, index}) => {
@@ -52,6 +54,12 @@ const UserMeetReservationCancelled = () => {
       typeof item.partyImage === 'string'
         ? {uri: item.partyImage}
         : item.partyImage;
+    const statusText =
+      item.approvalStatus === 'REJECTED'
+        ? '신청 반려'
+        : item.cancelledByType === 'HOST'
+          ? '업체 취소'
+          : '신청 취소';
 
     return (
       <View style={styles.listStylesContainer}>
@@ -64,9 +72,14 @@ const UserMeetReservationCancelled = () => {
             })
           }
         >
-          <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
-            {startFormatted.date} {startFormatted.time}
-          </Text>
+          <View style={styles.statusRow}>
+            <Text style={[FONTS.fs_14_semibold, styles.statusText]}>
+              {statusText}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
+              {startFormatted.date} {startFormatted.time}
+            </Text>
+          </View>
 
           <View style={styles.divide} />
 
@@ -98,7 +111,7 @@ const UserMeetReservationCancelled = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="취소된 콘텐츠" />
+      <Header title="취소·반려된 콘텐츠" />
       <View style={styles.content}>
         {loading ? (
           <Loading title="예약 목록을 불러오고 있어요." />
@@ -119,7 +132,7 @@ const UserMeetReservationCancelled = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="취소내역이 없어요"
+                  title="취소·반려 내역이 없어요"
                   description="콘텐츠를 예약하러 가볼까요?"
                   buttonText="콘텐츠 찾아보기"
                   onPressButton={() =>
