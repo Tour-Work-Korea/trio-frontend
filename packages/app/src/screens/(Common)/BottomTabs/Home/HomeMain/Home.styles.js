@@ -16,6 +16,33 @@ export default StyleSheet.create({
       },
     }),
   },
+  notificationButton: {
+    width: 32,
+    height: 32,
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative',
+  },
+  unreadBadge: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+    minWidth: 16,
+    height: 16,
+    paddingHorizontal: 3,
+    borderRadius: 9,
+    backgroundColor: COLORS.primary_orange,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  unreadBadgeText: {
+    color: COLORS.grayscale_0,
+    fontSize: 9,
+    fontWeight: '600',
+    includeFontPadding: false,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+  },
   horizontalList: {
     ...Platform.select({
       web: {

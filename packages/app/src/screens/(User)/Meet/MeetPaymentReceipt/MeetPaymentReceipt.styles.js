@@ -49,6 +49,9 @@ const styles = StyleSheet.create({
   value: {
     color: COLORS.grayscale_800,
   },
+  copyableLocation: {
+    textDecorationLine: 'underline',
+  },
 
   // 안내박스
   noticeBox: {

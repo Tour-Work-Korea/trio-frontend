@@ -18,7 +18,11 @@ const sortOptions = [
 
 const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
   return (
-    <Modal visible={visible} transparent animationType="slide">
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <View style={styles.modal}>
           {/* 헤더 */}

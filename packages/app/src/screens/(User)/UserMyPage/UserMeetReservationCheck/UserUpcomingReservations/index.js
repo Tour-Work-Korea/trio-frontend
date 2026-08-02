@@ -30,6 +30,12 @@ export default function UserUpcomingReservations({data, onRefresh}) {
       typeof item.partyImage === 'string'
         ? {uri: item.partyImage}
         : item.partyImage;
+    const isRejected = item.approvalStatus === 'REJECTED';
+    const statusText = isRejected
+      ? '신청 반려'
+      : item.reservationStatus === 'PENDING'
+        ? '승인 대기 중'
+        : '신청 확정';
 
     return (
       <View style={styles.container}>
@@ -37,10 +43,13 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           style={styles.card}
           activeOpacity={1}
           onPress={() =>
-            navigation.navigate('MeetPaymentReceipt', {
-              reservationId: item.reservationId,
-              partyId: item.partyId,
-            })
+            navigation.navigate(
+              isRejected ? 'MeetCancelledReceipt' : 'MeetPaymentReceipt',
+              {
+                reservationId: item.reservationId,
+                partyId: item.partyId,
+              },
+            )
           }
         >
           {/* 상단 상태 및 날짜/시간 */}
@@ -49,9 +58,10 @@ export default function UserUpcomingReservations({data, onRefresh}) {
               style={[
                 FONTS.fs_16_semibold,
                 styles.statusText,
-                item.reservationStatus === 'PENDING' && styles.pendingText,
+                (item.reservationStatus === 'PENDING' || isRejected) &&
+                  styles.pendingText,
               ]}>
-              {item.reservationStatus === 'PENDING' ? '승인 대기 중' : '신청 확정'}
+              {statusText}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.dateTimeText]}>
               {startFormatted.date} {startFormatted.time}
@@ -82,41 +92,45 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           </View>
 
           {/* 예약취소 */}
-          <TouchableOpacity
-            style={styles.cancelBtn}
-            onPress={() => {
-              if (item.reservationStatus === 'PENDING') {
-                navigation.navigate('MeetCancelConfirm', {
-                  reservationId: item.reservationId,
-                  cancelContext: {
-                    partyTitle: item.partyName,
-                    partyImage: item.partyImage,
-                    guesthouseName: item.guesthouseName,
-                    startDateTime: item.startDateTime,
-                    endDateTime: item.endDateTime,
-                    partyLocation: item.guesthouseAddress,
-                    ...(typeof item.amount === 'number'
-                      ? {paidAmount: item.amount}
-                      : {}),
-                    ...(typeof item.cancelFee === 'number'
-                      ? {cancelFee: item.cancelFee}
-                      : {}),
-                    ...(typeof item.refundAmount === 'number'
-                      ? {refundAmount: item.refundAmount}
-                      : {}),
-                    ...(item.refundMethod
-                      ? {refundMethod: item.refundMethod}
-                      : {}),
-                  },
-                });
-              } else {
-                setContactGuesthouseOpen(true);
-              }
-            }}>
-            <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
-              {item.reservationStatus === 'PENDING' ? '신청취소' : '취소/ 환불 문의'}
-            </Text>
-          </TouchableOpacity>
+          {!isRejected && (
+            <TouchableOpacity
+              style={styles.cancelBtn}
+              onPress={() => {
+                if (item.reservationStatus === 'PENDING') {
+                  navigation.navigate('MeetCancelConfirm', {
+                    reservationId: item.reservationId,
+                    cancelContext: {
+                      partyTitle: item.partyName,
+                      partyImage: item.partyImage,
+                      guesthouseName: item.guesthouseName,
+                      startDateTime: item.startDateTime,
+                      endDateTime: item.endDateTime,
+                      partyLocation: item.guesthouseAddress,
+                      ...(typeof item.amount === 'number'
+                        ? {paidAmount: item.amount}
+                        : {}),
+                      ...(typeof item.cancelFee === 'number'
+                        ? {cancelFee: item.cancelFee}
+                        : {}),
+                      ...(typeof item.refundAmount === 'number'
+                        ? {refundAmount: item.refundAmount}
+                        : {}),
+                      ...(item.refundMethod
+                        ? {refundMethod: item.refundMethod}
+                        : {}),
+                    },
+                  });
+                } else {
+                  setContactGuesthouseOpen(true);
+                }
+              }}>
+              <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
+                {item.reservationStatus === 'PENDING'
+                  ? '신청취소'
+                  : '취소/ 환불 문의'}
+              </Text>
+            </TouchableOpacity>
+          )}
         </TouchableOpacity>
 
       </View>
@@ -162,6 +176,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
 const styles = StyleSheet.create({
   container: {
     paddingHorizontal: 20,
+    marginBottom: 12,
   },
 
   // 리스트

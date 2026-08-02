@@ -1,5 +1,14 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import { View, Text, FlatList, ActivityIndicator, RefreshControl, TouchableOpacity, ScrollView } from 'react-native';
+import {
+  View,
+  Text,
+  FlatList,
+  ActivityIndicator,
+  RefreshControl,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
@@ -20,7 +29,11 @@ const getDisplayRating = rating => {
   return Number.isFinite(ratingNumber) ? ratingNumber.toFixed(1) : '0.0';
 };
 
-const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) => {
+const GuesthouseReview = ({
+  guesthouseId,
+  averageRating = 0,
+  totalCount = 0,
+}) => {
   const loadingRef = useRef(false);
   const lastPageRef = useRef(false);
   const hasUserScrolledRef = useRef(false);
@@ -33,6 +46,33 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [modalIndex, setModalIndex] = useState(0);
+  const [modalSourceKeys, setModalSourceKeys] = useState([]);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback((sourceKey, imageIndex) => {
+    const target = imageSourceRefs.current.get(sourceKey);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        imageIndex,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height, imageIndex});
+      }
+    });
+  }, []);
 
   // 첫 로드 or 새로고침
   const fetchReviews = useCallback(
@@ -115,14 +155,25 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
   }, [fetchReviews]);
 
   // 이미지 모달
-  const openImageModal = useCallback((images, index) => {
-    setModalImages(images.map((url, i) => ({ id: i.toString(), imageUrl: url })));
-    setModalIndex(index);
-    setImageModalVisible(true);
-  }, []);
+  const openImageModal = useCallback(
+    (reviewId, images, index) => {
+      const sourceKeys = images.map(
+        (url, imageIndex) => `review:${reviewId}:${url ?? imageIndex}`,
+      );
+      setModalImages(
+        images.map((url, i) => ({id: i.toString(), imageUrl: url})),
+      );
+      setModalSourceKeys(sourceKeys);
+      setModalIndex(index);
+      setImageSourceRect(null);
+      setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
+    },
+    [measureImageSource],
+  );
 
   const renderItem = useCallback(
-    ({ item, index }) => {
+    ({item, index}) => {
       const hasImages = item.imgUrls && item.imgUrls.length > 0;
       const displayRating = getDisplayRating(item.reviewRating);
 
@@ -130,12 +181,21 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         <View style={styles.reviewContainer}>
           <View style={styles.reviewHeaderContainer}>
             <View style={styles.userProfileContainer}>
-              <Avatar uri={item.userImgUrl} size={44} iconSize={18} style={styles.userImage} />
-              <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>{item.nickname}</Text>
+              <Avatar
+                uri={item.userImgUrl}
+                size={44}
+                iconSize={18}
+                style={styles.userImage}
+              />
+              <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>
+                {item.nickname}
+              </Text>
             </View>
             <View style={styles.userRatingContainer}>
               <Star width={14} height={14} />
-              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>{displayRating}</Text>
+              <Text style={[FONTS.fs_14_semibold, styles.userRatingText]}>
+                {displayRating}
+              </Text>
             </View>
           </View>
 
@@ -149,22 +209,49 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
                 showsHorizontalScrollIndicator={false}
                 onStartShouldSetResponderCapture={() => true}
                 onMoveShouldSetResponderCapture={() => true}
-                contentContainerStyle={{ flexDirection: 'row', marginBottom: 6, gap: 4 }}
-              >
+                contentContainerStyle={{
+                  flexDirection: 'row',
+                  marginBottom: 6,
+                  gap: 4,
+                }}>
                 {item.imgUrls.map((imgUrl, i) => (
                   <TouchableOpacity
-                    activeOpacity={1} key={i} onPress={() => openImageModal(item.imgUrls, i)}>
-                    <AppImage uri={imgUrl} style={styles.reviewImage} />
+                    ref={node => {
+                      const sourceKey = `review:${item.id}:${imgUrl ?? i}`;
+                      if (node) {
+                        imageSourceRefs.current.set(sourceKey, node);
+                      } else {
+                        imageSourceRefs.current.delete(sourceKey);
+                      }
+                    }}
+                    activeOpacity={1}
+                    key={i}
+                    onPress={() => openImageModal(item.id, item.imgUrls, i)}>
+                    <AppImage
+                      uri={imgUrl}
+                      style={[
+                        styles.reviewImage,
+                        imageModalVisible &&
+                          modalSourceKeys[modalIndex] ===
+                            `review:${item.id}:${imgUrl ?? i}` && {
+                            opacity: 0,
+                          },
+                      ]}
+                    />
                   </TouchableOpacity>
                 ))}
               </ScrollView>
             </View>
           )}
 
-          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>{item.reviewDetail}</Text>
+          <Text style={[FONTS.fs_14_regular, styles.reviewText]}>
+            {item.reviewDetail}
+          </Text>
           {item.replies && item.replies.length > 0 && (
             <View style={styles.replyContainer}>
-              <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>사장님의 한마디</Text>
+              <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>
+                사장님의 한마디
+              </Text>
               {item.replies.map((reply, ri) => (
                 <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
                   {reply}
@@ -175,7 +262,7 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         </View>
       );
     },
-    [openImageModal]
+    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
   );
 
   const keyExtractor = useCallback(item => item.id?.toString(), []);
@@ -189,19 +276,22 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
         onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
         onScrollBeginDrag={handleScrollBeginDrag}
-        ListFooterComponent={loading && !refreshing ? <ActivityIndicator /> : null}
+        ListFooterComponent={
+          loading && !refreshing ? <ActivityIndicator /> : null
+        }
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
         }
         ListEmptyComponent={
-          !loading &&
-          <View style={styles.emptyReviewContainer}>
-            <NoReviewIcon />
-            <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-              아직 등록된 리뷰가 없어요.{'\n'}
-              당신의 첫 리뷰를 남겨주세요!
-            </Text>
-          </View>
+          !loading && (
+            <View style={styles.emptyReviewContainer}>
+              <NoReviewIcon />
+              <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
+                아직 등록된 리뷰가 없어요.{'\n'}
+                당신의 첫 리뷰를 남겨주세요!
+              </Text>
+            </View>
+          )
         }
       />
 
@@ -211,6 +301,13 @@ const GuesthouseReview = ({ guesthouseId, averageRating = 0, totalCount = 0 }) =
           visible={imageModalVisible}
           images={modalImages}
           selectedImageIndex={modalIndex}
+          sourceRect={imageSourceRect}
+          sourceBorderRadius={4}
+          fallbackDismissMode="fade"
+          onImageIndexChange={index => {
+            setModalIndex(index);
+            measureImageSource(modalSourceKeys[index], index);
+          }}
           onClose={() => setImageModalVisible(false)}
         />
       )}

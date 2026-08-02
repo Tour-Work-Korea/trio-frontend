@@ -1,5 +1,10 @@
-import {Platform, StyleSheet} from 'react-native';
+import {Dimensions, Platform, StyleSheet} from 'react-native';
 import { COLORS } from '@constants/colors';
+
+const TODAY_PARTY_CARD_WIDTH =
+  (Platform.OS === 'web'
+    ? Math.min(Dimensions.get('window').width, 430)
+    : Dimensions.get('window').width) - 40;
 
 const styles = StyleSheet.create({
   container: {
@@ -168,9 +173,16 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
     marginBottom: 8,
   },
+  todayContentCount: {
+    color: COLORS.primary_orange,
+  },
   todayPartyList: {
   },
+  todayPartyListHorizontal: {
+    gap: 12,
+  },
   todayPartyCard: {
+    width: TODAY_PARTY_CARD_WIDTH,
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
     borderRadius: 12,

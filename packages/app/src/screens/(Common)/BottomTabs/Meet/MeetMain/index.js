@@ -17,27 +17,53 @@ import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
-import SortIcon from '@assets/images/sort_toggle_gray.svg';
 import ChevronRightBlue from '@assets/images/chevron_right_blue.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import PeopleIcon from '@assets/images/people_gray.svg';
+import MapPinIcon from '@assets/images/map_pin_fill_gray.svg';
 
 import {meetScales, stayTypes} from '@constants/meetOptions';
 
-const MEET_CACHE_TTL_MS = 60 * 1000;
+const getPartyDisplayKey = party => {
+  if (party?.applicationType === 'ADVANCE') {
+    return [
+      party?.contentId,
+      party?.partyGroupId,
+      party?.guesthouseId,
+      party?.partyTitle,
+      party?.partyImageUrl,
+    ]
+      .filter(Boolean)
+      .join('|');
+  }
+
+  return String(party?.partyId ?? '');
+};
 
 const MeetMain = () => {
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
-  const lastFetchRef = useRef({key: null, time: 0});
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
+  const [filterInitialScrollTarget, setFilterInitialScrollTarget] =
+    useState(null);
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [sortOption, setSortOption] = useState('RECOMMEND');
+  const [filters, setFilters] = useState({
+    hasApplied: false,
+    contentTypes: undefined,
+    isGuest: null,
+    attendeeRange: undefined,
+    priceOption: 'all',
+    priceRange: undefined,
+    minPrice: undefined,
+    maxPrice: undefined,
+  });
 
   const [scaleId, setScaleId] = useState(null);
   const [stayId, setStayId] = useState(null);
@@ -55,21 +81,12 @@ const MeetMain = () => {
   const [loading, setLoading] = useState(false);
 
   const requestKey = useMemo(
-    () => JSON.stringify({sortOption, scaleId, stayId}),
-    [sortOption, scaleId, stayId],
+    () => JSON.stringify({sortOption, scaleId, stayId, filters}),
+    [sortOption, scaleId, stayId, filters],
   );
 
   const fetchRecent = useCallback(async () => {
-    const now = Date.now();
-
     if (inFlightKeyRef.current === requestKey) {
-      return;
-    }
-
-    if (
-      lastFetchRef.current.key === requestKey &&
-      now - lastFetchRef.current.time < MEET_CACHE_TTL_MS
-    ) {
       return;
     }
 
@@ -84,22 +101,36 @@ const MeetMain = () => {
       if (stayId) {
         params.isGuest = isGuestById[stayId];
       }
+      if (filters.contentTypes?.length) {
+        params.contentTypes = filters.contentTypes;
+      }
+      if (filters.isGuest !== null && filters.isGuest !== undefined) {
+        params.isGuest = filters.isGuest;
+      }
+      if (filters.attendeeRange) {
+        params.attendeeRange = filters.attendeeRange;
+      }
+      if (filters.priceRange) {
+        params.priceRange = filters.priceRange;
+      }
+      if (filters.minPrice !== undefined) {
+        params.minPrice = filters.minPrice;
+      }
+      if (filters.maxPrice !== undefined) {
+        params.maxPrice = filters.maxPrice;
+      }
 
       const {data} = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
       setMeets(list);
       prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 8});
-      lastFetchRef.current = {
-        key: requestKey,
-        time: Date.now(),
-      };
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
       inFlightKeyRef.current = null;
       setLoading(false);
     }
-  }, [requestKey, sortOption, scaleId, stayId, isBigById, isGuestById]);
+  }, [requestKey, sortOption, scaleId, stayId, filters, isBigById, isGuestById]);
 
   useFocusEffect(
     useCallback(() => {
@@ -111,7 +142,19 @@ const MeetMain = () => {
     const sorted = [...meets].sort(
       (a, b) => dayjs(a.partyStartDateTime).valueOf() - dayjs(b.partyStartDateTime).valueOf(),
     );
-    const grouped = sorted.reduce((acc, party) => {
+    const uniqueParties = sorted.reduce((acc, party) => {
+      const key = getPartyDisplayKey(party);
+
+      if (!key || acc.seen.has(key)) {
+        return acc;
+      }
+
+      acc.seen.add(key);
+      acc.items.push(party);
+      return acc;
+    }, {seen: new Set(), items: []}).items;
+
+    const grouped = uniqueParties.reduce((acc, party) => {
       const guesthouseName = party.guesthouseName || '게스트하우스';
       const guesthouseId = party.guesthouseId ?? party.guesthouse?.id ?? null;
       const key = guesthouseId ? `${guesthouseId}` : guesthouseName;
@@ -130,7 +173,7 @@ const MeetMain = () => {
 
   function formatWhenTime(isoStr) {
     const d = dayjs(isoStr);
-    return `${d.format('M/D')}, ${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+    return `${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
   }
 
   const handleToggleFavorite = async item => {
@@ -175,16 +218,22 @@ const MeetMain = () => {
                 )}
               </TouchableOpacity>
             </View>
+            <View style={styles.partyMetaRow}>
+              <MapPinIcon width={16} height={16} />
+              <Text
+                style={[FONTS.fs_12_medium, styles.partyMetaText]}
+                numberOfLines={1}>
+                {trimJejuPrefix(item.location)} ·{' '}
+                {formatWhenTime(item.partyStartDateTime)}
+              </Text>
+            </View>
             <View style={styles.partyPeopleRow}>
               <PeopleIcon width={16} height={16} />
-              <Text style={[FONTS.fs_12_medium, styles.partyPeople]}>
+              <Text style={[FONTS.fs_12_medium, styles.partyMetaText]}>
                 최대인원 {item.maxAttendance}명
               </Text>
             </View>
           </View>
-          <Text style={[FONTS.fs_14_medium, styles.partyTime]}>
-            {formatWhenTime(item.partyStartDateTime)}
-          </Text>
         </View>
       </TouchableOpacity>
     );
@@ -237,7 +286,17 @@ const MeetMain = () => {
     );
   };
 
-  const quickTags = ['제주 전체', '동반지원', '파티'];
+  const openFilterModal = target => {
+    setFilterInitialScrollTarget(target ?? null);
+    setFilterModalVisible(true);
+  };
+
+  const quickTags = [
+    {label: '카테고리', target: 'category'},
+    {label: '참여 대상', target: 'guest'},
+    {label: '정원', target: 'capacity'},
+    {label: '가격', target: 'price'},
+  ];
 
   return (
     <View style={styles.container}>
@@ -274,7 +333,7 @@ const MeetMain = () => {
                   <TouchableOpacity
                     activeOpacity={1}
                     style={styles.filterButton}
-                    onPress={() => setFilterModalVisible(true)}>
+                    onPress={() => openFilterModal(null)}>
                     <FilterIcon width={18} height={18} />
                     <Text style={[FONTS.fs_16_medium, styles.filterText]}>필터</Text>
                   </TouchableOpacity>
@@ -284,21 +343,25 @@ const MeetMain = () => {
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.quickTagScroll}>
                     {quickTags.map(tag => (
-                      <View key={tag} style={styles.quickTagChip}>
+                      <TouchableOpacity
+                        activeOpacity={1}
+                        key={tag.label}
+                        style={styles.quickTagChip}
+                        onPress={() => openFilterModal(tag.target)}>
                         <Text style={[FONTS.fs_14_medium, styles.quickTagText]}>
-                          {tag}
+                          {tag.label}
                         </Text>
-                      </View>
+                      </TouchableOpacity>
                     ))}
                   </ScrollView>
                 </View>
-                <TouchableOpacity
+                {/* <TouchableOpacity
                   activeOpacity={1}
                   style={styles.sortButton}
                   onPress={() => setSortModalVisible(true)}>
                   <SortIcon width={20} height={20} />
                   <Text style={[FONTS.fs_16_medium, styles.sortText]}>정렬</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
               </View>
             </View>
           }
@@ -319,9 +382,12 @@ const MeetMain = () => {
       <MeetFilterModal
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
+        initialFilters={filters}
+        initialScrollTarget={filterInitialScrollTarget}
         onApply={next => {
-          setScaleId(next.selectedScale ?? null);
-          setStayId(next.selectedStay ?? null);
+          setFilters(next);
+          setScaleId(null);
+          setStayId(null);
           setFilterModalVisible(false);
         }}
       />

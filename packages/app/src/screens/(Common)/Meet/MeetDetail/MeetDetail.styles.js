@@ -38,7 +38,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     left: 12,
     top: 0,
-    backgroundColor: 'rgba(0,0,0,0.14)',
+    backgroundColor: COLORS.modal_background,
     alignItems: 'center',
     justifyContent: 'center',
     width: 28,
@@ -46,7 +46,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
   },
   shareButton: {
-    backgroundColor: 'rgba(0,0,0,0.14)',
+    backgroundColor: COLORS.modal_background,
     position: 'absolute',
     right: 12,
     top: 0,
@@ -123,6 +123,76 @@ const styles = StyleSheet.create({
   scheduleText: {
     color: COLORS.grayscale_700,
   },
+  partyDateSection: {
+    marginTop: 12,
+    paddingVertical: 16,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  partyDateHeader: {
+    paddingHorizontal: 16,
+    marginBottom: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 8,
+  },
+  partyDateTitle: {
+    color: COLORS.grayscale_900,
+  },
+  partyDateGuide: {
+    color: COLORS.primary_orange,
+    flexShrink: 1,
+    textAlign: 'right',
+  },
+  partyDateList: {
+    paddingHorizontal: 16,
+    paddingBottom: 2,
+    gap: 10,
+  },
+  partyDateCard: {
+    width: 138,
+    minHeight: 78,
+    paddingHorizontal: 10,
+    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_300,
+    borderRadius: 14,
+    backgroundColor: COLORS.grayscale_0,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+  },
+  partyDateCardSelected: {
+    borderWidth: 2,
+    borderColor: COLORS.primary_orange,
+    paddingHorizontal: 9,
+    paddingVertical: 13,
+  },
+  partyDateCardDisabled: {
+    borderColor: COLORS.grayscale_200,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  partyDateCardDate: {
+    color: COLORS.grayscale_800,
+  },
+  partyDateCardStatus: {
+    color: COLORS.primary_orange,
+  },
+  partyDateCardTextDisabled: {
+    color: COLORS.grayscale_400,
+  },
+  unknownStatusNotice: {
+    marginTop: 12,
+    paddingHorizontal: 20,
+    color: COLORS.semantic_red,
+    textAlign: 'center',
+  },
+  noRecruitNotice: {
+    marginTop: 12,
+    paddingHorizontal: 20,
+    color: COLORS.grayscale_500,
+    textAlign: 'center',
+  },
   // 설명
   descriptionContainer: {
     backgroundColor: COLORS.grayscale_0,
@@ -130,7 +200,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     borderRadius: 8,
     marginHorizontal: 16,
-    marginTop: 12,
+    // marginTop: 12,
     marginBottom: 4,
   },
   description: {
@@ -147,6 +217,9 @@ const styles = StyleSheet.create({
     borderBottomColor: COLORS.grayscale_200,
     backgroundColor: COLORS.grayscale_0,
     paddingTop: 20,
+  },
+  tabContainerAdvance: {
+    marginTop: 4,
   },
   tabButton: {
     paddingBottom: 10,
@@ -192,6 +265,28 @@ const styles = StyleSheet.create({
     paddingBottom: 180,
   },
   // 상세 안내
+  partyInfoSummary: {
+    gap: 8,
+    marginBottom: 18,
+  },
+  partyInfoSummaryTitle: {
+    color: COLORS.grayscale_900,
+  },
+  partyInfoSummarySubTitle: {
+    color: COLORS.grayscale_600,
+    marginBottom: 8,
+  },
+  partyInfoSummaryList: {
+    gap: 10,
+  },
+  partyInfoSummaryRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  partyInfoSummaryText: {
+    color: COLORS.grayscale_600,
+  },
   infoTextContainer: {
     borderRadius: 8,
     marginBottom: 20,

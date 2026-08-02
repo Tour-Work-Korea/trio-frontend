@@ -54,6 +54,64 @@ const styles = StyleSheet.create({
   userInfoTitle: {
     color: COLORS.grayscale_600,
   },
+  reservationPriceText: {
+    color: COLORS.grayscale_600,
+  },
+  dateSelector: {
+    minHeight: 44,
+    borderRadius: 22,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  dateSelectorOpen: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  dateSelectorText: {
+    color: COLORS.grayscale_900,
+  },
+  dateDropdownList: {
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: COLORS.grayscale_200,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  dateDropdownItem: {
+    minHeight: 44,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_200,
+  },
+  dateDropdownItemSelected: {
+    backgroundColor: COLORS.grayscale_0,
+  },
+  dateDropdownItemDisabled: {
+    backgroundColor: COLORS.grayscale_100,
+  },
+  dateDropdownText: {
+    color: COLORS.grayscale_900,
+  },
+  dateDropdownTextDisabled: {
+    color: COLORS.grayscale_400,
+    textDecorationLine: 'line-through',
+  },
+  dateDropdownStatusText: {
+    color: COLORS.primary_orange,
+  },
+  dateDropdownClosedText: {
+    color: COLORS.grayscale_400,
+  },
 
   // 요청 사항
   inputWrapper: {

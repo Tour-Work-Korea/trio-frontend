@@ -48,6 +48,8 @@ const COMMENT_PAGE_SIZE = 20;
 const COMMENT_HIGHLIGHT_DURATION = 1700;
 const COMMENT_INPUT_MIN_HEIGHT = 44;
 const COMMENT_INPUT_MAX_HEIGHT = 88;
+const COMMENT_THREAD_CONNECTOR_TOP = 40;
+const COMMENT_REPLY_AVATAR_CENTER_Y = 30;
 const MB = 1024 * 1024;
 const JPEG_CONTENT_TYPE = 'image/jpeg';
 const COMMENT_IMAGE_LIMITS = {
@@ -138,8 +140,7 @@ const CommunityDetail = ({route}) => {
     focusCommentInput,
     fallbackRouteName,
     sourceTab,
-  } =
-    route.params ?? {};
+  } = route.params ?? {};
   const currentUserPhotoUrl = useUserStore(
     state => state.userProfile?.photoUrl,
   );
@@ -149,6 +150,8 @@ const CommunityDetail = ({route}) => {
   const commentLayoutMapRef = useRef({});
   const commentListOffsetYRef = useRef(0);
   const replySectionLayoutMapRef = useRef({});
+  const replySectionOffsetMapRef = useRef({});
+  const lastReplyOffsetMapRef = useRef({});
   const highlightTimerRef = useRef(null);
   const [post, setPost] = useState(null);
   const [comments, setComments] = useState([]);
@@ -167,11 +170,39 @@ const CommunityDetail = ({route}) => {
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [modalImages, setModalImages] = useState([]);
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
+  const [modalSourceKeys, setModalSourceKeys] = useState([]);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback((sourceKey, imageIndex) => {
+    const target = imageSourceRefs.current.get(sourceKey);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        imageIndex,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height, imageIndex});
+      }
+    });
+  }, []);
   const [editingTarget, setEditingTarget] = useState(null);
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [isTogglingLike, setIsTogglingLike] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState(null);
   const [highlightedCommentId, setHighlightedCommentId] = useState(null);
+  const [replyConnectorEndYMap, setReplyConnectorEndYMap] = useState({});
   const [commentAlert, setCommentAlert] = useState({
     visible: false,
     title: '',
@@ -236,6 +267,9 @@ const CommunityDetail = ({route}) => {
         commentLayoutMapRef.current = {};
         commentListOffsetYRef.current = 0;
         replySectionLayoutMapRef.current = {};
+        replySectionOffsetMapRef.current = {};
+        lastReplyOffsetMapRef.current = {};
+        setReplyConnectorEndYMap({});
         const anchor = await resolveCommentAnchor();
         const initialCommentPage = getAnchorPage(anchor);
         const anchorCommentId = getAnchorCommentId(anchor, targetCommentId);
@@ -430,10 +464,7 @@ const CommunityDetail = ({route}) => {
     }
 
     const nextHeight = Math.min(
-      Math.max(
-        event.nativeEvent.contentSize.height,
-        COMMENT_INPUT_MIN_HEIGHT,
-      ),
+      Math.max(event.nativeEvent.contentSize.height, COMMENT_INPUT_MIN_HEIGHT),
       COMMENT_INPUT_MAX_HEIGHT,
     );
 
@@ -835,10 +866,7 @@ const CommunityDetail = ({route}) => {
 
     const wasLiked = Boolean(post.isLiked);
     const previousLikeCount = Number(post.likeCount || 0);
-    const nextLikeCount = Math.max(
-      0,
-      previousLikeCount + (wasLiked ? -1 : 1),
-    );
+    const nextLikeCount = Math.max(0, previousLikeCount + (wasLiked ? -1 : 1));
 
     setPost(prev =>
       prev
@@ -998,10 +1026,7 @@ const CommunityDetail = ({route}) => {
   const handleToggleCommentLike = async item => {
     const wasLiked = Boolean(item.isLiked);
     const previousLikeCount = Number(item.likeCount || 0);
-    const nextLikeCount = Math.max(
-      0,
-      previousLikeCount + (wasLiked ? -1 : 1),
-    );
+    const nextLikeCount = Math.max(0, previousLikeCount + (wasLiked ? -1 : 1));
 
     updateCommentLikeState(item.commentId, !wasLiked, nextLikeCount);
 
@@ -1069,6 +1094,19 @@ const CommunityDetail = ({route}) => {
     }
   };
 
+  const updateReplyConnectorEndY = useCallback((commentId, endY) => {
+    setReplyConnectorEndYMap(prev => {
+      if (Math.abs((prev[commentId] ?? 0) - endY) < 0.5) {
+        return prev;
+      }
+
+      return {
+        ...prev,
+        [commentId]: endY,
+      };
+    });
+  }, []);
+
   const renderPostImages = images => {
     if (!images?.length) {
       return null;
@@ -1080,17 +1118,40 @@ const CommunityDetail = ({route}) => {
       id: image.imageId ?? image.objectKey ?? index,
       imageUrl: image.imageUrl,
     }));
+    const sourceKeys = sortedImages.map(
+      (image, index) =>
+        `community:${
+          image.imageId ?? image.objectKey ?? image.imageUrl ?? index
+        }`,
+    );
     const openPostImageModal = index => {
       setModalImages(imageModalItems);
+      setModalSourceKeys(sourceKeys);
       setSelectedImageIndex(index);
+      setImageSourceRect(null);
       setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     };
 
     if (sortedImages.length === 1) {
       return (
         <TouchableOpacity
+          ref={node => {
+            const sourceKey = sourceKeys[0];
+            if (node) {
+              imageSourceRefs.current.set(sourceKey, node);
+            } else {
+              imageSourceRefs.current.delete(sourceKey);
+            }
+          }}
           activeOpacity={0.9}
-          style={styles.singlePostImage}
+          style={[
+            styles.singlePostImage,
+            imageModalVisible &&
+              modalSourceKeys[selectedImageIndex] === sourceKeys[0] && {
+                opacity: 0,
+              },
+          ]}
           onPress={() => openPostImageModal(0)}>
           <AppImage
             uri={sortedImages[0].imageUrl}
@@ -1109,8 +1170,22 @@ const CommunityDetail = ({route}) => {
         {sortedImages.map((image, index) => (
           <TouchableOpacity
             key={image.imageId ?? index}
+            ref={node => {
+              const sourceKey = sourceKeys[index];
+              if (node) {
+                imageSourceRefs.current.set(sourceKey, node);
+              } else {
+                imageSourceRefs.current.delete(sourceKey);
+              }
+            }}
             activeOpacity={0.9}
-            style={styles.multiPostImage}
+            style={[
+              styles.multiPostImage,
+              imageModalVisible &&
+                modalSourceKeys[selectedImageIndex] === sourceKeys[index] && {
+                  opacity: 0,
+                },
+            ]}
             onPress={() => openPostImageModal(index)}>
             <AppImage
               uri={image.imageUrl}
@@ -1203,17 +1278,40 @@ const CommunityDetail = ({route}) => {
       id: image.imageId ?? image.objectKey ?? index,
       imageUrl: image.imageUrl,
     }));
+    const sourceKeys = sortedImages.map(
+      (image, index) =>
+        `community:${
+          image.imageId ?? image.objectKey ?? image.imageUrl ?? index
+        }`,
+    );
     const openCommentImageModal = index => {
       setModalImages(imageModalItems);
+      setModalSourceKeys(sourceKeys);
       setSelectedImageIndex(index);
+      setImageSourceRect(null);
       setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(sourceKeys[index], index));
     };
 
     if (sortedImages.length === 1) {
       return (
         <TouchableOpacity
+          ref={node => {
+            const sourceKey = sourceKeys[0];
+            if (node) {
+              imageSourceRefs.current.set(sourceKey, node);
+            } else {
+              imageSourceRefs.current.delete(sourceKey);
+            }
+          }}
           activeOpacity={0.9}
-          style={styles.singleCommentImageButton}
+          style={[
+            styles.singleCommentImageButton,
+            imageModalVisible &&
+              modalSourceKeys[selectedImageIndex] === sourceKeys[0] && {
+                opacity: 0,
+              },
+          ]}
           onPress={() => openCommentImageModal(0)}>
           <AppImage
             uri={sortedImages[0].imageUrl}
@@ -1234,8 +1332,22 @@ const CommunityDetail = ({route}) => {
         {sortedImages.map((image, index) => (
           <TouchableOpacity
             key={image.imageId ?? image.objectKey ?? index}
+            ref={node => {
+              const sourceKey = sourceKeys[index];
+              if (node) {
+                imageSourceRefs.current.set(sourceKey, node);
+              } else {
+                imageSourceRefs.current.delete(sourceKey);
+              }
+            }}
             activeOpacity={0.9}
-            style={styles.commentImageButton}
+            style={[
+              styles.commentImageButton,
+              imageModalVisible &&
+                modalSourceKeys[selectedImageIndex] === sourceKeys[index] && {
+                  opacity: 0,
+                },
+            ]}
             onPress={() => openCommentImageModal(index)}>
             <AppImage
               uri={image.imageUrl}
@@ -1351,7 +1463,20 @@ const CommunityDetail = ({route}) => {
           event.nativeEvent.layout.y;
       }}>
       {comment.replies?.length ? (
-        <View style={styles.commentThreadConnector} />
+        <View
+          style={[
+            styles.commentThreadConnector,
+            replyConnectorEndYMap[comment.commentId]
+              ? {
+                  height: Math.max(
+                    replyConnectorEndYMap[comment.commentId] -
+                      COMMENT_THREAD_CONNECTOR_TOP,
+                    0,
+                  ),
+                }
+              : styles.commentThreadConnectorFallback,
+          ]}
+        />
       ) : null}
 
       <View
@@ -1402,12 +1527,22 @@ const CommunityDetail = ({route}) => {
         <View
           style={styles.replySection}
           onLayout={event => {
+            replySectionOffsetMapRef.current[comment.commentId] =
+              event.nativeEvent.layout.y;
             replySectionLayoutMapRef.current[comment.commentId] =
               (commentLayoutMapRef.current[comment.commentId] ?? 0) +
               event.nativeEvent.layout.y;
+            if (lastReplyOffsetMapRef.current[comment.commentId] != null) {
+              updateReplyConnectorEndY(
+                comment.commentId,
+                event.nativeEvent.layout.y +
+                  lastReplyOffsetMapRef.current[comment.commentId] +
+                  COMMENT_REPLY_AVATAR_CENTER_Y,
+              );
+            }
           }}>
           <View style={styles.replyList}>
-            {comment.replies.map(reply => (
+            {comment.replies.map((reply, index) => (
               <View
                 key={reply.commentId}
                 style={[
@@ -1420,6 +1555,17 @@ const CommunityDetail = ({route}) => {
                     (replySectionLayoutMapRef.current[comment.commentId] ??
                       commentLayoutMapRef.current[comment.commentId] ??
                       0) + event.nativeEvent.layout.y;
+                  if (index === comment.replies.length - 1) {
+                    lastReplyOffsetMapRef.current[comment.commentId] =
+                      event.nativeEvent.layout.y;
+                    updateReplyConnectorEndY(
+                      comment.commentId,
+                      (replySectionOffsetMapRef.current[comment.commentId] ??
+                        0) +
+                        event.nativeEvent.layout.y +
+                        COMMENT_REPLY_AVATAR_CENTER_Y,
+                    );
+                  }
                 }}>
                 <Avatar
                   uri={reply.author?.profileImageUrl}
@@ -1429,7 +1575,8 @@ const CommunityDetail = ({route}) => {
                 />
                 <View style={styles.commentBody}>
                   <View style={styles.commentHeader}>
-                    <Text style={[FONTS.fs_14_semibold, styles.commentNickname]}>
+                    <Text
+                      style={[FONTS.fs_14_semibold, styles.commentNickname]}>
                       {reply.author?.nickname}
                     </Text>
                     <Text style={[FONTS.fs_14_regular, styles.commentTime]}>
@@ -1448,7 +1595,8 @@ const CommunityDetail = ({route}) => {
                   <View
                     style={[
                       styles.commentMetaActions,
-                      reply.images?.length && styles.commentMetaActionsWithImages,
+                      reply.images?.length &&
+                        styles.commentMetaActionsWithImages,
                     ]}>
                     {renderActionRow(reply, {
                       showComment: false,
@@ -1477,9 +1625,7 @@ const CommunityDetail = ({route}) => {
   );
 
   return (
-    <KeyboardAvoidingView
-      style={styles.container}
-      behavior={undefined}>
+    <KeyboardAvoidingView style={styles.container} behavior={undefined}>
       <Header
         title={post?.categoryDisplayName || ''}
         onPress={handlePressBack}
@@ -1491,65 +1637,65 @@ const CommunityDetail = ({route}) => {
         <TouchableWithoutFeedback
           onPress={handleDismissCommentInput}
           accessible={false}>
-        <ScrollView
-          ref={scrollViewRef}
-          showsVerticalScrollIndicator={false}
-          keyboardShouldPersistTaps="handled"
-          onStartShouldSetResponderCapture={handleDismissCommentInput}
-          onScrollBeginDrag={Keyboard.dismiss}
-          onScroll={handleScroll}
-          scrollEventThrottle={16}
-          contentContainerStyle={styles.content}>
-          <View style={styles.postHeader}>
-            <Avatar
-              uri={post?.author?.profileImageUrl}
-              size={32}
-              iconSize={16}
-              style={styles.postAvatar}
-            />
-            <Text style={[FONTS.fs_16_medium, styles.postNickname]}>
-              {post?.author?.nickname}
-            </Text>
-            <Text style={[FONTS.fs_14_regular, styles.postTime]}>
-              {formatRelativeTime(post?.createdAt)}
-            </Text>
-          </View>
-
-          <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-            {post?.title}
-          </Text>
-          <Text style={[FONTS.fs_16_regular, styles.postContent]}>
-            {post?.content}
-          </Text>
-
-          {renderPostLocation(post?.location)}
-          {renderPostImages(post.images)}
-          {renderActionRow(post, {likeable: true})}
-
-          {shouldShowAd ? (
-            <View style={styles.adBannerContainer}>
-              <BannerAd
-                unitId={communityDetailBannerAdUnitId}
-                size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+          <ScrollView
+            ref={scrollViewRef}
+            showsVerticalScrollIndicator={false}
+            keyboardShouldPersistTaps="handled"
+            onStartShouldSetResponderCapture={handleDismissCommentInput}
+            onScrollBeginDrag={Keyboard.dismiss}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
+            contentContainerStyle={styles.content}>
+            <View style={styles.postHeader}>
+              <Avatar
+                uri={post?.author?.profileImageUrl}
+                size={32}
+                iconSize={16}
+                style={styles.postAvatar}
               />
+              <Text style={[FONTS.fs_16_medium, styles.postNickname]}>
+                {post?.author?.nickname}
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.postTime]}>
+                {formatRelativeTime(post?.createdAt)}
+              </Text>
             </View>
-          ) : null}
 
-          <View
-            style={styles.commentList}
-            onLayout={event => {
-              commentListOffsetYRef.current = event.nativeEvent.layout.y;
-            }}>
-            {comments.map(renderComment)}
-          </View>
-          {isMoreCommentsLoading ? (
-            <ActivityIndicator
-              size="small"
-              color={COLORS.grayscale_500}
-              style={styles.commentFooterLoading}
-            />
-          ) : null}
-        </ScrollView>
+            <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
+              {post?.title}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.postContent]}>
+              {post?.content}
+            </Text>
+
+            {renderPostLocation(post?.location)}
+            {renderPostImages(post.images)}
+            {renderActionRow(post, {likeable: true})}
+
+            {shouldShowAd ? (
+              <View style={styles.adBannerContainer}>
+                <BannerAd
+                  unitId={communityDetailBannerAdUnitId}
+                  size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+                />
+              </View>
+            ) : null}
+
+            <View
+              style={styles.commentList}
+              onLayout={event => {
+                commentListOffsetYRef.current = event.nativeEvent.layout.y;
+              }}>
+              {comments.map(renderComment)}
+            </View>
+            {isMoreCommentsLoading ? (
+              <ActivityIndicator
+                size="small"
+                color={COLORS.grayscale_500}
+                style={styles.commentFooterLoading}
+              />
+            ) : null}
+          </ScrollView>
         </TouchableWithoutFeedback>
       )}
 
@@ -1567,9 +1713,7 @@ const CommunityDetail = ({route}) => {
                 numberOfLines={1}>
                 댓글 수정 중
               </Text>
-              <TouchableOpacity
-                activeOpacity={0.8}
-                onPress={clearEditingState}>
+              <TouchableOpacity activeOpacity={0.8} onPress={clearEditingState}>
                 <Text style={[FONTS.fs_14_medium, styles.replyTargetCancel]}>
                   취소
                 </Text>
@@ -1693,6 +1837,13 @@ const CommunityDetail = ({route}) => {
         visible={imageModalVisible}
         images={modalImages}
         selectedImageIndex={selectedImageIndex}
+        sourceRect={imageSourceRect}
+        sourceBorderRadius={8}
+        fallbackDismissMode="fade"
+        onImageIndexChange={index => {
+          setSelectedImageIndex(index);
+          measureImageSource(modalSourceKeys[index], index);
+        }}
         onClose={() => setImageModalVisible(false)}
       />
     </KeyboardAvoidingView>

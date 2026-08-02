@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -87,8 +87,6 @@ const RoomDetail = ({route}) => {
     a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
   );
   const hasImages = sortedImages.length > 0;
-  const hideHeaderCarouselForImageModal =
-    Platform.OS === 'android' && imageModalVisible;
   const thumbnailIndex = Math.max(
     sortedImages.findIndex(i => i?.isThumbnail),
     0,
@@ -99,6 +97,50 @@ const RoomDetail = ({route}) => {
   const IMAGE_H = 280;
 
   const [imageIndex, setImageIndex] = useState(thumbnailIndex);
+  const [imageSourceRect, setImageSourceRect] = useState(null);
+  const headerCarouselRef = useRef(null);
+  const imageSourceRefs = useRef(new Map());
+  const measureImageSource = useCallback(index => {
+    const target = imageSourceRefs.current.get(index);
+    if (!target) {
+      return;
+    }
+
+    if (Platform.OS === 'web' && target.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        imageIndex: index,
+      });
+      return;
+    }
+
+    target.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setImageSourceRect({x, y, width, height, imageIndex: index});
+      }
+    });
+  }, []);
+  const syncHeaderImageIndex = useCallback(
+    index => {
+      setImageIndex(index);
+      headerCarouselRef.current?.scrollTo({index, animated: false});
+      requestAnimationFrame(() => measureImageSource(index));
+    },
+    [measureImageSource],
+  );
+  const openImageModal = useCallback(
+    index => {
+      setImageIndex(index);
+      setImageSourceRect(null);
+      setImageModalVisible(true);
+      requestAnimationFrame(() => measureImageSource(index));
+    },
+    [measureImageSource],
+  );
 
   const roomTypeMap = {
     MIXED: '혼숙',
@@ -112,8 +154,9 @@ const RoomDetail = ({route}) => {
     <View style={styles.container}>
       <ScrollView>
         <View style={styles.imageContainer}>
-          {hasImages && !hideHeaderCarouselForImageModal ? (
+          {hasImages ? (
             <Carousel
+              ref={headerCarouselRef}
               width={SCREEN_W}
               height={IMAGE_H}
               data={sortedImages}
@@ -122,13 +165,23 @@ const RoomDetail = ({route}) => {
               autoPlay={false}
               pagingEnabled
               onSnapToItem={idx => setImageIndex(idx)}
-              renderItem={({item}) => (
+              renderItem={({item, index}) => (
                 <TouchableOpacity
+                  ref={node => {
+                    if (node) {
+                      imageSourceRefs.current.set(index, node);
+                    } else {
+                      imageSourceRefs.current.delete(index);
+                    }
+                  }}
                   activeOpacity={1}
-                  onPress={() => setImageModalVisible(true)}>
+                  onPress={() => openImageModal(index)}>
                   <AppImage
                     uri={item.roomImageUrl}
-                    style={styles.image}
+                    style={[
+                      styles.image,
+                      imageModalVisible && imageIndex === index && {opacity: 0},
+                    ]}
                   />
                 </TouchableOpacity>
               )}
@@ -153,8 +206,12 @@ const RoomDetail = ({route}) => {
             </Text>
             {isDormitory ? (
               <View
-                style={{flexDirection: 'row', alignItems: 'center', gap: 4, marginTop: 4}}
-              >
+                style={{
+                  flexDirection: 'row',
+                  alignItems: 'center',
+                  gap: 4,
+                  marginTop: 4,
+                }}>
                 <Text
                   style={[
                     FONTS.fs_14_medium,
@@ -244,7 +301,9 @@ const RoomDetail = ({route}) => {
                 return;
               }
 
-              if (openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))) {
+              if (
+                openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))
+              ) {
                 return;
               }
 
@@ -263,54 +322,51 @@ const RoomDetail = ({route}) => {
                   message: `해당 객실은 최대 ${roomMaxCapacity}인 입니다\n인원수를 조절해주세요`,
                   buttonText: '확인',
                 });
-              } else if( guesthouseName === '비지터 게스트하우스' ) {
+              } else if (guesthouseName === '비지터 게스트하우스') {
                 const url =
                   'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
 
                 Linking.canOpenURL(url)
-                .then(supported => {
-                  if (supported) {
-                    Linking.openURL(url);
-                  } else {
-                    Alert.alert('알림', '링크를 열 수 없어요');
-                  }
-                })
-                .catch(() => {
-                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-                });
-
-              } else if( guesthouseName === '베드라디오 동문점' ) {
+                  .then(supported => {
+                    if (supported) {
+                      Linking.openURL(url);
+                    } else {
+                      Alert.alert('알림', '링크를 열 수 없어요');
+                    }
+                  })
+                  .catch(() => {
+                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                  });
+              } else if (guesthouseName === '베드라디오 동문점') {
                 const url =
-                'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
+                  'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
 
-              Linking.canOpenURL(url)
-                .then(supported => {
-                  if (supported) {
-                    Linking.openURL(url);
-                  } else {
-                    Alert.alert('알림', '링크를 열 수 없어요');
-                  }
-                })
-                .catch(() => {
-                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-                });
-
-              } else if( guesthouseName === '이상한밤 게스트하우스' ) {
+                Linking.canOpenURL(url)
+                  .then(supported => {
+                    if (supported) {
+                      Linking.openURL(url);
+                    } else {
+                      Alert.alert('알림', '링크를 열 수 없어요');
+                    }
+                  })
+                  .catch(() => {
+                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                  });
+              } else if (guesthouseName === '이상한밤 게스트하우스') {
                 const url =
-                'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
+                  'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
 
-              Linking.canOpenURL(url)
-                .then(supported => {
-                  if (supported) {
-                    Linking.openURL(url);
-                  } else {
-                    Alert.alert('알림', '링크를 열 수 없어요');
-                  }
-                })
-                .catch(() => {
-                  Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
-                });
-
+                Linking.canOpenURL(url)
+                  .then(supported => {
+                    if (supported) {
+                      Linking.openURL(url);
+                    } else {
+                      Alert.alert('알림', '링크를 열 수 없어요');
+                    }
+                  })
+                  .catch(() => {
+                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                  });
               } else {
                 navigation.navigate('GuesthouseReservationEntry', {
                   roomId,
@@ -351,6 +407,8 @@ const RoomDetail = ({route}) => {
           visible={imageModalVisible}
           images={modalImages}
           selectedImageIndex={imageIndex}
+          sourceRect={imageSourceRect}
+          onImageIndexChange={syncHeaderImageIndex}
           onClose={() => setImageModalVisible(false)}
         />
       )}
