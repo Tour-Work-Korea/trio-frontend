@@ -101,8 +101,8 @@ const PARTY_STATUS_LABEL = {
 };
 
 const UNKNOWN_PARTY_STATUS_NOTICE =
-  '파티 상태를 확인할 수 없어요. 업체로 문의해 주세요.';
-const NO_RECRUIT_NOTICE = '업체로 문의해 주세요.';
+  '파티 상태를 확인할 수 없어요. 업체로 문의해 주세요';
+const NO_RECRUIT_NOTICE = '신청은 업체로 문의해주세요';
 
 const isPartyDateOpen = option =>
   option?.partyStatus === 'RECRUIT' &&

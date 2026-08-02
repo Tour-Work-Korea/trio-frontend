@@ -458,7 +458,7 @@ const HomeMain = () => {
               accessibilityLabel="알림함"
               style={styles.notificationButton}
               onPress={() => navigation.navigate('NotificationCenter')}>
-              <BellIcon width={22} height={22} />
+              <BellIcon width={18} height={18} />
               {unreadCount > 0 ? (
                 <View style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>

@@ -25,10 +25,10 @@ export default StyleSheet.create({
   },
   unreadBadge: {
     position: 'absolute',
-    top: -4,
-    right: -5,
-    minWidth: 18,
-    height: 18,
+    top: -2,
+    right: -2,
+    minWidth: 16,
+    height: 16,
     paddingHorizontal: 3,
     borderRadius: 9,
     backgroundColor: COLORS.primary_orange,
@@ -37,7 +37,7 @@ export default StyleSheet.create({
   },
   unreadBadgeText: {
     color: COLORS.grayscale_0,
-    fontSize: 10,
+    fontSize: 9,
     fontWeight: '600',
     includeFontPadding: false,
     textAlign: 'center',

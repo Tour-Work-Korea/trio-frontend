@@ -173,6 +173,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_900,
     marginBottom: 8,
   },
+  todayContentCount: {
+    color: COLORS.primary_orange,
+  },
   todayPartyList: {
   },
   todayPartyListHorizontal: {

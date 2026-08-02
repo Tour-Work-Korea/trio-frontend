@@ -190,7 +190,7 @@ const styles = StyleSheet.create({
   noRecruitNotice: {
     marginTop: 12,
     paddingHorizontal: 20,
-    color: COLORS.semantic_red,
+    color: COLORS.grayscale_500,
     textAlign: 'center',
   },
   // 설명
