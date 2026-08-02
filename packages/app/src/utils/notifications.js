@@ -21,6 +21,7 @@ const USER_NOTIFICATION_TYPES = new Set([
   'PARTY_CHECKIN_INFO',
   'PARTY_RESERVATION_USER_CONFIRMED',
   'PARTY_RESERVATION_USER_CANCELLED',
+  'PARTY_RESERVATION_REJECTED',
   'PARTY_CANCELLED_BY_HOST',
   'REVIEW_COMMENT_NEW',
   'REVIEW_SUB_COMMENT_NEW',
@@ -135,6 +136,17 @@ const isGuesthouseCancellationType = type =>
 
 const isPartyCancellationType = type =>
   type === 'PARTY_RESERVATION_USER_CANCELLED' ||
+  type === 'PARTY_RESERVATION_REJECTED' ||
+  type === 'PARTY_CANCELLED_BY_HOST';
+
+const isReservationNotificationType = type =>
+  type.startsWith('GUESTHOUSE_RESERVATION_USER_') ||
+  type.startsWith('PARTY_RESERVATION_USER_') ||
+  type === 'GUESTHOUSE_CHECKIN_INFO' ||
+  type === 'GUESTHOUSE_TODAY_CHECKIN_USER' ||
+  type === 'PARTY_INVITATION' ||
+  type === 'PARTY_CHECKIN_INFO' ||
+  type === 'PARTY_RESERVATION_REJECTED' ||
   type === 'PARTY_CANCELLED_BY_HOST';
 
 const parseDeeplink = url => {
@@ -279,20 +291,27 @@ const openDeeplinkTarget = (url, navigation) => {
 };
 
 export const openNotificationTarget = async (notification, navigation) => {
+  const initialType = String(
+    getNestedFirstValue(notification, ['type', 'targetType']) || '',
+  ).toUpperCase();
   const deeplink =
     notification?.deeplink ||
     notification?.deepLink ||
     notification?.link ||
     notification?.url;
 
-  if (deeplink && openDeeplinkTarget(deeplink, navigation)) {
+  // 예약 알림의 푸시 데이터에는 파티/숙소 상세 딥링크만 포함될 수 있다.
+  // 이 경우 딥링크보다 예약 ID를 우선 해석해 신청·취소·반려 내역으로 보낸다.
+  if (
+    deeplink &&
+    !isReservationNotificationType(initialType) &&
+    openDeeplinkTarget(deeplink, navigation)
+  ) {
     return;
   }
 
   let targetNotification = notification;
-  let type = String(
-    getNestedFirstValue(targetNotification, ['type', 'targetType']) || '',
-  ).toUpperCase();
+  let type = initialType;
   let reservationId = getNestedFirstValue(targetNotification, [
     'reservationId',
   ]);
@@ -350,6 +369,7 @@ export const openNotificationTarget = async (notification, navigation) => {
 
   if (
     type.startsWith('PARTY_RESERVATION_USER_') ||
+    type === 'PARTY_RESERVATION_REJECTED' ||
     type === 'PARTY_INVITATION' ||
     type === 'PARTY_CHECKIN_INFO' ||
     type === 'PARTY_CANCELLED_BY_HOST'
@@ -399,6 +419,10 @@ export const openNotificationTarget = async (notification, navigation) => {
     }
 
     navigateTo(navigation, 'UserMeetReservationCheck');
+    return;
+  }
+
+  if (deeplink && openDeeplinkTarget(deeplink, navigation)) {
     return;
   }
 

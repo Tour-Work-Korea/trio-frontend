@@ -782,6 +782,12 @@ const GuesthouseDetail = ({route}) => {
               <View style={styles.todayPartiesContainer}>
                 <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
                   오늘의 콘텐츠
+                  {todayParties.length > 1 && (
+                    <Text style={styles.todayContentCount}>
+                      {' '}
+                      {todayParties.length}
+                    </Text>
+                  )}
                 </Text>
                 {todayParties.length > 1 ? (
                   <ScrollView
