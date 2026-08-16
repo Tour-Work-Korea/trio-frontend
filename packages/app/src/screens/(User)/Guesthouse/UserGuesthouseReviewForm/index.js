@@ -195,8 +195,6 @@ const UserGuesthouseReviewForm = () => {
             nestedScrollEnabled
             showsHorizontalScrollIndicator={false}
             style={styles.imageContainer}
-            onStartShouldSetResponderCapture={() => true}
-            onMoveShouldSetResponderCapture={() => true}
             directionalLockEnabled
           >
             {images.length < 5 && (
