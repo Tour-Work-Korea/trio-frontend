@@ -1,15 +1,18 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
-    <loc>https://app.ddakji.kr/</loc>
+    <loc>https://ddakji.kr/</loc>
   </url>
   <url>
-    <loc>https://app.ddakji.kr/guesthouses</loc>
+    <loc>https://ddakji.kr/about</loc>
   </url>
   <url>
-    <loc>https://app.ddakji.kr/contents</loc>
+    <loc>https://ddakji.kr/guesthouses</loc>
   </url>
   <url>
-    <loc>https://app.ddakji.kr/community</loc>
+    <loc>https://ddakji.kr/contents</loc>
+  </url>
+  <url>
+    <loc>https://ddakji.kr/community</loc>
   </url>
 </urlset>
