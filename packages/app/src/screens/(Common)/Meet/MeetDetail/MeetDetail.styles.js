@@ -1,5 +1,6 @@
 import {Platform, StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   rootContainer: {
@@ -287,6 +288,20 @@ const styles = StyleSheet.create({
   partyInfoSummaryText: {
     color: COLORS.grayscale_600,
   },
+  partyInfoPhoneRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    gap: 12,
+    marginTop: 4,
+  },
+  partyInfoPhoneLabel: {
+    color: COLORS.grayscale_600,
+  },
+  partyInfoPhoneNumber: {
+    color: COLORS.grayscale_800,
+    textDecorationLine: 'underline',
+  },
   infoTextContainer: {
     borderRadius: 8,
     marginBottom: 20,
@@ -381,6 +396,44 @@ const styles = StyleSheet.create({
   },
   locationMap: {
     flex: 1,
+  },
+  guesthouseLinkCard: {
+    gap: 6,
+    paddingTop: 2,
+  },
+  guesthouseLinkTopRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    minWidth: 0,
+  },
+  guesthouseLinkTitleBox: {
+    flexGrow: 1,
+    flexShrink: 1,
+    flexBasis: 0,
+    minWidth: 0,
+    overflow: 'hidden',
+  },
+  guesthouseLinkTitle: {
+    ...FONTS.fs_16_semibold,
+    color: COLORS.grayscale_900,
+  },
+  guesthouseLinkAddress: {
+    ...FONTS.fs_14_regular,
+    color: COLORS.grayscale_500,
+  },
+  guesthouseLinkActionButton: {
+    width: 112,
+    flexShrink: 0,
+    marginLeft: 12,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'flex-end',
+    gap: 2,
+  },
+  guesthouseLinkAction: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.primary_blue,
+    textAlign: 'right',
   },
   markerContainer: {
     alignItems: 'center',

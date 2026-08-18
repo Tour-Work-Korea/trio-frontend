@@ -139,10 +139,7 @@ const MeetMain = () => {
   );
 
   const groupedGuesthouses = useMemo(() => {
-    const sorted = [...meets].sort(
-      (a, b) => dayjs(a.partyStartDateTime).valueOf() - dayjs(b.partyStartDateTime).valueOf(),
-    );
-    const uniqueParties = sorted.reduce((acc, party) => {
+    const uniqueParties = meets.reduce((acc, party) => {
       const key = getPartyDisplayKey(party);
 
       if (!key || acc.seen.has(key)) {
@@ -158,17 +155,17 @@ const MeetMain = () => {
       const guesthouseName = party.guesthouseName || '게스트하우스';
       const guesthouseId = party.guesthouseId ?? party.guesthouse?.id ?? null;
       const key = guesthouseId ? `${guesthouseId}` : guesthouseName;
-      if (!acc[key]) {
-        acc[key] = {
+      if (!acc.has(key)) {
+        acc.set(key, {
           guesthouseId,
           guesthouseName,
           parties: [],
-        };
+        });
       }
-      acc[key].parties.push(party);
+      acc.get(key).parties.push(party);
       return acc;
-    }, {});
-    return Object.values(grouped);
+    }, new Map());
+    return Array.from(grouped.values());
   }, [meets]);
 
   function formatWhenTime(isoStr) {

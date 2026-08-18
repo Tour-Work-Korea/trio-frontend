@@ -57,6 +57,10 @@ const styles = StyleSheet.create({
   reservationPriceText: {
     color: COLORS.grayscale_600,
   },
+  guesthousePhone: {
+    color: COLORS.grayscale_800,
+    textDecorationLine: 'underline',
+  },
   dateSelector: {
     minHeight: 44,
     borderRadius: 22,
