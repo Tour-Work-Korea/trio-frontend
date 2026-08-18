@@ -21,13 +21,31 @@ const shouldRequireLogin = parts => parts[0] === 'reservation';
 
 const getQueryParam = (searchParams, keys) => {
   for (const key of keys) {
-    const value = searchParams.get(key);
+    const value = searchParams[key];
     if (value) {
       return value;
     }
   }
 
   return null;
+};
+
+const parseQueryParams = query => {
+  return query.split('&').reduce((params, pair) => {
+    if (!pair) {
+      return params;
+    }
+
+    const [rawKey, ...rawValueParts] = pair.split('=');
+    const key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
+    const value = decodeURIComponent(rawValueParts.join('=').replace(/\+/g, ' '));
+
+    if (key) {
+      params[key] = value;
+    }
+
+    return params;
+  }, {});
 };
 
 const parseDeeplink = url => {
@@ -39,7 +57,7 @@ const parseDeeplink = url => {
   const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
   const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
   const parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
-  const searchParams = new URLSearchParams(queryPart);
+  const searchParams = parseQueryParams(queryPart);
 
   return {
     parts,

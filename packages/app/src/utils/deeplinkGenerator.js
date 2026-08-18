@@ -3,10 +3,10 @@ import {Platform} from 'react-native';
 import {WEB_ROUTES} from '@web/routes';
 
 // 앱 딥링크 스킴
-const APP_SCHEME = 'workaway://';
+const APP_SCHEME = 'ddakji://';
 
 /**
- * workaway://guesthouse/1234 이런식으로 만들어짐
+ * ddakji://guesthouse/1234 이런식으로 만들어짐
  * chrome 에서 생성된 링크 입력하면 앱으로 가짐
  */
 

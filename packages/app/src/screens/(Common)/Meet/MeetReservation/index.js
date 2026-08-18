@@ -9,6 +9,7 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -95,6 +96,7 @@ const MeetReservation = () => {
     amount: routeAmount,
     thumbnailUrl: routeThumbnailUrl,
     partyAnnouncements,
+    guesthousePhone: routeGuesthousePhone,
     selectedCoupon,
   } = route.params ?? {};
   const announcementItems = Array.isArray(partyAnnouncements)
@@ -296,6 +298,10 @@ const MeetReservation = () => {
     null;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
+  const guesthousePhone =
+    reservationInfo?.guesthousePhone?.trim() ??
+    routeGuesthousePhone?.trim() ??
+    '';
   const reservationAmount = Number(
     reservationInfo?.amount ?? routeAmount ?? 0,
   );
@@ -535,6 +541,19 @@ const MeetReservation = () => {
     setIsDateDropdownOpen(false);
   };
 
+  const handleCopyGuesthousePhone = () => {
+    if (!guesthousePhone) {
+      return;
+    }
+
+    Clipboard.setString(guesthousePhone);
+    Toast.show({
+      type: 'success',
+      text1: '전화번호를 복사했어요!',
+      position: 'top',
+    });
+  };
+
   const renderGuideStep = () => {
     const checked = guideAgreed;
 
@@ -739,6 +758,29 @@ const MeetReservation = () => {
 
           <View style={styles.devide} />
 
+          {!!guesthousePhone && (
+            <>
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  문의하기
+                </Text>
+                <TouchableOpacity
+                  activeOpacity={0.7}
+                  onPress={handleCopyGuesthousePhone}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.guesthousePhone,
+                    ]}>
+                    {guesthousePhone}
+                  </Text>
+                </TouchableOpacity>
+              </View>
+
+              <View style={styles.devide} />
+            </>
+          )}
+
           {/* 유료 콘텐츠 예약 정보 */}
           {isPaidContent && (
             <>
@@ -790,13 +832,11 @@ const MeetReservation = () => {
                   style={styles.agreeRow}>
                   {agreements.personalInfo ? (
                     <View style={styles.checkedBox}>
-                      {' '}
-                      <Checked width={24} height={24} />{' '}
+                      <Checked width={24} height={24} />
                     </View>
                   ) : (
                     <View style={styles.uncheckedBox}>
-                      {' '}
-                      <Unchecked width={24} height={24} />{' '}
+                      <Unchecked width={24} height={24} />
                     </View>
                   )}
                 </TouchableOpacity>

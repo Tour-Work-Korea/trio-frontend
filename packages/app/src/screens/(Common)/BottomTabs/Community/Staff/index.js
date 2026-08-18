@@ -79,7 +79,11 @@ const Staff = ({isActive}) => {
           size: PAGE_SIZE,
         });
 
-        const {content, last, number} = res.data;
+        const content = Array.isArray(res.data?.content)
+          ? res.data.content
+          : [];
+        const last = res.data?.last ?? true;
+        const number = Number(res.data?.number ?? pageToFetch);
 
         setRecruitList(prev =>
           sortRecruitsByRecruiting(
@@ -94,7 +98,7 @@ const Staff = ({isActive}) => {
         setErrorModal({
           visible: true,
           message: '채용 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          buttonText: '다시 시도',
         });
       } finally {
         isFetchingRef.current = false;
@@ -124,7 +128,7 @@ const Staff = ({isActive}) => {
 
   const handleEndReached = useCallback(() => {
     if (
-      !hasUserScrolledRef.current ||
+      (Platform.OS !== 'web' && !hasUserScrolledRef.current) ||
       isInitialLoading ||
       isMoreLoading ||
       !hasNext
@@ -138,6 +142,14 @@ const Staff = ({isActive}) => {
   const handleScrollBeginDrag = useCallback(() => {
     hasUserScrolledRef.current = true;
   }, []);
+
+  const handleRetry = useCallback(() => {
+    setErrorModal(prev => ({...prev, visible: false}));
+    setRecruitList([]);
+    setHasNext(true);
+    setPage(0);
+    tryFetchRecruitList(0, false);
+  }, [tryFetchRecruitList]);
 
   const handleJobPress = useCallback(id => {
     navigation.navigate('CommunityStaffDetail', {id});
@@ -379,7 +391,7 @@ const Staff = ({isActive}) => {
         visible={errorModal.visible}
         title={errorModal.message}
         buttonText={errorModal.buttonText}
-        onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
+        onPress={handleRetry}
       />
     </View>
   );

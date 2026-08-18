@@ -1,5 +1,5 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
-import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
+import {Linking, View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
@@ -19,7 +19,12 @@ import AppImage from '@components/AppImage';
 export default function MeetPaymentReceipt() {
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId, isFromDeeplink = false, partyId} = route.params ?? {};
+  const {
+    reservationId,
+    isFromDeeplink = false,
+    partyId,
+    openContactModal = false,
+  } = route.params ?? {};
   const [reservationDetail, setReservationDetail] = useState(null);
   const [loading, setLoading] = useState(false);
   const [cancelUnavailableOpen, setCancelUnavailableOpen] = useState(false);
@@ -60,6 +65,9 @@ export default function MeetPaymentReceipt() {
       }
 
       setReservationDetail(data);
+      if (openContactModal && data?.reservationStatus !== 'PENDING') {
+        setContactGuesthouseOpen(true);
+      }
     } catch (e) {
       console.log('파티 예약 상세 불러오기 실패', e);
       if (isFromDeeplink) {
@@ -80,7 +88,7 @@ export default function MeetPaymentReceipt() {
     } finally {
       setLoading(false);
     }
-  }, [isFromDeeplink, navigation, reservationId]);
+  }, [isFromDeeplink, navigation, openContactModal, reservationId]);
 
   useEffect(() => {
     fetchReservationDetail();
@@ -109,6 +117,7 @@ export default function MeetPaymentReceipt() {
     trimJejuPrefix(reservationDetail?.partyLocation) ||
     reservationDetail?.meetingPlace ||
     '';
+  const guesthousePhone = reservationDetail?.guesthousePhone?.trim() ?? '';
   const handleCopyLocation = () => {
     if (!locationText) {
       return;
@@ -120,6 +129,27 @@ export default function MeetPaymentReceipt() {
       text1: '장소를 복사했어요!',
       position: 'top',
     });
+  };
+  const handleCopyGuesthousePhone = () => {
+    if (!guesthousePhone) {
+      return;
+    }
+
+    Clipboard.setString(guesthousePhone);
+    Toast.show({
+      type: 'success',
+      text1: '전화번호를 복사했어요!',
+      position: 'top',
+    });
+  };
+  const handleContactGuesthouse = async () => {
+    if (!guesthousePhone) {
+      return;
+    }
+
+    setContactGuesthouseOpen(false);
+    const phone = guesthousePhone.replace(/[^0-9+]/g, '');
+    await Linking.openURL(`tel:${phone}`);
   };
   const handlePressCancel = () => {
     const startDate = reservationDetail?.startDateTime
@@ -201,6 +231,24 @@ export default function MeetPaymentReceipt() {
               {startFormatted.date}
             </Text>
           </View>
+
+          {!!guesthousePhone && (
+            <View style={styles.infoRow}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>문의하기</Text>
+              <TouchableOpacity
+                activeOpacity={0.7}
+                onPress={handleCopyGuesthousePhone}>
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.value,
+                    styles.copyablePhone,
+                  ]}>
+                  {guesthousePhone}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          )}
 
           <View style={styles.infoRow}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>시간</Text>
@@ -342,6 +390,8 @@ export default function MeetPaymentReceipt() {
         message={'신청이 확정된 콘텐츠입니다.\n취소 및 환불은 해당 게스트하우스로\n직접 문의해주세요.'}
         buttonText="확인"
         onPress={() => setContactGuesthouseOpen(false)}
+        buttonText2={guesthousePhone ? '문의하기' : null}
+        onPress2={guesthousePhone ? handleContactGuesthouse : null}
         onRequestClose={() => setContactGuesthouseOpen(false)}
       />
     </View>
