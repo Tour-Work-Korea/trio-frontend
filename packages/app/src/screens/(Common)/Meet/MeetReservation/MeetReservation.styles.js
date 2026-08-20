@@ -54,12 +54,46 @@ const styles = StyleSheet.create({
   userInfoTitle: {
     color: COLORS.grayscale_600,
   },
-  reservationPriceText: {
-    color: COLORS.grayscale_600,
+  priceOptionList: {
+    gap: 12,
   },
-  guesthousePhone: {
-    color: COLORS.grayscale_800,
-    textDecorationLine: 'underline',
+  priceOption: {
+    minHeight: 54,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 12,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  priceOptionSelected: {
+    borderWidth: 2,
+    borderColor: COLORS.primary_orange,
+    backgroundColor: COLORS.secondary_orange,
+  },
+  priceOptionNameRow: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  priceOptionName: {
+    color: COLORS.grayscale_900,
+  },
+  priceOptionAmount: {
+    marginLeft: 12,
+    color: COLORS.grayscale_900,
+  },
+  guestOnlyBadge: {
+    borderRadius: 10,
+    paddingHorizontal: 7,
+    paddingVertical: 3,
+    backgroundColor: COLORS.grayscale_500,
+  },
+  guestOnlyBadgeText: {
+    color: COLORS.grayscale_0,
   },
   dateSelector: {
     minHeight: 44,

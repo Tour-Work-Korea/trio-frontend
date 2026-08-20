@@ -15,8 +15,8 @@ import Header from '@components/Header';
 import EmployEmpty from '@components/Employ/EmployEmpty';
 
 import EditIcon from '@assets/images/edit_gray.svg';
-import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
-import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
+import CheckedCircleIcon from '@assets/images/radio_button_enabled.svg';
+import UncheckedCircleIcon from '@assets/images/radio_button_disabled.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import {COLORS} from '@constants/colors';

@@ -17,8 +17,8 @@ import ButtonScarlet from '@components/ButtonScarlet';
 // import ButtonWhite from '@components/ButtonWhite';
 
 import XBtn from '@assets/images/x_gray.svg';
-import CheckedCircleIcon from '@assets/images/Scarlet_Radio_Btn_Checked.svg';
-import UncheckedCircleIcon from '@assets/images/Gray_Radio_Btn_Unchecked.svg';
+import CheckedCircleIcon from '@assets/images/radio_button_enabled.svg';
+import UncheckedCircleIcon from '@assets/images/radio_button_disabled.svg';
 
 const {height} = Dimensions.get('window');
 
