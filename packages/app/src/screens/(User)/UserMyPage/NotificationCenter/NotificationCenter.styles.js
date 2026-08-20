@@ -68,6 +68,7 @@ export default StyleSheet.create({
   iconWrap: {
     width: 28,
     height: 28,
+    marginTop: 2,
     marginRight: 12,
     alignItems: 'center',
     justifyContent: 'center',

@@ -22,7 +22,6 @@ const mapApiToUI = it => ({
   guesthouseName: it.guesthouseName,
   title: it.partyTitle,
   address: it.location,
-  price: it.amount,
   datetime: it.partyStartDateTime,
   liked: it.numOfAttendance, // 현재 참여 인원
   limit: it.maxAttendance, // 최대 인원
@@ -124,10 +123,6 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
                 </Text>
               </View>
             </View>
-
-            <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
-              {item.price.toLocaleString()}원
-            </Text>
           </View>
         </View>
 

@@ -9,7 +9,6 @@ import {
   Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
-import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -32,6 +31,8 @@ import Unchecked from '@assets/images/check_white.svg';
 import WarningAlarm from '@assets/images/notice_bubble_orange.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
+import RadioChecked from '@assets/images/radio_button_enabled.svg';
+import RadioUnchecked from '@assets/images/radio_button_disabled.svg';
 import { COLORS } from '@constants/colors';
 
 const TERM_DOCUMENT_MAP = {
@@ -50,6 +51,9 @@ const isDateOptionClosed = option =>
   option?.isApplyOpen === false ||
   (option?.partyStatus && option.partyStatus !== 'RECRUIT') ||
   !dayjs(option?.partyStartDateTime).isAfter(dayjs());
+
+const isGuestOnlyPriceOption = option =>
+  String(option?.optionName ?? '').includes('숙박객');
 
 const getDateOptionStatusLabel = option => {
   if (!isDateOptionClosed(option)) {
@@ -96,7 +100,6 @@ const MeetReservation = () => {
     amount: routeAmount,
     thumbnailUrl: routeThumbnailUrl,
     partyAnnouncements,
-    guesthousePhone: routeGuesthousePhone,
     selectedCoupon,
   } = route.params ?? {};
   const announcementItems = Array.isArray(partyAnnouncements)
@@ -112,6 +115,7 @@ const MeetReservation = () => {
   );
   const [guideAgreed, setGuideAgreed] = useState(false);
   const [reservationInfo, setReservationInfo] = useState(null);
+  const [selectedPriceOptionId, setSelectedPriceOptionId] = useState(null);
   const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
 
@@ -298,31 +302,41 @@ const MeetReservation = () => {
     null;
   const name = reservationInfo?.name;
   const phone = reservationInfo?.phoneNumber;
-  const guesthousePhone =
-    reservationInfo?.guesthousePhone?.trim() ??
-    routeGuesthousePhone?.trim() ??
-    '';
-  const reservationAmount = Number(
-    reservationInfo?.amount ?? routeAmount ?? 0,
-  );
-  const isPaidContent =
-    reservationInfo?.chargeType !== 'FREE' &&
-    Number.isFinite(reservationAmount) &&
-    reservationAmount > 0;
-  const genderLabel =
-    ['F', 'FEMALE'].includes(reservationInfo?.gender)
-      ? '여성'
-      : ['M', 'MALE'].includes(reservationInfo?.gender)
-        ? '남성'
-        : null;
   const isReservationGuest =
     reservationInfo?.guest ?? reservationInfo?.isGuest ?? false;
-  const attendeeTypeLabel = [
-    isReservationGuest ? '숙박객' : '비숙박객',
-    genderLabel,
-  ]
-    .filter(Boolean)
-    .join(' · ');
+  const priceOptions = useMemo(
+    () => Array.isArray(reservationInfo?.priceOptions)
+      ? [...reservationInfo.priceOptions].sort(
+        (a, b) => Number(a?.displayOrder ?? 0) - Number(b?.displayOrder ?? 0),
+      )
+      : [],
+    [reservationInfo?.priceOptions],
+  );
+  const selectedPriceOption = priceOptions.find(
+    option => String(option?.id) === String(selectedPriceOptionId),
+  );
+  const reservationAmount = Number(
+    selectedPriceOption?.amount ?? reservationInfo?.amount ?? routeAmount ?? 0,
+  );
+
+  useEffect(() => {
+    if (priceOptions.length === 0) {
+      setSelectedPriceOptionId(null);
+      return;
+    }
+
+    const currentOption = priceOptions.find(
+      option => String(option?.id) === String(selectedPriceOptionId),
+    );
+    if (currentOption) {
+      return;
+    }
+
+    const defaultOption = isReservationGuest
+      ? priceOptions.find(isGuestOnlyPriceOption) ?? priceOptions[0]
+      : priceOptions[0];
+    setSelectedPriceOptionId(defaultOption?.id ?? null);
+  }, [isReservationGuest, priceOptions, selectedPriceOptionId]);
 
   useEffect(() => {
     if (selectedDateIndex >= dateOptions.length) {
@@ -468,6 +482,12 @@ const MeetReservation = () => {
         {
           amount,
           request: requestText,
+          ...(selectedPriceOption?.id != null
+            ? {
+              selectedPriceOptionId: selectedPriceOption.id,
+              selectedPriceOptionName: selectedPriceOption.optionName,
+            }
+            : {}),
         },
       );
 
@@ -539,19 +559,6 @@ const MeetReservation = () => {
   const handleSelectDate = index => {
     setSelectedDateIndex(index);
     setIsDateDropdownOpen(false);
-  };
-
-  const handleCopyGuesthousePhone = () => {
-    if (!guesthousePhone) {
-      return;
-    }
-
-    Clipboard.setString(guesthousePhone);
-    Toast.show({
-      type: 'success',
-      text1: '전화번호를 복사했어요!',
-      position: 'top',
-    });
   };
 
   const renderGuideStep = () => {
@@ -737,6 +744,75 @@ const MeetReservation = () => {
             </>
           )}
 
+          {priceOptions.length > 0 && (
+            <>
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                  참여 옵션
+                </Text>
+                <View style={styles.priceOptionList}>
+                  {priceOptions.map(option => {
+                    const selected =
+                      String(option?.id) === String(selectedPriceOptionId);
+                    const guestOnly = isGuestOnlyPriceOption(option);
+
+                    return (
+                      <TouchableOpacity
+                        key={option?.id ?? option?.optionName}
+                        activeOpacity={1}
+                        onPress={() => setSelectedPriceOptionId(option.id)}
+                        style={[
+                          styles.priceOption,
+                          selected && styles.priceOptionSelected,
+                        ]}>
+                        <View style={styles.priceOptionNameRow}>
+                          {selected ? (
+                            <RadioChecked width={20} height={20} />
+                          ) : (
+                            <RadioUnchecked width={20} height={20} />
+                          )}
+                          <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
+                            style={[
+                              FONTS.fs_14_medium,
+                              styles.priceOptionName,
+                            ]}>
+                            {option?.optionName}
+                          </Text>
+                          {guestOnly ? (
+                            <View
+                              style={[
+                                styles.guestOnlyBadge,
+                                selected && styles.guestOnlyBadgeSelected,
+                              ]}>
+                              <Text
+                                style={[
+                                  FONTS.fs_12_medium,
+                                  styles.guestOnlyBadgeText,
+                                ]}>
+                                숙박객 전용
+                              </Text>
+                            </View>
+                          ) : null}
+                        </View>
+                        <Text
+                          style={[
+                            FONTS.fs_16_semibold,
+                            styles.priceOptionAmount,
+                          ]}>
+                          {Number(option?.amount ?? 0).toLocaleString('ko-KR')}원
+                        </Text>
+                      </TouchableOpacity>
+                    );
+                  })}
+                </View>
+              </View>
+
+              <View style={styles.devide} />
+            </>
+          )}
+
           {/* 예약자 정보 */}
           <View style={styles.section}>
             <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
@@ -757,51 +833,6 @@ const MeetReservation = () => {
           </View>
 
           <View style={styles.devide} />
-
-          {!!guesthousePhone && (
-            <>
-              <View style={styles.section}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                  문의하기
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={0.7}
-                  onPress={handleCopyGuesthousePhone}>
-                  <Text
-                    style={[
-                      FONTS.fs_14_medium,
-                      styles.guesthousePhone,
-                    ]}>
-                    {guesthousePhone}
-                  </Text>
-                </TouchableOpacity>
-              </View>
-
-              <View style={styles.devide} />
-            </>
-          )}
-
-          {/* 유료 콘텐츠 예약 정보 */}
-          {isPaidContent && (
-            <>
-              <View style={styles.section}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                  예약 정보
-                </Text>
-                <View style={styles.userInfo}>
-                  <Text style={FONTS.fs_14_medium}>
-                    {attendeeTypeLabel}
-                  </Text>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.reservationPriceText]}>
-                    {reservationAmount.toLocaleString('ko-KR')}원
-                  </Text>
-                </View>
-              </View>
-
-              <View style={styles.devide} />
-            </>
-          )}
 
           {/* 요청사항 */}
           <View style={styles.section} ref={requestInputRef}>
@@ -864,7 +895,11 @@ const MeetReservation = () => {
           <View style={styles.fixedButton}>
             <ButtonScarlet
               title="신청하기"
-              disabled={!isAllRequiredAgreed || !canApplySelectedDate}
+              disabled={
+                !isAllRequiredAgreed ||
+                !canApplySelectedDate ||
+                (priceOptions.length > 0 && !selectedPriceOption)
+              }
               onPress={handleCreateReservation}
             />
           </View>
