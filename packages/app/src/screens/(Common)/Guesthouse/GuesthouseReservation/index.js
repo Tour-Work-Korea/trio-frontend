@@ -38,6 +38,38 @@ import DiscountArrow from '@assets/images/discount_arrow.svg';
 import ChevronDown from '@assets/images/chevron_down_black.svg';
 import ChevronUp from '@assets/images/chevron_up_black.svg';
 
+const EXPECTED_CHECK_IN_START_MINUTES = 13 * 60;
+const EXPECTED_CHECK_IN_END_MINUTES = 23 * 60 + 30;
+const EXPECTED_CHECK_IN_ITEM_HEIGHT = 44;
+const EXPECTED_CHECK_IN_OPTIONS = Array.from(
+  {
+    length:
+      (EXPECTED_CHECK_IN_END_MINUTES - EXPECTED_CHECK_IN_START_MINUTES) / 30 + 1,
+  },
+  (_, index) => {
+    const totalMinutes = EXPECTED_CHECK_IN_START_MINUTES + index * 30;
+    const hour = String(Math.floor(totalMinutes / 60)).padStart(2, '0');
+    const minute = String(totalMinutes % 60).padStart(2, '0');
+    return `${hour}:${minute}`;
+  },
+);
+
+const getInitialExpectedCheckInIndex = (...timeValues) => {
+  const timeValue = timeValues.find(value => typeof value === 'string' && value);
+  const match = timeValue?.match(/(?:T|^)(\d{2}):(\d{2})/);
+  if (!match) return 0;
+
+  const totalMinutes = Number(match[1]) * 60 + Number(match[2]);
+  const boundedMinutes = Math.min(
+    EXPECTED_CHECK_IN_END_MINUTES,
+    Math.max(EXPECTED_CHECK_IN_START_MINUTES, totalMinutes),
+  );
+
+  return Math.floor(
+    (boundedMinutes - EXPECTED_CHECK_IN_START_MINUTES) / 30,
+  );
+};
+
 // 번화번호 사이에 '-' 집어넣기
 const formatPhoneNumber = (phone) => {
   if (!phone || phone.length !== 11) return phone; // 예외 처리
@@ -89,6 +121,8 @@ const GuesthouseReservation = ({ route }) => {
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
   const [requestMessage, setRequestMessage] = useState('');
+  const [expectedCheckInTime, setExpectedCheckInTime] = useState(null);
+  const [isExpectedCheckInOpen, setExpectedCheckInOpen] = useState(false);
   const [isActualGuestExpanded, setActualGuestExpanded] = useState(false);
   const [actualGuestName, setActualGuestName] = useState('');
   const [actualGuestPhone, setActualGuestPhone] = useState('');
@@ -113,6 +147,7 @@ const GuesthouseReservation = ({ route }) => {
     iosOnly: false,
   });
   const inputRefs = useRef({});
+  const expectedCheckInListRef = useRef(null);
   const keyboardHeightRef = useRef(0);
   const scrollYRef = useRef(0);
   const isKeyboardVisible = keyboardHeight > 0;
@@ -375,6 +410,21 @@ const GuesthouseReservation = ({ route }) => {
     setConfirmVisible(true);
   };
 
+  const toggleExpectedCheckIn = () => {
+    const shouldOpen = !isExpectedCheckInOpen;
+    setExpectedCheckInOpen(shouldOpen);
+
+    if (shouldOpen) {
+      const initialIndex = getInitialExpectedCheckInIndex(checkInTime, checkIn);
+      requestAnimationFrame(() => {
+        expectedCheckInListRef.current?.scrollTo?.({
+          y: initialIndex * EXPECTED_CHECK_IN_ITEM_HEIGHT,
+          animated: false,
+        });
+      });
+    }
+  };
+
   // 예약 호출
   const handleReservation = async () => {
     if (!isAllRequiredAgreed) return;
@@ -402,6 +452,10 @@ const GuesthouseReservation = ({ route }) => {
         request: requestMessage,
         isActualGuestDifferent: isActualGuestExpanded && hasActualGuestInfo,
       };
+
+      if (expectedCheckInTime) {
+        body.expectedCheckInTime = expectedCheckInTime;
+      }
 
       if (body.isActualGuestDifferent) {
         body.actualGuestName = trimmedActualGuestName;
@@ -443,6 +497,7 @@ const GuesthouseReservation = ({ route }) => {
           selectedCoupon,
           refundPolicies,
           reservationPolicy,
+          expectedCheckInTime,
           request: requestMessage,
           pointUsed: appliedPointAmount,
           finalPaymentAmount,
@@ -591,6 +646,71 @@ const GuesthouseReservation = ({ route }) => {
                   </View>
                 </View>
               ) : null}
+          </View>
+
+          <View style={styles.devide}/>
+
+          {/* 예상 체크인 시간 */}
+          <View style={styles.section}>
+            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+              예상 체크인 시간
+            </Text>
+            <TouchableOpacity
+              activeOpacity={1}
+              accessibilityRole="button"
+              accessibilityLabel="예상 체크인 시간 선택"
+              accessibilityState={{expanded: isExpectedCheckInOpen}}
+              style={[
+                styles.expectedCheckInSelector,
+                isExpectedCheckInOpen && styles.expectedCheckInSelectorOpen,
+              ]}
+              onPress={toggleExpectedCheckIn}>
+              <Text
+                style={[
+                  FONTS.fs_14_medium,
+                  expectedCheckInTime
+                    ? styles.expectedCheckInSelectedText
+                    : styles.expectedCheckInPlaceholder,
+                ]}>
+                {expectedCheckInTime || '예상 체크인 시간을 선택해주세요'}
+              </Text>
+              {isExpectedCheckInOpen ? (
+                <ChevronUp width={18} height={18} />
+              ) : (
+                <ChevronDown width={18} height={18} />
+              )}
+            </TouchableOpacity>
+
+            {isExpectedCheckInOpen ? (
+              <View style={styles.expectedCheckInDropdown}>
+                <ScrollView
+                  ref={expectedCheckInListRef}
+                  nestedScrollEnabled
+                  showsVerticalScrollIndicator>
+                  {EXPECTED_CHECK_IN_OPTIONS.map(option => (
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      accessibilityRole="button"
+                      key={option}
+                      style={styles.expectedCheckInOption}
+                      onPress={() => {
+                        setExpectedCheckInTime(option);
+                        setExpectedCheckInOpen(false);
+                      }}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          styles.expectedCheckInOptionText,
+                          expectedCheckInTime === option &&
+                            styles.expectedCheckInOptionTextSelected,
+                        ]}>
+                        {option}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </ScrollView>
+              </View>
+            ) : null}
           </View>
 
           <View style={styles.devide}/>

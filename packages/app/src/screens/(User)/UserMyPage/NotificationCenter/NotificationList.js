@@ -5,6 +5,7 @@ import {FONTS} from '@constants/fonts';
 
 import GuesthouseCancelledIcon from '@assets/images/noti_guesthouse_cancelled.svg';
 import GuesthouseConfirmedIcon from '@assets/images/noti_guesthouse_confirmed.svg';
+import CommentIcon from '@assets/images/noti_comment.svg';
 import PartyCancelledIcon from '@assets/images/noti_party_cancelled.svg';
 import PartyConfirmedIcon from '@assets/images/noti_party_confirmed.svg';
 
@@ -14,13 +15,15 @@ const renderLeadingIcon = item => {
   const isCancelled = item.status === 'cancelled';
   const isParty = item.type === 'partyReservation';
   const isCommunity = item.type === 'community';
-  const Icon = (isParty || isCommunity)
-    ? isCancelled
-      ? PartyCancelledIcon
-      : PartyConfirmedIcon
-    : isCancelled
-    ? GuesthouseCancelledIcon
-    : GuesthouseConfirmedIcon;
+  const Icon = isCommunity
+    ? CommentIcon
+    : isParty
+      ? isCancelled
+        ? PartyCancelledIcon
+        : PartyConfirmedIcon
+      : isCancelled
+        ? GuesthouseCancelledIcon
+        : GuesthouseConfirmedIcon;
 
   return (
     <View style={styles.iconWrap}>

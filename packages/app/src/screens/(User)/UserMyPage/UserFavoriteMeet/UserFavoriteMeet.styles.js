@@ -50,13 +50,6 @@ const styles = StyleSheet.create({
   heartText: {
     color: COLORS.grayscale_400,
   },
-  // 가격
-  priceText: {
-    alignSelf: 'flex-end',
-    color: COLORS.grayscale_800,
-  },
-
-  
   down: {
     marginTop: 10,
     alignItems: 'center',

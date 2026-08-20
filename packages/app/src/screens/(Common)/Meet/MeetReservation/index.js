@@ -483,7 +483,10 @@ const MeetReservation = () => {
           amount,
           request: requestText,
           ...(selectedPriceOption?.id != null
-            ? {priceOptionId: selectedPriceOption.id}
+            ? {
+              selectedPriceOptionId: selectedPriceOption.id,
+              selectedPriceOptionName: selectedPriceOption.optionName,
+            }
             : {}),
         },
       );
@@ -769,6 +772,8 @@ const MeetReservation = () => {
                             <RadioUnchecked width={20} height={20} />
                           )}
                           <Text
+                            numberOfLines={1}
+                            ellipsizeMode="tail"
                             style={[
                               FONTS.fs_14_medium,
                               styles.priceOptionName,
@@ -776,7 +781,11 @@ const MeetReservation = () => {
                             {option?.optionName}
                           </Text>
                           {guestOnly ? (
-                            <View style={styles.guestOnlyBadge}>
+                            <View
+                              style={[
+                                styles.guestOnlyBadge,
+                                selected && styles.guestOnlyBadgeSelected,
+                              ]}>
                               <Text
                                 style={[
                                   FONTS.fs_12_medium,

@@ -80,17 +80,23 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   priceOptionName: {
+    flexShrink: 1,
     color: COLORS.grayscale_900,
   },
   priceOptionAmount: {
+    flexShrink: 0,
     marginLeft: 12,
     color: COLORS.grayscale_900,
   },
   guestOnlyBadge: {
+    flexShrink: 0,
     borderRadius: 10,
     paddingHorizontal: 7,
     paddingVertical: 3,
     backgroundColor: COLORS.grayscale_500,
+  },
+  guestOnlyBadgeSelected: {
+    backgroundColor: COLORS.primary_orange,
   },
   guestOnlyBadgeText: {
     color: COLORS.grayscale_0,

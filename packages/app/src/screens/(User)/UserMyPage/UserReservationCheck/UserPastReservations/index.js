@@ -84,6 +84,7 @@ export default function UserPastReservations({ data }) {
                     checkOut: item.checkOut,
                     checkInTime: item.guesthouseCheckIn,
                     checkOutTime: item.guesthouseCheckOut,
+                    expectedCheckInTime: item.expectedCheckInTime,
                   },
                 })
               }

@@ -130,6 +130,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
                     checkOut: item.checkOut,
                     checkInTime: item.guesthouseCheckIn,
                     checkOutTime: item.guesthouseCheckOut,
+                    expectedCheckInTime: item.expectedCheckInTime,
                   },
                 })
               }
