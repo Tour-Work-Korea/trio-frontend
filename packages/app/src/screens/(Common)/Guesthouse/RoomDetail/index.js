@@ -20,7 +20,6 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ImageModal from '@components/modals/ImageModal';
-import GuesthouseReservationAppPromptModal from '@components/modals/GuesthouseReservationAppPromptModal';
 import AppImage from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 
@@ -36,7 +35,6 @@ const RoomDetail = ({route}) => {
   const userRole = useUserStore(state => state.userRole);
 
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const {
     roomId,
     roomName,
@@ -296,12 +294,8 @@ const RoomDetail = ({route}) => {
           <ButtonScarlet
             title="숙박 예약"
             onPress={() => {
-              if (Platform.OS === 'web') {
-                setAppPromptVisible(true);
-                return;
-              }
-
               if (
+                Platform.OS !== 'web' &&
                 openAppOrStoreFromWeb(guesthouseDetailDeeplink(guesthouseId))
               ) {
                 return;
@@ -412,10 +406,6 @@ const RoomDetail = ({route}) => {
           onClose={() => setImageModalVisible(false)}
         />
       )}
-      <GuesthouseReservationAppPromptModal
-        visible={appPromptVisible}
-        onClose={() => setAppPromptVisible(false)}
-      />
     </View>
   );
 };

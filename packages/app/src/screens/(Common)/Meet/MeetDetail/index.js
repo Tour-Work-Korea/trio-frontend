@@ -41,7 +41,6 @@ import {
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import ImageModal from '@components/modals/ImageModal';
-import PartyApplicationAppPromptModal from '@components/modals/PartyApplicationAppPromptModal';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
@@ -222,7 +221,6 @@ const MeetDetail = () => {
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const [selectedPartyDateId, setSelectedPartyDateId] = useState(null);
@@ -671,12 +669,10 @@ const MeetDetail = () => {
       return;
     }
 
-    if (Platform.OS === 'web') {
-      setAppPromptVisible(true);
-      return;
-    }
-
-    if (openAppOrStoreFromWeb(partyDetailDeeplink(partyId))) {
+    if (
+      Platform.OS !== 'web' &&
+      openAppOrStoreFromWeb(partyDetailDeeplink(partyId))
+    ) {
       return;
     }
 
@@ -1450,10 +1446,6 @@ const MeetDetail = () => {
           onClose={() => setImageModalVisible(false)}
         />
       )}
-      <PartyApplicationAppPromptModal
-        visible={appPromptVisible}
-        onClose={() => setAppPromptVisible(false)}
-      />
     </View>
   );
 };
