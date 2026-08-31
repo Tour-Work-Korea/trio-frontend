@@ -6,6 +6,7 @@ buildscript {
         targetSdkVersion = 35
         ndkVersion = "27.1.12297006"
         kotlinVersion = "2.0.21"
+        kakaoSdkVersion = "2.25.0"
     }
     repositories {
         google()
@@ -26,6 +27,21 @@ allprojects {
         mavenCentral()
         maven {
             url "https://repository.map.naver.com/archive/maven"
+        }
+    }
+
+    configurations.configureEach { configuration ->
+        configuration.exclude group: "com.kakao.sdk", module: "v2-story"
+
+        resolutionStrategy.eachDependency { details ->
+            if (
+                details.requested.group == "com.kakao.sdk" &&
+                details.requested.name.startsWith("v2-") &&
+                details.requested.name != "v2-story"
+            ) {
+                details.useVersion rootProject.ext.kakaoSdkVersion
+                details.because "Kakao Android SDK 2.24.0 and below require a security update."
+            }
         }
     }
 }
