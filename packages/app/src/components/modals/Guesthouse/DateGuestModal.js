@@ -51,6 +51,12 @@ const DateGuestModal = ({
   initChildGuestCount,
   initialSection = 'date',
 }) => {
+  const today = dayjs().startOf('day');
+  const maxReservationDate = today.add(3, 'month');
+  const minReservationDateKey = today.format('YYYY-MM-DD');
+  const maxReservationDateKey = maxReservationDate.format('YYYY-MM-DD');
+  const minReservationMonth = today.format('YYYY-MM');
+  const maxReservationMonth = maxReservationDate.format('YYYY-MM');
   // 인원
   const [guestCount, setGuestCount] = useState(
     getInitialGuestCount(initAdultGuestCount, initChildGuestCount),
@@ -63,11 +69,19 @@ const DateGuestModal = ({
   const [isDateOpen, setIsDateOpen] = useState(false);
 
   const goPrevMonth = () => {
-    setCurrentMonth(dayjs(currentMonth).subtract(1, 'month').format("YYYY-MM-DD"));
+    const previousMonth = dayjs(currentMonth).subtract(1, 'month');
+
+    if (previousMonth.format('YYYY-MM') >= minReservationMonth) {
+      setCurrentMonth(previousMonth.format("YYYY-MM-DD"));
+    }
   };
 
   const goNextMonth = () => {
-    setCurrentMonth(dayjs(currentMonth).add(1, 'month').format("YYYY-MM-DD"));
+    const nextMonth = dayjs(currentMonth).add(1, 'month');
+
+    if (nextMonth.format('YYYY-MM') <= maxReservationMonth) {
+      setCurrentMonth(nextMonth.format("YYYY-MM-DD"));
+    }
   };
 
   // 모달 열릴 때마다 최신값으로
@@ -77,7 +91,12 @@ const DateGuestModal = ({
     setGuestCount(
       getInitialGuestCount(initAdultGuestCount, initChildGuestCount),
     );
-    if (initCheckInDate) {
+    const initialMonth = dayjs(initCheckInDate || undefined).format('YYYY-MM');
+    if (initialMonth < minReservationMonth) {
+      setCurrentMonth(minReservationDateKey);
+    } else if (initialMonth > maxReservationMonth) {
+      setCurrentMonth(maxReservationDateKey);
+    } else if (initCheckInDate) {
       setCurrentMonth(initCheckInDate);
     } else {
       setCurrentMonth(dayjs().format("YYYY-MM-DD"));
@@ -93,9 +112,21 @@ const DateGuestModal = ({
     initAdultGuestCount,
     initChildGuestCount,
     initialSection,
+    maxReservationDateKey,
+    maxReservationMonth,
+    minReservationDateKey,
+    minReservationMonth,
   ]);
 
   const onDayPress = (day) => {
+    if (
+      !day?.dateString ||
+      day.dateString < minReservationDateKey ||
+      day.dateString > maxReservationDateKey
+    ) {
+      return;
+    }
+
     if (!checkInDate || (checkInDate && checkOutDate)) {
       // 첫 선택 or 이미 2개 선택된 뒤 재선택 → checkIn 갱신
       setCheckInDate(day.dateString);
@@ -226,14 +257,24 @@ const DateGuestModal = ({
                   <View style={styles.calendarHeaderText}>
                     <TouchableOpacity
                       activeOpacity={1}
-                      style={styles.monthArrowButton}
+                      disabled={dayjs(currentMonth).format('YYYY-MM') <= minReservationMonth}
+                      style={[
+                        styles.monthArrowButton,
+                        dayjs(currentMonth).format('YYYY-MM') <= minReservationMonth &&
+                          styles.monthArrowButtonDisabled,
+                      ]}
                       onPress={goPrevMonth}>
                       <LeftArrowIcon width={24} height={24} />
                     </TouchableOpacity>
                     <Text style={[FONTS.fs_16_semibold, styles.monthText]}>{dayjs(currentMonth).format("YYYY년 M월")}</Text>
                     <TouchableOpacity
                       activeOpacity={1}
-                      style={styles.monthArrowButton}
+                      disabled={dayjs(currentMonth).format('YYYY-MM') >= maxReservationMonth}
+                      style={[
+                        styles.monthArrowButton,
+                        dayjs(currentMonth).format('YYYY-MM') >= maxReservationMonth &&
+                          styles.monthArrowButtonDisabled,
+                      ]}
                       onPress={goNextMonth}>
                       <RightArrowIcon width={24} height={24} />
                     </TouchableOpacity>
@@ -245,7 +286,8 @@ const DateGuestModal = ({
                   </View>
                 </View>
                 <Calendar
-                  minDate={dayjs().format("YYYY-MM-DD")}
+                  minDate={minReservationDateKey}
+                  maxDate={maxReservationDateKey}
                   markingType="period"
                   markedDates={markedDates}
                   onDayPress={onDayPress}
@@ -447,6 +489,9 @@ const styles = StyleSheet.create({
     height: 32,
     alignItems: 'center',
     justifyContent: 'center',
+  },
+  monthArrowButtonDisabled: {
+    opacity: 0.3,
   },
   dayTextContainer: {
     flexDirection: "row",

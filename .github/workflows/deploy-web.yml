@@ -123,3 +123,34 @@ jobs:
           aws cloudfront create-invalidation \
             --distribution-id "$DIST_ID" \
             --paths "/*"
+
+      - name: Notify Discord (Web)
+        if: always()
+        env:
+          DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
+        run: |
+          if [ "${GITHUB_REF_NAME}" = "develop" ]; then
+            ENV_NAME="🧪 DEV"
+          else
+            ENV_NAME="🚀 PROD"
+          fi
+
+          if [ "${{ job.status }}" = "success" ]; then
+            COLOR=3066993
+            MSG="🌐 Web 배포 성공"
+          else
+            COLOR=15158332
+            MSG="❌ Web 배포 실패"
+          fi
+
+          curl --fail-with-body \
+            -H "Content-Type: application/json" \
+            -X POST \
+            -d "{
+              \"embeds\": [{
+                \"title\": \"$MSG\",
+                \"description\": \"환경: $ENV_NAME\\n브랜치: ${GITHUB_REF_NAME}\\n작성자: ${{ github.actor }}\\n링크: https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }}\",
+                \"color\": $COLOR
+              }]
+            }" \
+            "$DISCORD_WEBHOOK_URL"
