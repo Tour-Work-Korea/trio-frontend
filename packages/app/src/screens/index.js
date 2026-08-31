@@ -46,6 +46,7 @@ export {default as GuesthousePost} from './(Common)/GuesthousePost';
 export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
+export {default as OpenSourceLicenses} from './(Common)/Setting/OpenSourceLicenses';
 // 커뮤니티
 export {default as Community} from './(Common)/BottomTabs/Community';
 export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
