@@ -399,6 +399,15 @@ const UserMyPage = () => {
               </View>
             </View>
           </View>
+          <TouchableOpacity
+            activeOpacity={0.8}
+            style={styles.licenseLink}
+            onPress={() => navigation.navigate('OpenSourceLicenses')}>
+            <Text style={[FONTS.fs_12_medium, styles.licenseLinkText]}>
+              오픈소스 라이선스
+            </Text>
+            <RightArrow width={14} height={14} />
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </View>

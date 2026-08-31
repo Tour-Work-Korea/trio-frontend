@@ -254,4 +254,16 @@ export default StyleSheet.create({
   deleteAccountText: {
     color: COLORS.grayscale_400,
   },
+  licenseLink: {
+    alignSelf: 'center',
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginTop: 20,
+    marginBottom: 32,
+    padding: 8,
+  },
+  licenseLinkText: {
+    color: COLORS.grayscale_400,
+    marginRight: 2,
+  },
 });
