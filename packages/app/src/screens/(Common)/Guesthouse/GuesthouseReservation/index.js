@@ -7,6 +7,7 @@ import {
   ScrollView,
   Alert,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useFocusEffect, useNavigation } from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -28,6 +29,7 @@ import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
 import ReservationConfirmModal from '@components/modals/Guesthouse/ReservationConfirmModal';
 import AlertModal from '@components/modals/AlertModal';
+import {prepareWebPaymentWindow} from '@web/webPaymentWindow';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_gray.svg';
@@ -421,6 +423,8 @@ const GuesthouseReservation = ({ route }) => {
   const handleReservation = async () => {
     if (!isAllRequiredAgreed) return;
 
+    let paymentWindowRef = null;
+
     try {
       const trimmedActualGuestName = actualGuestName.trim();
       const trimmedActualGuestPhone = actualGuestPhone.trim();
@@ -454,6 +458,12 @@ const GuesthouseReservation = ({ route }) => {
         body.actualGuestPhone = trimmedActualGuestPhone;
       }
 
+      const preparedPaymentWindow =
+        Platform.OS === 'web'
+          ? prepareWebPaymentWindow()
+          : {name: null, windowRef: null};
+      paymentWindowRef = preparedPaymentWindow.windowRef;
+
       const res = await reservationPaymentApi.createRoomReservation(roomId, body);
 
       const reservationId = res?.data;
@@ -467,6 +477,7 @@ const GuesthouseReservation = ({ route }) => {
           selectedCoupon?.couponId ||
           selectedCoupon?.id,
         pointUsed: appliedPointAmount,
+        paymentWindowName: preparedPaymentWindow.name,
         receiptContext: {
           guesthouseName,
           guesthouseId,
@@ -499,6 +510,7 @@ const GuesthouseReservation = ({ route }) => {
       });
 
     } catch (err) {
+      paymentWindowRef?.close();
       setReservationErrorMessage(
         err?.response?.data?.message || '예약 처리 중 문제가 발생했습니다.',
       );

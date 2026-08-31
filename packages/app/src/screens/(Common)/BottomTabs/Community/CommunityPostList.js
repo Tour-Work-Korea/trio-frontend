@@ -10,6 +10,7 @@ import {
   View,
 } from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import {FONTS} from '@constants/fonts';
 import Avatar from '@components/Avatar';
@@ -27,6 +28,14 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import CommentIcon from '@assets/images/chat_black.svg';
 
 const PAGE_SIZE = 10;
+const AD_INTERVAL = 7;
+const communityListBannerAdUnitId = __DEV__
+  ? TestIds.BANNER
+  : Platform.select({
+      ios: 'ca-app-pub-6098454400067335/4619471702',
+      android: 'ca-app-pub-6098454400067335/5920208998',
+      web: 'ca-pub-6098454400067335/4250943648',
+    });
 const sortCodeMap = {
   최신순: 'LATEST',
   등록순: 'OLDEST',
@@ -437,8 +446,9 @@ const CommunityPostList = ({
   );
 
   const renderPost = useCallback(
-    ({item}) => (
-      <View style={styles.postContainer}>
+    ({item, index}) => (
+      <>
+        <View style={styles.postContainer}>
         <TouchableOpacity
           activeOpacity={0.8}
           onPress={() => {
@@ -500,7 +510,18 @@ const CommunityPostList = ({
             </Text>
           </TouchableOpacity>
         </View>
-      </View>
+        </View>
+
+        {communityListBannerAdUnitId &&
+        (index + 1) % AD_INTERVAL === 0 ? (
+          <View style={styles.adBannerContainer}>
+            <BannerAd
+              unitId={communityListBannerAdUnitId}
+              size={BannerAdSize.ANCHORED_ADAPTIVE_BANNER}
+            />
+          </View>
+        ) : null}
+      </>
     ),
     [
       handlePressCommentCount,

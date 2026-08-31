@@ -51,6 +51,12 @@ const getNightCount = (checkIn, checkOut) => {
 
 const GuesthouseReservationEntry = ({route}) => {
   const navigation = useNavigation();
+  const today = dayjs().startOf('day');
+  const maxReservationDate = today.add(3, 'month');
+  const minReservationDateKey = today.format('YYYY-MM-DD');
+  const maxReservationDateKey = maxReservationDate.format('YYYY-MM-DD');
+  const minReservationMonth = today.format('YYYY-MM');
+  const maxReservationMonth = maxReservationDate.format('YYYY-MM');
   const params = route.params || {};
   const {
     roomId,
@@ -156,6 +162,27 @@ const GuesthouseReservationEntry = ({route}) => {
     roomPrice,
     totalPrice,
   ]);
+  const displayUnitRoomPrice = useMemo(() => {
+    const divisor = nights * (isDormitory ? guestCount : 1);
+
+    if (divisor <= 0) {
+      return Number(roomInfo.roomPrice || roomPrice || 0);
+    }
+
+    const roomTotalPrice = isDormitory
+      ? displayTotalPrice
+      : displayBaseRoomPrice;
+
+    return Math.round(roomTotalPrice / divisor);
+  }, [
+    displayBaseRoomPrice,
+    displayTotalPrice,
+    guestCount,
+    isDormitory,
+    nights,
+    roomInfo.roomPrice,
+    roomPrice,
+  ]);
 
   const refreshRoomDetail = useCallback(async () => {
     if (!guesthouseId || !roomId || !selectedCheckIn || !selectedCheckOut) {
@@ -231,7 +258,10 @@ const GuesthouseReservationEntry = ({route}) => {
       return;
     }
 
-    if (dayjs(dateString).isBefore(dayjs(), 'day')) {
+    if (
+      dayjs(dateString).isBefore(today, 'day') ||
+      dayjs(dateString).isAfter(maxReservationDate, 'day')
+    ) {
       return;
     }
 
@@ -275,8 +305,16 @@ const GuesthouseReservationEntry = ({route}) => {
       dayjs(dateString).isBefore(dayjs(selectedCheckOut), 'day');
     const isToday = dayjs(dateString).isSame(dayjs(), 'day');
     const isPastDate = dayjs(dateString).isBefore(dayjs(), 'day');
+    const isAfterReservationLimit = dayjs(dateString).isAfter(
+      maxReservationDate,
+      'day',
+    );
     const isDisabled =
-      state === 'disabled' || !isCurrentMonth || isUnavailable || isPastDate;
+      state === 'disabled' ||
+      !isCurrentMonth ||
+      isUnavailable ||
+      isPastDate ||
+      isAfterReservationLimit;
 
     return (
       <TouchableOpacity
@@ -288,6 +326,7 @@ const GuesthouseReservationEntry = ({route}) => {
           isAvailable && styles.dayCellAvailable,
           isPastDate && styles.dayCellUnavailable,
           isUnavailable && styles.dayCellUnavailable,
+          isAfterReservationLimit && styles.dayCellUnavailable,
           isSelectedRange && styles.dayCellSelectedRange,
           isSelectedEdge && styles.dayCellSelected,
         ]}>
@@ -298,6 +337,7 @@ const GuesthouseReservationEntry = ({route}) => {
             !isCurrentMonth && styles.dayNumberOut,
             isPastDate && styles.dayNumberUnavailable,
             isUnavailable && styles.dayNumberUnavailable,
+            isAfterReservationLimit && styles.dayNumberUnavailable,
             isSelectedRange && styles.dayNumberSelectedRange,
             isSelectedEdge && styles.dayNumberSelected,
           ]}>
@@ -366,7 +406,7 @@ const GuesthouseReservationEntry = ({route}) => {
       ...params,
       ...roomInfo,
       roomId,
-      roomPrice: roomInfo.roomPrice ?? roomPrice,
+      roomPrice: displayUnitRoomPrice,
       checkIn: joinDateTime(selectedCheckIn, checkInTime || checkIn),
       checkOut: joinDateTime(selectedCheckOut, checkOutTime || checkOut),
       guestCount,
@@ -394,8 +434,12 @@ const GuesthouseReservationEntry = ({route}) => {
           <Calendar
             {...CALENDAR_COMMON_PROPS}
             current={calendarCurrentDate}
+            minDate={minReservationDateKey}
+            maxDate={maxReservationDateKey}
             onDayPress={handleDayPress}
             dayComponent={renderCalendarDay}
+            disableArrowLeft={currentMonth <= minReservationMonth}
+            disableArrowRight={currentMonth >= maxReservationMonth}
             renderArrow={direction =>
               direction === 'left' ? (
                 <LeftChevron width={24} height={24} />
@@ -453,7 +497,7 @@ const GuesthouseReservationEntry = ({route}) => {
                 {formatCurrency(displayTotalPrice)}
               </Text>
               <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-                1베드 당 {formatCurrency(roomInfo.roomPrice ?? roomPrice)}
+                1베드 당 {formatCurrency(displayUnitRoomPrice)}
               </Text>
             </View>
 
