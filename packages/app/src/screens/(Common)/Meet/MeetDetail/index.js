@@ -11,6 +11,7 @@ import {
   Platform,
 } from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
+import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
@@ -40,7 +41,6 @@ import {
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import ImageModal from '@components/modals/ImageModal';
-import PartyApplicationAppPromptModal from '@components/modals/PartyApplicationAppPromptModal';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
@@ -56,6 +56,7 @@ import PartyInfoCategoryIcon from '@assets/images/party_info_category.svg';
 import PartyInfoCapacityIcon from '@assets/images/party_info_capacity.svg';
 import PartyInfoPriceIcon from '@assets/images/party_info_price.svg';
 import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg';
+import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
 const TABS = [
   {key: 'intro', label: '콘텐츠 소개'},
@@ -220,7 +221,6 @@ const MeetDetail = () => {
   const [liked, setLiked] = useState(false);
   const [loading, setLoading] = useState(true);
   const [imageModalVisible, setImageModalVisible] = useState(false);
-  const [appPromptVisible, setAppPromptVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [imageSourceRect, setImageSourceRect] = useState(null);
   const [selectedPartyDateId, setSelectedPartyDateId] = useState(null);
@@ -341,7 +341,9 @@ const MeetDetail = () => {
   }, [partyId]);
 
   const {
+    guesthouseAddress,
     guesthouseName,
+    guesthousePhone,
     hostProfileImage,
     partyTitle,
     partyTags,
@@ -631,6 +633,21 @@ const MeetDetail = () => {
     });
   };
 
+  const handleCopyGuesthousePhone = useCallback(() => {
+    const phone = guesthousePhone?.trim();
+    if (!phone) {
+      return;
+    }
+
+    Clipboard.setString(phone);
+    Toast.show({
+      type: 'success',
+      text1: '전화번호를 복사했어요!',
+      position: 'top',
+      visibilityTime: 2000,
+    });
+  }, [guesthousePhone]);
+
   const handlePressGuesthouse = () => {
     const guesthouseId =
       detail?.guesthouseId ??
@@ -652,12 +669,10 @@ const MeetDetail = () => {
       return;
     }
 
-    if (Platform.OS === 'web') {
-      setAppPromptVisible(true);
-      return;
-    }
-
-    if (openAppOrStoreFromWeb(partyDetailDeeplink(partyId))) {
+    if (
+      Platform.OS !== 'web' &&
+      openAppOrStoreFromWeb(partyDetailDeeplink(partyId))
+    ) {
       return;
     }
 
@@ -690,6 +705,7 @@ const MeetDetail = () => {
       maleNonAmount,
       thumbnailUrl: thumbnailSource?.uri,
       partyAnnouncements,
+      guesthousePhone,
     });
   };
 
@@ -756,6 +772,13 @@ const MeetDetail = () => {
     };
   }, [mapCoordinate]);
   const displayLocation = trimJejuPrefix(meetingPlace || location);
+  const displayGuesthouseAddress = trimJejuPrefix(
+    guesthouseAddress || location,
+  );
+  const guesthouseId =
+    detail?.guesthouseId ??
+    detail?.guesthouse?.id ??
+    detail?.profileSummary?.guesthouseId;
 
   const handlePressLocationMap = () => {
     if (!mapCoordinate) {
@@ -807,6 +830,37 @@ const MeetDetail = () => {
       </View>
     );
   };
+
+  const renderGuesthouseLink = () => (
+    <View style={styles.guesthouseLinkCard}>
+      <View style={styles.guesthouseLinkTopRow}>
+        <View style={styles.guesthouseLinkTitleBox}>
+          <Text
+            style={styles.guesthouseLinkTitle}
+            numberOfLines={1}
+            ellipsizeMode="tail">
+            {displayGuesthouseName}
+          </Text>
+        </View>
+        <TouchableOpacity
+          activeOpacity={0.85}
+          style={styles.guesthouseLinkActionButton}
+          onPress={handlePressGuesthouse}
+          disabled={!guesthouseId}>
+          <Text style={styles.guesthouseLinkAction}>게하 보러가기</Text>
+          <ChevroRight width={14} height={14} />
+        </TouchableOpacity>
+      </View>
+      {!!displayGuesthouseAddress && (
+        <Text
+          style={styles.guesthouseLinkAddress}
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {displayGuesthouseAddress}
+        </Text>
+      )}
+    </View>
+  );
 
   // 빈 값일때
   const renderEmptyInfo = () => (
@@ -884,6 +938,25 @@ const MeetDetail = () => {
                   </Text>
                 </View>
               ))}
+              {!!guesthousePhone?.trim() && (
+                <View style={styles.partyInfoPhoneRow}>
+                  <Text
+                    style={[FONTS.fs_14_medium, styles.partyInfoPhoneLabel]}>
+                    문의하기
+                  </Text>
+                  <TouchableOpacity
+                    activeOpacity={0.7}
+                    onPress={handleCopyGuesthousePhone}>
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.partyInfoPhoneNumber,
+                      ]}>
+                      {guesthousePhone}
+                    </Text>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </View>
           <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
@@ -947,6 +1020,7 @@ const MeetDetail = () => {
         {isEmptyWayInfo ? (
           <>
             {renderLocationMap()}
+            {renderGuesthouseLink()}
             {renderEmptyInfo()}
           </>
         ) : (
@@ -960,6 +1034,7 @@ const MeetDetail = () => {
               </Text>
             )}
             {renderLocationMap()}
+            {renderGuesthouseLink()}
             {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
@@ -1371,10 +1446,6 @@ const MeetDetail = () => {
           onClose={() => setImageModalVisible(false)}
         />
       )}
-      <PartyApplicationAppPromptModal
-        visible={appPromptVisible}
-        onClose={() => setAppPromptVisible(false)}
-      />
     </View>
   );
 };

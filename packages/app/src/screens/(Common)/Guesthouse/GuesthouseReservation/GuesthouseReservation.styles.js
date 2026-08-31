@@ -125,6 +125,51 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     color: COLORS.grayscale_800,
   },
+  expectedCheckInSelector: {
+    minHeight: 44,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 22,
+    paddingHorizontal: 16,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  expectedCheckInSelectorOpen: {
+    borderBottomLeftRadius: 0,
+    borderBottomRightRadius: 0,
+  },
+  expectedCheckInPlaceholder: {
+    color: COLORS.grayscale_500,
+  },
+  expectedCheckInSelectedText: {
+    color: COLORS.grayscale_900,
+  },
+  expectedCheckInDropdown: {
+    height: 220,
+    marginTop: -12,
+    borderWidth: 1,
+    borderTopWidth: 0,
+    borderColor: COLORS.grayscale_200,
+    borderBottomLeftRadius: 16,
+    borderBottomRightRadius: 16,
+    overflow: 'hidden',
+    backgroundColor: COLORS.grayscale_0,
+  },
+  expectedCheckInOption: {
+    height: 44,
+    paddingHorizontal: 16,
+    justifyContent: 'center',
+    borderTopWidth: 1,
+    borderTopColor: COLORS.grayscale_200,
+  },
+  expectedCheckInOptionText: {
+    color: COLORS.grayscale_900,
+  },
+  expectedCheckInOptionTextSelected: {
+    color: COLORS.primary_orange,
+  },
   // 방 이름, 가격
   roomNameText: {
 

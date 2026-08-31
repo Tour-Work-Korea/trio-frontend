@@ -52,6 +52,9 @@ const styles = StyleSheet.create({
   copyableLocation: {
     textDecorationLine: 'underline',
   },
+  copyablePhone: {
+    textDecorationLine: 'underline',
+  },
 
   // 안내박스
   noticeBox: {

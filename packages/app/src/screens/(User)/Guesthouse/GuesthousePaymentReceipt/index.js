@@ -181,6 +181,7 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
       ),
       checkInTime: formatTime(
         dto.checkInTime ??
+          dto.guesthouseCheckInTime ??
           stayOverride?.checkInTime ??
           fallback?.checkInTime ??
           dto.checkIn ??
@@ -194,11 +195,15 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
       ),
       checkOutTime: formatTime(
         dto.checkOutTime ??
+          dto.guesthouseCheckOutTime ??
           stayOverride?.checkOutTime ??
           fallback?.checkOutTime ??
           dto.checkOut ??
           stayOverride?.checkOut ??
           fallback?.checkOut
+      ),
+      expectedCheckInTime: formatTime(
+        dto.expectedCheckInTime ?? fallback?.expectedCheckInTime,
       ),
     },
 
@@ -428,9 +433,9 @@ const GuesthousePaymentReceipt = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const res = await reservationPaymentApi.getReservationPaymentDetail(
-          reservationId,
-        );
+        const res = isFromPaymentFlow
+          ? await reservationPaymentApi.getReservationPaymentDetail(reservationId)
+          : await reservationPaymentApi.getRoomReservationDetail(reservationId);
         setDto(res?.data);
       } catch (e) {
         if (isFromDeeplink) {
@@ -454,7 +459,7 @@ const GuesthousePaymentReceipt = () => {
     };
 
     fetchDetail();
-  }, [isFromDeeplink, navigation, reservationId]);
+  }, [isFromDeeplink, isFromPaymentFlow, navigation, reservationId]);
 
   // 복사
   const handleCopy = (text) => {
@@ -746,6 +751,17 @@ const GuesthousePaymentReceipt = () => {
               {data.reservation.phone}
             </Text>
           </View>
+
+          {data.stay.expectedCheckInTime ? (
+            <View style={styles.row}>
+              <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+                예상 체크인 시간
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
+                {data.stay.expectedCheckInTime}
+              </Text>
+            </View>
+          ) : null}
 
           {data.reservation.isActualGuestDifferent ? (
             <View style={styles.actualGuestBox}>

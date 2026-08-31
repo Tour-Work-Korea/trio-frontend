@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,12 +14,10 @@ import {COLORS} from '@constants/colors';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
-import AlertModal from '@components/modals/AlertModal';
 import AppImage from '@components/AppImage';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
-  const [contactGuesthouseOpen, setContactGuesthouseOpen] = useState(false);
 
   const renderItem = ({item, index}) => {
     const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
@@ -121,7 +119,11 @@ export default function UserUpcomingReservations({data, onRefresh}) {
                     },
                   });
                 } else {
-                  setContactGuesthouseOpen(true);
+                  navigation.navigate('MeetPaymentReceipt', {
+                    reservationId: item.reservationId,
+                    partyId: item.partyId,
+                    openContactModal: true,
+                  });
                 }
               }}>
               <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
@@ -162,13 +164,6 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         }
       />
 
-      <AlertModal
-        visible={contactGuesthouseOpen}
-        message={`신청이 확정된 콘텐츠입니다.\n취소 및 환불은 해당 게스트하우스로\n직접 문의해주세요.`}
-        buttonText="확인"
-        onPress={() => setContactGuesthouseOpen(false)}
-        onRequestClose={() => setContactGuesthouseOpen(false)}
-      />
     </>
   );
 }

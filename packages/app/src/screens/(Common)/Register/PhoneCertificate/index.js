@@ -1,6 +1,7 @@
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   Keyboard,
+  Platform,
   Text,
   TextInput,
   TouchableOpacity,
@@ -19,7 +20,7 @@ import AlertModal from '@components/modals/AlertModal';
 import LogoOrange from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
 import authApi from '@utils/api/authApi';
-import {storeLoginTokens} from '@utils/auth/login';
+import {storeLoginTokens, storeWebSessionInfo} from '@utils/auth/login';
 import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 
 import styles from '../../Login/Login.styles';
@@ -154,17 +155,23 @@ const PhoneCertificate = ({route}) => {
         agreements,
       });
 
-      const {accessToken, refreshToken} = res.data || {};
+      const data = res.data || {};
 
-      if (!accessToken || !refreshToken) {
-        throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+      if (Platform.OS === 'web') {
+        await storeWebSessionInfo(data.session || data, userRole);
+      } else {
+        const {accessToken, refreshToken} = data;
+
+        if (!accessToken || !refreshToken) {
+          throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+        }
+
+        await storeLoginTokens({
+          accessToken,
+          refreshToken,
+          userRole,
+        });
       }
-
-      await storeLoginTokens({
-        accessToken,
-        refreshToken,
-        userRole,
-      });
       await storeLastLoginProvider(provider);
 
       navigation.dispatch(

@@ -1,14 +1,40 @@
 import api from './axiosInstance';
+import useUserStore from '@stores/userStore';
+
+const optionalAuthConfig = () =>
+  useUserStore.getState().accessToken
+    ? {optionalAuth: true}
+    : {withAuth: false};
+
+const getRecruitParams = params => ({
+  ...params,
+  sortBy: 'LATEST',
+});
 
 const userEmployApi = {
   //채용 공고 목록 조회
-  getRecruits: (params = {}) =>
-    api.get('/user/recruits', {
-      params: {
-        ...params,
-        sortBy: 'LATEST',
-      },
-    }),
+  getRecruits: async (params = {}) => {
+    const requestParams = getRecruitParams(params);
+
+    try {
+      return await api.get('/user/recruits', {
+        ...optionalAuthConfig(),
+        params: requestParams,
+      });
+    } catch (error) {
+      const status = error?.response?.status;
+
+      if (status !== 401 && status !== 403) {
+        throw error;
+      }
+
+      return api.get('/user/recruits', {
+        params: requestParams,
+        withAuth: false,
+        withCredentials: false,
+      });
+    }
+  },
   //특정 채용공고 상세 조회
   getRecruitById: recruitId => api.get(`/user/recruits/${recruitId}`),
 
