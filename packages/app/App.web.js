@@ -10,6 +10,7 @@ import BasicToast from '@components/toasts/BasicToast';
 import ErrorToast from '@components/toasts/ErrorToast';
 import {tryAutoLogin} from '@utils/auth/login';
 import useUserStore from '@stores/userStore';
+import WebDownloadBanner from '@components/WebDownloadBanner';
 
 const LOGOUT_HOME_LOCK_KEY = '__TRIO_LOGOUT_HOME_LOCK__';
 
@@ -100,6 +101,7 @@ export default function App() {
       <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
         <StatusBar barStyle="dark-content" />
         <View style={styles.appFrame}>
+          <WebDownloadBanner />
           <RootNavigation />
         </View>
         <Toast config={toastConfig} />
