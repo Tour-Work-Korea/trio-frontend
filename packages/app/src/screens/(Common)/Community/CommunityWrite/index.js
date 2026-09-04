@@ -23,10 +23,6 @@ import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
-import {
-  getImageUploadInfo,
-  putImageToPresignedUrl,
-} from '@utils/imageUploadHandler';
 import styles from './CommunityWrite.styles';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
@@ -302,7 +298,6 @@ const CommunityWrite = ({route}) => {
 
       return {
         id: `${Date.now()}-${index}`,
-        uploadBody: resizedImage.blob,
         uri: resizedImage.uri,
         fileName: `community-${Date.now()}-${index}.jpg`,
         fileSize: resizedImage.size || asset.fileSize || 1,
@@ -310,15 +305,13 @@ const CommunityWrite = ({route}) => {
       };
     } catch (error) {
       console.warn('community image convert 실패:', error);
-      const {contentType, filename} = getImageUploadInfo(asset, false);
 
       return {
         id: `${Date.now()}-${index}`,
-        uploadBody: asset.file,
         uri: asset.uri,
-        fileName: filename,
+        fileName: `community-${Date.now()}-${index}.jpg`,
         fileSize: asset.fileSize || 1,
-        type: contentType,
+        type: JPEG_CONTENT_TYPE,
       };
     }
   };
@@ -420,23 +413,19 @@ const CommunityWrite = ({route}) => {
     setImagesChanged(true);
   };
 
-  const uploadImageToS3 = async ({
-    presignedUrl,
-    uri,
-    contentType,
-    uploadBody,
-  }) => {
-    let uploadData = uploadBody;
-    if (!uploadData) {
-      const fileResponse = await fetch(uri);
-      uploadData = await fileResponse.blob();
-    }
+  const uploadImageToS3 = async ({presignedUrl, uri, contentType}) => {
+    const fileResponse = await fetch(uri);
+    const blob = await fileResponse.blob();
 
-    await putImageToPresignedUrl(presignedUrl, contentType, uploadData);
+    await fetch(presignedUrl, {
+      method: 'PUT',
+      headers: {'Content-Type': contentType},
+      body: blob,
+    });
   };
 
   const getImageFilename = (image, index) => {
-    if (image.fileName) {
+    if (image.fileName?.toLowerCase().endsWith('.jpg')) {
       return image.fileName;
     }
 
@@ -457,7 +446,7 @@ const CommunityWrite = ({route}) => {
     if (newImages.length > 0) {
       const presignTargets = newImages.map(image => ({
         filename: getImageFilename(image, image.finalIndex),
-        contentType: image.type,
+        contentType: JPEG_CONTENT_TYPE,
         imageOrder: image.finalIndex,
         fileSizeBytes: Number(image.fileSize || 1),
       }));
@@ -480,8 +469,7 @@ const CommunityWrite = ({route}) => {
           return uploadImageToS3({
             presignedUrl: presignedImage.presignedUrl,
             uri: sourceImage.uri,
-            contentType: sourceImage.type,
-            uploadBody: sourceImage.uploadBody,
+            contentType: JPEG_CONTENT_TYPE,
           });
         }),
       );
