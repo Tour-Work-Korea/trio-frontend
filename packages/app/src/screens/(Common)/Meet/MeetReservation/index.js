@@ -6,6 +6,7 @@ import {
   TouchableOpacity,
   ScrollView,
   Dimensions,
+  Platform,
 } from 'react-native';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
@@ -23,6 +24,7 @@ import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import { AGREEMENT_CONTENT } from '@data/agreeContents';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import AppImage from '@components/AppImage';
+import {prepareWebPaymentWindow} from '@web/webPaymentWindow';
 
 import Checked from '@assets/images/check_orange.svg';
 import Unchecked from '@assets/images/check_white.svg';
@@ -465,9 +467,16 @@ const MeetReservation = () => {
   const handleCreateReservation = async () => {
     if (!partyId || !reservationInfo) {return;}
 
+    let paymentWindowRef = null;
+
     try {
       const requestText = requestMessage?.trim() || '';
       const amount = reservationAmount;
+      const preparedPaymentWindow =
+        Platform.OS === 'web' && amount > 0
+          ? prepareWebPaymentWindow()
+          : {name: null, windowRef: null};
+      paymentWindowRef = preparedPaymentWindow.windowRef;
       const reservationPartyId = selectedDateOption?.partyId ?? partyId;
       const { data } = await reservationPaymentApi.createPartyReservation(
         reservationPartyId,
@@ -513,9 +522,11 @@ const MeetReservation = () => {
           partyEndTime: checkOutTime,
           thumbnailUrl: routeThumbnailUrl,
           pointUsed: 0,
+          paymentWindowName: preparedPaymentWindow.name,
         });
       }
     } catch (e) {
+      paymentWindowRef?.close();
       console.log('createPartyReservation error', e);
       const msg =
         e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';

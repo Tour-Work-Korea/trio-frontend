@@ -48,6 +48,7 @@ import {
   UserEditInfo,
   Setting,
   Terms,
+  OpenSourceLicenses,
   ProfileUpdate,
   UserReservationCheck,
   UserFavoriteGuesthouse,
@@ -105,6 +106,10 @@ const RootNavigation = () => {
         <Stack.Screen name="undefined" component={UndefinedStack} />
         <Stack.Screen name="Setting" component={Setting} />
         <Stack.Screen name="Terms" component={Terms} />
+        <Stack.Screen
+          name="OpenSourceLicenses"
+          component={OpenSourceLicenses}
+        />
 
         <Stack.Screen name="RoomDetail" component={RoomDetail} />
         <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />

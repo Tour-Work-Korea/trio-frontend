@@ -28,6 +28,7 @@ export const WEB_ROUTES = {
   REGISTER: '/register',
   SETTINGS: '/settings',
   TERMS: '/terms',
+  OPEN_SOURCE_LICENSES: '/open-source-licenses',
   ROOM_DETAIL: roomId => `/rooms/${roomId}`,
 };
 
@@ -77,6 +78,7 @@ export const WEB_STATIC_ROUTE_BY_SCREEN = {
   ResumeDetail: '/my/resumes/detail',
   Setting: WEB_ROUTES.SETTINGS,
   Terms: WEB_ROUTES.TERMS,
+  OpenSourceLicenses: WEB_ROUTES.OPEN_SOURCE_LICENSES,
   TemporaryEventBanner: '/events/coupon',
   UserEditInfo: '/my/edit-info',
   UserEditProfile: '/my/edit-profile',

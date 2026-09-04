@@ -190,6 +190,13 @@ const styles = StyleSheet.create({
   footerLoading: {
     marginVertical: 16,
   },
+  adBannerContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 12,
+    marginBottom: 20,
+    backgroundColor: COLORS.grayscale_0,
+  },
   writeButton: {
     position: 'absolute',
     right: 16,
