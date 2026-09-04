@@ -125,7 +125,7 @@ jobs:
             --paths "/*"
 
       - name: Notify Discord (Web)
-        if: always()
+        if: ${{ always() && !cancelled() }}
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
         run: |

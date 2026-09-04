@@ -181,7 +181,7 @@ jobs:
           bundle exec fastlane $LANE
 
       - name: Notify Discord
-        if: always()
+        if: ${{ always() && !cancelled() }}
         run: |
           BRANCH="${GITHUB_REF##*/}"
       

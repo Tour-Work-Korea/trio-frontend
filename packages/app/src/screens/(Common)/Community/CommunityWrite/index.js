@@ -23,7 +23,10 @@ import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
-import {getImageUploadInfo} from '@utils/imageUploadHandler';
+import {
+  getImageUploadInfo,
+  putImageToPresignedUrl,
+} from '@utils/imageUploadHandler';
 import styles from './CommunityWrite.styles';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
@@ -429,15 +432,7 @@ const CommunityWrite = ({route}) => {
       uploadData = await fileResponse.blob();
     }
 
-    const response = await fetch(presignedUrl, {
-      method: 'PUT',
-      headers: {'Content-Type': contentType},
-      body: uploadData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`COMMUNITY_IMAGE_UPLOAD_FAILED_${response.status}`);
-    }
+    await putImageToPresignedUrl(presignedUrl, contentType, uploadData);
   };
 
   const getImageFilename = (image, index) => {

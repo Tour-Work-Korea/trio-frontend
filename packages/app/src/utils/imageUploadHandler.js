@@ -17,7 +17,13 @@ import ImageResizer from 'react-native-image-resizer';
 //비민감 이미지 URL 받기
 const getPresignedUrl = async (filename, contentType) => {
   const response = await commonApi.getPresignedUrl(filename, contentType);
-  return response.data?.presignedUrl;
+  const presignedUrl = response.data?.presignedUrl;
+
+  if (!presignedUrl) {
+    throw new Error('IMAGE_PRESIGNED_URL_MISSING');
+  }
+
+  return presignedUrl;
 };
 
 const IMAGE_EXTENSION_BY_TYPE = {
@@ -31,7 +37,13 @@ const IMAGE_EXTENSION_BY_TYPE = {
 };
 
 const getImageContentType = asset => {
-  const type = asset?.type?.toLowerCase();
+  const type = asset?.type?.split(';')[0]?.trim()?.toLowerCase();
+  if (type === 'image/jpg' || type === 'image/pjpeg') {
+    return 'image/jpeg';
+  }
+  if (type === 'image/x-png') {
+    return 'image/png';
+  }
   if (type?.startsWith('image/')) {
     return type;
   }
@@ -75,6 +87,73 @@ const compressToJPEG = async (
 };
 
 //S3에 업로드
+const uploadImageWithXHR = (presignedUrl, fileType, body) =>
+  new Promise((resolve, reject) => {
+    const request = new XMLHttpRequest();
+
+    request.open('PUT', presignedUrl);
+    request.setRequestHeader('Content-Type', fileType);
+    request.timeout = 60000;
+    request.onload = () => {
+      if (request.status >= 200 && request.status < 300) {
+        resolve();
+        return;
+      }
+
+      reject(new Error(`IMAGE_UPLOAD_FAILED_${request.status}`));
+    };
+    request.onerror = () => reject(new Error('IMAGE_UPLOAD_NETWORK_FAILED'));
+    request.ontimeout = () => reject(new Error('IMAGE_UPLOAD_TIMEOUT'));
+    request.send(body);
+  });
+
+const isRetryableUploadError = error =>
+  error?.message === 'IMAGE_UPLOAD_NETWORK_FAILED' ||
+  error?.message === 'IMAGE_UPLOAD_TIMEOUT' ||
+  /^IMAGE_UPLOAD_FAILED_5\d\d$/.test(error?.message ?? '');
+
+const wait = milliseconds =>
+  new Promise(resolve => setTimeout(resolve, milliseconds));
+
+export const putImageToPresignedUrl = async (
+  presignedUrl,
+  fileType,
+  body,
+) => {
+  if (!presignedUrl || !body) {
+    throw new Error('IMAGE_UPLOAD_DATA_MISSING');
+  }
+
+  if (Platform.OS === 'web' && typeof XMLHttpRequest !== 'undefined') {
+    let lastError;
+
+    for (let attempt = 0; attempt < 2; attempt += 1) {
+      try {
+        await uploadImageWithXHR(presignedUrl, fileType, body);
+        return;
+      } catch (error) {
+        lastError = error;
+        if (!isRetryableUploadError(error) || attempt === 1) {
+          throw error;
+        }
+        await wait(400);
+      }
+    }
+
+    throw lastError;
+  }
+
+  const response = await fetch(presignedUrl, {
+    method: 'PUT',
+    headers: {'Content-Type': fileType},
+    body,
+  });
+
+  if (!response.ok) {
+    throw new Error(`IMAGE_UPLOAD_FAILED_${response.status}`);
+  }
+};
+
 export const uploadImageToS3 = async (
   presignedUrl,
   fileUri,
@@ -88,15 +167,7 @@ export const uploadImageToS3 = async (
     body = await fileData.blob();
   }
 
-  const response = await fetch(presignedUrl, {
-    method: 'PUT',
-    headers: {'Content-Type': fileType},
-    body,
-  });
-
-  if (!response.ok) {
-    throw new Error(`IMAGE_UPLOAD_FAILED_${response.status}`);
-  }
+  await putImageToPresignedUrl(presignedUrl, fileType, body);
 
   const publicUrl = presignedUrl.split('?')[0];
   return publicUrl.replace(/^https?:\/\/[^/]+/, 'https://cdn.ddakji.kr');
@@ -225,6 +296,8 @@ export const uploadSensitiveImage = async () => {
 
   // 📌 더 공격적인 적응형 압축 적용
   let fileUri = originalUri;
+  let uploadBody = asset.file;
+  let wasCompressed = false;
   try {
     fileUri = await adaptiveCompressToJPEG(originalUri, {
       targetBytes: 1.8 * 1024 * 1024, // 서버 한도 2MB라 가정 시 여유
@@ -234,19 +307,28 @@ export const uploadSensitiveImage = async () => {
       minQuality: 0.55,
       stepQuality: 0.1,
     });
+    wasCompressed = true;
+    if (Platform.OS === 'web') {
+      const fileResponse = await fetch(fileUri);
+      uploadBody = await fileResponse.blob();
+    }
   } catch (e) {
     console.warn('[uploadSensitiveImage] adaptive compress failed:', e);
   }
 
-  const fileName = generateUniqueFilename('jpg');
-  const fileType = 'image/jpeg';
+  const {filename: fileName, contentType: fileType} = getImageUploadInfo(
+    asset,
+    wasCompressed,
+  );
 
   const formData = new FormData();
 
   if (Platform.OS === 'web') {
-    const fileResponse = await fetch(fileUri);
-    const fileBlob = await fileResponse.blob();
-    formData.append('image', fileBlob, fileName);
+    if (!uploadBody) {
+      const fileResponse = await fetch(fileUri);
+      uploadBody = await fileResponse.blob();
+    }
+    formData.append('image', uploadBody, fileName);
   } else {
     formData.append('image', {uri: fileUri, name: fileName, type: fileType});
   }
