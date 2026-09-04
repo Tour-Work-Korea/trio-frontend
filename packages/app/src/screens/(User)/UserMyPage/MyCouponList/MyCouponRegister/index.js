@@ -13,6 +13,7 @@ import Toast from 'react-native-toast-message';
 
 import Header from '@components/Header';
 import ButtonScarlet from '@components/ButtonScarlet';
+import CouponDownloadAppPromptModal from '@components/modals/CouponDownloadAppPromptModal';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
@@ -23,8 +24,15 @@ const MyCouponRegister = () => {
   const navigation = useNavigation();
   const [couponCode, setCouponCode] = useState('');
   const [issuing, setIssuing] = useState(false);
+  const [isAppInstallPromptVisible, setIsAppInstallPromptVisible] =
+    useState(false);
 
   const handleIssueCoupon = async () => {
+    if (Platform.OS === 'web') {
+      setIsAppInstallPromptVisible(true);
+      return;
+    }
+
     const trimmedCode = couponCode.trim();
 
     if (!trimmedCode) {
@@ -54,31 +62,39 @@ const MyCouponRegister = () => {
   };
 
   return (
-    <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={styles.container}>
-        <Header title="쿠폰등록" />
+    <>
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          style={styles.container}>
+          <Header title="쿠폰등록" />
 
-        <View style={styles.content}>
-          <TextInput
-            value={couponCode}
-            onChangeText={setCouponCode}
-            placeholder="쿠폰코드를 적어주세요"
-            placeholderTextColor={COLORS.grayscale_400}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            style={[FONTS.fs_16_medium, styles.input]}
-          />
+          <View style={styles.content}>
+            <TextInput
+              value={couponCode}
+              onChangeText={setCouponCode}
+              placeholder="쿠폰코드를 적어주세요"
+              placeholderTextColor={COLORS.grayscale_400}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              style={[FONTS.fs_16_medium, styles.input]}
+            />
 
-          <ButtonScarlet
-            title={issuing ? '등록 중...' : '등록'}
-            onPress={handleIssueCoupon}
-            disabled={!couponCode.trim() || issuing}
-          />
-        </View>
-      </KeyboardAvoidingView>
-    </TouchableWithoutFeedback>
+            <ButtonScarlet
+              title={issuing ? '등록 중...' : '등록'}
+              onPress={handleIssueCoupon}
+              disabled={
+                issuing || (Platform.OS !== 'web' && !couponCode.trim())
+              }
+            />
+          </View>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
+      <CouponDownloadAppPromptModal
+        visible={isAppInstallPromptVisible}
+        onClose={() => setIsAppInstallPromptVisible(false)}
+      />
+    </>
   );
 };
 
