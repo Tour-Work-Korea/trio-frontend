@@ -20,6 +20,43 @@ const getPresignedUrl = async (filename, contentType) => {
   return response.data?.presignedUrl;
 };
 
+const IMAGE_EXTENSION_BY_TYPE = {
+  'image/avif': 'avif',
+  'image/gif': 'gif',
+  'image/heic': 'heic',
+  'image/heif': 'heif',
+  'image/jpeg': 'jpg',
+  'image/png': 'png',
+  'image/webp': 'webp',
+};
+
+const getImageContentType = asset => {
+  const type = asset?.type?.toLowerCase();
+  if (type?.startsWith('image/')) {
+    return type;
+  }
+
+  const extension = asset?.fileName?.split('.').pop()?.toLowerCase();
+  if (extension === 'jpg' || extension === 'jpeg') {
+    return 'image/jpeg';
+  }
+  if (extension && IMAGE_EXTENSION_BY_TYPE[`image/${extension}`]) {
+    return `image/${extension}`;
+  }
+
+  return 'application/octet-stream';
+};
+
+const getUploadInfo = (asset, wasCompressed) => {
+  const contentType = wasCompressed ? 'image/jpeg' : getImageContentType(asset);
+  const extension = IMAGE_EXTENSION_BY_TYPE[contentType] || 'bin';
+
+  return {
+    contentType,
+    filename: generateUniqueFilename(extension),
+  };
+};
+
 // ⬇️ 압축 유틸 (JPEG로 리사이즈/재인코딩)
 const compressToJPEG = async (
   uri,
@@ -65,12 +102,14 @@ export const uploadSingleImage = async () => {
 
   // 1) 압축 시도 → 실패하면 원본 사용
   let fileUri = originalUri;
+  let wasCompressed = false;
   try {
     fileUri = await compressToJPEG(originalUri, {
       maxWidth: 1280,
       maxHeight: 1280,
       quality: 0.8,
     });
+    wasCompressed = true;
   } catch (e) {
     console.warn(
       '[uploadSingleImage] compress failed -> fallback to original:',
@@ -78,9 +117,12 @@ export const uploadSingleImage = async () => {
     );
   }
 
-  // 압축 결과는 JPEG이므로 fileType/확장자는 jpeg/jpg로 맞춤
-  const fileType = 'image/jpeg';
-  const filename = generateUniqueFilename('jpg');
+  // 모바일 브라우저가 HEIC 등의 디코딩을 지원하지 않아 압축에 실패하면
+  // 원본의 실제 MIME 타입과 확장자로 업로드한다.
+  const {contentType: fileType, filename} = getUploadInfo(
+    asset,
+    wasCompressed,
+  );
 
   const presignedUrl = await getPresignedUrl(filename, fileType);
   const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
@@ -109,12 +151,14 @@ export const uploadMultiImage = async (limit = 10) => {
 
     // 1) 압축 시도 → 실패 시 원본
     let fileUri = originalUri;
+    let wasCompressed = false;
     try {
       fileUri = await compressToJPEG(originalUri, {
         maxWidth: 1280,
         maxHeight: 1280,
         quality: 0.8,
       });
+      wasCompressed = true;
     } catch (e) {
       console.warn(
         '[uploadMultiImage] compress failed -> fallback to original:',
@@ -122,8 +166,10 @@ export const uploadMultiImage = async (limit = 10) => {
       );
     }
 
-    const fileType = 'image/jpeg';
-    const filename = generateUniqueFilename('jpg');
+    const {contentType: fileType, filename} = getUploadInfo(
+      asset,
+      wasCompressed,
+    );
 
     const presignedUrl = await getPresignedUrl(filename, fileType);
     const uploadedUrl = await uploadImageToS3(presignedUrl, fileUri, fileType);
