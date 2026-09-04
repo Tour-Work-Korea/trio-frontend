@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo } from 'react';
+import React, { useCallback, useMemo, useState } from 'react';
 import { Image, View, Linking, Platform, StyleSheet } from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 import { WebView } from 'react-native-webview';
@@ -8,6 +8,7 @@ import {COLORS} from '@constants/colors';
 import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
 import AlertModal from '@components/modals/AlertModal';
+import CouponDownloadAppPromptModal from '@components/modals/CouponDownloadAppPromptModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
 import { showErrorModal } from '@utils/loginModalHub';
@@ -220,8 +221,10 @@ const TemporaryEventBanner = () => {
   const couponTemplateId = banner?.couponTemplateId;
   const userRole = useUserStore(state => state.userRole);
   const accessToken = useUserStore(state => state.accessToken);
-  const [issuing, setIssuing] = React.useState(false);
-  const [alertState, setAlertState] = React.useState({
+  const [issuing, setIssuing] = useState(false);
+  const [isAppInstallPromptVisible, setIsAppInstallPromptVisible] =
+    useState(false);
+  const [alertState, setAlertState] = useState({
     visible: false,
     message: '',
     navigateOnConfirm: false,
@@ -342,6 +345,11 @@ const TemporaryEventBanner = () => {
       return;
     }
 
+    if (Platform.OS === 'web') {
+      setIsAppInstallPromptVisible(true);
+      return;
+    }
+
     if (!accessToken || userRole !== 'USER') {
       showLoginRequiredModal();
       return;
@@ -452,6 +460,10 @@ const TemporaryEventBanner = () => {
         buttonText="확인"
         onPress={closeAlert}
         onRequestClose={closeAlert}
+      />
+      <CouponDownloadAppPromptModal
+        visible={isAppInstallPromptVisible}
+        onClose={() => setIsAppInstallPromptVisible(false)}
       />
     </View>
   );

@@ -28,7 +28,10 @@ import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
-import {getImageUploadInfo} from '@utils/imageUploadHandler';
+import {
+  getImageUploadInfo,
+  putImageToPresignedUrl,
+} from '@utils/imageUploadHandler';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
@@ -725,15 +728,7 @@ const CommunityDetail = ({route}) => {
       uploadData = await fileResponse.blob();
     }
 
-    const response = await fetch(presignedUrl, {
-      method: 'PUT',
-      headers: {'Content-Type': contentType},
-      body: uploadData,
-    });
-
-    if (!response.ok) {
-      throw new Error(`COMMENT_IMAGE_UPLOAD_FAILED_${response.status}`);
-    }
+    await putImageToPresignedUrl(presignedUrl, contentType, uploadData);
   };
 
   const getCommentImageFilename = (image, index) => {
