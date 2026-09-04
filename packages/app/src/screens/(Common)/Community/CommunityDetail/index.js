@@ -28,6 +28,7 @@ import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
+import {getImageUploadInfo} from '@utils/imageUploadHandler';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
@@ -596,6 +597,7 @@ const CommunityDetail = ({route}) => {
 
       return {
         id: `${Date.now()}-${index}`,
+        uploadBody: resizedImage.blob,
         uri: resizedImage.uri,
         fileName: `comment-${Date.now()}-${index}.jpg`,
         fileSize: resizedImage.size || asset.fileSize || 1,
@@ -603,13 +605,15 @@ const CommunityDetail = ({route}) => {
       };
     } catch (error) {
       console.warn('community comment image convert 실패:', error);
+      const {contentType, filename} = getImageUploadInfo(asset, false);
 
       return {
         id: `${Date.now()}-${index}`,
+        uploadBody: asset.file,
         uri: asset.uri,
-        fileName: `comment-${Date.now()}-${index}.jpg`,
+        fileName: filename,
         fileSize: asset.fileSize || 1,
-        type: JPEG_CONTENT_TYPE,
+        type: contentType,
       };
     }
   };
@@ -709,19 +713,31 @@ const CommunityDetail = ({route}) => {
     setCommentImages(prev => prev.filter(image => image.id !== imageId));
   };
 
-  const uploadImageToS3 = async ({presignedUrl, uri, contentType}) => {
-    const fileResponse = await fetch(uri);
-    const blob = await fileResponse.blob();
+  const uploadImageToS3 = async ({
+    presignedUrl,
+    uri,
+    contentType,
+    uploadBody,
+  }) => {
+    let uploadData = uploadBody;
+    if (!uploadData) {
+      const fileResponse = await fetch(uri);
+      uploadData = await fileResponse.blob();
+    }
 
-    await fetch(presignedUrl, {
+    const response = await fetch(presignedUrl, {
       method: 'PUT',
       headers: {'Content-Type': contentType},
-      body: blob,
+      body: uploadData,
     });
+
+    if (!response.ok) {
+      throw new Error(`COMMENT_IMAGE_UPLOAD_FAILED_${response.status}`);
+    }
   };
 
   const getCommentImageFilename = (image, index) => {
-    if (image.fileName?.toLowerCase().endsWith('.jpg')) {
+    if (image.fileName) {
       return image.fileName;
     }
 
@@ -735,7 +751,7 @@ const CommunityDetail = ({route}) => {
 
     const presignTargets = commentImages.map((image, index) => ({
       filename: getCommentImageFilename(image, index),
-      contentType: JPEG_CONTENT_TYPE,
+      contentType: image.type,
       imageOrder: index,
       fileSizeBytes: Number(image.fileSize || 1),
     }));
@@ -756,7 +772,8 @@ const CommunityDetail = ({route}) => {
         return uploadImageToS3({
           presignedUrl: presignedImage.presignedUrl,
           uri: sourceImage.uri,
-          contentType: JPEG_CONTENT_TYPE,
+          contentType: sourceImage.type,
+          uploadBody: sourceImage.uploadBody,
         });
       }),
     );

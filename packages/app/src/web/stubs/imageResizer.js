@@ -75,6 +75,7 @@ const ImageResizer = {
     );
 
     return {
+      blob,
       uri: URL.createObjectURL(blob),
       name: `resized-${Date.now()}.${type === 'image/png' ? 'png' : 'jpg'}`,
       size: blob.size,
