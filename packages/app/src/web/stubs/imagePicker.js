@@ -29,6 +29,7 @@ const normalizeFile = async file => {
   const size = file.type?.startsWith('image/') ? await getImageSize(uri) : {};
 
   return {
+    file,
     uri,
     fileName: file.name,
     fileSize: file.size,
