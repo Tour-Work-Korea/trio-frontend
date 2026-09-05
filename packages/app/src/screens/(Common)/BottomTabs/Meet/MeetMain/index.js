@@ -45,6 +45,58 @@ const getPartyDisplayKey = party => {
   return String(party?.partyId ?? '');
 };
 
+const getPartyStartDateTime = party =>
+  party?.partyStartDateTime ??
+  (party?.eventDate && party?.partyStartTime
+    ? `${party.eventDate}T${party.partyStartTime}`
+    : party?.eventDate);
+
+const getDateEventDisplayKey = party => {
+  const templateId =
+    party?.partyTemplateId ?? party?.contentId ?? party?.partyGroupId;
+
+  if (templateId != null) {
+    return `template:${templateId}`;
+  }
+
+  return [
+    party?.guesthouseId ?? party?.guesthouseName,
+    party?.partyTitle,
+    party?.partyImageUrl,
+    party?.partyStartTime,
+    party?.partyEndTime,
+  ]
+    .filter(value => value != null && value !== '')
+    .join('|');
+};
+
+const getPartyPrice = party => {
+  const optionPrices = Array.isArray(party?.priceOptions)
+    ? party.priceOptions
+        .map(option => option?.amount)
+        .filter(value => value != null && value !== '')
+        .map(Number)
+        .filter(Number.isFinite)
+    : [];
+
+  if (optionPrices.length > 0) {
+    return Math.min(...optionPrices);
+  }
+
+  const legacyPrices = [
+    party?.amount,
+    party?.femaleAmount,
+    party?.nonGuestAmount,
+    party?.maleNonAmount,
+    party?.femaleNonAmount,
+  ]
+    .filter(value => value != null && value !== '')
+    .map(Number)
+    .filter(Number.isFinite);
+
+  return legacyPrices.length > 0 ? Math.min(...legacyPrices) : 0;
+};
+
 const MeetMain = () => {
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
@@ -123,14 +175,25 @@ const MeetMain = () => {
       const {data} = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
       setMeets(list);
-      prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 8});
+      prefetchImageUrls(
+        list.map(item => item.partyImageUrl),
+        {limit: 8},
+      );
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
       inFlightKeyRef.current = null;
       setLoading(false);
     }
-  }, [requestKey, sortOption, scaleId, stayId, filters, isBigById, isGuestById]);
+  }, [
+    requestKey,
+    sortOption,
+    scaleId,
+    stayId,
+    filters,
+    isBigById,
+    isGuestById,
+  ]);
 
   useFocusEffect(
     useCallback(() => {
@@ -139,17 +202,22 @@ const MeetMain = () => {
   );
 
   const groupedGuesthouses = useMemo(() => {
-    const uniqueParties = meets.reduce((acc, party) => {
-      const key = getPartyDisplayKey(party);
+    const uniqueParties = meets
+      .filter(party => party?.scheduleType !== 'DATE_EVENT')
+      .reduce(
+        (acc, party) => {
+          const key = getPartyDisplayKey(party);
 
-      if (!key || acc.seen.has(key)) {
-        return acc;
-      }
+          if (!key || acc.seen.has(key)) {
+            return acc;
+          }
 
-      acc.seen.add(key);
-      acc.items.push(party);
-      return acc;
-    }, {seen: new Set(), items: []}).items;
+          acc.seen.add(key);
+          acc.items.push(party);
+          return acc;
+        },
+        {seen: new Set(), items: []},
+      ).items;
 
     const grouped = uniqueParties.reduce((acc, party) => {
       const guesthouseName = party.guesthouseName || '게스트하우스';
@@ -166,6 +234,41 @@ const MeetMain = () => {
       return acc;
     }, new Map());
     return Array.from(grouped.values());
+  }, [meets]);
+
+  const dateEvents = useMemo(() => {
+    const now = dayjs();
+
+    const sortedEvents = meets
+      .filter(party => party?.scheduleType === 'DATE_EVENT')
+      .filter(party => {
+        const start = dayjs(getPartyStartDateTime(party));
+        return (
+          party?.eventStatus !== 'ENDED' &&
+          start.isValid() &&
+          start.isAfter(now)
+        );
+      })
+      .sort(
+        (a, b) =>
+          dayjs(getPartyStartDateTime(a)).valueOf() -
+          dayjs(getPartyStartDateTime(b)).valueOf(),
+      );
+
+    return sortedEvents.reduce(
+      (acc, party) => {
+        const key = getDateEventDisplayKey(party);
+
+        if (!key || acc.seen.has(key)) {
+          return acc;
+        }
+
+        acc.seen.add(key);
+        acc.items.push(party);
+        return acc;
+      },
+      {seen: new Set(), items: []},
+    ).items;
   }, [meets]);
 
   function formatWhenTime(isoStr) {
@@ -207,7 +310,8 @@ const MeetMain = () => {
                 {item.partyTitle}
               </Text>
               <TouchableOpacity
-                activeOpacity={1} onPress={() => handleToggleFavorite(item)}>
+                activeOpacity={1}
+                onPress={() => handleToggleFavorite(item)}>
                 {isFav ? (
                   <HeartFilled width={20} height={20} />
                 ) : (
@@ -233,6 +337,84 @@ const MeetMain = () => {
           </View>
         </View>
       </TouchableOpacity>
+    );
+  };
+
+  const renderDateEvent = item => {
+    const start = dayjs(getPartyStartDateTime(item));
+    const startTime = item?.partyStartTime?.slice(0, 5) ?? start.format('HH:mm');
+    const endTime = item?.partyEndTime?.slice(0, 5);
+    const price = getPartyPrice(item);
+    const handleMoveGuesthouse = () => {
+      if (!item.guesthouseId) {
+        return;
+      }
+      navigation.navigate('GuesthouseDetail', {
+        id: item.guesthouseId,
+        checkIn: dayjs().format('YYYY-MM-DD'),
+        checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
+        guestCount: 1,
+      });
+    };
+
+    return (
+      <View key={String(item.partyId)} style={styles.eventGuesthouseSection}>
+        <View style={styles.eventGuesthouseTitleRow}>
+          <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
+            {item.guesthouseName || '게스트하우스'}
+          </Text>
+          <TouchableOpacity
+            style={styles.moveGuesthouseButton}
+            activeOpacity={1}
+            onPress={handleMoveGuesthouse}>
+            <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
+              게하 보러가기
+            </Text>
+            <ChevronRightBlue width={12} height={12} />
+          </TouchableOpacity>
+        </View>
+        <TouchableOpacity
+          activeOpacity={1}
+          style={styles.eventCard}
+          onPress={() =>
+            navigation.navigate('MeetDetail', {partyId: item.partyId})
+          }>
+          <AppImage uri={item.partyImageUrl} style={styles.eventThumb} />
+          <View style={styles.eventPartyInfo}>
+            <Text
+              style={[FONTS.fs_16_semibold, styles.eventPartyTitle]}
+              numberOfLines={1}>
+              {item.partyTitle}
+            </Text>
+            <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
+              {start.format('YY.MM.DD (dd)')}
+            </Text>
+            <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
+              {startTime}
+              {endTime ? ` ~ ${endTime}` : ''}
+            </Text>
+            {!!item.location && (
+              <View style={styles.eventMetaRow}>
+                <MapPinIcon width={16} height={16} />
+                <Text
+                  style={[FONTS.fs_12_medium, styles.eventMetaText]}
+                  numberOfLines={1}>
+                  {trimJejuPrefix(item.location)}
+                </Text>
+              </View>
+            )}
+            <View style={styles.eventMetaRow}>
+              <PeopleIcon width={16} height={16} />
+              <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
+                최대인원 {item.maxAttendance}명
+              </Text>
+            </View>
+            <Text style={[FONTS.fs_14_semibold, styles.eventPrice]}>
+              {price === 0 ? '무료' : `${price.toLocaleString('ko-KR')}원`}
+            </Text>
+          </View>
+        </TouchableOpacity>
+      </View>
     );
   };
 
@@ -278,7 +460,9 @@ const MeetMain = () => {
           </View>
         </View> */}
 
-        <View style={styles.partyList}>{item.parties.map(renderPartyItem)}</View>
+        <View style={styles.partyList}>
+          {item.parties.map(renderPartyItem)}
+        </View>
       </View>
     );
   };
@@ -317,7 +501,9 @@ const MeetMain = () => {
         <FlatList
           data={groupedGuesthouses}
           keyExtractor={(item, index) =>
-            item.guesthouseId ? String(item.guesthouseId) : `${item.guesthouseName}-${index}`
+            item.guesthouseId
+              ? String(item.guesthouseId)
+              : `${item.guesthouseName}-${index}`
           }
           renderItem={renderGuesthouseItem}
           contentContainerStyle={styles.listContent}
@@ -332,7 +518,9 @@ const MeetMain = () => {
                     style={styles.filterButton}
                     onPress={() => openFilterModal(null)}>
                     <FilterIcon width={18} height={18} />
-                    <Text style={[FONTS.fs_16_medium, styles.filterText]}>필터</Text>
+                    <Text style={[FONTS.fs_16_medium, styles.filterText]}>
+                      필터
+                    </Text>
                   </TouchableOpacity>
 
                   <ScrollView
@@ -360,17 +548,43 @@ const MeetMain = () => {
                   <Text style={[FONTS.fs_16_medium, styles.sortText]}>정렬</Text>
                 </TouchableOpacity> */}
               </View>
+              {dateEvents.length > 0 && (
+                <View style={styles.eventSection}>
+                  <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                    이벤트
+                  </Text>
+                  <Text
+                    style={[FONTS.fs_14_regular, styles.sectionDescription]}>
+                    놓치기 아쉬운 특별한 이벤트를 만나보세요
+                  </Text>
+                  {dateEvents.map(renderDateEvent)}
+                  {groupedGuesthouses.length > 0 && (
+                    <View style={styles.dailySectionHeader}>
+                      <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
+                        데일리 콘텐츠
+                      </Text>
+                      <Text
+                        style={[
+                          FONTS.fs_14_regular,
+                          styles.sectionDescription,
+                        ]}>
+                        오늘도 새로운 사람들과 특별한 추억을 만들어보세요
+                      </Text>
+                    </View>
+                  )}
+                </View>
+              )}
             </View>
           }
           ListEmptyComponent={
             <View style={styles.emptyWrap}>
               {loading ? (
                 <ActivityIndicator />
-              ) : (
+              ) : dateEvents.length === 0 ? (
                 <Text style={[FONTS.fs_16_regular, styles.emptyText]}>
                   표시할 콘텐츠가 없어요.
                 </Text>
-              )}
+              ) : null}
             </View>
           }
         />

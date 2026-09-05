@@ -131,7 +131,7 @@ function Meets({events = [], setEventList}) {
     );
   }, [handleToggleFavorite, moveToDetail]);
 
-  const visibleEvents = useMemo(() => events.slice(0, 3), [events]);
+  const visibleEvents = useMemo(() => events.slice(0, 5), [events]);
 
   const handlePressSeeMore = useCallback(() => {
     navigation.navigate('PopularMeetList');
