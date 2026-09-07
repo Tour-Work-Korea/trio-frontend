@@ -96,6 +96,7 @@ const MeetReservation = () => {
     partyStartTime: routePartyStartTime,
     partyEndTime: routePartyEndTime,
     applicationType: routeApplicationType,
+    scheduleType: routeScheduleType,
     partyDateOptions: routePartyDateOptions,
     amount: routeAmount,
     thumbnailUrl: routeThumbnailUrl,
@@ -210,6 +211,9 @@ const MeetReservation = () => {
             item?.dateTime ??
             item?.date ??
             source?.partyStartDateTime ??
+            (source?.eventDate && source?.partyStartTime
+              ? `${source.eventDate}T${source.partyStartTime}`
+              : source?.eventDate) ??
             routePartyStartDateTime,
           partyStartTime:
             item?.partyStartTime ??
@@ -278,8 +282,12 @@ const MeetReservation = () => {
   const selectedDateOption = dateOptions[selectedDateIndex] ?? dateOptions[0];
   const applicationType =
     reservationInfo?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
+  const scheduleType =
+    reservationInfo?.scheduleType ?? routeScheduleType ?? 'DAILY';
   const shouldShowDateSelector =
-    applicationType !== 'SAME_DAY' && dateOptions.length > 0;
+    scheduleType !== 'DATE_EVENT' &&
+    applicationType !== 'SAME_DAY' &&
+    dateOptions.length > 0;
   const title = reservationInfo?.partyTitle ?? routePartyTitle ?? '';
   const checkInDate =
     selectedDateOption?.partyStartDateTime ??

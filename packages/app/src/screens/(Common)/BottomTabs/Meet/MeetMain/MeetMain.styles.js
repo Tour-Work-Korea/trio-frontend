@@ -50,6 +50,29 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 12,
   },
+  eventSection: {
+    paddingTop: 8,
+  },
+  sectionTitle: {
+    color: COLORS.grayscale_900,
+    marginBottom: 4,
+  },
+  sectionDescription: {
+    color: COLORS.grayscale_500,
+    marginBottom: 16,
+  },
+  eventGuesthouseSection: {
+    paddingBottom: 36,
+  },
+  eventGuesthouseTitleRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 10,
+  },
+  dailySectionHeader: {
+    paddingTop: 4,
+  },
   filterRow: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -158,9 +181,37 @@ const styles = StyleSheet.create({
     borderRadius: 6,
     backgroundColor: COLORS.grayscale_200,
   },
+  eventThumb: {
+    width: 112,
+    height: 132,
+    borderRadius: 6,
+    backgroundColor: COLORS.grayscale_200,
+  },
   partyInfo: {
     flex: 1,
     height: 88,
+  },
+  eventPartyInfo: {
+    flex: 1,
+    height: 132,
+    gap: 4,
+  },
+  eventCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    gap: 10,
+  },
+  eventPartyTitle: {
+    color: COLORS.grayscale_900,
+  },
+  eventMetaRow: {
+    flexDirection: 'row',
+    gap: 4,
+    alignItems: 'center',
+  },
+  eventMetaText: {
+    color: COLORS.grayscale_500,
+    flexShrink: 1,
   },
   partyTopInfo: {
     gap: 4,
@@ -196,6 +247,9 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     alignSelf: 'flex-end',
     marginTop: 'auto',
+  },
+  eventPrice: {
+    color: COLORS.grayscale_900,
   },
 
   emptyWrap: {

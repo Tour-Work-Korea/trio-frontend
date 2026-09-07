@@ -175,7 +175,7 @@ jobs:
           status: completed 
 
       - name: Notify Discord (Android)
-        if: always()
+        if: ${{ always() && !cancelled() }}
         run: |
           BRANCH="${GITHUB_REF##*/}"
       

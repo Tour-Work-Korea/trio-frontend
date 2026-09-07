@@ -365,6 +365,9 @@ const MeetDetail = () => {
     partyStartDateTime,
     partyStartTime,
     partyEndTime,
+    eventDate,
+    scheduleType,
+    eventStatus,
     applicationType,
     partyStatus,
     isApplyOpen,
@@ -378,7 +381,15 @@ const MeetDetail = () => {
     femaleNonAmount,
     partyImages,
     profileSummary,
+    priceOptions,
   } = detail ?? {};
+
+  const isDateEvent = scheduleType === 'DATE_EVENT';
+  const eventStartDateTime =
+    partyStartDateTime ??
+    (eventDate && partyStartTime
+      ? `${eventDate}T${partyStartTime}`
+      : eventDate);
 
   const partyDateOptions = useMemo(() => {
     const list =
@@ -494,7 +505,7 @@ const MeetDetail = () => {
 
   const scheduleText = useMemo(() => {
     const primaryDateTime =
-      selectedPartyDate?.partyStartDateTime ?? partyStartDateTime;
+      selectedPartyDate?.partyStartDateTime ?? eventStartDateTime;
     const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
       ? `${date.format('MM.DD')} ${
@@ -506,25 +517,28 @@ const MeetDetail = () => {
     )}~${formatTime(selectedPartyDate?.partyEndTime ?? partyEndTime)}`;
 
     return `${dateLabel} ${timeLabel}`;
-  }, [
-    selectedPartyDate,
-    partyStartDateTime,
-    partyStartTime,
-    partyEndTime,
-  ]);
+  }, [selectedPartyDate, eventStartDateTime, partyStartTime, partyEndTime]);
   const openAdvanceDate =
-    applicationType === 'ADVANCE'
-      ? selectedPartyDate
-      : null;
+    applicationType === 'ADVANCE' ? selectedPartyDate : null;
+  const eventPartyStatus =
+    eventStatus === 'ACTIVE'
+      ? 'RECRUIT'
+      : eventStatus === 'ENDED'
+      ? 'PARTY_END'
+      : partyStatus;
   const effectivePartyStatus = openAdvanceDate
     ? isPartyDateOpen(openAdvanceDate)
       ? 'RECRUIT'
       : openAdvanceDate?.partyStatus === 'RECRUIT'
-        ? 'RECRUIT_END'
-        : openAdvanceDate?.partyStatus
+      ? 'RECRUIT_END'
+      : openAdvanceDate?.partyStatus
+    : isDateEvent
+    ? eventPartyStatus
     : partyStatus;
   const effectiveIsApplyOpen = openAdvanceDate
     ? isPartyDateOpen(openAdvanceDate)
+    : isDateEvent
+    ? isApplyOpen !== false
     : isApplyOpen;
   const isNoRecruit = effectivePartyStatus === 'NO_RECRUIT';
   const isKnownPartyStatus = PARTY_STATUS_LABEL[effectivePartyStatus] != null;
@@ -536,33 +550,45 @@ const MeetDetail = () => {
   const isAdvanceApplication = applicationType === 'ADVANCE';
   const showPartyDateSelector =
     showReservationButton &&
+    !isDateEvent &&
     isAdvanceApplication &&
     partyDateOptions.length > 0;
   const selectedStartDateTime = dayjs(
-    selectedPartyDate?.partyStartDateTime ?? partyStartDateTime,
+    selectedPartyDate?.partyStartDateTime ?? eventStartDateTime,
   );
   const hasApplicationEnded =
-    (isSameDayApplication || isAdvanceApplication) &&
+    (isDateEvent || isSameDayApplication || isAdvanceApplication) &&
     selectedStartDateTime.isValid() &&
     !selectedStartDateTime.isAfter(dayjs());
-  const canApply = isRecruiting && !hasApplicationEnded;
-  const applicationNoticeText = isSameDayApplication
+  const canApply =
+    isRecruiting && eventStatus !== 'ENDED' && !hasApplicationEnded;
+  const applicationNoticeText = isDateEvent
+    ? '이 이벤트는 시작 시간 전까지 신청할 수 있어요!'
+    : isSameDayApplication
     ? '이 콘텐츠는 당일에만 신청할 수 있어요!'
     : isAdvanceApplication
     ? '이 파티는 진행일 7일 전부터 참여 신청이 가능해요!'
     : '';
-  const reservationButtonText =
-    hasApplicationEnded
-      ? '신청 마감'
-      : effectivePartyStatus === 'RECRUIT_BLOCK'
-      ? '따로 문의해 주세요'
-      : PARTY_STATUS_LABEL[effectivePartyStatus];
+  const reservationButtonText = hasApplicationEnded
+    ? '신청 마감'
+    : effectivePartyStatus === 'RECRUIT_BLOCK'
+    ? '따로 문의해 주세요'
+    : PARTY_STATUS_LABEL[effectivePartyStatus];
   const infoPriceText = useMemo(() => {
     if (chargeType === 'FREE') {
       return '무료';
     }
 
-    const prices = [amount, femaleAmount, maleNonAmount, femaleNonAmount]
+    const optionPrices = Array.isArray(priceOptions)
+      ? priceOptions.map(option => Number(option?.amount))
+      : [];
+    const prices = [
+      ...optionPrices,
+      amount,
+      femaleAmount,
+      maleNonAmount,
+      femaleNonAmount,
+    ]
       .map(Number)
       .filter(price => Number.isFinite(price) && price > 0);
 
@@ -571,7 +597,14 @@ const MeetDetail = () => {
     }
 
     return `${Math.min(...prices).toLocaleString()}원`;
-  }, [amount, chargeType, femaleAmount, femaleNonAmount, maleNonAmount]);
+  }, [
+    amount,
+    chargeType,
+    femaleAmount,
+    femaleNonAmount,
+    maleNonAmount,
+    priceOptions,
+  ]);
   const detailInfoItems = useMemo(
     () => [
       {
@@ -693,13 +726,14 @@ const MeetDetail = () => {
       partyId: selectedPartyDate?.partyId ?? partyId,
       partyTitle,
       partyStartDateTime:
-        selectedPartyDate?.partyStartDateTime ?? partyStartDateTime,
+        selectedPartyDate?.partyStartDateTime ?? eventStartDateTime,
       partyStartTime:
         selectedPartyDate?.partyStartTime ??
         selectedPartyDate?.partyStartDateTime ??
         partyStartTime,
       partyEndTime: selectedPartyDate?.partyEndTime ?? partyEndTime,
       applicationType,
+      scheduleType,
       partyDateOptions,
       amount,
       maleNonAmount,
@@ -948,10 +982,7 @@ const MeetDetail = () => {
                     activeOpacity={0.7}
                     onPress={handleCopyGuesthousePhone}>
                     <Text
-                      style={[
-                        FONTS.fs_14_medium,
-                        styles.partyInfoPhoneNumber,
-                      ]}>
+                      style={[FONTS.fs_14_medium, styles.partyInfoPhoneNumber]}>
                       {guesthousePhone}
                     </Text>
                   </TouchableOpacity>
