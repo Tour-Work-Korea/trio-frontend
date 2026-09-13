@@ -28,7 +28,10 @@ import SearchEmpty from '@assets/images/search_empty.svg';
 import styles from './GuesthouseList.styles';
 import GuesthouseListMap from '../GuesthouseListMap';
 import {FONTS} from '@constants/fonts';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import {regionGuesthouseApi as userGuesthouseApi} from '../regions/api';
+import RegionChips from '../regions/RegionChips';
+import {getServiceRegionMapBounds} from '../regions/mapBounds';
+import {useGuesthouseRegionStore} from '../regions/store';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
@@ -150,6 +153,16 @@ const pushGuesthouseWebPath = path => {
 const GuesthouseList = () => {
   const navigation = useNavigation();
   const route = useRoute();
+  const region = useGuesthouseRegionStore(state => state.region);
+  const setRegion = useGuesthouseRegionStore(state => state.setRegion);
+  const regions = useGuesthouseRegionStore(state => state.regions);
+  const selectedRegionBounds = useMemo(
+    () => getServiceRegionMapBounds(regions, region),
+    [regions, region],
+  );
+  const [mapViewport, setMapViewport] = useState(null);
+  const listRequestRef = useRef(0);
+  const countRequestRef = useRef(0);
   const defaultDisplayDate = `${dayjs().format('M.D dd')} - ${dayjs()
     .add(1, 'day')
     .format('M.D dd')}`;
@@ -170,6 +183,8 @@ const GuesthouseList = () => {
     adultCount: routeAdultCount = 1,
     childCount: routeChildCount = 0,
     searchText = '',
+    keyword,
+    keywordId,
     categoryTags = EMPTY_CATEGORY_TAGS,
     regionIds = EMPTY_REGION_IDS,
     regionBounds: initialRegionBounds = null,
@@ -223,8 +238,8 @@ const GuesthouseList = () => {
   const filteredGuesthouses = guesthouses;
 
   const filterApiParams = useMemo(
-    () => getGuesthouseFilterApiParams(filterOptions),
-    [filterOptions],
+    () => ({...getGuesthouseFilterApiParams(filterOptions), region}),
+    [filterOptions, region],
   );
 
   // 상태 - 처음에는 props 값으로 초기화
@@ -233,6 +248,7 @@ const GuesthouseList = () => {
   const [displayDateState, setDisplayDateState] = useState(routeDisplayDate);
 
   const resetListState = useCallback(() => {
+    listRequestRef.current += 1;
     loadingRef.current = false;
     isLastRef.current = false;
     errorRef.current = false;
@@ -333,36 +349,29 @@ const GuesthouseList = () => {
     childCount,
   });
   const [sortBy, setSortBy] = useState(routeSortBy);
-  const [filterResultCount, setFilterResultCount] = useState(null);
+  const [filterResultCount] = useState(null);
   const homeBackTranslateX = useRef(new Animated.Value(0)).current;
   const screenWidth = useMemo(() => Dimensions.get('window').width, []);
 
   const fetchFilterResultCount = useCallback(async filters => {
-    if (!checkIn || !checkOut || !regionBounds) {
-      return null;
-    }
-
+    if (!checkIn || !checkOut) {return null;}
+    const requestId = ++countRequestRef.current;
     const params = {
-      checkIn,
-      checkOut,
-      guestCount: adultCount + childCount,
-      swLat: regionBounds.swLat,
-      swLng: regionBounds.swLng,
-      neLat: regionBounds.neLat,
-      neLng: regionBounds.neLng,
+      checkIn, checkOut, guestCount: adultCount + childCount,
+      region: filters.region ?? region,
+      ...(isMapView ? mapViewport : {keyword, keywordId}),
       ...getGuesthouseFilterApiParams(filters),
     };
-
     const {data} = await userGuesthouseApi.getGuesthouseFilterCount(params);
-    const count = Number(data?.count ?? 0);
-    setFilterResultCount(count);
-    return count;
-  }, [adultCount, checkIn, checkOut, childCount, regionBounds]);
+    if (requestId !== countRequestRef.current) {return null;}
+    return Number(data?.count ?? 0);
+  }, [adultCount, checkIn, checkOut, childCount, region, isMapView, mapViewport, keyword, keywordId]);
 
   // 게하 불러오기
   const fetchGuesthouses = useCallback(async (pageToFetch = 0) => {
-    if (loadingRef.current || isLastRef.current || errorRef.current) return;
+    if (loadingRef.current || isLastRef.current || errorRef.current) {return;}
 
+    const requestId = ++listRequestRef.current;
     loadingRef.current = true;
     setLoading(true);
 
@@ -378,12 +387,7 @@ const GuesthouseList = () => {
         sortBy,
       };
 
-      if (regionBounds) {
-        params.swLat = regionBounds.swLat;
-        params.swLng = regionBounds.swLng;
-        params.neLat = regionBounds.neLat;
-        params.neLng = regionBounds.neLng;
-      }
+      Object.assign(params, {region, keyword, keywordId});
 
       // 필터 적용 시 조건 분기
       if (filterApplied) {
@@ -391,6 +395,7 @@ const GuesthouseList = () => {
       }
 
       const response = await userGuesthouseApi.getGuesthouseList(params);
+      if (requestId !== listRequestRef.current) {return;}
       const {content, last} = response.data;
 
       const normalized = content.map(it => ({
@@ -405,14 +410,17 @@ const GuesthouseList = () => {
       isLastRef.current = last;
       setIsLast(last);
     } catch (e) {
+      if (requestId !== listRequestRef.current) {return;}
       errorRef.current = true;
       isLastRef.current = true;
       setError(true); // 한번이라도 실패하면 더이상 호출X
       setIsLast(true); // (추가) 무한호출도 막음
       console.warn('게스트하우스 조회 실패', e);
     } finally {
-      loadingRef.current = false;
-      setLoading(false);
+      if (requestId === listRequestRef.current) {
+        loadingRef.current = false;
+        setLoading(false);
+      }
     }
   }, [
     adultCount,
@@ -421,34 +429,24 @@ const GuesthouseList = () => {
     checkOut,
     filterApplied,
     filterApiParams,
-    regionBounds,
+    region,
+    keyword,
+    keywordId,
     sortBy,
   ]);
 
   useEffect(() => {
-    if (isMapView) {
-      return;
-    }
-
-    fetchGuesthouses(page);
-  }, [fetchGuesthouses, isMapView, page]);
+    resetListState();
+    if (!isMapView) {fetchGuesthouses(0);}
+    return () => { listRequestRef.current += 1; };
+  }, [fetchGuesthouses, isMapView, resetListState]);
 
   useEffect(() => {
-    if (
-      isMapView
-      || page !== 0
-      || guesthouses.length > 0
-      || loadingRef.current
-      || errorRef.current
-    ) {
-      return;
-    }
-
-    fetchGuesthouses(0);
-  }, [fetchGuesthouses, guesthouses.length, isMapView, page]);
+    if (!isMapView && page > 0) {fetchGuesthouses(page);}
+  }, [page, isMapView, fetchGuesthouses]);
 
   const handleEndReached = () => {
-    if (loadingRef.current || isLastRef.current || errorRef.current) return;
+    if (loadingRef.current || isLastRef.current || errorRef.current) {return;}
     // 마지막이 아니라면 현재 페이지 계속
     setPage(prev => prev + 1);
   };
@@ -717,6 +715,8 @@ const GuesthouseList = () => {
         </TouchableOpacity>
       </View>
 
+      <RegionChips value={region} onChange={setRegion} />
+
       <View style={styles.selectRow}>
         <TouchableOpacity
           activeOpacity={1}
@@ -799,7 +799,10 @@ const GuesthouseList = () => {
             checkOut={checkOut}
             guestCount={adultCount + childCount}
             regionIds={regionIds}
-            regionBounds={regionBounds}
+            regionBounds={selectedRegionBounds ?? regionBounds}
+            serviceRegion={region}
+            serviceRegionBounds={selectedRegionBounds}
+            onBoundsChange={setMapViewport}
             sortBy={sortBy}
             filterParams={filterApiParams}
             resetKey={mapResetKey}
