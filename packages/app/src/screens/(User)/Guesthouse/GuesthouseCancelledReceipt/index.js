@@ -53,7 +53,7 @@ const GuesthouseCancelledReceipt = () => {
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
 
   const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
+    date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
   const data = useMemo(() => {
     const isCancelledBeforeHostApproval =
@@ -167,7 +167,7 @@ const GuesthouseCancelledReceipt = () => {
     const totalAmount = typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
     let refundAmount = typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0;
     
-    if (cancelPolicyInfo.dailyInfo) {
+    if (cancelPolicyInfo.dailyInfo && typeof dto?.cancelledAmount !== 'number') {
       refundAmount = cancelPolicyInfo.totalFrontendRefundAmount;
     }
     

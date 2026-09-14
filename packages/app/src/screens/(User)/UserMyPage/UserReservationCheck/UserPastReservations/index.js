@@ -27,7 +27,7 @@ export default function UserPastReservations({ data }) {
   };
 
   const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
+    date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
   const buildRoomDetailText = (item) => {
     if (!item) return '';

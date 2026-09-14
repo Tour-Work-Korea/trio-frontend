@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React from 'react';
 import {
   View,
   Text,
@@ -14,25 +14,11 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_gray.svg';
 import EmptyState from '@components/EmptyState';
-import ReservationDetailModal from '@components/modals/UserMy/Meet/ReservationDetailModal';
+import {trimJejuPrefix} from '@utils/formatAddress';
 import AppImage from '@components/AppImage';
 
 export default function UserPastReservations({data}) {
   const navigation = useNavigation();
-
-  // 모달
-  const [selectedReservationId, setSelectedReservationId] = useState(null);
-  const [modalVisible, setModalVisible] = useState(false);
-
-  const openModal = reservationId => {
-    setSelectedReservationId(reservationId);
-    setModalVisible(true);
-  };
-
-  const closeModal = () => {
-    setModalVisible(false);
-    setSelectedReservationId(null);
-  };
 
   const renderItem = ({item, index}) => {
     const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
@@ -49,7 +35,7 @@ export default function UserPastReservations({data}) {
         <TouchableOpacity
           style={styles.card}
           activeOpacity={1}
-          // onPress={() => openModal(item.reservationId)}
+          onPress={() => navigation.navigate('MeetPaymentReceipt', {reservationId: item.reservationId, partyId: item.partyId})}
         >
           {/* 상단 날짜/시간 */}
           <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
@@ -71,7 +57,7 @@ export default function UserPastReservations({data}) {
             style={[FONTS.fs_12_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {item.guesthouseAddress || '주소 정보 없음'}
+            {trimJejuPrefix(item.guesthouseAddress) || '주소 정보 없음'}
           </Text>
 
           {/* 썸네일 */}
@@ -117,12 +103,6 @@ export default function UserPastReservations({data}) {
         }
       />
 
-      {/* 상세 모달 */}
-      <ReservationDetailModal
-        visible={modalVisible}
-        onClose={closeModal}
-        reservationId={selectedReservationId}
-      />
     </>
   );
 }

@@ -71,7 +71,7 @@ const BottomTabs = () => {
           listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
-              navigation.navigate('커뮤니티', {tab: 'all'});
+              navigation.navigate('커뮤니티', {tab: 'staff'});
             },
           })}
         />
