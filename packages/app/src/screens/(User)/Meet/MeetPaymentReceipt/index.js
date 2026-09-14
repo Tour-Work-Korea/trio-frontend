@@ -6,6 +6,7 @@ import Toast from 'react-native-toast-message';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import Header from '@components/Header';
 import styles from './MeetPaymentReceipt.styles';
 import ButtonWhite from '@components/ButtonWhite';
@@ -114,9 +115,7 @@ export default function MeetPaymentReceipt() {
   const hasPartyAnnouncements = partyAnnouncementItems.length > 0;
   const reservationRequest = reservationDetail?.reservationRequest?.trim() ?? '';
   const locationText =
-    trimJejuPrefix(reservationDetail?.partyLocation) ||
-    reservationDetail?.meetingPlace ||
-    '';
+    trimJejuPrefix(reservationDetail?.partyLocation || reservationDetail?.meetingPlace) || '';
   const guesthousePhone = reservationDetail?.guesthousePhone?.trim() ?? '';
   const handleCopyLocation = () => {
     if (!locationText) {
@@ -166,7 +165,7 @@ export default function MeetPaymentReceipt() {
       cancelContext: {
         partyTitle: reservationDetail?.partyTitle,
         partyImage: reservationDetail?.partyImage,
-        guesthouseName: reservationDetail?.guesthouseName,
+        guesthouseName: reservationDetail?.guesthouse ?? reservationDetail?.guesthouseName,
         startDateTime: reservationDetail?.startDateTime,
         endDateTime: reservationDetail?.endDateTime,
         partyLocation:
@@ -188,7 +187,19 @@ export default function MeetPaymentReceipt() {
   };
 
   const isPending = reservationDetail?.reservationStatus === 'PENDING';
-  const headerTitle = isPending ? '신청 대기' : '신청 확정';
+  const headerTitle = isPending
+    ? '신청 대기'
+    : reservationDetail?.reservationStatus === 'COMPLETED'
+      ? '이용 완료'
+      : '신청 확정';
+  const additionalInfo = [
+    ['상세 일정', reservationDetail?.detailSchedule],
+    ['집합 장소', trimJejuPrefix(reservationDetail?.meetingPlace)],
+    ['제공 간식', reservationDetail?.snacks],
+    ['교통 안내', reservationDetail?.trafficInfo],
+    ['주차 안내', reservationDetail?.parkingInfo],
+    ['기타 안내', reservationDetail?.extraInfo],
+  ].filter(([, value]) => typeof value === 'string' && value.trim());
 
   return (
     <View style={styles.container}>
@@ -298,6 +309,13 @@ export default function MeetPaymentReceipt() {
             )}
           </View>
 
+          {additionalInfo.map(([label, value]) => (
+            <View key={label} style={styles.noticeBox}>
+              <Text style={[FONTS.fs_14_semibold, styles.noticeTitle]}>{label}</Text>
+              <Text style={[FONTS.fs_14_regular, styles.requestText]}>{value}</Text>
+            </View>
+          ))}
+
           {reservationRequest ? (
             <View style={styles.requestBox}>
               <Text style={[FONTS.fs_14_semibold, styles.requestTitle]}>
@@ -309,62 +327,41 @@ export default function MeetPaymentReceipt() {
             </View>
           ) : null}
 
-          {/* 결제 정보 */}
-          {/* <View style={styles.paymentBox}>
-            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-              결제 정보
-            </Text>
-
-            <Text style={[FONTS.fs_12_medium, styles.subText]}>
-              결제일시 {approvedFormatted.date} {approvedFormatted.time}
-            </Text>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
-                실 결제 금액
+          {reservationDetail && (
+            <View style={styles.paymentBox}>
+              <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+                결제 정보
               </Text>
-              <View style={styles.priceValueInline}>
-                <Text style={[FONTS.fs_14_semibold, styles.priceValue]}>
-                  {formatPrice(finalAmount)}
+              {!!reservationDetail.approvedAt && (
+                <Text style={[FONTS.fs_12_medium, styles.subText]}>
+                  결제일시 {formatLocalDateTimeToDotAndTimeWithDay(reservationDetail.approvedAt).date}{' '}
+                  {formatLocalDateTimeToDotAndTimeWithDay(reservationDetail.approvedAt).time}
                 </Text>
-                <Text style={[FONTS.fs_14_regular, styles.priceValueStrike]}>
-                  {formatPrice(originalAmount)}
+              )}
+              {!!reservationDetail.selectedPriceOptionName && (
+                <View style={styles.priceInfoRow}>
+                  <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>선택 요금</Text>
+                  <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                    {reservationDetail.selectedPriceOptionName}
+                  </Text>
+                </View>
+              )}
+              <View style={styles.priceInfoRow}>
+                <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>실 결제 금액</Text>
+                <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                  {typeof reservationDetail.amount === 'number'
+                    ? `${reservationDetail.amount.toLocaleString('ko-KR')}원`
+                    : '-'}
+                </Text>
+              </View>
+              <View style={styles.priceInfoRow}>
+                <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>결제 수단</Text>
+                <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                  {PAYMENT_TYPE_LABEL[reservationDetail.paymentType] || '-'}
                 </Text>
               </View>
             </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
-                쿠폰 할인
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                - {formatPrice(couponDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
-                포인트 적용
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                - {formatPoint(pointDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_semibold, styles.priceLabel]}>
-                결제 수단
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                {paymentTypeText}
-              </Text>
-            </View>
-          </View>
-
-          <Text style={[FONTS.fs_12_medium, styles.warningText]}>
-            전날까지 취소 시 전액 환불됩니다.{'\n'}
-            당일 취소는 환불이 불가능합니다.
-          </Text> */}
+          )}
 
           {/* 예약 취소 버튼 */}
           <ButtonWhite

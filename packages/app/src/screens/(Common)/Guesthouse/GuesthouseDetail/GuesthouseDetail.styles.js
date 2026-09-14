@@ -381,6 +381,19 @@ const styles = StyleSheet.create({
     flexShrink: 0,
     textAlign: 'right',
   },
+  multiNightDiscountBadge: {
+    marginLeft: 4,
+    paddingHorizontal: 4,
+    paddingVertical: 2,
+    borderRadius: 4,
+    backgroundColor: COLORS.semantic_red,
+    flexShrink: 0,
+  },
+  multiNightDiscountBadgeText: {
+    fontSize: 10,
+    lineHeight: 12,
+    color: COLORS.grayscale_0,
+  },
 
   // 룸 디테일 버튼
   roomDetailBtn: {

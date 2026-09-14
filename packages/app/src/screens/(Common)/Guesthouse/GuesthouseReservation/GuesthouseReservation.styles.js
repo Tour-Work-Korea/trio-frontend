@@ -177,6 +177,9 @@ const styles = StyleSheet.create({
   roomPriceText: {
     color: COLORS.grayscale_600,
   },
+  multiNightDiscountText: {
+    color: COLORS.semantic_red,
+  },
   // 쿠폰
   couponBtn: {
     flexDirection: 'row',

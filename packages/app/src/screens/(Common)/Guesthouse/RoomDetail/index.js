@@ -39,6 +39,7 @@ const RoomDetail = ({route}) => {
     roomId,
     roomName,
     roomPrice,
+    multiNightDiscount,
     roomDesc,
     guesthouseName,
     guesthouseId,
@@ -247,9 +248,22 @@ const RoomDetail = ({route}) => {
               <Text style={[FONTS.fs_14_medium, styles.priceInfoText]}>
                 {isDormitory ? '1베드 당' : '1객실 당'}
               </Text>
-              <Text style={[FONTS.fs_20_bold, styles.price]}>
-                {roomPrice.toLocaleString()}원
-              </Text>
+              <View style={styles.priceAmountRow}>
+                <Text style={[FONTS.fs_20_bold, styles.price]}>
+                  {roomPrice.toLocaleString()}원
+                </Text>
+                {multiNightDiscount?.enabled === true && (
+                  <View style={styles.multiNightDiscountBadge}>
+                    <Text
+                      style={[
+                        FONTS.fs_12_medium,
+                        styles.multiNightDiscountBadgeText,
+                      ]}>
+                      연박할인
+                    </Text>
+                  </View>
+                )}
+              </View>
             </View>
           </View>
 

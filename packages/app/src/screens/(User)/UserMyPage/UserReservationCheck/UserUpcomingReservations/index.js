@@ -28,7 +28,7 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
   };
 
   const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
+    date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
   const getReservationStatusTitle = item =>
     item?.reservationStatus === 'PENDING' ? '승인 대기 중' : '예약 확정';

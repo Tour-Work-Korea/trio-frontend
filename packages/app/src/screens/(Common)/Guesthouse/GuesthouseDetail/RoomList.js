@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -18,6 +18,7 @@ import {showErrorModal} from '@utils/loginModalHub';
 import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import AppImage from '@components/AppImage';
+import ImageModal from '@components/modals/ImageModal';
 
 import RightArrow from '@assets/images/chevron_right_blue.svg';
 
@@ -30,6 +31,12 @@ const RoomList = ({
   localChildren,
 }) => {
   const navigation = useNavigation();
+  const [roomModalImages, setRoomModalImages] = useState([]);
+  const [roomImageModalVisible, setRoomImageModalVisible] = useState(false);
+  const [activeRoomId, setActiveRoomId] = useState(null);
+  const [roomImageIndices, setRoomImageIndices] = useState({});
+  const [roomImageSourceRect, setRoomImageSourceRect] = useState(null);
+  const roomImageRefs = useRef(new Map());
   const userRole = useUserStore(state => state.userRole);
   const formatTime = timeStr => (timeStr ? timeStr.slice(0, 5) : '');
   const totalGuestCount = localAdults + localChildren;
@@ -39,15 +46,58 @@ const RoomList = ({
     MALE_ONLY: '남성전용',
   };
 
-  const getThumbnailImage = room =>
-    room.roomImages?.find(img => img.isThumbnail)?.roomImageUrl ||
-    room.roomImages?.[0]?.roomImageUrl;
+  const getRoomImages = room =>
+    [...(room.roomImages ?? [])]
+      .filter(image => image?.roomImageUrl)
+      .sort((a, b) =>
+        a.isThumbnail === b.isThumbnail ? 0 : a.isThumbnail ? -1 : 1,
+      );
+
+  const measureRoomImageSource = (roomId, index) => {
+    const target = roomImageRefs.current.get(roomId);
+    if (Platform.OS === 'web' && target?.getBoundingClientRect) {
+      const rect = target.getBoundingClientRect();
+      setRoomImageSourceRect({
+        x: rect.left,
+        y: rect.top,
+        width: rect.width,
+        height: rect.height,
+        imageIndex: index,
+      });
+      return;
+    }
+    target?.measureInWindow?.((x, y, width, height) => {
+      if (width > 0 && height > 0) {
+        setRoomImageSourceRect({x, y, width, height, imageIndex: index});
+      }
+    });
+  };
+
+  const openRoomImageModal = room => {
+    const images = getRoomImages(room);
+    if (images.length === 0) {
+      return;
+    }
+    const index = Math.min(roomImageIndices[room.id] ?? 0, images.length - 1);
+    setActiveRoomId(room.id);
+    setRoomImageIndices(previous => ({...previous, [room.id]: index}));
+    setRoomImageSourceRect(null);
+    setRoomModalImages(images);
+    setRoomImageModalVisible(true);
+    requestAnimationFrame(() => measureRoomImageSource(room.id, index));
+  };
+
+  const syncRoomImageIndex = index => {
+    setRoomImageIndices(previous => ({...previous, [activeRoomId]: index}));
+    requestAnimationFrame(() => measureRoomImageSource(activeRoomId, index));
+  };
 
   const goRoomDetail = (room, guestCountOverride) => {
     navigation.navigate('RoomDetail', {
       roomId: room.id,
       roomName: room.roomName,
       roomPrice: room.roomPrice,
+      multiNightDiscount: room.multiNightDiscount,
       roomDesc: room.roomDesc,
       roomCapacity: room.roomCapacity,
       roomType: room.roomType,
@@ -194,16 +244,34 @@ const RoomList = ({
   };
 
   const renderCommonCardShell = (room, infoNode, actionNode) => {
-    const thumbnailImage = getThumbnailImage(room);
+    const images = getRoomImages(room);
+    const imageIndex = Math.min(roomImageIndices[room.id] ?? 0, images.length - 1);
+    const thumbnailImage = images[imageIndex]?.roomImageUrl;
 
     return (
       <View style={styles.roomCard}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => goRoomDetail(room, totalGuestCount)}
-        >
+        <View>
           {thumbnailImage ? (
-            <AppImage uri={thumbnailImage} style={styles.roomImage} />
+            <TouchableOpacity
+              ref={node => {
+                if (node) {
+                  roomImageRefs.current.set(room.id, node);
+                } else {
+                  roomImageRefs.current.delete(room.id);
+                }
+              }}
+              activeOpacity={1}
+              accessibilityRole="button"
+              accessibilityLabel={`${room.roomName} 사진 보기`}
+              onPress={() => openRoomImageModal(room)}>
+              <AppImage
+                uri={thumbnailImage}
+                style={[
+                  styles.roomImage,
+                  roomImageModalVisible && activeRoomId === room.id && {opacity: 0},
+                ]}
+              />
+            </TouchableOpacity>
           ) : (
             <View
               style={[styles.roomImage, {backgroundColor: COLORS.grayscale_0}]}
@@ -229,12 +297,23 @@ const RoomList = ({
                 <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
                   {(room.totalPrice ?? room.roomPrice)?.toLocaleString()}원
                 </Text>
+                {room.multiNightDiscount?.enabled === true && (
+                  <View style={styles.multiNightDiscountBadge}>
+                    <Text
+                      style={[
+                        FONTS.fs_12_medium,
+                        styles.multiNightDiscountBadgeText,
+                      ]}>
+                      연박할인
+                    </Text>
+                  </View>
+                )}
               </View>
 
               {infoNode}
             </View>
           </View>
-        </TouchableOpacity>
+        </View>
 
         {actionNode}
       </View>
@@ -290,14 +369,17 @@ const RoomList = ({
           </Text>
         </View>
 
-        <View
+        <TouchableOpacity
           style={styles.roomDetailBtn}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          onPress={() => goRoomDetail(room, totalGuestCount)}
         >
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
           <RightArrow width={16} height={16}/>
-        </View>
+        </TouchableOpacity>
       </>
     );
 
@@ -375,14 +457,17 @@ const RoomList = ({
           </Text>
         </View>
 
-        <View
+        <TouchableOpacity
           style={styles.roomDetailBtn}
+          activeOpacity={0.8}
+          accessibilityRole="button"
+          onPress={() => goRoomDetail(room, totalGuestCount)}
         >
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
             상세보기
           </Text>
           <RightArrow width={16} height={16}/>
-        </View>
+        </TouchableOpacity>
       </>
     );
 
@@ -445,6 +530,15 @@ const RoomList = ({
           </View>
         );
       })}
+      <ImageModal
+        visible={roomImageModalVisible}
+        images={roomModalImages}
+        selectedImageIndex={roomImageIndices[activeRoomId] ?? 0}
+        sourceRect={roomImageSourceRect}
+        sourceBorderRadius={8}
+        onImageIndexChange={syncRoomImageIndex}
+        onClose={() => setRoomImageModalVisible(false)}
+      />
     </View>
   );
 };

@@ -138,6 +138,15 @@ const styles = StyleSheet.create({
   baseRoomPriceBlock: {
     marginTop: 56,
   },
+  roomPriceSummary: {
+    flex: 1,
+    marginRight: 12,
+  },
+  originalPriceText: {
+    color: COLORS.grayscale_400,
+    textDecorationLine: 'line-through',
+    marginBottom: 2,
+  },
   priceText: {
     color: COLORS.grayscale_900,
   },

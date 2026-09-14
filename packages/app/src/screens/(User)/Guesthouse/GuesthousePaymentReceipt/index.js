@@ -332,6 +332,8 @@ const GuesthousePaymentReceipt = () => {
       ...receiptContext,
       guestCount: receiptContext?.guestCount ?? dto?.guestCount,
       roomType: receiptContext?.roomType ?? dto?.roomType,
+      roomCapacity: dto?.roomCapacity ?? receiptContext?.roomCapacity,
+      roomMaxCapacity: dto?.roomMaxCapacity ?? receiptContext?.roomMaxCapacity,
     }),
     [receiptContext, dto],
   );
@@ -433,10 +435,15 @@ const GuesthousePaymentReceipt = () => {
     const fetchDetail = async () => {
       try {
         setLoading(true);
-        const res = isFromPaymentFlow
-          ? await reservationPaymentApi.getReservationPaymentDetail(reservationId)
-          : await reservationPaymentApi.getRoomReservationDetail(reservationId);
-        setDto(res?.data);
+        // 예약/결제 상세에는 예약번호, 할인, 결제수단 등이 포함된다.
+        // 마이페이지 상세는 객실 정원과 체크인 시간 등 보충 정보에 사용한다.
+        const [paymentDetail, roomDetail] = await Promise.all([
+          reservationPaymentApi.getReservationPaymentDetail(reservationId),
+          isFromPaymentFlow
+            ? Promise.resolve(null)
+            : reservationPaymentApi.getRoomReservationDetail(reservationId).catch(() => null),
+        ]);
+        setDto({...roomDetail?.data, ...paymentDetail?.data});
       } catch (e) {
         if (isFromDeeplink) {
           navigation.reset({

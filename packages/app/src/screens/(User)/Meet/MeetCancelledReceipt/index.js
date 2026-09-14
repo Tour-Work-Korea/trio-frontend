@@ -105,7 +105,7 @@ export default function MeetCancelledReceipt() {
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Header
-        title="신청 취소"
+        title={reservationDetail?.approvalStatus === 'REJECTED' ? '신청 반려' : '신청 취소'}
         onPress={fromCancelSuccess ? handleBackPress : null}
       />
 
@@ -148,8 +148,7 @@ export default function MeetCancelledReceipt() {
           <View style={styles.infoRow}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>장소</Text>
             <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {trimJejuPrefix(reservationDetail?.partyLocation) ||
-                reservationDetail?.meetingPlace ||
+              {trimJejuPrefix(reservationDetail?.partyLocation || reservationDetail?.meetingPlace) ||
                 '-'}
             </Text>
           </View>
