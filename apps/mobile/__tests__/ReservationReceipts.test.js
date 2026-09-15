@@ -5,7 +5,9 @@ import api from '@utils/api/reservationPaymentApi';
 import GuesthousePaymentReceipt from '@screens/(User)/Guesthouse/GuesthousePaymentReceipt';
 import GuesthouseCancelledReceipt from '@screens/(User)/Guesthouse/GuesthouseCancelledReceipt';
 import MeetPaymentReceipt from '@screens/(User)/Meet/MeetPaymentReceipt';
+import MeetCancelledReceipt from '@screens/(User)/Meet/MeetCancelledReceipt';
 import UserPastReservations from '@screens/(User)/UserMyPage/UserMeetReservationCheck/UserPastReservations';
+import UserMeetReservationCancelled from '@screens/(User)/UserMyPage/UserMeetReservationCancelled';
 
 const originalPlatform = Platform.OS;
 const mockRoute = {params: {reservationId: 1, isFromPaymentFlow: false}};
@@ -13,11 +15,13 @@ const mockNavigation = {navigate: jest.fn(), canGoBack: () => true, goBack: jest
 jest.mock('@react-navigation/native', () => ({
   useRoute: () => mockRoute,
   useNavigation: () => mockNavigation,
+  useFocusEffect: callback => callback(),
 }));
 jest.mock('@utils/api/reservationPaymentApi', () => ({
   getReservationPaymentDetail: jest.fn(),
   getRoomReservationDetail: jest.fn(),
   getPartyReservationDetail: jest.fn(),
+  getPartyReservationList: jest.fn(),
 }));
 jest.mock('@components/modals/AlertModal', () => () => null);
 jest.mock('@components/Header', () => 'Header');
@@ -53,6 +57,7 @@ beforeEach(() => {
     reservationUserName: '요약 이름', reservationAmount: 50000,
     roomCapacity: 2, roomMaxCapacity: 4,
   }});
+  api.getPartyReservationList.mockResolvedValue({data: []});
 });
 afterEach(async () => {
   if (screen) await act(async () => screen.unmount());
@@ -118,4 +123,66 @@ test('객실 보충 정보 요청이 실패해도 결제 상세는 표시한다'
   const output = await render(<GuesthousePaymentReceipt />);
   expect(output).toContain('TEST-RESERVATION');
   expect(output).toContain('43,000원');
+});
+
+test('게하 취소 상세은 마이페이지 응답을 합쳐 구형 예약도 표시한다', async () => {
+  api.getReservationPaymentDetail.mockResolvedValue({data: {
+    cancelledAmount: 40000,
+    cancelledAt: '2026-06-24T17:22:00',
+    cancelReason: '단순변심',
+    refundRateApplied: 100,
+  }});
+  api.getRoomReservationDetail.mockResolvedValue({data: {
+    guesthouseName: '구형 예약 숙소',
+    roomName: '일반',
+    checkInDate: '2026-06-24T15:00:00',
+    checkOutDate: '2026-06-25T11:00:00',
+    reservationAmount: 40000,
+    paymentMethod: 'EASY_PAY',
+  }});
+  const output = await render(<GuesthouseCancelledReceipt />);
+  for (const value of [
+    '구형 예약 숙소',
+    '2026.06.24',
+    '17:22',
+    '40,000원',
+    '간편결제 환불',
+    '단순변심',
+  ]) {
+    expect(output).toContain(value);
+  }
+});
+
+test('파티 만료 상세은 날짜 없음 대신 만료 상태와 환불 정보를 표시한다', async () => {
+  api.getPartyReservationDetail.mockResolvedValue({data: {
+    partyTitle: '만료 콘텐츠',
+    reservationStatus: 'CANCELLED',
+    approvalStatus: 'EXPIRED',
+    startDateTime: '2026-09-01T19:00:00',
+    endDateTime: '2026-09-01T22:00:00',
+    amount: 5000,
+    cancelledAmount: 0,
+    paymentType: 'EASY_PAY',
+    cancelReason: '호스트 승인 대기 시간이 만료되었습니다.',
+  }});
+  const output = await render(<MeetCancelledReceipt />);
+  expect(output).toContain('5,000원');
+  expect(output).toContain('간편결제 환불');
+  expect(output).toContain('신청이 만료되었습니다');
+  expect(output).not.toContain('날짜 없음');
+});
+
+test('파티 만료 예약은 취소·반려 목록에서도 신청 만료로 표시한다', async () => {
+  api.getPartyReservationList.mockResolvedValue({data: [{
+    reservationId: 131,
+    reservationStatus: 'CANCELLED',
+    approvalStatus: 'EXPIRED',
+    partyName: '두개',
+    startDateTime: '2026-09-01T19:00:00',
+  }]});
+
+  const output = await render(<UserMeetReservationCancelled />);
+
+  expect(output).toContain('신청 만료');
+  expect(output).not.toContain('신청 취소');
 });

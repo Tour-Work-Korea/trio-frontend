@@ -1,6 +1,6 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useFocusEffect } from '@react-navigation/native';
+import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 import Header from '@components/Header';
 import styles from './UserReservationCheck.styles';
@@ -25,8 +25,18 @@ const UPCOMING_STATUS_ORDER = {
 };
 
 const UserReservationCheck = () => {
+  const navigation = useNavigation();
+  const route = useRoute();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const hasLoadedReservations = useRef(false);
+  const selectedTab = TABS.some(tab => tab.key === route.params?.selectedTab)
+    ? route.params.selectedTab
+    : 'upcoming';
+  const handleTabChange = useCallback(
+    key => navigation.setParams({ selectedTab: key }),
+    [navigation]
+  );
   const {
     pagerRef,
     isActive,
@@ -40,17 +50,21 @@ const UserReservationCheck = () => {
     webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TABS,
-    initialKey: 'upcoming',
+    initialKey: selectedTab,
+    onChange: handleTabChange,
   });
 
   const fetchReservationList = async () => {
     try {
-      setLoading(true);
+      if (!hasLoadedReservations.current) {
+        setLoading(true);
+      }
       const res = await userMyApi.getMyReservations();
       setReservations(res.data);
     } catch (error) {
       console.log('예약 목록 불러오기 실패');
     } finally {
+      hasLoadedReservations.current = true;
       setLoading(false);
     }
   };

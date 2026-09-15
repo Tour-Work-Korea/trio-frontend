@@ -42,7 +42,7 @@ const UserMeetReservationCancelled = () => {
   const cancelledReservations = reservations.filter(
     r =>
       r.reservationStatus === 'CANCELLED' ||
-      r.approvalStatus === 'REJECTED',
+      ['REJECTED', 'EXPIRED'].includes(r.approvalStatus),
   );
 
   const renderItem = ({item, index}) => {
@@ -55,7 +55,9 @@ const UserMeetReservationCancelled = () => {
         ? {uri: item.partyImage}
         : item.partyImage;
     const statusText =
-      item.approvalStatus === 'REJECTED'
+      item.approvalStatus === 'EXPIRED'
+        ? '신청 만료'
+        : item.approvalStatus === 'REJECTED'
         ? '신청 반려'
         : item.cancelledByType === 'HOST'
           ? '업체 취소'
