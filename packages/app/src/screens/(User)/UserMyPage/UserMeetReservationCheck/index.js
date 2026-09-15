@@ -1,4 +1,4 @@
-import React, {useState, useCallback} from 'react';
+import React, {useState, useCallback, useRef} from 'react';
 import {View, Text, TouchableOpacity, BackHandler, ScrollView} from 'react-native';
 import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
@@ -24,6 +24,14 @@ const UserMeetReservationCheck = () => {
   const fromPaymentSuccess = route.params?.fromPaymentSuccess;
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const hasLoadedReservations = useRef(false);
+  const selectedTab = TABS.some(tab => tab.key === route.params?.selectedTab)
+    ? route.params.selectedTab
+    : 'upcoming';
+  const handleTabChange = useCallback(
+    key => navigation.setParams({selectedTab: key}),
+    [navigation],
+  );
   const {
     pagerRef,
     isActive,
@@ -37,18 +45,22 @@ const UserMeetReservationCheck = () => {
     webSwipeHandlers,
   } = useSwipeTabs({
     tabs: TABS,
-    initialKey: 'upcoming',
+    initialKey: selectedTab,
+    onChange: handleTabChange,
   });
 
   const fetchReservationList = useCallback(async () => {
     try {
-      setLoading(true);
+      if (!hasLoadedReservations.current) {
+        setLoading(true);
+      }
       const {data} = await reservationPaymentApi.getPartyReservationList();
       const list = Array.isArray(data) ? data : data?.content ?? [];
       setReservations(list);
     } catch (e) {
       console.log('예약 목록 불러오기 실패', e);
     } finally {
+      hasLoadedReservations.current = true;
       setLoading(false);
     }
   }, []);

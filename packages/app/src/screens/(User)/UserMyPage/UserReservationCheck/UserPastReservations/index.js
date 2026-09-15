@@ -100,7 +100,13 @@ export default function UserPastReservations({ data }) {
               resizeMode="cover"
             />
             <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
+              <Text
+                style={[FONTS.fs_16_semibold, styles.nameText]}
+                numberOfLines={1}
+                ellipsizeMode="tail"
+              >
+                {item.guesthouseName}
+              </Text>
               <Text
                 style={[FONTS.fs_14_medium, styles.roomText]}
                 numberOfLines={1}
@@ -236,6 +242,8 @@ const styles = StyleSheet.create({
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
+    width: '100%',
+    overflow: 'hidden',
   },
   image: {
     width: 80,
@@ -245,12 +253,14 @@ const styles = StyleSheet.create({
   },
   infoContent: {
     flex: 1,
+    width: 0,
     minWidth: 0,
+    overflow: 'hidden',
     paddingVertical: 4,
     gap: 4,
   },
   nameText: {
-
+    flexShrink: 1,
   },
   roomText: {
     color: COLORS.grayscale_800,
