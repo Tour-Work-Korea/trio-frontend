@@ -2,9 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
-  RefreshControl,
   TouchableOpacity,
   ScrollView,
   Platform,
@@ -33,6 +31,7 @@ const GuesthouseReview = ({
   guesthouseId,
   averageRating = 0,
   totalCount = 0,
+  loadMoreSignal = 0,
 }) => {
   const loadingRef = useRef(false);
   const lastPageRef = useRef(false);
@@ -40,7 +39,6 @@ const GuesthouseReview = ({
   const [reviews, setReviews] = useState([]);
   const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -111,7 +109,6 @@ const GuesthouseReview = ({
       } finally {
         loadingRef.current = false;
         setLoading(false);
-        setRefreshing(false);
       }
     },
     [guesthouseId],
@@ -125,13 +122,8 @@ const GuesthouseReview = ({
     setReviews([]);
     setPage(0);
     setLoading(false);
-    setRefreshing(false);
     fetchReviews(0, true);
   }, [fetchReviews]);
-
-  const handleScrollBeginDrag = useCallback(() => {
-    hasUserScrolledRef.current = true;
-  }, []);
 
   // 무한스크롤 핸들러
   const handleEndReached = useCallback(() => {
@@ -146,13 +138,14 @@ const GuesthouseReview = ({
     fetchReviews(page + 1);
   }, [fetchReviews, page]);
 
-  // 새로고침 핸들러
-  const onRefresh = useCallback(() => {
-    hasUserScrolledRef.current = false;
-    lastPageRef.current = false;
-    setRefreshing(true);
-    fetchReviews(0, true);
-  }, [fetchReviews]);
+  useEffect(() => {
+    if (loadMoreSignal === 0) {
+      return;
+    }
+
+    hasUserScrolledRef.current = true;
+    handleEndReached();
+  }, [handleEndReached, loadMoreSignal]);
 
   // 이미지 모달
   const openImageModal = useCallback(
@@ -265,35 +258,23 @@ const GuesthouseReview = ({
     [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
   );
 
-  const keyExtractor = useCallback(item => item.id?.toString(), []);
-
   return (
     <View style={styles.reviewRowContainer}>
-      <FlatList
-        data={reviews}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        ListFooterComponent={
-          loading && !refreshing ? <ActivityIndicator /> : null
-        }
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyReviewContainer}>
-              <NoReviewIcon />
-              <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-                아직 등록된 리뷰가 없어요.{'\n'}
-                당신의 첫 리뷰를 남겨주세요!
-              </Text>
-            </View>
-          )
-        }
-      />
+      {reviews.map((item, index) => (
+        <React.Fragment key={item.id?.toString() ?? index}>
+          {renderItem({item, index})}
+        </React.Fragment>
+      ))}
+      {loading && <ActivityIndicator />}
+      {!loading && reviews.length === 0 && (
+        <View style={styles.emptyReviewContainer}>
+          <NoReviewIcon />
+          <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
+            아직 등록된 리뷰가 없어요.{'\n'}
+            당신의 첫 리뷰를 남겨주세요!
+          </Text>
+        </View>
+      )}
 
       {/* 이미지 모달 */}
       {imageModalVisible && (

@@ -104,6 +104,8 @@ const formatTodayPartyTime = startDateTime => {
 
 const GuesthouseDetail = ({route}) => {
   const navigation = useNavigation();
+  const isNearReviewBottomRef = useRef(false);
+  const [reviewLoadMoreSignal, setReviewLoadMoreSignal] = useState(0);
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
   const [detail, setDetail] = useState(null);
@@ -542,14 +544,38 @@ const GuesthouseDetail = ({route}) => {
           guesthouseId={id}
           averageRating={detail.averageRating}
           totalCount={detail.reviewCount}
+          loadMoreSignal={reviewLoadMoreSignal}
         />
       </View>
     );
   };
 
+  const handleDetailScroll = event => {
+    if (!isActive('review')) {
+      isNearReviewBottomRef.current = false;
+      return;
+    }
+
+    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+    const distanceFromBottom =
+      contentSize.height - (contentOffset.y + layoutMeasurement.height);
+
+    const isNearBottom = distanceFromBottom < layoutMeasurement.height * 0.5;
+
+    if (isNearBottom && !isNearReviewBottomRef.current) {
+      isNearReviewBottomRef.current = true;
+      setReviewLoadMoreSignal(signal => signal + 1);
+    } else if (!isNearBottom) {
+      isNearReviewBottomRef.current = false;
+    }
+  };
+
   return (
     <View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        onScroll={handleDetailScroll}
+        scrollEventThrottle={16}>
         <View>
           {/* 대표 이미지 */}
           {hasImages ? (
