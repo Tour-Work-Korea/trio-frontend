@@ -149,6 +149,24 @@ const isReservationNotificationType = type =>
   type === 'PARTY_RESERVATION_REJECTED' ||
   type === 'PARTY_CANCELLED_BY_HOST';
 
+const isRecruitCommentNotification = notification => {
+  const sourceType = String(
+    getNestedFirstValue(notification, [
+      'sourceType',
+      'contentType',
+      'postType',
+      'communityType',
+    ]) || '',
+  ).toUpperCase();
+  const recruitId = getNestedFirstValue(notification, [
+    'recruitId',
+    'targetRecruitId',
+    'recruitPostId',
+  ]);
+
+  return sourceType === 'RECRUIT' || Boolean(recruitId);
+};
+
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
   const withoutScheme = normalized.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
@@ -244,6 +262,42 @@ const openDeeplinkTarget = (url, navigation) => {
     }
   }
 
+  if (parts[0] === 'community' && parts[1] === 'staff') {
+    const recruitId =
+      parts[2] || getQueryParam(searchParams, ['recruitId', 'id']);
+    const targetCommentId = getQueryParam(searchParams, [
+      'targetCommentId',
+      'commentId',
+      'replyId',
+    ]);
+    const parentCommentId = getQueryParam(searchParams, [
+      'parentId',
+      'parentCommentId',
+      'rootCommentId',
+    ]);
+    const commentPage = getQueryParam(searchParams, [
+      'commentPage',
+      'page',
+      'parentCommentPage',
+    ]);
+
+    if (recruitId) {
+      navigateTo(navigation, 'CommunityStaffDetail', {
+        id: recruitId,
+        ...(targetCommentId ? {targetCommentId} : {}),
+        ...(parentCommentId || commentPage
+          ? {
+              commentAnchor: {
+                ...(parentCommentId ? {parentCommentId} : {}),
+                ...(commentPage ? {commentPage} : {}),
+              },
+            }
+          : {}),
+      });
+      return true;
+    }
+  }
+
   if (
     (parts[0] === 'community' || parts[0] === 'post') &&
     (parts[1] ||
@@ -299,12 +353,14 @@ export const openNotificationTarget = async (notification, navigation) => {
     notification?.deepLink ||
     notification?.link ||
     notification?.url;
+  const initialIsRecruitComment = isRecruitCommentNotification(notification);
 
   // 예약 알림의 푸시 데이터에는 파티/숙소 상세 딥링크만 포함될 수 있다.
   // 이 경우 딥링크보다 예약 ID를 우선 해석해 신청·취소·반려 내역으로 보낸다.
   if (
     deeplink &&
     !isReservationNotificationType(initialType) &&
+    !initialIsRecruitComment &&
     openDeeplinkTarget(deeplink, navigation)
   ) {
     return;
@@ -333,6 +389,11 @@ export const openNotificationTarget = async (notification, navigation) => {
     'parentId',
     'parentCommentId',
     'rootCommentId',
+  ]);
+  let recruitId = getNestedFirstValue(targetNotification, [
+    'recruitId',
+    'targetRecruitId',
+    'recruitPostId',
   ]);
 
   if (
@@ -437,7 +498,10 @@ export const openNotificationTarget = async (notification, navigation) => {
         ? 'MyCommunityCommentList'
         : 'MyCommunityPostList';
 
-    if (!communityPostId && !communityCommentId) {
+    if (
+      (!communityPostId && !communityCommentId) ||
+      (initialIsRecruitComment && !recruitId)
+    ) {
       targetNotification = await fetchNotificationDetail(targetNotification);
       communityPostId = getNestedFirstValue(targetNotification, [
         'postId',
@@ -456,6 +520,33 @@ export const openNotificationTarget = async (notification, navigation) => {
         'parentCommentId',
         'rootCommentId',
       ]);
+      recruitId = getNestedFirstValue(targetNotification, [
+        'recruitId',
+        'targetRecruitId',
+        'recruitPostId',
+      ]);
+    }
+
+    const isRecruitComment = isRecruitCommentNotification(targetNotification);
+
+    if (isRecruitComment) {
+      // 스탭 댓글 알림은 일반 커뮤니티 postId가 아니라 recruitId를 사용한다.
+      // 일부 알림 데이터는 공통 필드인 postId에 공고 ID를 담아 내려준다.
+      const targetRecruitId = recruitId || communityPostId;
+      const recruitAnchor = getNestedFirstValue(targetNotification, [
+        'recruitAnchor',
+        'commentAnchor',
+        'anchor',
+      ]);
+
+      if (targetRecruitId) {
+        navigateTo(navigation, 'CommunityStaffDetail', {
+          id: targetRecruitId,
+          ...(communityCommentId ? {targetCommentId: communityCommentId} : {}),
+          ...(recruitAnchor ? {commentAnchor: recruitAnchor} : {}),
+        });
+        return;
+      }
     }
 
     if (!communityCommentId && communityParentCommentId) {

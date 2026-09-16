@@ -134,6 +134,9 @@ const styles = StyleSheet.create({
     padding: 10,
     marginHorizontal: -10,
   },
+  highlightedCommentSurface: {
+    backgroundColor: COLORS.secondary_yellow,
+  },
   commentThreadConnector: {
     position: 'absolute',
     left: 20,
@@ -228,6 +231,9 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     padding: 10,
     marginLeft: -10,
+  },
+  highlightedReplyRow: {
+    backgroundColor: COLORS.secondary_yellow,
   },
   replyMoreButton: {
     alignSelf: 'flex-start',
