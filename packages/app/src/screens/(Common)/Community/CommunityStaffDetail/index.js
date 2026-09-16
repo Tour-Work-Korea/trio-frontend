@@ -35,7 +35,6 @@ const COMMENT_MAX_LENGTH = 300;
 const COMMENT_PAGE_SIZE = 20;
 const COMMENT_INPUT_MIN_HEIGHT = 44;
 const COMMENT_INPUT_MAX_HEIGHT = 88;
-const COMMENT_HIGHLIGHT_DURATION = 2200;
 const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
 const URL_TEXT_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
 const TRAILING_URL_PUNCTUATION_REGEX = /[.,!?;:)\]}]+$/;
@@ -105,20 +104,6 @@ const getCommentPageContent = data => {
   return data?.content ?? [];
 };
 
-const getAnchorPage = anchor => {
-  const page =
-    anchor?.commentPage ??
-    anchor?.page ??
-    anchor?.parentCommentPage ??
-    anchor?.rootCommentPage ??
-    0;
-
-  return Number.isFinite(Number(page)) ? Number(page) : 0;
-};
-
-const getAnchorParentCommentId = anchor =>
-  anchor?.parentCommentId ?? anchor?.rootCommentId ?? null;
-
 const getNormalizedUrl = url => {
   if (/^https?:\/\//i.test(url)) {
     return url;
@@ -162,13 +147,9 @@ const CommunityStaffDetail = ({route}) => {
   const currentUserPhotoUrl = useUserStore(
     state => state.userProfile?.photoUrl,
   );
-  const {id, targetCommentId, commentAnchor} = route.params ?? {};
+  const {id} = route.params ?? {};
   const scrollViewRef = useRef(null);
   const commentInputRef = useRef(null);
-  const commentLayoutMapRef = useRef({});
-  const commentListOffsetYRef = useRef(0);
-  const replySectionOffsetMapRef = useRef({});
-  const highlightTimerRef = useRef(null);
   const commentLoadInteractionRef = useRef(null);
   const hasUserScrolledCommentsRef = useRef(false);
   const [recruit, setRecruit] = useState(null);
@@ -187,7 +168,6 @@ const CommunityStaffDetail = ({route}) => {
   );
   const [isSubmittingComment, setIsSubmittingComment] = useState(false);
   const [deletingCommentId, setDeletingCommentId] = useState(null);
-  const [highlightedCommentId, setHighlightedCommentId] = useState(null);
   const [errorModal, setErrorModal] = useState({
     visible: false,
     message: '',
@@ -279,46 +259,20 @@ const CommunityStaffDetail = ({route}) => {
 
   const loadInitialComments = useCallback(async () => {
     try {
-      const initialPage = targetCommentId ? getAnchorPage(commentAnchor) : 0;
-      const commentPageResponse = await fetchRecruitComments(initialPage);
-      let nextComments = getCommentPageContent(commentPageResponse);
-      const parentCommentId = getAnchorParentCommentId(commentAnchor);
+      const commentPageResponse = await fetchRecruitComments(0);
 
-      if (targetCommentId && parentCommentId) {
-        try {
-          const repliesResponse =
-            await userEmployApi.getRecruitCommentReplies(parentCommentId);
-
-          nextComments = nextComments.map(comment =>
-            String(comment.commentId) === String(parentCommentId)
-              ? {
-                  ...comment,
-                  replies: repliesResponse.data ?? comment.replies ?? [],
-                  hasMoreReplies: false,
-                }
-              : comment,
-          );
-        } catch (error) {
-          console.warn('fetchRecruitAnchorReplies 실패:', error);
-        }
-      }
-
-      setComments(nextComments);
-      setCommentPage(initialPage);
+      setComments(getCommentPageContent(commentPageResponse));
+      setCommentPage(0);
       setCommentsLast(Boolean(commentPageResponse?.last ?? true));
-      setHighlightedCommentId(targetCommentId ?? null);
     } catch (error) {
       console.warn('fetchRecruitComments 실패:', error);
     }
-  }, [commentAnchor, fetchRecruitComments, targetCommentId]);
+  }, [fetchRecruitComments]);
 
   const fetchRecruitDetail = useCallback(async () => {
     try {
       setIsLoading(true);
       hasUserScrolledCommentsRef.current = false;
-      commentLayoutMapRef.current = {};
-      commentListOffsetYRef.current = 0;
-      replySectionOffsetMapRef.current = {};
       commentLoadInteractionRef.current?.cancel?.();
 
       const recruitResponse = await userEmployApi.getRecruitById(id, true);
@@ -346,42 +300,8 @@ const CommunityStaffDetail = ({route}) => {
 
     return () => {
       commentLoadInteractionRef.current?.cancel?.();
-      if (highlightTimerRef.current) {
-        clearTimeout(highlightTimerRef.current);
-      }
     };
   }, [fetchRecruitDetail]);
-
-  useEffect(() => {
-    if (!highlightedCommentId) {
-      return undefined;
-    }
-
-    const scrollToHighlightedComment = () => {
-      const targetY = commentLayoutMapRef.current[highlightedCommentId];
-
-      if (typeof targetY === 'number') {
-        scrollViewRef.current?.scrollTo({
-          y: Math.max(commentListOffsetYRef.current + targetY - 24, 0),
-          animated: true,
-        });
-      }
-    };
-    const scrollTimers = [120, 360, 700].map(delay =>
-      setTimeout(scrollToHighlightedComment, delay),
-    );
-
-    if (highlightTimerRef.current) {
-      clearTimeout(highlightTimerRef.current);
-    }
-    highlightTimerRef.current = setTimeout(() => {
-      setHighlightedCommentId(null);
-    }, COMMENT_HIGHLIGHT_DURATION);
-
-    return () => {
-      scrollTimers.forEach(clearTimeout);
-    };
-  }, [highlightedCommentId]);
 
   useEffect(() => {
     const showEvent =
@@ -875,23 +795,12 @@ const CommunityStaffDetail = ({route}) => {
   };
 
   const renderComment = comment => (
-    <View
-      key={comment.commentId}
-      style={styles.commentBlock}
-      onLayout={event => {
-        commentLayoutMapRef.current[comment.commentId] =
-          event.nativeEvent.layout.y;
-      }}>
+    <View key={comment.commentId} style={styles.commentBlock}>
       {comment.replies?.length ? (
         <View style={styles.commentThreadConnector} />
       ) : null}
 
-      <View
-        style={[
-          styles.commentSurface,
-          String(highlightedCommentId) === String(comment.commentId) &&
-            styles.highlightedCommentSurface,
-        ]}>
+      <View style={styles.commentSurface}>
         <View style={styles.commentContentRow}>
           <Avatar
             uri={comment.author?.profileImageUrl}
@@ -926,27 +835,10 @@ const CommunityStaffDetail = ({route}) => {
       </View>
 
       {comment.replies?.length ? (
-        <View
-          style={styles.replySection}
-          onLayout={event => {
-            replySectionOffsetMapRef.current[comment.commentId] =
-              event.nativeEvent.layout.y;
-          }}>
+        <View style={styles.replySection}>
           <View style={styles.replyList}>
             {comment.replies.map(reply => (
-              <View
-                key={reply.commentId}
-                style={[
-                  styles.replyRow,
-                  String(highlightedCommentId) === String(reply.commentId) &&
-                    styles.highlightedReplyRow,
-                ]}
-                onLayout={event => {
-                  commentLayoutMapRef.current[reply.commentId] =
-                    (commentLayoutMapRef.current[comment.commentId] ?? 0) +
-                    (replySectionOffsetMapRef.current[comment.commentId] ?? 0) +
-                    event.nativeEvent.layout.y;
-                }}>
+              <View key={reply.commentId} style={styles.replyRow}>
                 <Avatar
                   uri={reply.author?.profileImageUrl}
                   size={40}
@@ -1066,11 +958,7 @@ const CommunityStaffDetail = ({route}) => {
               </View>
             )}
 
-            <View
-              style={styles.commentList}
-              onLayout={event => {
-                commentListOffsetYRef.current = event.nativeEvent.layout.y;
-              }}>
+            <View style={styles.commentList}>
               {comments.map(renderComment)}
             </View>
             {isMoreCommentsLoading ? (
