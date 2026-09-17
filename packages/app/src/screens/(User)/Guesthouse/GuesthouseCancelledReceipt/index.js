@@ -53,7 +53,7 @@ const GuesthouseCancelledReceipt = () => {
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
 
   const toLocalDateTime = (date, time) =>
-    date ? `${date}T${time ?? '00:00:00'}` : '';
+    date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
   const data = useMemo(() => {
     const isCancelledBeforeHostApproval =
@@ -81,8 +81,10 @@ const GuesthouseCancelledReceipt = () => {
 
       let checkInDateObj = null;
       let checkOutDateObj = null;
-      const checkInStr = dto?.checkIn ?? reservationItem?.checkIn;
-      const checkOutStr = dto?.checkOut ?? reservationItem?.checkOut;
+      const checkInStr =
+        dto?.checkIn ?? dto?.checkInDate ?? reservationItem?.checkIn;
+      const checkOutStr =
+        dto?.checkOut ?? dto?.checkOutDate ?? reservationItem?.checkOut;
 
       if (checkInStr) {
         checkInDateObj = dayjs(checkInStr.replace(/\. /g, '-').replace(/\./g, '-')).startOf('day');
@@ -164,10 +166,17 @@ const GuesthouseCancelledReceipt = () => {
       };
     })();
 
-    const totalAmount = typeof dto?.totalAmount === 'number' ? dto.totalAmount : 0;
+    const totalAmount =
+      typeof dto?.totalAmount === 'number'
+        ? dto.totalAmount
+        : typeof dto?.reservationAmount === 'number'
+          ? dto.reservationAmount
+          : typeof dto?.amount === 'number'
+            ? dto.amount
+            : 0;
     let refundAmount = typeof dto?.cancelledAmount === 'number' ? dto.cancelledAmount : 0;
     
-    if (cancelPolicyInfo.dailyInfo) {
+    if (cancelPolicyInfo.dailyInfo && typeof dto?.cancelledAmount !== 'number') {
       refundAmount = cancelPolicyInfo.totalFrontendRefundAmount;
     }
     
@@ -177,31 +186,31 @@ const GuesthouseCancelledReceipt = () => {
       statusMessage:
         '예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.',
       guesthouseName:
-        dto?.guesthouse ?? reservationItem?.guesthouseName ?? '',
+        dto?.guesthouse ?? dto?.guesthouseName ?? reservationItem?.guesthouseName ?? '',
       roomName: dto?.roomName ?? reservationItem?.roomName ?? '',
       roomDesc: reservationItem?.roomDesc ?? buildRoomDetailText(reservationItem),
       imageUrl: reservationItem?.guesthouseImage ?? '',
       checkInDate: formatLocalDateTimeToDotAndTimeWithDay(
         toLocalDateTime(
-          dto?.checkIn ?? reservationItem?.checkIn,
+          dto?.checkIn ?? dto?.checkInDate ?? reservationItem?.checkIn,
           reservationItem?.guesthouseCheckIn ?? reservationItem?.checkInTime,
         ),
       ).date,
       checkInTime: formatLocalDateTimeToDotAndTimeWithDay(
         toLocalDateTime(
-          dto?.checkIn ?? reservationItem?.checkIn,
+          dto?.checkIn ?? dto?.checkInDate ?? reservationItem?.checkIn,
           reservationItem?.guesthouseCheckIn ?? reservationItem?.checkInTime,
         ),
       ).time,
       checkOutDate: formatLocalDateTimeToDotAndTimeWithDay(
         toLocalDateTime(
-          dto?.checkOut ?? reservationItem?.checkOut,
+          dto?.checkOut ?? dto?.checkOutDate ?? reservationItem?.checkOut,
           reservationItem?.guesthouseCheckOut ?? reservationItem?.checkOutTime,
         ),
       ).date,
       checkOutTime: formatLocalDateTimeToDotAndTimeWithDay(
         toLocalDateTime(
-          dto?.checkOut ?? reservationItem?.checkOut,
+          dto?.checkOut ?? dto?.checkOutDate ?? reservationItem?.checkOut,
           reservationItem?.guesthouseCheckOut ?? reservationItem?.checkOutTime,
         ),
       ).time,
@@ -223,7 +232,8 @@ const GuesthouseCancelledReceipt = () => {
       cancelFee,
       refundMethod: (() => {
         const method =
-          (dto?.paymentType && PAYMENT_TYPE_LABEL[dto.paymentType]) ?? '';
+          ((dto?.paymentType || dto?.paymentMethod) &&
+            PAYMENT_TYPE_LABEL[dto.paymentType || dto.paymentMethod]) ?? '';
         return method ? `${method} 환불` : '';
       })(),
       refundAmount,
@@ -239,10 +249,15 @@ const GuesthouseCancelledReceipt = () => {
     if (!reservationId) return;
     const fetchDetail = async () => {
       try {
-        const res = await reservationPaymentApi.getReservationPaymentDetail(
-          reservationId,
-        );
-        setDto(res?.data ?? null);
+        const [paymentDetail, roomDetail] = await Promise.all([
+          reservationPaymentApi
+            .getReservationPaymentDetail(reservationId)
+            .catch(() => null),
+          reservationPaymentApi
+            .getRoomReservationDetail(reservationId)
+            .catch(() => null),
+        ]);
+        setDto({...roomDetail?.data, ...paymentDetail?.data});
       } catch (e) {
       }
     };

@@ -15,6 +15,7 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import SearchEmpty from '@assets/images/search_empty.svg';
 import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@utils/formatAddress';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
   const navigation = useNavigation();
@@ -81,7 +82,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
             style={[FONTS.fs_12_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {item.guesthouseAddress || '주소 정보 없음'}
+            {trimJejuPrefix(item.guesthouseAddress) || '주소 정보 없음'}
           </Text>
 
           {/* 썸네일 */}

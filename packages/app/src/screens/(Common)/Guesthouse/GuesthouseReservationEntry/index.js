@@ -128,10 +128,26 @@ const GuesthouseReservationEntry = ({route}) => {
         return min == null ? remaining : Math.min(min, remaining);
       }, Number.isFinite(Number(roomInfo.remaining)) ? Number(roomInfo.remaining) : null)
     : null;
+  const multiNightDiscountAmount = Math.max(
+    Number(roomInfo.multiNightDiscountAmount || 0),
+    0,
+  );
+  const hasMultiNightDiscount =
+    roomInfo.multiNightDiscount?.enabled === true &&
+    nights > 1 &&
+    multiNightDiscountAmount > 0;
+  const discountedNights =
+    roomInfo.multiNightDiscount?.basis === 'ENTIRE_STAY' ? nights : nights - 1;
   const baseRoomPrice = Number(roomInfo.roomPrice || roomPrice || 0) * nights;
+  const discountedRoomSubtotal = Math.max(
+    Number(roomInfo.roomSubtotal ?? baseRoomPrice * (isDormitory ? guestCount : 1)) -
+      multiNightDiscountAmount,
+    0,
+  );
   const displayBaseRoomPrice = Math.max(
-    Number(roomInfo.totalPrice ?? totalPrice ?? baseRoomPrice) -
-      Number(roomInfo.extraPersonTotalPrice || 0),
+    roomInfo.totalPrice != null || totalPrice != null
+      ? Number(roomInfo.totalPrice ?? totalPrice) - Number(roomInfo.extraPersonTotalPrice || 0)
+      : discountedRoomSubtotal,
     0,
   );
   const extraGuestTotalPrice =
@@ -144,22 +160,18 @@ const GuesthouseReservationEntry = ({route}) => {
 
   const displayTotalPrice = useMemo(() => {
     if (isDormitory) {
-      return Number(roomInfo.totalPrice ?? totalPrice ?? 0)
-      || Number(roomInfo.roomPrice || roomPrice || 0) * guestCount * nights;
+      return Number(roomInfo.totalPrice ?? totalPrice ?? discountedRoomSubtotal);
     }
 
-    return Number(isServerPriceForCurrentGuestCount ? roomInfo.totalPrice : 0)
-      || baseRoomPrice + extraGuestTotalPrice;
+    return isServerPriceForCurrentGuestCount && roomInfo.totalPrice != null
+      ? Number(roomInfo.totalPrice)
+      : discountedRoomSubtotal + extraGuestTotalPrice;
   }, [
-    baseRoomPrice,
+    discountedRoomSubtotal,
     extraGuestTotalPrice,
-    guestCount,
     isDormitory,
     isServerPriceForCurrentGuestCount,
-    nights,
-    roomInfo.roomPrice,
     roomInfo.totalPrice,
-    roomPrice,
     totalPrice,
   ]);
   const displayUnitRoomPrice = useMemo(() => {
@@ -183,6 +195,22 @@ const GuesthouseReservationEntry = ({route}) => {
     roomInfo.roomPrice,
     roomPrice,
   ]);
+
+  const originalRoomSubtotal = Number(
+    roomInfo.roomSubtotal ??
+      (isDormitory ? displayTotalPrice : displayBaseRoomPrice) +
+        multiNightDiscountAmount,
+  );
+  const renderDiscountDescription = () => (
+    <>
+      <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
+        {formatCurrency(originalRoomSubtotal)} - {formatCurrency(multiNightDiscountAmount)}
+      </Text>
+      <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
+        정상가 {nights}박 - 연박할인 {discountedNights}박
+      </Text>
+    </>
+  );
 
   const refreshRoomDetail = useCallback(async () => {
     if (!guesthouseId || !roomId || !selectedCheckIn || !selectedCheckOut) {
@@ -492,13 +520,20 @@ const GuesthouseReservationEntry = ({route}) => {
 
         {isDormitory ? (
           <View style={styles.priceGuestRow}>
-            <View>
+            <View style={styles.roomPriceSummary}>
+              {hasMultiNightDiscount && (
+                <Text style={[FONTS.fs_16_semibold, styles.originalPriceText]}>
+                  {formatCurrency(originalRoomSubtotal)}
+                </Text>
+              )}
               <Text style={[FONTS.fs_20_bold, styles.priceText]}>
                 {formatCurrency(displayTotalPrice)}
               </Text>
-              <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-                1베드 당 {formatCurrency(displayUnitRoomPrice)}
-              </Text>
+              {hasMultiNightDiscount ? renderDiscountDescription() : (
+                <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
+                  1베드 당 {formatCurrency(displayUnitRoomPrice)}
+                </Text>
+              )}
             </View>
 
             <View style={styles.guestStepper}>
@@ -523,9 +558,15 @@ const GuesthouseReservationEntry = ({route}) => {
         ) : (
           <>
             <View style={styles.baseRoomPriceBlock}>
+              {hasMultiNightDiscount && (
+                <Text style={[FONTS.fs_16_semibold, styles.originalPriceText]}>
+                  {formatCurrency(originalRoomSubtotal)}
+                </Text>
+              )}
               <Text style={[FONTS.fs_20_bold, styles.priceText]}>
                 {formatCurrency(displayBaseRoomPrice)}
               </Text>
+              {hasMultiNightDiscount && renderDiscountDescription()}
               <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
                 {baseCapacity}인 기준
               </Text>

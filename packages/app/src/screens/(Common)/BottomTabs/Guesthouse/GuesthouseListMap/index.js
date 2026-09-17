@@ -27,7 +27,7 @@ import {
   getGuesthouseMapBoundsByRegionIds,
   getMapRegionFromBounds,
 } from '@constants/guesthouseMapRegions';
-import userGuesthouseApi from '@utils/api/userGuesthouseApi';
+import {regionGuesthouseApi} from '../regions/api';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {navigateWebGuesthouseDetailFromMap} from '@web/navigation';
@@ -73,12 +73,12 @@ const WEB_INITIAL_FIT_PADDING = {
   top: 12,
 };
 const WEB_INITIAL_REGION_SCALE = 0.6;
-const centerRegionToNaverRegion = region => {
+const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
   if (!region) {
     return null;
   }
 
-  const nextRegion = Platform.OS === 'web'
+  const nextRegion = Platform.OS === 'web' && !fitFullBounds
     ? {
       ...region,
       latitudeDelta: region.latitudeDelta * WEB_INITIAL_REGION_SCALE,
@@ -585,6 +585,9 @@ const GuesthouseListMap = ({
   guestCount: guestCountProp,
   regionIds: regionIdsProp,
   regionBounds: regionBoundsProp,
+  serviceRegion = 'ALL',
+  serviceRegionBounds,
+  onBoundsChange,
   sortBy = 'RECOMMEND',
   filterParams = {},
   resetKey,
@@ -592,7 +595,9 @@ const GuesthouseListMap = ({
 }) => {
   const navigation = useNavigation();
   const lastCenteredGuesthouseIdRef = useRef(null);
-  const initialPresetFetchDoneRef = useRef(false);
+  const mapRequestRef = useRef(0);
+  const awaitingRegionCameraRef = useRef(false);
+  const cameraInitializedRef = useRef(false);
   const activeFetchKeyRef = useRef(null);
   const lastFetchKeyRef = useRef(null);
   const sourceGuesthouses = useMemo(
@@ -624,10 +629,14 @@ const GuesthouseListMap = ({
   const cardPointerStartRef = useRef(null);
   const cardPressSuppressUntilRef = useRef(0);
   const currentLocationPulse = useRef(new Animated.Value(0)).current;
-  const initialRegion = useMemo(
+  const [initialRegion] = useState(
     () => presetRegion ?? getRegionFromGuesthouses(sourceGuesthouses),
-    [presetRegion, sourceGuesthouses],
   );
+  const selectedServiceRegion = useMemo(
+    () => getMapRegionFromBounds(serviceRegionBounds),
+    [serviceRegionBounds],
+  );
+  const cameraTargetRegion = selectedServiceRegion ?? initialRegion;
   const currentRegionRef = useRef(initialRegion);
 
   const [mapReady, setMapReady] = useState(false);
@@ -645,6 +654,9 @@ const GuesthouseListMap = ({
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [isCurrentLocationLoading, setIsCurrentLocationLoading] = useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
+  const canRenderMarkers = Platform.OS === 'web'
+    ? mapReady && mapGuesthouses.length > 0
+    : shouldRenderMarkers;
 
   const clusters = useMemo(
     () => groupGuesthouses(mapGuesthouses, currentRegion, mapSize),
@@ -752,10 +764,6 @@ const GuesthouseListMap = ({
   );
 
   useEffect(() => {
-    setMapGuesthouses(sourceGuesthouses);
-  }, [sourceGuesthouses]);
-
-  useEffect(() => {
     const animation = Animated.loop(
       Animated.timing(currentLocationPulse, {
         toValue: 1,
@@ -786,15 +794,18 @@ const GuesthouseListMap = ({
   }, [selectedItem?.id]);
 
   useEffect(() => {
-    if (!mapReady || !initialRegion) {
+    if (!mapReady || !cameraTargetRegion) {
       return;
     }
 
     mapRef.current?.animateRegionTo({
-      ...centerRegionToNaverRegion(initialRegion),
+      ...centerRegionToNaverRegion(
+        cameraTargetRegion,
+        serviceRegion === 'ALL' && Boolean(selectedServiceRegion),
+      ),
       duration: 1,
     });
-  }, [initialRegion, mapReady]);
+  }, [cameraTargetRegion, mapReady, selectedServiceRegion, serviceRegion]);
 
   useEffect(() => {
     if (!selectedClusterKey) {
@@ -836,19 +847,20 @@ const GuesthouseListMap = ({
   }, [selectedCluster, selectedGuesthouseId]);
 
   useEffect(() => {
-    initialPresetFetchDoneRef.current = false;
+    mapRequestRef.current += 1;
     activeFetchKeyRef.current = null;
     lastFetchKeyRef.current = null;
+    setMapGuesthouses([]);
     setHasFetchedMapGuesthouses(false);
     setShouldRenderMarkers(false);
-  }, [filterParams, presetBounds, sortBy]);
+  }, [checkIn, checkOut, guestCount, filterParams, serviceRegion, sortBy]);
 
   useEffect(() => {
     if (!resetKey) {
       return;
     }
 
-    initialPresetFetchDoneRef.current = false;
+    mapRequestRef.current += 1;
     activeFetchKeyRef.current = null;
     lastFetchKeyRef.current = null;
     setHasFetchedMapGuesthouses(false);
@@ -857,15 +869,24 @@ const GuesthouseListMap = ({
     setShowResearchButton(false);
     setSelectedClusterKey(null);
     setSelectedGuesthouseId(null);
-    setCurrentRegion(initialRegion);
+    setCurrentRegion(cameraTargetRegion);
 
-    if (mapReady && initialRegion) {
+    if (mapReady && cameraTargetRegion) {
       mapRef.current?.animateRegionTo({
-        ...centerRegionToNaverRegion(initialRegion),
+        ...centerRegionToNaverRegion(
+          cameraTargetRegion,
+          serviceRegion === 'ALL' && Boolean(selectedServiceRegion),
+        ),
         duration: 1,
       });
     }
-  }, [initialRegion, mapReady, resetKey]);
+  }, [
+    cameraTargetRegion,
+    mapReady,
+    resetKey,
+    selectedServiceRegion,
+    serviceRegion,
+  ]);
 
   const getCurrentBounds = useCallback(async () => {
     return getBoundsFromRegion(currentRegionRef.current);
@@ -882,7 +903,7 @@ const GuesthouseListMap = ({
       checkOut,
       guestCount,
       sortBy,
-      filterParams,
+      filterParams: {...filterParams, region: serviceRegion},
     });
 
     if (
@@ -892,11 +913,15 @@ const GuesthouseListMap = ({
       return;
     }
 
+    const requestId = ++mapRequestRef.current;
     const cachedGuesthouses = getCachedMapFetchResult(fetchKey);
     if (cachedGuesthouses) {
+      activeFetchKeyRef.current = null;
+      setLoading(false);
       setMapGuesthouses(cachedGuesthouses);
       setLastFetchedBounds(bounds);
       setHasFetchedMapGuesthouses(true);
+      setShouldRenderMarkers(true);
       setPendingBounds(null);
       setShowResearchButton(false);
       lastFetchKeyRef.current = fetchKey;
@@ -911,12 +936,13 @@ const GuesthouseListMap = ({
 
       if (!fetchPromise) {
         fetchPromise = (async () => {
-          const response = await userGuesthouseApi.getGuesthouseMap({
+          const response = await regionGuesthouseApi.getGuesthouseMap({
             checkIn,
             checkOut,
             guestCount,
             sortBy,
             ...filterParams,
+            region: serviceRegion,
             ...bounds,
           });
 
@@ -929,14 +955,15 @@ const GuesthouseListMap = ({
             Platform.OS === 'web'
             && nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
           ) {
-            const fallbackResponse = await userGuesthouseApi.getGuesthouseList({
+            const fallbackResponse = await regionGuesthouseApi.getGuesthouseList({
               checkIn,
               checkOut,
               guestCount,
               page: 0,
-              size: 200,
+              size: 100,
               sortBy,
               ...filterParams,
+              region: serviceRegion,
               ...bounds,
             });
 
@@ -958,6 +985,7 @@ const GuesthouseListMap = ({
         guesthouses: nextGuesthouses,
       });
 
+      if (requestId !== mapRequestRef.current) {return;}
       setMapGuesthouses(nextGuesthouses);
       setLastFetchedBounds(bounds);
       setHasFetchedMapGuesthouses(true);
@@ -971,13 +999,18 @@ const GuesthouseListMap = ({
       if (activeFetchKeyRef.current === fetchKey) {
         activeFetchKeyRef.current = null;
       }
-      setLoading(false);
+      if (requestId === mapRequestRef.current) {setLoading(false);}
     }
-  }, [checkIn, checkOut, filterParams, guestCount, sortBy]);
+  }, [checkIn, checkOut, filterParams, guestCount, serviceRegion, sortBy]);
 
   useEffect(() => {
     if (!mapReady || !hasFetchedMapGuesthouses) {
       setShouldRenderMarkers(false);
+      return undefined;
+    }
+
+    if (Platform.OS === 'web') {
+      setShouldRenderMarkers(true);
       return undefined;
     }
 
@@ -990,42 +1023,40 @@ const GuesthouseListMap = ({
     };
   }, [hasFetchedMapGuesthouses, mapReady]);
 
-  const fetchUsingCurrentBounds = useCallback(async () => {
-    const bounds =
-      !initialPresetFetchDoneRef.current && presetBounds
-        ? presetBounds
-        : await getCurrentBounds();
-
-    if (!bounds) {
+  useEffect(() => {
+    if (!mapReady || !serviceRegionBounds) {
+      awaitingRegionCameraRef.current = false;
       return;
     }
-
-    initialPresetFetchDoneRef.current = true;
-    await fetchMapGuesthouses(bounds);
-  }, [fetchMapGuesthouses, getCurrentBounds, presetBounds]);
+    awaitingRegionCameraRef.current = true;
+    setSelectedClusterKey(null);
+    setSelectedGuesthouseId(null);
+    mapRef.current?.animateRegionTo({
+      ...centerRegionToNaverRegion(
+        getMapRegionFromBounds(serviceRegionBounds),
+        serviceRegion === 'ALL',
+      ),
+      duration: 1,
+    });
+    onBoundsChange?.(serviceRegionBounds);
+    fetchMapGuesthouses(serviceRegionBounds);
+  }, [
+    fetchMapGuesthouses,
+    mapReady,
+    onBoundsChange,
+    serviceRegion,
+    serviceRegionBounds,
+  ]);
 
   useEffect(() => {
-    if (!checkIn || !checkOut) {
-      return;
-    }
+    if (!mapReady || !cameraInitializedRef.current || awaitingRegionCameraRef.current) {return;}
+    getCurrentBounds().then(bounds => {
+      onBoundsChange?.(bounds);
+      fetchMapGuesthouses(bounds);
+    });
+  }, [mapReady, fetchMapGuesthouses, getCurrentBounds, onBoundsChange]);
 
-    const canFetchWithPresetBounds =
-      !initialPresetFetchDoneRef.current && presetBounds;
-
-    if (!mapReady && !canFetchWithPresetBounds) {
-      return;
-    }
-
-    fetchUsingCurrentBounds();
-  }, [
-    mapReady,
-    checkIn,
-    checkOut,
-    guestCount,
-    presetBounds,
-    resetKey,
-    fetchUsingCurrentBounds,
-  ]);
+  useEffect(() => () => { mapRequestRef.current += 1; }, []);
 
   const handleRegionChangeComplete = useCallback(async region => {
     setCurrentRegion(region);
@@ -1056,8 +1087,15 @@ const GuesthouseListMap = ({
         params.region?.longitudeDelta ?? currentRegion.longitudeDelta,
     };
 
+    currentRegionRef.current = region;
+    const bounds = getBoundsFromRegion(region);
+    onBoundsChange?.(bounds);
+    const shouldFetch = !cameraInitializedRef.current || awaitingRegionCameraRef.current;
+    cameraInitializedRef.current = true;
+    awaitingRegionCameraRef.current = false;
     handleRegionChangeComplete(region);
-  }, [currentRegion, handleRegionChangeComplete]);
+    if (shouldFetch) {fetchMapGuesthouses(bounds);}
+  }, [currentRegion, handleRegionChangeComplete, fetchMapGuesthouses, onBoundsChange]);
 
   const handleMapLayout = useCallback(event => {
     const {width, height} = event.nativeEvent.layout;
@@ -1388,7 +1426,7 @@ const GuesthouseListMap = ({
             }
           }}
           onCameraIdle={handleCameraIdle}>
-          {shouldRenderMarkers && orderedClusters.map(cluster => {
+          {canRenderMarkers && orderedClusters.map(cluster => {
             const isSelected = cluster.key === selectedCluster?.key;
             const isSoldOutCluster = isClusterReserved(cluster);
 

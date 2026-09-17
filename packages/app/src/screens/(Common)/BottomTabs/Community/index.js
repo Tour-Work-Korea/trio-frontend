@@ -104,7 +104,7 @@ const getRequestedCategoryParam = routeParams => {
 
 const getInitialCategoryKey = (tabs, routeParams) => {
   const requestedCategory = normalizeCategoryParam(
-    getRequestedCategoryParam(routeParams),
+    getRequestedCategoryParam(routeParams) || 'STAFF',
   );
 
   if (requestedCategory === 'STAFF' || requestedCategory === 'RECRUIT') {

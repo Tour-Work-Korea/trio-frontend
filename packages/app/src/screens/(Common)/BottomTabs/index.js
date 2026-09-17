@@ -17,6 +17,7 @@ import CommunityIconFilled from '@assets/images/community_black_filled.svg';
 
 import {Community, Guesthouse, Home, Meet, My} from '@screens';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
+import {useGuesthouseRegionStore} from './Guesthouse/regions/store';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
 
@@ -70,7 +71,7 @@ const BottomTabs = () => {
           listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
-              navigation.navigate('커뮤니티', {tab: 'all'});
+              navigation.navigate('커뮤니티', {tab: 'staff'});
             },
           })}
         />
@@ -80,6 +81,7 @@ const BottomTabs = () => {
           listeners={({navigation}) => ({
             tabPress: e => {
               e.preventDefault();
+              useGuesthouseRegionStore.getState().setRegion('ALL');
               navigation.navigate('지도', {
                 screen: 'GuesthouseList',
                 params: getDefaultGuesthouseListParams(),

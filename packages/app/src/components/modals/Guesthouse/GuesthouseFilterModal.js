@@ -14,6 +14,9 @@ import MultiSlider from '@ptomasroos/react-native-multi-slider';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
+import RegionChips from '@screens/(Common)/BottomTabs/Guesthouse/regions/RegionChips';
+import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
+
 import XBtn from '@assets/images/x_gray.svg';
 import CheckIcon from '@assets/images/check20_orange.svg';
 
@@ -36,6 +39,7 @@ const SORT_OPTIONS = [
 ];
 const TAB_LIST = [
   {key: 'sort', label: '정렬'},
+  {key: 'region', label: '지역'},
   {key: 'content', label: '콘텐츠'},
   {key: 'price', label: '가격 범위'},
   {key: 'room', label: '객실 유형'},
@@ -50,6 +54,9 @@ const GuesthouseFilterModal = ({
   onCountRequest,
   resultCount,
 }) => {
+  const region = useGuesthouseRegionStore(state => state.region);
+  const setRegion = useGuesthouseRegionStore(state => state.setRegion);
+  const [nextRegion, setNextRegion] = useState(region);
   const [activeTab, setActiveTab] = useState('sort');
   const [priceRange, setPriceRange] = useState([MIN_PRICE, MAX_PRICE]);
   const [selectedRoomType, setSelectedRoomType] = useState(null);
@@ -68,6 +75,7 @@ const GuesthouseFilterModal = ({
     }
 
     setActiveTab('sort');
+    setNextRegion(region);
     setPriceRange([
       initialFilters.minPrice ?? MIN_PRICE,
       Math.min(initialFilters.maxPrice ?? MAX_PRICE, MAX_PRICE),
@@ -75,7 +83,7 @@ const GuesthouseFilterModal = ({
     setSelectedRoomType(initialFilters.roomType || null);
     setSelectedTags(initialFilters.tags || []);
     setNextSort(selectedSort);
-  }, [initialFilters, selectedSort, visible]);
+  }, [initialFilters, selectedSort, visible, region]);
 
   useEffect(() => {
     setDisplayResultCount(resultCount);
@@ -86,8 +94,11 @@ const GuesthouseFilterModal = ({
       return;
     }
 
+    let active = true;
+    setDisplayResultCount(null);
     const timer = setTimeout(() => {
       onCountRequest({
+        region: nextRegion,
         tags: selectedTags,
         minPrice: priceRange[0],
         maxPrice: priceRange[1],
@@ -96,7 +107,7 @@ const GuesthouseFilterModal = ({
         onlyAvailable: initialFilters?.onlyAvailable || false,
       })
         .then(count => {
-          if (typeof count === 'number') {
+          if (active && typeof count === 'number') {
             setDisplayResultCount(count);
           }
         })
@@ -105,10 +116,11 @@ const GuesthouseFilterModal = ({
         });
     }, 250);
 
-    return () => clearTimeout(timer);
+    return () => { active = false; clearTimeout(timer); };
   }, [
     initialFilters,
     onCountRequest,
+    nextRegion,
     priceRange,
     selectedRoomType,
     selectedTags,
@@ -117,16 +129,18 @@ const GuesthouseFilterModal = ({
 
   const isDirty = useMemo(() => {
     return (
+      nextRegion !== 'ALL' ||
       nextSort !== 'RECOMMEND' ||
       priceRange[0] !== MIN_PRICE ||
       priceRange[1] !== MAX_PRICE ||
       Boolean(selectedRoomType) ||
       selectedTags.length > 0
     );
-  }, [nextSort, priceRange, selectedRoomType, selectedTags.length]);
+  }, [nextRegion, nextSort, priceRange, selectedRoomType, selectedTags.length]);
 
   const handleReset = () => {
     setNextSort('RECOMMEND');
+    setNextRegion('ALL');
     setPriceRange([MIN_PRICE, MAX_PRICE]);
     setSelectedRoomType(null);
     setSelectedTags([]);
@@ -141,6 +155,7 @@ const GuesthouseFilterModal = ({
   };
 
   const applyFilters = () => {
+    setRegion(nextRegion);
     onApply({
       tags: selectedTags,
       minPrice: priceRange[0],
@@ -379,6 +394,11 @@ const GuesthouseFilterModal = ({
             scrollEventThrottle={16}
             contentContainerStyle={styles.content}>
             {renderSortSection()}
+            <View style={styles.divider} />
+            <View style={styles.section} onLayout={event => setSectionPosition('region', event.nativeEvent.layout.y)}>
+              <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>지역</Text>
+              <RegionChips value={nextRegion} onChange={setNextRegion} inset={false} />
+            </View>
             <View style={styles.divider} />
             {renderContentSection()}
             <View style={styles.divider} />

@@ -98,6 +98,9 @@ const GuesthouseReservation = ({ route }) => {
     checkOutTime,
     guestCount,
     totalPrice,
+    roomSubtotal,
+    multiNightDiscount,
+    multiNightDiscountAmount,
     roomType,
     dormitoryGenderType,
     roomCapacity,
@@ -217,7 +220,14 @@ const GuesthouseReservation = ({ route }) => {
     const timeLabel = formatTime(timeStr || dateStr);
     return `${dateLabel} ${timeLabel}`;
   };
-  const nights = Math.max(0, dayjs(checkOut).diff(dayjs(checkIn), 'day'))+1;
+  const nights = Math.max(
+    1,
+    dayjs(checkOut).startOf('day').diff(dayjs(checkIn).startOf('day'), 'day'),
+  );
+  const hasMultiNightDiscount =
+    multiNightDiscount?.enabled === true &&
+    nights >= 2 &&
+    Number(multiNightDiscountAmount) > 0;
   const roomTypeMap = {
     MIXED: '혼숙',
     FEMALE_ONLY: '여성전용',
@@ -242,6 +252,14 @@ const GuesthouseReservation = ({ route }) => {
       : extraGuestUnitPrice * displayExtraGuestCount * nights;
   const shouldShowExtraGuestPrice =
     !isDormitory && displayExtraGuestCount > 0;
+  const originalRoomSubtotal = Number(
+    roomSubtotal ??
+      Math.max(
+        Number(totalPrice || 0) -
+          (shouldShowExtraGuestPrice ? displayExtraGuestTotalPrice : 0),
+        0,
+      ) + Number(multiNightDiscountAmount || 0),
+  );
   const numericPointValue = Number(pointValue || 0);
   const isPointOverBalance = numericPointValue > Number(pointBalance || 0);
   const usableCouponCount = getUsableCouponCount(coupons, totalPrice);
@@ -724,12 +742,24 @@ const GuesthouseReservation = ({ route }) => {
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>할인 및 결제 정보</Text>
               <View style={styles.userInfo}>
                 <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  객실 가격 ({isDormitory ? '1베드 당' : '1객실 당'})
+                  {hasMultiNightDiscount
+                    ? `객실 가격 (${isDormitory ? `베드 ${guestCount}개` : '객실 1개'} X ${nights}박)`
+                    : `객실 가격 (${isDormitory ? '1베드 당' : '1객실 당'})`}
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
-                  {roomPrice?.toLocaleString()}원
+                  {(hasMultiNightDiscount ? originalRoomSubtotal : roomPrice)?.toLocaleString()}원
                 </Text>
               </View>
+              {hasMultiNightDiscount && (
+                <View style={styles.userInfo}>
+                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                    연박 할인
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.multiNightDiscountText]}>
+                    - {Number(multiNightDiscountAmount).toLocaleString()}원
+                  </Text>
+                </View>
+              )}
               {shouldShowExtraGuestPrice ? (
                 <View style={styles.userInfo}>
                   <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
@@ -742,7 +772,9 @@ const GuesthouseReservation = ({ route }) => {
               ) : null}
               <View style={styles.userInfo}>
                 <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  {`총 가격 (${isDormitory ? `베드 ${guestCount}개 X ` : ''}${nights}박)`}
+                  {hasMultiNightDiscount
+                    ? '총 가격'
+                    : `총 가격 (${isDormitory ? `베드 ${guestCount}개 X ` : ''}${nights}박)`}
                 </Text>
                 <Text style={FONTS.fs_14_medium}>
                   {totalPrice?.toLocaleString()}원

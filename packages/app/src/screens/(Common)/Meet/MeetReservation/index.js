@@ -284,6 +284,7 @@ const MeetReservation = () => {
     reservationInfo?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
   const scheduleType =
     reservationInfo?.scheduleType ?? routeScheduleType ?? 'DAILY';
+  const isDateEvent = scheduleType === 'DATE_EVENT';
   const shouldShowDateSelector =
     scheduleType !== 'DATE_EVENT' &&
     applicationType !== 'SAME_DAY' &&
@@ -440,7 +441,15 @@ const MeetReservation = () => {
 
   // 유효성 검사
   const isAllRequiredAgreed = agreements.personalInfo;
-  const canApplySelectedDate = !isDateOptionClosed(selectedDateOption);
+  const selectedStartDateTime = dayjs(
+    selectedDateOption?.partyStartDateTime ?? checkInDate,
+  );
+  const eventStatus = reservationInfo?.eventStatus;
+  const canApplySelectedDate = isDateEvent
+    ? eventStatus !== 'ENDED' &&
+      selectedStartDateTime.isValid() &&
+      selectedStartDateTime.isAfter(dayjs())
+    : !isDateOptionClosed(selectedDateOption);
 
   const toggleAgreement = key => {
     setAgreements(prev => ({

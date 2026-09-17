@@ -70,9 +70,11 @@ export default function MeetCancelledReceipt() {
   const endFormatted = formatLocalDateTimeToDotAndTimeWithDay(
     reservationDetail?.endDateTime,
   );
-  const cancelledFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-    reservationDetail?.cancelledAt,
-  );
+  const cancelledAt =
+    reservationDetail?.cancelledAt ?? reservationDetail?.approvalDeadlineAt;
+  const cancelledFormatted = cancelledAt
+    ? formatLocalDateTimeToDotAndTimeWithDay(cancelledAt)
+    : null;
   const formatPrice = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
   const formatPoint = value => `${Number(value || 0).toLocaleString('ko-KR')}P`;
   const paidAmount =
@@ -101,11 +103,15 @@ export default function MeetCancelledReceipt() {
   const paymentTypeText = useMemo(() => {
     return PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] || '-';
   }, [reservationDetail?.paymentType]);
+  const isRejected = reservationDetail?.approvalStatus === 'REJECTED';
+  const isExpired = reservationDetail?.approvalStatus === 'EXPIRED';
 
   return (
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Header
-        title="신청 취소"
+        title={
+          isRejected ? '신청 반려' : isExpired ? '신청 만료' : '신청 취소'
+        }
         onPress={fromCancelSuccess ? handleBackPress : null}
       />
 
@@ -148,18 +154,21 @@ export default function MeetCancelledReceipt() {
           <View style={styles.infoRow}>
             <Text style={[FONTS.fs_14_medium, styles.label]}>장소</Text>
             <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {trimJejuPrefix(reservationDetail?.partyLocation) ||
-                reservationDetail?.meetingPlace ||
+              {trimJejuPrefix(reservationDetail?.partyLocation || reservationDetail?.meetingPlace) ||
                 '-'}
             </Text>
           </View>
 
-          <Text style={[FONTS.fs_12_medium, styles.subText]}>
-            취소일시 {cancelledFormatted.date} {cancelledFormatted.time}
-          </Text>
+          {cancelledFormatted ? (
+            <Text style={[FONTS.fs_12_medium, styles.subText]}>
+              {isExpired ? '만료일시' : '취소일시'} {cancelledFormatted.date}{' '}
+              {cancelledFormatted.time}
+            </Text>
+          ) : null}
 
-          {/* 취소 정보 */}
-          {/* <View style={styles.paymentBox}>
+          {(paidAmount > 0 || reservationDetail?.paymentType) && (
+          <View>
+          <View style={styles.paymentBox}>
             <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
               취소/환불 정보
             </Text>
@@ -216,7 +225,7 @@ export default function MeetCancelledReceipt() {
                 환불 방법
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.priceValue, {color:COLORS.primary_orange}]}>
-                {paymentTypeText}
+                {paymentTypeText === '-' ? '-' : `${paymentTypeText} 환불`}
               </Text>
             </View>
 
@@ -229,7 +238,8 @@ export default function MeetCancelledReceipt() {
               </Text>
             </View>
           </View>
-           */}
+          </View>
+          )}
           <View>
             <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
               취소 사유
@@ -249,7 +259,11 @@ export default function MeetCancelledReceipt() {
 
         <View style={styles.warningBox}>
           <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
-            신청취소 되었습니다
+            {isRejected
+              ? '신청이 반려되었습니다'
+              : isExpired
+                ? '신청이 만료되었습니다'
+                : '신청취소 되었습니다'}
           </Text>
         </View>
         </>

@@ -28,10 +28,6 @@ import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
-import {
-  GUESTHOUSE_MAP_BOUNDS,
-  getGuesthouseMapBoundsByRegionIds,
-} from '@constants/guesthouseMapRegions';
 import {trimJejuPrefix} from '@utils/formatAddress';
 
 const CONTENT_CATEGORY_MAP = {
@@ -151,7 +147,7 @@ const GuesthouseSearch = () => {
   const [filterOptions, setFilterOptions] = useState(() =>
     normalizeFilterOptions(route.params?.filterOptions, route.params?.categoryTags),
   );
-  const [filterResultCount, setFilterResultCount] = useState(null);
+  const [filterResultCount] = useState(null);
 
   const resetSearchState = useCallback(() => {
     setSearchTerm('');
@@ -390,21 +386,16 @@ const GuesthouseSearch = () => {
 
   const fetchFilterResultCount = useCallback(async filters => {
     const {checkIn, checkOut} = getSearchDates();
-    const bounds = GUESTHOUSE_MAP_BOUNDS.ALL;
     const params = {
       checkIn,
       checkOut,
       guestCount: adultCount + childCount,
-      swLat: bounds.swLat,
-      swLng: bounds.swLng,
-      neLat: bounds.neLat,
-      neLng: bounds.neLng,
+      region: filters.region ?? 'ALL',
       ...getGuesthouseFilterApiParams(filters),
     };
 
     const {data} = await userGuesthouseApi.getGuesthouseFilterCount(params);
     const count = Number(data?.count ?? 0);
-    setFilterResultCount(count);
     return count;
   }, [adultCount, childCount, getSearchDates]);
 
@@ -448,7 +439,10 @@ const GuesthouseSearch = () => {
               onPress={() => {
                 saveRecentSearch(keyword);
                 navigation.navigate('GuesthouseList', getGuesthouseListParams({
-                  regionBounds: getGuesthouseMapBoundsByRegionIds([1, 2, 3, 4]),
+                  keyword,
+                  keywordId: id,
+                  searchText: keyword,
+                  regionBounds: null,
                 }));
               }}>
             <View style={styles.resultIconBox}>

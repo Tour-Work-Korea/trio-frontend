@@ -1,10 +1,9 @@
 import React, {useCallback, useState} from 'react';
-import {Platform, ScrollView, Text, TouchableOpacity, View} from 'react-native';
+import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import AlertModal from '@components/modals/AlertModal';
-import CouponDownloadAppPromptModal from '@components/modals/CouponDownloadAppPromptModal';
 import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import {FONTS} from '@constants/fonts';
@@ -39,8 +38,6 @@ const MyCouponReceive = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [issuingCouponId, setIssuingCouponId] = useState(null);
-  const [isAppInstallPromptVisible, setIsAppInstallPromptVisible] =
-    useState(false);
   const [alertState, setAlertState] = useState({
     visible: false,
     message: '',
@@ -95,11 +92,6 @@ const MyCouponReceive = () => {
   );
 
   const handleIssueCoupon = async coupon => {
-    if (Platform.OS === 'web') {
-      setIsAppInstallPromptVisible(true);
-      return;
-    }
-
     const couponId = getCouponId(coupon);
 
     if (!couponId || issuingCouponId) {
@@ -232,10 +224,6 @@ const MyCouponReceive = () => {
         buttonText="확인"
         onPress={closeAlert}
         onRequestClose={closeAlert}
-      />
-      <CouponDownloadAppPromptModal
-        visible={isAppInstallPromptVisible}
-        onClose={() => setIsAppInstallPromptVisible(false)}
       />
     </View>
   );
