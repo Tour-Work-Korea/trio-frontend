@@ -14,7 +14,6 @@ import XBtn from '@assets/images/x_gray.svg';
 import LogoOrange from '@assets/images/logo_orange.svg';
 import {
   APP_STORE_URLS,
-  getStoreUrlForWebDevice,
   getWebDeviceType,
 } from '@utils/webOpenApp';
 
@@ -34,27 +33,30 @@ const AppInstallPromptModal = ({
   buttonText,
   onButtonPress,
   showStoreQrOnDesktop = true,
+  showStoreQrInitially = false,
+  storeUrls = APP_STORE_URLS,
 }) => {
   const [qrVisible, setQrVisible] = useState(false);
   const deviceType = getWebDeviceType();
   const isMobileWeb = deviceType === 'ios' || deviceType === 'android';
   const hasImage = ImageComponent || imageSource || imageUri;
   const isDesktopWeb = deviceType === 'desktop';
-  const shouldShowStoreQr = showStoreQrOnDesktop && isDesktopWeb && qrVisible;
+  const shouldShowStoreQr =
+    showStoreQrOnDesktop && isDesktopWeb && (showStoreQrInitially || qrVisible);
   const storeQrItems = useMemo(
     () => [
       {
         label: 'App Store',
-        url: APP_STORE_URLS.ios,
-        qrUri: getQrImageUri(APP_STORE_URLS.ios),
+        url: storeUrls.ios,
+        qrUri: getQrImageUri(storeUrls.ios),
       },
       {
         label: 'Google Play',
-        url: APP_STORE_URLS.android,
-        qrUri: getQrImageUri(APP_STORE_URLS.android),
+        url: storeUrls.android,
+        qrUri: getQrImageUri(storeUrls.android),
       },
     ],
-    [],
+    [storeUrls],
   );
 
   useEffect(() => {
@@ -69,7 +71,7 @@ const AppInstallPromptModal = ({
       return;
     }
 
-    const storeUrl = getStoreUrlForWebDevice();
+    const storeUrl = storeUrls[deviceType];
 
     if (storeUrl) {
       window.location.assign(storeUrl);
@@ -112,12 +114,21 @@ const AppInstallPromptModal = ({
           <TouchableOpacity
             key={item.label}
             style={styles.qrCard}
-            focusable={false}
+            accessibilityLabel={`${item.label} 다운로드`}
             onPress={() =>
               window.open(item.url, '_blank', 'noopener,noreferrer')
             }>
-            <Image source={{uri: item.qrUri}} style={styles.qrImage} />
-            <Text style={[FONTS.fs_12_medium, styles.qrLabel]}>
+            <Image
+              source={{uri: item.qrUri}}
+              accessibilityLabel={`${item.label} QR 코드`}
+              style={styles.qrImage}
+            />
+            <Text
+              style={[
+                FONTS.fs_12_medium,
+                styles.qrLabel,
+                showStoreQrInitially && styles.qrButton,
+              ]}>
               {item.label}
             </Text>
           </TouchableOpacity>
@@ -158,12 +169,12 @@ const AppInstallPromptModal = ({
             </Text>
           ) : null}
 
-          {hasImage && !qrVisible ? renderImage() : null}
+          {hasImage && !shouldShowStoreQr ? renderImage() : null}
 
           {renderStoreQr()}
 
           {buttonText &&
-          !qrVisible &&
+          !shouldShowStoreQr &&
           (isMobileWeb || isDesktopWeb || onButtonPress) ? (
             <ButtonScarlet
               title={buttonText}
@@ -248,12 +259,14 @@ const styles = StyleSheet.create({
   qrSection: {
     width: '100%',
     flexDirection: 'row',
+    flexWrap: 'wrap',
     gap: 12,
     marginTop: 22,
   },
   qrCard: {
-    flex: 1,
-    minWidth: 0,
+    flexGrow: 1,
+    flexBasis: 134,
+    minWidth: 134,
     borderWidth: 1,
     borderColor: COLORS.grayscale_200,
     borderRadius: 12,
@@ -272,6 +285,16 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_700,
     lineHeight: 16,
     textAlign: 'center',
+  },
+  qrButton: {
+    ...FONTS.fs_14_semibold,
+    alignSelf: 'stretch',
+    color: COLORS.grayscale_0,
+    backgroundColor: COLORS.primary_orange,
+    paddingVertical: 10,
+    paddingHorizontal: 8,
+    borderRadius: 8,
+    lineHeight: 20,
   },
   button: {
     marginTop: 20,
