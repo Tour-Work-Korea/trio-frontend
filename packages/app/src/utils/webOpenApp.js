@@ -21,7 +21,10 @@ export const getWebDeviceType = () => {
     return 'android';
   }
 
-  if (/iPhone|iPad|iPod/i.test(userAgent)) {
+  const isIPadDesktopMode =
+    /Macintosh/i.test(userAgent) && window.navigator?.maxTouchPoints > 1;
+
+  if (/iPhone|iPad|iPod/i.test(userAgent) || isIPadDesktopMode) {
     return 'ios';
   }
 
@@ -40,6 +43,24 @@ export const getStoreUrlForWebDevice = () => {
   }
 
   return null;
+};
+
+export const getAppStoreUrlsWithUtm = (search = '') => {
+  const urls = {
+    ios: new URL(IOS_STORE_URL),
+    android: new URL(ANDROID_STORE_URL),
+  };
+
+  new URLSearchParams(search).forEach((value, key) => {
+    if (/^utm_/i.test(key)) {
+      Object.values(urls).forEach(url => url.searchParams.append(key, value));
+    }
+  });
+
+  return {
+    ios: urls.ios.toString(),
+    android: urls.android.toString(),
+  };
 };
 
 const escapeHtml = value =>
