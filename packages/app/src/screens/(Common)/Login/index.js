@@ -11,6 +11,9 @@ import {
   FindPassword,
   SocialLogin,
   RegisterAgree,
+  SocialOriginSelect,
+  ForeignRegisterProfile,
+  ForeignSignupComplete,
   AgreeDetail,
   PhoneCertificate,
   EmailCertificate,
@@ -71,6 +74,21 @@ export default function Login() {
         <Stack.Screen name="FindId" component={FindId} />
         <Stack.Screen name="FindPassword" component={FindPassword} />
         <Stack.Screen name="SocialLogin" component={SocialLogin} />
+        <Stack.Screen
+          name="SocialOriginSelect"
+          component={SocialOriginSelect}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ForeignRegisterProfile"
+          component={ForeignRegisterProfile}
+          options={{headerShown: false}}
+        />
+        <Stack.Screen
+          name="ForeignSignupComplete"
+          component={ForeignSignupComplete}
+          options={{headerShown: false}}
+        />
         <Stack.Screen
           name="RegisterAgree"
           component={RegisterAgree}

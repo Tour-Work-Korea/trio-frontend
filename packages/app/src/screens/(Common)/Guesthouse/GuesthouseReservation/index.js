@@ -123,12 +123,18 @@ const GuesthouseReservation = ({ route }) => {
   });
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
+  const userOriginType = useUserStore(
+    state => state.userProfile.userOriginType,
+  );
+  const isForeignUser = userOriginType === 'FOREIGN';
   const [requestMessage, setRequestMessage] = useState('');
   const [expectedCheckInTime, setExpectedCheckInTime] = useState(null);
   const [isExpectedCheckInOpen, setExpectedCheckInOpen] = useState(false);
   const [isActualGuestExpanded, setActualGuestExpanded] = useState(false);
   const [actualGuestName, setActualGuestName] = useState('');
   const [actualGuestPhone, setActualGuestPhone] = useState('');
+  const [emergencyContactName, setEmergencyContactName] = useState('');
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
   const [pointValue, setPointValue] = useState('');
   const [pointBalance, setPointBalance] = useState(0);
   const [coupons, setCoupons] = useState([]);
@@ -458,6 +464,16 @@ const GuesthouseReservation = ({ route }) => {
         return;
       }
 
+      const trimmedEmergencyContactName = emergencyContactName.trim();
+      const trimmedEmergencyContactPhone = emergencyContactPhone.trim();
+      if (
+        isForeignUser &&
+        (!trimmedEmergencyContactName || !trimmedEmergencyContactPhone)
+      ) {
+        Alert.alert('비상 연락처 확인', '비상 연락처 이름과 전화번호를 모두 입력해주세요.');
+        return;
+      }
+
       const body = {
         checkIn,
         checkOut,
@@ -474,6 +490,11 @@ const GuesthouseReservation = ({ route }) => {
       if (body.isActualGuestDifferent) {
         body.actualGuestName = trimmedActualGuestName;
         body.actualGuestPhone = trimmedActualGuestPhone;
+      }
+
+      if (trimmedEmergencyContactName || trimmedEmergencyContactPhone) {
+        body.emergencyContactName = trimmedEmergencyContactName;
+        body.emergencyContactPhone = trimmedEmergencyContactPhone;
       }
 
       const preparedPaymentWindow =
@@ -609,10 +630,47 @@ const GuesthouseReservation = ({ route }) => {
                   <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>이름</Text>
                   <Text style={FONTS.fs_14_medium}>{name}</Text>
               </View>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
-                  <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
-              </View>
+
+              {isForeignUser && (
+                <View style={styles.actualGuestForm}>
+                  <Text style={[FONTS.fs_14_medium, styles.actualGuestGuide]}>
+                    비상 연락처를 입력해주세요 (필수)
+                  </Text>
+                  <View style={styles.actualGuestInputRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.actualGuestLabel]}>이름</Text>
+                    <TextInput
+                      ref={setInputRef('emergencyContactName')}
+                      style={styles.actualGuestInput}
+                      value={emergencyContactName}
+                      onChangeText={setEmergencyContactName}
+                      onFocus={() => focusInput('emergencyContactName')}
+                      placeholder="비상 연락처 이름"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      maxLength={30}
+                    />
+                  </View>
+                  <View style={styles.actualGuestInputRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.actualGuestLabel]}>전화번호</Text>
+                    <TextInput
+                      ref={setInputRef('emergencyContactPhone')}
+                      style={styles.actualGuestInput}
+                      value={emergencyContactPhone}
+                      onChangeText={setEmergencyContactPhone}
+                      onFocus={() => focusInput('emergencyContactPhone')}
+                      placeholder="국가번호 포함 (예: +14155551234)"
+                      placeholderTextColor={COLORS.grayscale_400}
+                      keyboardType="phone-pad"
+                      maxLength={20}
+                    />
+                  </View>
+                </View>
+              )}
+              {!isForeignUser && (
+                <View style={styles.userInfo}>
+                    <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
+                    <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
+                </View>
+              )}
 
               <TouchableOpacity
                 style={styles.actualGuestToggle}

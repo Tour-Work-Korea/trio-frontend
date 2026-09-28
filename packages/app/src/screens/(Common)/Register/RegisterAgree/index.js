@@ -20,6 +20,7 @@ const RegisterAgree = ({route}) => {
     socialProfile = {},
     phoneNum = '',
     socialPhoneVerified = false,
+    isForeign = false,
   } = route.params;
   const [agreements, setAgreements] = useState(userRegisterAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
@@ -69,6 +70,26 @@ const RegisterAgree = ({route}) => {
   const handleMoveNext = () => {
     const agreementPayload = getAgreementPayload();
     if (isSocial) {
+      if (isForeign) {
+        navigation.navigate('UserRegisterProfile', {
+          prevData: {
+            userRole: user,
+            agreements: agreementPayload,
+            email: socialProfile.email || '',
+            isSocial: true,
+            isForeign: true,
+            socialSignupToken,
+            provider,
+            name: socialProfile.name || '',
+            birthday: socialProfile.birthday || '',
+            gender: socialProfile.gender || '',
+            nickname: socialProfile.nickname || '',
+            nationalityCountryCode: '',
+            preferredLanguage: '',
+          },
+        });
+        return;
+      }
       if (socialPhoneVerified) {
         navigation.navigate('UserRegisterProfile', {
           prevData: {

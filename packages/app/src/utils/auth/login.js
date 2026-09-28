@@ -22,6 +22,7 @@ import {
 const REFRESH_KEY = 'refresh-token';
 
 const shouldContinueSocialSignUp = data =>
+  data?.status === 'NEW_USER_SIGNUP_REQUIRED' ||
   data?.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
   (data?.status == null && data?.isNewUser);
 
@@ -241,6 +242,15 @@ export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
     gender: data.gender ?? 'F',
     birthDate: data.birthDate ?? null,
     age: calculateAge(data.birthDate),
+    userOriginType: data.userOriginType ?? null,
+    nationalityCountryCode: data.nationalityCountryCode ?? null,
+    preferredLanguage: data.preferredLanguage ?? null,
+    emailVerified: data.emailVerified ?? false,
+    phoneVerified: data.phoneVerified ?? false,
+    passportVerified: data.passportVerified ?? false,
+    identityVerificationType: data.identityVerificationType ?? null,
+    globalUserStatus: data.globalUserStatus ?? null,
+    paymentProfileStatus: data.paymentProfileStatus ?? null,
   });
 
   await updateProfile(role);
@@ -386,6 +396,15 @@ const updateProfile = async role => {
         instagramId,
         gender,
         birthDate,
+        userOriginType,
+        nationalityCountryCode,
+        preferredLanguage,
+        emailVerified,
+        phoneVerified,
+        passportVerified,
+        identityVerificationType,
+        globalUserStatus,
+        paymentProfileStatus,
       } = res.data;
 
       setUserProfile({
@@ -401,6 +420,15 @@ const updateProfile = async role => {
         gender: gender ?? 'F',
         birthDate: birthDate ?? null,
         age: calculateAge(birthDate),
+        userOriginType: userOriginType ?? null,
+        nationalityCountryCode: nationalityCountryCode ?? null,
+        preferredLanguage: preferredLanguage ?? null,
+        emailVerified: emailVerified ?? false,
+        phoneVerified: phoneVerified ?? false,
+        passportVerified: passportVerified ?? false,
+        identityVerificationType: identityVerificationType ?? null,
+        globalUserStatus: globalUserStatus ?? null,
+        paymentProfileStatus: paymentProfileStatus ?? null,
       });
       log.info('👤 USER profile loaded');
     }

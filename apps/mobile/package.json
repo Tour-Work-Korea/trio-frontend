@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "android": "react-native run-android",
-    "ios": "react-native run-ios --extra-params \"-jobs 1\"",
+    "ios": "node scripts/runIosSimulator.js",
     "start": "CI=true PATH=/opt/homebrew/bin:/usr/local/bin:$PATH react-native start --config metro.config.js",
     "test": "jest",
     "gen:screens": "node scripts/generateScreens.js"

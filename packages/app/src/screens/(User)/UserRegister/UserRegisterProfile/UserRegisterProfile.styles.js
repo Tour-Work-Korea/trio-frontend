@@ -31,6 +31,11 @@ export default StyleSheet.create({
     ...FONTS.fs_20_bold,
     color: COLORS.grayscale_900,
   },
+  titleDescription: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+    marginTop: 8,
+  },
   inputGroup: {
     marginTop: 40,
     gap: 20,
@@ -117,6 +122,23 @@ export default StyleSheet.create({
   genderButtonTextActive: {
     color: COLORS.grayscale_0,
   },
+  languageGroup: {flexDirection: 'row', flexWrap: 'wrap', gap: 8},
+  languageButton: {
+    minWidth: '47%',
+    flexGrow: 1,
+    height: 44,
+    borderRadius: 20,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  languageButtonActive: {
+    borderColor: COLORS.primary_orange,
+    backgroundColor: COLORS.primary_orange,
+  },
+  languageButtonText: {...FONTS.fs_14_medium, color: COLORS.grayscale_500},
+  languageButtonTextActive: {color: COLORS.grayscale_0},
   resendText: {...FONTS.fs_12_medium, color: COLORS.grayscale_400},
   resendContainer: {
     textAlign: 'right',

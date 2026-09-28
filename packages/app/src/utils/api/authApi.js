@@ -58,6 +58,11 @@ const authApi = {
       withAuth: false,
     }),
 
+  completeForeignSocialSignUp: body =>
+    api.post('/auth/user/signup/foreign/social/complete', body, {
+      withAuth: false,
+    }),
+
   // 소셜 회원가입/연동 휴대폰 인증번호 발송
   sendSocialSignUpSms: ({socialSignupToken, phoneNum}) =>
     api.post(

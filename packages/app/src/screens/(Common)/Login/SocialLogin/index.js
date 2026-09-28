@@ -283,6 +283,7 @@ const SocialLogin = () => {
       }
 
       const shouldContinueSocialSignUp =
+        data.status === 'NEW_USER_SIGNUP_REQUIRED' ||
         data.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
         (data.status == null && data.isNewUser);
 
@@ -300,14 +301,17 @@ const SocialLogin = () => {
           providerProfile,
         );
 
-        navigation.replace('PhoneCertificate', {
+        navigation.replace(
+          provider === 'GOOGLE' ? 'SocialOriginSelect' : 'PhoneCertificate',
+          {
           user: 'USER',
           agreements: [],
           isSocial: true,
           provider,
           socialSignupToken: data.socialSignupToken,
           socialProfile,
-        });
+          },
+        );
         return;
       }
 
