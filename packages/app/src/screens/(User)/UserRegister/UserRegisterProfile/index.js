@@ -39,6 +39,8 @@ const normalizeRegisterProfileData = data => ({
   birthday: data?.birthday || '',
   gender: data?.gender || '',
   agreements: data?.agreements || [],
+  nationalityCountryCode: data?.nationalityCountryCode || '',
+  preferredLanguage: data?.preferredLanguage || '',
 });
 
 const UserRegisterProfile = () => {
@@ -51,11 +53,10 @@ const UserRegisterProfile = () => {
   const navigation = useNavigation();
   const [formData, setFormData] = useState(normalizedPrevData);
   const isSocialSignUp = !!formData?.isSocial;
-  const [formValid, setFormValid] = useState({
-    nickname: [],
-    password: [],
-    passwordConfirm: [],
-  });
+  const isForeignSignUp = isSocialSignUp && !!formData?.isForeign;
+  const [formValid, setFormValid] = useState(() =>
+    validateRegisterProfile(normalizedPrevData),
+  );
   const [isNicknameChecked, setIsNicknameChecked] = useState(false);
   const [isNicknameDuplicated, setISNicknameDuplicated] = useState(true);
   const [nicknameCheckMessage, setNicknameCheckMessage] = useState('');
@@ -95,11 +96,7 @@ const UserRegisterProfile = () => {
   useFocusEffect(
     useCallback(() => {
       setFormData(normalizedPrevData);
-      setFormValid({
-        nickname: [],
-        password: [],
-        passwordConfirm: [],
-      });
+      setFormValid(validateRegisterProfile(normalizedPrevData));
       setIsNicknameChecked(false);
       setISNicknameDuplicated(true);
       setNicknameCheckMessage('');
@@ -205,6 +202,17 @@ const UserRegisterProfile = () => {
 
     const confirmValid = formValid.passwordConfirm?.isMatched;
 
+    if (isForeignSignUp) {
+      const nationalityValid = /^[A-Z]{2}$/.test(
+        formData.nationalityCountryCode || '',
+      );
+      const languageValid = ['KO', 'EN', 'JA', 'ZH'].includes(
+        formData.preferredLanguage,
+      );
+      return nameValid && birthdayValid && genderValid && nicknameValid &&
+        nationalityValid && languageValid;
+    }
+
     if (isSocialSignUp) {
       return nameValid && birthdayValid && genderValid;
     }
@@ -226,14 +234,23 @@ const UserRegisterProfile = () => {
           provider: formData.provider,
           socialSignupToken: formData.socialSignupToken,
           userRole: formData.userRole,
-          phoneNum: formData.phoneNum,
           name: formData.name,
           birthday: formData.birthday,
           gender: formData.gender,
           agreements: formData.agreements,
         };
 
-        const res = await authApi.completeSocialSignUp(payload);
+        if (isForeignSignUp) {
+          payload.nickname = formData.nickname;
+          payload.nationalityCountryCode = formData.nationalityCountryCode;
+          payload.preferredLanguage = formData.preferredLanguage;
+        } else {
+          payload.phoneNum = formData.phoneNum;
+        }
+
+        const res = isForeignSignUp
+          ? await authApi.completeForeignSocialSignUp(payload)
+          : await authApi.completeSocialSignUp(payload);
         const {accessToken, refreshToken} = res.data || {};
 
         if (!accessToken || !refreshToken) {
@@ -353,16 +370,25 @@ const UserRegisterProfile = () => {
               <Logo width={60} height={29} />
               <View>
                 <Text style={[styles.titleText]}>
-                  게딱지에서 활동하기 위한,
+                  {isForeignSignUp ? 'Complete Profile' : '게딱지에서 활동하기 위한,'}
                 </Text>
-                <Text style={[styles.titleText]}>필수정보를 알려주세요</Text>
+                <Text style={[styles.titleText]}>
+                  {isForeignSignUp ? '필수 정보를 입력해주세요' : '필수정보를 알려주세요'}
+                </Text>
+                {isForeignSignUp && (
+                  <Text style={styles.titleDescription}>
+                    Please fill in your details to complete registration.
+                  </Text>
+                )}
               </View>
             </View>
             <View style={styles.inputGroup}>
               <View
                 style={styles.inputContainer}
                 onLayout={nameField.onLayout}>
-                <Text style={styles.inputLabel}>이름</Text>
+                <Text style={styles.inputLabel}>
+                  {isForeignSignUp ? '이름 / Full name' : '이름'}
+                </Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
@@ -379,7 +405,9 @@ const UserRegisterProfile = () => {
               <View
                 style={styles.inputContainer}
                 onLayout={birthdayField.onLayout}>
-                <Text style={styles.inputLabel}>생년월일</Text>
+                <Text style={styles.inputLabel}>
+                  {isForeignSignUp ? '생년월일 / Date of birth' : '생년월일'}
+                </Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
@@ -394,11 +422,13 @@ const UserRegisterProfile = () => {
                 </View>
               </View>
 
-              {!isSocialSignUp && (
+              {(!isSocialSignUp || isForeignSignUp) && (
                 <View
                   style={styles.inputContainer}
                   onLayout={nicknameField.onLayout}>
-                  <Text style={styles.inputLabel}>닉네임</Text>
+                  <Text style={styles.inputLabel}>
+                    {isForeignSignUp ? '닉네임 / Nickname' : '닉네임'}
+                  </Text>
                   <View style={[styles.inputBox, styles.inputRelative]}>
                     <TextInput
                       style={styles.textInput}
@@ -474,6 +504,58 @@ const UserRegisterProfile = () => {
                     </View>
                   )}
                 </View>
+              )}
+              {isForeignSignUp && (
+                <>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>국적 / Nationality</Text>
+                    <View style={styles.inputBox}>
+                      <TextInput
+                        style={styles.textInput}
+                        placeholder="국가 코드 2자리 (예: US, JP)"
+                        placeholderTextColor={COLORS.grayscale_400}
+                        value={formData.nationalityCountryCode}
+                        onChangeText={text =>
+                          updateField(
+                            'nationalityCountryCode',
+                            text.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2),
+                          )
+                        }
+                        autoCapitalize="characters"
+                        maxLength={2}
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.inputContainer}>
+                    <Text style={styles.inputLabel}>선호 언어 / Preferred language</Text>
+                    <View style={styles.languageGroup}>
+                      {[
+                        ['KO', '한국어'],
+                        ['EN', 'English'],
+                        ['JA', '日本語'],
+                        ['ZH', '中文'],
+                      ].map(([value, label]) => (
+                        <TouchableOpacity
+                          key={value}
+                          style={[
+                            styles.languageButton,
+                            formData.preferredLanguage === value &&
+                              styles.languageButtonActive,
+                          ]}
+                          onPress={() => updateField('preferredLanguage', value)}>
+                          <Text
+                            style={[
+                              styles.languageButtonText,
+                              formData.preferredLanguage === value &&
+                                styles.languageButtonTextActive,
+                            ]}>
+                            {label}
+                          </Text>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                  </View>
+                </>
               )}
               {!isSocialSignUp && (
                 <>
@@ -583,7 +665,9 @@ const UserRegisterProfile = () => {
                 </>
               )}
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>성별</Text>
+                <Text style={styles.inputLabel}>
+                  {isForeignSignUp ? '성별 / Gender' : '성별'}
+                </Text>
                 <View style={styles.genderGroup}>
                   <TouchableOpacity
                     activeOpacity={0.8}

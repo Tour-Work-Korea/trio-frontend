@@ -31,6 +31,9 @@ import {
   SocialLogin,
   RegisterIntro,
   RegisterAgree,
+  SocialOriginSelect,
+  ForeignRegisterProfile,
+  ForeignSignupComplete,
   PhoneCertificate,
   EmailCertificate,
   UserRegisterProfile,
@@ -166,6 +169,15 @@ const RootNavigation = () => {
 
         <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
         <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
+        <Stack.Screen name="SocialOriginSelect" component={SocialOriginSelect} />
+        <Stack.Screen
+          name="ForeignRegisterProfile"
+          component={ForeignRegisterProfile}
+        />
+        <Stack.Screen
+          name="ForeignSignupComplete"
+          component={ForeignSignupComplete}
+        />
         <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
         <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
         <Stack.Screen
