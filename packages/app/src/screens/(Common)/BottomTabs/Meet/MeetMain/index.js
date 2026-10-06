@@ -28,6 +28,9 @@ import PeopleIcon from '@assets/images/people_gray.svg';
 import MapPinIcon from '@assets/images/map_pin_fill_gray.svg';
 
 import {meetScales, stayTypes} from '@constants/meetOptions';
+import RegionChips from '@screens/(Common)/BottomTabs/Guesthouse/regions/RegionChips';
+import {useMeetRegionStore} from '../regions/store';
+import {withPartyRegion} from '../regions/params';
 
 const getPartyDisplayKey = party => {
   if (party?.applicationType === 'ADVANCE') {
@@ -100,6 +103,8 @@ const getPartyPrice = party => {
 const MeetMain = () => {
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
+  const region = useMeetRegionStore(state => state.region);
+  const setRegion = useMeetRegionStore(state => state.setRegion);
 
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [filterInitialScrollTarget, setFilterInitialScrollTarget] =
@@ -133,8 +138,8 @@ const MeetMain = () => {
   const [loading, setLoading] = useState(false);
 
   const requestKey = useMemo(
-    () => JSON.stringify({sortOption, scaleId, stayId, filters}),
-    [sortOption, scaleId, stayId, filters],
+    () => JSON.stringify({sortOption, scaleId, stayId, filters, region}),
+    [sortOption, scaleId, stayId, filters, region],
   );
 
   const fetchRecent = useCallback(async () => {
@@ -146,7 +151,7 @@ const MeetMain = () => {
       inFlightKeyRef.current = requestKey;
       setLoading(true);
 
-      const params = {sortBy: sortOption};
+      const params = withPartyRegion({sortBy: sortOption}, region);
       if (scaleId) {
         params.isBigParty = isBigById[scaleId];
       }
@@ -174,16 +179,20 @@ const MeetMain = () => {
 
       const {data} = await userMeetApi.getRecentParties(params);
       const list = Array.isArray(data) ? data : [];
-      setMeets(list);
-      prefetchImageUrls(
-        list.map(item => item.partyImageUrl),
-        {limit: 8},
-      );
+      if (inFlightKeyRef.current === requestKey) {
+        setMeets(list);
+        prefetchImageUrls(
+          list.map(item => item.partyImageUrl),
+          {limit: 8},
+        );
+      }
     } catch (e) {
       console.warn('getRecentParties error', e?.response?.data || e?.message);
     } finally {
-      inFlightKeyRef.current = null;
-      setLoading(false);
+      if (inFlightKeyRef.current === requestKey) {
+        inFlightKeyRef.current = null;
+        setLoading(false);
+      }
     }
   }, [
     requestKey,
@@ -191,6 +200,7 @@ const MeetMain = () => {
     scaleId,
     stayId,
     filters,
+    region,
     isBigById,
     isGuestById,
   ]);
@@ -497,6 +507,10 @@ const MeetMain = () => {
         </TouchableOpacity>
       </View>
 
+      <View style={styles.regionBar}>
+        <RegionChips value={region} onChange={setRegion} />
+      </View>
+
       <View style={styles.body}>
         <FlatList
           data={groupedGuesthouses}
@@ -594,6 +608,7 @@ const MeetMain = () => {
         visible={filterModalVisible}
         onClose={() => setFilterModalVisible(false)}
         initialFilters={filters}
+        selectedRegion={region}
         initialScrollTarget={filterInitialScrollTarget}
         onApply={next => {
           setFilters(next);

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, {useState} from 'react';
 import { View, Text, TouchableOpacity } from 'react-native';
 
 import Header from '@components/Header';
@@ -7,6 +7,13 @@ import { FONTS } from '@constants/fonts';
 
 import UserGuesthouseReviewWrite from './UserGuesthouseReviewWrite';
 import UserGuesthouseReviewList from './UserGuesthouseReviewList';
+import UserPartyReviewWrite from './UserPartyReviewWrite';
+import UserPartyReviewList from './UserPartyReviewList';
+
+const REVIEW_TYPES = [
+  {key: 'guesthouse', label: '게하'},
+  {key: 'party', label: '콘텐츠'},
+];
 
 const TABS = [
   { key: 'write', label: '리뷰쓰기' },
@@ -14,19 +21,50 @@ const TABS = [
 ];
 
 const UserGuesthouseReview = () => {
+  const [reviewType, setReviewType] = useState('guesthouse');
   const [activeTab, setActiveTab] = useState('write');
 
   const renderTabContent = () => {
     if (activeTab === 'write') {
-      return <UserGuesthouseReviewWrite />;
+      return reviewType === 'guesthouse' ? (
+        <UserGuesthouseReviewWrite />
+      ) : (
+        <UserPartyReviewWrite />
+      );
     } else if (activeTab === 'written') {
-      return <UserGuesthouseReviewList />;
+      return reviewType === 'guesthouse' ? (
+        <UserGuesthouseReviewList />
+      ) : (
+        <UserPartyReviewList />
+      );
     }
   };
 
   return (
     <View style={styles.container}>
-      <Header title="나의 게하 리뷰" />
+      <Header title="내 리뷰" />
+
+      <View style={styles.reviewTypeContainer}>
+        {REVIEW_TYPES.map(type => (
+          <TouchableOpacity
+            key={type.key}
+            activeOpacity={1}
+            style={[
+              styles.reviewTypeButton,
+              reviewType === type.key && styles.activeReviewTypeButton,
+            ]}
+            onPress={() => setReviewType(type.key)}>
+            <Text
+              style={[
+                FONTS.fs_14_medium,
+                styles.reviewTypeText,
+                reviewType === type.key && styles.activeReviewTypeText,
+              ]}>
+              {type.label}
+            </Text>
+          </TouchableOpacity>
+        ))}
+      </View>
 
       {/* 탭 버튼 */}
       <View style={styles.tabContainer}>
@@ -51,9 +89,7 @@ const UserGuesthouseReview = () => {
       </View>
 
       {/* 탭 내용 */}
-      <View style={styles.tabContentContainer}>
-        {renderTabContent()}
-      </View>
+      <View style={styles.tabContentContainer}>{renderTabContent()}</View>
     </View>
   );
 };

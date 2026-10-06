@@ -41,6 +41,7 @@ import {
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import ImageModal from '@components/modals/ImageModal';
+import PartyReview from './PartyReview';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
@@ -61,6 +62,7 @@ import ChevroRight from '@assets/images/chevron_right_blue.svg';
 const TABS = [
   {key: 'intro', label: '콘텐츠 소개'},
   {key: 'detail', label: '상세 안내'},
+  {key: 'review', label: '리뷰'},
   {key: 'way', label: '오시는 길'},
 ];
 
@@ -210,7 +212,7 @@ const PartyEventImage = ({uri, width}) => {
 const MeetDetail = () => {
   const navigation = useNavigation();
   const route = useRoute();
-  const {partyId} = route.params ?? {};
+  const {partyId, templateId: routeTemplateId} = route.params ?? {};
 
   const navigateWebHome = useCallback(() => {
     replaceWebPath(WEB_ROUTES.HOME);
@@ -271,9 +273,12 @@ const MeetDetail = () => {
   const [renderedTabs, setRenderedTabs] = useState(
     () => new Set([TABS[0].key]),
   );
+  const tabMenuRef = useRef(null);
+  const [tabMenuWidth, setTabMenuWidth] = useState(0);
   const {
     pagerRef,
     activeKey,
+    activeIndex,
     isActive,
     onTabPress,
     pageWidth,
@@ -287,6 +292,36 @@ const MeetDetail = () => {
     tabs: TABS,
     initialKey: 'intro',
   });
+
+  const tabButtonWidth = tabMenuWidth > 0 ? tabMenuWidth / 3.2 : 112;
+  const tabButtonStyle = useMemo(
+    () => [styles.tabButton, {width: tabButtonWidth}],
+    [tabButtonWidth],
+  );
+  const handleTabMenuLayout = useCallback(event => {
+    const width = Number(event?.nativeEvent?.layout?.width ?? 0);
+    if (width > 0) {
+      setTabMenuWidth(previousWidth =>
+        previousWidth === width ? previousWidth : width,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tabMenuWidth <= 0) {
+      return;
+    }
+
+    const contentWidth = tabButtonWidth * TABS.length;
+    const centeredOffset =
+      activeIndex * tabButtonWidth - (tabMenuWidth - tabButtonWidth) / 2;
+    const offset = Math.max(
+      0,
+      Math.min(contentWidth - tabMenuWidth, centeredOffset),
+    );
+
+    tabMenuRef.current?.scrollTo?.({x: offset, y: 0, animated: true});
+  }, [activeIndex, tabButtonWidth, tabMenuWidth]);
 
   useEffect(() => {
     setRenderedTabs(prev => {
@@ -382,7 +417,14 @@ const MeetDetail = () => {
     partyImages,
     profileSummary,
     priceOptions,
+    reviewSummary,
   } = detail ?? {};
+  const reviewTemplateId =
+    reviewSummary?.templateId ??
+    detail?.templateId ??
+    detail?.partyTemplateId ??
+    detail?.contentId ??
+    routeTemplateId;
 
   const isDateEvent = scheduleType === 'DATE_EVENT';
   const eventStartDateTime =
@@ -1046,6 +1088,18 @@ const MeetDetail = () => {
       );
     }
 
+    if (tabKey === 'review') {
+      return (
+        <View style={styles.tabContent}>
+          <PartyReview
+            templateId={reviewTemplateId}
+            averageRating={reviewSummary?.averageRating}
+            totalCount={reviewSummary?.reviewCount}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.tabContent}>
         {isEmptyWayInfo ? (
@@ -1177,7 +1231,11 @@ const MeetDetail = () => {
 
   return (
     <View style={styles.rootContainer}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        directionalLockEnabled>
         {/* 헤더 */}
         <View style={styles.header}>
           {hasImages && Platform.OS === 'web' ? (
@@ -1376,16 +1434,21 @@ const MeetDetail = () => {
           )}
 
           {/* 하단 탭 */}
-          <View
+          <ScrollView
+            ref={tabMenuRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onLayout={handleTabMenuLayout}
             style={[
               styles.tabContainer,
               showPartyDateSelector && styles.tabContainerAdvance,
-            ]}>
+            ]}
+            contentContainerStyle={styles.tabContainerContent}>
             {TABS.map((tab, index) => (
               <Pressable
                 key={tab.key}
                 style={[
-                  styles.tabButton,
+                  tabButtonStyle,
                   isActive(tab.key) && styles.tabButtonActive,
                 ]}
                 onPress={() => onTabPress(index)}>
@@ -1400,7 +1463,7 @@ const MeetDetail = () => {
                 </Text>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
           <ScrollView
             ref={pagerRef}
             horizontal
@@ -1408,6 +1471,7 @@ const MeetDetail = () => {
             directionalLockEnabled
             pagingEnabled
             nestedScrollEnabled
+            decelerationRate="fast"
             bounces={false}
             showsHorizontalScrollIndicator={false}
             onLayout={onPagerLayout}

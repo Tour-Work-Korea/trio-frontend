@@ -10,6 +10,35 @@ const styles = StyleSheet.create({
   listContent: {
     paddingBottom: 24,
   },
+  regionSection: {
+    paddingTop: 2,
+    paddingBottom: 18,
+    backgroundColor: COLORS.grayscale_0,
+  },
+  recruitCount: {
+    color: COLORS.grayscale_500,
+    paddingHorizontal: 20,
+    marginTop: 14,
+  },
+  emptyListContent: {
+    flexGrow: 1,
+  },
+  emptyContainer: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: 24,
+    paddingBottom: 80,
+  },
+  emptyTitle: {
+    color: COLORS.grayscale_800,
+    textAlign: 'center',
+    marginBottom: 8,
+  },
+  emptyDescription: {
+    color: COLORS.grayscale_500,
+    textAlign: 'center',
+  },
   loadingContainer: {
     flex: 1,
     backgroundColor: COLORS.grayscale_0,
@@ -18,9 +47,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20,
     marginBottom: 28,
   },
-  recruitItemClosed: {
-    
-  },
+  recruitItemClosed: {},
   headerRow: {
     flexDirection: 'row',
     alignItems: 'center',

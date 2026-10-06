@@ -19,6 +19,8 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import XBtn from '@assets/images/x_gray.svg';
 import CheckedCircleIcon from '@assets/images/radio_button_enabled.svg';
 import UncheckedCircleIcon from '@assets/images/radio_button_disabled.svg';
+import RegionChips from '@screens/(Common)/BottomTabs/Guesthouse/regions/RegionChips';
+import {useMeetRegionStore} from '@screens/(Common)/BottomTabs/Meet/regions/store';
 
 const {height} = Dimensions.get('window');
 
@@ -91,7 +93,9 @@ const MeetFilterModal = ({
   onApply,
   initialFilters,
   initialScrollTarget,
+  selectedRegion,
 }) => {
+  const setRegion = useMeetRegionStore(state => state.setRegion);
   const {
     scrollRef,
     contentContainerStyle: keyboardAwareContentStyle,
@@ -124,6 +128,7 @@ const MeetFilterModal = ({
   );
 
   const [filters, setFilters] = useState(initialState);
+  const [nextRegion, setNextRegion] = useState(selectedRegion ?? 'ALL');
   const isCustomPrice = filters.priceOption === 'custom';
 
   // const isDirty = useMemo(
@@ -181,8 +186,9 @@ const MeetFilterModal = ({
   useEffect(() => {
     if (visible) {
       setFilters(initialState);
+      setNextRegion(selectedRegion ?? 'ALL');
     }
-  }, [visible, initialState]);
+  }, [visible, initialState, selectedRegion]);
 
   useEffect(() => {
     if (!visible || !initialScrollTarget) {
@@ -260,6 +266,19 @@ const MeetFilterModal = ({
             ]}
             keyboardDismissMode="on-drag"
             keyboardShouldPersistTaps="handled">
+            <View style={styles.section} {...registerSection('region')}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                지역
+              </Text>
+              <RegionChips
+                value={nextRegion}
+                onChange={setNextRegion}
+                inset={false}
+              />
+            </View>
+
+            <View style={styles.divider} />
+
             <View style={styles.section} {...registerSection('category')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
                 카테고리
@@ -382,6 +401,7 @@ const MeetFilterModal = ({
               <ButtonScarlet
                 title="콘텐츠 보기"
                 onPress={() => {
+                  setRegion(nextRegion);
                   onApply({
                     ...buildAppliedFilters(filters),
                     hasApplied: true,

@@ -8,11 +8,22 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import userMyApi from '@utils/api/userMyApi';
 
-const ReviewConfirmModal = ({ visible, onCancel, guesthouseId, data, onSuccess }) => {
+const ReviewConfirmModal = ({
+  visible,
+  onCancel,
+  guesthouseId,
+  data,
+  onConfirm,
+  onSuccess,
+}) => {
 
   const handleConfirm = async () => {
     try {
-      await userMyApi.createReview(guesthouseId, data);
+      if (onConfirm) {
+        await onConfirm();
+      } else {
+        await userMyApi.createReview(guesthouseId, data);
+      }
       onSuccess?.(); // 성공 시 부모에서 후처리
     } catch (error) {
       console.log('리뷰 등록 실패:', error);

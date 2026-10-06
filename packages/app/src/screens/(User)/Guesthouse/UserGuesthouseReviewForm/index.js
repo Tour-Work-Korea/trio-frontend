@@ -14,6 +14,7 @@ import { uploadMultiImage } from '@utils/imageUploadHandler';
 import ReviewConfirmModal from '@components/modals/UserMy/Guesthouse/ReviewConfirmModal';
 import ReviewSuccessModal from '@components/modals/UserMy/Guesthouse/ReviewSuccessModal';
 import AppImage from '@components/AppImage';
+import userMyApi from '@utils/api/userMyApi';
 
 import StarFilled from '@assets/images/star_filled.svg';
 import StarHalf from '@assets/images/star_half.svg';
@@ -35,14 +36,19 @@ const UserGuesthouseReviewForm = () => {
   const navigation = useNavigation();
 
   const {
+    reviewType,
     guesthouseId,
     reservationId,
     guesthouseName,
     roomName,
     guesthouseAddress,
     checkInFormatted,
-    checkOutFormatted
+    checkOutFormatted,
+    partyId,
+    partyReservationId,
+    partyTitle,
   } = route.params;
+  const isPartyReview = reviewType === 'party';
   const [images, setImages] = useState([]);
   const [reviewText, setReviewText] = useState('');
   const [modalVisible, setModalVisible] = useState(false); // 확인 모달
@@ -140,13 +146,21 @@ const UserGuesthouseReviewForm = () => {
         keyboardDismissMode="on-drag"
         nestedScrollEnabled
       >
-        {/* 숙소 정보 */}
+        {/* 숙소 또는 콘텐츠 정보 */}
         <View style={styles.infoBox}>
-          <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{guesthouseName}</Text>
-          <Text style={[FONTS.fs_14_medium, styles.roomText]}>{roomName}</Text>
-          <Text style={[FONTS.fs_12_medium, styles.adressText]}>
-            {guesthouseAddress}
+          <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
+            {isPartyReview ? partyTitle : guesthouseName}
           </Text>
+          {!isPartyReview && (
+            <>
+              <Text style={[FONTS.fs_14_medium, styles.roomText]}>
+                {roomName}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.adressText]}>
+                {guesthouseAddress}
+              </Text>
+            </>
+          )}
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
               <Text style={[FONTS.fs_14_semibold, styles.dateText]}>{checkInFormatted.date}</Text>
@@ -160,18 +174,26 @@ const UserGuesthouseReviewForm = () => {
           </View>
         </View>
 
-        {/* 포인트 안내 */}
-        <View style={styles.pointNoticeRow}>
-          <ReviewPointIcon width={28} height={28}/>
-          <View style={styles.pointNoticeTextRow}>
-            <Text style={[FONTS.fs_14_medium, styles.pointNoticeText1]}>사진 리뷰 1,000P · 글 리뷰 300P 적립!</Text>
-            <Text style={[FONTS.fs_12_medium, styles.pointNoticeText2]}>생생한 후기로 포인트를 받아보세요.</Text>
+        {/* 콘텐츠 리뷰 포인트 정책 확정 전까지 게하 리뷰에만 노출 */}
+        {!isPartyReview && (
+          <View style={styles.pointNoticeRow}>
+            <ReviewPointIcon width={28} height={28}/>
+            <View style={styles.pointNoticeTextRow}>
+              <Text style={[FONTS.fs_14_medium, styles.pointNoticeText1]}>
+                사진 리뷰 1,000P · 글 리뷰 300P 적립!
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.pointNoticeText2]}>
+                생생한 후기로 포인트를 받아보세요.
+              </Text>
+            </View>
           </View>
-        </View>
+        )}
 
         {/* 별점 */}
         <View style={styles.reviewRow}>
-          <Text style={[FONTS.fs_14_medium, styles.rowTitle]}>게스트하우스에 대한 만족도</Text>
+          <Text style={[FONTS.fs_14_medium, styles.rowTitle]}>
+            {isPartyReview ? '콘텐츠에 대한 만족도' : '게스트하우스에 대한 만족도'}
+          </Text>
           <View
             ref={ratingContainerRef}
             style={styles.ratingContainer}
@@ -227,14 +249,16 @@ const UserGuesthouseReviewForm = () => {
         {/* 리뷰 입력 */}
         <View style={styles.reviewRow}>
           <View style={styles.rowTitleContainer}>
-            <Text style={[FONTS.fs_14_medium, styles.rowTitle]}>게스트하우스에 대해</Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowTitle]}>
+              {isPartyReview ? '콘텐츠에 대해' : '게스트하우스에 대해'}
+            </Text>
             <Text style={[FONTS.fs_12_light, styles.imageText]}>
               <Text style={[{color: COLORS.primary_orange}]}>{reviewText.length}</Text>/1,000
             </Text>
           </View>
           <TextInput
             style={[FONTS.fs_14_regular, styles.textArea, isReviewTooShort && styles.textAreaError]}
-            placeholder="게스트하우스에 대한 리뷰를 작성해주세요"
+            placeholder={`${isPartyReview ? '콘텐츠' : '게스트하우스'}에 대한 리뷰를 작성해주세요`}
             placeholderTextColor={COLORS.grayscale_400}
             multiline
             maxLength={1000}
@@ -262,7 +286,10 @@ const UserGuesthouseReviewForm = () => {
         <View style={styles.noticeWrapper}>
           {noticeList.map((text, idx) => (
             <Text key={idx} style={[FONTS.fs_12_light, styles.noticeText]}>
-              {'\u2022'} {text}
+              {'\u2022'}{' '}
+              {isPartyReview
+                ? text.replaceAll('게스트하우스', '콘텐츠')
+                : text}
             </Text>
           ))}
         </View>
@@ -281,6 +308,17 @@ const UserGuesthouseReviewForm = () => {
           visible={modalVisible}
           onCancel={() => setModalVisible(false)}
           guesthouseId={guesthouseId}
+          onConfirm={
+            isPartyReview
+              ? () =>
+                  userMyApi.createPartyReview(partyId, {
+                    rating,
+                    detail: reviewText.trim(),
+                    imageUrls: images,
+                    partyReservationId,
+                  })
+              : undefined
+          }
           data={{
             rating,
             detail: reviewText.trim(),
@@ -298,6 +336,7 @@ const UserGuesthouseReviewForm = () => {
         <ReviewSuccessModal
           visible={successModalVisible}
           hasPhotoReview={images.length > 0}
+          showPointReward={!isPartyReview}
           onClose={() => {
             setSuccessModalVisible(false);
             navigation.goBack();

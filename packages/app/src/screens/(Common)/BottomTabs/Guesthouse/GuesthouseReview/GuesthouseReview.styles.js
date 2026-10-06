@@ -8,7 +8,7 @@ const styles = StyleSheet.create({
         backgroundColor: COLORS.grayscale_100,
         padding: 8,
         borderRadius: 8,
-        marginVertical: 2,
+        marginVertical: 8,
     },
 
     // 유저 사진, 닉네임, 별점
@@ -60,6 +60,7 @@ const styles = StyleSheet.create({
     // 리뷰 내용
     reviewText: {
         marginTop: 10,
+        lineHeight: 22,
     },
 
     // 답글
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     replyText: {
         color: COLORS.grayscale_800,
         marginTop: 4,
+        lineHeight: 22,
     },
 
     // 리뷰 없음 화면

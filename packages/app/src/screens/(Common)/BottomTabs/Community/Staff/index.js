@@ -1,4 +1,4 @@
-import React, {memo, useCallback, useRef, useState} from 'react';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -22,6 +22,13 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import styles from './Staff.styles';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
+import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
+import StaffRegionTabs from './StaffRegionTabs';
+import {
+  countRecruitingRecruits,
+  useStaffRegionStore,
+  withRecruitRegion,
+} from './regions';
 
 const PAGE_SIZE = 8;
 const staffListBannerAdUnitId = __DEV__
@@ -48,6 +55,10 @@ const Staff = ({isActive}) => {
   const navigation = useNavigation();
   const hasUserScrolledRef = useRef(false);
   const isFetchingRef = useRef(false);
+  const requestKeyRef = useRef(null);
+  const region = useStaffRegionStore(state => state.region);
+  const setRegion = useStaffRegionStore(state => state.setRegion);
+  const regions = useGuesthouseRegionStore(state => state.regions);
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -61,11 +72,17 @@ const Staff = ({isActive}) => {
 
   const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0, isLoadMore = false) => {
-      if (isFetchingRef.current) {
+      const requestKey = `${region}:${pageToFetch}:${isLoadMore ? 'append' : 'reset'}`;
+
+      if (
+        requestKeyRef.current === requestKey ||
+        (isFetchingRef.current && isLoadMore)
+      ) {
         return;
       }
 
       isFetchingRef.current = true;
+      requestKeyRef.current = requestKey;
 
       try {
         if (isLoadMore) {
@@ -74,16 +91,25 @@ const Staff = ({isActive}) => {
           setIsInitialLoading(true);
         }
 
-        const res = await userEmployApi.getRecruits({
-          page: pageToFetch,
-          size: PAGE_SIZE,
-        });
+        const res = await userEmployApi.getRecruits(
+          withRecruitRegion(
+            {
+              page: pageToFetch,
+              size: PAGE_SIZE,
+            },
+            region,
+          ),
+        );
 
         const content = Array.isArray(res.data?.content)
           ? res.data.content
           : [];
         const last = res.data?.last ?? true;
         const number = Number(res.data?.number ?? pageToFetch);
+
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
 
         setRecruitList(prev =>
           sortRecruitsByRecruiting(
@@ -93,6 +119,9 @@ const Staff = ({isActive}) => {
         setPage(number);
         setHasNext(!last);
       } catch (error) {
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
         setHasNext(false);
         console.warn('fetchRecruitList 실패:', error);
         setErrorModal({
@@ -101,7 +130,11 @@ const Staff = ({isActive}) => {
           buttonText: '다시 시도',
         });
       } finally {
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
         isFetchingRef.current = false;
+        requestKeyRef.current = null;
 
         if (isLoadMore) {
           setIsMoreLoading(false);
@@ -110,7 +143,7 @@ const Staff = ({isActive}) => {
         }
       }
     },
-    [],
+    [region],
   );
 
   useFocusEffect(
@@ -142,6 +175,17 @@ const Staff = ({isActive}) => {
   const handleScrollBeginDrag = useCallback(() => {
     hasUserScrolledRef.current = true;
   }, []);
+
+  const selectedRegionName = useMemo(
+    () =>
+      regions.find(item => item.code === region)?.displayName ??
+      (region === 'ALL' ? '전체' : region),
+    [region, regions],
+  );
+  const recruitingCount = useMemo(
+    () => countRecruitingRecruits(recruitList),
+    [recruitList],
+  );
 
   const handleRetry = useCallback(() => {
     setErrorModal(prev => ({...prev, visible: false}));
@@ -365,27 +409,45 @@ const Staff = ({isActive}) => {
 
   const keyExtractor = useCallback(item => item.recruitId.toString(), []);
 
-  if (isInitialLoading && page === 0) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Loading title="채용 정보를 가져오는 중입니다..." />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={recruitList}
-        keyExtractor={keyExtractor}
-        renderItem={renderRecruit}
-        showsVerticalScrollIndicator={false}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.4}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        contentContainerStyle={styles.listContent}
-        ListFooterComponent={renderListFooter}
-      />
+      <View style={styles.regionSection}>
+        <StaffRegionTabs value={region} onChange={setRegion} />
+        <Text style={[FONTS.fs_14_medium, styles.recruitCount]}>
+          {selectedRegionName} 지역 모집 중 공고 {recruitingCount}건
+        </Text>
+      </View>
+
+      {isInitialLoading && page === 0 ? (
+        <View style={styles.loadingContainer}>
+          <Loading title="채용 정보를 가져오는 중입니다..." />
+        </View>
+      ) : (
+        <FlatList
+          data={recruitList}
+          keyExtractor={keyExtractor}
+          renderItem={renderRecruit}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          onScrollBeginDrag={handleScrollBeginDrag}
+          contentContainerStyle={[
+            styles.listContent,
+            recruitList.length === 0 && styles.emptyListContent,
+          ]}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={[FONTS.fs_16_medium, styles.emptyTitle]}>
+                {selectedRegionName} 지역에 모집 중인 스탭 공고가 없어요
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.emptyDescription]}>
+                다른 지역의 공고도 확인해 보세요.
+              </Text>
+            </View>
+          }
+          ListFooterComponent={renderListFooter}
+        />
+      )}
 
       <AlertModal
         visible={errorModal.visible}
