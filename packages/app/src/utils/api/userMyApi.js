@@ -39,6 +39,21 @@ const userMyApi = {
   // 리뷰 삭제
   deleteReview: reviewId => api.delete(`/user/reviews/${reviewId}`),
 
+  // 내 콘텐츠 리뷰 및 작성 가능한 예약 조회
+  getMyPartyReviews: () => api.get('/user/party-reviews'),
+
+  // 콘텐츠 리뷰 작성
+  createPartyReview: (partyId, data) =>
+    api.post(`/user/parties/${partyId}/reviews`, data),
+
+  // 콘텐츠 리뷰 수정
+  updatePartyReview: (reviewId, data) =>
+    api.patch(`/user/party-reviews/${reviewId}`, data),
+
+  // 콘텐츠 리뷰 삭제
+  deletePartyReview: reviewId =>
+    api.delete(`/user/party-reviews/${reviewId}`),
+
   //유저 프로필 정보 수정
   updateMyProfile: draft =>
     api.put('/user/my', normalizeMyProfilePayload(draft)),

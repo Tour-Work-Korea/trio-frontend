@@ -8,8 +8,14 @@ import { FONTS } from '@constants/fonts';
 import SuccessIcon from '@assets/images/meet_reservation_success.svg';
 import XBtn from '@assets/images/x_gray.svg';
 
-const ReviewSuccessModal = ({ visible, onClose, hasPhotoReview }) => {
-  const pointAmount = hasPhotoReview ? '1,000' : '300';
+const ReviewSuccessModal = ({
+  visible,
+  onClose,
+  hasPhotoReview,
+  photoPointAmount = '1,000',
+  showPointReward = true,
+}) => {
+  const pointAmount = hasPhotoReview ? photoPointAmount : '300';
 
   return (
     <Modal
@@ -33,17 +39,21 @@ const ReviewSuccessModal = ({ visible, onClose, hasPhotoReview }) => {
             <Text style={[FONTS.fs_18_semibold, styles.title]}>
               리뷰 작성 완료!
             </Text>
-            <View style={styles.pointBadge}>
-              <Text style={[FONTS.fs_18_semibold, styles.pointText]}>
-                +{pointAmount}P 적립 완료
-              </Text>
-            </View>
+            {showPointReward && (
+              <View style={styles.pointBadge}>
+                <Text style={[FONTS.fs_18_semibold, styles.pointText]}>
+                  +{pointAmount}P 적립 완료
+                </Text>
+              </View>
+            )}
             <Text style={[FONTS.fs_14_medium, styles.description]}>
               소중한 리뷰 감사합니다
             </Text>
-            <Text style={[FONTS.fs_14_medium, styles.description]}>
-              포인트는 마이페이지에서 확인 가능합니다
-            </Text>
+            {showPointReward && (
+              <Text style={[FONTS.fs_14_medium, styles.description]}>
+                포인트는 마이페이지에서 확인 가능합니다
+              </Text>
+            )}
           </View>
         </View>
         </TouchableWithoutFeedback>

@@ -210,21 +210,23 @@ const styles = StyleSheet.create({
 
   // 하단탭
   tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
     marginTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
     backgroundColor: COLORS.grayscale_0,
     paddingTop: 20,
   },
+  tabContainerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   tabContainerAdvance: {
     marginTop: 4,
   },
   tabButton: {
     paddingBottom: 10,
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 0,
     alignItems: 'center',
   },
   tabButtonActive: {

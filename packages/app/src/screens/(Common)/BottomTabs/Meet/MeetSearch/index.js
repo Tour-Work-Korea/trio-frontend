@@ -23,6 +23,9 @@ import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronLeft from '@assets/images/chevron_left_gray.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
+import RegionChips from '@screens/(Common)/BottomTabs/Guesthouse/regions/RegionChips';
+import {useMeetRegionStore} from '../regions/store';
+import {withPartyRegion} from '../regions/params';
 
 const mapApiToUI = it => {
   const price = it.isGuest ? it.amount : it.nonGuestAmount ?? it.amount;
@@ -42,9 +45,12 @@ const mapApiToUI = it => {
 
 const MeetSearch = () => {
   const navigation = useNavigation();
+  const region = useMeetRegionStore(state => state.region);
+  const setRegion = useMeetRegionStore(state => state.setRegion);
 
   // 검색/목록/paging 상태
   const [keyword, setKeyword] = useState('');
+  const [submittedKeyword, setSubmittedKeyword] = useState('');
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(0);
   const size = 10;
@@ -54,7 +60,6 @@ const MeetSearch = () => {
   const isFetchingRef = useRef(false);
   const hasUserScrolledRef = useRef(false);
   const requestKeyRef = useRef(null);
-  const didInitialLoadRef = useRef(false);
 
   // 좋아요 토글
   const [favorites, setFavorites] = useState({});
@@ -80,9 +85,12 @@ const MeetSearch = () => {
   // 콘텐츠 데이터 로더
   const fetchPage = useCallback(
     async (nextPage, reset = false) => {
-      const requestKey = `${keyword ?? ''}:${nextPage}:${reset ? 'reset' : 'append'}`;
+      const requestKey = `${region}:${submittedKeyword}:${nextPage}:${reset ? 'reset' : 'append'}`;
 
-      if (isFetchingRef.current || requestKeyRef.current === requestKey) {
+      if (
+        requestKeyRef.current === requestKey ||
+        (isFetchingRef.current && !reset)
+      ) {
         return;
       }
 
@@ -90,15 +98,21 @@ const MeetSearch = () => {
       requestKeyRef.current = requestKey;
       setIsFetching(true);
       try {
-        const params = {
-          searchKeyword: keyword ?? '',
-          sort: 'RECOMMEND',
-          page: nextPage,
-          size,
-        };
+        const params = withPartyRegion(
+          {
+            searchKeyword: submittedKeyword,
+            sortBy: 'RECOMMEND',
+            page: nextPage,
+            size,
+          },
+          region,
+        );
         const {data} = await userMeetApi.searchParties(params);
         const content = Array.isArray(data?.content) ? data.content : [];
         const mapped = content.map(mapApiToUI);
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
         prefetchImageUrls(mapped.map(item => item.thumbnailUri), {limit: 8});
 
         setItems(prev => (reset ? mapped : [...prev, ...mapped]));
@@ -108,34 +122,39 @@ const MeetSearch = () => {
         );
       } catch (e) {
         console.log('searchParties error', e);
-        // 실패 시 다음 페이지 요청 막기 위해 hasNext는 일단 false
-        setHasNext(false);
+        if (requestKeyRef.current === requestKey) {
+          setHasNext(false);
+        }
       } finally {
-        isFetchingRef.current = false;
-        requestKeyRef.current = null;
-        setIsFetching(false);
-        setRefreshing(false);
+        if (requestKeyRef.current === requestKey) {
+          isFetchingRef.current = false;
+          requestKeyRef.current = null;
+          setIsFetching(false);
+          setRefreshing(false);
+        }
       }
     },
-    [keyword],
+    [region, submittedKeyword],
   );
 
-  // 최초 로드
+  // 최초 진입, 검색어 적용, 지역 변경 시 첫 페이지부터 다시 조회한다.
   useEffect(() => {
-    if (didInitialLoadRef.current) {
-      return;
-    }
-
-    didInitialLoadRef.current = true;
+    hasUserScrolledRef.current = false;
+    setHasNext(true);
     fetchPage(0, true);
-  }, [fetchPage]); // 첫 마운트
+  }, [fetchPage]);
 
   // 검색 실행
   const submitSearch = () => {
     hasUserScrolledRef.current = false;
     setRefreshing(true);
     setHasNext(true);
-    fetchPage(0, true);
+    const nextKeyword = keyword.trim();
+    if (nextKeyword === submittedKeyword) {
+      fetchPage(0, true);
+      return;
+    }
+    setSubmittedKeyword(nextKeyword);
   };
 
   // 당겨서 새로고침
@@ -246,6 +265,8 @@ const MeetSearch = () => {
           returnKeyType="search"
         />
       </View>
+
+      <RegionChips value={region} onChange={setRegion} />
 
       {/* 콘텐츠 리스트 */}
       <View style={styles.meetListContainer}>

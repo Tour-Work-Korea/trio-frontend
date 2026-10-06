@@ -215,6 +215,10 @@ const RootNavigation = () => {
           name="UserGuesthouseReviewForm"
           component={UserGuesthouseReviewForm}
         />
+        <Stack.Screen
+          name="UserPartyReviewForm"
+          component={UserGuesthouseReviewForm}
+        />
         <Stack.Screen name="MyCouponList" component={MyCouponList} />
         <Stack.Screen name="MyCouponRegister" component={MyCouponRegister} />
         <Stack.Screen name="MyPoint" component={MyPoint} />

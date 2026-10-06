@@ -2,9 +2,7 @@ import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
-  FlatList,
   ActivityIndicator,
-  RefreshControl,
   TouchableOpacity,
   ScrollView,
   Platform,
@@ -35,12 +33,8 @@ const GuesthouseReview = ({
   totalCount = 0,
 }) => {
   const loadingRef = useRef(false);
-  const lastPageRef = useRef(false);
-  const hasUserScrolledRef = useRef(false);
   const [reviews, setReviews] = useState([]);
-  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
-  const [refreshing, setRefreshing] = useState(false);
 
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -76,8 +70,8 @@ const GuesthouseReview = ({
 
   // 첫 로드 or 새로고침
   const fetchReviews = useCallback(
-    async (pageToLoad = 0, isRefresh = false) => {
-      if (loadingRef.current || (!isRefresh && lastPageRef.current)) {
+    async () => {
+      if (loadingRef.current) {
         return;
       }
 
@@ -87,71 +81,31 @@ const GuesthouseReview = ({
       try {
         const res = await userGuesthouseApi.getGuesthouseReviews({
           guesthouseId,
-          page: pageToLoad,
-          size: PAGE_SIZE,
+          page: 0,
+          size: Math.max(PAGE_SIZE, Number(totalCount) || 0),
           sort: SORT,
         });
 
         const newReviews = (res.data.content || []).filter(
           r => r.isJobReview === false,
         );
-        lastPageRef.current = res.data.last;
-
-        if (isRefresh || pageToLoad === 0) {
-          setReviews(newReviews);
-        } else {
-          setReviews(prev => [...prev, ...newReviews]);
-        }
-        setPage(pageToLoad);
+        setReviews(newReviews);
       } catch (e) {
-        lastPageRef.current = true;
-        if (pageToLoad === 0) {
-          setReviews([]);
-        }
+        setReviews([]);
       } finally {
         loadingRef.current = false;
         setLoading(false);
-        setRefreshing(false);
       }
     },
-    [guesthouseId],
+    [guesthouseId, totalCount],
   );
 
   // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
     loadingRef.current = false;
-    lastPageRef.current = false;
-    hasUserScrolledRef.current = false;
     setReviews([]);
-    setPage(0);
     setLoading(false);
-    setRefreshing(false);
-    fetchReviews(0, true);
-  }, [fetchReviews]);
-
-  const handleScrollBeginDrag = useCallback(() => {
-    hasUserScrolledRef.current = true;
-  }, []);
-
-  // 무한스크롤 핸들러
-  const handleEndReached = useCallback(() => {
-    if (
-      !hasUserScrolledRef.current ||
-      loadingRef.current ||
-      lastPageRef.current
-    ) {
-      return;
-    }
-
-    fetchReviews(page + 1);
-  }, [fetchReviews, page]);
-
-  // 새로고침 핸들러
-  const onRefresh = useCallback(() => {
-    hasUserScrolledRef.current = false;
-    lastPageRef.current = false;
-    setRefreshing(true);
-    fetchReviews(0, true);
+    fetchReviews();
   }, [fetchReviews]);
 
   // 이미지 모달
@@ -265,35 +219,23 @@ const GuesthouseReview = ({
     [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
   );
 
-  const keyExtractor = useCallback(item => item.id?.toString(), []);
-
   return (
     <View style={styles.reviewRowContainer}>
-      <FlatList
-        data={reviews}
-        keyExtractor={keyExtractor}
-        renderItem={renderItem}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.5}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        ListFooterComponent={
-          loading && !refreshing ? <ActivityIndicator /> : null
-        }
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} />
-        }
-        ListEmptyComponent={
-          !loading && (
-            <View style={styles.emptyReviewContainer}>
-              <NoReviewIcon />
-              <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-                아직 등록된 리뷰가 없어요.{'\n'}
-                당신의 첫 리뷰를 남겨주세요!
-              </Text>
-            </View>
-          )
-        }
-      />
+      {reviews.map((item, index) => (
+        <React.Fragment key={String(item.id ?? index)}>
+          {renderItem({item, index})}
+        </React.Fragment>
+      ))}
+      {loading && <ActivityIndicator />}
+      {!loading && reviews.length === 0 && (
+        <View style={styles.emptyReviewContainer}>
+          <NoReviewIcon />
+          <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
+            아직 등록된 리뷰가 없어요.{'\n'}
+            당신의 첫 리뷰를 남겨주세요!
+          </Text>
+        </View>
+      )}
 
       {/* 이미지 모달 */}
       {imageModalVisible && (

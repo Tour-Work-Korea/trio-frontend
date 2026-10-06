@@ -90,6 +90,7 @@ export const WEB_STATIC_ROUTE_BY_SCREEN = {
   UserFavoriteMeet: '/my/favorites/contents',
   UserGuesthouseReview: '/my/reviews/guesthouses',
   UserGuesthouseReviewForm: '/my/reviews/guesthouses/write',
+  UserPartyReviewForm: '/my/reviews/contents/write',
   UserMeetReservationCancelled: '/my/reservations/contents/cancelled-list',
   UserMeetReservationCheck: '/my/reservations/contents',
   UserRegisterProfile: '/register/profile',

@@ -21,6 +21,10 @@ const styles = StyleSheet.create({
     paddingBottom: 14,
     paddingHorizontal: 16,
   },
+  regionBar: {
+    backgroundColor: COLORS.grayscale_0,
+    paddingTop: 8,
+  },
   contentTitle: {
     color: COLORS.grayscale_800,
     marginBottom: 8,
