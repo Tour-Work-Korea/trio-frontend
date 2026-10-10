@@ -15,8 +15,13 @@ import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
 
-export default function UserUpcomingReservations({ data, onRefresh }) {
+export default function UserUpcomingReservations({
+  data,
+  onRefresh,
+  reviewableReservationIds,
+}) {
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
@@ -95,6 +100,9 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
       toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
     );
     const showCheckInGuide = isDuringStay(item);
+    const canWriteReview = reviewableReservationIds?.has(
+      String(item.reservationId)
+    );
 
     return (
       <View style={styles.container}>
@@ -211,6 +219,25 @@ export default function UserUpcomingReservations({ data, onRefresh }) {
             backgroundColor={COLORS.grayscale_100}
           />
         </View>
+
+        {canWriteReview && (
+          <ButtonWhite
+            title="리뷰 작성하기"
+            style={styles.reviewButton}
+            onPress={() =>
+              navigation.navigate('UserGuesthouseReviewForm', {
+                guesthouseId: item.guesthouseId,
+                reservationId: item.reservationId,
+                guesthouseName: item.guesthouseName,
+                roomName: item.roomName,
+                guesthouseAddress: trimJejuPrefix(item.guesthouseAddress),
+                checkInFormatted,
+                checkOutFormatted,
+              })
+            }
+            backgroundColor={COLORS.grayscale_100}
+          />
+        )}
 
         <ButtonWhite
           title="예약취소"
@@ -401,6 +428,9 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     flex: 1,
+  },
+  reviewButton: {
+    marginBottom: 8,
   },
   listContent: {
     flexGrow: 1,

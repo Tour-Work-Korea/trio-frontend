@@ -15,8 +15,9 @@ import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
 
-export default function UserPastReservations({ data }) {
+export default function UserPastReservations({data, reviewableReservationIds}) {
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
@@ -52,6 +53,9 @@ export default function UserPastReservations({ data }) {
   };
 
   const renderItem = ({ item, index }) => {
+    const canWriteReview = reviewableReservationIds?.has(
+      String(item.reservationId)
+    );
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
       toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
     );
@@ -151,24 +155,24 @@ export default function UserPastReservations({ data }) {
             }
             backgroundColor={COLORS.grayscale_100}
           />
-          <ButtonWhite
-            title={item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
-            style={{flex:1}}
-            disabled={item.reviewed}
-            onPress={() => {
-              if (item.reviewed) return;
-              navigation.navigate('UserGuesthouseReviewForm', {
-                guesthouseId: item.guesthouseId,
-                reservationId: item.reservationId,
-                guesthouseName: item.guesthouseName,
-                roomName: item.roomName,
-                guesthouseAddress: item.guesthouseAddress,
-                checkInFormatted,
-                checkOutFormatted,
-              });
-            }}
-            backgroundColor={COLORS.grayscale_100}
-          />
+          {canWriteReview && (
+            <ButtonWhite
+              title="리뷰 작성하기"
+              style={{flex: 1}}
+              onPress={() =>
+                navigation.navigate('UserGuesthouseReviewForm', {
+                  guesthouseId: item.guesthouseId,
+                  reservationId: item.reservationId,
+                  guesthouseName: item.guesthouseName,
+                  roomName: item.roomName,
+                  guesthouseAddress: trimJejuPrefix(item.guesthouseAddress),
+                  checkInFormatted,
+                  checkOutFormatted,
+                })
+              }
+              backgroundColor={COLORS.grayscale_100}
+            />
+          )}
         </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>

@@ -1,5 +1,5 @@
 import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
+import {AppState, View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
 
 import Header from '@components/Header';
@@ -12,6 +12,9 @@ import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
 import UserCancelledReservations from './UserCancelledReservations';
 import Loading from '@components/Loading';
+import {getReviewableReservationIds} from '@utils/reviewEligibility';
+
+const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
 
 const TABS = [
   { key: 'upcoming', label: '이용전' },
@@ -29,7 +32,11 @@ const UserReservationCheck = () => {
   const route = useRoute();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reviewableReservationIds, setReviewableReservationIds] = useState(
+    () => new Set()
+  );
   const hasLoadedReservations = useRef(false);
+  const isFetching = useRef(false);
   const selectedTab = TABS.some(tab => tab.key === route.params?.selectedTab)
     ? route.params.selectedTab
     : 'upcoming';
@@ -55,15 +62,27 @@ const UserReservationCheck = () => {
   });
 
   const fetchReservationList = async () => {
+    if (isFetching.current) return;
+
     try {
+      isFetching.current = true;
       if (!hasLoadedReservations.current) {
         setLoading(true);
       }
-      const res = await userMyApi.getMyReservations();
-      setReservations(res.data);
+      const [reservationsResponse, reviewsResponse] = await Promise.all([
+        userMyApi.getMyReservations(),
+        userMyApi.getMyReviews(),
+      ]);
+      setReservations(
+        Array.isArray(reservationsResponse.data) ? reservationsResponse.data : []
+      );
+      setReviewableReservationIds(
+        getReviewableReservationIds(reviewsResponse.data)
+      );
     } catch (error) {
-      console.log('예약 목록 불러오기 실패');
+      console.log('예약 및 리뷰 작성 가능 목록 불러오기 실패:', error);
     } finally {
+      isFetching.current = false;
       hasLoadedReservations.current = true;
       setLoading(false);
     }
@@ -73,6 +92,21 @@ const UserReservationCheck = () => {
   useFocusEffect(
     useCallback(() => {
       fetchReservationList();
+      const intervalId = setInterval(
+        fetchReservationList,
+        REVIEW_ELIGIBILITY_REFRESH_INTERVAL
+      );
+      const appStateSubscription = AppState.addEventListener(
+        'change',
+        nextState => {
+          if (nextState === 'active') fetchReservationList();
+        }
+      );
+
+      return () => {
+        clearInterval(intervalId);
+        appStateSubscription.remove();
+      };
     }, [])
   );
 
@@ -102,10 +136,16 @@ const UserReservationCheck = () => {
           <UserUpcomingReservations
             data={filteredReservations.upcoming}
             onRefresh={fetchReservationList}
+            reviewableReservationIds={reviewableReservationIds}
           />
         );
       case 'past':
-        return <UserPastReservations data={filteredReservations.past} />;
+        return (
+          <UserPastReservations
+            data={filteredReservations.past}
+            reviewableReservationIds={reviewableReservationIds}
+          />
+        );
       case 'cancelled':
         return <UserCancelledReservations data={filteredReservations.cancelled} />;
       default:
