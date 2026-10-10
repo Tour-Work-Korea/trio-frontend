@@ -27,7 +27,16 @@ const ReviewConfirmModal = ({
       onSuccess?.(); // 성공 시 부모에서 후처리
     } catch (error) {
       console.log('리뷰 등록 실패:', error);
-      Alert.alert('리뷰 등록 실패', '잠시 후 다시 시도해주세요.');
+      const responseData = error?.response?.data;
+      const serverMessage =
+        responseData?.message ||
+        responseData?.error ||
+        (typeof responseData === 'string' ? responseData : null);
+
+      Alert.alert(
+        '리뷰 등록 실패',
+        serverMessage || '잠시 후 다시 시도해주세요.'
+      );
     }
   };
 

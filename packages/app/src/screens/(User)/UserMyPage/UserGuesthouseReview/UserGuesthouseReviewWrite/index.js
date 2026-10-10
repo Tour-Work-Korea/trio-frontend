@@ -1,5 +1,12 @@
-import React, { useEffect, useState , useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
+import React, { useState, useCallback, useRef } from 'react';
+import {
+  AppState,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
 import { useNavigation, useFocusEffect } from '@react-navigation/native';
 
 import { FONTS } from '@constants/fonts';
@@ -10,23 +17,47 @@ import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
+import {mergeReviewableItemsWithReservations} from '@utils/reviewEligibility';
+
+const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
 
 const UserGuesthouseReviewWrite = () => {
   const navigation = useNavigation();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const hasLoaded = useRef(false);
+  const isFetching = useRef(false);
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
   const fetchReservationList = async () => {
+    if (isFetching.current) return;
+
     try {
-      setLoading(true);
-      const res = await userMyApi.getMyReservations();
-      setReservations(res.data);
+      isFetching.current = true;
+      if (!hasLoaded.current) setLoading(true);
+
+      const [reviewsResponse, reservationsResponse] = await Promise.all([
+        userMyApi.getMyReviews(),
+        userMyApi.getMyReservations(),
+      ]);
+      const reservationItems = Array.isArray(reservationsResponse.data)
+        ? reservationsResponse.data
+        : [];
+
+      setReservations(
+        mergeReviewableItemsWithReservations(
+          reviewsResponse.data,
+          reservationItems
+        )
+      );
     } catch (error) {
-      console.log('예약 목록 불러오기 실패');
+      console.log('작성 가능한 리뷰 목록 불러오기 실패:', error);
     } finally {
+      isFetching.current = false;
+      hasLoaded.current = true;
       setLoading(false);
     }
   };
@@ -34,12 +65,22 @@ const UserGuesthouseReviewWrite = () => {
   useFocusEffect(
     useCallback(() => {
       fetchReservationList();
-    }, [])
-  );
+      const intervalId = setInterval(
+        fetchReservationList,
+        REVIEW_ELIGIBILITY_REFRESH_INTERVAL
+      );
+      const appStateSubscription = AppState.addEventListener(
+        'change',
+        nextState => {
+          if (nextState === 'active') fetchReservationList();
+        }
+      );
 
-  // COMPLETED 상태, 리뷰 안 쓴것만
-  const completedReservations = reservations.filter(
-    (item) => item.reservationStatus === 'COMPLETED' && !item.reviewed
+      return () => {
+        clearInterval(intervalId);
+        appStateSubscription.remove();
+      };
+    }, [])
   );
 
   const renderItem = ({ item, index }) => {
@@ -73,7 +114,7 @@ const UserGuesthouseReviewWrite = () => {
                 numberOfLines={1}
                 ellipsizeMode="tail"
               >
-                {item.guesthouseAddress}
+                {trimJejuPrefix(item.guesthouseAddress)}
               </Text>
             </View>
           </View>
@@ -94,7 +135,7 @@ const UserGuesthouseReviewWrite = () => {
           activeOpacity={1}
           style={styles.reviewButton}
           onPress={() => {
-            if (!item.reviewed) {
+            if (item.isReviewed === false) {
               const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
                 toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
               );
@@ -107,7 +148,7 @@ const UserGuesthouseReviewWrite = () => {
                 reservationId: item.reservationId,
                 guesthouseName: item.guesthouseName,
                 roomName: item.roomName,
-                guesthouseAddress: item.guesthouseAddress,
+                guesthouseAddress: trimJejuPrefix(item.guesthouseAddress),
                 checkInFormatted: checkInFormatted,
                 checkOutFormatted: checkOutFormatted,
               });
@@ -128,12 +169,12 @@ const UserGuesthouseReviewWrite = () => {
           <Loading title="리뷰 목록을 불러오고 있어요." />
         ) : (
         <FlatList
-          data={completedReservations}
+          data={reservations}
           keyExtractor={item => item.reservationId.toString()}
           renderItem={renderItem}
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: completedReservations.length === 0 ? 'center' : 'flex-start',
+            justifyContent: reservations.length === 0 ? 'center' : 'flex-start',
             paddingVertical: 24,
           }}
           ListEmptyComponent={
