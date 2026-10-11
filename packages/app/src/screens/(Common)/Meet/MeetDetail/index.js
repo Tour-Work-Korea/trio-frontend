@@ -293,7 +293,7 @@ const MeetDetail = () => {
     initialKey: 'intro',
   });
 
-  const tabButtonWidth = tabMenuWidth > 0 ? tabMenuWidth / 3.2 : 112;
+  const tabButtonWidth = tabMenuWidth > 0 ? tabMenuWidth / TABS.length : 90;
   const tabButtonStyle = useMemo(
     () => [styles.tabButton, {width: tabButtonWidth}],
     [tabButtonWidth],
