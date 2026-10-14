@@ -16,7 +16,7 @@ import Loading from '@components/Loading';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import styles from './Staff.styles';
@@ -24,11 +24,7 @@ import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
 import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
 import StaffRegionTabs from './StaffRegionTabs';
-import {
-  countRecruitingRecruits,
-  useStaffRegionStore,
-  withRecruitRegion,
-} from './regions';
+import {useStaffRegionStore, withRecruitRegion} from './regions';
 
 const PAGE_SIZE = 8;
 const staffListBannerAdUnitId = __DEV__
@@ -182,11 +178,6 @@ const Staff = ({isActive}) => {
       (region === 'ALL' ? '전체' : region),
     [region, regions],
   );
-  const recruitingCount = useMemo(
-    () => countRecruitingRecruits(recruitList),
-    [recruitList],
-  );
-
   const handleRetry = useCallback(() => {
     setErrorModal(prev => ({...prev, visible: false}));
     setRecruitList([]);
@@ -236,7 +227,7 @@ const Staff = ({isActive}) => {
       item.profileSummary?.profileImageUrl ||
       item.thumbnailImage ||
       item.recruitImage;
-    const address = trimJejuPrefix(item.address ?? item.recruitAddress);
+    const regionName = formatServiceRegion(item.profileSummary?.regionType);
     const deadline = parseSlashDateToYearMonth(item.deadline);
     const workDuration = item.workDuration ?? item.workDate ?? item.workPeriod;
 
@@ -315,7 +306,7 @@ const Staff = ({isActive}) => {
               isClosed && styles.closedSecondaryText,
             ]}
             numberOfLines={1}>
-            {address}
+            {regionName}
           </Text>
           {!!workDuration && (
             <Text
@@ -413,9 +404,6 @@ const Staff = ({isActive}) => {
     <View style={styles.container}>
       <View style={styles.regionSection}>
         <StaffRegionTabs value={region} onChange={setRegion} />
-        <Text style={[FONTS.fs_14_medium, styles.recruitCount]}>
-          {selectedRegionName} 지역 모집 중 공고 {recruitingCount}건
-        </Text>
       </View>
 
       {isInitialLoading && page === 0 ? (
@@ -438,7 +426,7 @@ const Staff = ({isActive}) => {
           ListEmptyComponent={
             <View style={styles.emptyContainer}>
               <Text style={[FONTS.fs_16_medium, styles.emptyTitle]}>
-                {selectedRegionName} 지역에 모집 중인 스탭 공고가 없어요
+                {selectedRegionName} 지역에 스탭 공고가 없어요
               </Text>
               <Text style={[FONTS.fs_14_regular, styles.emptyDescription]}>
                 다른 지역의 공고도 확인해 보세요.

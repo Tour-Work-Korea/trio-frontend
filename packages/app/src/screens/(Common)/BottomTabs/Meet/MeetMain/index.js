@@ -17,7 +17,7 @@ import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
-import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -334,7 +334,7 @@ const MeetMain = () => {
               <Text
                 style={[FONTS.fs_12_medium, styles.partyMetaText]}
                 numberOfLines={1}>
-                {trimJejuPrefix(item.location)} ·{' '}
+                {formatServiceRegion(item.regionType)} ·{' '}
                 {formatWhenTime(item.partyStartDateTime)}
               </Text>
             </View>
@@ -403,13 +403,13 @@ const MeetMain = () => {
               {startTime}
               {endTime ? ` ~ ${endTime}` : ''}
             </Text>
-            {!!item.location && (
+            {!!item.regionType && (
               <View style={styles.eventMetaRow}>
                 <MapPinIcon width={16} height={16} />
                 <Text
                   style={[FONTS.fs_12_medium, styles.eventMetaText]}
                   numberOfLines={1}>
-                  {trimJejuPrefix(item.location)}
+                  {formatServiceRegion(item.regionType)}
                 </Text>
               </View>
             )}

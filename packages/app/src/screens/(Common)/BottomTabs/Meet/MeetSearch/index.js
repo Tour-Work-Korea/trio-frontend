@@ -15,7 +15,7 @@ import {COLORS} from '@constants/colors';
 import styles from './MeetSearch.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import EmptyState from '@components/EmptyState';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -33,7 +33,7 @@ const mapApiToUI = it => {
     id: it.partyId,
     placeName: it.guesthouseName,
     title: it.partyTitle,
-    address: it.location,
+    regionName: formatServiceRegion(it.regionType),
     thumbnailUri: it.partyImageUrl,
     startAt: it.partyStartDateTime,
     joined: it.numOfAttendance,
@@ -224,7 +224,7 @@ const MeetSearch = () => {
 
         <View style={styles.itemBottomWrap}>
           <Text style={[FONTS.fs_12_medium, styles.addressText]}>
-            {trimJejuPrefix(item.address)}
+            {item.regionName}
           </Text>
           <Text
             style={[

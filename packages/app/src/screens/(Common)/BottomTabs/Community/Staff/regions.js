@@ -13,6 +13,3 @@ export const withRecruitRegion = (params = {}, region = 'ALL') => {
     region: region || 'ALL',
   };
 };
-
-export const countRecruitingRecruits = recruits =>
-  recruits.filter(recruit => recruit?.isRecruiting !== false).length;
