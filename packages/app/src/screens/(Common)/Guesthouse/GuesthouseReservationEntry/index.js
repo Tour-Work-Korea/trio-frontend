@@ -1,6 +1,6 @@
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {Calendar} from 'react-native-calendars';
+import {Calendar, LocaleConfig} from 'react-native-calendars';
 import {useNavigation} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
@@ -13,6 +13,12 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import styles from './GuesthouseReservationEntry.styles';
+import {
+  CALENDAR_PRICE_BANDS,
+  calendarMessages,
+  formatCalendarPrice,
+  getNightlyPrice,
+} from './calendarPricing';
 
 import CalendarIcon from '@assets/images/calendar_gray.svg';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
@@ -102,6 +108,8 @@ const GuesthouseReservationEntry = ({route}) => {
   });
   const nights = getNightCount(selectedCheckIn, selectedCheckOut);
   const calendarCurrentDate = `${currentMonth}-01`;
+  const calendarLocale = LocaleConfig.defaultLocale;
+  const calendarText = calendarMessages(calendarLocale);
   const extraGuestUnitPrice = Number(roomInfo.extraPersonPrice || 0);
   const extraGuestCount = Math.max(guestCount - baseCapacity, 0);
   const selectedNightAvailability = availabilityDays.filter(day => {
@@ -323,6 +331,10 @@ const GuesthouseReservationEntry = ({route}) => {
       (dayAvailability.available === false || dayAvailability.status === 'CLOSED');
     const isAvailable =
       isCurrentMonth && dayAvailability && dayAvailability.available === true;
+    const nightlyPrice = getNightlyPrice(dayAvailability);
+    const priceBand = isAvailable && nightlyPrice != null
+      ? CALENDAR_PRICE_BANDS.find(band => nightlyPrice >= band.min && nightlyPrice < band.max)
+      : null;
     const isSelectedStart = dateString === selectedCheckIn;
     const isSelectedEnd = dateString === selectedCheckOut;
     const isSelectedEdge = isSelectedStart || isSelectedEnd;
@@ -352,6 +364,9 @@ const GuesthouseReservationEntry = ({route}) => {
         style={[
           styles.dayCell,
           isAvailable && styles.dayCellAvailable,
+          isAvailable && nightlyPrice != null && {
+            backgroundColor: priceBand?.backgroundColor || COLORS.grayscale_0,
+          },
           isPastDate && styles.dayCellUnavailable,
           isUnavailable && styles.dayCellUnavailable,
           isAfterReservationLimit && styles.dayCellUnavailable,
@@ -378,7 +393,16 @@ const GuesthouseReservationEntry = ({route}) => {
               styles.daySubLabel,
               isSelectedEdge && styles.daySubLabelSelected,
             ]}>
-            {isSelectedStart ? '입실' : isSelectedEnd ? '퇴실' : '오늘'}
+            {isSelectedStart ? calendarText.checkIn : isSelectedEnd ? calendarText.checkOut : calendarText.today}
+          </Text>
+        )}
+        {isAvailable && !isDisabled && !isSelectedEdge && !isSelectedRange && nightlyPrice != null && (
+          <Text
+            numberOfLines={1}
+            adjustsFontSizeToFit
+            minimumFontScale={0.7}
+            style={[FONTS.fs_12_medium, styles.dayPrice, {color: priceBand?.color || COLORS.grayscale_900}]}>
+            {formatCalendarPrice(nightlyPrice, calendarLocale, true)}
           </Text>
         )}
       </TouchableOpacity>
@@ -505,16 +529,21 @@ const GuesthouseReservationEntry = ({route}) => {
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendSelected]} />
-              <Text style={[FONTS.fs_12_medium, styles.legendText]}>선택</Text>
+              <Text style={[FONTS.fs_12_medium, styles.legendText]}>{calendarText.selected}</Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendDisabled]} />
-              <Text style={[FONTS.fs_12_medium, styles.legendText]}>불가</Text>
+              <Text style={[FONTS.fs_12_medium, styles.legendText]}>{calendarText.unavailable}</Text>
             </View>
-            <View style={styles.legendItem}>
-              <View style={[styles.legendDot, styles.legendAvailable]} />
-              <Text style={[FONTS.fs_12_medium, styles.legendText]}>가능</Text>
-            </View>
+            {CALENDAR_PRICE_BANDS.map(band => (
+              <View key={band.price} style={styles.legendItem}>
+                <View style={[styles.legendDot, {backgroundColor: band.backgroundColor}]} />
+                <Text style={[FONTS.fs_12_medium, styles.legendText]}>
+                  {formatCalendarPrice(band.price, calendarLocale)}
+                </Text>
+              </View>
+            ))}
+
           </View>
         </View>
 

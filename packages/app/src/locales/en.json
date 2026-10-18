@@ -1,0 +1,12 @@
+{
+  "reservationCalendar": {
+    "selected": "Selected",
+    "unavailable": "Unavailable",
+    "available": "Available",
+    "checkIn": "In",
+    "checkOut": "Out",
+    "today": "Today",
+    "price": "₩{{amount}}",
+    "priceRange": "₩{{min}}–{{max}}"
+  }
+}

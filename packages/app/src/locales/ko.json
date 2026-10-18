@@ -1,0 +1,12 @@
+{
+  "reservationCalendar": {
+    "selected": "선택",
+    "unavailable": "불가",
+    "available": "가능",
+    "checkIn": "입실",
+    "checkOut": "퇴실",
+    "today": "오늘",
+    "price": "{{amount}}원",
+    "priceRange": "{{min}}–{{max}}원"
+  }
+}
