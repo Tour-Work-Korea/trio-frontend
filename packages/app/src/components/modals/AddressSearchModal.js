@@ -1,8 +1,9 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {Alert, View, StyleSheet, TouchableOpacity, Text} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import { WebView } from 'react-native-webview';
-import { COLORS } from '@constants/colors';
+import {WebView} from 'react-native-webview';
+import {COLORS} from '@constants/colors';
 
 const ADDRESS_HTML = `
 <!DOCTYPE html>
@@ -60,18 +61,22 @@ const ADDRESS_HTML = `
 </html>
 `;
 
-const AddressSearchModal = ({ visible, onClose, onSelected }) => {
-  const handleMessage = (event) => {
+const AddressSearchModal = ({visible, onClose, onSelected}) => {
+  const {t} = useTranslation();
+  const handleMessage = event => {
     try {
       const data = JSON.parse(event?.nativeEvent?.data ?? '{}');
       onSelected?.(data);
       onClose?.();
     } catch (e) {
-      Alert.alert('주소 검색 오류', '주소를 불러오지 못했습니다. 다시 시도해주세요.');
+      Alert.alert(
+        t('components.addressSearchError'),
+        t('components.theAddressCouldNotBeRetrievedPleaseTryAgain'),
+      );
     }
   };
 
-  const handleShouldStartLoad = (request) => {
+  const handleShouldStartLoad = request => {
     const url = request?.url ?? '';
     const isAllowed =
       !url.startsWith('http') ||
@@ -96,11 +101,11 @@ const AddressSearchModal = ({ visible, onClose, onSelected }) => {
         <View style={styles.modalContainer}>
           <View style={styles.closeButtonContainer}>
             <TouchableOpacity onPress={onClose}>
-              <Text style={styles.closeText}>닫기</Text>
+              <Text style={styles.closeText}>{t('common.close')}</Text>
             </TouchableOpacity>
           </View>
           <WebView
-            style={{ flex: 1 }}
+            style={{flex: 1}}
             source={{
               html: ADDRESS_HTML,
               baseUrl: 'https://postcode.map.kakao.com',

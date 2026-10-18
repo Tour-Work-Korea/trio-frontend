@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import {subscribe} from '@utils/loginModalHub';
 import {useEffect, useState} from 'react';
 import {Platform} from 'react-native';
@@ -8,7 +10,7 @@ const initialState = {
   visible: false,
   title: '',
   message: '',
-  buttonText: '확인',
+  buttonText: i18n.t('common.confirm'),
   buttonText2: null,
   onPress: null,
   onPress2: null,
@@ -20,6 +22,7 @@ const initialState = {
 };
 
 export default function GlobalAlertModal() {
+  const {t} = useTranslation();
   const [state, setState] = useState(initialState);
 
   useEffect(() => {
@@ -34,7 +37,7 @@ export default function GlobalAlertModal() {
   const handlePress = () => {
     const callback = state.onPress;
 
-    if (Platform.OS === 'web' && state.buttonText === '로그인하기') {
+    if (Platform.OS === 'web' && state.buttonText === t('common.logIn')) {
       close();
       requestAnimationFrame(() => {
         if (callback) {
@@ -63,7 +66,7 @@ export default function GlobalAlertModal() {
         title={state.title || state.message}
         message={state.title ? state.message : null}
         highlightText={state.highlightText}
-        buttonText={state.buttonText || '확인'}
+        buttonText={state.buttonText || t('common.confirm')}
         buttonText2={state.buttonText2}
         onPress={handlePress}
         onPress2={handlePress2}

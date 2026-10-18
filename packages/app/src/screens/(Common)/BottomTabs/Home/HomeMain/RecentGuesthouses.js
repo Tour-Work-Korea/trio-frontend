@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {memo, useCallback, useMemo} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -18,6 +19,7 @@ const RecentGuesthouseSeparator = () => (
 );
 
 function RecentGuesthouses({guesthouses = []}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const today = useMemo(() => dayjs(), []);
@@ -25,43 +27,46 @@ function RecentGuesthouses({guesthouses = []}) {
   const checkIn = useMemo(() => today.format('YYYY-MM-DD'), [today]);
   const checkOut = useMemo(() => tomorrow.format('YYYY-MM-DD'), [tomorrow]);
 
-  const renderGuesthouse = useCallback(({item}) => (
-    <TouchableOpacity
-      activeOpacity={1}
-      style={styles.recentGuesthouseCard}
-      onPress={() => {
-        if (shouldIgnoreHomeHorizontalPress()) {
-          return;
-        }
+  const renderGuesthouse = useCallback(
+    ({item}) => (
+      <TouchableOpacity
+        activeOpacity={1}
+        style={styles.recentGuesthouseCard}
+        onPress={() => {
+          if (shouldIgnoreHomeHorizontalPress()) {
+            return;
+          }
 
-        navigation.navigate('GuesthouseDetail', {
-          id: item.id,
-          checkIn,
-          checkOut,
-          guestCount: 1,
-        });
-      }}>
-      {item.thumbnailUrl ? (
-        <AppImage
-          uri={item.thumbnailUrl}
-          style={styles.recentGuesthouseImage}
-        />
-      ) : (
-        <View
-          style={[
-            styles.recentGuesthouseImage,
-            {backgroundColor: COLORS.grayscale_200},
-          ]}
-        />
-      )}
-      <Text
-        style={[FONTS.fs_14_medium, styles.recentGuesthouseName]}
-        numberOfLines={1}
-        ellipsizeMode="tail">
-        {item.guesthouseName}
-      </Text>
-    </TouchableOpacity>
-  ), [checkIn, checkOut, navigation]);
+          navigation.navigate('GuesthouseDetail', {
+            id: item.id,
+            checkIn,
+            checkOut,
+            guestCount: 1,
+          });
+        }}>
+        {item.thumbnailUrl ? (
+          <AppImage
+            uri={item.thumbnailUrl}
+            style={styles.recentGuesthouseImage}
+          />
+        ) : (
+          <View
+            style={[
+              styles.recentGuesthouseImage,
+              {backgroundColor: COLORS.grayscale_200},
+            ]}
+          />
+        )}
+        <Text
+          style={[FONTS.fs_14_medium, styles.recentGuesthouseName]}
+          numberOfLines={1}
+          ellipsizeMode="tail">
+          {item.guesthouseName}
+        </Text>
+      </TouchableOpacity>
+    ),
+    [checkIn, checkOut, navigation],
+  );
 
   const handlePressSeeMore = useCallback(() => {
     navigation.navigate('RecentGuesthouseList');
@@ -74,12 +79,14 @@ function RecentGuesthouses({guesthouses = []}) {
   return (
     <View style={styles.recentGuesthouseContainer}>
       <View style={styles.titleSection}>
-        <Text style={styles.sectionTitle}>최근 본 게하</Text>
+        <Text style={styles.sectionTitle}>
+          {t('common.recentlyViewedGuesthouse')}
+        </Text>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.seeMoreButton}
           onPress={handlePressSeeMore}>
-          <Text style={styles.seeMoreText}>더보기</Text>
+          <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
           <ChevronRightGray width={24} height={24} />
         </TouchableOpacity>
       </View>

@@ -1,3 +1,4 @@
+import i18n from '@trio/app/src/i18n';
 import {navigate} from '@utils/navigationService';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
@@ -175,14 +176,14 @@ const navigateTo = (navigation, name, params) => {
 };
 
 const showLoginRequiredModal = (
-  message = '서비스 이용을 위해 로그인 해주세요.',
+  message = i18n.t('common.pleaseLogInToUseTheService'),
   navigation,
 ) => {
   showErrorModal({
-    title: '로그인이 필요합니다',
+    title: i18n.t('common.loginRequired'),
     message,
-    buttonText: '확인',
-    buttonText2: '취소',
+    buttonText: i18n.t('common.confirm'),
+    buttonText2: i18n.t('common.cancel'),
     onPress: () => navigateTo(navigation, 'Login'),
   });
 };
@@ -350,7 +351,9 @@ export const openNotificationTarget = async (notification, navigation) => {
       type = String(
         getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
       ).toUpperCase();
-      reservationId = getNestedFirstValue(targetNotification, ['reservationId']);
+      reservationId = getNestedFirstValue(targetNotification, [
+        'reservationId',
+      ]);
     }
 
     if (reservationId) {
@@ -384,7 +387,9 @@ export const openNotificationTarget = async (notification, navigation) => {
       type = String(
         getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
       ).toUpperCase();
-      reservationId = getNestedFirstValue(targetNotification, ['reservationId']);
+      reservationId = getNestedFirstValue(targetNotification, [
+        'reservationId',
+      ]);
       partyId = getNestedFirstValue(targetNotification, ['partyId']);
     }
 

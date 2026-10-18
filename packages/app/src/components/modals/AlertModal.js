@@ -1,11 +1,13 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {Platform, View, Text, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigate} from '@utils/navigationService';
 import AppImage from '@components/AppImage';
+import AdaptiveText from '@components/AdaptiveText';
 
 /**
  * visible, buttonText, onPress 필수
@@ -24,16 +26,17 @@ const AlertModal = ({
   onPress2 = null, // 버튼 2개일 때 왼쪽
   color = COLORS.primary_orange, // buttonText의 배경색 (기본 주황색)
   imageUri,
-  imageSource,   // png/jpg 같은 이미지
-  iconElement,   // SVG
-  onRequestClose = () => { },
+  imageSource, // png/jpg 같은 이미지
+  iconElement, // SVG
+  onRequestClose = () => {},
   interceptWebLoginPress = true,
 }) => {
+  const {t} = useTranslation();
   const handlePrimaryPress = () => {
     if (
       interceptWebLoginPress &&
       Platform.OS === 'web' &&
-      buttonText === '로그인하기'
+      buttonText === t('common.logIn')
     ) {
       if (onPress) {
         onPress();
@@ -55,9 +58,11 @@ const AlertModal = ({
     // 강조할 텍스트가 없으면 그냥 출력
     if (!highlightText || !message.includes(highlightText)) {
       return (
-        <Text style={[FONTS.fs_14_medium, styles.message]}>
+        <AdaptiveText
+          variant="body"
+          style={[FONTS.fs_14_medium, styles.message]}>
           {message}
-        </Text>
+        </AdaptiveText>
       );
     }
 
@@ -69,13 +74,7 @@ const AlertModal = ({
           <React.Fragment key={idx}>
             <Text>{part}</Text>
             {idx !== parts.length - 1 && (
-              <Text
-                style={[
-                  { color },
-                ]}
-              >
-                {highlightText}
-              </Text>
+              <Text style={[{color}]}>{highlightText}</Text>
             )}
           </React.Fragment>
         ))}
@@ -88,51 +87,60 @@ const AlertModal = ({
   }
 
   const content = (
-    <View style={[styles.overlay, Platform.OS === 'android' && styles.androidOverlay]}>
+    <View
+      style={[
+        styles.overlay,
+        Platform.OS === 'android' && styles.androidOverlay,
+      ]}>
       <View style={styles.container}>
-          {/* 이미지 주소 or 로컬 이미지 */}
-          {iconElement ? (
-            <View>{iconElement}</View>
-          ) : imageSource ? (
-            <AppImage source={imageSource} style={styles.image} />
-          ) : imageUri ? (
-            <AppImage uri={imageUri} style={styles.image} />
-          ) : null}
-          {/* 제목 */}
-          {title ? (
-            <Text style={[FONTS.fs_18_semibold, styles.title]}>{title}</Text>
-          ) : null}
-          {/* 내용 */}
-          {message ? renderMessage() : null}
+        {/* 이미지 주소 or 로컬 이미지 */}
+        {iconElement ? (
+          <View>{iconElement}</View>
+        ) : imageSource ? (
+          <AppImage source={imageSource} style={styles.image} />
+        ) : imageUri ? (
+          <AppImage uri={imageUri} style={styles.image} />
+        ) : null}
+        {/* 제목 */}
+        {title ? (
+          <AdaptiveText
+            variant="title"
+            style={[FONTS.fs_18_semibold, styles.title]}>
+            {title}
+          </AdaptiveText>
+        ) : null}
+        {/* 내용 */}
+        {message ? renderMessage() : null}
 
-          {buttonText2 ? (
-            <View style={styles.buttonRow}>
-              <ButtonWhite
-                title={buttonText2}
-                onPress={onPress2}
-                style={styles.button}
-              />
-              <ButtonWhite
-                title={buttonText}
-                backgroundColor={color}
-                textColor={COLORS.grayscale_0}
-                onPress={handlePrimaryPress}
-                style={styles.button}
-              />
-            </View>
-          ) : (
-            <View style={styles.buttonRow}>
-              <ButtonWhite
-                title={buttonText}
-                backgroundColor={color}
-                textColor={COLORS.grayscale_0}
-                onPress={handlePrimaryPress}
-                style={styles.button}
-              />
-            </View>
-          )}
-        </View>
+        {buttonText2 ? (
+          <View style={styles.buttonRow}>
+            <ButtonWhite
+              title={buttonText2}
+              onPress={onPress2}
+              style={styles.button}
+            />
+
+            <ButtonWhite
+              title={buttonText}
+              backgroundColor={color}
+              textColor={COLORS.grayscale_0}
+              onPress={handlePrimaryPress}
+              style={styles.button}
+            />
+          </View>
+        ) : (
+          <View style={styles.buttonRow}>
+            <ButtonWhite
+              title={buttonText}
+              backgroundColor={color}
+              textColor={COLORS.grayscale_0}
+              onPress={handlePrimaryPress}
+              style={styles.button}
+            />
+          </View>
+        )}
       </View>
+    </View>
   );
 
   if (Platform.OS === 'android') {

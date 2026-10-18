@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -27,6 +28,7 @@ import {COLORS} from '@constants/colors';
 const PAGE_SIZE = 10;
 
 const EmploySearchResult = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const userRole = useUserStore.getState()?.userRole;
 
@@ -58,7 +60,7 @@ const EmploySearchResult = ({route}) => {
   });
   const [keywords, setKeywords] = useState([]);
   const [selectedSort, setSelectedSort] = useState({
-    label: '추천 순',
+    label: t('common.recommended'),
     value: 'RECOMMEND',
   });
 
@@ -70,7 +72,7 @@ const EmploySearchResult = ({route}) => {
       filterOptions?.regions?.map(r => r.displayName) || [];
     const tagKeywords = filterOptions?.tags?.map(t => t.hashtag) || [];
     setKeywords([...regionKeywords, ...tagKeywords]);
-  }, [filterOptions]);
+  }, [filterOptions, t]);
 
   // ✅ params builder (keyword를 인자로!)
   const buildParams = useCallback(
@@ -118,15 +120,17 @@ const EmploySearchResult = ({route}) => {
         setIsLast(true);
         setErrorModal({
           visible: true,
-          message: '채용 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          message: t(
+            'common.jobInformationCouldNotBeLoadedPleaseTryAgainLater',
+          ),
+          buttonText: t('common.confirm'),
         });
       } finally {
         if (isLoadMore) setIsMoreLoading(false);
         else setIsInitialLoading(false);
       }
     },
-    [buildParams, userRole],
+    [buildParams, userRole, t],
   );
 
   // ✅ 초기 로드: search param 바뀔 때만 실행 (fetchRecruitList deps 제거!)
@@ -185,15 +189,15 @@ const EmploySearchResult = ({route}) => {
   if (isInitialLoading && page === 0) {
     return (
       <View style={styles.container}>
-        <Header title="채용공고" />
-        <Loading title="채용 정보를 가져오는 중입니다..." />
+        <Header title={t('common.recruitmentNotice')} />
+        <Loading title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="채용공고" />
+      <Header title={t('common.recruitmentNotice')} />
 
       {/* 검색창 */}
       <View style={styles.searchInputContainer}>
@@ -217,7 +221,7 @@ const EmploySearchResult = ({route}) => {
               style={styles.filterButtonContainer}
               onPress={() => setFilterModalVisible(true)}>
               <FilterIcon width={20} height={20} />
-              <Text style={styles.filterTitleText}>필터</Text>
+              <Text style={styles.filterTitleText}>{t('common.filter')}</Text>
             </TouchableOpacity>
 
             <ScrollView

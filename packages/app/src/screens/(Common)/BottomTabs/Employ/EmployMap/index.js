@@ -1,17 +1,17 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import NaverMapView from '@components/LocalizedNaverMapView';
 
 import LeftChevron from '@assets/images/chevron_left_black.svg';
 
 const EmployMap = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   // 제주도 내 임의 좌표 두 개
@@ -38,7 +38,7 @@ const EmployMap = () => {
           anchor={{x: 0.5, y: 1}}>
           <View collapsable={false} style={styles.priceMarker}>
             <Text style={[FONTS.fs_14_medium, styles.priceText]}>
-              게스트하우스 이름
+              {t('employ.guesthouseName')}
             </Text>
           </View>
         </NaverMapMarkerOverlay>
@@ -52,7 +52,7 @@ const EmployMap = () => {
           }}>
           <LeftChevron width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.mapButtonText]}>
-            돌아가기
+            {t('employ.goBack')}
           </Text>
         </TouchableOpacity>
       </View>

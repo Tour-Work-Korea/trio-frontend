@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -25,33 +27,33 @@ import {useMeetRegionStore} from '@screens/(Common)/BottomTabs/Meet/regions/stor
 const {height} = Dimensions.get('window');
 
 const CATEGORY_OPTIONS = [
-  {id: null, label: '전체'},
-  {id: 'POTLUCK', label: '포틀럭'},
-  {id: 'DINNER_PARTY', label: '디너파티'},
-  {id: 'BOOK', label: '독서'},
-  {id: 'WALK', label: '산책'},
+  {id: null, label: i18n.t('common.all')},
+  {id: 'POTLUCK', label: i18n.t('common.potluck')},
+  {id: 'DINNER_PARTY', label: i18n.t('common.dinnerParty')},
+  {id: 'BOOK', label: i18n.t('common.reading')},
+  {id: 'WALK', label: i18n.t('common.walk')},
 ];
 
 const GUEST_OPTIONS = [
-  {id: null, label: '누구나 참여'},
-  {id: true, label: '숙박객 전용'},
+  {id: null, label: i18n.t('meet.anyoneCanParticipate')},
+  {id: true, label: i18n.t('common.forHotelGuestsOnly')},
 ];
 
 const CAPACITY_OPTIONS = [
-  {id: null, label: '전체'},
-  {id: 'FROM_3_TO_10', label: '3~10명'},
-  {id: 'FROM_11_TO_20', label: '11~20명'},
-  {id: 'FROM_21_TO_30', label: '21~30명'},
-  {id: 'FROM_31_TO_60', label: '31~60명'},
+  {id: null, label: i18n.t('common.all')},
+  {id: 'FROM_3_TO_10', label: i18n.t('meet.310People')},
+  {id: 'FROM_11_TO_20', label: i18n.t('meet.1120People')},
+  {id: 'FROM_21_TO_30', label: i18n.t('meet.2130People')},
+  {id: 'FROM_31_TO_60', label: i18n.t('meet.3160People')},
 ];
 
 const PRICE_OPTIONS = [
-  {id: 'all', label: '전체'},
-  {id: 'FREE', label: '무료'},
-  {id: 'UNDER_10000', label: '1만원 이하'},
-  {id: 'UNDER_30000', label: '3만원 이하'},
-  {id: 'UNDER_50000', label: '5만원 이하'},
-  {id: 'custom', label: '직접 입력'},
+  {id: 'all', label: i18n.t('common.all')},
+  {id: 'FREE', label: i18n.t('common.free')},
+  {id: 'UNDER_10000', label: i18n.t('meet.lessThan10000Won')},
+  {id: 'UNDER_30000', label: i18n.t('meet.lessThan30000Won')},
+  {id: 'UNDER_50000', label: i18n.t('meet.lessThan50000Won')},
+  {id: 'custom', label: i18n.t('meet.enterDirectly')},
 ];
 
 const DEFAULT_FILTERS = {
@@ -95,16 +97,15 @@ const MeetFilterModal = ({
   initialScrollTarget,
   selectedRegion,
 }) => {
+  const {t} = useTranslation();
   const setRegion = useMeetRegionStore(state => state.setRegion);
-  const {
-    scrollRef,
-    contentContainerStyle: keyboardAwareContentStyle,
-  } = useKeyboardAwareScrollView({
-    basePaddingBottom: 180,
-    extraScrollOffset: 40,
-    scrollDelay: 160,
-    iosOnly: false,
-  });
+  const {scrollRef, contentContainerStyle: keyboardAwareContentStyle} =
+    useKeyboardAwareScrollView({
+      basePaddingBottom: 180,
+      extraScrollOffset: 40,
+      scrollDelay: 160,
+      iosOnly: false,
+    });
   const sectionPositionsRef = useRef({});
 
   const initialState = useMemo(
@@ -149,18 +150,21 @@ const MeetFilterModal = ({
   //   setFilters(DEFAULT_FILTERS);
   // };
 
-  const scrollToSection = useCallback(key => {
-    const y = sectionPositionsRef.current[key] ?? 0;
+  const scrollToSection = useCallback(
+    key => {
+      const y = sectionPositionsRef.current[key] ?? 0;
 
-    requestAnimationFrame(() => {
-      setTimeout(() => {
-        scrollRef.current?.scrollTo?.({
-          y: Math.max(0, y - 12),
-          animated: true,
-        });
-      }, 180);
-    });
-  }, [scrollRef]);
+      requestAnimationFrame(() => {
+        setTimeout(() => {
+          scrollRef.current?.scrollTo?.({
+            y: Math.max(0, y - 12),
+            animated: true,
+          });
+        }, 180);
+      });
+    },
+    [scrollRef],
+  );
 
   const scrollToPriceInput = useCallback(() => {
     requestAnimationFrame(() => {
@@ -248,7 +252,7 @@ const MeetFilterModal = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold]}>필터</Text>
+            <Text style={[FONTS.fs_20_semibold]}>{t('common.filter')}</Text>
             <TouchableOpacity
               activeOpacity={1}
               style={styles.xBtn}
@@ -268,7 +272,7 @@ const MeetFilterModal = ({
             keyboardShouldPersistTaps="handled">
             <View style={styles.section} {...registerSection('region')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                지역
+                {t('common.region')}
               </Text>
               <RegionChips
                 value={nextRegion}
@@ -281,7 +285,7 @@ const MeetFilterModal = ({
 
             <View style={styles.section} {...registerSection('category')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                카테고리
+                {t('common.category')}
               </Text>
               <View style={styles.radioGrid}>
                 {CATEGORY_OPTIONS.map(option =>
@@ -299,7 +303,7 @@ const MeetFilterModal = ({
 
             <View style={styles.section} {...registerSection('guest')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                참여 대상
+                {t('common.whoShouldParticipate')}
               </Text>
               <View style={styles.segmented}>
                 {GUEST_OPTIONS.map(option => {
@@ -329,7 +333,7 @@ const MeetFilterModal = ({
 
             <View style={styles.section} {...registerSection('capacity')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                정원
+                {t('common.garden')}
               </Text>
               <View style={styles.radioGrid}>
                 {CAPACITY_OPTIONS.map(option =>
@@ -350,7 +354,7 @@ const MeetFilterModal = ({
 
             <View style={styles.section} {...registerSection('price')}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                가격 범위
+                {t('common.priceRange')}
               </Text>
               <View style={styles.priceRow}>
                 {PRICE_OPTIONS.map(renderPriceChip)}
@@ -364,11 +368,12 @@ const MeetFilterModal = ({
                       setFilter({minPrice: onlyNumbers(value)})
                     }
                     onFocus={scrollToPriceInput}
-                    placeholder="최소 금액"
+                    placeholder={t('common.minimumAmount')}
                     placeholderTextColor={COLORS.grayscale_400}
                     keyboardType="number-pad"
                     style={[FONTS.fs_14_medium, styles.priceInput]}
                   />
+
                   <Text style={[FONTS.fs_14_medium, styles.priceDivider]}>
                     ~
                   </Text>
@@ -378,12 +383,15 @@ const MeetFilterModal = ({
                       setFilter({maxPrice: onlyNumbers(value)})
                     }
                     onFocus={scrollToPriceInput}
-                    placeholder="최대 금액"
+                    placeholder={t('common.maximumAmount')}
                     placeholderTextColor={COLORS.grayscale_400}
                     keyboardType="number-pad"
                     style={[FONTS.fs_14_medium, styles.priceInput]}
                   />
-                  <Text style={[FONTS.fs_14_medium, styles.wonText]}>원</Text>
+
+                  <Text style={[FONTS.fs_14_medium, styles.wonText]}>
+                    {t('common.won')}
+                  </Text>
                 </View>
               )}
             </View>
@@ -391,15 +399,15 @@ const MeetFilterModal = ({
 
           <View style={styles.sticky}>
             {/* <View style={styles.resetButton}>
-              <ButtonWhite
-                title="초기화"
-                onPress={handleReset}
-                disabled={!isDirty}
-              />
-            </View> */}
+               <ButtonWhite
+                 title="초기화"
+                 onPress={handleReset}
+                 disabled={!isDirty}
+               />
+              </View> */}
             <View style={styles.confirmButton}>
               <ButtonScarlet
-                title="콘텐츠 보기"
+                title={t('meet.viewActivity')}
                 onPress={() => {
                   setRegion(nextRegion);
                   onApply({

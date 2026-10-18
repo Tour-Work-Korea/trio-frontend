@@ -1,11 +1,6 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
@@ -18,6 +13,7 @@ import {trimJejuPrefix} from '@utils/formatAddress';
 import AppImage from '@components/AppImage';
 
 export default function UserPastReservations({data}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const renderItem = ({item, index}) => {
@@ -35,8 +31,12 @@ export default function UserPastReservations({data}) {
         <TouchableOpacity
           style={styles.card}
           activeOpacity={1}
-          onPress={() => navigation.navigate('MeetPaymentReceipt', {reservationId: item.reservationId, partyId: item.partyId})}
-        >
+          onPress={() =>
+            navigation.navigate('MeetPaymentReceipt', {
+              reservationId: item.reservationId,
+              partyId: item.partyId,
+            })
+          }>
           {/* 상단 날짜/시간 */}
           <Text style={[FONTS.fs_14_medium, styles.dateTimeText]}>
             {startFormatted.date} {startFormatted.time}
@@ -57,12 +57,17 @@ export default function UserPastReservations({data}) {
             style={[FONTS.fs_12_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {trimJejuPrefix(item.guesthouseAddress) || '주소 정보 없음'}
+            {trimJejuPrefix(item.guesthouseAddress) ||
+              t('common.noAddressInformation')}
           </Text>
 
           {/* 썸네일 */}
           <View style={styles.imageWrap}>
-            <AppImage source={imageSource} style={styles.image} resizeMode="cover" />
+            <AppImage
+              source={imageSource}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </View>
         </TouchableOpacity>
         {index !== data.length - 1 && <View style={styles.devide} />}
@@ -75,9 +80,10 @@ export default function UserPastReservations({data}) {
       <TouchableOpacity
         activeOpacity={1}
         style={styles.cancelledBtn}
-        onPress={() => navigation.navigate('UserMeetReservationCancelled')}
-      >
-        <Text style={[FONTS.fs_12_medium, styles.cancelledBtnText]}>취소·반려된 콘텐츠 보기</Text>
+        onPress={() => navigation.navigate('UserMeetReservationCancelled')}>
+        <Text style={[FONTS.fs_12_medium, styles.cancelledBtnText]}>
+          {t('meet.viewCanceledRejectedActivity')}
+        </Text>
         <ChevronRight width={12} height={12} />
       </TouchableOpacity>
       <FlatList
@@ -93,16 +99,15 @@ export default function UserPastReservations({data}) {
           <EmptyState
             icon={SearchEmpty}
             iconSize={{width: 120, height: 120}}
-            title="신청내역이 없어요"
-            description="콘텐츠 신청하러 가볼까요?"
-            buttonText="콘텐츠 찾아보기"
+            title={t('common.thereIsNoApplicationHistory')}
+            description={t('common.shallWeGoApplyForActivity')}
+            buttonText={t('common.browseActivity')}
             onPressButton={() =>
               navigation.navigate('MainTabs', {screen: '콘텐츠'})
             }
           />
         }
       />
-
     </>
   );
 }

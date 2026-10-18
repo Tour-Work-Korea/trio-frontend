@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   View,
@@ -24,6 +25,7 @@ const EditFormInput = ({
   onChangeAuthText,
   onConfirmAuth,
 }) => {
+  const {t} = useTranslation();
   return (
     <View style={styles.container}>
       {/* 제목 */}
@@ -37,6 +39,7 @@ const EditFormInput = ({
           onChangeText={onChangeText}
           placeholder={placeholder}
         />
+
         {value?.length > 0 && (
           <TouchableOpacity
             style={styles.clearButton}
@@ -50,7 +53,7 @@ const EditFormInput = ({
       {showSendAuthButton && (
         <View style={styles.sendAuthButton}>
           <ButtonScarlet
-            title="인증 번호 발급"
+            title={t('components.issuanceOfAuthenticationNumber')}
             marginHorizontal="0"
             onPress={onSendAuth}
           />
@@ -64,11 +67,12 @@ const EditFormInput = ({
             style={[FONTS.fs_body, styles.authInput]}
             value={authValue}
             onChangeText={onChangeAuthText}
-            placeholder="인증번호를 입력해 주세요"
+            placeholder={t('components.pleaseEnterYourAuthenticationNumber')}
           />
+
           <View style={styles.authInputButton}>
             <ButtonWhite
-              title="확인"
+              title={t('common.confirm')}
               marginHorizontal="0"
               onPress={onConfirmAuth}
             />

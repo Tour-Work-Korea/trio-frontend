@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {
   View,
@@ -44,6 +45,7 @@ const mapApiToUI = it => {
 };
 
 const MeetSearch = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const region = useMeetRegionStore(state => state.region);
   const setRegion = useMeetRegionStore(state => state.setRegion);
@@ -77,15 +79,19 @@ const MeetSearch = () => {
     const d = dayjs(isoStr);
     const isToday = d.format('YYYY-MM-DD') === todayKey;
     const label =
-      (isToday ? '오늘, ' : `${d.date()}일, `) +
-      `${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+      (isToday ? t('meet.today') : t('meet.valueDays', {value1: d.date()})) +
+      `${
+        d.hour() < 12 ? t('common.morning') : t('common.afternoon')
+      } ${d.format('h:mm')}`;
     return {isToday, label};
   };
 
   // 콘텐츠 데이터 로더
   const fetchPage = useCallback(
     async (nextPage, reset = false) => {
-      const requestKey = `${region}:${submittedKeyword}:${nextPage}:${reset ? 'reset' : 'append'}`;
+      const requestKey = `${region}:${submittedKeyword}:${nextPage}:${
+        reset ? 'reset' : 'append'
+      }`;
 
       if (
         requestKeyRef.current === requestKey ||
@@ -113,7 +119,10 @@ const MeetSearch = () => {
         if (requestKeyRef.current !== requestKey) {
           return;
         }
-        prefetchImageUrls(mapped.map(item => item.thumbnailUri), {limit: 8});
+        prefetchImageUrls(
+          mapped.map(item => item.thumbnailUri),
+          {limit: 8},
+        );
 
         setItems(prev => (reset ? mapped : [...prev, ...mapped]));
         setPage(nextPage);
@@ -198,7 +207,8 @@ const MeetSearch = () => {
                 {item.placeName}
               </Text>
               <TouchableOpacity
-                activeOpacity={1} onPress={() => toggleFavorite(item.id)}>
+                activeOpacity={1}
+                onPress={() => toggleFavorite(item.id)}>
                 {isFav ? (
                   <HeartFilled width={20} height={20} />
                 ) : (
@@ -213,11 +223,13 @@ const MeetSearch = () => {
                 {item.title}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.countText]}>
-                {item.joined}/{item.capacity}명
+                {item.joined}/{item.capacity}
+                {t('common.peopleUnit')}
               </Text>
             </View>
             <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
-              {item.price.toLocaleString()}원
+              {item.price.toLocaleString()}
+              {t('common.won')}
             </Text>
           </View>
         </View>
@@ -249,14 +261,16 @@ const MeetSearch = () => {
           onPress={() => navigation.goBack()}>
           <ChevronLeft width={24} height={24} />
         </TouchableOpacity>
-        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>콘텐츠</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+          {t('common.activity')}
+        </Text>
       </View>
 
       {/* 검색창 */}
       <View style={styles.searchBox}>
         <SearchIcon width={24} height={24} />
         <TextInput
-          placeholder="찾는 콘텐츠가 있으신가요?"
+          placeholder={t('meet.isThereActivityYouAreLookingFor')}
           style={[FONTS.fs_14_regular, styles.input]}
           placeholderTextColor={COLORS.grayscale_600}
           value={keyword}
@@ -271,7 +285,7 @@ const MeetSearch = () => {
       {/* 콘텐츠 리스트 */}
       <View style={styles.meetListContainer}>
         <Text style={[FONTS.fs_14_medium, styles.sectionTitle]}>
-          콘텐츠 중인 게스트하우스
+          {t('meet.guestHouseInActivity')}
         </Text>
 
         <FlatList
@@ -297,8 +311,8 @@ const MeetSearch = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="조건에 맞는 콘텐츠가 없어요"
-                  description="마음에 드는 콘텐츠를 찾으러 가볼까요?"
+                  title={t('meet.thereIsNoActivityThatMeetsTheConditions')}
+                  description={t('meet.shallWeGoFindYourFavoriteActivity')}
                 />
               </View>
             ) : null

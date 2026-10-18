@@ -11,6 +11,9 @@ import ErrorToast from '@components/toasts/ErrorToast';
 import {tryAutoLogin} from '@utils/auth/login';
 import useUserStore from '@stores/userStore';
 import WebDownloadBanner from '@components/WebDownloadBanner';
+import {I18nextProvider} from 'react-i18next';
+import i18n from './src/i18n';
+import useLocaleStore, {initializeLocale} from './src/stores/localeStore';
 
 const LOGOUT_HOME_LOCK_KEY = '__TRIO_LOGOUT_HOME_LOCK__';
 
@@ -25,9 +28,7 @@ const PROTECTED_WEB_PATH_PREFIXES = [
   '/employ/apply',
 ];
 
-const PROTECTED_WEB_PATHS = new Set([
-  '/guesthouses/reviews',
-]);
+const PROTECTED_WEB_PATHS = new Set(['/guesthouses/reviews']);
 
 const isProtectedWebPath = pathname => {
   const normalizedPath = pathname || '/';
@@ -48,7 +49,21 @@ const toastConfig = {
 };
 
 export default function App() {
+  const localeInitialized = useLocaleStore(state => state.isInitialized);
+
   useEffect(() => {
+    initializeLocale().catch(error => {
+      if (__DEV__) {
+        console.warn('locale initialization failed:', error?.message);
+      }
+    });
+  }, []);
+
+  useEffect(() => {
+    if (!localeInitialized) {
+      return;
+    }
+
     const initializeAuth = async () => {
       const restored = await tryAutoLogin();
       const {accessToken, userRole} = useUserStore.getState();
@@ -66,7 +81,7 @@ export default function App() {
     };
 
     initializeAuth();
-  }, []);
+  }, [localeInitialized]);
 
   useEffect(() => {
     if (typeof window === 'undefined') {
@@ -79,11 +94,7 @@ export default function App() {
       }
 
       if (window.location.pathname !== '/') {
-        window.history.replaceState(
-          {__trioLogoutHomeLock: true},
-          '',
-          '/',
-        );
+        window.history.replaceState({__trioLogoutHomeLock: true}, '', '/');
       }
 
       window.history.pushState({__trioLogoutHomeLock: true}, '', '/');
@@ -97,17 +108,23 @@ export default function App() {
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <StatusBar barStyle="dark-content" />
-        <View style={styles.appFrame}>
-          <WebDownloadBanner />
-          <RootNavigation />
-        </View>
-        <Toast config={toastConfig} />
-        <GlobalAlertModal />
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <I18nextProvider i18n={i18n}>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+          <StatusBar barStyle="dark-content" />
+          {localeInitialized ? (
+            <>
+              <View style={styles.appFrame}>
+                <WebDownloadBanner />
+                <RootNavigation />
+              </View>
+              <Toast config={toastConfig} />
+              <GlobalAlertModal />
+            </>
+          ) : null}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </I18nextProvider>
   );
 }
 

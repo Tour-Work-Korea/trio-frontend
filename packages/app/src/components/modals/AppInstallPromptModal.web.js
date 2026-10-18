@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   Image,
@@ -12,15 +13,14 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import XBtn from '@assets/images/x_gray.svg';
 import LogoOrange from '@assets/images/logo_orange.svg';
-import {
-  APP_STORE_URLS,
-  getWebDeviceType,
-} from '@utils/webOpenApp';
+import {APP_STORE_URLS, getWebDeviceType} from '@utils/webOpenApp';
 
 const QR_IMAGE_SIZE = 116;
 
 const getQrImageUri = url =>
-  `https://api.qrserver.com/v1/create-qr-code/?size=${QR_IMAGE_SIZE}x${QR_IMAGE_SIZE}&margin=8&data=${encodeURIComponent(url)}`;
+  `https://api.qrserver.com/v1/create-qr-code/?size=${QR_IMAGE_SIZE}x${QR_IMAGE_SIZE}&margin=8&data=${encodeURIComponent(
+    url,
+  )}`;
 
 const AppInstallPromptModal = ({
   visible,
@@ -36,6 +36,7 @@ const AppInstallPromptModal = ({
   showStoreQrInitially = false,
   storeUrls = APP_STORE_URLS,
 }) => {
+  const {t} = useTranslation();
   const [qrVisible, setQrVisible] = useState(false);
   const deviceType = getWebDeviceType();
   const isMobileWeb = deviceType === 'ios' || deviceType === 'android';
@@ -56,6 +57,7 @@ const AppInstallPromptModal = ({
         qrUri: getQrImageUri(storeUrls.android),
       },
     ],
+
     [storeUrls],
   );
 
@@ -114,15 +116,20 @@ const AppInstallPromptModal = ({
           <TouchableOpacity
             key={item.label}
             style={styles.qrCard}
-            accessibilityLabel={`${item.label} 다운로드`}
+            accessibilityLabel={t('components.valueDownload', {
+              item_label: item.label,
+            })}
             onPress={() =>
               window.open(item.url, '_blank', 'noopener,noreferrer')
             }>
             <Image
               source={{uri: item.qrUri}}
-              accessibilityLabel={`${item.label} QR 코드`}
+              accessibilityLabel={t('components.valueQrCode', {
+                item_label: item.label,
+              })}
               style={styles.qrImage}
             />
+
             <Text
               style={[
                 FONTS.fs_12_medium,

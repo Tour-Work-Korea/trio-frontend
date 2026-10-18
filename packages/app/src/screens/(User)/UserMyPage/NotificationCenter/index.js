@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useMemo, useState} from 'react';
 import {ActivityIndicator, Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -13,10 +15,10 @@ import NotificationList from './NotificationList';
 import styles from './NotificationCenter.styles';
 
 const FILTER_CHIPS = [
-  {key: 'all', label: '전체'},
-  {key: 'roomReservation', label: '숙소'},
-  {key: 'partyReservation', label: '콘텐츠'},
-  {key: 'community', label: '커뮤니티'},
+  {key: 'all', label: i18n.t('common.all')},
+  {key: 'roomReservation', label: i18n.t('common.accommodation_fe9320')},
+  {key: 'partyReservation', label: i18n.t('common.activity')},
+  {key: 'community', label: i18n.t('common.community')},
 ];
 
 const extractItems = data =>
@@ -37,16 +39,16 @@ const formatDate = value => {
   const diffMinutes = Math.max(0, Math.floor(diffMs / 60000));
 
   if (diffMinutes < 1) {
-    return '방금 전';
+    return i18n.t('notification.justNow');
   }
 
   if (diffMinutes < 60) {
-    return `${diffMinutes}분 전`;
+    return i18n.t('notification.valueMinutesAgo', {diffMinutes: diffMinutes});
   }
 
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
-    return `${diffHours}시간 전`;
+    return i18n.t('notification.valueHoursAgo', {diffHours: diffHours});
   }
 
   const year = String(date.getFullYear()).slice(2);
@@ -106,7 +108,7 @@ const buildLines = item => {
 
   const first = candidates[0];
   if (!first) {
-    return ['알림 상세를 확인해주세요.'];
+    return [i18n.t('notification.pleaseCheckTheNotificationDetails')];
   }
 
   return String(first)
@@ -121,7 +123,7 @@ const mapNotificationItem = item => ({
   notificationId: item?.id ?? null,
   type: normalizeType(item?.type),
   status: normalizeStatus(item?.type),
-  title: item?.title || '새로운 알림',
+  title: item?.title || i18n.t('common.newNotifications'),
   lines: buildLines(item),
   date: formatDate(item?.createdAt),
   isRead: Boolean(item?.isRead),
@@ -129,6 +131,7 @@ const mapNotificationItem = item => ({
 });
 
 const NotificationCenter = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [selectedFilter, setSelectedFilter] = useState(FILTER_CHIPS[0].key);
   const [notifications, setNotifications] = useState([]);
@@ -210,16 +213,19 @@ const NotificationCenter = () => {
       ),
     );
 
-    await openNotificationTarget({
-      ...(item.rawItem ?? {}),
-      ...(notificationDetail ?? {}),
-    }, navigation);
+    await openNotificationTarget(
+      {
+        ...(item.rawItem ?? {}),
+        ...(notificationDetail ?? {}),
+      },
+      navigation,
+    );
   };
 
   return (
     <View style={styles.container}>
       <Header
-        title="알림함"
+        title={t('common.notificationBox')}
         rightComponent={
           <TouchableOpacity
             style={styles.headerIconButton}
@@ -259,7 +265,9 @@ const NotificationCenter = () => {
           activeOpacity={1}
           onPress={handleReadAll}>
           <Text style={[FONTS.fs_12_medium, styles.actionButtonText]}>
-            {markingAllRead ? '처리 중' : '전체 읽음'}
+            {markingAllRead
+              ? t('notification.processing')
+              : t('notification.readAll')}
           </Text>
         </TouchableOpacity>
       </View>

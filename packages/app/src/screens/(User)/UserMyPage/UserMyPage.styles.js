@@ -85,6 +85,11 @@ export default StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  englishProfileImage: {
+    width: 72,
+    height: 72,
+    marginRight: 8,
+  },
   profileContent: {
     flex: 1,
   },
@@ -98,6 +103,10 @@ export default StyleSheet.create({
     marginRight: 12,
     gap: 8,
   },
+  englishProfileTextGroup: {
+    marginRight: 8,
+    gap: 6,
+  },
   profileTextSection: {
     flexDirection: 'row',
     gap: 8,
@@ -106,6 +115,9 @@ export default StyleSheet.create({
   profileSectionTitle: {
     color: COLORS.grayscale_400,
     width: 36,
+  },
+  englishProfileSectionTitle: {
+    width: 64,
   },
   name: {
     color: COLORS.grayscale_800,
@@ -123,8 +135,15 @@ export default StyleSheet.create({
     paddingVertical: 8,
     borderRadius: 100,
   },
+  englishProfileEdit: {
+    maxWidth: 104,
+    paddingHorizontal: 8,
+  },
   profileEditText: {
     color: COLORS.grayscale_800,
+  },
+  englishProfileEditText: {
+    flexShrink: 1,
   },
 
   // 유저 프로모션 섹션

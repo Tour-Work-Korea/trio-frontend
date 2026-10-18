@@ -8,10 +8,12 @@ import React, {
   useState,
 } from 'react';
 import {StyleSheet, Text, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 import {NAVER_CLIENT_ID} from '@env';
 
 const MapContext = createContext(null);
 let naverMapsPromise = null;
+let loadedNaverMapsLanguage = null;
 const CLICK_SUPPRESSION_MS = 450;
 const DRAG_THRESHOLD_PX = 2;
 const WHEEL_SUPPRESSION_MS = 650;
@@ -23,18 +25,23 @@ const suppressMapClicks = (duration = CLICK_SUPPRESSION_MS) => {
 
 const shouldSuppressMapClick = () => Date.now() < globalSuppressClickUntil;
 
-const loadNaverMaps = () => {
+const loadNaverMaps = language => {
   if (typeof window === 'undefined') {
     return Promise.reject(new Error('Naver Maps is only available in browser'));
   }
 
-  if (window.naver?.maps) {
+  if (window.naver?.maps && loadedNaverMapsLanguage === language) {
     return Promise.resolve(window.naver.maps);
   }
 
-  if (naverMapsPromise) {
+  if (naverMapsPromise && loadedNaverMapsLanguage === language) {
     return naverMapsPromise;
   }
+
+  document.querySelector('[data-trio-naver-map]')?.remove();
+  window.naver = undefined;
+  naverMapsPromise = null;
+  loadedNaverMapsLanguage = language;
 
   naverMapsPromise = new Promise((resolve, reject) => {
     if (!NAVER_CLIENT_ID) {
@@ -55,7 +62,7 @@ const loadNaverMaps = () => {
     script.dataset.trioNaverMap = 'true';
     script.src = `https://oapi.map.naver.com/openapi/v3/maps.js?ncpKeyId=${encodeURIComponent(
       NAVER_CLIENT_ID,
-    )}`;
+    )}&language=${language}`;
     script.onload = () => resolve(window.naver.maps);
     script.onerror = reject;
     document.head.appendChild(script);
@@ -75,8 +82,7 @@ const getCenterFromProps = ({initialCamera, initialRegion}) => {
 
   if (initialRegion?.latitude && initialRegion?.longitude) {
     return {
-      latitude:
-        initialRegion.latitude + (initialRegion.latitudeDelta ?? 0) / 2,
+      latitude: initialRegion.latitude + (initialRegion.latitudeDelta ?? 0) / 2,
       longitude:
         initialRegion.longitude + (initialRegion.longitudeDelta ?? 0) / 2,
       zoom: initialRegion.zoom ?? 12,
@@ -92,12 +98,12 @@ const getCenterFromProps = ({initialCamera, initialRegion}) => {
 
 const getBoundsFromRegion = (maps, region) => {
   if (
-    !maps
-    || !region
-    || !Number.isFinite(region.latitude)
-    || !Number.isFinite(region.longitude)
-    || !Number.isFinite(region.latitudeDelta)
-    || !Number.isFinite(region.longitudeDelta)
+    !maps ||
+    !region ||
+    !Number.isFinite(region.latitude) ||
+    !Number.isFinite(region.longitude) ||
+    !Number.isFinite(region.latitudeDelta) ||
+    !Number.isFinite(region.longitudeDelta)
   ) {
     return null;
   }
@@ -158,11 +164,14 @@ export const NaverMapView = forwardRef(function NaverMapView(
     onCameraIdle,
     onInitialized,
     onTapMap,
+    locale = 'ko',
     style,
     ...props
   },
   ref,
 ) {
+  const {t} = useTranslation();
+  const mapLanguage = locale === 'en' ? 'en' : 'ko';
   const mapElementRef = useRef(null);
   const mapRef = useRef(null);
   const initialCameraRef = useRef(initialCamera);
@@ -203,36 +212,44 @@ export const NaverMapView = forwardRef(function NaverMapView(
   onInitializedRef.current = onInitialized;
   onTapMapRef.current = onTapMap;
 
-  useImperativeHandle(ref, () => ({
-    animateRegionTo: region => {
-      if (!mapRef.current || !maps || !region) {
-        return;
-      }
+  useImperativeHandle(
+    ref,
+    () => ({
+      animateRegionTo: region => {
+        if (!mapRef.current || !maps || !region) {
+          return;
+        }
 
-      if (fitMapToRegion(mapRef.current, maps, region)) {
-        return;
-      }
+        if (fitMapToRegion(mapRef.current, maps, region)) {
+          return;
+        }
 
-      const center = getCenterFromProps({initialRegion: region});
-      mapRef.current.panTo(new maps.LatLng(center.latitude, center.longitude));
-    },
-    animateCameraTo: camera => {
-      if (!mapRef.current || !maps || !camera) {
-        return;
-      }
+        const center = getCenterFromProps({initialRegion: region});
+        mapRef.current.panTo(
+          new maps.LatLng(center.latitude, center.longitude),
+        );
+      },
+      animateCameraTo: camera => {
+        if (!mapRef.current || !maps || !camera) {
+          return;
+        }
 
-      mapRef.current.panTo(new maps.LatLng(camera.latitude, camera.longitude));
+        mapRef.current.panTo(
+          new maps.LatLng(camera.latitude, camera.longitude),
+        );
 
-      if (camera.zoom != null) {
-        mapRef.current.setZoom(camera.zoom);
-      }
-    },
-  }), [maps]);
+        if (camera.zoom != null) {
+          mapRef.current.setZoom(camera.zoom);
+        }
+      },
+    }),
+    [maps],
+  );
 
   useEffect(() => {
     let cancelled = false;
 
-    loadNaverMaps()
+    loadNaverMaps(mapLanguage)
       .then(nextMaps => {
         if (!cancelled) {
           setMaps(nextMaps);
@@ -240,14 +257,14 @@ export const NaverMapView = forwardRef(function NaverMapView(
       })
       .catch(error => {
         if (!cancelled) {
-          setErrorMessage(error?.message || '네이버 지도를 불러오지 못했어요');
+          setErrorMessage(error?.message || t('map.naverMapLoadFailed'));
         }
       });
 
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [mapLanguage, t]);
 
   useEffect(() => {
     if (!maps || !mapElementRef.current || mapRef.current) {
@@ -289,14 +306,38 @@ export const NaverMapView = forwardRef(function NaverMapView(
       suppressFromMapChange();
       onCameraChangedRef.current?.({reason: 'Gesture'});
     };
-    const dragStartListener = maps.Event.addListener(nextMap, 'dragstart', () => {
-      suppressFromMapGesture();
-    });
-    const dragListener = maps.Event.addListener(nextMap, 'drag', suppressFromMapGesture);
-    const dragEndListener = maps.Event.addListener(nextMap, 'dragend', suppressFromMapGesture);
-    const boundsChangedListener = maps.Event.addListener(nextMap, 'bounds_changed', suppressFromMapChange);
-    const centerChangedListener = maps.Event.addListener(nextMap, 'center_changed', suppressFromMapChange);
-    const zoomChangedListener = maps.Event.addListener(nextMap, 'zoom_changed', suppressFromMapChange);
+    const dragStartListener = maps.Event.addListener(
+      nextMap,
+      'dragstart',
+      () => {
+        suppressFromMapGesture();
+      },
+    );
+    const dragListener = maps.Event.addListener(
+      nextMap,
+      'drag',
+      suppressFromMapGesture,
+    );
+    const dragEndListener = maps.Event.addListener(
+      nextMap,
+      'dragend',
+      suppressFromMapGesture,
+    );
+    const boundsChangedListener = maps.Event.addListener(
+      nextMap,
+      'bounds_changed',
+      suppressFromMapChange,
+    );
+    const centerChangedListener = maps.Event.addListener(
+      nextMap,
+      'center_changed',
+      suppressFromMapChange,
+    );
+    const zoomChangedListener = maps.Event.addListener(
+      nextMap,
+      'zoom_changed',
+      suppressFromMapChange,
+    );
     const suppressFromDomGesture = event => {
       if (event?.type === 'pointermove') {
         const start = pointerStartRef.current;
@@ -384,8 +425,16 @@ export const NaverMapView = forwardRef(function NaverMapView(
       mapElement.removeEventListener('pointermove', suppressFromDomGesture, {
         capture: true,
       });
-      document.removeEventListener('pointerdown', handleDocumentPointerDown, true);
-      document.removeEventListener('pointermove', handleDocumentPointerMove, true);
+      document.removeEventListener(
+        'pointerdown',
+        handleDocumentPointerDown,
+        true,
+      );
+      document.removeEventListener(
+        'pointermove',
+        handleDocumentPointerMove,
+        true,
+      );
       document.removeEventListener('pointerup', handleDocumentPointerUp, true);
       document.removeEventListener('wheel', handleDocumentWheel, true);
       try {
@@ -447,10 +496,7 @@ export const NaverMapView = forwardRef(function NaverMapView(
           onCameraChangedRef.current?.({reason: 'Gesture'});
         }}
         style={[style, styles.mapContainer]}>
-        <div
-          ref={mapElementRef}
-          style={styles.nativeMap}
-        />
+        <div ref={mapElementRef} style={styles.nativeMap} />
         {errorMessage ? (
           <View style={styles.errorOverlay}>
             <Text>{errorMessage}</Text>
@@ -465,7 +511,12 @@ export const NaverMapView = forwardRef(function NaverMapView(
 export const NaverMapMarkerOverlay = ({latitude, longitude, onTap, zIndex}) => {
   const {map, maps, shouldSuppressClick} = useContext(MapContext) || {};
   useEffect(() => {
-    if (!map || !maps || !Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+    if (
+      !map ||
+      !maps ||
+      !Number.isFinite(latitude) ||
+      !Number.isFinite(longitude)
+    ) {
       return undefined;
     }
 

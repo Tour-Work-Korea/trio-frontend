@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -33,7 +35,7 @@ const formatRelativeTime = dateTime => {
   const diffMinutes = Math.floor(diffMs / 60000);
 
   if (diffMinutes < 1) {
-    return '방금';
+    return i18n.t('common.justNow');
   }
 
   if (diffMinutes < 60) {
@@ -57,6 +59,7 @@ const formatRelativeTime = dateTime => {
 };
 
 const MyCommunityPostList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const listRef = useRef(null);
   const postsLengthRef = useRef(0);
@@ -77,35 +80,41 @@ const MyCommunityPostList = () => {
     pageRef.current = page;
   }, [page]);
 
-  const fetchMyPosts = useCallback(async (pageToFetch = 0, isLoadMore = false) => {
-    try {
-      if (isLoadMore) {
-        setIsMoreLoading(true);
-      } else {
-        setIsInitialLoading(true);
-      }
+  const fetchMyPosts = useCallback(
+    async (pageToFetch = 0, isLoadMore = false) => {
+      try {
+        if (isLoadMore) {
+          setIsMoreLoading(true);
+        } else {
+          setIsInitialLoading(true);
+        }
 
-      const response = await communityApi.getMyPosts({
-        page: pageToFetch,
-        size: PAGE_SIZE,
-      });
-      const {content = [], last = true, number = pageToFetch} =
-        response.data ?? {};
+        const response = await communityApi.getMyPosts({
+          page: pageToFetch,
+          size: PAGE_SIZE,
+        });
+        const {
+          content = [],
+          last = true,
+          number = pageToFetch,
+        } = response.data ?? {};
 
-      setPosts(prev => (pageToFetch === 0 ? content : [...prev, ...content]));
-      setPage(number);
-      setHasNext(!last);
-    } catch (error) {
-      setHasNext(false);
-      console.warn('fetchMyCommunityPosts 실패:', error);
-    } finally {
-      if (isLoadMore) {
-        setIsMoreLoading(false);
-      } else {
-        setIsInitialLoading(false);
+        setPosts(prev => (pageToFetch === 0 ? content : [...prev, ...content]));
+        setPage(number);
+        setHasNext(!last);
+      } catch (error) {
+        setHasNext(false);
+        console.warn('fetchMyCommunityPosts 실패:', error);
+      } finally {
+        if (isLoadMore) {
+          setIsMoreLoading(false);
+        } else {
+          setIsInitialLoading(false);
+        }
       }
-    }
-  }, []);
+    },
+    [],
+  );
 
   const refreshVisibleMyPosts = useCallback(async () => {
     const lastLoadedPage = pageRef.current;
@@ -172,7 +181,9 @@ const MyCommunityPostList = () => {
         'fetchCommunityPostForEdit 실패:',
         error?.response?.data || error?.message,
       );
-      Alert.alert('게시글 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.');
+      Alert.alert(
+        t('community.thePostInformationCouldNotBeLoadedPleaseTryAgain'),
+      );
     } finally {
       setEditingPostId(null);
     }
@@ -183,28 +194,34 @@ const MyCommunityPostList = () => {
       return;
     }
 
-    Alert.alert('게시글 삭제', '게시글을 삭제할까요?', [
-      {text: '취소', style: 'cancel'},
-      {
-        text: '삭제',
-        style: 'destructive',
-        onPress: async () => {
-          try {
-            setDeletingPostId(postId);
-            await communityApi.deletePost(postId);
-            setPosts(prev => prev.filter(post => post.postId !== postId));
-          } catch (error) {
-            console.warn(
-              'deleteCommunityPost 실패:',
-              error?.response?.data || error?.message,
-            );
-            Alert.alert('게시글 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.');
-          } finally {
-            setDeletingPostId(null);
-          }
+    Alert.alert(
+      t('community.deletePost'),
+      t('community.shouldIDeleteThePost'),
+      [
+        {text: t('common.cancel'), style: 'cancel'},
+        {
+          text: t('common.delete'),
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              setDeletingPostId(postId);
+              await communityApi.deletePost(postId);
+              setPosts(prev => prev.filter(post => post.postId !== postId));
+            } catch (error) {
+              console.warn(
+                'deleteCommunityPost 실패:',
+                error?.response?.data || error?.message,
+              );
+              Alert.alert(
+                t('community.failedToDeleteThePostPleaseTryAgainLater'),
+              );
+            } finally {
+              setDeletingPostId(null);
+            }
+          },
         },
-      },
-    ]);
+      ],
+    );
   };
 
   const renderPostImages = images => {
@@ -258,6 +275,7 @@ const MyCommunityPostList = () => {
             iconSize={30}
             style={styles.avatar}
           />
+
           <Text style={[FONTS.fs_16_medium, styles.nickname]}>
             {item.author?.nickname}
           </Text>
@@ -266,9 +284,7 @@ const MyCommunityPostList = () => {
           </Text>
         </View>
 
-        <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-          {item.title}
-        </Text>
+        <Text style={[FONTS.fs_16_medium, styles.postTitle]}>{item.title}</Text>
         <Text
           style={[FONTS.fs_16_regular, styles.postContent]}
           numberOfLines={2}
@@ -302,7 +318,9 @@ const MyCommunityPostList = () => {
             disabled={editingPostId === item.postId}
             onPress={() => handleEditPost(item.postId)}>
             <Text style={[FONTS.fs_14_medium, styles.manageButtonText]}>
-              {editingPostId === item.postId ? '불러오는 중' : '수정'}
+              {editingPostId === item.postId
+                ? t('community.loading')
+                : t('common.edit')}
             </Text>
           </TouchableOpacity>
           <View style={styles.manageDivider} />
@@ -317,7 +335,9 @@ const MyCommunityPostList = () => {
                 styles.manageButtonText,
                 styles.deleteButtonText,
               ]}>
-              {deletingPostId === item.postId ? '삭제중' : '삭제'}
+              {deletingPostId === item.postId
+                ? t('common.deleting')
+                : t('common.delete')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -327,7 +347,10 @@ const MyCommunityPostList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="내가 쓴 글" onPress={() => navigation.goBack()} />
+      <Header
+        title={t('common.whatIWrote')}
+        onPress={() => navigation.goBack()}
+      />
       <FlatList
         ref={listRef}
         data={posts}
@@ -339,10 +362,10 @@ const MyCommunityPostList = () => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title="내가 쓴 글을 불러오는 중입니다..." />
+            <Loading title={t('community.loadingWhatIWrote')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-              아직 작성한 글이 없어요.
+              {t('community.iHavenTWrittenAnythingYet')}
             </Text>
           )
         }

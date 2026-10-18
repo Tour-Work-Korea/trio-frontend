@@ -1,9 +1,11 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
-import { View, Text, TouchableOpacity } from 'react-native';
+import {View, Text, TouchableOpacity} from 'react-native';
 
 import Header from '@components/Header';
 import styles from './UserGuesthouseReview.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 
 import UserGuesthouseReviewWrite from './UserGuesthouseReviewWrite';
 import UserGuesthouseReviewList from './UserGuesthouseReviewList';
@@ -11,16 +13,17 @@ import UserPartyReviewWrite from './UserPartyReviewWrite';
 import UserPartyReviewList from './UserPartyReviewList';
 
 const REVIEW_TYPES = [
-  {key: 'guesthouse', label: '게하'},
-  {key: 'party', label: '콘텐츠'},
+  {key: 'guesthouse', label: i18n.t('common.guesthouse')},
+  {key: 'party', label: i18n.t('common.activity')},
 ];
 
 const TABS = [
-  { key: 'write', label: '리뷰쓰기' },
-  { key: 'written', label: '작성한 리뷰' },
+  {key: 'write', label: i18n.t('guesthouse.writeAReview_324296')},
+  {key: 'written', label: i18n.t('guesthouse.writtenReview')},
 ];
 
 const UserGuesthouseReview = () => {
+  const {t} = useTranslation();
   const [reviewType, setReviewType] = useState('guesthouse');
   const [activeTab, setActiveTab] = useState('write');
 
@@ -42,7 +45,7 @@ const UserGuesthouseReview = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="내 리뷰" />
+      <Header title={t('common.myReview')} />
 
       <View style={styles.reviewTypeContainer}>
         {REVIEW_TYPES.map(type => (
@@ -72,16 +75,14 @@ const UserGuesthouseReview = () => {
           <TouchableOpacity
             key={tab.key}
             style={styles.tabButton}
-            onPress={() => setActiveTab(tab.key)}
-          >
+            onPress={() => setActiveTab(tab.key)}>
             <Text
               style={[
                 styles.tabText,
                 FONTS.fs_14_regular,
                 activeTab === tab.key && styles.activeTabText,
                 activeTab === tab.key && FONTS.fs_14_semibold,
-              ]}
-            >
+              ]}>
               {tab.label}
             </Text>
           </TouchableOpacity>

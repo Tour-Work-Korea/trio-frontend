@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -13,13 +14,11 @@ import {
   View,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import {StackActions, useNavigation, useRoute} from '@react-navigation/native';
 
 import Header from '@components/Header';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import {FONTS} from '@constants/fonts';
 import naverPlaceApi from '@utils/api/naverPlaceApi';
 import {normalizePlaceSearchResult} from '@utils/communityLocation';
@@ -89,6 +88,7 @@ const getCurrentPositionAsync = options =>
   });
 
 const CommunityPlaceSearch = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {initialQuery = ''} = route.params ?? {};
@@ -149,8 +149,8 @@ const CommunityPlaceSearch = () => {
         setSelectedResult(null);
         setErrorMessage(
           error?.message === 'NAVER_SEARCH_CREDENTIALS_MISSING'
-            ? '네이버 검색 키가 설정되지 않았어요.'
-            : '장소 검색에 실패했어요.',
+            ? t('community.naverSearchKeyHasNotBeenSet')
+            : t('community.theLocationSearchFailed'),
         );
       } finally {
         setIsSearching(false);
@@ -158,7 +158,7 @@ const CommunityPlaceSearch = () => {
     }, PLACE_SEARCH_DEBOUNCE_MS);
 
     return () => clearTimeout(searchTimer);
-  }, [trimmedQuery]);
+  }, [trimmedQuery, t]);
 
   useEffect(() => {
     if (!mapLocation) {
@@ -184,11 +184,15 @@ const CommunityPlaceSearch = () => {
       if (!permission.granted) {
         if (showPermissionAlert) {
           Alert.alert(
-            '위치 권한이 필요해요',
-            '현재 위치를 사용하려면 설정에서 위치 접근 권한을 허용해주세요.',
+            t('common.locationPermissionIsRequired'),
+            t('common.toUseYourCurrentLocationPleaseAllowLocationAccessIn'),
+
             [
-              {text: '취소', style: 'cancel'},
-              {text: '설정 열기', onPress: () => Linking.openSettings()},
+              {text: t('common.cancel'), style: 'cancel'},
+              {
+                text: t('common.openSettings'),
+                onPress: () => Linking.openSettings(),
+              },
             ],
           );
         }
@@ -213,7 +217,7 @@ const CommunityPlaceSearch = () => {
     } catch (error) {
       console.warn('community place current location 실패:', error);
       if (showPermissionAlert) {
-        Alert.alert('현재 위치를 가져오지 못했어요');
+        Alert.alert(t('common.failedToRetrieveCurrentLocation'));
       }
     } finally {
       setIsCurrentLocationLoading(false);
@@ -241,7 +245,7 @@ const CommunityPlaceSearch = () => {
     if (trimmedQuery.length < PLACE_SEARCH_MIN_LENGTH) {
       return (
         <Text style={[FONTS.fs_14_regular, styles.guideText]}>
-          두 글자 이상 입력해주세요.
+          {t('community.pleaseEnterAtLeastTwoCharacters')}
         </Text>
       );
     }
@@ -282,14 +286,14 @@ const CommunityPlaceSearch = () => {
                 <Text
                   style={[FONTS.fs_14_medium, styles.resultTitle]}
                   numberOfLines={1}>
-                  {item.placeName || '장소명 없음'}
+                  {item.placeName || t('community.noPlaceName')}
                 </Text>
                 <Text
                   style={[FONTS.fs_12_medium, styles.resultMeta]}
                   numberOfLines={1}>
                   {[item.category, item.roadAddress || item.address]
                     .filter(Boolean)
-                    .join(' · ') || '주소 정보가 없어요'}
+                    .join(' · ') || t('common.thereIsNoAddressInformation')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -297,14 +301,14 @@ const CommunityPlaceSearch = () => {
                 style={styles.selectButton}
                 onPress={() => handleSelectLocation(item)}>
                 <Text style={[FONTS.fs_14_semibold, styles.selectButtonText]}>
-                  선택
+                  {t('common.select')}
                 </Text>
               </TouchableOpacity>
             </TouchableOpacity>
           ))
         ) : (
           <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-            검색 결과가 없어요.
+            {t('community.thereAreNoSearchResults')}
           </Text>
         )}
       </ScrollView>
@@ -313,7 +317,10 @@ const CommunityPlaceSearch = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="장소 찾기" onPress={() => navigation.goBack()} />
+      <Header
+        title={t('community.findAPlace')}
+        onPress={() => navigation.goBack()}
+      />
       <View style={styles.inputWrap}>
         <SearchIcon width={18} height={18} />
         <TextInput
@@ -322,16 +329,13 @@ const CommunityPlaceSearch = () => {
           autoFocus
           returnKeyType="search"
           style={[FONTS.fs_14_regular, styles.input]}
-          placeholder="주소나 장소명으로 검색"
+          placeholder={t('community.searchByAddressOrPlaceName')}
           placeholderTextColor="#9AA1AA"
         />
       </View>
 
       <View style={styles.mapSection}>
-        <NaverMapView
-          ref={mapRef}
-          style={styles.map}
-          initialCamera={camera}>
+        <NaverMapView ref={mapRef} style={styles.map} initialCamera={camera}>
           {mapLocation ? (
             <NaverMapMarkerOverlay
               latitude={mapLocation.latitude}
@@ -358,7 +362,7 @@ const CommunityPlaceSearch = () => {
         {mapLocation ? (
           <View style={styles.mapBubble}>
             <Text style={[FONTS.fs_14_semibold, styles.mapBubbleText]}>
-              목록에서 장소를 선택해 주세요
+              {t('community.pleaseSelectALocationFromTheList')}
             </Text>
             <View style={styles.mapBubbleTail} />
           </View>

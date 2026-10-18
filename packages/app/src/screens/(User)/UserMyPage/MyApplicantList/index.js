@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -15,6 +16,7 @@ import AppImage from '@components/AppImage';
 // import DeleteWaLogo from '@assets/images/delete_wa.svg';
 
 const MyApplicantList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [applicants, setApplicants] = useState([]);
   const [errorModal, setErrorModal] = useState({
@@ -44,8 +46,9 @@ const MyApplicantList = () => {
         visible: true,
         title:
           error?.response?.data?.message ||
-          '지원현황 조회 중 오류가 발생했어요',
-        buttonText: '확인',
+          t('myPage.anErrorOccurredWhileCheckingApplicationStatus'),
+
+        buttonText: t('common.confirm'),
       }));
     } finally {
       setLoading(false);
@@ -97,6 +100,7 @@ const MyApplicantList = () => {
               style={styles.jobImage}
               resizeMode="cover"
             />
+
             <View style={styles.jobDetails}>
               <View style={{flex: 1}}>
                 {/* 게하 이름+하트 */}
@@ -128,20 +132,20 @@ const MyApplicantList = () => {
           onPress={() =>
             navigation.navigate('ResumeDetail', {
               id: item.resumeId,
-              headerTitle: '나의 이력서',
+              headerTitle: t('common.myResume'),
             })
           }>
           <Text style={styles.titleText}>{item.resumeTitle}</Text>
           <View style={styles.applyContainer}>
-            <Text style={styles.applyText}>지원 날짜</Text>
+            <Text style={styles.applyText}>{t('myPage.applicationDate')}</Text>
             <Text style={styles.applyText}>
               {formatLocalDateToDot(item.applyDate)}
             </Text>
           </View>
         </TouchableOpacity>
         {/* <ButtonWhite
-          title={'지원 취소하기'}
-          onPress={() => handleDeleteApplicant(item.id)}
+         title={'지원 취소하기'}
+         onPress={() => handleDeleteApplicant(item.id)}
         /> */}
       </View>
       <View style={styles.divider} />
@@ -150,14 +154,14 @@ const MyApplicantList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title={'지원 현황'} />
+      <Header title={t('common.supportStatus')} />
       {loading ? (
         <></>
       ) : applicants?.length === 0 ? (
         <EmployEmpty
-          title={'지원한 알바가 없어요'}
-          subTitle={'마음에 드는 알바를 보러 가볼까요?'}
-          buttonText={'알바 찾으러 가기'}
+          title={t('myPage.thereAreNoPartTimeJobsIAppliedFor')}
+          subTitle={t('myPage.shallWeGoSeeThePartTimeJobWeLike')}
+          buttonText={t('myPage.goFindAPartTimeJob')}
           onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
         />
       ) : (
@@ -178,14 +182,15 @@ const MyApplicantList = () => {
         onPress2={errorModal.onPress2}
         title={errorModal.title}
       />
+
       {/* <ResultModal
-        visible={deleteCompleted}
-        onClose={() => {
-          setDeleteCompleted(false);
-        }}
-        title="알바 지원을 취소했어요"
-        Icon={DeleteWaLogo}
-      /> */}
+         visible={deleteCompleted}
+         onClose={() => {
+           setDeleteCompleted(false);
+         }}
+         title="알바 지원을 취소했어요"
+         Icon={DeleteWaLogo}
+        /> */}
     </View>
   );
 };

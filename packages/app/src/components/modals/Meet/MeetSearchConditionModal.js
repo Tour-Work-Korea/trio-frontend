@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
@@ -26,7 +27,6 @@ import MinusIcon from '@assets/images/minus_gray.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
 
 dayjs.extend(isSameOrBefore);
-dayjs.locale('ko');
 
 const {height} = Dimensions.get('window');
 
@@ -34,14 +34,16 @@ const MeetSearchConditionModal = ({
   visible,
   onClose,
   onApply,
-  initialLocation = '제주도',
+  initialLocation,
   initialCheckInDate,
   initialCheckOutDate,
   initialAdultCount = 1,
   initialChildCount = 0,
 }) => {
+  const {t} = useTranslation();
+  const resolvedInitialLocation = initialLocation ?? t('meet.jejuIsland');
   const [step, setStep] = useState(0);
-  const [searchTerm, setSearchTerm] = useState(initialLocation || '제주도');
+  const [searchTerm, setSearchTerm] = useState(resolvedInitialLocation);
   const [selectedLocation, setSelectedLocation] = useState(initialLocation);
   const [checkInDate, setCheckInDate] = useState(
     initialCheckInDate || dayjs().format('YYYY-MM-DD'),
@@ -51,7 +53,9 @@ const MeetSearchConditionModal = ({
   );
   const [adultCount, setAdultCount] = useState(initialAdultCount);
   const [childCount, setChildCount] = useState(initialChildCount);
-  const [currentMonth, setCurrentMonth] = useState(dayjs().format('YYYY-MM-DD'));
+  const [currentMonth, setCurrentMonth] = useState(
+    dayjs().format('YYYY-MM-DD'),
+  );
   const [isDateOpen, setIsDateOpen] = useState(true);
   const [isGuestOpen, setIsGuestOpen] = useState(true);
 
@@ -60,17 +64,15 @@ const MeetSearchConditionModal = ({
       return;
     }
     setStep(0);
-    setSearchTerm(initialLocation || '제주도');
-    setSelectedLocation(initialLocation || '제주도');
+    setSearchTerm(resolvedInitialLocation);
+    setSelectedLocation(resolvedInitialLocation);
     setCheckInDate(initialCheckInDate || dayjs().format('YYYY-MM-DD'));
     setCheckOutDate(
       initialCheckOutDate || dayjs().add(1, 'day').format('YYYY-MM-DD'),
     );
     setAdultCount(initialAdultCount || 1);
     setChildCount(initialChildCount || 0);
-    setCurrentMonth(
-      initialCheckInDate || dayjs().format('YYYY-MM-DD'),
-    );
+    setCurrentMonth(initialCheckInDate || dayjs().format('YYYY-MM-DD'));
     setIsDateOpen(true);
     setIsGuestOpen(true);
   }, [
@@ -80,6 +82,7 @@ const MeetSearchConditionModal = ({
     initialCheckOutDate,
     initialAdultCount,
     initialChildCount,
+    resolvedInitialLocation,
   ]);
 
   const canProceed = useMemo(() => {
@@ -157,13 +160,13 @@ const MeetSearchConditionModal = ({
             setSearchTerm(text);
             setSelectedLocation(text.trim());
           }}
-          placeholder="지역을 검색해보세요"
+          placeholder={t('meet.searchTheArea')}
           placeholderTextColor={COLORS.grayscale_400}
           style={[FONTS.fs_14_regular, styles.searchInput]}
         />
       </View>
       <Text style={[FONTS.fs_12_medium, styles.helperText]}>
-        검색 API는 추후 연결 예정입니다.
+        {t('meet.searchApiWillBeConnectedLater')}
       </Text>
     </View>
   );
@@ -174,11 +177,15 @@ const MeetSearchConditionModal = ({
         <TouchableOpacity
           style={styles.sectionText}
           onPress={() => setIsDateOpen(prev => !prev)}>
-          <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>날짜</Text>
+          <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>
+            {t('common.date')}
+          </Text>
           <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>
             {checkInDate && checkOutDate
-              ? `${dayjs(checkInDate).format('M.D(dd)')} - ${dayjs(checkOutDate).format('M.D(dd)')}`
-              : '날짜를 선택해주세요'}
+              ? `${dayjs(checkInDate).format('M.D(dd)')} - ${dayjs(
+                  checkOutDate,
+                ).format('M.D(dd)')}`
+              : t('common.pleaseSelectADate')}
           </Text>
         </TouchableOpacity>
 
@@ -197,7 +204,7 @@ const MeetSearchConditionModal = ({
                   <LeftArrowIcon width={24} height={24} />
                 </TouchableOpacity>
                 <Text style={[FONTS.fs_16_semibold, styles.monthText]}>
-                  {dayjs(currentMonth).format('YYYY년 M월')}
+                  {dayjs(currentMonth).format(t('common.monthMYearYyyy'))}
                 </Text>
                 <TouchableOpacity
                   onPress={() =>
@@ -210,7 +217,15 @@ const MeetSearchConditionModal = ({
               </View>
 
               <View style={styles.dayTextContainer}>
-                {['월', '화', '수', '목', '금', '토', '일'].map(d => (
+                {[
+                  t('common.month'),
+                  t('common.angry'),
+                  t('common.number'),
+                  t('common.neck'),
+                  t('common.gold'),
+                  t('common.sat'),
+                  t('common.work'),
+                ].map(d => (
                   <Text key={d} style={[FONTS.fs_14_medium, styles.dayText]}>
                     {d}
                   </Text>
@@ -247,7 +262,12 @@ const MeetSearchConditionModal = ({
   const decreaseChild = () => setChildCount(prev => Math.max(0, prev - 1));
 
   const formattedGuestText =
-    childCount > 0 ? `성인 ${adultCount}, 아동 ${childCount}` : `성인 ${adultCount}`;
+    childCount > 0
+      ? t('meet.adultValueChildValue', {
+          adultCount: adultCount,
+          childCount: childCount,
+        })
+      : t('meet.adultValue', {adultCount: adultCount});
 
   const renderGuestStep = () => (
     <View style={styles.stepWrap}>
@@ -255,7 +275,9 @@ const MeetSearchConditionModal = ({
         <TouchableOpacity
           style={styles.sectionText}
           onPress={() => setIsGuestOpen(prev => !prev)}>
-          <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>인원</Text>
+          <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>
+            {t('common.numberOfPeople')}
+          </Text>
           <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>
             {formattedGuestText}
           </Text>
@@ -264,7 +286,7 @@ const MeetSearchConditionModal = ({
         {isGuestOpen && (
           <View style={styles.selectContainer}>
             <View style={styles.guestContainer}>
-              <Text style={FONTS.fs_16_semibold}>성인</Text>
+              <Text style={FONTS.fs_16_semibold}>{t('meet.adult')}</Text>
               <View style={styles.selectGuest}>
                 <TouchableOpacity
                   style={styles.pmIconContainer}
@@ -283,7 +305,7 @@ const MeetSearchConditionModal = ({
             </View>
 
             <View style={styles.guestContainer}>
-              <Text style={FONTS.fs_16_semibold}>아동</Text>
+              <Text style={FONTS.fs_16_semibold}>{t('meet.child')}</Text>
               <View style={styles.selectGuest}>
                 <TouchableOpacity
                   style={styles.pmIconContainer}
@@ -307,13 +329,21 @@ const MeetSearchConditionModal = ({
   );
 
   return (
-    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+    <Modal
+      visible={visible}
+      transparent
+      animationType="slide"
+      onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={Keyboard.dismiss}>
         <Pressable style={styles.modal} onPress={Keyboard.dismiss}>
           <View style={styles.header}>
             <View style={styles.headerRow}>
               <View style={styles.tabWrap}>
-                {['위치', '날짜', '인원'].map((label, idx) => {
+                {[
+                  t('common.location'),
+                  t('common.date'),
+                  t('common.numberOfPeople'),
+                ].map((label, idx) => {
                   const active = step === idx;
                   return (
                     <TouchableOpacity
@@ -354,13 +384,13 @@ const MeetSearchConditionModal = ({
           <View style={styles.buttonWrap}>
             {step < 2 ? (
               <ButtonScarlet
-                title="다음"
+                title={t('common.next')}
                 onPress={() => setStep(prev => prev + 1)}
                 disabled={!canProceed}
               />
             ) : (
               <ButtonScarlet
-                title="적용하기"
+                title={t('common.apply')}
                 onPress={() => {
                   onApply?.({
                     location: selectedLocation,

@@ -1,8 +1,8 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState, useCallback} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 import {useNavigation} from '@react-navigation/native';
 
 import styles from './UserFavoriteMeet.styles';
@@ -29,6 +29,7 @@ const mapApiToUI = it => ({
 });
 
 const UserFavoriteMeet = ({hideHeader = false}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [loading, setLoading] = useState(true);
   const [list, setList] = useState([]);
@@ -84,15 +85,14 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
     const isToday = dt.isSame(dayjs(), 'day');
 
     const dateLabel = isToday
-      ? `오늘, ${dt.format('A h:mm')}` // 예: 오늘, 오전 9:00
-      : `${dt.format('D일, A h:mm')}`; // 예: 13일, 오전 9:00
+      ? t('meet.todayValue', {value1: dt.format('A h:mm')}) // 예: 오늘, 오전 9:00
+      : `${dt.format(t('meet.dDaysAHMm'))}`; // 예: 13일, 오전 9:00
 
     return (
       <TouchableOpacity
         activeOpacity={1}
         style={styles.row}
-        onPress={() => navigation.navigate('MeetDetail', { partyId: item.id })}
-      >
+        onPress={() => navigation.navigate('MeetDetail', {partyId: item.id})}>
         <View style={{flexDirection: 'row'}}>
           <AppImage source={item.image} style={styles.thumbnail} />
 
@@ -106,7 +106,8 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
                   {item.guesthouseName}
                 </Text>
                 <TouchableOpacity
-                  activeOpacity={1} onPress={() => handleUnfavorite(item.id)}>
+                  activeOpacity={1}
+                  onPress={() => handleUnfavorite(item.id)}>
                   <FillHeart width={20} height={20} />
                 </TouchableOpacity>
               </View>
@@ -119,7 +120,10 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
                   {item.title}
                 </Text>
                 <Text style={[FONTS.fs_12_medium, styles.heartText]}>
-                  {` ${item.liked}/${item.limit}명`}
+                  {t('meet.valueValuePeople', {
+                    item_liked: item.liked,
+                    item_limit: item.limit,
+                  })}
                 </Text>
               </View>
             </View>
@@ -150,13 +154,13 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
 
   return (
     <View style={styles.container}>
-      {!hideHeader && <Header title="즐겨찾는 콘텐츠" />}
+      {!hideHeader && <Header title={t('meet.favoriteActivity')} />}
 
       <View style={styles.body}>
         {loading ? (
           <View
             style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Loading title="내역을 불러오는 중이에요." />
+            <Loading title={t('meet.loadingHistory')} />
           </View>
         ) : (
           <FlatList
@@ -175,9 +179,9 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 210, height: 112}}
-                  title="아직 즐겨찾는 콘텐츠가 없어요"
-                  description="마음에 드는 콘텐츠를 빠르게 볼 수 있어요!"
-                  buttonText="콘텐츠 찾으러 가기"
+                  title={t('meet.thereAreNoFavoriteActivitiesYet')}
+                  description={t('meet.youCanQuicklyViewYourFavoriteActivity')}
+                  buttonText={t('meet.goToActivity')}
                   onPressButton={() =>
                     navigation.navigate('MainTabs', {screen: '콘텐츠'})
                   }

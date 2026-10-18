@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {memo, useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -36,10 +38,6 @@ const communityListBannerAdUnitId = __DEV__
       android: 'ca-app-pub-6098454400067335/5920208998',
       web: 'ca-pub-6098454400067335/4250943648',
     });
-const sortCodeMap = {
-  최신순: 'LATEST',
-  등록순: 'OLDEST',
-};
 const webCommunityScrollOffsets = new Map();
 
 const getCategoryKey = category =>
@@ -55,7 +53,7 @@ const formatRelativeTime = dateTime => {
   const diffMinutes = Math.floor(diffMs / 60000);
 
   if (diffMinutes < 1) {
-    return '방금';
+    return i18n.t('common.justNow');
   }
 
   if (diffMinutes < 60) {
@@ -85,6 +83,7 @@ const CommunityPostList = ({
   sourceRouteTab,
   contentContainerStyle,
 }) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const listRef = useRef(null);
   const hasUserScrolledRef = useRef(false);
@@ -192,7 +191,7 @@ const CommunityPostList = ({
 
         const response = await communityApi.getPosts({
           ...(category?.code ? {categoryCode: category.code} : {}),
-          sort: sortCodeMap[selectedSort],
+          sort: selectedSort,
           page: pageToFetch,
           size: PAGE_SIZE,
         });
@@ -214,9 +213,11 @@ const CommunityPostList = ({
 
         setErrorModal({
           visible: true,
-          message:
-            '커뮤니티 글을 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          message: t(
+            'community.communityPostsCouldNotBeLoadedPleaseTryAgainLater',
+          ),
+
+          buttonText: t('common.confirm'),
         });
       } finally {
         isFetchingRef.current = false;
@@ -230,7 +231,7 @@ const CommunityPostList = ({
         }
       }
     },
-    [category, selectedSort],
+    [category, selectedSort, t],
   );
 
   useFocusEffect(
@@ -374,6 +375,7 @@ const CommunityPostList = ({
               const sourceKey = `${postItem.postId}:${
                 sortedImages[0].imageId ?? sortedImages[0].id ?? 0
               }`;
+
               if (node) {
                 imageSourceRefs.current.set(sourceKey, node);
               } else {
@@ -412,6 +414,7 @@ const CommunityPostList = ({
                 const sourceKey = `${postItem.postId}:${
                   image.imageId ?? image.id ?? index
                 }`;
+
                 if (node) {
                   imageSourceRefs.current.set(sourceKey, node);
                 } else {
@@ -449,71 +452,71 @@ const CommunityPostList = ({
     ({item, index}) => (
       <>
         <View style={styles.postContainer}>
-        <TouchableOpacity
-          activeOpacity={0.8}
-          onPress={() => {
-            rememberWebScrollOffset();
-            navigation.navigate('CommunityDetail', {
-              postId: item.postId,
-              sourceTab: sourceRouteTab,
-            });
-          }}>
-          <View style={styles.postHeader}>
-            <Avatar
-              uri={item.author?.profileImageUrl}
-              size={30}
-              iconSize={16}
-              style={styles.avatar}
-            />
-            <Text style={[FONTS.fs_16_medium, styles.nickname]}>
-              {item.author?.nickname}
+          <TouchableOpacity
+            activeOpacity={0.8}
+            onPress={() => {
+              rememberWebScrollOffset();
+              navigation.navigate('CommunityDetail', {
+                postId: item.postId,
+                sourceTab: sourceRouteTab,
+              });
+            }}>
+            <View style={styles.postHeader}>
+              <Avatar
+                uri={item.author?.profileImageUrl}
+                size={30}
+                iconSize={16}
+                style={styles.avatar}
+              />
+
+              <Text style={[FONTS.fs_16_medium, styles.nickname]}>
+                {item.author?.nickname}
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.time]}>
+                {formatRelativeTime(item.createdAt)}
+              </Text>
+            </View>
+
+            <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
+              {item.title}
             </Text>
-            <Text style={[FONTS.fs_14_regular, styles.time]}>
-              {formatRelativeTime(item.createdAt)}
+            <Text
+              style={[FONTS.fs_16_regular, styles.postContent]}
+              numberOfLines={2}
+              ellipsizeMode="tail">
+              {item.content}
             </Text>
+          </TouchableOpacity>
+
+          {renderPostImages(item.images, item)}
+
+          <View style={styles.postActions}>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.actionItem}
+              onPress={() => handleToggleLike(item)}>
+              {item.isLiked ? (
+                <FilledHeartIcon width={20} height={20} />
+              ) : (
+                <HeartIcon width={20} height={20} />
+              )}
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.likeCount}
+              </Text>
+            </TouchableOpacity>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.actionItem}
+              onPress={() => handlePressCommentCount(item)}>
+              <CommentIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.commentCount}
+              </Text>
+            </TouchableOpacity>
           </View>
-
-          <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-            {item.title}
-          </Text>
-          <Text
-            style={[FONTS.fs_16_regular, styles.postContent]}
-            numberOfLines={2}
-            ellipsizeMode="tail">
-            {item.content}
-          </Text>
-        </TouchableOpacity>
-
-        {renderPostImages(item.images, item)}
-
-        <View style={styles.postActions}>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.actionItem}
-            onPress={() => handleToggleLike(item)}>
-            {item.isLiked ? (
-              <FilledHeartIcon width={20} height={20} />
-            ) : (
-              <HeartIcon width={20} height={20} />
-            )}
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.likeCount}
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.actionItem}
-            onPress={() => handlePressCommentCount(item)}>
-            <CommentIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.commentCount}
-            </Text>
-          </TouchableOpacity>
-        </View>
         </View>
 
-        {communityListBannerAdUnitId &&
-        (index + 1) % AD_INTERVAL === 0 ? (
+        {communityListBannerAdUnitId && (index + 1) % AD_INTERVAL === 0 ? (
           <View style={styles.adBannerContainer}>
             <BannerAd
               unitId={communityListBannerAdUnitId}
@@ -523,6 +526,7 @@ const CommunityPostList = ({
         ) : null}
       </>
     ),
+
     [
       handlePressCommentCount,
       handleToggleLike,
@@ -559,10 +563,10 @@ const CommunityPostList = ({
         }
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title="커뮤니티 글을 불러오는 중입니다..." />
+            <Loading title={t('community.loadingCommunityPosts')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-              아직 등록된 글이 없어요.
+              {t('community.thereAreNoRegisteredPostsYet')}
             </Text>
           )
         }

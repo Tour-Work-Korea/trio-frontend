@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   View,
@@ -9,7 +10,6 @@ import {
 import Modal from '@components/modals/AdaptiveModal';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -27,6 +27,7 @@ const ReservationConfirmModal = ({
   checkInLabel = '',
   checkOutLabel = '',
 }) => {
+  const {t} = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -38,10 +39,12 @@ const ReservationConfirmModal = ({
           <TouchableWithoutFeedback>
             <View style={s.modal}>
               {/* 타이틀 */}
-              <Text style={[FONTS.fs_20_bold, s.title]}>예약내역 확인</Text>
+              <Text style={[FONTS.fs_20_bold, s.title]}>
+                {t('guesthouse.checkReservationDetails')}
+              </Text>
               <View style={s.divider} />
 
-              <View style={{paddingHorizontal:8}}>
+              <View style={{paddingHorizontal: 8}}>
                 {/* 숙소명 */}
                 <Text style={[FONTS.fs_18_bold, s.guesthouseName]}>
                   {guesthouseName}
@@ -59,20 +62,23 @@ const ReservationConfirmModal = ({
 
                 {/* 체크인/아웃 */}
                 <View style={s.row}>
-                  <Text style={[FONTS.fs_14_regular, s.label]}>체크인</Text>
+                  <Text style={[FONTS.fs_14_regular, s.label]}>
+                    {t('common.checkIn')}
+                  </Text>
                   <Text style={[FONTS.fs_14_medium, s.value]}>
                     {checkInLabel}
                   </Text>
                 </View>
 
                 <View style={s.row}>
-                  <Text style={[FONTS.fs_14_regular, s.label]}>체크아웃</Text>
+                  <Text style={[FONTS.fs_14_regular, s.label]}>
+                    {t('common.checkOut')}
+                  </Text>
                   <Text style={[FONTS.fs_14_medium, s.value]}>
                     {checkOutLabel}
                   </Text>
                 </View>
               </View>
-              
 
               {/* 안내 박스 */}
               <View style={s.noticeBox}>
@@ -80,10 +86,12 @@ const ReservationConfirmModal = ({
                   <Text style={s.bullet}>•</Text>
                   <View style={{flex: 1}}>
                     <Text style={[FONTS.fs_14_semibold, s.noticeTitle]}>
-                      취소불가 및 수수료
+                      {t('guesthouse.noCancellationAndFees')}
                     </Text>
                     <Text style={[FONTS.fs_12_medium, s.noticeDesc]}>
-                      취소 및 환불규정에 따라 취소불가, 수수료가 발생할 수 있습니다.
+                      {t(
+                        'guesthouse.dependingOnTheCancellationAndRefundPolicyCancellationMayNot',
+                      )}
                     </Text>
                   </View>
                 </View>
@@ -92,10 +100,12 @@ const ReservationConfirmModal = ({
                   <Text style={s.bullet}>•</Text>
                   <View style={{flex: 1}}>
                     <Text style={[FONTS.fs_14_semibold, s.noticeTitle]}>
-                      미성년자 및 법정대리인 필수
+                      {t('guesthouse.minorsAndLegalRepresentativesRequired')}
                     </Text>
                     <Text style={[FONTS.fs_12_medium, s.noticeDesc]}>
-                      미성년자는 법정대리님 동행 없이 투숙이 불가합니다.
+                      {t(
+                        'guesthouse.minorsAreNotPermittedToStayWithoutALegalRepresentative',
+                      )}
                     </Text>
                   </View>
                 </View>
@@ -104,14 +114,15 @@ const ReservationConfirmModal = ({
               {/* 버튼 */}
               <View style={s.btnRow}>
                 <ButtonWhite
-                  title='취소'
+                  title={t('common.cancel')}
                   onPress={onClose}
-                  style={{flex:1}}
+                  style={{flex: 1}}
                 />
+
                 <ButtonScarlet
                   onPress={onConfirm}
-                  title='동의 후 결제'
-                  style={{flex:1}}
+                  title={t('guesthouse.payAfterAgreeing')}
+                  style={{flex: 1}}
                 />
               </View>
             </View>

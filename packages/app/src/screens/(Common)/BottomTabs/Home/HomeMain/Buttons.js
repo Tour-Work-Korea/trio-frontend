@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, TouchableOpacity, ImageBackground, Text} from 'react-native';
 import styles from './Home.styles';
@@ -7,6 +8,7 @@ import Employ_btn from '@assets/images/home_employ.svg';
 import Party_btn from '@assets/images/home_party.svg';
 
 export default function Buttons() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   return (
     <View style={styles.buttonContainer}>
@@ -17,7 +19,9 @@ export default function Buttons() {
         }}
         style={styles.button}>
         <Guesthouse_btn />
-        <Text style={styles.buttonText}>숙소</Text>
+        <Text style={styles.buttonText}>
+          {t('common.accommodation_fe9320')}
+        </Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -27,7 +31,7 @@ export default function Buttons() {
         }}
         style={styles.button}>
         <Employ_btn />
-        <Text style={styles.buttonText}>일자리</Text>
+        <Text style={styles.buttonText}>{t('common.jobs')}</Text>
       </TouchableOpacity>
 
       <TouchableOpacity
@@ -37,7 +41,7 @@ export default function Buttons() {
         }}
         style={styles.button}>
         <Party_btn />
-        <Text style={styles.buttonText}>동행</Text>
+        <Text style={styles.buttonText}>{t('common.accompany')}</Text>
       </TouchableOpacity>
     </View>
   );

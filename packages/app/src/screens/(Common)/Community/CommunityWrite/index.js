@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useRef, useState} from 'react';
 import {
   Alert,
@@ -9,15 +10,13 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 import Header from '@components/Header';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import AppImage from '@components/AppImage';
 import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
@@ -48,11 +47,21 @@ const defaultCategories = [
   {
     id: 'GUESTHOUSE_RECOMMEND',
     code: 'GUESTHOUSE_RECOMMEND',
-    displayName: '게하추천',
+    displayName: '게하 추천',
     contentType: 'COMMUNITY',
   },
-  {id: 'FOOD', code: 'FOOD', displayName: '맛집', contentType: 'COMMUNITY'},
-  {id: 'CAFE', code: 'CAFE', displayName: '카페', contentType: 'COMMUNITY'},
+  {
+    id: 'FOOD',
+    code: 'FOOD',
+    displayName: '맛집',
+    contentType: 'COMMUNITY',
+  },
+  {
+    id: 'CAFE',
+    code: 'CAFE',
+    displayName: '카페',
+    contentType: 'COMMUNITY',
+  },
   {
     id: 'COMPANION',
     code: 'COMPANION',
@@ -89,6 +98,7 @@ const normalizeExistingImages = post =>
     .filter(image => image.uri);
 
 const CommunityWrite = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {
     mode,
@@ -321,7 +331,9 @@ const CommunityWrite = ({route}) => {
 
     if (remainingCount <= 0) {
       Alert.alert(
-        `이미지는 최대 ${COMMUNITY_IMAGE_LIMITS.maxCount}장까지 추가할 수 있습니다.`,
+        t('community.upToValueImagesCanBeAdded_5e7cc2', {
+          COMMUNITY_IMAGE_LIMITS_maxCount: COMMUNITY_IMAGE_LIMITS.maxCount,
+        }),
       );
       return;
     }
@@ -349,7 +361,10 @@ const CommunityWrite = ({route}) => {
 
     if (oversizedAsset) {
       Alert.alert(
-        `이미지는 한 장당 최대 ${COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        t('community.imagesCanBeUploadedUpToValueMbPerPage_b41951', {
+          COMMUNITY_IMAGE_LIMITS_maxSingleFileSizeMb:
+            COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb,
+        }),
       );
       return;
     }
@@ -368,7 +383,10 @@ const CommunityWrite = ({route}) => {
       COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb * MB
     ) {
       Alert.alert(
-        `이미지 전체 용량은 최대 ${COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        t('community.theTotalImageSizeCanBeUploadedUpToValue_c70f62', {
+          COMMUNITY_IMAGE_LIMITS_maxTotalFileSizeMb:
+            COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb,
+        }),
       );
       return;
     }
@@ -384,7 +402,10 @@ const CommunityWrite = ({route}) => {
 
     if (convertedOversizedImage) {
       Alert.alert(
-        `이미지는 한 장당 최대 ${COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        t('community.imagesCanBeUploadedUpToValueMbPerPage_b41951', {
+          COMMUNITY_IMAGE_LIMITS_maxSingleFileSizeMb:
+            COMMUNITY_IMAGE_LIMITS.maxSingleFileSizeMb,
+        }),
       );
       return;
     }
@@ -399,7 +420,10 @@ const CommunityWrite = ({route}) => {
       COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb * MB
     ) {
       Alert.alert(
-        `이미지 전체 용량은 최대 ${COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        t('community.theTotalImageSizeCanBeUploadedUpToValue_c70f62', {
+          COMMUNITY_IMAGE_LIMITS_maxTotalFileSizeMb:
+            COMMUNITY_IMAGE_LIMITS.maxTotalFileSizeMb,
+        }),
       );
       return;
     }
@@ -565,7 +589,7 @@ const CommunityWrite = ({route}) => {
       const postId = draftResponse.data?.postId;
 
       if (!postId) {
-        throw new Error('postId가 없습니다.');
+        throw new Error(t('community.thereIsNoPostid'));
       }
 
       let uploadedImages = [];
@@ -587,13 +611,13 @@ const CommunityWrite = ({route}) => {
       );
       if (error?.message === 'EXISTING_IMAGE_OBJECT_KEY_MISSING') {
         Alert.alert(
-          '기존 이미지 정보를 확인할 수 없어 이미지 목록을 변경할 수 없어요.',
+          t('community.theImageListCannotBeChangedBecauseTheExistingImage'),
         );
       } else {
         Alert.alert(
           isEditMode
-            ? '게시글 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
-            : '게시글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.',
+            ? t('community.failedToEditThePostPleaseTryAgainLater')
+            : t('community.postRegistrationFailedPleaseTryAgainLater'),
         );
       }
     } finally {
@@ -604,7 +628,7 @@ const CommunityWrite = ({route}) => {
   return (
     <View style={styles.container}>
       <Header
-        title={isEditMode ? '글 수정' : '글쓰기'}
+        title={isEditMode ? t('community.editPost') : t('common.writing')}
         onPress={handleGoBack}
         rightComponent={
           <TouchableOpacity
@@ -622,11 +646,11 @@ const CommunityWrite = ({route}) => {
               ]}>
               {isSubmitting
                 ? isEditMode
-                  ? '수정중'
-                  : '등록중'
+                  ? t('community.editing')
+                  : t('community.registering')
                 : isEditMode
-                ? '수정'
-                : '등록'}
+                ? t('common.edit')
+                : t('common.register')}
             </Text>
           </TouchableOpacity>
         }
@@ -657,7 +681,8 @@ const CommunityWrite = ({route}) => {
                 styles.categoryButtonText,
                 selectedCategory && styles.selectedCategoryButtonText,
               ]}>
-              {selectedCategory?.displayName || '카테고리를 선택해주세요'}
+              {selectedCategory?.displayName ||
+                t('community.pleaseSelectACategory')}
             </Text>
             {categoryVisible ? (
               <ChevronUp width={16} height={16} />
@@ -698,7 +723,7 @@ const CommunityWrite = ({route}) => {
           onChangeText={setTitle}
           maxLength={TITLE_MAX_LENGTH}
           style={[FONTS.fs_16_regular, styles.titleInput]}
-          placeholder="제목을 입력하세요."
+          placeholder={t('community.pleaseEnterATitle')}
           placeholderTextColor="#CDD2D8"
         />
 
@@ -706,7 +731,7 @@ const CommunityWrite = ({route}) => {
           <View style={styles.imagePreviewSection}>
             <View style={styles.imagePreviewHeader}>
               <Text style={[FONTS.fs_14_medium, styles.imagePreviewTitle]}>
-                사진
+                {t('community.picture')}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.imagePreviewCount]}>
                 {images.length}/{COMMUNITY_IMAGE_LIMITS.maxCount}
@@ -729,6 +754,7 @@ const CommunityWrite = ({route}) => {
                     style={styles.imagePreview}
                     resizeMode="cover"
                   />
+
                   <TouchableOpacity
                     activeOpacity={0.8}
                     style={styles.imageRemoveButton}
@@ -785,14 +811,14 @@ const CommunityWrite = ({route}) => {
                 <Text
                   style={[FONTS.fs_14_medium, styles.locationPreviewTitle]}
                   numberOfLines={1}>
-                  {selectedLocation.placeName || '선택한 장소'}
+                  {selectedLocation.placeName || t('common.selectedLocation')}
                 </Text>
                 <Text
                   style={[FONTS.fs_12_medium, styles.locationPreviewAddress]}
                   numberOfLines={1}>
                   {selectedLocation.roadAddress ||
                     selectedLocation.address ||
-                    '주소 정보가 없어요'}
+                    t('common.thereIsNoAddressInformation')}
                 </Text>
               </View>
             </View>
@@ -819,7 +845,7 @@ const CommunityWrite = ({route}) => {
             styles.bodyInput,
             {height: bodyInputHeight},
           ]}
-          placeholder="내용을 입력해주세요."
+          placeholder={t('community.pleaseEnterTheDetails')}
           placeholderTextColor="#CDD2D8"
           multiline
           scrollEnabled={false}
@@ -840,7 +866,7 @@ const CommunityWrite = ({route}) => {
           onPress={handleAddImages}>
           <PhotoIcon width={18} height={18} />
           <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
-            사진
+            {t('community.picture')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -849,7 +875,7 @@ const CommunityWrite = ({route}) => {
           onPress={handleOpenPlaceSearch}>
           <LocationIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_regular, styles.toolbarButtonText]}>
-            장소
+            {t('common.location_962eeb')}
           </Text>
         </TouchableOpacity>
         {keyboardHeight > 0 ? (

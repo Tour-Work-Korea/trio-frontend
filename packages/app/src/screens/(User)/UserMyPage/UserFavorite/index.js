@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   ScrollView,
@@ -19,12 +21,13 @@ import {FONTS} from '@constants/fonts';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 
 const TAB_ITEMS = [
-  {key: 'guesthouse', label: '게하'},
-  {key: 'meet', label: '콘텐츠'},
-  {key: 'recruit', label: '스탭'},
+  {key: 'guesthouse', label: i18n.t('common.guesthouse')},
+  {key: 'meet', label: i18n.t('common.activity')},
+  {key: 'recruit', label: i18n.t('common.staff')},
 ];
 
 const UserFavorite = () => {
+  const {t} = useTranslation();
   const {
     pagerRef,
     isActive,
@@ -43,7 +46,7 @@ const UserFavorite = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="찜" />
+      <Header title={t('common.steamed')} />
 
       <View style={styles.tabBar}>
         {TAB_ITEMS.map((tab, index) => {

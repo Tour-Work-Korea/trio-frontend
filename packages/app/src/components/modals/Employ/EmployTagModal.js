@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -23,6 +24,7 @@ export default function EmployTagModal({
   addTags,
   initialData = null,
 }) {
+  const {t} = useTranslation();
   const [tags, setTags] = useState();
   const [selectedTags, setSelectedTags] = useState();
   const [errorModalVisible, setErrorModalVisible] = useState(false);
@@ -55,7 +57,7 @@ export default function EmployTagModal({
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={FONTS.fs_20_semibold}>태그</Text>
+            <Text style={FONTS.fs_20_semibold}>{t('common.tag')}</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
@@ -98,7 +100,7 @@ export default function EmployTagModal({
           <View style={styles.sticky}>
             <View style={styles.confirmButton}>
               <ButtonScarlet
-                title="적용하기"
+                title={t('common.apply')}
                 onPress={() => {
                   addTags(selectedTags);
                   onClose();
@@ -110,8 +112,8 @@ export default function EmployTagModal({
       </View>
       <AlertModal
         visible={errorModalVisible}
-        title={'태그는 3개까지만 선택 가능합니다'}
-        buttonText={'확인'}
+        title={t('employ.youCanOnlySelectUpTo3Tags')}
+        buttonText={t('common.confirm')}
         onPress={() => setErrorModalVisible(false)}
       />
     </Modal>

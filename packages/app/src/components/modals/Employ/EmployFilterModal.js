@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -25,6 +26,7 @@ export default function EmployFilterModal({
   initialFilters,
   onApply,
 }) {
+  const {t} = useTranslation();
   const [tags, setTags] = useState();
   const [regionsData, setRegionsData] = useState([]);
   const [selectedRegion, setSelectedRegion] = useState('');
@@ -136,17 +138,17 @@ export default function EmployFilterModal({
 
       const formattedRegions = [
         {
-          name: '제주',
+          name: t('common.chiefMourner'),
           subRegions: jejuSubRegions,
         },
         {
-          name: '기타',
+          name: t('common.etc'),
           subRegions: otherRegions,
         },
       ];
 
       setRegionsData(formattedRegions);
-      setSelectedRegion('제주'); // 초기 선택값
+      setSelectedRegion(t('common.chiefMourner')); // 초기 선택값
     } catch (error) {
       console.warn('지역 조회 실패:', error);
     }
@@ -169,7 +171,7 @@ export default function EmployFilterModal({
           {/* 헤더 */}
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>필터</Text>
+            <Text style={[FONTS.fs_20_semibold]}>{t('common.filter')}</Text>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
@@ -190,7 +192,7 @@ export default function EmployFilterModal({
             {/* 해시태그 선택 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                키워드
+                {t('employ.keyword')}
               </Text>
               <View style={styles.tagSelectRow}>
                 {tags?.map(tag => {
@@ -227,14 +229,14 @@ export default function EmployFilterModal({
           <View style={styles.sticky}>
             <View style={styles.resetButton}>
               <ButtonWhite
-                title="초기화"
+                title={t('common.reset')}
                 onPress={handleReset}
                 disabled={!isDirty}
               />
             </View>
             <View style={styles.confirmButton}>
               <ButtonScarlet
-                title="채용공고 보기"
+                title={t('employ.viewJobPostings')}
                 onPress={() => {
                   onApply({
                     tags: selectedTags,

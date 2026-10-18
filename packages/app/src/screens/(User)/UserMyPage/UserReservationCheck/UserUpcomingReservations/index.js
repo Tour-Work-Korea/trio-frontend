@@ -1,14 +1,15 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {View, Text, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import Clipboard from '@react-native-clipboard/clipboard';
 import dayjs from 'dayjs';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
-import { getDefaultGuesthouseListParams } from '@constants/guesthouseDefaults';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
@@ -22,21 +23,24 @@ export default function UserUpcomingReservations({
   onRefresh,
   reviewableReservationIds,
 }) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
 
   const genderMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: t('common.mixedDormitory'),
+    FEMALE_ONLY: t('common.womenOnly'),
+    MALE_ONLY: t('common.menOnly'),
   };
 
   const toLocalDateTime = (date, time) =>
     date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
   const getReservationStatusTitle = item =>
-    item?.reservationStatus === 'PENDING' ? '승인 대기 중' : '예약 확정';
+    item?.reservationStatus === 'PENDING'
+      ? t('common.waitingForApproval')
+      : t('myPage.reservationConfirmed');
   const isPendingReservation = item => item?.reservationStatus === 'PENDING';
   const isDuringStay = item => {
     if (!item?.checkIn || !item?.checkOut) {
@@ -57,27 +61,31 @@ export default function UserUpcomingReservations({
     );
   };
 
-  const handleCopyAddress = (address) => {
+  const handleCopyAddress = address => {
     Clipboard.setString(address ?? '');
 
     Toast.show({
       type: 'success',
-      text1: '주소를 복사했어요!',
+      text1: t('common.iCopiedTheAddress'),
       position: 'top',
       visibilityTime: 2000,
     });
   };
 
-  const buildRoomDetailText = (item) => {
+  const buildRoomDetailText = item => {
     if (!item) {
       return '';
     }
     const isDormitory = item.roomType === 'DORMITORY';
-    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
+    const capacityText = item.roomCapacity
+      ? t('common.valuePerson', {item_roomCapacity: item.roomCapacity})
+      : '';
 
     if (isDormitory) {
       const genderText = genderMap[item.dormitoryGenderType] || '';
-      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      const base = capacityText
+        ? t('common.valueDormitory', {capacityText: capacityText})
+        : t('common.dormitory');
       if (genderText && item.dormitoryGenderType !== 'MIXED') {
         return `${base}, ${genderText}`;
       }
@@ -85,30 +93,30 @@ export default function UserUpcomingReservations({
     }
 
     const maxCapacityText = item.roomMaxCapacity
-      ? `(최대 ${item.roomMaxCapacity}인)`
+      ? t('common.upToValue', {item_roomMaxCapacity: item.roomMaxCapacity})
       : '';
-    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const basePrefix = capacityText
+      ? t('common.basedOnValue', {capacityText: capacityText})
+      : t('common.standard');
     const base = `${basePrefix}${maxCapacityText}`;
-    return item.femaleOnly ? `${base}, 여성 전용` : base;
+    return item.femaleOnly ? t('common.valueForWomenOnly', {base: base}) : base;
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn),
     );
     const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut),
     );
     const showCheckInGuide = isDuringStay(item);
     const canWriteReview = reviewableReservationIds?.has(
-      String(item.reservationId)
+      String(item.reservationId),
     );
 
     return (
       <View style={styles.container}>
-        <View
-          style={styles.card}
-        >
+        <View style={styles.card}>
           <View style={styles.titleRow}>
             <Text
               style={[
@@ -141,10 +149,11 @@ export default function UserUpcomingReservations({
                     expectedCheckInTime: item.expectedCheckInTime,
                   },
                 })
-              }
-            >
-              <Text style={[FONTS.fs_12_medium, styles.detailText]}>예약 상세</Text>
-              <ChevronRight width={16} height={16}/>
+              }>
+              <Text style={[FONTS.fs_12_medium, styles.detailText]}>
+                {t('common.reservationDetails_64171d')}
+              </Text>
+              <ChevronRight width={16} height={16} />
             </TouchableOpacity>
           </View>
           <View style={styles.guesthouseInfo}>
@@ -153,46 +162,60 @@ export default function UserUpcomingReservations({
               style={styles.image}
               resizeMode="cover"
             />
+
             <View style={styles.infoContent}>
               <Text
                 style={[FONTS.fs_16_semibold, styles.nameText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.guesthouseName}
               </Text>
               <Text
                 style={[FONTS.fs_14_medium, styles.roomText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.roomName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.roomDetailText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {buildRoomDetailText(item)}
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkInFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkInFormatted.time}{' '}
+              </Text>
             </View>
-            <View style={[FONTS.fs_14_medium, styles.rowDevide]}/>
+            <View style={[FONTS.fs_14_medium, styles.rowDevide]} />
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkOutFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkOutFormatted.time}{' '}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.buttonRow}>
           <ButtonWhite
-            title={showCheckInGuide ? '체크인 안내' : '숙소 상세'}
+            title={
+              showCheckInGuide
+                ? t('myPage.checkInInformation')
+                : t('myPage.accommodationDetails')
+            }
             style={styles.actionButton}
             onPress={() => {
               if (showCheckInGuide) {
@@ -212,8 +235,9 @@ export default function UserUpcomingReservations({
             }}
             backgroundColor={COLORS.grayscale_100}
           />
+
           <ButtonWhite
-            title="주소 복사"
+            title={t('myPage.copyAddress')}
             style={styles.actionButton}
             onPress={() => handleCopyAddress(item.guesthouseAddress)}
             backgroundColor={COLORS.grayscale_100}
@@ -222,7 +246,7 @@ export default function UserUpcomingReservations({
 
         {canWriteReview && (
           <ButtonWhite
-            title="리뷰 작성하기"
+            title={t('common.writeAReview')}
             style={styles.reviewButton}
             onPress={() =>
               navigation.navigate('UserGuesthouseReviewForm', {
@@ -240,7 +264,7 @@ export default function UserUpcomingReservations({
         )}
 
         <ButtonWhite
-          title="예약취소"
+          title={t('common.cancelReservation_fb9a3e')}
           backgroundColor={COLORS.secondary_red}
           textColor={COLORS.semantic_red}
           onPress={() => {
@@ -248,10 +272,10 @@ export default function UserUpcomingReservations({
               typeof item.amount === 'number'
                 ? item.amount
                 : typeof item.totalAmount === 'number'
-                  ? item.totalAmount
-                  : typeof item.reservationAmount === 'number'
-                    ? item.reservationAmount
-                    : undefined;
+                ? item.totalAmount
+                : typeof item.reservationAmount === 'number'
+                ? item.reservationAmount
+                : undefined;
 
             navigation.navigate('GuesthouseCancelConfirm', {
               reservationId: item.reservationId,
@@ -274,15 +298,15 @@ export default function UserUpcomingReservations({
                         : {}),
                     }
                   : {}),
-                ...(!isPendingReservation(item) && typeof item.cancelFee === 'number'
+                ...(!isPendingReservation(item) &&
+                typeof item.cancelFee === 'number'
                   ? {cancelFee: item.cancelFee}
                   : {}),
-                ...(!isPendingReservation(item) && typeof item.refundAmount === 'number'
+                ...(!isPendingReservation(item) &&
+                typeof item.refundAmount === 'number'
                   ? {refundAmount: item.refundAmount}
                   : {}),
-                ...(item.refundMethod
-                  ? {refundMethod: item.refundMethod}
-                  : {}),
+                ...(item.refundMethod ? {refundMethod: item.refundMethod} : {}),
               },
             });
           }}
@@ -306,10 +330,10 @@ export default function UserUpcomingReservations({
         ListEmptyComponent={
           <EmptyState
             icon={SearchEmpty}
-            iconSize={{ width: 120, height: 120 }}
-            title="예약내역이 없어요"
-            description="게스트하우스를 예약하러 가볼까요?"
-            buttonText="게스트하우스 찾아보기"
+            iconSize={{width: 120, height: 120}}
+            title={t('common.thereIsNoReservationHistory')}
+            description={t('common.shallWeGoMakeAReservationForAGuesthouse')}
+            buttonText={t('common.findAGuesthouse')}
             onPressButton={() =>
               navigation.navigate('MainTabs', {
                 screen: '지도',
@@ -342,16 +366,14 @@ const styles = StyleSheet.create({
   },
 
   // 리스트
-  card: {
-  },
+  card: {},
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  titleText: {
-  },
+  titleText: {},
   pendingTitleText: {
     color: COLORS.semantic_red,
   },

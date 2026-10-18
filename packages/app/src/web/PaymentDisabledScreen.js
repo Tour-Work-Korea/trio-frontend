@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -6,16 +7,23 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 export default function PaymentDisabledScreen() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>웹에서는 결제를 지원하지 않습니다.</Text>
-      <Text style={styles.message}>
-        예약과 조회 화면은 웹에서도 사용할 수 있지만 결제는 앱에서 진행해 주세요.
+      <Text style={styles.title}>
+        {t('payment.paymentIsNotSupportedOnTheWeb')}
       </Text>
-      <TouchableOpacity style={styles.button} onPress={() => navigation.goBack()}>
-        <Text style={styles.buttonText}>이전 화면으로 돌아가기</Text>
+      <Text style={styles.message}>
+        {t('payment.reservationAndInquiryScreensCanAlsoBeUsedOnThe')}
+      </Text>
+      <TouchableOpacity
+        style={styles.button}
+        onPress={() => navigation.goBack()}>
+        <Text style={styles.buttonText}>
+          {t('payment.returnToPreviousScreen')}
+        </Text>
       </TouchableOpacity>
     </View>
   );

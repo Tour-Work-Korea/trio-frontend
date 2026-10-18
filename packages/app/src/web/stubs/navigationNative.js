@@ -1,4 +1,12 @@
-import React, {createContext, useCallback, useContext, useEffect, useMemo, useRef} from 'react';
+import i18n from '@trio/app/src/i18n';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useRef,
+} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {
   WEB_ROUTES,
@@ -71,16 +79,18 @@ export function NavigationContainer({children, ref: navigationRef}) {
 }
 
 export function useNavigation() {
-  return useContext(NavigationContext) || {
-    navigate: () => {},
-    goBack: () => {},
-    canGoBack: () => false,
-    dispatch: () => {},
-    reset: () => {},
-    setOptions: () => {},
-    getParent: () => null,
-    isFocused: () => true,
-  };
+  return (
+    useContext(NavigationContext) || {
+      navigate: () => {},
+      goBack: () => {},
+      canGoBack: () => false,
+      dispatch: () => {},
+      reset: () => {},
+      setOptions: () => {},
+      getParent: () => null,
+      isFocused: () => true,
+    }
+  );
 }
 
 export function useRoute() {
@@ -190,9 +200,9 @@ function withCommunityTab(path, tab) {
 
 function withRouteParams(routeName, path, params) {
   if (
-    routeName === 'PopularGuesthouseList'
-    || routeName === 'PopularMeetList'
-    || routeName === 'PopularEmployList'
+    routeName === 'PopularGuesthouseList' ||
+    routeName === 'PopularMeetList' ||
+    routeName === 'PopularEmployList'
   ) {
     return path;
   }
@@ -226,9 +236,9 @@ function createNestedWebBackRoute(route, childBackRoute, navigatorKind) {
         screen: route.name,
         params: childBackRoute
           ? {
-            screen: childBackRoute.name,
-            params: childBackRoute.params,
-          }
+              screen: childBackRoute.name,
+              params: childBackRoute.params,
+            }
           : route.params,
       },
     };
@@ -315,17 +325,14 @@ function routeToWebPath(route) {
 
     if (screen === '지도') {
       const initialMapView =
-        route.params?.params?.params?.initialMapView
-        ?? route.params?.params?.initialMapView;
+        route.params?.params?.params?.initialMapView ??
+        route.params?.params?.initialMapView;
 
       return initialMapView ? WEB_ROUTES.MAP : WEB_ROUTES.GUESTHOUSES;
     }
 
     if (screen === '커뮤니티') {
-      return withCommunityTab(
-        WEB_ROUTES.COMMUNITY,
-        route.params?.params?.tab,
-      );
+      return withCommunityTab(WEB_ROUTES.COMMUNITY, route.params?.params?.tab);
     }
 
     if (screen === '콘텐츠') {
@@ -365,7 +372,11 @@ function routeToWebPath(route) {
     return WEB_ROUTES.CONTENTS;
   }
 
-  if (route.name === '마이' || route.name === 'MyGate' || route.name === 'UserMyPage') {
+  if (
+    route.name === '마이' ||
+    route.name === 'MyGate' ||
+    route.name === 'UserMyPage'
+  ) {
     return WEB_ROUTES.MY;
   }
 
@@ -649,14 +660,22 @@ function parseRouteFromUrl() {
     };
   }
 
-  const guesthouseLocationMatch = pathname.match(/^\/guesthouses\/([^/]+)\/location\/?$/);
-  const guesthousePostMatch = pathname.match(/^\/guesthouses\/([^/]+)\/posts\/?$/);
+  const guesthouseLocationMatch = pathname.match(
+    /^\/guesthouses\/([^/]+)\/location\/?$/,
+  );
+  const guesthousePostMatch = pathname.match(
+    /^\/guesthouses\/([^/]+)\/posts\/?$/,
+  );
   const guesthouseDetailMatch = pathname.match(/^\/guesthouses\/([^/]+)\/?$/);
   const roomDetailMatch = pathname.match(/^\/rooms\/([^/]+)\/?$/);
   const meetDetailMatch = pathname.match(/^\/contents\/([^/]+)\/?$/);
   const employDetailMatch = pathname.match(/^\/employ\/([^/]+)\/?$/);
-  const communityDetailMatch = pathname.match(/^\/community\/posts\/([^/]+)\/?$/);
-  const communityStaffDetailMatch = pathname.match(/^\/community\/staff\/([^/]+)\/?$/);
+  const communityDetailMatch = pathname.match(
+    /^\/community\/posts\/([^/]+)\/?$/,
+  );
+  const communityStaffDetailMatch = pathname.match(
+    /^\/community\/staff\/([^/]+)\/?$/,
+  );
 
   const parseId = value => {
     const decoded = decodeURIComponent(value);
@@ -769,8 +788,8 @@ function parseRouteFromUrl() {
 function getNestedRoute(childScreens, parentParams) {
   const nestedScreen = parentParams?.screen;
   const ownsNestedScreen =
-    nestedScreen
-    && childScreens.some(child => child.props.name === nestedScreen);
+    nestedScreen &&
+    childScreens.some(child => child.props.name === nestedScreen);
 
   if (ownsNestedScreen) {
     return {
@@ -847,13 +866,15 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       () =>
         React.Children.toArray(children).filter(
           child =>
-            React.isValidElement(child)
-            && child.props?.name
-            && child.props?.component,
+            React.isValidElement(child) &&
+            child.props?.name &&
+            child.props?.component,
         ),
       [children],
     );
-    const firstScreen = childScreens.find(child => child.props.name === initialRouteName) || childScreens[0];
+    const firstScreen =
+      childScreens.find(child => child.props.name === initialRouteName) ||
+      childScreens[0];
     const [route, setRoute] = React.useState(() =>
       getInitialRoute(childScreens, firstScreen, parentRoute?.params),
     );
@@ -919,7 +940,9 @@ export function createNavigatorFactory(defaultKind = 'stack') {
           return;
         }
 
-        const ownsRoute = childScreens.some(child => child.props.name === next.name);
+        const ownsRoute = childScreens.some(
+          child => child.props.name === next.name,
+        );
         if (!ownsRoute) {
           parentNavigation?.navigate?.(
             next.name,
@@ -1010,7 +1033,10 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         popToTop: () => {
           historyRef.current = [];
           if (firstScreen) {
-            setRoute({name: firstScreen.props.name, params: firstScreen.props.initialParams});
+            setRoute({
+              name: firstScreen.props.name,
+              params: firstScreen.props.initialParams,
+            });
           }
         },
         dispatch: action => {
@@ -1022,7 +1048,8 @@ export function createNavigatorFactory(defaultKind = 'stack') {
           } else if (payload?.name) {
             navigate(payload.name, payload.params);
           } else if (payload?.routes?.length) {
-            const nextRoute = payload.routes[payload.index ?? payload.routes.length - 1];
+            const nextRoute =
+              payload.routes[payload.index ?? payload.routes.length - 1];
             navigate(nextRoute.name, nextRoute.params);
           }
         },
@@ -1035,7 +1062,8 @@ export function createNavigatorFactory(defaultKind = 'stack') {
     );
 
     const activeScreen =
-      childScreens.find(child => child.props.name === route.name) || firstScreen;
+      childScreens.find(child => child.props.name === route.name) ||
+      firstScreen;
     const Component = activeScreen?.props.component;
 
     if (!Component) {
@@ -1078,14 +1106,19 @@ export function createNavigatorFactory(defaultKind = 'stack') {
           {defaultKind === 'bottom-tabs' ? (
             <View style={styles.tabRoot}>
               {content}
-              <View style={getTabBarStyle(screenOptions, routeValue, navigation)}>
+              <View
+                style={getTabBarStyle(screenOptions, routeValue, navigation)}>
                 {childScreens.map(child => {
                   const childRoute = {
                     name: child.props.name,
                     params: child.props.initialParams,
                   };
                   const focused = child.props.name === activeScreen.props.name;
-                  const options = getOptions(screenOptions, childRoute, navigation);
+                  const options = getOptions(
+                    screenOptions,
+                    childRoute,
+                    navigation,
+                  );
 
                   return (
                     <TouchableOpacity
@@ -1113,7 +1146,11 @@ export function createNavigatorFactory(defaultKind = 'stack') {
                         }
                       }}>
                       {typeof options.tabBarIcon === 'function'
-                        ? options.tabBarIcon({focused, color: undefined, size: 24})
+                        ? options.tabBarIcon({
+                            focused,
+                            color: undefined,
+                            size: 24,
+                          })
                         : null}
                       {renderTabLabel(options, childRoute, focused)}
                     </TouchableOpacity>
@@ -1148,7 +1185,12 @@ function getOptions(screenOptions, route, navigation) {
   return screenOptions || {};
 }
 
-function getMergedOptions(screenOptions, screenSpecificOptions, route, navigation) {
+function getMergedOptions(
+  screenOptions,
+  screenSpecificOptions,
+  route,
+  navigation,
+) {
   const baseOptions = getOptions(screenOptions, route, navigation);
   const nextOptions =
     typeof screenSpecificOptions === 'function'
@@ -1172,7 +1214,11 @@ function renderTabLabel(options, route, focused) {
   }
 
   if (typeof options.tabBarLabel === 'function') {
-    return options.tabBarLabel({focused, color: undefined, position: 'below-icon'});
+    return options.tabBarLabel({
+      focused,
+      color: undefined,
+      position: 'below-icon',
+    });
   }
 
   return (

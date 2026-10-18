@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback} from 'react';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
 import {useFocusEffect} from '@react-navigation/native';
@@ -7,6 +8,7 @@ import {UserFavorite, UserMyPage} from '@screens';
 const Stack = createNativeStackNavigator();
 
 function MyGate({navigation}) {
+  const {t} = useTranslation();
   const accessToken = useUserStore(state => state.accessToken);
 
   useFocusEffect(
@@ -14,9 +16,9 @@ function MyGate({navigation}) {
       if (accessToken) {
         navigation.replace('UserMyPage');
       } else {
-        navigation.getParent()?.navigate('홈');
+        navigation.getParent()?.navigate(t('common.home'));
       }
-    }, [accessToken, navigation]),
+    }, [accessToken, navigation, t]),
   );
 
   return null;

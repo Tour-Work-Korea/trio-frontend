@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from 'react';
+import {useTranslation} from 'react-i18next';
+import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
   Keyboard,
@@ -14,15 +15,15 @@ import {
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import dayjs from 'dayjs';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XBtn from '@assets/images/x_gray.svg';
 import Calendar from '@assets/images/calendar_gray.svg';
 import MonthPicker from '@components/Employ/MonthPicker';
 
-const { height } = Dimensions.get('window');
+const {height} = Dimensions.get('window');
 
 export default function EmployExperienceModal({
   visible,
@@ -30,6 +31,7 @@ export default function EmployExperienceModal({
   addExperience,
   initialData = null,
 }) {
+  const {t} = useTranslation();
   const [experience, setExperience] = useState({
     companyName: '',
     description: '',
@@ -38,7 +40,7 @@ export default function EmployExperienceModal({
   });
   const [isDatePickerVisible, setIsDatePickerVisible] = useState(false);
   const [dateFieldTarget, setDateFieldTarget] = useState(null);
-  const [selectedPeriod, setSelectedPeriod] = useState({ year: 2025, month: 4 });
+  const [selectedPeriod, setSelectedPeriod] = useState({year: 2025, month: 4});
 
   useEffect(() => {
     if (initialData) {
@@ -57,136 +59,150 @@ export default function EmployExperienceModal({
     setDateFieldTarget(field); // 'startDate' or 'endDate'
     const defaultDate = dayjs().format('YYYY.MM');
     if (!experience[field]) {
-      setExperience(prev => ({ ...prev, [field]: defaultDate }));
+      setExperience(prev => ({...prev, [field]: defaultDate}));
       setSelectedPeriod({
         year: dayjs().year(),
         month: dayjs().month() + 1,
       });
     } else {
       const [year, month] = experience[field].split('.').map(Number);
-      setSelectedPeriod({ year, month });
+      setSelectedPeriod({year, month});
     }
     setIsDatePickerVisible(true);
   };
   const handleMonthChange = date => {
     const formatted = `${date.year}.${String(date.month).padStart(2, '0')}`;
-    setExperience(prev => ({ ...prev, [dateFieldTarget]: formatted }));
+    setExperience(prev => ({...prev, [dateFieldTarget]: formatted}));
     setIsDatePickerVisible(false);
   };
   const content = (
-    <KeyboardAvoidingView style={{ flex: 1 }} enabled>
+    <KeyboardAvoidingView style={{flex: 1}} enabled>
       <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
-        <View style={[styles.overlay, Platform.OS === 'android' && styles.androidOverlay]}>
+        <View
+          style={[
+            styles.overlay,
+            Platform.OS === 'android' && styles.androidOverlay,
+          ]}>
           <View style={styles.container}>
-              {/* 헤더 */}
-              <View style={styles.header}>
-                <View />
-                <Text style={[FONTS.fs_20_semibold]}>경력</Text>
-                <TouchableOpacity
-                  activeOpacity={1} style={styles.xBtn} onPress={onClose}>
-                  <XBtn width={24} height={24} />
-                </TouchableOpacity>
-              </View>
-              {/* 입력 폼 */}
-              <ScrollView
-                style={{ flex: 1 }}
-                contentContainerStyle={styles.detailContainer}
-                showsVerticalScrollIndicator={false}>
-                <View style={styles.detailContainer}>
-                  {/* 회사명 입력 */}
-                  <View>
-                    <View style={styles.titleBox}>
-                      <Text style={styles.titleText}>회사명</Text>
-                      <Text style={styles.titleLength}>
-                        <Text style={{ color: COLORS.primary_orange }}>
-                          {experience.companyName.length}
-                        </Text>
-                        /50
+            {/* 헤더 */}
+            <View style={styles.header}>
+              <View />
+              <Text style={[FONTS.fs_20_semibold]}>{t('common.career')}</Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.xBtn}
+                onPress={onClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+            </View>
+            {/* 입력 폼 */}
+            <ScrollView
+              style={{flex: 1}}
+              contentContainerStyle={styles.detailContainer}
+              showsVerticalScrollIndicator={false}>
+              <View style={styles.detailContainer}>
+                {/* 회사명 입력 */}
+                <View>
+                  <View style={styles.titleBox}>
+                    <Text style={styles.titleText}>
+                      {t('employ.companyName')}
+                    </Text>
+                    <Text style={styles.titleLength}>
+                      <Text style={{color: COLORS.primary_orange}}>
+                        {experience.companyName.length}
                       </Text>
-                    </View>
-                    <View style={styles.inputBox}>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="회사명이나 업종을 입력해주세요"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={experience.companyName}
-                        onChangeText={data =>
-                          setExperience(prev => ({ ...prev, companyName: data }))
-                        }
-                        maxLength={50}
-                      />
-                    </View>
+                      /50
+                    </Text>
                   </View>
-                  {/* 근무기간 입력 */}
-                  <View>
-                    <View style={styles.titleBox}>
-                      <Text style={styles.titleText}>근무기간</Text>
-                    </View>
-                    <View style={styles.dateInputBox}>
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        style={[styles.inputBox, { flex: 1 }]}
-                        onPress={() => handleDateInputPress('startDate')}>
-                        <Text style={styles.textInput}>
-                          {experience.startDate || '근무시작일'}
-                        </Text>
-                        <Calendar width={24} />
-                      </TouchableOpacity>
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        style={[styles.inputBox, { flex: 1 }]}
-                        onPress={() => handleDateInputPress('endDate')}>
-                        <Text style={styles.textInput}>
-                          {experience.endDate || '근무종료일'}
-                        </Text>
-                        <Calendar width={24} />
-                      </TouchableOpacity>
-                    </View>
-                    {isDatePickerVisible && (
-                      <MonthPicker
-                        selectedDate={selectedPeriod}
-                        onChange={handleMonthChange}
-                      />
-                    )}
-                  </View>
-                  {/* 담당업무 */}
-                  <View>
-                    <View style={styles.titleBox}>
-                      <Text style={styles.titleText}>담당업무</Text>
-                      <Text style={styles.titleLength}>
-                        <Text style={{ color: COLORS.primary_orange }}>
-                          {experience.description.length}
-                        </Text>
-                        /50
-                      </Text>
-                    </View>
-                    <View style={styles.inputBox}>
-                      <TextInput
-                        style={styles.textInput}
-                        placeholder="ex) 서빙, 설거지, 계산"
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={experience.description}
-                        onChangeText={data =>
-                          setExperience(prev => ({ ...prev, description: data }))
-                        }
-                        maxLength={50}
-                      />
-                    </View>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder={t(
+                        'employ.pleaseEnterYourCompanyNameOrIndustry',
+                      )}
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={experience.companyName}
+                      onChangeText={data =>
+                        setExperience(prev => ({...prev, companyName: data}))
+                      }
+                      maxLength={50}
+                    />
                   </View>
                 </View>
-              </ScrollView>
+                {/* 근무기간 입력 */}
+                <View>
+                  <View style={styles.titleBox}>
+                    <Text style={styles.titleText}>
+                      {t('common.workingPeriod')}
+                    </Text>
+                  </View>
+                  <View style={styles.dateInputBox}>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      style={[styles.inputBox, {flex: 1}]}
+                      onPress={() => handleDateInputPress('startDate')}>
+                      <Text style={styles.textInput}>
+                        {experience.startDate || t('employ.workStartDate')}
+                      </Text>
+                      <Calendar width={24} />
+                    </TouchableOpacity>
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      style={[styles.inputBox, {flex: 1}]}
+                      onPress={() => handleDateInputPress('endDate')}>
+                      <Text style={styles.textInput}>
+                        {experience.endDate || t('employ.workEndDate')}
+                      </Text>
+                      <Calendar width={24} />
+                    </TouchableOpacity>
+                  </View>
+                  {isDatePickerVisible && (
+                    <MonthPicker
+                      selectedDate={selectedPeriod}
+                      onChange={handleMonthChange}
+                    />
+                  )}
+                </View>
+                {/* 담당업무 */}
+                <View>
+                  <View style={styles.titleBox}>
+                    <Text style={styles.titleText}>
+                      {t('employ.responsibilities')}
+                    </Text>
+                    <Text style={styles.titleLength}>
+                      <Text style={{color: COLORS.primary_orange}}>
+                        {experience.description.length}
+                      </Text>
+                      /50
+                    </Text>
+                  </View>
+                  <View style={styles.inputBox}>
+                    <TextInput
+                      style={styles.textInput}
+                      placeholder={t('employ.exServingWashingDishesPaying')}
+                      placeholderTextColor={COLORS.grayscale_400}
+                      value={experience.description}
+                      onChangeText={data =>
+                        setExperience(prev => ({...prev, description: data}))
+                      }
+                      maxLength={50}
+                    />
+                  </View>
+                </View>
+              </View>
+            </ScrollView>
 
-              {/* 하단 버튼 */}
-              <View style={styles.sticky}>
-                <View style={styles.confirmButton}>
-                  <ButtonScarlet
-                    title="적용하기"
-                    onPress={() => {
-                      addExperience(experience);
-                    }}
-                  />
-                </View>
+            {/* 하단 버튼 */}
+            <View style={styles.sticky}>
+              <View style={styles.confirmButton}>
+                <ButtonScarlet
+                  title={t('common.apply')}
+                  onPress={() => {
+                    addExperience(experience);
+                  }}
+                />
               </View>
+            </View>
           </View>
         </View>
       </TouchableWithoutFeedback>

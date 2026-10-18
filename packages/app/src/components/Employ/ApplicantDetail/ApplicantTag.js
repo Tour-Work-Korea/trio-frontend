@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -5,14 +6,15 @@ import {FONTS} from '@constants/fonts';
 import EditIcon from '@assets/images/edit_gray.svg';
 
 const ApplicantTag = ({tags, isEditable = false, onEditTags = () => {}}) => {
+  const {t} = useTranslation();
   return (
     <View>
       <View style={styles.sectionBox}>
         <View style={styles.titleBox}>
           <View style={styles.titleContainer}>
-            <Text style={styles.titleText}>태그</Text>
+            <Text style={styles.titleText}>{t('common.tag')}</Text>
             <Text style={styles.subTitleText}>
-              나를 표현하는 세 가지 키워드
+              {t('employ.threeKeywordsThatDescribeMe')}
             </Text>
           </View>
           {isEditable ? (

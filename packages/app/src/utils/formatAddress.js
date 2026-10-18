@@ -1,4 +1,5 @@
-const HIDDEN_ADDRESS_DETAILS = ['임시 상세주소'];
+import i18n from '@trio/app/src/i18n';
+const HIDDEN_ADDRESS_DETAILS = [i18n.t('common.temporaryDetailedAddress')];
 
 const removeHiddenAddressDetails = value =>
   HIDDEN_ADDRESS_DETAILS.reduce(

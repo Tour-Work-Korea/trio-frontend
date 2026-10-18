@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {Pressable, ScrollView, Text, View} from 'react-native';
 
@@ -18,12 +19,12 @@ const renderLeadingIcon = item => {
   const Icon = isCommunity
     ? CommentIcon
     : isParty
-      ? isCancelled
-        ? PartyCancelledIcon
-        : PartyConfirmedIcon
-      : isCancelled
-        ? GuesthouseCancelledIcon
-        : GuesthouseConfirmedIcon;
+    ? isCancelled
+      ? PartyCancelledIcon
+      : PartyConfirmedIcon
+    : isCancelled
+    ? GuesthouseCancelledIcon
+    : GuesthouseConfirmedIcon;
 
   return (
     <View style={styles.iconWrap}>
@@ -33,11 +34,12 @@ const renderLeadingIcon = item => {
 };
 
 const NotificationList = ({items = [], onPressItem}) => {
+  const {t} = useTranslation();
   if (!items.length) {
     return (
       <View style={styles.emptyWrap}>
         <Text style={[FONTS.fs_16_medium, styles.emptyText]}>
-          받은 알림이 없습니다.
+          {t('notification.noNotificationsReceived')}
         </Text>
       </View>
     );

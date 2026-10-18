@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
 import {View, ScrollView} from 'react-native';
 
@@ -10,6 +11,7 @@ import PostTapSection from './PostTapSection';
 import AlertModal from '@components/modals/AlertModal';
 
 const GuesthousePost = ({route}) => {
+  const {t} = useTranslation();
   const {guesthouseId} = route.params ?? {};
   const [post, setPost] = useState();
   const [errorModal, setErrorModal] = useState({
@@ -31,9 +33,9 @@ const GuesthousePost = ({route}) => {
       setErrorModal({
         visible: true,
         message:
-          '해당 게스트하우스 소개글을 찾을 수 없습니다.' ||
+          t('guesthouse.anIntroductionToTheGuesthouseCouldNotBeFound') ||
           error?.response?.data?.message,
-        buttonText: '확인',
+        buttonText: t('common.confirm'),
       });
     }
   };
@@ -60,7 +62,9 @@ const GuesthousePost = ({route}) => {
             tags={post?.tags}
             guesthouseId={post?.guesthouseId ?? guesthouseId}
             guesthouseName={post?.guesthouseName}
-            guesthouseImgUrl={post?.profileSummary?.profileImageUrl ?? post?.hostProfileImageUrl}
+            guesthouseImgUrl={
+              post?.profileSummary?.profileImageUrl ?? post?.hostProfileImageUrl
+            }
             toggleFavorite={handleFavorite}
             isLiked={post?.isLiked}
           />

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {View, Text, TouchableOpacity, ScrollView} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -18,6 +19,7 @@ import PlusIcon from '@assets/images/plus_white.svg';
 import {FONTS} from '@constants/fonts';
 
 const MyResumeList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const userProfile = useUserStore(state => state.userProfile);
   const [resumes, setResumes] = useState([]);
@@ -47,8 +49,8 @@ const MyResumeList = () => {
       setErrorModal(prev => ({
         ...prev,
         visible: true,
-        title: '이력서를 불러오는 중 오류가 발생했어요',
-        buttonText: '확인',
+        title: t('myPage.couldnTLoadYourResume'),
+        buttonText: t('common.confirm'),
       }));
     } finally {
       setLoading(false);
@@ -66,8 +68,10 @@ const MyResumeList = () => {
       setErrorModal(prev => ({
         ...prev,
         visible: true,
-        title: error?.response?.data?.message ?? '삭제 중 오류가 발생했어요',
-        buttonText: '확인',
+        title:
+          error?.response?.data?.message ??
+          t('myPage.anErrorOccurredWhileDeleting'),
+        buttonText: t('common.confirm'),
       }));
     }
   };
@@ -75,9 +79,9 @@ const MyResumeList = () => {
   const handleDeletePosting = id => {
     setErrorModal({
       visible: true,
-      title: '삭제한 이력서는 복구할 수 없어요\n삭제를 진행하시겠어요?',
-      buttonText: '보류하기',
-      buttonText2: '삭제하기',
+      title: t('myPage.deletedResumesCanTBeRestoredDoYouWantTo'),
+      buttonText: t('myPage.putOnHold'),
+      buttonText2: t('myPage.delete'),
       onPress2: () => {
         tryDeleteResumeById(id);
         setErrorModal(prev => ({...prev, visible: false}));
@@ -95,7 +99,7 @@ const MyResumeList = () => {
       isEditable: true,
       role: 'USER',
       isNew: true,
-      headerTitle: '이력서 작성',
+      headerTitle: t('employ.writeAResume'),
     });
   };
 
@@ -105,7 +109,7 @@ const MyResumeList = () => {
       style={[styles.addButton, styles.addButtonLocation]}
       onPress={handleAddResume}>
       <Text style={[FONTS.fs_14_medium, styles.addButtonText]}>
-        이력서 추가하기
+        {t('myPage.addResume')}
       </Text>
       <PlusIcon width={24} height={24} />
     </TouchableOpacity>
@@ -121,7 +125,7 @@ const MyResumeList = () => {
           onPress={() => {
             navigation.navigate('ResumeDetail', {
               id: item.resumeId,
-              headerTitle: '나의 이력서',
+              headerTitle: t('common.myResume'),
             });
           }}>
           <View style={styles.resumeMiddleSection}>
@@ -135,7 +139,9 @@ const MyResumeList = () => {
             </View>
             <View style={styles.modifiedContainer}>
               <View style={styles.modifiedTextBox}>
-                <Text style={styles.lastModifiedText}>최종수정일</Text>
+                <Text style={styles.lastModifiedText}>
+                  {t('common.lastModifiedDate')}
+                </Text>
                 <Text style={styles.lastModifiedText}>
                   {item.updatedAt.split('T')[0]}
                 </Text>
@@ -148,7 +154,7 @@ const MyResumeList = () => {
                     navigation.navigate('ResumeDetail', {
                       id: item.resumeId,
                       isEditable: true,
-                      headerTitle: '이력서 수정',
+                      headerTitle: t('employ.editYourResume'),
                     })
                   }>
                   <EditIcon
@@ -177,7 +183,7 @@ const MyResumeList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title={'나의 이력서'} />
+      <Header title={t('common.myResume')} />
 
       {loading ? (
         <></>
@@ -185,15 +191,15 @@ const MyResumeList = () => {
         <View style={styles.body}>
           {noResumeState ? (
             <EmployEmpty
-              title={'아직 정보가 부족해요'}
-              subTitle={'이력서를 완성하러 가볼까요?'}
-              buttonText={'이력서 작성하러 가기'}
+              title={t('common.thereIsStillNotEnoughInformation')}
+              subTitle={t('common.shallWeGoCompleteOurResume')}
+              buttonText={t('myPage.goToWritingResume')}
               onPress={handleAddResume}
             />
           ) : (
             <EmployEmpty
-              title={'작성하신 이력서가 없습니다'}
-              buttonText={'이력서 작성하러 가기'}
+              title={t('common.thereIsNoResumeWritten')}
+              buttonText={t('myPage.goToWritingResume')}
               onPress={handleAddResume}
             />
           )}
@@ -213,12 +219,13 @@ const MyResumeList = () => {
         onPress2={errorModal.onPress2}
         title={errorModal.title}
       />
+
       <ResultModal
         visible={deleteCompleted}
         onClose={() => {
           setDeleteCompleted(false);
         }}
-        title="이력서 삭제가 완료되었어요"
+        title={t('myPage.resumeDeletionHasBeenCompleted')}
         Icon={DeleteWaLogo}
       />
     </View>

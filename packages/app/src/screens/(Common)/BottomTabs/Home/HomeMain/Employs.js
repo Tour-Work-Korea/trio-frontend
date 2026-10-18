@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -10,6 +11,7 @@ import RecruitCard from '@components/Employ/RecruitList/RecruitCard';
 import {toggleFavorite} from '@utils/toggleFavorite';
 
 export default function Employs({jobs = [], setEmployList}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const moveToDetail = id => {
@@ -19,14 +21,14 @@ export default function Employs({jobs = [], setEmployList}) {
   return (
     <View style={styles.jobContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
-        <Text style={styles.sectionTitle}>추천 일자리</Text>
+        <Text style={styles.sectionTitle}>{t('common.recommendedJobs')}</Text>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.seeMoreButton}
           onPress={() => {
             navigation.navigate('PopularEmployList');
           }}>
-          <Text style={styles.seeMoreText}>더보기</Text>
+          <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
       </View>

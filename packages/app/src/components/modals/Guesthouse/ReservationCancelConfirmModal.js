@@ -1,10 +1,6 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
-import {
-  View,
-  Text,
-  TouchableOpacity,
-  StyleSheet,
-} from 'react-native';
+import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 
 import {FONTS} from '@constants/fonts';
@@ -14,12 +10,8 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 
-const ReservationCancelConfirmModal = ({
-  visible,
-  onClose,
-  onConfirm,
-  data,
-}) => {
+const ReservationCancelConfirmModal = ({visible, onClose, onConfirm, data}) => {
+  const {t} = useTranslation();
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
   const info = data || {
     paidAmount: 0,
@@ -28,7 +20,8 @@ const ReservationCancelConfirmModal = ({
     payMethodLabel: '',
     refundMethodLabel: '',
   };
-  const formatWon = v => `${Number(v || 0).toLocaleString()}원`;
+  const formatWon = v =>
+    t('common.valueWon', {value1: Number(v || 0).toLocaleString()});
 
   return (
     <Modal
@@ -40,28 +33,29 @@ const ReservationCancelConfirmModal = ({
         <View style={styles.modalBox}>
           {/* 제목 */}
           <Text style={[FONTS.fs_18_semibold, styles.title]}>
-            환불 예정금액 확인
+            {t('guesthouse.checkTheExpectedRefundAmount')}
           </Text>
 
           <View style={styles.divider} />
 
           {/* 설명 */}
           <Text style={[FONTS.fs_14_semibold, styles.desc]}>
-            결제하셨던{' '}
+            {t('guesthouse.whatYouPaidFor')}{' '}
             <Text style={styles.highlightRed}>{info.payMethodLabel}</Text>
-            (으)로{' '}
+            {t('guesthouse.to')}{' '}
             <Text style={styles.highlightRed}>
               {formatWon(info.refundAmount)}
-            </Text>
-            {' '}환불이 예상됩니다. 
-            {'\n'}아래 환불 상세 내역을 확인해주세요.
+            </Text>{' '}
+            {t('guesthouse.estimatedRefund')}
+            {'\n'}
+            {t('guesthouse.pleaseCheckTheRefundDetailsBelow')}
           </Text>
 
           {/* 상세 정보 */}
           <View style={styles.detailBlock}>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>
-                실 결제 금액
+                {t('common.actualPaymentAmount')}
               </Text>
               <Text style={[FONTS.fs_14_medium]}>
                 {formatWon(info.paidAmount)}
@@ -72,20 +66,31 @@ const ReservationCancelConfirmModal = ({
               <>
                 <View style={styles.row}>
                   <Text style={[FONTS.fs_14_medium, styles.label]}>
-                    적용 규정
+                    {t('common.applicableRegulations')}
                   </Text>
                   {info.dailyInfo ? (
-                    <TouchableOpacity 
+                    <TouchableOpacity
                       style={{flexDirection: 'row', alignItems: 'center'}}
-                      onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}
-                    >
-                      <Text style={[FONTS.fs_14_medium, {color: COLORS.semantic_red, marginRight: 4}]}>
+                      onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          {color: COLORS.semantic_red, marginRight: 4},
+                        ]}>
                         {info.appliedPolicyText}
                       </Text>
-                      {isPolicyExpanded ? <ChevronUp width={16} height={16} /> : <ChevronDown width={16} height={16} />}
+                      {isPolicyExpanded ? (
+                        <ChevronUp width={16} height={16} />
+                      ) : (
+                        <ChevronDown width={16} height={16} />
+                      )}
                     </TouchableOpacity>
                   ) : (
-                    <Text style={[FONTS.fs_14_medium, {color: COLORS.semantic_red}]}>
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        {color: COLORS.semantic_red},
+                      ]}>
                       {info.appliedPolicyText}
                     </Text>
                   )}
@@ -94,19 +99,38 @@ const ReservationCancelConfirmModal = ({
                 {isPolicyExpanded && info.dailyInfo && (
                   <View style={styles.dailyPolicyContainer}>
                     {info.dailyInfo.map((infoItem, idx) => (
-                      <View key={idx} style={[styles.dailyPolicyRow, idx !== 0 && styles.dailyPolicyBorder]}>
+                      <View
+                        key={idx}
+                        style={[
+                          styles.dailyPolicyRow,
+                          idx !== 0 && styles.dailyPolicyBorder,
+                        ]}>
                         <View>
-                          <Text style={[FONTS.fs_14_semibold, styles.dailyPolicyTitle]}>
-                            {infoItem.nightIndex}차 ({infoItem.dateStr})
+                          <Text
+                            style={[
+                              FONTS.fs_14_semibold,
+                              styles.dailyPolicyTitle,
+                            ]}>
+                            {infoItem.nightIndex}
+                            {t('common.tea')}
+                            {infoItem.dateStr})
                           </Text>
-                          <Text style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
+                          <Text
+                            style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
                             {infoItem.daysBeforeLabel}
                           </Text>
                         </View>
-                        <Text style={[FONTS.fs_14_medium, styles.dailyPolicyAmount]}>
-                          {infoItem.rate === 0 
-                            ? `환불 금액 없음 (0원)` 
-                            : `${infoItem.rate}% 환불 (${formatWon(infoItem.refundAmt)})`}
+                        <Text
+                          style={[
+                            FONTS.fs_14_medium,
+                            styles.dailyPolicyAmount,
+                          ]}>
+                          {infoItem.rate === 0
+                            ? t('common.noRefundAmount0Won')
+                            : t('guesthouse.valueRefundValue', {
+                                infoItem_rate: infoItem.rate,
+                                value2: formatWon(infoItem.refundAmt),
+                              })}
                         </Text>
                       </View>
                     ))}
@@ -117,7 +141,7 @@ const ReservationCancelConfirmModal = ({
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>
-                예상 취소 수수료
+                {t('common.estimatedCancellationFee')}
               </Text>
               <Text style={[FONTS.fs_14_medium]}>
                 {formatWon(info.cancelFee)}
@@ -130,7 +154,7 @@ const ReservationCancelConfirmModal = ({
           <View style={styles.detailBlock}>
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>
-                환불 방법
+                {t('common.refundMethod')}
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
                 {info.refundMethodLabel}
@@ -139,7 +163,7 @@ const ReservationCancelConfirmModal = ({
 
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.label]}>
-                최종 환불 금액
+                {t('common.finalRefundAmount')}
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.refundAmount]}>
                 {formatWon(info.refundAmount)}
@@ -149,20 +173,21 @@ const ReservationCancelConfirmModal = ({
 
           {/* 안내 문구 */}
           <Text style={[FONTS.fs_14_regular, styles.notice]}>
-            동의 후 취소를 누르시면 취소가 진행됩니다.
+            {t('guesthouse.clickCancelAfterAgreeingToCancel')}
           </Text>
 
           {/* 버튼 */}
           <View style={styles.buttonRow}>
             <ButtonWhite
               onPress={onClose}
-              title='취소'
-              style={{flex:1}}
+              title={t('common.cancel')}
+              style={{flex: 1}}
             />
+
             <ButtonScarlet
               onPress={onConfirm}
-              title='동의 후 취소'
-              style={{flex:1}}
+              title={t('guesthouse.cancelAfterConsent')}
+              style={{flex: 1}}
             />
           </View>
         </View>

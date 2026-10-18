@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -8,25 +10,28 @@ import {
   Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import dayjs from 'dayjs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {formatLocalDateTimeToDotAndTime} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import HomeIcon from '@assets/images/home_white_filled.svg';
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
-const recruitTabs = ['모집조건', '근무조건', '근무 정보'];
+const recruitTabs = [
+  i18n.t('employ.recruitmentConditions'),
+  i18n.t('employ.workingConditions'),
+  i18n.t('employ.workInformation'),
+];
 const recruitTabItems = recruitTabs.map(tab => ({key: tab}));
 
 export default function RecruitTapSection({recruit}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
@@ -183,11 +188,13 @@ export default function RecruitTapSection({recruit}) {
 
   const renderTabContent = tabName => {
     switch (tabName) {
-      case '모집조건':
+      case t('employ.recruitmentConditions'):
         return (
           <View style={styles.tabContent}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>모집기간</Text>
+              <Text style={styles.infoLabel}>
+                {t('employ.recruitmentPeriod')}
+              </Text>
               <Text style={styles.infoValue}>
                 {formatLocalDateTimeToDotAndTime(recruit.recruitStart).date}~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.recruitEnd).date}
@@ -195,23 +202,30 @@ export default function RecruitTapSection({recruit}) {
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>모집인원</Text>
+              <Text style={styles.infoLabel}>
+                {t('employ.numberOfPeopleRecruited')}
+              </Text>
               <Text style={styles.infoValue}>
-                여 {recruit.recruitNumberFemale}명, 남{' '}
-                {recruit.recruitNumberMale}명, 성별무관{' '}
-                {recruit.recruitNumberNoGender}명
+                {t('employ.recruitmentGenderCounts', {
+                  female: recruit.recruitNumberFemale,
+                  male: recruit.recruitNumberMale,
+                  anyGender: recruit.recruitNumberNoGender,
+                })}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>나이</Text>
+              <Text style={styles.infoLabel}>{t('employ.age')}</Text>
               <Text style={styles.infoValue}>
-                {recruit.recruitMinAge} ~ {recruit.recruitMaxAge}세
+                {t('employ.ageRange', {
+                  min: recruit.recruitMinAge,
+                  max: recruit.recruitMaxAge,
+                })}
               </Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>입도날짜</Text>
+              <Text style={styles.infoLabel}>{t('employ.entryDate')}</Text>
               <Text style={styles.infoValue}>
                 {formatLocalDateTimeToDotAndTime(recruit.entryStartDate).date} ~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.entryEndDate).date}
@@ -219,39 +233,43 @@ export default function RecruitTapSection({recruit}) {
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>우대조건</Text>
+              <Text style={styles.infoLabel}>
+                {t('employ.preferentialConditions')}
+              </Text>
               <Text style={styles.infoValue}>{recruit.recruitCondition}</Text>
             </View>
           </View>
         );
-      case '근무조건':
+
+      case t('employ.workingConditions'):
         return (
           <View style={styles.tabContent}>
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>근무형태</Text>
+              <Text style={styles.infoLabel}>{t('employ.workType')}</Text>
               <Text style={styles.infoValue}>{recruit.workType}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>주요업무</Text>
+              <Text style={styles.infoLabel}>{t('employ.mainTasks')}</Text>
               <Text style={styles.infoValue}>{recruit.workPart}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>근무기간</Text>
+              <Text style={styles.infoLabel}>{t('common.workingPeriod')}</Text>
               <Text style={styles.infoValue}>{recruit.workDuration}</Text>
             </View>
 
             <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>복지</Text>
+              <Text style={styles.infoLabel}>{t('employ.welfare')}</Text>
               <Text style={styles.infoValue}>{recruit.welfare}</Text>
             </View>
           </View>
         );
-      case '근무 정보':
+
+      case t('employ.workInformation'):
         return (
           <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>근무 사진</Text>
+            <Text style={styles.sectionTitle}>{t('employ.workingPhoto')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -285,7 +303,7 @@ export default function RecruitTapSection({recruit}) {
               ))}
             </ScrollView>
 
-            <Text style={styles.sectionTitle}>근무지 위치</Text>
+            <Text style={styles.sectionTitle}>{t('employ.workLocation')}</Text>
             {renderWorkLocationMap()}
             <View style={styles.guesthouseLinkCard}>
               <View style={styles.guesthouseLinkTopRow}>
@@ -308,7 +326,9 @@ export default function RecruitTapSection({recruit}) {
                       recruit?.profileSummary?.guesthouseId
                     )
                   }>
-                  <Text style={styles.guesthouseLinkAction}>게하 보러가기</Text>
+                  <Text style={styles.guesthouseLinkAction}>
+                    {t('common.goSeeGuesthouse')}
+                  </Text>
                   <ChevroRight width={14} height={14} />
                 </TouchableOpacity>
               </View>
@@ -321,6 +341,7 @@ export default function RecruitTapSection({recruit}) {
             </View>
           </View>
         );
+
       default:
         return null;
     }

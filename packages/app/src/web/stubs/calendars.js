@@ -1,3 +1,4 @@
+import i18n from '@trio/app/src/i18n';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
@@ -80,7 +81,15 @@ const getDayState = ({dateString, isCurrentMonth, minDate, maxDate}) => {
 };
 
 const weekdayLabels = firstDay => {
-  const labels = ['일', '월', '화', '수', '목', '금', '토'];
+  const labels = [
+    i18n.t('common.work'),
+    i18n.t('common.month'),
+    i18n.t('common.angry'),
+    i18n.t('common.number'),
+    i18n.t('common.neck'),
+    i18n.t('common.gold'),
+    i18n.t('common.sat'),
+  ];
   return labels.slice(firstDay).concat(labels.slice(0, firstDay));
 };
 
@@ -103,7 +112,9 @@ export function Calendar({
 }) {
   const currentDate = toDate(current);
   const days = getMonthDays({current, firstDay, hideExtraDays});
-  const title = `${currentDate.getFullYear()}년 ${currentDate.getMonth() + 1}월`;
+  const title = `${currentDate.getFullYear()}년 ${
+    currentDate.getMonth() + 1
+  }월`;
 
   const pressDay = day => {
     onDayPress?.(day);
@@ -113,8 +124,11 @@ export function Calendar({
     const dateString = date.dateString;
     const mark = markedDates?.[dateString] || {};
     const isDisabled = state === 'disabled' || mark.disabled;
-    const isMarked = Boolean(mark.color || mark.selected || mark.startingDay || mark.endingDay);
-    const backgroundColor = mark.color || (mark.selected ? mark.selectedColor : undefined);
+    const isMarked = Boolean(
+      mark.color || mark.selected || mark.startingDay || mark.endingDay,
+    );
+    const backgroundColor =
+      mark.color || (mark.selected ? mark.selectedColor : undefined);
     const textColor =
       mark.textColor ||
       mark.selectedTextColor ||
@@ -150,7 +164,9 @@ export function Calendar({
 
   return (
     <View style={[styles.container, style]}>
-      {renderHeader ? renderHeader(currentDate) : (
+      {renderHeader ? (
+        renderHeader(currentDate)
+      ) : (
         <View style={styles.header}>
           {!hideArrows && <Text style={styles.arrowPlaceholder}>‹</Text>}
           <Text style={styles.headerText}>{title}</Text>
@@ -178,8 +194,14 @@ export function Calendar({
 
           return (
             <View key={day.dateString} style={styles.cell}>
-              {hidden ? null : dayComponent
-                ? dayComponent({date: day, state, marking: markedDates?.[day.dateString]})
+              {hidden
+                ? null
+                : dayComponent
+                ? dayComponent({
+                    date: day,
+                    state,
+                    marking: markedDates?.[day.dateString],
+                  })
                 : renderDefaultDay({date: day, state})}
             </View>
           );

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -29,13 +30,17 @@ import {isUserNotification} from '@utils/notifications';
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 
-const REVIEW_BUBBLE_DISMISSED_COUNT_KEY = 'trio:my-review-bubble-dismissed-count';
+const REVIEW_BUBBLE_DISMISSED_COUNT_KEY =
+  'trio:my-review-bubble-dismissed-count';
 
 const UserMyPage = () => {
+  const {t, i18n} = useTranslation();
   const navigation = useNavigation();
   const [reviewCount, setReviewCount] = useState(0);
   const [reviewableCount, setReviewableCount] = useState(0);
-  const [showReviewBubble, setShowReviewBubble] = useState(Platform.OS !== 'web');
+  const [showReviewBubble, setShowReviewBubble] = useState(
+    Platform.OS !== 'web',
+  );
   const [couponCount, setCouponCount] = useState(0);
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
@@ -47,18 +52,28 @@ const UserMyPage = () => {
   const ageValue = Number(user.age);
   const ageGroup =
     Number.isFinite(ageValue) && ageValue > 0
-      ? `${Math.floor(ageValue / 10) * 10}대`
+      ? t('myPage.value', {value1: Math.floor(ageValue / 10) * 10})
       : null;
+  const birthYear = String(user.birthDate ?? '').match(/^\d{4}/)?.[0];
+  const currentLanguage = i18n.resolvedLanguage ?? i18n.language;
+  const ageOrBirthYear = currentLanguage?.startsWith('en')
+    ? birthYear?.slice(-2) ?? ageGroup
+    : ageGroup;
   const profileMeta = [
-    ageGroup,
-    user.gender === 'F' ? '여성' : '남성',
+    ageOrBirthYear,
+    user.gender === 'F' ? t('common.female') : t('common.male'),
     hasMbti ? user.mbti : null,
   ].filter(Boolean);
-  const instagramText =
-    user.instagramId === '@ID를 추가해주세요'
-      ? user.instagramId
-      : `@${user.instagramId}`;
-  const formattedPointBalance = Number(pointBalance || 0).toLocaleString('ko-KR');
+  const hasInstagramId =
+    user.instagramId &&
+    user.instagramId !== '@ID를 추가해주세요' &&
+    user.instagramId !== 'ID를 추가해주세요';
+  const instagramText = hasInstagramId
+    ? `@${user.instagramId}`
+    : t('myPage.pleaseAddId');
+  const formattedPointBalance = Number(pointBalance || 0).toLocaleString(
+    'ko-KR',
+  );
   const reviewRewardPoint = (reviewableCount * 1000).toLocaleString('ko-KR');
 
   const goToEditProfile = () => {
@@ -80,7 +95,9 @@ const UserMyPage = () => {
     const dismissedCount = Number(
       window.localStorage?.getItem(REVIEW_BUBBLE_DISMISSED_COUNT_KEY) ?? 0,
     );
-    setShowReviewBubble(!Number.isFinite(dismissedCount) || dismissedCount < reviewableCount);
+    setShowReviewBubble(
+      !Number.isFinite(dismissedCount) || dismissedCount < reviewableCount,
+    );
   }, [reviewableCount]);
 
   const closeReviewBubble = () => {
@@ -100,16 +117,23 @@ const UserMyPage = () => {
 
       const fetchMyPageData = async () => {
         try {
-          const [reviewsRes, couponsRes, pointRes, notificationsRes, favoritesRes, favoritePartiesRes, favoriteRecruitsRes] =
-            await Promise.all([
-              userMyApi.getMyReviews(),
-              userMyApi.getMyCoupons(),
-              userMyApi.getPointBalance(),
-              notificationApi.getMyNotifications(0, 100),
-              userMyApi.getMyFavoriteGuesthouses(),
-              userMeetApi.getFavoriteParties(),
-              userEmployApi.getLikeRecruits(),
-            ]);
+          const [
+            reviewsRes,
+            couponsRes,
+            pointRes,
+            notificationsRes,
+            favoritesRes,
+            favoritePartiesRes,
+            favoriteRecruitsRes,
+          ] = await Promise.all([
+            userMyApi.getMyReviews(),
+            userMyApi.getMyCoupons(),
+            userMyApi.getPointBalance(),
+            notificationApi.getMyNotifications(0, 100),
+            userMyApi.getMyFavoriteGuesthouses(),
+            userMeetApi.getFavoriteParties(),
+            userEmployApi.getLikeRecruits(),
+          ]);
           if (!isActive) {
             return;
           }
@@ -120,8 +144,8 @@ const UserMyPage = () => {
           const reviewItems = Array.isArray(reviewsData?.reviews)
             ? reviewsData.reviews
             : Array.isArray(reviewsData)
-              ? reviewsData
-              : [];
+            ? reviewsData
+            : [];
 
           setReviewCount(
             Number.isFinite(reviewedCount)
@@ -145,8 +169,12 @@ const UserMyPage = () => {
 
           const totalFavorites =
             (Array.isArray(favoritesRes.data) ? favoritesRes.data.length : 0) +
-            (Array.isArray(favoritePartiesRes.data) ? favoritePartiesRes.data.length : 0) +
-            (Array.isArray(favoriteRecruitsRes.data) ? favoriteRecruitsRes.data.length : 0);
+            (Array.isArray(favoritePartiesRes.data)
+              ? favoritePartiesRes.data.length
+              : 0) +
+            (Array.isArray(favoriteRecruitsRes.data)
+              ? favoriteRecruitsRes.data.length
+              : 0);
 
           setFavoriteCount(totalFavorites);
         } catch (error) {
@@ -174,14 +202,13 @@ const UserMyPage = () => {
   return (
     <View style={styles.view}>
       <View style={styles.topBarContainer}>
-        <Text style={[FONTS.fs_20_semibold]}>마이페이지</Text>
+        <Text style={[FONTS.fs_20_semibold]}>{t('myPage.myPage')}</Text>
 
         <View style={styles.topBarRightIcons}>
           <TouchableOpacity
             activeOpacity={1}
             style={styles.topBarIconButton}
-            onPress={() => navigation.navigate('NotificationCenter')}
-          >
+            onPress={() => navigation.navigate('NotificationCenter')}>
             <BellIcon width={20} height={20} />
             {unreadCount > 0 ? (
               <View style={styles.unreadBadge}>
@@ -194,8 +221,7 @@ const UserMyPage = () => {
           <TouchableOpacity
             activeOpacity={1}
             style={styles.topBarIconButton}
-            onPress={() => navigation.navigate('Setting')}
-          >
+            onPress={() => navigation.navigate('Setting')}>
             <SettingIcon width={22} height={22} />
           </TouchableOpacity>
         </View>
@@ -210,29 +236,57 @@ const UserMyPage = () => {
                 size={88}
                 iconSize={24}
                 borderRadius={58}
-                style={styles.profileImage}
+                style={[
+                  styles.profileImage,
+                  currentLanguage?.startsWith('en') &&
+                    styles.englishProfileImage,
+                ]}
               />
+
               <View style={styles.profileContent}>
                 <View style={styles.profileHeader}>
-                  <View style={styles.profileTextGroup}>
+                  <View
+                    style={[
+                      styles.profileTextGroup,
+                      currentLanguage?.startsWith('en') &&
+                        styles.englishProfileTextGroup,
+                    ]}>
                     <View style={styles.profileTextSection}>
-                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
-                        닉네임
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          styles.profileSectionTitle,
+                          currentLanguage?.startsWith('en') &&
+                            styles.englishProfileSectionTitle,
+                        ]}>
+                        {t('common.nickname')}
                       </Text>
                       <Text style={[FONTS.fs_18_semibold, styles.name]}>
                         {user.nickname}
                       </Text>
                     </View>
                     <View style={styles.profileTextSection}>
-                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
-                        정보
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          styles.profileSectionTitle,
+                          currentLanguage?.startsWith('en') &&
+                            styles.englishProfileSectionTitle,
+                        ]}>
+                        {t('myPage.information')}
                       </Text>
                       <Text style={[FONTS.fs_12_medium, styles.profileMeta]}>
                         {profileMeta.join('/')}
                       </Text>
                     </View>
                     <View style={styles.profileTextSection}>
-                      <Text style={[FONTS.fs_12_medium, styles.profileSectionTitle]}>
+                      <Text
+                        style={[
+                          FONTS.fs_12_medium,
+                          styles.profileSectionTitle,
+                          currentLanguage?.startsWith('en') &&
+                            styles.englishProfileSectionTitle,
+                        ]}>
                         insta
                       </Text>
                       <Text
@@ -245,10 +299,23 @@ const UserMyPage = () => {
                   </View>
                   <TouchableOpacity
                     activeOpacity={1}
-                    style={styles.profileEdit}
+                    style={[
+                      styles.profileEdit,
+                      currentLanguage?.startsWith('en') &&
+                        styles.englishProfileEdit,
+                    ]}
                     onPress={goToEditProfile}>
-                    <Text style={[FONTS.fs_14_medium, styles.profileEditText]}>
-                      내 정보
+                    <Text
+                      adjustsFontSizeToFit
+                      minimumFontScale={0.78}
+                      numberOfLines={1}
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.profileEditText,
+                        currentLanguage?.startsWith('en') &&
+                          styles.englishProfileEditText,
+                      ]}>
+                      {t('common.myInformation')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -264,23 +331,21 @@ const UserMyPage = () => {
                   <View style={styles.reviewBubbleContent}>
                     <Text
                       style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
-                      numberOfLines={1}
-                    >
-                      리뷰 쓰면
+                      numberOfLines={1}>
+                      {t('myPage.ifYouWriteAReview')}
                     </Text>
                     <Text
                       style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
-                      numberOfLines={1}
-                    >
-                      {reviewRewardPoint}P 적립 가능!
+                      numberOfLines={1}>
+                      {reviewRewardPoint}
+                      {t('myPage.pCanBeEarned')}
                     </Text>
                   </View>
                   <TouchableOpacity
                     activeOpacity={0.8}
                     style={styles.reviewBubbleClose}
                     hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
-                    onPress={closeReviewBubble}
-                  >
+                    onPress={closeReviewBubble}>
                     <Text style={styles.reviewBubbleCloseText}>X</Text>
                   </TouchableOpacity>
                   <View style={styles.reviewBubbleTail} />
@@ -289,10 +354,9 @@ const UserMyPage = () => {
               <TouchableOpacity
                 activeOpacity={1}
                 style={styles.promoSection}
-                onPress={() => navigation.navigate('UserGuesthouseReview')}
-              >
-                <CommentIcon width={20} height={20}/>
-                <Text style={[FONTS.fs_14_medium]}>내 리뷰</Text>
+                onPress={() => navigation.navigate('UserGuesthouseReview')}>
+                <CommentIcon width={20} height={20} />
+                <Text style={[FONTS.fs_14_medium]}>{t('common.myReview')}</Text>
                 <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                   {reviewCount}
                 </Text>
@@ -301,10 +365,9 @@ const UserMyPage = () => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.promoSection}
-              onPress={() => navigation.navigate('MyCouponList')}
-            >
-              <CouponIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium]}>쿠폰</Text>
+              onPress={() => navigation.navigate('MyCouponList')}>
+              <CouponIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_medium]}>{t('common.coupon')}</Text>
               <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                 {couponCount}
               </Text>
@@ -312,10 +375,9 @@ const UserMyPage = () => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.promoSection}
-              onPress={() => navigation.navigate('MyPoint')}
-            >
-              <PointIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium]}>포인트</Text>
+              onPress={() => navigation.navigate('MyPoint')}>
+              <PointIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_medium]}>{t('common.point')}</Text>
               <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                 {formattedPointBalance}
               </Text>
@@ -323,10 +385,9 @@ const UserMyPage = () => {
             <TouchableOpacity
               activeOpacity={1}
               style={styles.promoSection}
-              onPress={() => navigation.navigate('UserFavorite')}
-            >
-              <HeartIcon width={20} height={20}/>
-              <Text style={[FONTS.fs_14_medium]}>찜</Text>
+              onPress={() => navigation.navigate('UserFavorite')}>
+              <HeartIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_medium]}>{t('common.steamed')}</Text>
               <Text style={[FONTS.fs_14_semibold, styles.promoSectionText]}>
                 {favoriteCount}
               </Text>
@@ -337,23 +398,24 @@ const UserMyPage = () => {
             {/* 예약 내역 섹션 */}
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                예약 내역
+                {t('myPage.reservationDetails')}
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={ReservationCheckIcon}
-                  label="숙소"
+                  label={t('common.accommodation_fe9320')}
                   onPress={() => navigation.navigate('UserReservationCheck')}
                 />
+
                 <View style={styles.menuContainer}>
-                <MenuItem
-                  IconComponent={GuesthouseReviewIcon}
-                  label="콘텐츠"
-                  onPress={() =>
-                    navigation.navigate('UserMeetReservationCheck')
-                  }
-                />
-              </View>
+                  <MenuItem
+                    IconComponent={GuesthouseReviewIcon}
+                    label={t('common.activity')}
+                    onPress={() =>
+                      navigation.navigate('UserMeetReservationCheck')
+                    }
+                  />
+                </View>
               </View>
             </View>
 
@@ -362,17 +424,18 @@ const UserMyPage = () => {
             {/* 공고 섹션 */}
             <View style={[styles.section, styles.staffSection]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                스탭
+                {t('common.staff')}
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={MyApplicationIcon}
-                  label="나의 이력서"
+                  label={t('common.myResume')}
                   onPress={() => navigation.navigate('MyResumeList')}
                 />
+
                 <MenuItem
                   IconComponent={ApplicationStatusIcon}
-                  label="지원 현황"
+                  label={t('common.supportStatus')}
                   onPress={() => navigation.navigate('MyApplicantList')}
                 />
               </View>
@@ -383,17 +446,18 @@ const UserMyPage = () => {
             {/* 커뮤니티 섹션 */}
             <View style={[styles.section]}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                커뮤니티
+                {t('common.community')}
               </Text>
               <View style={styles.menuContainer}>
                 <MenuItem
                   IconComponent={FavoritePostIcon}
-                  label="내가 쓴 글"
+                  label={t('common.whatIWrote')}
                   onPress={() => navigation.navigate('MyCommunityPostList')}
                 />
+
                 <MenuItem
                   IconComponent={FavoriteMeetIcon}
-                  label="내가 쓴 댓글"
+                  label={t('common.commentIWrote')}
                   onPress={() => navigation.navigate('MyCommunityCommentList')}
                 />
               </View>
@@ -404,7 +468,7 @@ const UserMyPage = () => {
             style={styles.licenseLink}
             onPress={() => navigation.navigate('OpenSourceLicenses')}>
             <Text style={[FONTS.fs_12_medium, styles.licenseLinkText]}>
-              오픈소스 라이선스
+              {t('common.openSourceLicense')}
             </Text>
             <RightArrow width={14} height={14} />
           </TouchableOpacity>
@@ -415,8 +479,7 @@ const UserMyPage = () => {
 };
 
 const MenuItem = ({IconComponent, label, onPress}) => (
-  <TouchableOpacity
-    activeOpacity={1} style={styles.menuItem} onPress={onPress}>
+  <TouchableOpacity activeOpacity={1} style={styles.menuItem} onPress={onPress}>
     <View style={styles.menuLeft}>
       <View style={styles.menuItemIconContainer}>
         <IconComponent width={20} height={20} />
