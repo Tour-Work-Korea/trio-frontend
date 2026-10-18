@@ -52,6 +52,7 @@ import {
   Setting,
   Terms,
   OpenSourceLicenses,
+  Language,
   ProfileUpdate,
   UserReservationCheck,
   UserFavoriteGuesthouse,
@@ -113,6 +114,7 @@ const RootNavigation = () => {
           name="OpenSourceLicenses"
           component={OpenSourceLicenses}
         />
+        <Stack.Screen name="Language" component={Language} />
 
         <Stack.Screen name="RoomDetail" component={RoomDetail} />
         <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
@@ -169,7 +171,10 @@ const RootNavigation = () => {
 
         <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
         <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
-        <Stack.Screen name="SocialOriginSelect" component={SocialOriginSelect} />
+        <Stack.Screen
+          name="SocialOriginSelect"
+          component={SocialOriginSelect}
+        />
         <Stack.Screen
           name="ForeignRegisterProfile"
           component={ForeignRegisterProfile}

@@ -39,6 +39,9 @@ import authApi from '@utils/api/authApi';
 import {checkForceUpdate, openAppStoreForUpdate} from '@utils/appUpdate';
 import {API_BASE_URL} from '@env';
 import mobileAds from 'react-native-google-mobile-ads';
+import {I18nextProvider, useTranslation} from 'react-i18next';
+import i18n from './src/i18n';
+import useLocaleStore, {initializeLocale} from './src/stores/localeStore';
 
 const toastConfig = {
   success: props => <BasicToast {...props} />,
@@ -97,6 +100,7 @@ const recordStartupError = (label, error) => {
 };
 
 function AppContent() {
+  const {t} = useTranslation();
   const [appLoaded, setAppLoaded] = useState(false);
   const [appState, setAppState] = useState(AppState.currentState);
   const [forceUpdateState, setForceUpdateState] = useState({
@@ -329,9 +333,11 @@ function AppContent() {
       <GlobalAlertModal />
       <AlertModal
         visible={forceUpdateState.visible}
-        title="새로운 버전이 출시되었습니다!"
-        message={`더욱 안정적인 서비스 이용을 위해\n최신 버전으로 업데이트가 필요합니다.\n\n최신 버전: V${forceUpdateState.minVersion}`}
-        buttonText="업데이트 하기"
+        title={t('app.updateAvailable')}
+        message={t('app.updateRequired', {
+          version: forceUpdateState.minVersion,
+        })}
+        buttonText={t('app.updateNow')}
         onPress={openAppStoreForUpdate}
         onRequestClose={() => {}}
         iconElement={<LogoOrange width={180} height={150} />}
@@ -341,14 +347,28 @@ function AppContent() {
 }
 
 export default function App() {
+  const localeInitialized = useLocaleStore(state => state.isInitialized);
+
+  useEffect(() => {
+    initializeLocale().catch(error => {
+      recordStartupError('locale initialization', error);
+    });
+  }, []);
+
   return (
-    <SafeAreaProvider>
-      <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
-        <AdaptiveModalProvider>
-          <AppContent />
-        </AdaptiveModalProvider>
-      </SafeAreaView>
-    </SafeAreaProvider>
+    <I18nextProvider i18n={i18n}>
+      <SafeAreaProvider>
+        <SafeAreaView style={styles.container} edges={['top', 'left', 'right']}>
+          {localeInitialized ? (
+            <AdaptiveModalProvider>
+              <AppContent />
+            </AdaptiveModalProvider>
+          ) : (
+            <SplashOverlay onFinish={() => {}} />
+          )}
+        </SafeAreaView>
+      </SafeAreaProvider>
+    </I18nextProvider>
   );
 }
 

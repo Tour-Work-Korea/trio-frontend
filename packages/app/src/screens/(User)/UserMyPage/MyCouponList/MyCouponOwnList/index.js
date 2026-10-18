@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -28,10 +30,13 @@ const formatExpiryDate = coupon => {
   }
 
   const date = dayjs(expiryDate);
-  return date.isValid() ? date.format('YY.MM.DD HH:mm까지') : expiryDate;
+  return date.isValid()
+    ? date.format(i18n.t('coupon.yyMmDdUpToHhMm'))
+    : expiryDate;
 };
 
 const MyCouponOwnList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -66,7 +71,7 @@ const MyCouponOwnList = () => {
   );
 
   if (loading) {
-    return <Loading title="쿠폰을 불러오는 중이에요" />;
+    return <Loading title={t('common.loadingCoupons')} />;
   }
 
   if (!coupons.length) {
@@ -74,16 +79,15 @@ const MyCouponOwnList = () => {
       <View style={styles.emptyContainer}>
         <View style={styles.topRow}>
           <Text style={[FONTS.fs_16_regular, styles.countText]}>
-            쿠폰 {coupons.length}개
+            {t('coupon.count', {count: coupons.length})}
           </Text>
           <TouchableOpacity
             style={styles.registerButton}
             activeOpacity={1}
-            onPress={() => navigation.navigate('MyCouponRegister')}
-          >
-            <PlusIcon width={16} height={16}/>
+            onPress={() => navigation.navigate('MyCouponRegister')}>
+            <PlusIcon width={16} height={16} />
             <Text style={[FONTS.fs_14_medium, styles.registerButtonText]}>
-              쿠폰 등록
+              {t('coupon.couponRegistration')}
             </Text>
           </TouchableOpacity>
         </View>
@@ -92,8 +96,8 @@ const MyCouponOwnList = () => {
           <EmptyState
             icon={CouponIcon}
             iconSize={{width: 160, height: 120}}
-            title="보유한 쿠폰이 없어요"
-            description="쿠폰 등록 후 사용할 수 있어요."
+            title={t('common.iDonTHaveAnyCoupons')}
+            description={t('common.youCanUseTheCouponAfterRegisteringIt')}
           />
         </View>
       </View>
@@ -104,16 +108,15 @@ const MyCouponOwnList = () => {
     <ScrollView contentContainerStyle={styles.content}>
       <View style={styles.topRow}>
         <Text style={[FONTS.fs_16_regular, styles.countText]}>
-          쿠폰 {coupons.length}개
+          {t('coupon.count', {count: coupons.length})}
         </Text>
         <TouchableOpacity
           style={styles.registerButton}
           activeOpacity={1}
-          onPress={() => navigation.navigate('MyCouponRegister')}
-        >
-          <PlusIcon width={16} height={16}/>
+          onPress={() => navigation.navigate('MyCouponRegister')}>
+          <PlusIcon width={16} height={16} />
           <Text style={[FONTS.fs_14_medium, styles.registerButtonText]}>
-            쿠폰 등록
+            {t('coupon.couponRegistration')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -134,7 +137,8 @@ const MyCouponOwnList = () => {
               {getCouponTitle(coupon)}
             </Text>
             <Text style={[FONTS.fs_14_medium, styles.descriptionText]}>
-              {getCouponConditionText(coupon) || '사용 조건이 없는 쿠폰입니다.'}
+              {getCouponConditionText(coupon) ||
+                t('common.thisIsACouponWithNoUsageConditions')}
             </Text>
             {expiryDateText ? (
               <Text style={[FONTS.fs_14_medium, styles.expiryText]}>

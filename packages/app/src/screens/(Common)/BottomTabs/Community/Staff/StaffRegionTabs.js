@@ -1,11 +1,19 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect} from 'react';
-import {ScrollView, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {
+  ScrollView,
+  StyleSheet,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
 
 const StaffRegionTabs = ({value, onChange}) => {
+  const {t} = useTranslation();
   const regions = useGuesthouseRegionStore(state => state.regions);
   const loadRegions = useGuesthouseRegionStore(state => state.loadRegions);
 
@@ -15,7 +23,9 @@ const StaffRegionTabs = ({value, onChange}) => {
 
   return (
     <View style={styles.container}>
-      <Text style={[FONTS.fs_14_semibold, styles.label]}>지역</Text>
+      <Text style={[FONTS.fs_14_semibold, styles.label]}>
+        {t('common.region')}
+      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}

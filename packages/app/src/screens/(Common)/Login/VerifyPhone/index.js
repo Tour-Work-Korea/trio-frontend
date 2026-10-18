@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useEffect, useCallback} from 'react';
 import {
   View,
@@ -19,6 +20,7 @@ import {COLORS} from '@constants/colors';
 import LogoOrange from '@assets/images/logo_orange.svg';
 
 const VerifyPhone = ({route}) => {
+  const {t} = useTranslation();
   const {find, originPhone} = route.params;
   const userRole = 'USER';
   const smsPurpose = 'FIND_ACCOUNT';
@@ -104,12 +106,12 @@ const VerifyPhone = ({route}) => {
       setIsTimerActive(false);
       setErrorModal({
         visible: true,
-        message: '인증 유효 시간이 만료되었습니다.',
-        buttonText: '확인',
+        message: t('common.theAuthenticationValidityPeriodHasExpired'),
+        buttonText: t('common.confirm'),
       });
     }
     return () => clearInterval(interval);
-  }, [isTimerActive, timeLeft]);
+  }, [isTimerActive, timeLeft, t]);
 
   //인증번호 발송
   const sendVerificationCode = async () => {
@@ -118,8 +120,8 @@ const VerifyPhone = ({route}) => {
       if (originPhone !== phoneNumber) {
         setErrorModal({
           visible: true,
-          message: '사용자의 전화번호와 일치하지 않습니다',
-          buttonText: '확인',
+          message: t('auth.doesNotMatchYourPhoneNumber'),
+          buttonText: t('common.confirm'),
         });
         return;
       }
@@ -133,8 +135,10 @@ const VerifyPhone = ({route}) => {
 
       setErrorModal({
         visible: true,
-        message: `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
-        buttonText: '확인',
+        message: t('common.aVerificationNumberHasBeenSentToValue', {
+          phoneNumber: phoneNumber,
+        }),
+        buttonText: t('common.confirm'),
       });
 
       setIsResendEnabled(false);
@@ -144,8 +148,9 @@ const VerifyPhone = ({route}) => {
       setErrorModal({
         visible: true,
         message:
-          error?.response?.data?.message || '인증번호 전송에 실패했습니다',
-        buttonText: '확인',
+          error?.response?.data?.message ||
+          t('common.failedToSendAuthenticationNumber'),
+        buttonText: t('common.confirm'),
       });
     }
   };
@@ -168,7 +173,7 @@ const VerifyPhone = ({route}) => {
       setErrorModal({
         visible: true,
         message: error?.response?.data?.message,
-        buttonText: '다시 인증하기',
+        buttonText: t('common.authenticateAgain'),
       });
     } finally {
       setLoading(false);
@@ -191,19 +196,21 @@ const VerifyPhone = ({route}) => {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <View  style={styles.titleContainer}>
+              <View style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
               </View>
-              <Text style={[styles.titleText]}>전화번호 인증</Text>
+              <Text style={[styles.titleText]}>
+                {t('common.phoneNumberVerification')}
+              </Text>
             </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>전화번호</Text>
+                <Text style={styles.inputLabel}>{t('common.phoneNumber')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="전화번호를 입력해주세요"
+                    placeholder={t('common.pleaseEnterYourPhoneNumber')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={phoneNumber}
                     onChangeText={text => {
@@ -216,6 +223,7 @@ const VerifyPhone = ({route}) => {
                     keyboardType="number-pad"
                     maxLength={11}
                   />
+
                   <TouchableOpacity
                     onPress={sendVerificationCode}
                     disabled={!isPhoneNumberValid || hasRequestedCode}>
@@ -226,17 +234,21 @@ const VerifyPhone = ({route}) => {
                           ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
-                      인증요청
+                      {t('common.authenticationRequest')}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>인증번호</Text>
+                <Text style={styles.inputLabel}>
+                  {t('common.certificationNumber')}
+                </Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="인증번호를 입력해주세요"
+                    placeholder={t(
+                      'common.pleaseEnterYourAuthenticationNumber',
+                    )}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={code}
                     onChangeText={text => {
@@ -247,6 +259,7 @@ const VerifyPhone = ({route}) => {
                     maxLength={6}
                     editable={isCodeSent}
                   />
+
                   <Text
                     style={[
                       styles.inputButton,
@@ -266,7 +279,7 @@ const VerifyPhone = ({route}) => {
                           ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
-                      인증번호 재전송
+                      {t('common.resendAuthenticationNumber')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -279,19 +292,19 @@ const VerifyPhone = ({route}) => {
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
                 <ButtonWhite
-                  title="인증 성공!"
+                  title={t('common.authenticationSuccessful')}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : isCodeValid ? (
                 <ButtonWhite
-                  title="인증하기"
+                  title={t('common.verify')}
                   onPress={verifyCode}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : (
-                <ButtonWhite title="인증하기" disabled={true} />
+                <ButtonWhite title={t('common.verify')} disabled={true} />
               )}
             </View>
           </View>

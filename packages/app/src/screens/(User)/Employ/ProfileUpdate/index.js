@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useMemo} from 'react';
 import {
   View,
@@ -21,6 +22,7 @@ import styles from './ProfileUpdate.styles';
 import {FONTS} from '@constants/fonts';
 
 const ProfileUpdate = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const userProfile = useUserStore(state => state.userProfile);
   const setUserProfile = useUserStore(state => state.setUserProfile);
@@ -32,7 +34,7 @@ const ProfileUpdate = () => {
     email: userProfile.email,
     mbti: userProfile.mbti,
     instagramId:
-      userProfile.instagramId === 'ID를 추가해주세요'
+      userProfile.instagramId === t('common.pleaseAddYourId')
         ? ''
         : userProfile.instagramId,
     gender: userProfile.gender,
@@ -52,14 +54,14 @@ const ProfileUpdate = () => {
       .replace(/^@+/, '')
       .trim();
 
-    return nextInstagramId || 'ID를 추가해주세요';
+    return nextInstagramId || t('common.pleaseAddYourId');
   };
 
   const updateMyProfile = async () => {
     if (!canSave) {
       setErrorModal({
         visible: true,
-        title: 'MBTI를 먼저 선택해주세요.',
+        title: t('employ.pleaseSelectMbtiFirst'),
       });
       return;
     }
@@ -75,7 +77,7 @@ const ProfileUpdate = () => {
         name: formData.name ?? '',
         nickname: formData.nickname ?? '',
         photoUrl:
-          formData.photoUrl && formData.photoUrl !== '사진을 추가해주세요'
+          formData.photoUrl && formData.photoUrl !== t('common.pleaseAddAPhoto')
             ? formData.photoUrl
             : null,
         phone: formData.phone ?? '',
@@ -90,13 +92,14 @@ const ProfileUpdate = () => {
         isEditable: true,
         role: 'USER',
         isNew: true,
-        headerTitle: '이력서 작성',
+        headerTitle: t('employ.writeAResume'),
       });
     } catch (error) {
       setErrorModal({
         visible: true,
         title:
-          error?.response?.data?.message ?? '프로필 수정 중 오류가 발생했어요',
+          error?.response?.data?.message ??
+          t('common.anErrorOccurredWhileEditingYourProfile'),
       });
     }
   };
@@ -109,7 +112,7 @@ const ProfileUpdate = () => {
         keyboardVerticalOffset={80} // 필요에 따라 조절
       >
         <View style={styles.outContainer}>
-          <Header title="내 정보 추가하기" />
+          <Header title={t('employ.addYourInformation')} />
           <ScrollView
             style={styles.container}
             contentContainerStyle={styles.scrollViewContent}
@@ -118,7 +121,7 @@ const ProfileUpdate = () => {
             <View>
               {/* MBTI */}
               <View style={styles.contentContainer}>
-                <Text style={styles.label}>MBTI를 선택해주세요</Text>
+                <Text style={styles.label}>{t('employ.pleaseSelectMbti')}</Text>
                 <View style={styles.divide} />
                 <View style={styles.mbtiGrid}>
                   {[
@@ -163,7 +166,9 @@ const ProfileUpdate = () => {
 
               {/* 인스타 */}
               <View style={styles.contentContainer}>
-                <Text style={styles.label}>insta 아이디를 입력해주세요</Text>
+                <Text style={styles.label}>
+                  {t('employ.pleaseEnterYourInstagramId')}
+                </Text>
                 <View style={styles.divide} />
                 <View style={styles.instagramRow}>
                   <Text style={[FONTS.fs_14_medium, styles.atSymbol]}>@</Text>
@@ -176,7 +181,7 @@ const ProfileUpdate = () => {
                         instagramId: text.replace(/^@+/, ''), // 입력 중 @ 제거
                       })
                     }
-                    placeholder="ID를 추가해주세요"
+                    placeholder={t('common.pleaseAddYourId')}
                   />
                 </View>
               </View>
@@ -184,7 +189,7 @@ const ProfileUpdate = () => {
 
             <View style={styles.saveButton}>
               <ButtonScarlet
-                title={'내 정보 추가하기'}
+                title={t('employ.addYourInformation')}
                 onPress={updateMyProfile}
                 disabled={!canSave}
               />
@@ -196,7 +201,7 @@ const ProfileUpdate = () => {
       <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
-        buttonText={'확인'}
+        buttonText={t('common.confirm')}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </>

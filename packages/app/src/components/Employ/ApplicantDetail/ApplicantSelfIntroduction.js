@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -9,10 +10,11 @@ const ApplicantSelfIntroduction = ({
   isEditable = false,
   onEditSelfIntro = () => {},
 }) => {
+  const {t} = useTranslation();
   return (
     <View style={styles.sectionBox}>
       <View style={styles.titleBox}>
-        <Text style={styles.titleText}>자기소개</Text>
+        <Text style={styles.titleText}>{t('common.selfIntroduction')}</Text>
         {isEditable ? (
           <TouchableOpacity onPress={onEditSelfIntro}>
             <EditIcon width={24} />

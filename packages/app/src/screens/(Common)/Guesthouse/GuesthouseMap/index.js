@@ -1,14 +1,13 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import Header from '@components/Header';
 import {formatGuesthouseAddress} from '@utils/formatAddress';
 
@@ -21,6 +20,7 @@ const DEFAULT_COORDINATE = {
 };
 
 const GuesthouseMap = ({route}) => {
+  const {t} = useTranslation();
   const {
     guesthouseName,
     guesthouseAddress,
@@ -33,7 +33,8 @@ const GuesthouseMap = ({route}) => {
 
   const parsedLat = Number(latitude ?? lat);
   const parsedLng = Number(longitude ?? lng);
-  const hasCoordinate = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
+  const hasCoordinate =
+    Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
   const coordinate = hasCoordinate
     ? {latitude: parsedLat, longitude: parsedLng}
     : DEFAULT_COORDINATE;
@@ -55,7 +56,7 @@ const GuesthouseMap = ({route}) => {
     Clipboard.setString(displayAddress);
     Toast.show({
       type: 'success',
-      text1: '주소를 복사했어요!',
+      text1: t('common.iCopiedTheAddress'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -64,7 +65,7 @@ const GuesthouseMap = ({route}) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Header title={guesthouseName || '게스트하우스 위치'} />
+        <Header title={guesthouseName || t('guesthouse.guesthouseLocation')} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -76,9 +77,7 @@ const GuesthouseMap = ({route}) => {
               width={44}
               height={56}
               anchor={{x: 0.5, y: 1}}>
-              <View
-                collapsable={false}
-                style={styles.markerContainer}>
+              <View collapsable={false} style={styles.markerContainer}>
                 <View style={styles.homeMarker}>
                   <HomeIcon width={24} height={24} />
                 </View>
@@ -97,7 +96,7 @@ const GuesthouseMap = ({route}) => {
             style={[FONTS.fs_16_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {displayAddress || '주소 정보가 없어요'}
+            {displayAddress || t('common.thereIsNoAddressInformation')}
           </Text>
         </TouchableOpacity>
       </View>

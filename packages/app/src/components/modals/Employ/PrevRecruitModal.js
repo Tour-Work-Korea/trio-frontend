@@ -1,17 +1,13 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  StyleSheet,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, StyleSheet, FlatList, TouchableOpacity} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 const PrevRecruitModal = ({visible, items = [], onClose, onPick}) => {
+  const {t} = useTranslation();
   const [selectedId, setSelectedId] = useState();
 
   useEffect(() => {
@@ -67,7 +63,7 @@ const PrevRecruitModal = ({visible, items = [], onClose, onPick}) => {
       <View style={styles.overlay}>
         <View style={styles.container}>
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
-            불러올 공고를 선택해주세요
+            {t('employ.pleaseSelectTheAnnouncementToLoad')}
           </Text>
 
           <FlatList
@@ -82,13 +78,14 @@ const PrevRecruitModal = ({visible, items = [], onClose, onPick}) => {
                   styles.secondaryText,
                   {textAlign: 'center', marginVertical: 24},
                 ]}>
-                불러올 수 있는 공고가 없습니다.
+                {t('employ.thereAreNoAnnouncementsToLoad')}
               </Text>
             }
           />
+
           <View style={{marginTop: 18, width: 135}}>
             <ButtonScarlet
-              title="불러오기"
+              title={t('employ.load')}
               onPress={handleSubmit}
               disabled={selectedId == null}
             />

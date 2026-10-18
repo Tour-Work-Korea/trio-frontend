@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {useTranslation} from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -8,20 +9,19 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const APP_FRAME_WIDTH = Platform.OS === 'web'
-  ? Math.min(SCREEN_WIDTH, 430)
-  : SCREEN_WIDTH;
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const APP_FRAME_WIDTH =
+  Platform.OS === 'web' ? Math.min(SCREEN_WIDTH, 430) : SCREEN_WIDTH;
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import styles from './PopularMeetList.styles';
 import userMeetApi from '@utils/api/userMeetApi';
-import { trimJejuPrefix } from '@utils/formatAddress';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {trimJejuPrefix} from '@utils/formatAddress';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import HeaderImg from '@assets/images/meet_popular_header.svg';
@@ -35,6 +35,7 @@ const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 const POPULAR_PARTY_SIZE = 50;
 
 const PopularMeetList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [parties, setParties] = useState([]);
   const [initialLoading, setInitialLoading] = useState(true);
@@ -42,27 +43,37 @@ const PopularMeetList = () => {
 
   const scrollViewRef = useRef(null);
 
-  const formatWhenTime = (isoStr) => {
+  const formatWhenTime = isoStr => {
     const d = dayjs(isoStr);
     const now = dayjs();
     const todayKey = now.format('YYYY-MM-DD');
     const dateKey = d.format('YYYY-MM-DD');
 
     let dayStr = '';
-    if (dateKey === todayKey) dayStr = '오늘';
+    if (dateKey === todayKey) dayStr = t('common.today');
     else if (dateKey === now.add(1, 'day').format('YYYY-MM-DD'))
-      dayStr = '내일';
+      dayStr = t('meet.tomorrow');
     else {
-      const days = ['일', '월', '화', '수', '목', '금', '토'];
+      const days = [
+        t('common.work'),
+        t('common.month'),
+        t('common.angry'),
+        t('common.number'),
+        t('common.neck'),
+        t('common.gold'),
+        t('common.sat'),
+      ];
       dayStr = days[d.day()];
     }
 
-    return `${dayStr}, ${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+    return `${dayStr}, ${
+      d.hour() < 12 ? t('common.morning') : t('common.afternoon')
+    } ${d.format('h:mm')}`;
   };
 
   const normalizeParties = useCallback(
     (list = []) =>
-      list.map((it) => ({
+      list.map(it => ({
         ...it,
         isLiked: Boolean(it?.isLiked ?? it?.isFavorite ?? it?.favorite),
       })),
@@ -74,7 +85,7 @@ const PopularMeetList = () => {
     setInitialLoading(true);
 
     try {
-      const { data } = await userMeetApi.getPopularParties({
+      const {data} = await userMeetApi.getPopularParties({
         size: POPULAR_PARTY_SIZE,
       });
       const list = Array.isArray(data)
@@ -83,7 +94,10 @@ const PopularMeetList = () => {
       const normalized = normalizeParties(list);
 
       setParties(normalized);
-      prefetchImageUrls(normalized.map(item => item.partyImageUrl), {limit: 10});
+      prefetchImageUrls(
+        normalized.map(item => item.partyImageUrl),
+        {limit: 10},
+      );
     } catch (e) {
       console.warn('초기 로딩 실패', e);
       setParties([]);
@@ -96,7 +110,7 @@ const PopularMeetList = () => {
     fetchInitial();
   }, [fetchInitial]);
 
-  const { trendingList, restList } = parties.reduce(
+  const {trendingList, restList} = parties.reduce(
     (acc, item) => {
       const key = item?.partyId;
       if (acc.trendingList.length < 3 && !acc.seen.has(key)) {
@@ -107,41 +121,56 @@ const PopularMeetList = () => {
       }
       return acc;
     },
-    { trendingList: [], restList: [], seen: new Set() },
+    {trendingList: [], restList: [], seen: new Set()},
   );
 
   // --- 카드 UI들 (FlatList 제거, 컴포넌트만 재사용) ---
-  const TrendingCard = ({ item, style }) => {
+  const TrendingCard = ({item, style}) => {
     return (
       <TouchableOpacity
         activeOpacity={1}
         style={[
           styles.trendingCard,
-          { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
+          {width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP},
           style,
         ]}
-        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
+        onPress={() =>
+          navigation.navigate('MeetDetail', {partyId: item.partyId})
+        }>
         {item.partyImageUrl ? (
           <AppImage uri={item.partyImageUrl} style={styles.trendingImage} />
         ) : (
-          <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
+          <View
+            style={[
+              styles.trendingImage,
+              {backgroundColor: COLORS.grayscale_200},
+            ]}
+          />
         )}
 
         <View style={styles.trendingInfo}>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
             <Text
               style={[FONTS.fs_16_semibold, styles.trendingTitle]}
               numberOfLines={1}
               ellipsizeMode="tail">
               {item.partyTitle}
             </Text>
-
           </View>
-          <View style={{flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center'}}>
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+            }}>
             <Text
               style={[FONTS.fs_12_medium, styles.meetPlace]}
-              numberOfLines={1}
-            >
+              numberOfLines={1}>
               {item.guesthouseName}
             </Text>
             <Text style={[FONTS.fs_14_regular, styles.timeText]}>
@@ -153,7 +182,7 @@ const PopularMeetList = () => {
     );
   };
 
-  const PopularCard = ({ item }) => {
+  const PopularCard = ({item}) => {
     const handleToggleFavorite = () => {
       toggleFavorite({
         type: 'party',
@@ -167,24 +196,32 @@ const PopularMeetList = () => {
       <TouchableOpacity
         activeOpacity={1}
         style={styles.meetItemContainer}
-        onPress={() => navigation.navigate('MeetDetail', { partyId: item.partyId })}>
+        onPress={() =>
+          navigation.navigate('MeetDetail', {partyId: item.partyId})
+        }>
         <View style={styles.meetTopContainer}>
           {item.partyImageUrl ? (
             <AppImage uri={item.partyImageUrl} style={styles.meetThumb} />
           ) : (
-            <View style={[styles.meetThumb, { backgroundColor: COLORS.grayscale_200 }]} />
+            <View
+              style={[
+                styles.meetThumb,
+                {backgroundColor: COLORS.grayscale_200},
+              ]}
+            />
           )}
 
           <View style={styles.meetInfo}>
             <View style={styles.meetTextRow}>
               <Text
                 style={[FONTS.fs_12_medium, styles.meetPlace]}
-                numberOfLines={1}
-              >
+                numberOfLines={1}>
                 {item.guesthouseName}
               </Text>
               <View style={styles.meetPlaceSpacer} />
-              <TouchableOpacity activeOpacity={1} onPress={handleToggleFavorite}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={handleToggleFavorite}>
                 {item.isLiked ? (
                   <FillHeart width={20} height={20} />
                 ) : (
@@ -201,11 +238,10 @@ const PopularMeetList = () => {
                 {item.partyTitle}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.capacityText]}>
-                {item.numOfAttendance}/{item.maxAttendance}명
+                {item.numOfAttendance}/{item.maxAttendance}
+                {t('common.peopleUnit')}
               </Text>
             </View>
-
-
           </View>
         </View>
         <View style={styles.meetBottomContainer}>
@@ -227,42 +263,46 @@ const PopularMeetList = () => {
   return (
     <View style={styles.container}>
       {initialLoading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
           <ActivityIndicator size="large" color={COLORS.grayscale_400} />
         </View>
       ) : (
         <ScrollView
           ref={scrollViewRef}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-        >
+          showsVerticalScrollIndicator={false}>
           {/* --- 상단 헤더 --- */}
           <View style={styles.headerContainer}>
             <HeaderImg style={styles.headerImg} />
             <View style={styles.headerTitle}>
-              <TouchableOpacity activeOpacity={1} style={styles.backButton} onPress={() => navigation.goBack()}>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}>
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>
-                인기 콘텐츠
+                {t('meet.popularActivity')}
               </Text>
             </View>
 
             <View style={styles.headerSubtitle}>
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
-                가장 인기 있는 콘텐츠들만 모아봤어요
+                {t('meet.weVeCollectedOnlyTheMostPopularActivity')}
               </Text>
             </View>
           </View>
 
           {/* 지금 뜨는 콘텐츠 */}
-          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 콘텐츠</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.title]}>
+            {t('meet.activityPoppingUpNow')}
+          </Text>
 
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.trendingList}
-            onScroll={(e) => {
+            onScroll={e => {
               if (!trendingList.length) return;
 
               const offsetX = e.nativeEvent.contentOffset.x;
@@ -279,15 +319,14 @@ const PopularMeetList = () => {
             }}
             decelerationRate="fast"
             snapToInterval={TRENDING_SNAP_INTERVAL}
-            snapToAlignment="start"
-          >
+            snapToAlignment="start">
             {trendingList.map((item, index) => {
               const isLast = index === trendingList.length - 1;
               return (
                 <TrendingCard
                   key={item.partyId}
                   item={item}
-                  style={isLast && { marginRight: 0 }}
+                  style={isLast && {marginRight: 0}}
                 />
               );
             })}
@@ -308,10 +347,10 @@ const PopularMeetList = () => {
 
           {/* 추천 콘텐츠 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
-            추천 콘텐츠
+            {t('meet.recommendedActivity')}
           </Text>
 
-          {restList.map((item) => (
+          {restList.map(item => (
             <PopularCard key={item.partyId} item={item} />
           ))}
         </ScrollView>

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import Avatar from '@components/Avatar';
@@ -6,14 +7,18 @@ import {FONTS} from '@constants/fonts';
 import {openWebLink} from '@utils/openWebLink';
 
 const ApplicantProfileHeader = ({data}) => {
+  const {t} = useTranslation();
   return (
     <View>
       <View style={styles.sectionBox}>
         <View style={styles.basicInfoContainer}>
           <Text style={styles.profileName}>{data?.nickname}</Text>
           <Text style={styles.basicInfoText}>
-            {data?.gender === 'F' ? '여자' : '남자'} • {data?.age}세 (
-            {data?.birthDate.split('-')[0]}년생)
+            {data?.gender === 'F' ? t('employ.woman') : t('employ.man')} •{' '}
+            {t('employ.applicantAgeAndBirthYear', {
+              age: data?.age,
+              birthYear: data?.birthDate.split('-')[0],
+            })}
           </Text>
         </View>
         <View style={styles.profileMainContainer}>
@@ -26,8 +31,11 @@ const ApplicantProfileHeader = ({data}) => {
           />
 
           <View style={styles.infoContainer}>
-            <InfoRow label="연락처" value={data?.phone} />
-            <InfoRow label="이메일" value={data?.email} />
+            <InfoRow
+              label={t('common.contactInformation')}
+              value={data?.phone}
+            />
+            <InfoRow label={t('common.email')} value={data?.email} />
             <InfoRow label="MBTI" value={data?.mbti ?? data?.resumeMbti} />
             <InfoRow
               label="insta"

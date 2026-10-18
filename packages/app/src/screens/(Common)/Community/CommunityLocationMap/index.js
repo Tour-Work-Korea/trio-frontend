@@ -1,13 +1,12 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import Clipboard from '@react-native-clipboard/clipboard';
 import Toast from 'react-native-toast-message';
 
 import Header from '@components/Header';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {formatGuesthouseAddress} from '@utils/formatAddress';
@@ -21,6 +20,7 @@ const DEFAULT_COORDINATE = {
 };
 
 const CommunityLocationMap = ({route}) => {
+  const {t} = useTranslation();
   const {
     placeName,
     address,
@@ -34,7 +34,8 @@ const CommunityLocationMap = ({route}) => {
 
   const parsedLat = Number(latitude ?? lat);
   const parsedLng = Number(longitude ?? lng);
-  const hasCoordinate = Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
+  const hasCoordinate =
+    Number.isFinite(parsedLat) && Number.isFinite(parsedLng);
   const coordinate = hasCoordinate
     ? {latitude: parsedLat, longitude: parsedLng}
     : DEFAULT_COORDINATE;
@@ -51,7 +52,7 @@ const CommunityLocationMap = ({route}) => {
     Clipboard.setString(displayAddress);
     Toast.show({
       type: 'success',
-      text1: '주소를 복사했어요!',
+      text1: t('common.iCopiedTheAddress'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -60,7 +61,7 @@ const CommunityLocationMap = ({route}) => {
   return (
     <View style={styles.container}>
       <View style={styles.headerContainer}>
-        <Header title={placeName || '장소 위치'} />
+        <Header title={placeName || t('community.placeLocation')} />
       </View>
 
       <View style={styles.mapContainer}>
@@ -91,12 +92,12 @@ const CommunityLocationMap = ({route}) => {
             <Text
               style={[FONTS.fs_16_medium, styles.placeName]}
               numberOfLines={1}>
-              {placeName || '장소 위치'}
+              {placeName || t('community.placeLocation')}
             </Text>
             <Text
               style={[FONTS.fs_14_regular, styles.addressText]}
               numberOfLines={1}>
-              {displayAddress || '주소 정보가 없어요'}
+              {displayAddress || t('common.thereIsNoAddressInformation')}
             </Text>
           </View>
         </TouchableOpacity>

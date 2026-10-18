@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback} from 'react';
 import {
   View,
@@ -42,6 +43,7 @@ const extractNiceTokenFromUrl = url => {
 const {SoftInputMode} = NativeModules;
 
 const UserPhone = ({onPress}) => {
+  const {t} = useTranslation();
   const [loading, setLoading] = useState(false);
   const [showWebView, setShowWebView] = useState(false);
   const [authUrl, setAuthUrl] = useState('');
@@ -87,7 +89,11 @@ const UserPhone = ({onPress}) => {
        * NICE 기반 본인인증은 백엔드에서 410 Gone으로 전환되어 호출하지 않음.
        * 새 USER 가입/소셜 가입 플로우는 SMS 인증 컴포넌트로 교체 예정.
        */
-      throw new Error('본인 인증 방식이 SMS 인증으로 변경되었습니다.');
+      throw new Error(
+        t(
+          'components.theIdentityAuthenticationMethodHasBeenChangedToSmsAuthentication',
+        ),
+      );
 
       /**
        * 서버에 init 요청
@@ -107,8 +113,9 @@ const UserPhone = ({onPress}) => {
       setErrorModal({
         visible: true,
         message:
-          error?.response?.data?.message || '본인 인증에 실패했습니다.',
-        buttonText: '확인',
+          error?.response?.data?.message ||
+          t('components.identityVerificationFailed'),
+        buttonText: t('common.confirm'),
       });
     } finally {
       setLoading(false);
@@ -142,7 +149,6 @@ const UserPhone = ({onPress}) => {
         onPress(data.token);
         return;
       }
-
     } catch (e) {
       console.warn('NICE WebView message parse error:', e);
     }
@@ -211,10 +217,12 @@ const UserPhone = ({onPress}) => {
     <View style={styles.authWebViewContainer}>
       {/* 상단바 (닫기) */}
       <View style={styles.authWebViewHeader}>
-        <Text style={styles.authWebViewTitle}>본인 인증 진행</Text>
+        <Text style={styles.authWebViewTitle}>
+          {t('components.proceedWithIdentityVerification')}
+        </Text>
 
         <TouchableOpacity onPress={closeWebView}>
-          <Text style={styles.authWebViewCloseText}>닫기</Text>
+          <Text style={styles.authWebViewCloseText}>{t('common.close')}</Text>
         </TouchableOpacity>
       </View>
 
@@ -243,13 +251,17 @@ const UserPhone = ({onPress}) => {
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
               <LogoOrange width={60} height={29} />
-              <Text style={[styles.titleText]}>본인 인증</Text>
+              <Text style={[styles.titleText]}>
+                {t('components.identityVerification')}
+              </Text>
             </View>
 
             <View style={[styles.inputGroup, styles.phoneIntroInputGroup]}>
               <View style={[styles.inputContainer]}>
                 <Text style={styles.inputContainerText}>
-                  더 안전한 서비스 이용을 위해{'\n'}본인 인증이 필요합니다.
+                  {t('components.forSaferServiceUse')}
+                  {'\n'}
+                  {t('components.identityVerificationIsRequired')}
                 </Text>
                 {loading ? (
                   // init 요청 중
@@ -258,7 +270,7 @@ const UserPhone = ({onPress}) => {
                   </View>
                 ) : (
                   <ButtonWhite
-                    title="본인 인증 하기"
+                    title={t('components.verifyYourIdentity')}
                     onPress={startNiceAuth}
                     backgroundColor={COLORS.primary_orange}
                     textColor={COLORS.grayscale_0}

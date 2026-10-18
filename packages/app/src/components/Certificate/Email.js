@@ -1,4 +1,5 @@
 import React, {useState, useEffect, useCallback} from 'react';
+import {useTranslation} from 'react-i18next';
 import {
   View,
   Text,
@@ -17,6 +18,7 @@ import {useFocusEffect} from '@react-navigation/native';
 import authApi from '@utils/api/authApi';
 
 export const Email = ({user, onPress}) => {
+  const {t} = useTranslation();
   const MainLogo = LogoOrange;
   const mainColor = COLORS.primary_orange;
 
@@ -72,12 +74,12 @@ export const Email = ({user, onPress}) => {
       setIsTimerActive(false);
       setErrorModal({
         visible: true,
-        message: '인증 유효 시간이 만료되었습니다.',
-        buttonText: '확인',
+        message: t('auth.verificationTimeExpired'),
+        buttonText: t('common.confirm'),
       });
     }
     return () => clearInterval(interval);
-  }, [isTimerActive, timeLeft]);
+  }, [isTimerActive, t, timeLeft]);
 
   // 이메일 유효성 검사
   useEffect(() => {
@@ -117,9 +119,9 @@ export const Email = ({user, onPress}) => {
 
       setErrorModal({
         visible: true,
-        message: `${email}으로\n인증 번호가 발송 되었습니다`,
+        message: t('auth.verificationCodeSentToEmail', {email}),
         highlightText: `${email}`,
-        buttonText: '확인',
+        buttonText: t('common.confirm'),
       });
 
       // 재전송은 30초 이후에만 활성화
@@ -129,8 +131,9 @@ export const Email = ({user, onPress}) => {
       setErrorModal({
         visible: true,
         message:
-          error?.response?.data?.message || '인증번호 전송에 실패했습니다',
-        buttonText: '확인',
+          error?.response?.data?.message ||
+          t('auth.failedToSendVerificationCode'),
+        buttonText: t('common.confirm'),
       });
     }
   };
@@ -152,7 +155,7 @@ export const Email = ({user, onPress}) => {
       setErrorModal({
         visible: true,
         message: error?.response?.data?.message,
-        buttonText: '다시 인증하기',
+        buttonText: t('common.authenticateAgain'),
       });
     } finally {
       setLoading(false);
@@ -177,16 +180,16 @@ export const Email = ({user, onPress}) => {
                 <MainLogo width={60} height={29} />
                 <View style={{width: 60, height: 29}} />
               </View>
-              <Text style={[styles.titleText]}>이메일 인증</Text>
+              <Text style={[styles.titleText]}>{t('auth.emailVerification')}</Text>
             </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>이메일</Text>
+                <Text style={styles.inputLabel}>{t('common.email')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="이메일을 입력해주세요"
+                    placeholder={t('auth.pleaseEnterYourEmail')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={email}
                     onChangeText={text => {
@@ -209,17 +212,17 @@ export const Email = ({user, onPress}) => {
                           ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
-                      인증요청
+                      {t('common.authenticationRequest')}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>인증번호</Text>
+                <Text style={styles.inputLabel}>{t('common.certificationNumber')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="인증번호를 입력해주세요"
+                    placeholder={t('common.pleaseEnterYourAuthenticationNumber')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={code}
                     onChangeText={text => {
@@ -250,7 +253,7 @@ export const Email = ({user, onPress}) => {
                           ? {color: COLORS.primary_orange}
                           : {color: COLORS.grayscale_300},
                       ]}>
-                      인증번호 재전송
+                      {t('common.resendAuthenticationNumber')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -264,19 +267,19 @@ export const Email = ({user, onPress}) => {
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
                 <ButtonWhite 
-                  title="인증 성공!"
+                  title={t('common.authenticationSuccessful')}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : isCodeValid ? (
                 <ButtonWhite 
-                  title="인증하기" 
+                  title={t('common.verify')}
                   onPress={verifyCode} 
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : (
-                <ButtonWhite title="인증하기" disabled={true} />
+                <ButtonWhite title={t('common.verify')} disabled={true} />
               )}
             </View>
           </View>

@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -8,20 +10,19 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import Header from '@components/Header';
 import styles from './MeetReservation.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
-import { AGREEMENT_CONTENT } from '@data/agreeContents';
+import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import AppImage from '@components/AppImage';
 import {prepareWebPaymentWindow} from '@web/webPaymentWindow';
@@ -33,7 +34,7 @@ import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import RadioChecked from '@assets/images/radio_button_enabled.svg';
 import RadioUnchecked from '@assets/images/radio_button_disabled.svg';
-import { COLORS } from '@constants/colors';
+import {COLORS} from '@constants/colors';
 
 const TERM_DOCUMENT_MAP = {
   personalInfo: 'GUESTHOUSE_RESERVATION_PRIVACY_POLICY',
@@ -53,21 +54,21 @@ const isDateOptionClosed = option =>
   !dayjs(option?.partyStartDateTime).isAfter(dayjs());
 
 const isGuestOnlyPriceOption = option =>
-  String(option?.optionName ?? '').includes('숙박객');
+  String(option?.optionName ?? '').includes(i18n.t('meet.guest'));
 
 const getDateOptionStatusLabel = option => {
   if (!isDateOptionClosed(option)) {
-    return '신청 가능';
+    return i18n.t('common.applicationAvailable');
   }
 
   const statusLabel = {
-    CANCELED: '취소',
-    DELETED: '삭제',
-    NO_RECRUIT: '문의',
-    PARTY_END: '종료',
-    RECRUIT_BEFORE: '모집 예정',
-    RECRUIT_BLOCK: '문의',
-    RECRUIT_END: '마감',
+    CANCELED: i18n.t('common.cancel'),
+    DELETED: i18n.t('common.delete'),
+    NO_RECRUIT: i18n.t('common.contactUs'),
+    PARTY_END: i18n.t('common.end'),
+    RECRUIT_BEFORE: i18n.t('common.recruitmentScheduled'),
+    RECRUIT_BLOCK: i18n.t('common.contactUs'),
+    RECRUIT_END: i18n.t('common.deadline'),
   }[option?.partyStatus];
 
   if (statusLabel) {
@@ -76,17 +77,18 @@ const getDateOptionStatusLabel = option => {
 
   const startDateTime = dayjs(option?.partyStartDateTime);
   if (startDateTime.isValid() && !startDateTime.isAfter(dayjs())) {
-    return '마감';
+    return i18n.t('common.deadline');
   }
 
   if (option?.isClosed === true || option?.isApplyOpen === false) {
-    return '마감';
+    return i18n.t('common.deadline');
   }
 
-  return '신청 불가';
+  return i18n.t('common.applicationNotPossible');
 };
 
 const MeetReservation = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {
@@ -105,10 +107,8 @@ const MeetReservation = () => {
   } = route.params ?? {};
   const announcementItems = Array.isArray(partyAnnouncements)
     ? partyAnnouncements
-      .map(item =>
-        typeof item === 'string' ? item : item?.announcement,
-      )
-      .filter(Boolean)
+        .map(item => (typeof item === 'string' ? item : item?.announcement))
+        .filter(Boolean)
     : [];
   const hasAnnouncementGuide = announcementItems.length > 0;
   const [step, setStep] = useState(
@@ -127,19 +127,24 @@ const MeetReservation = () => {
 
   // 예약 정보
   useEffect(() => {
-    if (!partyId) {return;}
+    if (!partyId) {
+      return;
+    }
     const run = async () => {
       try {
-        const { data } = await userMeetApi.joinParty(partyId);
+        const {data} = await userMeetApi.joinParty(partyId);
         setReservationInfo(data);
       } catch (e) {
         const msg = e?.response?.data?.message || e?.message;
         const status = e?.response?.status;
         // 숙박객 전용 접근 제한
-        if (typeof msg === 'string' && msg.includes('숙박')) {
+        if (
+          typeof msg === 'string' &&
+          msg.includes(t('common.accommodation'))
+        ) {
           Toast.show({
             type: 'error',
-            text1: '숙박객만 참여할 수 있어요',
+            text1: t('meet.onlyHotelGuestsCanParticipate'),
             position: 'top',
             visibilityTime: 3000,
           });
@@ -150,11 +155,13 @@ const MeetReservation = () => {
         }
         if (status === 403) {
           const forbiddenMessage =
-            typeof msg === 'string' && msg.includes('당일 신청만 가능')
-              ? '모임 시작 시간이 지나 신청할 수 없어요.'
+            typeof msg === 'string' &&
+            msg.includes(t('meet.sameDayApplicationOnly'))
+              ? t('meet.youCannotApplyAfterTheMeetingStartTime')
               : typeof msg === 'string' && msg.trim()
-                ? msg
-                : '현재 신청할 수 없는 콘텐츠예요.';
+              ? msg
+              : t('meet.thisActivityIsCurrentlyUnavailableForRequest');
+
           Toast.show({
             type: 'error',
             text1: forbiddenMessage,
@@ -166,91 +173,97 @@ const MeetReservation = () => {
         }
         Toast.show({
           type: 'error',
-          text1: '콘텐츠 참가 정보를 불러오지 못했어요.',
+          text1: t('meet.failedToLoadActivityParticipationInformation'),
           position: 'top',
         });
         navigation.goBack();
       }
     };
     run();
-  }, [partyId, navigation]);
+  }, [partyId, navigation, t]);
 
-  const normalizeDateOptions = useCallback(source => {
-    const sourceApplicationType =
-      source?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
-    const list =
-      sourceApplicationType === 'ADVANCE'
-        ? Array.isArray(source?.applicationStatuses)
-          ? source.applicationStatuses
-          : Array.isArray(routePartyDateOptions)
+  const normalizeDateOptions = useCallback(
+    source => {
+      const sourceApplicationType =
+        source?.applicationType ?? routeApplicationType ?? 'SAME_DAY';
+      const list =
+        sourceApplicationType === 'ADVANCE'
+          ? Array.isArray(source?.applicationStatuses)
+            ? source.applicationStatuses
+            : Array.isArray(routePartyDateOptions)
             ? routePartyDateOptions
             : []
-        : [source].filter(Boolean);
+          : [source].filter(Boolean);
 
-    return list
-      .map((item, index) => {
-        if (typeof item === 'string') {
+      return list
+        .map((item, index) => {
+          if (typeof item === 'string') {
+            return {
+              id: `${item}-${index}`,
+              partyId,
+              partyStartDateTime: item,
+              partyStartTime: item,
+              partyEndTime: routePartyEndTime,
+              partyEndDateTime: routePartyEndTime,
+              isApplyOpen: true,
+              isClosed: false,
+            };
+          }
+
           return {
-            id: `${item}-${index}`,
-            partyId,
-            partyStartDateTime: item,
-            partyStartTime: item,
-            partyEndTime: routePartyEndTime,
-            partyEndDateTime: routePartyEndTime,
-            isApplyOpen: true,
-            isClosed: false,
+            id:
+              item?.partyId ??
+              item?.id ??
+              `${item?.partyStartDateTime ?? index}`,
+            partyId: item?.partyId ?? item?.id ?? partyId,
+            partyStartDateTime:
+              item?.partyStartDateTime ??
+              item?.startDateTime ??
+              item?.dateTime ??
+              item?.date ??
+              source?.partyStartDateTime ??
+              (source?.eventDate && source?.partyStartTime
+                ? `${source.eventDate}T${source.partyStartTime}`
+                : source?.eventDate) ??
+              routePartyStartDateTime,
+            partyStartTime:
+              item?.partyStartTime ??
+              item?.startTime ??
+              item?.partyStartDateTime ??
+              source?.partyStartTime ??
+              source?.partyStartDateTime ??
+              routePartyStartTime ??
+              routePartyStartDateTime,
+            partyEndTime:
+              item?.partyEndTime ??
+              item?.endTime ??
+              item?.partyEndDateTime ??
+              source?.partyEndTime ??
+              source?.partyEndDateTime ??
+              routePartyEndTime,
+            partyEndDateTime:
+              item?.partyEndDateTime ??
+              item?.endDateTime ??
+              item?.partyEndTime ??
+              source?.partyEndDateTime ??
+              source?.partyEndTime ??
+              routePartyEndTime,
+            partyStatus: item?.partyStatus ?? item?.status,
+            isApplyOpen: item?.isApplyOpen ?? source?.isApplyOpen ?? true,
+            isClosed: item?.isClosed ?? false,
           };
-        }
-
-        return {
-          id: item?.partyId ?? item?.id ?? `${item?.partyStartDateTime ?? index}`,
-          partyId: item?.partyId ?? item?.id ?? partyId,
-          partyStartDateTime:
-            item?.partyStartDateTime ??
-            item?.startDateTime ??
-            item?.dateTime ??
-            item?.date ??
-            source?.partyStartDateTime ??
-            (source?.eventDate && source?.partyStartTime
-              ? `${source.eventDate}T${source.partyStartTime}`
-              : source?.eventDate) ??
-            routePartyStartDateTime,
-          partyStartTime:
-            item?.partyStartTime ??
-            item?.startTime ??
-            item?.partyStartDateTime ??
-            source?.partyStartTime ??
-            source?.partyStartDateTime ??
-            routePartyStartTime ??
-            routePartyStartDateTime,
-          partyEndTime:
-            item?.partyEndTime ??
-            item?.endTime ??
-            item?.partyEndDateTime ??
-            source?.partyEndTime ??
-            source?.partyEndDateTime ??
-            routePartyEndTime,
-          partyEndDateTime:
-            item?.partyEndDateTime ??
-            item?.endDateTime ??
-            item?.partyEndTime ??
-            source?.partyEndDateTime ??
-            source?.partyEndTime ??
-            routePartyEndTime,
-          partyStatus: item?.partyStatus ?? item?.status,
-          isApplyOpen: item?.isApplyOpen ?? source?.isApplyOpen ?? true,
-          isClosed: item?.isClosed ?? false,
-        };
-      })
-      .filter(item => !!item.partyStartDateTime);
-  }, [
-    partyId,
-    routeApplicationType,
-    routePartyDateOptions,
-    routePartyEndTime,
-    routePartyStartDateTime,
-    routePartyStartTime,
-  ]);
+        })
+        .filter(item => !!item.partyStartDateTime);
+    },
+    [
+      partyId,
+      routeApplicationType,
+      routePartyDateOptions,
+      routePartyEndTime,
+      routePartyStartDateTime,
+      routePartyStartTime,
+    ],
+  );
 
   const dateOptions = useMemo(
     () => normalizeDateOptions(reservationInfo),
@@ -274,8 +287,8 @@ const MeetReservation = () => {
       routeDateIndex >= 0
         ? routeDateIndex
         : firstOpenDateIndex >= 0
-          ? firstOpenDateIndex
-          : 0,
+        ? firstOpenDateIndex
+        : 0,
     );
   }, [dateOptions, partyId]);
 
@@ -313,11 +326,13 @@ const MeetReservation = () => {
   const isReservationGuest =
     reservationInfo?.guest ?? reservationInfo?.isGuest ?? false;
   const priceOptions = useMemo(
-    () => Array.isArray(reservationInfo?.priceOptions)
-      ? [...reservationInfo.priceOptions].sort(
-        (a, b) => Number(a?.displayOrder ?? 0) - Number(b?.displayOrder ?? 0),
-      )
-      : [],
+    () =>
+      Array.isArray(reservationInfo?.priceOptions)
+        ? [...reservationInfo.priceOptions].sort(
+            (a, b) =>
+              Number(a?.displayOrder ?? 0) - Number(b?.displayOrder ?? 0),
+          )
+        : [],
     [reservationInfo?.priceOptions],
   );
   const selectedPriceOption = priceOptions.find(
@@ -412,28 +427,38 @@ const MeetReservation = () => {
   }, [scrollRequestAboveKeyboard]);
 
   const formatTime = timeStr => {
-    if (!timeStr) {return '시간 없음';}
+    if (!timeStr) {
+      return t('common.noTime');
+    }
     const date = dayjs(timeStr);
     return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
   const formatDateWithDay = dateStr => {
-    if (!dateStr) {return '-';}
+    if (!dateStr) {
+      return '-';
+    }
     const date = dayjs(dateStr);
-    if (!date.isValid()) {return '-';}
+    if (!date.isValid()) {
+      return '-';
+    }
     return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
   };
   const formatReservationOption = option => {
     const date = dayjs(option?.partyStartDateTime);
     const dateText = date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-';
-    return `${dateText} ${formatTime(option?.partyStartTime ?? option?.partyStartDateTime)}`;
+    return `${dateText} ${formatTime(
+      option?.partyStartTime ?? option?.partyStartDateTime,
+    )}`;
   };
 
   const eventDateText = formatDateWithDay(checkInDate);
-  const eventTimeText = `${formatTime(checkInTime)}~${formatTime(checkOutTime)}`;
+  const eventTimeText = `${formatTime(checkInTime)}~${formatTime(
+    checkOutTime,
+  )}`;
   const eventDateTimeText =
     eventDateText === '-' ? eventTimeText : `${eventDateText} ${eventTimeText}`;
   const eventThumbnailSource = routeThumbnailUrl
-    ? { uri: routeThumbnailUrl }
+    ? {uri: routeThumbnailUrl}
     : null;
   const [agreements, setAgreements] = useState({
     personalInfo: false,
@@ -482,7 +507,9 @@ const MeetReservation = () => {
 
   // 예약 생성
   const handleCreateReservation = async () => {
-    if (!partyId || !reservationInfo) {return;}
+    if (!partyId || !reservationInfo) {
+      return;
+    }
 
     let paymentWindowRef = null;
 
@@ -495,16 +522,16 @@ const MeetReservation = () => {
           : {name: null, windowRef: null};
       paymentWindowRef = preparedPaymentWindow.windowRef;
       const reservationPartyId = selectedDateOption?.partyId ?? partyId;
-      const { data } = await reservationPaymentApi.createPartyReservation(
+      const {data} = await reservationPaymentApi.createPartyReservation(
         reservationPartyId,
         {
           amount,
           request: requestText,
           ...(selectedPriceOption?.id != null
             ? {
-              selectedPriceOptionId: selectedPriceOption.id,
-              selectedPriceOptionName: selectedPriceOption.optionName,
-            }
+                selectedPriceOptionId: selectedPriceOption.id,
+                selectedPriceOptionName: selectedPriceOption.optionName,
+              }
             : {}),
         },
       );
@@ -515,7 +542,7 @@ const MeetReservation = () => {
           : data?.id ?? data?.reservationId ?? Number.NaN;
 
       if (!reservationId) {
-        throw new Error('예약 ID가 없습니다.');
+        throw new Error(t('meet.thereIsNoReservationId'));
       }
 
       if (amount === 0) {
@@ -546,8 +573,9 @@ const MeetReservation = () => {
       paymentWindowRef?.close();
       console.log('createPartyReservation error', e);
       const msg =
-        e?.response?.data?.message || '예약 생성 중 오류가 발생했어요.';
-      Toast.show({ type: 'error', text1: msg, position: 'top' });
+        e?.response?.data?.message ||
+        t('meet.anErrorOccurredWhileCreatingTheReservation');
+      Toast.show({type: 'error', text1: msg, position: 'top'});
     }
   };
 
@@ -581,20 +609,17 @@ const MeetReservation = () => {
 
     return (
       <View style={styles.guideContainer}>
-        <Header title="신청" onPress={handleBackPress} />
+        <Header title={t('common.apply_739bc7')} onPress={handleBackPress} />
         <View style={styles.guideProgressTrack}>
-          <View
-            style={[
-              styles.guideProgressFill,
-              { width: '50%' },
-            ]}
-          />
+          <View style={[styles.guideProgressFill, {width: '50%'}]} />
         </View>
 
         <View style={styles.guideContent}>
           <WarningAlarm width={36} height={36} />
           <Text style={[FONTS.fs_20_medium, styles.guideTitle]}>
-            모두가 즐거운 시간이 될 수 있도록{'\n'}꼭 확인해 주세요!
+            {t('meet.soThatEveryoneCanHaveAGoodTime')}
+            {'\n'}
+            {t('meet.beSureToCheckItOut')}
           </Text>
 
           <ScrollView
@@ -605,7 +630,8 @@ const MeetReservation = () => {
             {announcementItems.map((item, index) => (
               <View key={`${step}-${index}`} style={styles.guideRuleRow}>
                 <View style={styles.guideRuleNumber}>
-                  <Text style={[FONTS.fs_16_semibold, styles.guideRuleNumberText]}>
+                  <Text
+                    style={[FONTS.fs_16_semibold, styles.guideRuleNumberText]}>
                     {index + 1}
                   </Text>
                 </View>
@@ -637,7 +663,7 @@ const MeetReservation = () => {
                   styles.guideAgreeText,
                   checked && styles.guideAgreeTextActive,
                 ]}>
-                이용 규칙을 확인했어요!
+                {t('meet.iCheckedTheUsageRules')}
               </Text>
             </TouchableOpacity>
           </ScrollView>
@@ -645,7 +671,7 @@ const MeetReservation = () => {
 
         <View style={styles.guideBottomButtonWrap}>
           <ButtonScarlet
-            title="다음"
+            title={t('common.next')}
             style={styles.guideNextButton}
             disabled={!checked}
             onPress={handlePressGuideNext}
@@ -661,274 +687,270 @@ const MeetReservation = () => {
 
   return (
     <View style={styles.container}>
-        <Header title="예약" onPress={handleBackPress} />
-        <ScrollView
-          ref={scrollRef}
-          onScroll={e => {
-            scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-          }}
-          scrollEventThrottle={16}
-          contentContainerStyle={[
-            styles.scrollContent,
-            keyboardAwareContentStyle,
-          ]}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled">
-
-          {/* 콘텐츠 정보 */}
-          <View style={styles.eventInfoRow}>
-            {eventThumbnailSource && (
-              <AppImage
-                source={eventThumbnailSource}
-                style={styles.eventThumbnail}
-                resizeMode="cover"
-              />
-            )}
-            <View style={styles.eventTextRow}>
-              <Text style={[FONTS.fs_18_medium]}>{title}</Text>
-              <Text style={[FONTS.fs_14_medium]}>{eventDateTimeText}</Text>
-            </View>
-          </View>
-
-          <View style={styles.devide} />
-
-          {shouldShowDateSelector && (
-            <>
-              <View style={styles.section}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                  참여 일정
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={[
-                    styles.dateSelector,
-                    isDateDropdownOpen && styles.dateSelectorOpen,
-                  ]}
-                  onPress={() => setIsDateDropdownOpen(prev => !prev)}>
-                  <Text style={[FONTS.fs_14_medium, styles.dateSelectorText]}>
-                    {formatReservationOption(selectedDateOption)}
-                  </Text>
-                  {isDateDropdownOpen ? (
-                    <ChevronUp width={16} height={16} />
-                  ) : (
-                    <ChevronDown width={16} height={16} />
-                  )}
-                </TouchableOpacity>
-                {isDateDropdownOpen && (
-                  <View style={styles.dateDropdownList}>
-                    {dateOptions.map((option, index) => {
-                      const disabled = isDateOptionClosed(option);
-                      const selected = index === selectedDateIndex;
-                      const statusLabel = getDateOptionStatusLabel(option);
-
-                      return (
-                        <TouchableOpacity
-                          activeOpacity={1}
-                          key={option.id}
-                          style={[
-                            styles.dateDropdownItem,
-                            selected && styles.dateDropdownItemSelected,
-                            disabled && styles.dateDropdownItemDisabled,
-                          ]}
-                          disabled={disabled}
-                          onPress={() => handleSelectDate(index)}>
-                          <Text
-                            style={[
-                              FONTS.fs_14_medium,
-                              styles.dateDropdownText,
-                              disabled && styles.dateDropdownTextDisabled,
-                            ]}>
-                            {formatReservationOption(option)}
-                          </Text>
-                          <Text
-                            style={[
-                              FONTS.fs_12_medium,
-                              styles.dateDropdownStatusText,
-                              disabled && styles.dateDropdownClosedText,
-                            ]}>
-                            {statusLabel}
-                          </Text>
-                        </TouchableOpacity>
-                      );
-                    })}
-                  </View>
-                )}
-              </View>
-
-              <View style={styles.devide} />
-            </>
+      <Header title={t('common.reservation')} onPress={handleBackPress} />
+      <ScrollView
+        ref={scrollRef}
+        onScroll={e => {
+          scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+        }}
+        scrollEventThrottle={16}
+        contentContainerStyle={[
+          styles.scrollContent,
+          keyboardAwareContentStyle,
+        ]}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled">
+        {/* 콘텐츠 정보 */}
+        <View style={styles.eventInfoRow}>
+          {eventThumbnailSource && (
+            <AppImage
+              source={eventThumbnailSource}
+              style={styles.eventThumbnail}
+              resizeMode="cover"
+            />
           )}
+          <View style={styles.eventTextRow}>
+            <Text style={[FONTS.fs_18_medium]}>{title}</Text>
+            <Text style={[FONTS.fs_14_medium]}>{eventDateTimeText}</Text>
+          </View>
+        </View>
 
-          {priceOptions.length > 0 && (
-            <>
-              <View style={styles.section}>
-                <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-                  참여 옵션
+        <View style={styles.devide} />
+
+        {shouldShowDateSelector && (
+          <>
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                {t('meet.participationSchedule')}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[
+                  styles.dateSelector,
+                  isDateDropdownOpen && styles.dateSelectorOpen,
+                ]}
+                onPress={() => setIsDateDropdownOpen(prev => !prev)}>
+                <Text style={[FONTS.fs_14_medium, styles.dateSelectorText]}>
+                  {formatReservationOption(selectedDateOption)}
                 </Text>
-                <View style={styles.priceOptionList}>
-                  {priceOptions.map(option => {
-                    const selected =
-                      String(option?.id) === String(selectedPriceOptionId);
-                    const guestOnly = isGuestOnlyPriceOption(option);
+                {isDateDropdownOpen ? (
+                  <ChevronUp width={16} height={16} />
+                ) : (
+                  <ChevronDown width={16} height={16} />
+                )}
+              </TouchableOpacity>
+              {isDateDropdownOpen && (
+                <View style={styles.dateDropdownList}>
+                  {dateOptions.map((option, index) => {
+                    const disabled = isDateOptionClosed(option);
+                    const selected = index === selectedDateIndex;
+                    const statusLabel = getDateOptionStatusLabel(option);
 
                     return (
                       <TouchableOpacity
-                        key={option?.id ?? option?.optionName}
                         activeOpacity={1}
-                        onPress={() => setSelectedPriceOptionId(option.id)}
+                        key={option.id}
                         style={[
-                          styles.priceOption,
-                          selected && styles.priceOptionSelected,
-                        ]}>
-                        <View style={styles.priceOptionNameRow}>
-                          {selected ? (
-                            <RadioChecked width={20} height={20} />
-                          ) : (
-                            <RadioUnchecked width={20} height={20} />
-                          )}
-                          <Text
-                            numberOfLines={1}
-                            ellipsizeMode="tail"
-                            style={[
-                              FONTS.fs_14_medium,
-                              styles.priceOptionName,
-                            ]}>
-                            {option?.optionName}
-                          </Text>
-                          {guestOnly ? (
-                            <View
-                              style={[
-                                styles.guestOnlyBadge,
-                                selected && styles.guestOnlyBadgeSelected,
-                              ]}>
-                              <Text
-                                style={[
-                                  FONTS.fs_12_medium,
-                                  styles.guestOnlyBadgeText,
-                                ]}>
-                                숙박객 전용
-                              </Text>
-                            </View>
-                          ) : null}
-                        </View>
+                          styles.dateDropdownItem,
+                          selected && styles.dateDropdownItemSelected,
+                          disabled && styles.dateDropdownItemDisabled,
+                        ]}
+                        disabled={disabled}
+                        onPress={() => handleSelectDate(index)}>
                         <Text
                           style={[
-                            FONTS.fs_16_semibold,
-                            styles.priceOptionAmount,
+                            FONTS.fs_14_medium,
+                            styles.dateDropdownText,
+                            disabled && styles.dateDropdownTextDisabled,
                           ]}>
-                          {Number(option?.amount ?? 0).toLocaleString('ko-KR')}원
+                          {formatReservationOption(option)}
+                        </Text>
+                        <Text
+                          style={[
+                            FONTS.fs_12_medium,
+                            styles.dateDropdownStatusText,
+                            disabled && styles.dateDropdownClosedText,
+                          ]}>
+                          {statusLabel}
                         </Text>
                       </TouchableOpacity>
                     );
                   })}
                 </View>
-              </View>
+              )}
+            </View>
 
-              <View style={styles.devide} />
-            </>
-          )}
+            <View style={styles.devide} />
+          </>
+        )}
 
-          {/* 예약자 정보 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-              예약자 정보
-            </Text>
-            <View style={styles.userInfo}>
-              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                이름
+        {priceOptions.length > 0 && (
+          <>
+            <View style={styles.section}>
+              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                {t('meet.participationOptions')}
               </Text>
-              <Text style={FONTS.fs_14_medium}>{name}</Text>
-            </View>
-            <View style={styles.userInfo}>
-              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                전화번호
-              </Text>
-              <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
-            </View>
-          </View>
+              <View style={styles.priceOptionList}>
+                {priceOptions.map(option => {
+                  const selected =
+                    String(option?.id) === String(selectedPriceOptionId);
+                  const guestOnly = isGuestOnlyPriceOption(option);
 
-          <View style={styles.devide} />
-
-          {/* 요청사항 */}
-          <View style={styles.section} ref={requestInputRef}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-              요청 사항 (선택)
-            </Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[FONTS.fs_14_regular, styles.requestInput]}
-                placeholder="요청사항을 호스트께 전달해보세요"
-                placeholderTextColor={COLORS.grayscale_400}
-                value={requestMessage}
-                onChangeText={setRequestMessage}
-                onFocus={handleFocusRequest}
-              />
-            </View>
-          </View>
-
-          <View style={styles.devide} />
-
-          {/* 약관 동의 */}
-          <View style={styles.agreeRowContainer}>
-            <View style={styles.agreeRowConent}>
-              <View style={styles.agreeRow}>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  onPress={() => toggleAgreement('personalInfo')}
-                  style={styles.agreeRow}>
-                  {agreements.personalInfo ? (
-                    <View style={styles.checkedBox}>
-                      <Checked width={24} height={24} />
-                    </View>
-                  ) : (
-                    <View style={styles.uncheckedBox}>
-                      <Unchecked width={24} height={24} />
-                    </View>
-                  )}
-                </TouchableOpacity>
-                <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                  <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
-                    [필수]
-                  </Text>{' '}
-                  개인정보 수집 및 이용에 동의합니다.
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.seeMore}
-                  onPress={() => openTermModal('personalInfo')}>
-                  <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
-                    보기
-                  </Text>
-                </TouchableOpacity>
+                  return (
+                    <TouchableOpacity
+                      key={option?.id ?? option?.optionName}
+                      activeOpacity={1}
+                      onPress={() => setSelectedPriceOptionId(option.id)}
+                      style={[
+                        styles.priceOption,
+                        selected && styles.priceOptionSelected,
+                      ]}>
+                      <View style={styles.priceOptionNameRow}>
+                        {selected ? (
+                          <RadioChecked width={20} height={20} />
+                        ) : (
+                          <RadioUnchecked width={20} height={20} />
+                        )}
+                        <Text
+                          numberOfLines={1}
+                          ellipsizeMode="tail"
+                          style={[FONTS.fs_14_medium, styles.priceOptionName]}>
+                          {option?.optionName}
+                        </Text>
+                        {guestOnly ? (
+                          <View
+                            style={[
+                              styles.guestOnlyBadge,
+                              selected && styles.guestOnlyBadgeSelected,
+                            ]}>
+                            <Text
+                              style={[
+                                FONTS.fs_12_medium,
+                                styles.guestOnlyBadgeText,
+                              ]}>
+                              {t('common.forHotelGuestsOnly')}
+                            </Text>
+                          </View>
+                        ) : null}
+                      </View>
+                      <Text
+                        style={[
+                          FONTS.fs_16_semibold,
+                          styles.priceOptionAmount,
+                        ]}>
+                        {Number(option?.amount ?? 0).toLocaleString('ko-KR')}
+                        {t('common.won')}
+                      </Text>
+                    </TouchableOpacity>
+                  );
+                })}
               </View>
             </View>
+
+            <View style={styles.devide} />
+          </>
+        )}
+
+        {/* 예약자 정보 */}
+        <View style={styles.section}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('common.reservationInformation_206122')}
+          </Text>
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {t('common.name')}
+            </Text>
+            <Text style={FONTS.fs_14_medium}>{name}</Text>
           </View>
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {t('common.phoneNumber')}
+            </Text>
+            <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
+          </View>
+        </View>
 
-        </ScrollView>
+        <View style={styles.devide} />
 
-        {!isKeyboardVisible ? (
-          <View style={styles.fixedButton}>
-            <ButtonScarlet
-              title="신청하기"
-              disabled={
-                !isAllRequiredAgreed ||
-                !canApplySelectedDate ||
-                (priceOptions.length > 0 && !selectedPriceOption)
-              }
-              onPress={handleCreateReservation}
+        {/* 요청사항 */}
+        <View style={styles.section} ref={requestInputRef}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('common.requestOptional')}
+          </Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[FONTS.fs_14_regular, styles.requestInput]}
+              placeholder={t('common.pleaseConveyYourRequestToTheHost')}
+              placeholderTextColor={COLORS.grayscale_400}
+              value={requestMessage}
+              onChangeText={setRequestMessage}
+              onFocus={handleFocusRequest}
             />
           </View>
-        ) : null}
+        </View>
 
-        {/* 약관동의 모달 */}
-        <TermsModal
-          visible={isModalVisible}
-          onClose={() => setModalVisible(false)}
-          title={selectedAgreementDoc?.title || ''}
-          content={selectedAgreementDoc?.detail || ''}
-          contentHtml={selectedAgreementDoc?.detailHtml || ''}
-          onAgree={handleAgreeModal}
-        />
+        <View style={styles.devide} />
+
+        {/* 약관 동의 */}
+        <View style={styles.agreeRowContainer}>
+          <View style={styles.agreeRowConent}>
+            <View style={styles.agreeRow}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggleAgreement('personalInfo')}
+                style={styles.agreeRow}>
+                {agreements.personalInfo ? (
+                  <View style={styles.checkedBox}>
+                    <Checked width={24} height={24} />
+                  </View>
+                ) : (
+                  <View style={styles.uncheckedBox}>
+                    <Unchecked width={24} height={24} />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                  {t('common.required')}
+                </Text>{' '}
+                {t('common.iAgreeToTheCollectionAndUseOfPersonalInformation')}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.seeMore}
+                onPress={() => openTermModal('personalInfo')}>
+                <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                  {t('common.view')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {!isKeyboardVisible ? (
+        <View style={styles.fixedButton}>
+          <ButtonScarlet
+            title={t('common.apply_15e2a7')}
+            disabled={
+              !isAllRequiredAgreed ||
+              !canApplySelectedDate ||
+              (priceOptions.length > 0 && !selectedPriceOption)
+            }
+            onPress={handleCreateReservation}
+          />
+        </View>
+      ) : null}
+
+      {/* 약관동의 모달 */}
+      <TermsModal
+        visible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        title={selectedAgreementDoc?.title || ''}
+        content={selectedAgreementDoc?.detail || ''}
+        contentHtml={selectedAgreementDoc?.detailHtml || ''}
+        onAgree={handleAgreeModal}
+      />
     </View>
   );
 };

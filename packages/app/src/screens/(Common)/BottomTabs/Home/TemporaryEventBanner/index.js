@@ -1,47 +1,54 @@
-import React, { useCallback, useMemo, useState } from 'react';
-import { Image, View, Linking, Platform, StyleSheet } from 'react-native';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
-import { WebView } from 'react-native-webview';
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
+import React, {useCallback, useMemo, useState} from 'react';
+import {Image, View, Linking, Platform, StyleSheet} from 'react-native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
+import {WebView} from 'react-native-webview';
 
 import styles from './TemporaryEventBanner.styles';
 import {COLORS} from '@constants/colors';
-import { COUPON_EVENT_HTML_FRAGMENT } from './couponEventHtml';
+import {COUPON_EVENT_HTML_FRAGMENT} from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
 import AlertModal from '@components/modals/AlertModal';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
-import { showErrorModal } from '@utils/loginModalHub';
+import {showErrorModal} from '@utils/loginModalHub';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
-const TARGET_COUPON_NAME = '신규회원 전용 20% 할인 쿠폰';
+const TARGET_COUPON_NAME = i18n.t('common.20DiscountCouponForNewMembersOnly');
 const COUPON_EVENT_IMAGE_URL =
   'https://api.builder.io/api/v1/image/assets/TEMP/6a48cec6e4bd9dfd0ff9e2d3b959f9e9be4ce6c1?width=648';
 const couponEventImageUri =
   typeof Image.resolveAssetSource === 'function'
     ? Image.resolveAssetSource(couponEventImage)?.uri
     : couponEventImage;
-const defaultTabBarStyle = Platform.OS === 'android'
-  ? {
-      position: 'relative',
-      backgroundColor: COLORS.grayscale_0,
-      height: 64,
-      paddingTop: 6,
-      paddingBottom: 6,
-      paddingHorizontal: 12,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: COLORS.grayscale_200,
-    }
-  : {
-      position: 'relative',
-      backgroundColor: COLORS.grayscale_0,
-      height: 84,
-      paddingTop: 6,
-      paddingBottom: 18,
-      paddingHorizontal: 12,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: COLORS.grayscale_200,
-    };
+const defaultTabBarStyle =
+  Platform.OS === 'android'
+    ? {
+        position: 'relative',
+        backgroundColor: COLORS.grayscale_0,
+        height: 64,
+        paddingTop: 6,
+        paddingBottom: 6,
+        paddingHorizontal: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: COLORS.grayscale_200,
+      }
+    : {
+        position: 'relative',
+        backgroundColor: COLORS.grayscale_0,
+        height: 84,
+        paddingTop: 6,
+        paddingBottom: 18,
+        paddingHorizontal: 12,
+        borderTopWidth: StyleSheet.hairlineWidth,
+        borderTopColor: COLORS.grayscale_200,
+      };
 
 const FALLBACK_HTML_FRAGMENT = `
   <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
@@ -214,9 +221,10 @@ const createHtmlDocument = fragment => `<!doctype html>
 </html>`;
 
 const TemporaryEventBanner = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const { bannerHtml, banner } = route.params ?? {};
+  const {bannerHtml, banner} = route.params ?? {};
   const couponTemplateId = banner?.couponTemplateId;
   const userRole = useUserStore(state => state.userRole);
   const accessToken = useUserStore(state => state.accessToken);
@@ -231,20 +239,21 @@ const TemporaryEventBanner = () => {
     useCallback(() => {
       const tabNavigation = navigation.getParent();
 
-      tabNavigation?.setOptions({ tabBarStyle: { display: 'none' } });
+      tabNavigation?.setOptions({tabBarStyle: {display: 'none'}});
 
       return () => {
-        tabNavigation?.setOptions({ tabBarStyle: defaultTabBarStyle });
+        tabNavigation?.setOptions({tabBarStyle: defaultTabBarStyle});
       };
     }, [navigation]),
   );
 
   const webViewSource = useMemo(() => {
     if (bannerHtml) {
-      const processedHtml = typeof bannerHtml === 'string'
-        ? bannerHtml.replace(/쿠폰 상세/g, '이벤트 상세')
-        : bannerHtml;
-      return { html: createHtmlDocument(processedHtml) };
+      const processedHtml =
+        typeof bannerHtml === 'string'
+          ? bannerHtml.replace(/쿠폰 상세/g, t('common.eventDetails'))
+          : bannerHtml;
+      return {html: createHtmlDocument(processedHtml)};
     }
     return {
       html: createHtmlDocument(
@@ -254,7 +263,7 @@ const TemporaryEventBanner = () => {
         ),
       ),
     };
-  }, [bannerHtml]);
+  }, [bannerHtml, t]);
 
   const injectedJs = useMemo(() => {
     const hasLink = !!(
@@ -262,6 +271,7 @@ const TemporaryEventBanner = () => {
       typeof banner.link === 'string' &&
       /^https?:\/\//i.test(banner.link.trim())
     );
+
     if (hasLink) {
       return `
         (function() {
@@ -329,13 +339,13 @@ const TemporaryEventBanner = () => {
     }
 
     showErrorModal({
-      message: '로그인 후 다운로드 가능합니다',
-      buttonText2: '취소',
-      buttonText: '로그인하기',
+      message: t('common.youCanDownloadAfterLoggingIn'),
+      buttonText2: t('common.cancel'),
+      buttonText: t('common.logIn'),
       onPress: () => navigation.navigate('Login'),
-      onPress2: () => { },
+      onPress2: () => {},
     });
-  }, [navigation]);
+  }, [navigation, t]);
 
   const handleIssueCoupon = useCallback(async () => {
     if (issuing) {
@@ -352,39 +362,39 @@ const TemporaryEventBanner = () => {
     try {
       if (couponTemplateId) {
         await userMyApi.issueCouponByTemplate(couponTemplateId);
-        showCouponAlert('쿠폰 발급이 완료되었습니다', true);
+        showCouponAlert(t('common.couponHasBeenIssued'), true);
         return;
       }
 
-      const { data } = await userMyApi.getAvailableCoupons();
+      const {data} = await userMyApi.getAvailableCoupons();
       const coupons = Array.isArray(data?.coupons)
         ? data.coupons
         : Array.isArray(data)
-          ? data
-          : [];
+        ? data
+        : [];
       const targetCoupon = coupons.find(
         coupon => coupon?.name === TARGET_COUPON_NAME,
       );
 
       if (!targetCoupon) {
-        showCouponAlert('해당 쿠폰 다운로드 대상이 아닙니다');
+        showCouponAlert(t('common.thisCouponIsNotEligibleForDownload'));
         return;
       }
 
       if (targetCoupon.isIssued) {
-        showCouponAlert('이미 발급된 쿠폰입니다');
+        showCouponAlert(t('common.thisCouponHasAlreadyBeenIssued'));
         return;
       }
 
       await userMyApi.issueCouponByTemplate(targetCoupon.couponId);
-      showCouponAlert('쿠폰 발급이 완료되었습니다', true);
+      showCouponAlert(t('common.couponHasBeenIssued'), true);
     } catch (error) {
       const status = error?.response?.status;
       const message =
         error?.response?.data?.message ||
         (status === 401
-          ? '로그인 후 다운로드 가능합니다'
-          : '쿠폰 발급에 실패했습니다');
+          ? t('common.youCanDownloadAfterLoggingIn')
+          : t('common.couponIssuanceFailed'));
 
       if (status === 401) {
         showLoginRequiredModal();
@@ -401,6 +411,7 @@ const TemporaryEventBanner = () => {
     showLoginRequiredModal,
     userRole,
     couponTemplateId,
+    t,
   ]);
 
   const handleMessage = event => {
@@ -446,10 +457,11 @@ const TemporaryEventBanner = () => {
         bounces={false}
         mixedContentMode="always"
       />
+
       <AlertModal
         visible={alertState.visible}
         message={alertState.message}
-        buttonText="확인"
+        buttonText={t('common.confirm')}
         onPress={closeAlert}
         onRequestClose={closeAlert}
       />

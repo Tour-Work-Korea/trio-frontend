@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback, useEffect} from 'react';
 import {View, Text, ScrollView, TouchableOpacity} from 'react-native';
 import {
@@ -24,6 +25,7 @@ import styles from './ApplicantForm.styles';
 import useUserStore from '@stores/userStore';
 
 const ApplicantForm = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {recruitId, startDate, message} = route.params ?? {};
@@ -55,11 +57,11 @@ const ApplicantForm = () => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: '이력서를 가져오는데 실패했습니다',
-        buttonText: '확인',
+        message: t('employ.failedToRetrieveResume'),
+        buttonText: t('common.confirm'),
       });
     }
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     const allRequired = agreements
@@ -78,7 +80,7 @@ const ApplicantForm = () => {
     navigation.navigate('ResumeDetail', {
       id,
       isEditable: true,
-      headerTitle: '이력서 수정',
+      headerTitle: t('employ.editYourResume'),
     });
   };
 
@@ -92,7 +94,7 @@ const ApplicantForm = () => {
       isEditable: true,
       role: 'USER',
       isNew: true,
-      headerTitle: '이력서 작성',
+      headerTitle: t('employ.writeAResume'),
     });
   };
 
@@ -111,15 +113,15 @@ const ApplicantForm = () => {
     if (!startDate) {
       setErrorModal({
         visible: true,
-        message: '입도 가능 날짜를 선택해주세요.',
-        buttonText: '확인',
+        message: t('employ.pleaseSelectAnAvailableDate'),
+        buttonText: t('common.confirm'),
       });
       return;
     }
 
     try {
       const parsedData = {
-        message: message?.trim() || '열심히 하겠습니다.',
+        message: message?.trim() || t('employ.iWillWorkHard'),
         startDate,
         personalInfoConsent: applicant.personalInfoConsent,
         resumeId: applicant.resumeId,
@@ -137,8 +139,9 @@ const ApplicantForm = () => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message || '지원에 실패했습니다.',
-        buttonText: '확인',
+        message:
+          error?.response?.data?.message || t('employ.yourApplicationFailed'),
+        buttonText: t('common.confirm'),
       });
       console.warn('지원서 등록 실패: ', error);
     }
@@ -149,15 +152,17 @@ const ApplicantForm = () => {
       {resumes?.length === 0 ? (
         noResumeState ? (
           <EmployEmpty
-            title={'아직 정보가 부족해요'}
-            subTitle={'이력서를 완성하러 가볼까요?'}
+            title={t('common.thereIsStillNotEnoughInformation')}
+            subTitle={t('common.shallWeGoCompleteOurResume')}
           />
         ) : (
-          <EmployEmpty title={'작성하신 이력서가 없습니다'} />
+          <EmployEmpty title={t('common.thereIsNoResumeWritten')} />
         )
       ) : (
         <View>
-          <Text style={styles.sectionTitle}>지원할 이력서를 선택해주세요</Text>
+          <Text style={styles.sectionTitle}>
+            {t('employ.pleaseSelectAResumeToApply')}
+          </Text>
           <View style={styles.body}>
             {resumes?.map(item => (
               <TouchableOpacity
@@ -198,7 +203,9 @@ const ApplicantForm = () => {
                   </View>
                   <View style={styles.modifiedContainer}>
                     <View style={styles.modifiedTextBox}>
-                      <Text style={styles.lastModifiedText}>최종수정일</Text>
+                      <Text style={styles.lastModifiedText}>
+                        {t('common.lastModifiedDate')}
+                      </Text>
                       <Text style={styles.lastModifiedText}>
                         {item.updatedAt.split('T')[0]}
                       </Text>
@@ -254,7 +261,7 @@ const ApplicantForm = () => {
               <View style={[styles.parent, styles.parentWrapperFlexBox]}>
                 {item.isRequired ? (
                   <Text style={[styles.textRequired, styles.textBlue]}>
-                    [필수]
+                    {t('common.required')}
                   </Text>
                 ) : null}
                 <Text style={styles.textAgreeTitle}>{item.title}</Text>
@@ -262,7 +269,9 @@ const ApplicantForm = () => {
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => handleAgreeDetail(item.id)}>
-                <Text style={[styles.textSmall, styles.textBlue]}>보기</Text>
+                <Text style={[styles.textSmall, styles.textBlue]}>
+                  {t('common.view')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -273,7 +282,7 @@ const ApplicantForm = () => {
 
   return (
     <View style={styles.container}>
-      <Header title={'채용공고'} />
+      <Header title={t('common.recruitmentNotice')} />
 
       {/* 본문: 스크롤 영역 */}
       <View style={styles.flex}>
@@ -292,7 +301,9 @@ const ApplicantForm = () => {
         <View style={styles.bottomButtonContainer}>
           {!hasNoResume && renderPrivacyAgreement()}
           <ButtonScarlet
-            title={hasNoResume ? '이력서 작성하기' : '지원하기'}
+            title={
+              hasNoResume ? t('employ.writeAResume') : t('common.apply_c60c86')
+            }
             onPress={hasNoResume ? handleCreateResume : handleSubmit}
             disabled={
               hasNoResume

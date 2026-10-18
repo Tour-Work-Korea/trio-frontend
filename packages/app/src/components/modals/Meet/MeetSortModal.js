@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   View,
@@ -14,11 +15,12 @@ import CheckIcon from '@assets/images/check20_orange.svg';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import { meetSortOptions } from '@constants/meetOptions';
+import {meetSortOptions} from '@constants/meetOptions';
 
 const {height} = Dimensions.get('window');
 
-const MeetSortModal = ({visible, onClose, selected, onSelect}) => {  
+const MeetSortModal = ({visible, onClose, selected, onSelect}) => {
+  const {t} = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -26,47 +28,50 @@ const MeetSortModal = ({visible, onClose, selected, onSelect}) => {
       animationType="slide"
       onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback>{/* 막기 위해 중첩 */}
-        <View style={styles.modal}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>정렬</Text>
-            <TouchableOpacity onPress={onClose} style={styles.closeButton}>
-              <XIcon width={24} height={24} />
-            </TouchableOpacity>
-          </View>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            {/* 막기 위해 중첩 */}
+            <View style={styles.modal}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+                  {t('common.sort')}
+                </Text>
+                <TouchableOpacity onPress={onClose} style={styles.closeButton}>
+                  <XIcon width={24} height={24} />
+                </TouchableOpacity>
+              </View>
 
-          {/* 목록 */}
-          <View style={styles.contentContainer}>
-            {meetSortOptions.map(option => (
-              <TouchableOpacity
-                key={option.id}
-                style={[
-                  styles.optionItem,
-                  selected === option.id && styles.optionItemSelected,
-                ]}
-                onPress={() => onSelect(option.id)}>
-                <View style={{flexDirection: 'row', alignItems: 'center'}}>
-                  <Text
+              {/* 목록 */}
+              <View style={styles.contentContainer}>
+                {meetSortOptions.map(option => (
+                  <TouchableOpacity
+                    key={option.id}
                     style={[
-                      FONTS.fs_14_medium,
-                      styles.optionText,
-                      selected === option.id && styles.optionSelectedText,
-                      selected === option.id && FONTS.fs_14_semibold,
-                    ]}>
-                    {option.name}
-                  </Text>
-                </View>
-                {selected === option.id && (
-                  <CheckIcon width={20} height={20} />
-                )}
-              </TouchableOpacity>
-            ))}
-          </View>
+                      styles.optionItem,
+                      selected === option.id && styles.optionItemSelected,
+                    ]}
+                    onPress={() => onSelect(option.id)}>
+                    <View style={{flexDirection: 'row', alignItems: 'center'}}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          styles.optionText,
+                          selected === option.id && styles.optionSelectedText,
+                          selected === option.id && FONTS.fs_14_semibold,
+                        ]}>
+                        {t(option.labelKey)}
+                      </Text>
+                    </View>
+                    {selected === option.id && (
+                      <CheckIcon width={20} height={20} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );

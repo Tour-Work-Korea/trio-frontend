@@ -15,6 +15,7 @@
     "web": "npm --workspace @trio/web run dev",
     "build:web": "npm --workspace @trio/web run build",
     "test": "jest",
+    "test:i18n:capture": "node scripts/capture-i18n-screenshot.mjs",
     "gen:screens": "npm --workspace @trio/mobile run gen:screens"
   },
   "dependencies": {

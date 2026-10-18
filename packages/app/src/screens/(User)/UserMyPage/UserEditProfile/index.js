@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useRef, useState} from 'react';
 import {
   View,
@@ -31,6 +32,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
 const UserEditProfile = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const nicknameInputRef = useRef(null);
   const userProfile = useUserStore(state => state.userProfile);
@@ -41,19 +43,23 @@ const UserEditProfile = () => {
     nickname: userProfile.nickname,
     mbti: userProfile.mbti === 'DEFAULT' ? '' : userProfile.mbti,
     instagramId:
-      userProfile.instagramId === 'ID를 추가해주세요'
+      userProfile.instagramId === t('common.pleaseAddYourId')
         ? ''
         : userProfile.instagramId,
   });
   const [errorModal, setErrorModal] = useState({visible: false, title: ''});
-  const [lastCheckedNickname, setLastCheckedNickname] = useState(initialNickname);
+  const [lastCheckedNickname, setLastCheckedNickname] =
+    useState(initialNickname);
   const [isNicknameAvailable, setIsNicknameAvailable] = useState(true);
 
   const basicInfoRows = [
-    {label: '이름', value: userProfile.name},
-    {label: '생년월일', value: userProfile.birthDate},
-    {label: '성별', value: userProfile.gender === 'F' ? '여성' : '남성'},
-    {label: '이메일 주소', value: userProfile.email},
+    {label: t('common.name'), value: userProfile.name},
+    {label: t('common.dateOfBirth'), value: userProfile.birthDate},
+    {
+      label: t('common.gender'),
+      value: userProfile.gender === 'F' ? t('common.female') : t('common.male'),
+    },
+    {label: t('common.emailAddress'), value: userProfile.email},
   ];
 
   const handleEditProfileImage = async () => {
@@ -74,7 +80,7 @@ const UserEditProfile = () => {
     if (!trimmedNickname) {
       Toast.show({
         type: 'error',
-        text1: '닉네임을 입력해주세요',
+        text1: t('common.pleaseEnterYourNickname'),
         position: 'top',
       });
       setIsNicknameAvailable(false);
@@ -84,7 +90,7 @@ const UserEditProfile = () => {
     if (!hasNoSpecialChars(trimmedNickname)) {
       Toast.show({
         type: 'error',
-        text1: '닉네임은 한글, 영문, 숫자만 사용할 수 있어요',
+        text1: t('myPage.nicknamesCanOnlyUseKoreanEnglishAndNumbers'),
         position: 'top',
       });
       setIsNicknameAvailable(false);
@@ -94,7 +100,7 @@ const UserEditProfile = () => {
     if (!isNicknameLengthValid(trimmedNickname)) {
       Toast.show({
         type: 'error',
-        text1: '닉네임은 2자 이상 10자 이하로 입력해주세요',
+        text1: t('myPage.pleaseEnterANicknameOfAtLeast2CharactersAnd'),
         position: 'top',
       });
       setIsNicknameAvailable(false);
@@ -117,7 +123,7 @@ const UserEditProfile = () => {
       setIsNicknameAvailable(true);
       Toast.show({
         type: 'success',
-        text1: '사용 가능한 닉네임입니다',
+        text1: t('myPage.availableNicknames'),
         position: 'top',
       });
       return true;
@@ -128,7 +134,8 @@ const UserEditProfile = () => {
         type: 'error',
         text1:
           error?.response?.data?.message ??
-          '이미 사용 중인 닉네임입니다. 다른 닉네임을 입력해주세요.',
+          t('myPage.thisNicknameIsAlreadyInUsePleaseEnterADifferent'),
+
         position: 'top',
       });
       return false;
@@ -140,12 +147,14 @@ const UserEditProfile = () => {
       const trimmedNickname = formData.nickname.trim();
       const nextInstagramId =
         formData.instagramId.trim() === ''
-          ? 'ID를 추가해주세요'
+          ? t('common.pleaseAddYourId')
           : formData.instagramId.trim();
       const requestList = [];
 
       if (trimmedNickname !== initialNickname) {
-        const isValidNickname = await validateNicknameDuplicate(trimmedNickname);
+        const isValidNickname = await validateNicknameDuplicate(
+          trimmedNickname,
+        );
         if (!isValidNickname) {
           return;
         }
@@ -160,9 +169,7 @@ const UserEditProfile = () => {
         );
       }
       if (trimmedNickname !== initialNickname) {
-        requestList.push(
-          userMyApi.updateNickname({name: trimmedNickname}),
-        );
+        requestList.push(userMyApi.updateNickname({name: trimmedNickname}));
       }
       if ((formData.mbti || 'DEFAULT') !== userProfile.mbti) {
         requestList.push(
@@ -185,7 +192,7 @@ const UserEditProfile = () => {
       setUserProfile({
         ...userProfile,
         photoUrl:
-          formData.photoUrl && formData.photoUrl !== '사진을 추가해주세요'
+          formData.photoUrl && formData.photoUrl !== t('common.pleaseAddAPhoto')
             ? formData.photoUrl
             : null,
         nickname: trimmedNickname || userProfile.nickname,
@@ -198,7 +205,8 @@ const UserEditProfile = () => {
       setErrorModal({
         visible: true,
         title:
-          error?.response?.data?.message ?? '프로필 수정 중 오류가 발생했어요',
+          error?.response?.data?.message ??
+          t('common.anErrorOccurredWhileEditingYourProfile'),
       });
     }
   };
@@ -212,9 +220,8 @@ const UserEditProfile = () => {
         style={styles.container}
         contentContainerStyle={styles.contentContainer}
         keyboardDismissMode="on-drag"
-        keyboardShouldPersistTaps="handled"
-      >
-        <Header title="내 정보" />
+        keyboardShouldPersistTaps="handled">
+        <Header title={t('common.myInformation')} />
         <View style={styles.body}>
           <View style={styles.profileImageContainer}>
             <View style={styles.profileImageWrapper}>
@@ -224,6 +231,7 @@ const UserEditProfile = () => {
                 iconSize={60}
                 style={styles.profileImage}
               />
+
               <TouchableOpacity
                 activeOpacity={1}
                 style={styles.plusButton}
@@ -233,7 +241,9 @@ const UserEditProfile = () => {
             </View>
 
             <View style={styles.nicknameSection}>
-              <Text style={[FONTS.fs_12_medium, styles.nicknameTitle]}>닉네임</Text>
+              <Text style={[FONTS.fs_12_medium, styles.nicknameTitle]}>
+                {t('common.nickname')}
+              </Text>
               <View style={styles.nicknameRow}>
                 <TextInput
                   ref={nicknameInputRef}
@@ -247,9 +257,10 @@ const UserEditProfile = () => {
                   onSubmitEditing={() =>
                     validateNicknameDuplicate(formData.nickname)
                   }
-                  placeholder="닉네임"
+                  placeholder={t('common.nickname')}
                   placeholderTextColor={COLORS.grayscale_400}
                 />
+
                 <TouchableOpacity
                   activeOpacity={0.7}
                   style={styles.nicknameEditButton}
@@ -263,7 +274,7 @@ const UserEditProfile = () => {
           <View style={styles.sectionGroup}>
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                기본 정보
+                {t('myPage.basicInformation')}
               </Text>
               <View style={styles.card}>
                 {basicInfoRows.map(item => (
@@ -284,7 +295,7 @@ const UserEditProfile = () => {
 
             <View style={styles.section}>
               <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                프로필 정보
+                {t('myPage.profileInformation')}
               </Text>
               <View style={styles.card}>
                 <View style={styles.profileInfoRow}>
@@ -336,7 +347,7 @@ const UserEditProfile = () => {
 
                 <View style={styles.instagramSection}>
                   <Text style={[FONTS.fs_16_medium, styles.infoLabel]}>
-                    인스타 ID
+                    {t('myPage.instagramId')}
                   </Text>
                   <View style={styles.instagramRow}>
                     <Text style={[FONTS.fs_16_medium, styles.atSymbol]}>@</Text>
@@ -355,20 +366,20 @@ const UserEditProfile = () => {
               </View>
             </View>
           </View>
-
         </View>
-
       </ScrollView>
       <TouchableOpacity
-        activeOpacity={1} style={styles.saveButton} onPress={updateMyProfile}>
+        activeOpacity={1}
+        style={styles.saveButton}
+        onPress={updateMyProfile}>
         <Text style={[FONTS.fs_16_semibold, styles.saveButtonText]}>
-          적용
+          {t('myPage.apply')}
         </Text>
       </TouchableOpacity>
       <AlertModal
         visible={errorModal.visible}
         title={errorModal.title}
-        buttonText={'확인'}
+        buttonText={t('common.confirm')}
         onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
       />
     </KeyboardAvoidingView>

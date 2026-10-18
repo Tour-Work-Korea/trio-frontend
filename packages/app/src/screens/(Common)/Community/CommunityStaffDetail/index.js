@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -59,21 +61,21 @@ const formatRelativeTime = dateTime => {
   const diffMinutes = Math.floor(diffMs / 60000);
 
   if (diffMinutes < 1) {
-    return '방금';
+    return i18n.t('common.justNow');
   }
 
   if (diffMinutes < 60) {
-    return `${diffMinutes}분`;
+    return i18n.t('common.valueMinutes', {diffMinutes: diffMinutes});
   }
 
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
-    return `${diffHours}시간`;
+    return i18n.t('common.valueHours', {diffHours: diffHours});
   }
 
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) {
-    return `${diffDays}일`;
+    return i18n.t('common.valueDays', {diffDays: diffDays});
   }
 
   const date = new Date(dateTime);
@@ -142,6 +144,7 @@ const renderTextWithLinks = text => {
 };
 
 const CommunityStaffDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const userRole = useUserStore(state => state.userRole);
   const currentUserPhotoUrl = useUserStore(
@@ -177,7 +180,7 @@ const CommunityStaffDetail = ({route}) => {
     visible: false,
     title: '',
     message: '',
-    buttonText: '확인',
+    buttonText: t('common.confirm'),
     buttonText2: null,
     color: COLORS.primary_orange,
     onPress: () => {},
@@ -207,7 +210,7 @@ const CommunityStaffDetail = ({route}) => {
   const showCommentAlert = ({
     title,
     message,
-    buttonText = '확인',
+    buttonText = t('common.confirm'),
     buttonText2 = null,
     color = COLORS.primary_orange,
     onPress,
@@ -228,9 +231,9 @@ const CommunityStaffDetail = ({route}) => {
   const showCommentLoginModal = () => {
     commentInputRef.current?.blur();
     showErrorModal({
-      message: '댓글 작성은\n로그인 후 사용해주세요',
-      buttonText: '로그인하기',
-      buttonText2: '취소',
+      message: t('common.pleaseLogInToWriteAComment'),
+      buttonText: t('common.logIn'),
+      buttonText2: t('common.cancel'),
       onPress: () => navigation.navigate('Login'),
       onPress2: () => {},
     });
@@ -287,13 +290,15 @@ const CommunityStaffDetail = ({route}) => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: '스탭 공고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-        buttonText: '확인',
+        message: t(
+          'community.theStaffAnnouncementCouldNotBeLoadedPleaseTryAgain',
+        ),
+        buttonText: t('common.confirm'),
       });
     } finally {
       setIsLoading(false);
     }
-  }, [id, loadInitialComments]);
+  }, [id, loadInitialComments, t]);
 
   useEffect(() => {
     fetchRecruitDetail();
@@ -511,10 +516,12 @@ const CommunityStaffDetail = ({route}) => {
         error?.response?.data || error?.message,
       );
       showCommentAlert({
-        title: editingTarget ? '댓글 수정 실패' : '댓글 등록 실패',
+        title: editingTarget
+          ? t('community.failedToEditComment')
+          : t('common.failedToRegisterComment'),
         message: editingTarget
-          ? '댓글 수정에 실패했어요. 잠시 후 다시 시도해 주세요.'
-          : '댓글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.',
+          ? t('community.failedToEditCommentPleaseTryAgainLater')
+          : t('common.failedToRegisterCommentPleaseTryAgainLater'),
       });
     } finally {
       setIsSubmittingComment(false);
@@ -555,9 +562,9 @@ const CommunityStaffDetail = ({route}) => {
   const handleToggleCommentLike = async item => {
     if (!canUseRecruitComment) {
       showErrorModal({
-        message: '좋아요 기능은\n로그인 후 사용해주세요',
-        buttonText: '로그인하기',
-        buttonText2: '취소',
+        message: t('common.pleaseUseTheLikeFunctionAfterLoggingIn'),
+        buttonText: t('common.logIn'),
+        buttonText2: t('common.cancel'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -621,10 +628,10 @@ const CommunityStaffDetail = ({route}) => {
 
     setCommentAlert({
       visible: true,
-      title: '댓글 삭제',
-      message: '댓글을 삭제할까요?',
-      buttonText: '삭제',
-      buttonText2: '취소',
+      title: t('common.deleteComment'),
+      message: t('common.shouldIDeleteMyComment'),
+      buttonText: t('common.delete'),
+      buttonText2: t('common.cancel'),
       color: COLORS.semantic_red,
       onPress2: closeCommentAlert,
       onPress: async () => {
@@ -639,8 +646,8 @@ const CommunityStaffDetail = ({route}) => {
             error?.response?.data || error?.message,
           );
           showCommentAlert({
-            title: '댓글 삭제 실패',
-            message: '댓글 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
+            title: t('common.failedToDeleteComment'),
+            message: t('common.failedToDeleteCommentPleaseTryAgainLater'),
           });
         } finally {
           setDeletingCommentId(null);
@@ -712,9 +719,9 @@ const CommunityStaffDetail = ({route}) => {
   const handleApply = () => {
     if (userRole !== 'USER') {
       showErrorModal({
-        message: '지원하기는\n알바 로그인 후 사용해주세요',
-        buttonText: '로그인하기',
-        buttonText2: '취소',
+        message: t('common.toApplyPleaseLogInToPartTimeJob'),
+        buttonText: t('common.logIn'),
+        buttonText2: t('common.cancel'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -772,7 +779,7 @@ const CommunityStaffDetail = ({route}) => {
           style={styles.commentManageButton}
           onPress={() => handleStartEditComment(item)}>
           <Text style={[FONTS.fs_13_medium, styles.commentManageText]}>
-            수정
+            {t('common.edit')}
           </Text>
         </TouchableOpacity>
         <Text style={styles.commentManageDot}>·</Text>
@@ -787,7 +794,9 @@ const CommunityStaffDetail = ({route}) => {
               styles.commentManageText,
               styles.commentDeleteText,
             ]}>
-            {deletingCommentId === item.commentId ? '삭제중' : '삭제'}
+            {deletingCommentId === item.commentId
+              ? t('common.deleting')
+              : t('common.delete')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -819,7 +828,7 @@ const CommunityStaffDetail = ({route}) => {
               </Text>
               {isCommentEdited(comment) ? (
                 <Text style={[FONTS.fs_12_regular, styles.editedText]}>
-                  수정됨
+                  {t('common.edited')}
                 </Text>
               ) : null}
             </View>
@@ -845,6 +854,7 @@ const CommunityStaffDetail = ({route}) => {
                   iconSize={18}
                   style={styles.commentAvatar}
                 />
+
                 <View style={styles.commentBody}>
                   <View style={styles.commentHeader}>
                     <Text
@@ -856,7 +866,7 @@ const CommunityStaffDetail = ({route}) => {
                     </Text>
                     {isCommentEdited(reply) ? (
                       <Text style={[FONTS.fs_12_regular, styles.editedText]}>
-                        수정됨
+                        {t('common.edited')}
                       </Text>
                     ) : null}
                   </View>
@@ -876,7 +886,7 @@ const CommunityStaffDetail = ({route}) => {
                 style={styles.replyMoreButton}
                 onPress={() => handleLoadReplies(comment.commentId)}>
                 <Text style={[FONTS.fs_14_medium, styles.replyMoreText]}>
-                  대댓글 더보기
+                  {t('common.seeMoreComments')}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -894,11 +904,11 @@ const CommunityStaffDetail = ({route}) => {
 
   return (
     <KeyboardAvoidingView style={styles.container} behavior={undefined}>
-      <Header title="스탭" onPress={() => navigation.goBack()} />
+      <Header title={t('common.staff')} onPress={() => navigation.goBack()} />
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <Loading title="스탭 공고를 불러오는 중입니다..." />
+          <Loading title={t('community.loadingStaffAnnouncements')} />
         </View>
       ) : (
         <TouchableWithoutFeedback
@@ -950,7 +960,7 @@ const CommunityStaffDetail = ({route}) => {
             {!!recruit?.recruitDetail && (
               <View style={styles.detailSection}>
                 <Text style={[FONTS.fs_16_semibold, styles.detailTitle]}>
-                  상세 정보
+                  {t('common.details')}
                 </Text>
                 <Text style={[FONTS.fs_14_regular, styles.detailText]}>
                   {renderTextWithLinks(recruit.recruitDetail)}
@@ -984,13 +994,13 @@ const CommunityStaffDetail = ({route}) => {
                 <Text
                   style={[FONTS.fs_14_regular, styles.replyTargetTitle]}
                   numberOfLines={1}>
-                  댓글 수정 중
+                  {t('common.editingComment')}
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={clearEditingState}>
                   <Text style={[FONTS.fs_14_medium, styles.replyTargetCancel]}>
-                    취소
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1006,13 +1016,14 @@ const CommunityStaffDetail = ({route}) => {
                 <Text
                   style={[FONTS.fs_14_regular, styles.replyTargetTitle]}
                   numberOfLines={1}>
-                  {replyTarget.nickname}_님에게 답글 남기는 중
+                  {replyTarget.nickname}
+                  {t('common.replyingTo')}
                 </Text>
                 <TouchableOpacity
                   activeOpacity={0.8}
                   onPress={() => setReplyTarget(null)}>
                   <Text style={[FONTS.fs_14_medium, styles.replyTargetCancel]}>
-                    취소
+                    {t('common.cancel')}
                   </Text>
                 </TouchableOpacity>
               </View>
@@ -1042,8 +1053,8 @@ const CommunityStaffDetail = ({route}) => {
                 ]}
                 placeholder={
                   editingTarget
-                    ? '댓글을 수정해주세요.'
-                    : '댓글을 입력해주세요.'
+                    ? t('common.pleaseEditYourComment')
+                    : t('common.pleaseEnterYourComment')
                 }
                 placeholderTextColor={COLORS.grayscale_400}
                 value={commentValue}
@@ -1060,6 +1071,7 @@ const CommunityStaffDetail = ({route}) => {
                 onFocus={handleFocusInput}
                 onBlur={() => setIsCommentFocused(false)}
               />
+
               {hasCommentValue ? (
                 <TouchableOpacity
                   activeOpacity={0.8}
@@ -1084,7 +1096,7 @@ const CommunityStaffDetail = ({route}) => {
                 style={styles.inlineApplyButton}
                 onPress={handleApply}>
                 <Text style={[FONTS.fs_14_semibold, styles.inlineApplyText]}>
-                  지원하기
+                  {t('common.apply_c60c86')}
                 </Text>
               </TouchableOpacity>
             ) : null}

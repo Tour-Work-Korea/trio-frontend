@@ -63,6 +63,23 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     flex: 1,
   },
+  languageButton: {
+    position: 'absolute',
+    top: 16,
+    right: 20,
+    zIndex: 2,
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 16,
+    backgroundColor: COLORS.grayscale_100,
+  },
+  englishLanguageButton: {
+    right: 52,
+  },
+  languageButtonText: {
+    ...FONTS.fs_14_medium,
+    color: COLORS.grayscale_700,
+  },
 });
 
 export default styles;

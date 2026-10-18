@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   View,
@@ -24,6 +25,7 @@ import AppImage, {prefetchImageUrls} from '@components/AppImage';
 const PAGE_SIZE = 6;
 
 export default function TodayGuesthouses() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(0);
@@ -53,9 +55,12 @@ export default function TodayGuesthouses() {
         setItems(prev =>
           isRefresh ? data.content ?? [] : [...prev, ...(data.content ?? [])],
         );
-        prefetchImageUrls((data.content ?? []).map(item => item.thumbnailUrl), {
-          limit: 6,
-        });
+        prefetchImageUrls(
+          (data.content ?? []).map(item => item.thumbnailUrl),
+          {
+            limit: 6,
+          },
+        );
       } catch (e) {
         console.warn(
           'today intros fetch fail',
@@ -135,14 +140,17 @@ export default function TodayGuesthouses() {
                     id: item.guesthouseId,
                   })
                 }
-                style={styles.bottomLeft}
-              >
+                style={styles.bottomLeft}>
                 <Avatar
-                  uri={item.profileSummary?.profileImageUrl ?? item.hostProfileImageUrl}
+                  uri={
+                    item.profileSummary?.profileImageUrl ??
+                    item.hostProfileImageUrl
+                  }
                   size={30}
                   iconSize={12}
                   style={styles.profileThumb}
                 />
+
                 <Text
                   style={styles.cardGhName}
                   numberOfLines={1}
@@ -180,18 +188,19 @@ export default function TodayGuesthouses() {
     () => (
       <View style={styles.headerWrap}>
         <Text style={styles.headerTitle}>
-          제주 곳곳의 감각적인 게스트하우스
+          {t('guesthouse.stylishGuesthousesThroughoutJeju')}
         </Text>
       </View>
     ),
-    [],
+
+    [t],
   );
 
   const ListFooter = useMemo(() => {
     if (loading) {
-      return <Loading title="로딩 중..." />;
+      return <Loading title={t('common.loading')} />;
     }
-  }, [loading]);
+  }, [loading, t]);
 
   return (
     <View style={styles.container}>

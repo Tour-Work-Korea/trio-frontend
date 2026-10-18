@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {useCallback, useEffect} from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {CommonActions, useNavigation} from '@react-navigation/native';
@@ -7,6 +8,7 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
 const ApplySuccess = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const navigateStaffRecruit = useCallback(() => {
@@ -40,8 +42,12 @@ const ApplySuccess = () => {
         <View style={styles.logoParent}>
           <LogoBlue width={168} />
           <View>
-            <Text style={styles.titleText}>지원서 제출 완료!</Text>
-            <Text style={styles.titleText}>다른 스탭 공고도 둘러볼까요?</Text>
+            <Text style={styles.titleText}>
+              {t('employ.applicationSubmitted')}
+            </Text>
+            <Text style={styles.titleText}>
+              {t('employ.shallWeTakeALookAtOtherStaffAnnouncements')}
+            </Text>
           </View>
         </View>
       </View>

@@ -1,9 +1,18 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet, ScrollView, Alert } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+  ScrollView,
+  Alert,
+} from 'react-native';
 import Toast from 'react-native-toast-message';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
@@ -23,6 +32,7 @@ const getDisplayRating = rating => {
 };
 
 const UserGuesthouseReviewList = () => {
+  const {t} = useTranslation();
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -33,8 +43,8 @@ const UserGuesthouseReviewList = () => {
       const reviewItems = Array.isArray(res.data?.reviews)
         ? res.data.reviews
         : Array.isArray(res.data)
-          ? res.data
-          : [];
+        ? res.data
+        : [];
 
       setReviews(reviewItems.filter(item => item.isReviewed));
     } catch (error) {
@@ -49,41 +59,52 @@ const UserGuesthouseReviewList = () => {
   }, []);
 
   // 리뷰 삭제
-  const handleDeleteReview = (reviewId) => {
+  const handleDeleteReview = reviewId => {
     Alert.alert(
-      '리뷰 삭제',
-      '정말로 이 리뷰를 삭제하시겠어요?',
+      t('common.deleteReview'),
+      t('common.areYouSureYouWantToDeleteThisReview'),
+
       [
-        { text: '취소', style: 'cancel' },
+        {text: t('common.cancel'), style: 'cancel'},
         {
-          text: '삭제',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
               await userMyApi.deleteReview(reviewId);
               Toast.show({
                 type: 'success',
-                text1: '삭제되었어요!',
+                text1: t('common.deleted'),
                 position: 'top',
                 visibilityTime: 2000,
               });
               await fetchReviews(); // 최신 상태 반영
             } catch (error) {
               console.error('리뷰 삭제 실패:', error);
-              Alert.alert('삭제 실패', '리뷰 삭제 중 문제가 발생했어요.');
+              Alert.alert(
+                t('common.deletionFailed'),
+                t('common.thereWasAProblemDeletingTheReview'),
+              );
             }
           },
         },
       ],
-      { cancelable: true }
+
+      {cancelable: true},
     );
   };
 
-  const renderReviewItem = ({ item, index }) => {
+  const renderReviewItem = ({item, index}) => {
     const isLastItem = index === reviews.length - 1;
-    const createdAtFormatted = formatLocalDateTimeToDotAndTimeWithDay(item.createdAt);
-    const checkInFormatted = formatLocalDateToDotWithDay(item.reservationCheckIn);
-    const checkOutFormatted = formatLocalDateToDotWithDay(item.reservationCheckOut);
+    const createdAtFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+      item.createdAt,
+    );
+    const checkInFormatted = formatLocalDateToDotWithDay(
+      item.reservationCheckIn,
+    );
+    const checkOutFormatted = formatLocalDateToDotWithDay(
+      item.reservationCheckOut,
+    );
     const displayRating = getDisplayRating(item.reviewRating);
 
     return (
@@ -94,10 +115,12 @@ const UserGuesthouseReviewList = () => {
               {item.guesthouseName}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.metaText]}>
-              작성일 {createdAtFormatted.date}
+              {t('common.creationDate')}
+              {createdAtFormatted.date}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.metaText]}>
-              숙박 {checkInFormatted} - {checkOutFormatted}
+              {t('common.accommodation')}
+              {checkInFormatted} - {checkOutFormatted}
             </Text>
           </View>
 
@@ -111,8 +134,7 @@ const UserGuesthouseReviewList = () => {
             <TouchableOpacity
               activeOpacity={0.7}
               onPress={() => handleDeleteReview(item.reviewId)}
-              hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
-            >
+              hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}>
               <TrashIcon width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -129,8 +151,7 @@ const UserGuesthouseReviewList = () => {
               style={styles.imageRow}
               horizontal
               showsHorizontalScrollIndicator={false}
-              contentContainerStyle={styles.imageRowContent}
-            >
+              contentContainerStyle={styles.imageRowContent}>
               {item.reviewImageUrls.map((img, idx) => (
                 <AppImage key={idx} uri={img} style={styles.reviewImage} />
               ))}
@@ -140,7 +161,9 @@ const UserGuesthouseReviewList = () => {
           {/* 사장님 한마디 */}
           {item.replies?.length > 0 && (
             <View style={styles.ownerReplyBox}>
-              <Text style={[FONTS.fs_12_medium, { color: COLORS.grayscale_400 }]}>사장님의 한마디</Text>
+              <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_400}]}>
+                {t('common.aWordFromTheBoss')}
+              </Text>
               <Text style={[FONTS.fs_14_regular]}>{item.replies[0]}</Text>
             </View>
           )}
@@ -152,17 +175,24 @@ const UserGuesthouseReviewList = () => {
   };
 
   if (loading) {
-    return <Loading title={'리뷰를 불러오는 중이에요'} />;
+    return <Loading title={t('common.loadingReviews')} />;
   }
   if (!reviews || reviews.length === 0) {
-    return <EmptyState icon={NoReview} title={'아직 작성된 리뷰가 없어요'} description={'첫 리뷰를 남겨주세요!'} iconSize={{ width: 100, height: 60 }}/>;
+    return (
+      <EmptyState
+        icon={NoReview}
+        title={t('common.thereAreNoReviewsWrittenYet')}
+        description={t('common.beTheFirstToLeaveAReview')}
+        iconSize={{width: 100, height: 60}}
+      />
+    );
   }
 
   return (
     <View style={styles.container}>
       <FlatList
         data={reviews}
-        keyExtractor={(item) => String(item.reviewId ?? item.reservationId)}
+        keyExtractor={item => String(item.reviewId ?? item.reservationId)}
         renderItem={renderReviewItem}
         contentContainerStyle={{}}
       />
@@ -185,8 +215,7 @@ const styles = StyleSheet.create({
   },
 
   // 리스트
-  card: {
-  },
+  card: {},
   // 게하 정보
   cardHeader: {
     flexDirection: 'row',

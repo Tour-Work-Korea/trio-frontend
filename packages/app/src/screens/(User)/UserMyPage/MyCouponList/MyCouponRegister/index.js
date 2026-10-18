@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {
   Alert,
@@ -20,6 +21,7 @@ import userMyApi from '@utils/api/userMyApi';
 import styles from './MyCouponRegister.styles';
 
 const MyCouponRegister = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [couponCode, setCouponCode] = useState('');
   const [issuing, setIssuing] = useState(false);
@@ -28,7 +30,10 @@ const MyCouponRegister = () => {
     const trimmedCode = couponCode.trim();
 
     if (!trimmedCode) {
-      Alert.alert('쿠폰 코드 입력', '쿠폰코드를 적어주세요.');
+      Alert.alert(
+        t('coupon.enterCouponCode'),
+        t('coupon.pleaseWriteDownTheCouponCode'),
+      );
       return;
     }
 
@@ -37,7 +42,7 @@ const MyCouponRegister = () => {
       await userMyApi.issueCouponByCode(trimmedCode);
       Toast.show({
         type: 'success',
-        text1: '쿠폰이 등록되었어요!',
+        text1: t('coupon.couponHasBeenRegistered'),
         position: 'top',
         visibilityTime: 2000,
       });
@@ -45,8 +50,10 @@ const MyCouponRegister = () => {
     } catch (error) {
       console.warn('쿠폰 등록 실패:', error);
       Alert.alert(
-        '등록 실패',
-        error?.response?.data?.message ?? '쿠폰 등록 중 문제가 발생했어요.',
+        t('coupon.registrationFailed'),
+
+        error?.response?.data?.message ??
+          t('coupon.thereWasAProblemRegisteringTheCoupon'),
       );
     } finally {
       setIssuing(false);
@@ -58,13 +65,13 @@ const MyCouponRegister = () => {
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : undefined}
         style={styles.container}>
-        <Header title="쿠폰등록" />
+        <Header title={t('coupon.couponRegistration_0d4d3b')} />
 
         <View style={styles.content}>
           <TextInput
             value={couponCode}
             onChangeText={setCouponCode}
-            placeholder="쿠폰코드를 적어주세요"
+            placeholder={t('coupon.pleaseWriteTheCouponCode')}
             placeholderTextColor={COLORS.grayscale_400}
             autoCapitalize="characters"
             autoCorrect={false}
@@ -72,7 +79,7 @@ const MyCouponRegister = () => {
           />
 
           <ButtonScarlet
-            title={issuing ? '등록 중...' : '등록'}
+            title={issuing ? t('coupon.registering') : t('common.register')}
             onPress={handleIssueCoupon}
             disabled={!couponCode.trim() || issuing}
           />

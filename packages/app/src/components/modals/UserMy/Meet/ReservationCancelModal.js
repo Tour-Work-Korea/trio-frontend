@@ -1,14 +1,21 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback, Alert} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+  Alert,
+} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 import AppImage from '@components/AppImage';
@@ -23,6 +30,7 @@ export default function ReservationCancelModal({
   onClose,
   reservationId,
 }) {
+  const {t} = useTranslation();
   const [reservation, setReservation] = useState(null);
   const [loading, setLoading] = useState(false);
   const [step, setStep] = useState(1); // 1: 취소 정보, 2: 취소 사유
@@ -50,213 +58,299 @@ export default function ReservationCancelModal({
 
   if (loading || !reservation) {
     return (
-      <Modal animationType="slide" transparent={true} visible={visible} onRequestClose={onClose}>
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={visible}
+        onRequestClose={onClose}>
         <View style={styles.overlay}>
           <View style={styles.modalContainer}>
-            <Loading
-              title={'내용을 불러오는 중 이에요'}
-            />
+            <Loading title={t('common.loadingContent')} />
           </View>
         </View>
       </Modal>
     );
   }
 
-  const checkInFormatted  = formatLocalDateTimeToDotAndTimeWithDay(
-    `${reservation.checkInDate}T${reservation.guesthouseCheckInTime ?? '00:00:00'}`
+  const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
+    `${reservation.checkInDate}T${
+      reservation.guesthouseCheckInTime ?? '00:00:00'
+    }`,
   );
   const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-    `${reservation.checkOutDate}T${reservation.guesthouseCheckOutTime ?? '00:00:00'}`
+    `${reservation.checkOutDate}T${
+      reservation.guesthouseCheckOutTime ?? '00:00:00'
+    }`,
   );
 
   const cancelDateTime = dayjs().format('YYYY. MM. DD (dd) HH:mm');
 
-  const reasons = ['단순변심', '예약착오', '가격차이', '기타'];
+  const reasons = [
+    t('common.simpleChangeOfMind'),
+    t('common.reservationError'),
+    t('common.priceDifference'),
+    t('common.etc'),
+  ];
 
   return (
     <Modal
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
-    >
-      <TouchableWithoutFeedback 
+      onRequestClose={onClose}>
+      <TouchableWithoutFeedback
         onPress={() => {
           setStep(1);
           setSelectedReason('');
           onClose();
-        }}
-      >
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback onPress={() => {}}>
-        <View style={styles.modalContainer}>
-          {/* 헤더 */}
-          <View style={styles.header}>
-            <Text style={[FONTS.fs_18_semibold]}>예약 취소</Text>
-            <TouchableOpacity 
-              style={styles.closeButton} 
-              onPress={() => {
-                setStep(1);
-                setSelectedReason('');
-                onClose();
-              }}
-            >
-              <XBtn width={24} height={24}/>
-            </TouchableOpacity>
-          </View>
-
-          {/* 예약 정보 */}
-          <View style={styles.guesthouseInfo}>
-            <AppImage
-              uri={reservation.guesthouseImage}
-              style={styles.image}
-              resizeMode="cover"
-            />
-            <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{reservation.guesthouseName}</Text>
-              <Text style={[FONTS.fs_14_medium, styles.roomText]}>{reservation.roomName}</Text>
-              <Text style={[FONTS.fs_12_medium, styles.adressText]}>{reservation.guesthouseAddress}</Text>
-            </View>
-          </View>
-          <View style={styles.dateContent}>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
-            </View>
-            <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
-            <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
-            </View>
-          </View>
-
-          <View style={styles.section}>
-            {/* 취소 정보 */}
-            {step === 1 && (
-              <>
-                <View style={styles.row}>
-                  <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>취소 일시</Text>
-                  <Text style={[FONTS.fs_14_regular, styles.reservationTimeText]}>{cancelDateTime}</Text>
-                </View>
-                {/* <View style={styles.row}>
-                  <Text style={styles.label}>결제 가격</Text>
-                  <Text style={styles.value}>{reservation.reservationAmount.toLocaleString()}원</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>결제 수단</Text>
-                  <Text style={styles.value}>{reservation.paymentMethod}</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>예상환불 금액</Text>
-                  <Text style={[styles.value, { color: COLORS.primary_orange }]}>
-                    {reservation.reservationAmount.toLocaleString()}원
-                  </Text>
-                </View> */}
-                <View style={styles.row}>
-                  <Text style={styles.label}>예약 가격</Text>
-                  <Text style={styles.value}>{reservation.amount.toLocaleString()}원</Text>
-                </View>
-                <View style={styles.row}>
-                  <Text style={styles.label}>예약 시간</Text>
-                  <Text style={styles.value}>
-                    {reservation.reservationAt
-                    ? `${formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).date} ${formatLocalDateTimeToDotAndTimeWithDay(reservation.reservationAt).time}`
-                    : '-'}
-                  </Text>
-                </View>
-                <View style={[styles.row, {flexDirection: 'column', gap: 4}]}>
-                  <Text style={styles.label}>요청사항</Text>
-                  <Text style={[styles.value]}>
-                    {reservation.reservationRequest}
-                  </Text>
-                </View>
-
-                <TouchableOpacity style={styles.nextButton} onPress={() => setStep(2)}>
-                  <Text style={styles.nextText}>다음</Text>
-                  <ArrowRight width={24} height={24}/>
-                </TouchableOpacity>
-              </>
-            )}
-
-            {/* 취소 사유 */}
-            {step === 2 && (
-              <>
-                <Text style={[FONTS.fs_16_medium, { color: COLORS.grayscale_400, marginBottom: 16 }]}>
-                  취소 사유를 알려주세요
+        }}>
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback onPress={() => {}}>
+            <View style={styles.modalContainer}>
+              {/* 헤더 */}
+              <View style={styles.header}>
+                <Text style={[FONTS.fs_18_semibold]}>
+                  {t('common.cancelReservation')}
                 </Text>
                 <TouchableOpacity
-                  style={styles.dropdown}
-                  onPress={() => setReasonOpen(!reasonOpen)}
-                >
-                  <Text style={[FONTS.fs_14_medium,{ color: selectedReason ? COLORS.grayscale_900 : COLORS.grayscale_400 }]}>
-                    {selectedReason || '취소 사유를 선택해 주세요'}
-                  </Text>
-                  {reasonOpen ? <ChevronUp width={24} height={24}/> : <ChevronDown width={24} height={24}/>}
+                  style={styles.closeButton}
+                  onPress={() => {
+                    setStep(1);
+                    setSelectedReason('');
+                    onClose();
+                  }}>
+                  <XBtn width={24} height={24} />
                 </TouchableOpacity>
+              </View>
 
-                {reasonOpen && (
-                  <View style={styles.dropdownList}>
-                    {reasons.map((r, index) => (
-                      <>
-                        <TouchableOpacity
-                          key={r}
-                          style={styles.dropdownItem}
-                          onPress={() => {
-                            setSelectedReason(r);
-                            setReasonOpen(false);
-                          }}
-                        >
-                          <Text 
-                            style={[
-                              FONTS.fs_14_medium,
-                              selectedReason === r && FONTS.fs_14_semibold,
-                              { color: selectedReason === r ? COLORS.primary_orange : COLORS.grayscale_900 }
-                            ]}
-                          >
-                            {r}
-                          </Text>
-                        </TouchableOpacity>
+              {/* 예약 정보 */}
+              <View style={styles.guesthouseInfo}>
+                <AppImage
+                  uri={reservation.guesthouseImage}
+                  style={styles.image}
+                  resizeMode="cover"
+                />
 
-                        {index < reasons.length - 1 && <View style={styles.devide} />}
-                      </>
-                    ))}
-                  </View>
+                <View style={styles.infoContent}>
+                  <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
+                    {reservation.guesthouseName}
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.roomText]}>
+                    {reservation.roomName}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.adressText]}>
+                    {reservation.guesthouseAddress}
+                  </Text>
+                </View>
+              </View>
+              <View style={styles.dateContent}>
+                <View style={styles.dateContainer}>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                    {' '}
+                    {checkInFormatted.date}{' '}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                    {' '}
+                    {checkInFormatted.time}{' '}
+                  </Text>
+                </View>
+                <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
+                <View style={styles.dateContainer}>
+                  <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                    {' '}
+                    {checkOutFormatted.date}{' '}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                    {' '}
+                    {checkOutFormatted.time}{' '}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.section}>
+                {/* 취소 정보 */}
+                {step === 1 && (
+                  <>
+                    <View style={styles.row}>
+                      <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+                        {t('meet.cancellationDateAndTime')}
+                      </Text>
+                      <Text
+                        style={[
+                          FONTS.fs_14_regular,
+                          styles.reservationTimeText,
+                        ]}>
+                        {cancelDateTime}
+                      </Text>
+                    </View>
+                    {/* <View style={styles.row}>
+                     <Text style={styles.label}>결제 가격</Text>
+                     <Text style={styles.value}>{reservation.reservationAmount.toLocaleString()}원</Text>
+                    </View>
+                    <View style={styles.row}>
+                     <Text style={styles.label}>결제 수단</Text>
+                     <Text style={styles.value}>{reservation.paymentMethod}</Text>
+                    </View>
+                    <View style={styles.row}>
+                     <Text style={styles.label}>예상환불 금액</Text>
+                     <Text style={[styles.value, { color: COLORS.primary_orange }]}>
+                       {reservation.reservationAmount.toLocaleString()}원
+                     </Text>
+                    </View> */}
+                    <View style={styles.row}>
+                      <Text style={styles.label}>
+                        {t('meet.reservationPrice')}
+                      </Text>
+                      <Text style={styles.value}>
+                        {reservation.amount.toLocaleString()}
+                        {t('common.won')}
+                      </Text>
+                    </View>
+                    <View style={styles.row}>
+                      <Text style={styles.label}>
+                        {t('meet.reservationTime')}
+                      </Text>
+                      <Text style={styles.value}>
+                        {reservation.reservationAt
+                          ? `${
+                              formatLocalDateTimeToDotAndTimeWithDay(
+                                reservation.reservationAt,
+                              ).date
+                            } ${
+                              formatLocalDateTimeToDotAndTimeWithDay(
+                                reservation.reservationAt,
+                              ).time
+                            }`
+                          : '-'}
+                      </Text>
+                    </View>
+                    <View
+                      style={[styles.row, {flexDirection: 'column', gap: 4}]}>
+                      <Text style={styles.label}>{t('meet.request')}</Text>
+                      <Text style={[styles.value]}>
+                        {reservation.reservationRequest}
+                      </Text>
+                    </View>
+
+                    <TouchableOpacity
+                      style={styles.nextButton}
+                      onPress={() => setStep(2)}>
+                      <Text style={styles.nextText}>{t('common.next')}</Text>
+                      <ArrowRight width={24} height={24} />
+                    </TouchableOpacity>
+                  </>
                 )}
 
-                <TouchableOpacity
-                  style={[styles.nextButton, { backgroundColor: COLORS.primary_orange }]}
-                  onPress={async () => {
-                    if (!selectedReason) {
-                      Alert.alert('안내', '취소 사유를 선택해주세요.');
-                      return;
-                    }
-                    try {
-                      const res = await userMyApi.cancelTempGuesthouseReservation(
-                        reservationId,
-                      );
-                      setStep(1);
-                      setSelectedReason('');
-                      Toast.show({
-                        type: 'success',
-                        text1: '취소 되었어요!',
-                        position: 'top',
-                        visibilityTime: 2000,
-                      });
-                      onClose();
-                    } catch (error) {
-                      Alert.alert('실패', '예약 취소에 실패했습니다. 다시 시도해주세요.');
-                    }
-                  }}
-                >
-                  <Text style={styles.cancelText}>취소하기</Text>
-                </TouchableOpacity>
-              </>
-            )}
-          </View>
+                {/* 취소 사유 */}
+                {step === 2 && (
+                  <>
+                    <Text
+                      style={[
+                        FONTS.fs_16_medium,
+                        {color: COLORS.grayscale_400, marginBottom: 16},
+                      ]}>
+                      {t('meet.pleaseTellUsTheReasonForCancellation')}
+                    </Text>
+                    <TouchableOpacity
+                      style={styles.dropdown}
+                      onPress={() => setReasonOpen(!reasonOpen)}>
+                      <Text
+                        style={[
+                          FONTS.fs_14_medium,
+                          {
+                            color: selectedReason
+                              ? COLORS.grayscale_900
+                              : COLORS.grayscale_400,
+                          },
+                        ]}>
+                        {selectedReason ||
+                          t('common.pleaseSelectAReasonForCancellation')}
+                      </Text>
+                      {reasonOpen ? (
+                        <ChevronUp width={24} height={24} />
+                      ) : (
+                        <ChevronDown width={24} height={24} />
+                      )}
+                    </TouchableOpacity>
 
+                    {reasonOpen && (
+                      <View style={styles.dropdownList}>
+                        {reasons.map((r, index) => (
+                          <>
+                            <TouchableOpacity
+                              key={r}
+                              style={styles.dropdownItem}
+                              onPress={() => {
+                                setSelectedReason(r);
+                                setReasonOpen(false);
+                              }}>
+                              <Text
+                                style={[
+                                  FONTS.fs_14_medium,
+                                  selectedReason === r && FONTS.fs_14_semibold,
+                                  {
+                                    color:
+                                      selectedReason === r
+                                        ? COLORS.primary_orange
+                                        : COLORS.grayscale_900,
+                                  },
+                                ]}>
+                                {r}
+                              </Text>
+                            </TouchableOpacity>
+
+                            {index < reasons.length - 1 && (
+                              <View style={styles.devide} />
+                            )}
+                          </>
+                        ))}
+                      </View>
+                    )}
+
+                    <TouchableOpacity
+                      style={[
+                        styles.nextButton,
+                        {backgroundColor: COLORS.primary_orange},
+                      ]}
+                      onPress={async () => {
+                        if (!selectedReason) {
+                          Alert.alert(
+                            t('meet.information'),
+                            t('meet.pleaseSelectAReasonForCancellation'),
+                          );
+                          return;
+                        }
+                        try {
+                          const res =
+                            await userMyApi.cancelTempGuesthouseReservation(
+                              reservationId,
+                            );
+                          setStep(1);
+                          setSelectedReason('');
+                          Toast.show({
+                            type: 'success',
+                            text1: t('common.itSBeenCanceled'),
+                            position: 'top',
+                            visibilityTime: 2000,
+                          });
+                          onClose();
+                        } catch (error) {
+                          Alert.alert(
+                            t('meet.failure'),
+                            t(
+                              'meet.cancellationOfReservationFailedPleaseTryAgain',
+                            ),
+                          );
+                        }
+                      }}>
+                      <Text style={styles.cancelText}>{t('meet.cancel')}</Text>
+                    </TouchableOpacity>
+                  </>
+                )}
+              </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );
@@ -301,9 +395,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 4,
   },
-  nameText: {
-
-  },
+  nameText: {},
   roomText: {
     color: COLORS.grayscale_800,
   },
@@ -349,8 +441,7 @@ const styles = StyleSheet.create({
   label: {
     color: COLORS.grayscale_500,
   },
-  value: {
-  },
+  value: {},
   reservationTimeText: {
     color: COLORS.grayscale_400,
   },
@@ -373,25 +464,25 @@ const styles = StyleSheet.create({
   },
 
   // 취소 사유
-  dropdown: { 
-    borderWidth: 1, 
-    borderColor: COLORS.grayscale_200, 
-    borderRadius: 20, 
-    padding: 12,
-    flexDirection: 'row', 
-    justifyContent: 'space-between', 
-    alignItems: 'center' 
-  },
-  dropdownList: { 
-    marginTop: 8, 
-    borderWidth: 1, 
-    borderColor: COLORS.grayscale_200, 
+  dropdown: {
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
     borderRadius: 20,
-    paddingHorizontal: 8, 
-  },
-  dropdownItem: { 
+    padding: 12,
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'center',
-    paddingVertical: 12, 
+  },
+  dropdownList: {
+    marginTop: 8,
+    borderWidth: 1,
+    borderColor: COLORS.grayscale_200,
+    borderRadius: 20,
+    paddingHorizontal: 8,
+  },
+  dropdownItem: {
+    alignItems: 'center',
+    paddingVertical: 12,
   },
   devide: {
     height: 0.4,

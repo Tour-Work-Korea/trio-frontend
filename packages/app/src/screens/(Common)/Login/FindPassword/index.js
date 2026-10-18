@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback} from 'react';
 import {
   View,
@@ -30,6 +31,7 @@ import {COLORS} from '@constants/colors';
 import styles from '../Login.styles';
 
 const FindPassword = ({route}) => {
+  const {t} = useTranslation();
   const {phoneNumber, updateProfile} = route.params;
   const userRole = 'USER';
   const editProfileRoute = 'UserEditInfo';
@@ -124,8 +126,9 @@ const FindPassword = ({route}) => {
         visible: true,
         message:
           error?.response?.data?.message ||
-          '오류가 발생했습니다\n다시 시도해주세요',
-        buttonText: '확인',
+          t('common.anErrorOccurredPleaseTryAgain'),
+
+        buttonText: t('common.confirm'),
         onPress: '',
       });
     }
@@ -163,15 +166,20 @@ const FindPassword = ({route}) => {
         <View style={styles.view}>
           <View style={styles.logoParent}>
             <LogoSmile width={168} />
-            <Text style={styles.titleText}>비밀번호 설정이 완료되었어요</Text>
+            <Text style={styles.titleText}>
+              {t('auth.passwordSettingIsComplete')}
+            </Text>
           </View>
           {updateProfile ? (
             <ButtonScarlet
-              title="프로필로 돌아가기"
+              title={t('auth.backToProfile')}
               onPress={handleGoProfile}
             />
           ) : (
-            <ButtonScarlet title="로그인 하러가기" onPress={handleGoLogin} />
+            <ButtonScarlet
+              title={t('auth.goToLogIn_983e98')}
+              onPress={handleGoLogin}
+            />
           )}
         </View>
       </View>
@@ -188,19 +196,21 @@ const FindPassword = ({route}) => {
           <View style={styles.viewFlexBox} keyboardShouldPersistTaps="handled">
             {/* 헤더 */}
             <View style={styles.groupParent}>
-              <View  style={styles.titleContainer}>
+              <View style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
               </View>
-              <Text style={styles.titleText}>비밀번호를 재설정 해주세요!</Text>
+              <Text style={styles.titleText}>
+                {t('auth.pleaseResetYourPassword')}
+              </Text>
               {/* 비밀번호 입력 */}
               <View style={styles.inputGroup}>
                 {/* 비밀번호 필드 */}
                 <View style={styles.inputContainer}>
-                  <Text style={styles.inputLabel}>비밀번호</Text>
+                  <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                   <View style={styles.inputBox}>
                     <TextInput
                       style={styles.textInput}
-                      placeholder="비밀번호를 입력해주세요"
+                      placeholder={t('common.pleaseEnterYourPassword')}
                       placeholderTextColor={COLORS.grayscale_400}
                       value={formData.newPassword}
                       onChangeText={handlePasswordChange}
@@ -208,6 +218,7 @@ const FindPassword = ({route}) => {
                       secureTextEntry={!isPasswordVisible}
                       autoCapitalize="none"
                     />
+
                     <TouchableOpacity
                       onPress={() => setIsPasswordVisible(prev => !prev)}>
                       {isPasswordVisible ? (
@@ -224,14 +235,14 @@ const FindPassword = ({route}) => {
                         formValid?.newPassword?.hasUpperLowercase &&
                           styles.validText,
                       ]}>
-                      영문 대소문자 포함
+                      {t('common.includesUppercaseAndLowercaseLetters')}
                     </Text>
                     <Text
                       style={[
                         styles.validDefaultText,
                         formValid?.newPassword?.hasNumber && styles.validText,
                       ]}>
-                      숫자 포함
+                      {t('common.containsNumbers')}
                     </Text>
                     <Text
                       style={[
@@ -239,7 +250,7 @@ const FindPassword = ({route}) => {
                         formValid?.newPassword?.hasSpecialChar &&
                           styles.validText,
                       ]}>
-                      특수문자 포함
+                      {t('common.containsSpecialCharacters')}
                     </Text>
                     <Text
                       style={[
@@ -247,7 +258,7 @@ const FindPassword = ({route}) => {
                         formValid?.newPassword?.isLengthValid &&
                           styles.validText,
                       ]}>
-                      8-20자 이내
+                      {t('common.820CharactersOrLess')}
                     </Text>
                   </View>
                 </View>
@@ -257,13 +268,14 @@ const FindPassword = ({route}) => {
                   <View style={styles.inputBox}>
                     <TextInput
                       style={styles.textInput}
-                      placeholder="다시 한 번 입력해주세요"
+                      placeholder={t('common.pleaseEnterAgain')}
                       placeholderTextColor={COLORS.grayscale_400}
                       value={formData.confirmPassword}
                       onChangeText={handlePasswordConfirmChange}
                       maxLength={20}
                       secureTextEntry={!isPasswordCheckVisible}
                     />
+
                     <TouchableOpacity
                       onPress={() => setIsPasswordCheckVisible(prev => !prev)}>
                       {isPasswordCheckVisible ? (
@@ -280,7 +292,7 @@ const FindPassword = ({route}) => {
                         formValid?.confirmPassword?.isMatched &&
                           styles.validText,
                       ]}>
-                      비밀번호 일치
+                      {t('common.passwordMatch')}
                     </Text>
                   </View>
                 </View>
@@ -290,7 +302,7 @@ const FindPassword = ({route}) => {
             {/* 제출 버튼 */}
             <View>
               <ButtonWhite
-                title="다음"
+                title={t('common.next')}
                 onPress={handleSubmit}
                 disabled={!isFormValid()}
                 backgroundColor={mainColor}

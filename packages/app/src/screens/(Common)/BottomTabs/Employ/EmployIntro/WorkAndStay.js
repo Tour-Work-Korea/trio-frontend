@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -10,6 +11,8 @@ import StarIcon from '@assets/images/star_white.svg';
 import AppImage from '@components/AppImage';
 
 export default function WorkAndStay({guesthouses}) {
+  const {t, i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const navigation = useNavigation();
 
   const getDisplayRating = rating => {
@@ -62,11 +65,14 @@ export default function WorkAndStay({guesthouses}) {
               {item.name}
             </Text>
             <View style={styles.guesthousePrice}>
-              <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-                최저가
-              </Text>
+              {!isEnglish && (
+                <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+                  {t('common.lowestPrice')}
+                </Text>
+              )}
               <Text style={FONTS.fs_16_semibold}>
-                {item.minPrice.toLocaleString()}원 ~
+                {item.minPrice.toLocaleString()}
+                {t('common.won_989c0f')}
               </Text>
             </View>
           </View>
@@ -88,8 +94,8 @@ export default function WorkAndStay({guesthouses}) {
     <View style={styles.guesthouseContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
         <Text style={styles.sectionTitle}>
-          <Text style={{color: COLORS.primary_orange}}>Work + Stay</Text>를 한
-          번에
+          <Text style={{color: COLORS.primary_orange}}>Work + Stay</Text>
+          {t('common.atOnce')}
         </Text>
         <TouchableOpacity
           activeOpacity={1}
@@ -97,7 +103,7 @@ export default function WorkAndStay({guesthouses}) {
           onPress={() => {
             navigation.navigate('PopularGuesthouseList');
           }}>
-          <Text style={styles.seeMoreText}>더보기</Text>
+          <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
           <ChevronRightIcon width={24} height={24} />
         </TouchableOpacity>
       </View>

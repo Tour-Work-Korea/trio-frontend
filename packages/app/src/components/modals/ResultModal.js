@@ -1,15 +1,11 @@
 import React, {useEffect} from 'react';
-import {
-  View,
-  StyleSheet,
-  Text,
-  TouchableOpacity,
-} from 'react-native';
+import {View, StyleSheet, TouchableOpacity} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import {FONTS} from '@constants/fonts';
 import XBtn from '@assets/images/x_gray.svg';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
+import AdaptiveText from '@components/AdaptiveText';
 
 /*
 화면 높이 절반까지 오는 결과 모달
@@ -43,7 +39,11 @@ export default function ResultModal({
         <View style={styles.container}>
           <View style={styles.header}>
             <View />
-            <Text style={[FONTS.fs_20_semibold]}>{title}</Text>
+            <AdaptiveText
+              variant="header"
+              style={[FONTS.fs_20_semibold, styles.headerText]}>
+              {title}
+            </AdaptiveText>
             <TouchableOpacity style={styles.xBtn} onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
@@ -51,18 +51,20 @@ export default function ResultModal({
           <Icon style={styles.image} />
           <View style={{gap: 4, alignItems: 'center'}}>
             {subTitle ? (
-              <Text
+              <AdaptiveText
+                variant="title"
                 style={{...FONTS.fs_20_semibold, color: COLORS.grayscale_700}}>
                 {subTitle}
-              </Text>
+              </AdaptiveText>
             ) : (
               <></>
             )}
             {message ? (
-              <Text
+              <AdaptiveText
+                variant="body"
                 style={{...FONTS.fs_16_medium, color: COLORS.grayscale_500}}>
                 {message}
-              </Text>
+              </AdaptiveText>
             ) : (
               <></>
             )}
@@ -105,6 +107,11 @@ const styles = StyleSheet.create({
   xBtn: {
     position: 'absolute',
     right: 0,
+  },
+  headerText: {
+    flex: 1,
+    marginHorizontal: 32,
+    textAlign: 'center',
   },
   image: {
     width: 168,

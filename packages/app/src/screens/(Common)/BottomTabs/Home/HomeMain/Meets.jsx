@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {memo, useCallback, useMemo} from 'react';
 import {
   View,
@@ -24,6 +25,7 @@ import {
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
 import AppImage from '@components/AppImage';
+import AdaptiveText from '@components/AdaptiveText';
 
 const APP_FRAME_WIDTH = Math.min(Dimensions.get('window').width, 430);
 const SECTION_HORIZONTAL_PADDING = 32;
@@ -33,7 +35,9 @@ const CARD_WIDTH =
   Platform.OS === 'web'
     ? Math.max(
         136,
-        Math.floor((APP_FRAME_WIDTH - SECTION_HORIZONTAL_PADDING - CARD_GAP) / 2),
+        Math.floor(
+          (APP_FRAME_WIDTH - SECTION_HORIZONTAL_PADDING - CARD_GAP) / 2,
+        ),
       )
     : DEFAULT_CARD_WIDTH;
 const CARD_IMAGE_HEIGHT = Math.round(CARD_WIDTH * 1.5);
@@ -41,95 +45,105 @@ const meetSeparatorStyle = {width: 12};
 const MeetSeparator = () => <View style={meetSeparatorStyle} />;
 
 function Meets({events = [], setEventList}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
-  const moveToDetail = useCallback(partyId => {
-    navigation.navigate('MeetDetail', {partyId});
-  }, [navigation]);
+  const moveToDetail = useCallback(
+    partyId => {
+      navigation.navigate('MeetDetail', {partyId});
+    },
+    [navigation],
+  );
 
-  const handleToggleFavorite = useCallback(async item => {
-    try {
-      await toggleFavorite({
-        type: 'party',
-        id: item.partyId,
-        isLiked: item.isLiked,
-        setList: setEventList,
-      });
-    } catch (error) {
-      console.warn(
-        '홈 인기 콘텐츠 즐겨찾기 토글 실패',
-        error?.response?.data?.message,
-      );
-    }
-  }, [setEventList]);
+  const handleToggleFavorite = useCallback(
+    async item => {
+      try {
+        await toggleFavorite({
+          type: 'party',
+          id: item.partyId,
+          isLiked: item.isLiked,
+          setList: setEventList,
+        });
+      } catch (error) {
+        console.warn(
+          '홈 인기 콘텐츠 즐겨찾기 토글 실패',
+          error?.response?.data?.message,
+        );
+      }
+    },
+    [setEventList],
+  );
 
-  const renderEvents = useCallback(({item}) => {
-    const isFav = !!item.isLiked;
+  const renderEvents = useCallback(
+    ({item}) => {
+      const isFav = !!item.isLiked;
 
-    return (
-      <TouchableOpacity
-        activeOpacity={1}
-        style={localStyles.cardButton}
-        onPress={() => {
-          if (shouldIgnoreHomeHorizontalPress()) {
-            return;
-          }
+      return (
+        <TouchableOpacity
+          activeOpacity={1}
+          style={localStyles.cardButton}
+          onPress={() => {
+            if (shouldIgnoreHomeHorizontalPress()) {
+              return;
+            }
 
-          moveToDetail(item.partyId);
-        }}>
-        <View style={localStyles.card}>
-          <View style={localStyles.imageWrapper}>
-            <AppImage uri={item.partyImageUrl} style={localStyles.image} />
+            moveToDetail(item.partyId);
+          }}>
+          <View style={localStyles.card}>
+            <View style={localStyles.imageWrapper}>
+              <AppImage uri={item.partyImageUrl} style={localStyles.image} />
 
-            {/* 하트 아이콘 (이미지 내부 오른쪽 상단) */}
-            <View style={localStyles.heartWrapper}>
-              <TouchableOpacity
-                style={localStyles.heartButton}
-                activeOpacity={1}
-                onPress={e => {
-                  if (shouldIgnoreHomeHorizontalPress()) {
-                    return;
-                  }
+              {/* 하트 아이콘 (이미지 내부 오른쪽 상단) */}
+              <View style={localStyles.heartWrapper}>
+                <TouchableOpacity
+                  style={localStyles.heartButton}
+                  activeOpacity={1}
+                  onPress={e => {
+                    if (shouldIgnoreHomeHorizontalPress()) {
+                      return;
+                    }
 
-                  e.stopPropagation(); // 카드 onPress로 콘텐츠 전파 막기
-                  handleToggleFavorite(item);
-                }}>
-                {isFav ? (
-                  <HeartFilled width={24} height={24} />
-                ) : (
-                  <HeartEmpty width={24} height={24} />
-                )}
-              </TouchableOpacity>
+                    e.stopPropagation(); // 카드 onPress로 콘텐츠 전파 막기
+                    handleToggleFavorite(item);
+                  }}>
+                  {isFav ? (
+                    <HeartFilled width={24} height={24} />
+                  ) : (
+                    <HeartEmpty width={24} height={24} />
+                  )}
+                </TouchableOpacity>
+              </View>
             </View>
-          </View>
 
-          {/* 아래 정보 영역 */}
-          <View style={localStyles.infoWrapper}>
-            <Text
-              style={[FONTS.fs_12_medium, localStyles.guesthouseName]}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {item.guesthouseName}
-            </Text>
-            <Text
-              style={[FONTS.fs_14_semibold, localStyles.title]}
-              numberOfLines={2}
-              ellipsizeMode="tail"
-            >
-              {item.partyTitle}
-            </Text>
-            <View style={localStyles.capacityRow}>
-              <PeopleIcon width={16} height={16} />
-              <Text style={[FONTS.fs_12_medium, localStyles.capacityText]}>
-                최대인원 {item.maxAttendance}명
+            {/* 아래 정보 영역 */}
+            <View style={localStyles.infoWrapper}>
+              <Text
+                style={[FONTS.fs_12_medium, localStyles.guesthouseName]}
+                numberOfLines={2}
+                ellipsizeMode="tail">
+                {item.guesthouseName}
               </Text>
+              <Text
+                style={[FONTS.fs_14_semibold, localStyles.title]}
+                numberOfLines={2}
+                ellipsizeMode="tail">
+                {item.partyTitle}
+              </Text>
+              <View style={localStyles.capacityRow}>
+                <PeopleIcon width={16} height={16} />
+                <Text style={[FONTS.fs_12_medium, localStyles.capacityText]}>
+                  {t('meet.maximumNumberOfPeopleValuePeople', {
+                    maxAttendance: item.maxAttendance,
+                  })}
+                </Text>
+              </View>
             </View>
           </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }, [handleToggleFavorite, moveToDetail]);
+        </TouchableOpacity>
+      );
+    },
+    [handleToggleFavorite, moveToDetail, t],
+  );
 
   const visibleEvents = useMemo(() => events.slice(0, 5), [events]);
 
@@ -141,65 +155,66 @@ function Meets({events = [], setEventList}) {
     <View style={styles.jobContainer}>
       <View style={localStyles.meetTopRow}>
         <View style={[styles.titleSection]}>
-          <Text style={styles.sectionTitle}>인기 게하 콘텐츠</Text>
+          <AdaptiveText variant="title" style={styles.sectionTitle}>
+            {t('meet.popularGuesthouseActivity')}
+          </AdaptiveText>
           <TouchableOpacity
             activeOpacity={1}
             style={styles.seeMoreButton}
-            onPress={handlePressSeeMore}
-          >
-            <Text style={styles.seeMoreText}>더보기</Text>
+            onPress={handlePressSeeMore}>
+            <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
             <Chevron_right_gray width={24} height={24} />
           </TouchableOpacity>
         </View>
         {/* <View style={localStyles.meetChipRow}>
-          <TouchableOpacity
-            style={[
-              localStyles.meetChip,
-              selectedChip === 'guesthouseParty' && localStyles.meetChipActive,
-            ]}
-            activeOpacity={1}
-            onPress={() => setSelectedChip('guesthouseParty')}>
-            <Text
+            <TouchableOpacity
               style={[
-                localStyles.meetChipText,
-                selectedChip === 'guesthouseParty' &&
-                  localStyles.meetChipTextActive,
-              ]}>
-              게하 파티
-            </Text>
+                localStyles.meetChip,
+                selectedChip === 'guesthouseParty' && localStyles.meetChipActive,
+              ]}
+              activeOpacity={1}
+              onPress={() => setSelectedChip('guesthouseParty')}>
+              <Text
+                style={[
+                  localStyles.meetChipText,
+                  selectedChip === 'guesthouseParty' &&
+                    localStyles.meetChipTextActive,
+                ]}>
+                게하 파티
+              </Text>
+            </TouchableOpacity> */}
+        {/* <TouchableOpacity
+          style={[
+            localStyles.meetChip,
+            selectedChip === 'event' && localStyles.meetChipActive,
+          ]}
+          activeOpacity={1}
+          onPress={() => setSelectedChip('event')}>
+          <Text
+            style={[
+              localStyles.meetChipText,
+              selectedChip === 'event' && localStyles.meetChipTextActive,
+            ]}>
+            콘텐츠
+          </Text>
           </TouchableOpacity> */}
-          {/* <TouchableOpacity
+        {/* 임시 */}
+        {/* <View
+          style={[
+            localStyles.meetChip,
+            selectedChip === 'event' && localStyles.meetChipActive,
+          ]}
+          activeOpacity={1}
+          onPress={() => setSelectedChip('event')}>
+          <Text
             style={[
-              localStyles.meetChip,
-              selectedChip === 'event' && localStyles.meetChipActive,
-            ]}
-            activeOpacity={1}
-            onPress={() => setSelectedChip('event')}>
-            <Text
-              style={[
-                localStyles.meetChipText,
-                selectedChip === 'event' && localStyles.meetChipTextActive,
-              ]}>
-              콘텐츠
-            </Text>
-          </TouchableOpacity> */}
-          {/* 임시 */}
-          {/* <View
-            style={[
-              localStyles.meetChip,
-              selectedChip === 'event' && localStyles.meetChipActive,
-            ]}
-            activeOpacity={1}
-            onPress={() => setSelectedChip('event')}>
-            <Text
-              style={[
-                localStyles.meetChipText,
-                selectedChip === 'event' && localStyles.meetChipTextActive,
-              ]}>
-              콘텐츠
-            </Text>
+              localStyles.meetChipText,
+              selectedChip === 'event' && localStyles.meetChipTextActive,
+            ]}>
+            콘텐츠
+          </Text>
           </View>
-        </View> */}
+          </View> */}
       </View>
 
       <FlatList

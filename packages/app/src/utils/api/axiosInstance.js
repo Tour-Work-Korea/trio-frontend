@@ -1,11 +1,14 @@
 import qs from 'qs';
 import axios from 'axios';
-import { API_BASE_URL as ENV_API_BASE_URL } from '@env';
-import { Platform } from 'react-native';
+import {API_BASE_URL as ENV_API_BASE_URL} from '@env';
+import {Platform} from 'react-native';
 import useUserStore from '@stores/userStore';
-import { log, mask } from '@utils/logger';
-import { tryRefresh } from '@utils/auth/login';
-import { isWebSessionToken } from '@utils/auth/webSession';
+import useLocaleStore from '@stores/localeStore';
+import {log, mask} from '@utils/logger';
+import {tryRefresh} from '@utils/auth/login';
+import {isWebSessionToken} from '@utils/auth/webSession';
+import {toAcceptLanguage} from '../../i18n';
+import {localizeApiError} from '@utils/localizedError';
 
 const API_BASE_URL = ENV_API_BASE_URL ?? '';
 
@@ -13,7 +16,7 @@ const api = axios.create({
   baseURL: API_BASE_URL,
   withCredentials: true,
   timeout: 12000,
-  headers: { 'Content-Type': 'application/json' },
+  headers: {'Content-Type': 'application/json'},
   paramsSerializer: params => qs.stringify(params),
 });
 
@@ -95,6 +98,12 @@ api.interceptors.request.use(
     const id = rid();
     config._reqId = id;
 
+    // 요청 시점의 최신 UI 언어를 사용한다. 외부 서비스 요청은 이 인스턴스를
+    // 사용하지 않으므로 게딱지 백엔드 요청에만 헤더가 적용된다.
+    const language = useLocaleStore.getState().language;
+    config.headers = config.headers || {};
+    config.headers['Accept-Language'] = toAcceptLanguage(language);
+
     // accessToken 주입
     const token = useUserStore.getState().accessToken;
     const shouldAttachBearer =
@@ -146,12 +155,15 @@ api.interceptors.response.use(
     const status = err.response?.status;
     const errorData = err.response?.data;
 
-    log.error(`🛑 [${id}] ${status || 'ERROR'} ${getRequestLabel(original || {})}`);
+    log.error(
+      `🛑 [${id}] ${status || 'ERROR'} ${getRequestLabel(original || {})}`,
+    );
     log.error('   error:', err);
     if (hasLogPayload(errorData)) {
       log.error('   error body:', errorData);
     }
     log.timeEnd(`⏱️ ${id}`);
+    localizeApiError(err);
 
     if (original?.url?.includes('/auth/refresh')) {
       log.warn(`🧯 [${id}] refresh call itself failed — no retry`);
@@ -182,7 +194,7 @@ api.interceptors.response.use(
       if (isRefreshing) {
         log.info(`⏳ [${id}] waiting for ongoing refresh`);
         return new Promise((resolve, reject) => {
-          queue.push({ resolve, reject });
+          queue.push({resolve, reject});
         }).then(token => {
           original.headers = original.headers || {};
           if (token && !(Platform.OS === 'web' && isWebSessionToken(token))) {
@@ -194,7 +206,7 @@ api.interceptors.response.use(
 
       isRefreshing = true;
       try {
-        const ok = await tryRefresh({ silent: true }); // 호출한 화면에서 직접 처리하도록 자동 이동은 막는다.
+        const ok = await tryRefresh({silent: true}); // 호출한 화면에서 직접 처리하도록 자동 이동은 막는다.
         if (!ok) {
           resolveQueue(new Error('refresh failed'), null);
           return Promise.reject(err);
@@ -203,7 +215,10 @@ api.interceptors.response.use(
         const newAccess = useUserStore.getState().accessToken;
         resolveQueue(null, newAccess);
         original.headers = original.headers || {};
-        if (newAccess && !(Platform.OS === 'web' && isWebSessionToken(newAccess))) {
+        if (
+          newAccess &&
+          !(Platform.OS === 'web' && isWebSessionToken(newAccess))
+        ) {
           original.headers.Authorization = `Bearer ${newAccess}`;
         }
         return api(original);

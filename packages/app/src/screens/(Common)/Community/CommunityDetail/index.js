@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -12,15 +14,13 @@ import {
   View,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 
 import Avatar from '@components/Avatar';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import Header from '@components/Header';
 import Loading from '@components/Loading';
 import AlertModal from '@components/modals/AlertModal';
@@ -76,21 +76,21 @@ const formatRelativeTime = dateTime => {
   const diffMinutes = Math.floor(diffMs / 60000);
 
   if (diffMinutes < 1) {
-    return '방금';
+    return i18n.t('common.justNow');
   }
 
   if (diffMinutes < 60) {
-    return `${diffMinutes}분`;
+    return i18n.t('common.valueMinutes', {diffMinutes: diffMinutes});
   }
 
   const diffHours = Math.floor(diffMinutes / 60);
   if (diffHours < 24) {
-    return `${diffHours}시간`;
+    return i18n.t('common.valueHours', {diffHours: diffHours});
   }
 
   const diffDays = Math.floor(diffHours / 24);
   if (diffDays < 7) {
-    return `${diffDays}일`;
+    return i18n.t('common.valueDays', {diffDays: diffDays});
   }
 
   const date = new Date(dateTime);
@@ -132,6 +132,7 @@ const isCommentEdited = item => {
 };
 
 const CommunityDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {
     postId,
@@ -207,7 +208,7 @@ const CommunityDetail = ({route}) => {
     visible: false,
     title: '',
     message: '',
-    buttonText: '확인',
+    buttonText: t('common.confirm'),
     buttonText2: null,
     color: COLORS.primary_orange,
     onPress: () => {},
@@ -406,9 +407,9 @@ const CommunityDetail = ({route}) => {
   const showCommentLoginModal = () => {
     commentInputRef.current?.blur();
     showErrorModal({
-      message: '댓글 작성은\n 로그인 후 사용해주세요',
-      buttonText: '로그인하기',
-      buttonText2: '취소',
+      message: t('common.pleaseLogInToWriteAComment'),
+      buttonText: t('common.logIn'),
+      buttonText2: t('common.cancel'),
       onPress: () => navigation.navigate('Login'),
       onPress2: () => {},
     });
@@ -523,7 +524,7 @@ const CommunityDetail = ({route}) => {
   const showCommentAlert = ({
     title,
     message,
-    buttonText = '확인',
+    buttonText = t('common.confirm'),
     buttonText2 = null,
     color = COLORS.primary_orange,
     onPress,
@@ -627,8 +628,10 @@ const CommunityDetail = ({route}) => {
 
     if (remainingCount <= 0) {
       showCommentAlert({
-        title: '사진 첨부',
-        message: `이미지는 최대 ${COMMENT_IMAGE_LIMITS.maxCount}장까지 추가할 수 있습니다.`,
+        title: t('community.attachPhoto'),
+        message: t('community.upToValueImagesCanBeAdded', {
+          COMMENT_IMAGE_LIMITS_maxCount: COMMENT_IMAGE_LIMITS.maxCount,
+        }),
       });
       return;
     }
@@ -656,8 +659,11 @@ const CommunityDetail = ({route}) => {
 
     if (oversizedAsset) {
       showCommentAlert({
-        title: '사진 첨부',
-        message: `이미지는 한 장당 최대 ${COMMENT_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        title: t('community.attachPhoto'),
+        message: t('community.imagesCanBeUploadedUpToValueMbPerPage', {
+          COMMENT_IMAGE_LIMITS_maxSingleFileSizeMb:
+            COMMENT_IMAGE_LIMITS.maxSingleFileSizeMb,
+        }),
       });
       return;
     }
@@ -676,8 +682,11 @@ const CommunityDetail = ({route}) => {
       COMMENT_IMAGE_LIMITS.maxTotalFileSizeMb * MB
     ) {
       showCommentAlert({
-        title: '사진 첨부',
-        message: `이미지 전체 용량은 최대 ${COMMENT_IMAGE_LIMITS.maxTotalFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        title: t('community.attachPhoto'),
+        message: t('community.theTotalImageSizeCanBeUploadedUpToValue', {
+          COMMENT_IMAGE_LIMITS_maxTotalFileSizeMb:
+            COMMENT_IMAGE_LIMITS.maxTotalFileSizeMb,
+        }),
       });
       return;
     }
@@ -696,8 +705,11 @@ const CommunityDetail = ({route}) => {
 
     if (convertedOversizedImage) {
       showCommentAlert({
-        title: '사진 첨부',
-        message: `이미지는 한 장당 최대 ${COMMENT_IMAGE_LIMITS.maxSingleFileSizeMb}MB까지 업로드할 수 있습니다.`,
+        title: t('community.attachPhoto'),
+        message: t('community.imagesCanBeUploadedUpToValueMbPerPage', {
+          COMMENT_IMAGE_LIMITS_maxSingleFileSizeMb:
+            COMMENT_IMAGE_LIMITS.maxSingleFileSizeMb,
+        }),
       });
       return;
     }
@@ -779,9 +791,9 @@ const CommunityDetail = ({route}) => {
 
     if (role !== 'USER' && role !== 'ADMIN') {
       showErrorModal({
-        message: '댓글 작성은\n 로그인 후 사용해주세요',
-        buttonText: '로그인하기',
-        buttonText2: '취소',
+        message: t('common.pleaseLogInToWriteAComment'),
+        buttonText: t('common.logIn'),
+        buttonText2: t('common.cancel'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -812,7 +824,7 @@ const CommunityDetail = ({route}) => {
         const commentId = draftResponse.data?.commentId;
 
         if (!commentId) {
-          throw new Error('commentId가 없습니다.');
+          throw new Error(t('community.commentidIsMissing'));
         }
 
         const uploadedImages = await uploadCommentImages(commentId);
@@ -838,8 +850,8 @@ const CommunityDetail = ({route}) => {
     } catch (error) {
       console.warn('createCommunityComment 실패:', error);
       showCommentAlert({
-        title: '댓글 등록 실패',
-        message: '댓글 등록에 실패했어요. 잠시 후 다시 시도해 주세요.',
+        title: t('common.failedToRegisterComment'),
+        message: t('common.failedToRegisterCommentPleaseTryAgainLater'),
       });
     } finally {
       setIsSubmittingComment(false);
@@ -855,9 +867,9 @@ const CommunityDetail = ({route}) => {
 
     if (role !== 'USER') {
       showErrorModal({
-        message: '좋아요 기능은\n 로그인 후 사용해주세요',
-        buttonText: '로그인하기',
-        buttonText2: '취소',
+        message: t('common.pleaseUseTheLikeFunctionAfterLoggingIn'),
+        buttonText: t('common.logIn'),
+        buttonText2: t('common.cancel'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -899,9 +911,9 @@ const CommunityDetail = ({route}) => {
       const status = error?.response?.status;
       if (status === 401 || status === 403) {
         showErrorModal({
-          message: '좋아요 기능은\n 로그인 후 사용해주세요',
-          buttonText: '로그인하기',
-          buttonText2: '취소',
+          message: t('common.pleaseUseTheLikeFunctionAfterLoggingIn'),
+          buttonText: t('common.logIn'),
+          buttonText2: t('common.cancel'),
           onPress: () => navigation.navigate('Login'),
           onPress2: () => {},
         });
@@ -989,10 +1001,10 @@ const CommunityDetail = ({route}) => {
 
     setCommentAlert({
       visible: true,
-      title: '댓글 삭제',
-      message: '댓글을 삭제할까요?',
-      buttonText: '삭제',
-      buttonText2: '취소',
+      title: t('common.deleteComment'),
+      message: t('common.shouldIDeleteMyComment'),
+      buttonText: t('common.delete'),
+      buttonText2: t('common.cancel'),
       color: COLORS.semantic_red,
       onPress2: closeCommentAlert,
       onPress: async () => {
@@ -1008,9 +1020,9 @@ const CommunityDetail = ({route}) => {
           );
           setCommentAlert({
             visible: true,
-            title: '댓글 삭제 실패',
-            message: '댓글 삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
-            buttonText: '확인',
+            title: t('common.failedToDeleteComment'),
+            message: t('common.failedToDeleteCommentPleaseTryAgainLater'),
+            buttonText: t('common.confirm'),
             buttonText2: null,
             color: COLORS.primary_orange,
             onPress: closeCommentAlert,
@@ -1252,14 +1264,14 @@ const CommunityDetail = ({route}) => {
           <Text
             style={[FONTS.fs_14_medium, styles.locationTitle]}
             numberOfLines={1}>
-            {normalizedLocation.placeName || '선택한 장소'}
+            {normalizedLocation.placeName || t('common.selectedLocation')}
           </Text>
           <Text
             style={[FONTS.fs_12_medium, styles.locationAddress]}
             numberOfLines={1}>
             {normalizedLocation.roadAddress ||
               normalizedLocation.address ||
-              '주소 정보가 없어요'}
+              t('common.thereIsNoAddressInformation')}
           </Text>
         </View>
       </TouchableOpacity>
@@ -1427,7 +1439,7 @@ const CommunityDetail = ({route}) => {
             style={styles.commentManageButton}
             onPress={() => handleStartEditComment(item)}>
             <Text style={[FONTS.fs_13_medium, styles.commentManageText]}>
-              수정
+              {t('common.edit')}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -1446,7 +1458,9 @@ const CommunityDetail = ({route}) => {
                 styles.commentManageText,
                 styles.commentDeleteText,
               ]}>
-              {deletingCommentId === item.commentId ? '삭제중' : '삭제'}
+              {deletingCommentId === item.commentId
+                ? t('common.deleting')
+                : t('common.delete')}
             </Text>
           </TouchableOpacity>
         ) : null}
@@ -1503,7 +1517,7 @@ const CommunityDetail = ({route}) => {
               </Text>
               {isCommentEdited(comment) ? (
                 <Text style={[FONTS.fs_12_regular, styles.editedText]}>
-                  수정됨
+                  {t('common.edited')}
                 </Text>
               ) : null}
             </View>
@@ -1573,6 +1587,7 @@ const CommunityDetail = ({route}) => {
                   iconSize={18}
                   style={styles.commentAvatar}
                 />
+
                 <View style={styles.commentBody}>
                   <View style={styles.commentHeader}>
                     <Text
@@ -1584,7 +1599,7 @@ const CommunityDetail = ({route}) => {
                     </Text>
                     {isCommentEdited(reply) ? (
                       <Text style={[FONTS.fs_12_regular, styles.editedText]}>
-                        수정됨
+                        {t('common.edited')}
                       </Text>
                     ) : null}
                   </View>
@@ -1614,7 +1629,7 @@ const CommunityDetail = ({route}) => {
                 style={styles.replyMoreButton}
                 onPress={() => handleLoadReplies(comment.commentId)}>
                 <Text style={[FONTS.fs_14_medium, styles.replyMoreText]}>
-                  대댓글 더보기
+                  {t('common.seeMoreComments')}
                 </Text>
               </TouchableOpacity>
             ) : null}
@@ -1632,7 +1647,7 @@ const CommunityDetail = ({route}) => {
       />
 
       {isLoading ? (
-        <Loading title="게시글을 불러오는 중입니다..." />
+        <Loading title={t('community.loadingPosts')} />
       ) : (
         <TouchableWithoutFeedback
           onPress={handleDismissCommentInput}
@@ -1653,6 +1668,7 @@ const CommunityDetail = ({route}) => {
                 iconSize={16}
                 style={styles.postAvatar}
               />
+
               <Text style={[FONTS.fs_16_medium, styles.postNickname]}>
                 {post?.author?.nickname}
               </Text>
@@ -1711,11 +1727,11 @@ const CommunityDetail = ({route}) => {
               <Text
                 style={[FONTS.fs_14_regular, styles.replyTargetTitle]}
                 numberOfLines={1}>
-                댓글 수정 중
+                {t('common.editingComment')}
               </Text>
               <TouchableOpacity activeOpacity={0.8} onPress={clearEditingState}>
                 <Text style={[FONTS.fs_14_medium, styles.replyTargetCancel]}>
-                  취소
+                  {t('common.cancel')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1731,7 +1747,8 @@ const CommunityDetail = ({route}) => {
               <Text
                 style={[FONTS.fs_14_regular, styles.replyTargetTitle]}
                 numberOfLines={1}>
-                {replyTarget.nickname}_님에게 답글 남기는 중
+                {replyTarget.nickname}
+                {t('common.replyingTo')}
               </Text>
             </View>
             <Text
@@ -1755,6 +1772,7 @@ const CommunityDetail = ({route}) => {
                     style={styles.commentImagePreview}
                     resizeMode="cover"
                   />
+
                   <TouchableOpacity
                     activeOpacity={0.8}
                     style={styles.commentImageRemoveButton}
@@ -1783,7 +1801,9 @@ const CommunityDetail = ({route}) => {
               {height: commentInputHeight},
             ]}
             placeholder={
-              editingTarget ? '댓글을 수정해주세요.' : '댓글을 입력해주세요.'
+              editingTarget
+                ? t('common.pleaseEditYourComment')
+                : t('common.pleaseEnterYourComment')
             }
             placeholderTextColor={COLORS.grayscale_400}
             value={commentValue}
@@ -1800,6 +1820,7 @@ const CommunityDetail = ({route}) => {
             onFocus={handleFocusInput}
             onBlur={() => setIsCommentFocused(false)}
           />
+
           {!editingTarget ? (
             <TouchableOpacity
               activeOpacity={0.8}

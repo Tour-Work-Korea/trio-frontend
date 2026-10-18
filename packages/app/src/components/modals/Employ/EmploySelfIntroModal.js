@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
 import {
   Dimensions,
@@ -27,6 +28,7 @@ export default function EmploySelfIntroModal({
   editSelfIntro,
   initialData = null,
 }) {
+  const {t} = useTranslation();
   const [selfIntro, setSelfIntro] = useState();
 
   useEffect(() => {
@@ -47,9 +49,13 @@ export default function EmploySelfIntroModal({
               {/* 헤더 */}
               <View style={styles.header}>
                 <View />
-                <Text style={[FONTS.fs_20_semibold]}>자기소개</Text>
+                <Text style={[FONTS.fs_20_semibold]}>
+                  {t('common.selfIntroduction')}
+                </Text>
                 <TouchableOpacity
-                  activeOpacity={1} style={styles.xBtn} onPress={onClose}>
+                  activeOpacity={1}
+                  style={styles.xBtn}
+                  onPress={onClose}>
                   <XBtn width={24} height={24} />
                 </TouchableOpacity>
               </View>
@@ -63,7 +69,9 @@ export default function EmploySelfIntroModal({
                 <View>
                   <View style={styles.titleBox}>
                     <Text style={styles.titleText}>
-                      자기소개, 경력기술 등 자유롭게 입력해 주세요.
+                      {t(
+                        'employ.pleaseFeelFreeToEnterYourSelfIntroductionCareerSkills',
+                      )}
                     </Text>
                   </View>
                   <Text style={styles.titleLength}>
@@ -75,7 +83,9 @@ export default function EmploySelfIntroModal({
                   <View style={styles.inputBox}>
                     <TextInput
                       style={styles.textInput}
-                      placeholder="성실함과 책임감을 가지고 모든 일에 임하는 사람으로서 열심히 하겠습니다."
+                      placeholder={t(
+                        'employ.asAPersonWhoApproachesEverythingWithSincerityAndResponsibility',
+                      )}
                       placeholderTextColor={COLORS.grayscale_400}
                       value={selfIntro}
                       onChangeText={setSelfIntro}
@@ -85,8 +95,9 @@ export default function EmploySelfIntroModal({
                     />
                   </View>
                   <TouchableOpacity
-                    activeOpacity={1} onPress={() => setSelfIntro('')}>
-                    <Text style={styles.resetText}>다시쓰기</Text>
+                    activeOpacity={1}
+                    onPress={() => setSelfIntro('')}>
+                    <Text style={styles.resetText}>{t('common.rewrite')}</Text>
                   </TouchableOpacity>
                 </View>
               </ScrollView>
@@ -95,7 +106,7 @@ export default function EmploySelfIntroModal({
               <View style={styles.sticky}>
                 <View style={styles.confirmButton}>
                   <ButtonScarlet
-                    title="적용하기"
+                    title={t('common.apply')}
                     onPress={() => {
                       editSelfIntro(selfIntro);
                       onClose();

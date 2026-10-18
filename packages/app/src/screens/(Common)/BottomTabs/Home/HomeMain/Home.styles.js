@@ -258,6 +258,7 @@ export default StyleSheet.create({
   seeMoreButton: {
     flexDirection: 'row',
     alignItems: 'center',
+    flexShrink: 0,
   },
   seeMoreText: {
     ...FONTS.fs_14_semibold,
@@ -272,6 +273,9 @@ export default StyleSheet.create({
   sectionTitle: {
     color: COLORS.grayscale_800,
     ...FONTS.fs_16_semibold,
+    flex: 1,
+    minWidth: 0,
+    marginRight: 8,
   },
   recentGuesthouseContainer: {
     flexDirection: 'column',

@@ -1,10 +1,15 @@
 import dayjs from 'dayjs';
+import i18n from '../../i18n';
+import {formatCurrency} from '../localeFormat';
 
 export const getCouponId = coupon =>
   coupon?.userCouponId || coupon?.couponId || coupon?.id;
 
 export const getCouponTitle = coupon =>
-  coupon?.couponName || coupon?.name || coupon?.title || '쿠폰';
+  coupon?.couponName ||
+  coupon?.name ||
+  coupon?.title ||
+  i18n.t('common.coupon');
 
 export const getMinimumOrderAmount = coupon =>
   Number(
@@ -18,7 +23,7 @@ export const getMinimumOrderAmount = coupon =>
 
 export const getMaximumDiscountAmount = coupon =>
   Number(
-      coupon?.maximumDiscountAmount ??
+    coupon?.maximumDiscountAmount ??
       coupon?.maxDiscountAmount ??
       coupon?.maxDiscountPrice ??
       coupon?.maxAmount ??
@@ -35,7 +40,7 @@ export const getDiscountRateLabel = coupon => {
     return `${discountValue}%`;
   }
 
-  return `${discountValue.toLocaleString('ko-KR')}원`;
+  return formatCurrency(discountValue);
 };
 
 export const getDiscountAmount = (coupon, totalPrice) => {
@@ -66,12 +71,18 @@ export const getCouponConditionText = coupon => {
 
   if (minimumOrderAmount > 0) {
     parts.push(
-      `${minimumOrderAmount.toLocaleString('ko-KR')}원 이상 결제 시 사용 가능`,
+      i18n.t('coupon.minimumOrderCondition', {
+        amount: formatCurrency(minimumOrderAmount),
+      }),
     );
   }
 
   if (maximumDiscountAmount > 0) {
-    parts.push(`최대 ${maximumDiscountAmount.toLocaleString('ko-KR')}원 할인`);
+    parts.push(
+      i18n.t('coupon.maximumDiscount', {
+        amount: formatCurrency(maximumDiscountAmount),
+      }),
+    );
   }
 
   return (
@@ -98,7 +109,7 @@ export const getRemainingDaysText = coupon => {
   }
 
   const daysLeft = dayjs(expiryDate).endOf('day').diff(dayjs(), 'day') + 1;
-  return `${Math.max(daysLeft, 0)}일 남음`;
+  return i18n.t('coupon.daysRemaining', {count: Math.max(daysLeft, 0)});
 };
 
 export const isCouponDisabled = (coupon, totalPrice) => {

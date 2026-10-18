@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {ScrollView, StyleSheet, Text, View} from 'react-native';
 
@@ -28,10 +29,12 @@ const PACKAGES = [
   ['compare-versions', '6.1.1', 'MIT'],
   ['dayjs', '1.11.13', 'MIT'],
   ['expo-intent-launcher', '12.1.5', 'MIT'],
+  ['i18next', '26.4.7', 'MIT'],
   ['lottie-react-native', '7.2.4', 'Apache-2.0'],
   ['qs', '6.14.0', 'BSD-3-Clause'],
   ['react', '19.0.0', 'MIT'],
   ['react-dom', '19.0.0', 'MIT'],
+  ['react-i18next', '17.0.19', 'MIT'],
   ['react-native', '0.79.1', 'MIT'],
   ['react-native-calendars', '1.1313.0', 'MIT'],
   ['react-native-config', '1.5.5', 'MIT'],
@@ -78,50 +81,53 @@ Permission is hereby granted, free of charge, to any person obtaining a copy of 
 
 THE FONT SOFTWARE IS PROVIDED “AS IS”, WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED.`;
 
-const OpenSourceLicenses = () => (
-  <View style={styles.screen}>
-    <Header title="오픈소스 라이선스" />
-    <ScrollView contentContainerStyle={styles.content}>
-      <Text style={styles.description}>
-        워커웨이는 아래의 오픈소스 소프트웨어를 사용합니다. 각 저작권은 해당
-        저작권자에게 있으며, 표기된 라이선스 조건에 따라 제공됩니다.
-      </Text>
-
-      <Text style={styles.sectionTitle}>사용 중인 오픈소스</Text>
-      <View style={styles.card}>
-        {PACKAGES.map(([name, version, license], index) => (
-          <View
-            key={name}
-            style={[styles.packageRow, index > 0 && styles.packageDivider]}>
-            <View style={styles.packageInfo}>
-              <Text style={styles.packageName}>{name}</Text>
-              <Text style={styles.packageVersion}>v{version}</Text>
-            </View>
-            <Text style={styles.licenseBadge}>{license}</Text>
-          </View>
-        ))}
-      </View>
-
-      <Text style={styles.sectionTitle}>Pretendard</Text>
-      <View style={styles.card}>
-        <Text style={styles.licenseText}>{PRETENDARD_NOTICE}</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>MIT License</Text>
-      <View style={styles.card}>
-        <Text style={styles.licenseText}>{MIT_LICENSE}</Text>
-      </View>
-
-      <Text style={styles.sectionTitle}>기타 라이선스</Text>
-      <View style={styles.card}>
-        <Text style={styles.licenseText}>
-          Apache License 2.0, BSD 3-Clause License 및 ISC License가 적용되는
-          구성요소는 각 패키지에 포함된 원문과 저작권 고지에 따라 사용됩니다.
+const OpenSourceLicenses = () => {
+  const {t} = useTranslation();
+  return (
+    <View style={styles.screen}>
+      <Header title={t('common.openSourceLicense')} />
+      <ScrollView contentContainerStyle={styles.content}>
+        <Text style={styles.description}>
+          {t(
+            'settings.workawayUsesTheOpenSourceSoftwareBelowEachCopyrightBelongs',
+          )}
         </Text>
-      </View>
-    </ScrollView>
-  </View>
-);
+
+        <Text style={styles.sectionTitle}>{t('settings.openSourceInUse')}</Text>
+        <View style={styles.card}>
+          {PACKAGES.map(([name, version, license], index) => (
+            <View
+              key={name}
+              style={[styles.packageRow, index > 0 && styles.packageDivider]}>
+              <View style={styles.packageInfo}>
+                <Text style={styles.packageName}>{name}</Text>
+                <Text style={styles.packageVersion}>v{version}</Text>
+              </View>
+              <Text style={styles.licenseBadge}>{license}</Text>
+            </View>
+          ))}
+        </View>
+
+        <Text style={styles.sectionTitle}>Pretendard</Text>
+        <View style={styles.card}>
+          <Text style={styles.licenseText}>{PRETENDARD_NOTICE}</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>MIT License</Text>
+        <View style={styles.card}>
+          <Text style={styles.licenseText}>{MIT_LICENSE}</Text>
+        </View>
+
+        <Text style={styles.sectionTitle}>{t('settings.otherLicenses')}</Text>
+        <View style={styles.card}>
+          <Text style={styles.licenseText}>
+            {t('settings.componentsSubjectToTheApacheLicense20Bsd3')}
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
+  );
+};
 
 const styles = StyleSheet.create({
   screen: {flex: 1, backgroundColor: COLORS.grayscale_100},
@@ -155,8 +161,16 @@ const styles = StyleSheet.create({
   packageDivider: {borderTopWidth: 1, borderTopColor: COLORS.grayscale_200},
   packageInfo: {flex: 1},
   packageName: {...FONTS.fs_14_medium, color: COLORS.grayscale_800},
-  packageVersion: {...FONTS.fs_12_medium, color: COLORS.grayscale_500, marginTop: 2},
-  licenseBadge: {...FONTS.fs_12_medium, color: COLORS.grayscale_500, textAlign: 'right'},
+  packageVersion: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+    marginTop: 2,
+  },
+  licenseBadge: {
+    ...FONTS.fs_12_medium,
+    color: COLORS.grayscale_500,
+    textAlign: 'right',
+  },
   licenseText: {
     ...FONTS.fs_12_medium,
     color: COLORS.grayscale_600,

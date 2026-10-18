@@ -1,6 +1,8 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {Calendar, LocaleConfig} from 'react-native-calendars';
+import {Calendar} from 'react-native-calendars';
 import {useNavigation} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
@@ -26,9 +28,9 @@ import MinusIcon from '@assets/images/minus_gray.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
 
-dayjs.locale('ko');
 
-const formatCurrency = value => `${Number(value || 0).toLocaleString()}원`;
+const formatCurrency = value =>
+  i18n.t('common.valueWon', {value1: Number(value || 0).toLocaleString()});
 const toDateKey = value => dayjs(value).format('YYYY-MM-DD');
 const getTimePart = value => {
   if (!value || typeof value !== 'string' || !value.includes('T')) {
@@ -51,11 +53,14 @@ const getNightCount = (checkIn, checkOut) => {
     return 1;
   }
 
-  const diff = checkOutDate.startOf('day').diff(checkInDate.startOf('day'), 'day');
+  const diff = checkOutDate
+    .startOf('day')
+    .diff(checkInDate.startOf('day'), 'day');
   return Math.max(diff, 1);
 };
 
 const GuesthouseReservationEntry = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const today = dayjs().startOf('day');
   const maxReservationDate = today.add(3, 'month');
@@ -93,7 +98,9 @@ const GuesthouseReservationEntry = ({route}) => {
   );
   const [selectedCheckIn, setSelectedCheckIn] = useState(toDateKey(checkIn));
   const [selectedCheckOut, setSelectedCheckOut] = useState(toDateKey(checkOut));
-  const [currentMonth, setCurrentMonth] = useState(dayjs(checkIn).format('YYYY-MM'));
+  const [currentMonth, setCurrentMonth] = useState(
+    dayjs(checkIn).format('YYYY-MM'),
+  );
   const [availabilityDays, setAvailabilityDays] = useState([]);
   const [roomInfo, setRoomInfo] = useState({
     ...params,
@@ -108,7 +115,7 @@ const GuesthouseReservationEntry = ({route}) => {
   });
   const nights = getNightCount(selectedCheckIn, selectedCheckOut);
   const calendarCurrentDate = `${currentMonth}-01`;
-  const calendarLocale = LocaleConfig.defaultLocale;
+  const calendarLocale = i18n.resolvedLanguage || i18n.language;
   const calendarText = calendarMessages(calendarLocale);
   const extraGuestUnitPrice = Number(roomInfo.extraPersonPrice || 0);
   const extraGuestCount = Math.max(guestCount - baseCapacity, 0);
@@ -126,15 +133,20 @@ const GuesthouseReservationEntry = ({route}) => {
     );
   });
   const availableBedLimit = isDormitory
-    ? selectedNightAvailability.reduce((min, day) => {
-        const remaining = Number(day.remaining);
+    ? selectedNightAvailability.reduce(
+        (min, day) => {
+          const remaining = Number(day.remaining);
 
-        if (!Number.isFinite(remaining)) {
-          return min;
-        }
+          if (!Number.isFinite(remaining)) {
+            return min;
+          }
 
-        return min == null ? remaining : Math.min(min, remaining);
-      }, Number.isFinite(Number(roomInfo.remaining)) ? Number(roomInfo.remaining) : null)
+          return min == null ? remaining : Math.min(min, remaining);
+        },
+        Number.isFinite(Number(roomInfo.remaining))
+          ? Number(roomInfo.remaining)
+          : null,
+      )
     : null;
   const multiNightDiscountAmount = Math.max(
     Number(roomInfo.multiNightDiscountAmount || 0),
@@ -148,13 +160,15 @@ const GuesthouseReservationEntry = ({route}) => {
     roomInfo.multiNightDiscount?.basis === 'ENTIRE_STAY' ? nights : nights - 1;
   const baseRoomPrice = Number(roomInfo.roomPrice || roomPrice || 0) * nights;
   const discountedRoomSubtotal = Math.max(
-    Number(roomInfo.roomSubtotal ?? baseRoomPrice * (isDormitory ? guestCount : 1)) -
-      multiNightDiscountAmount,
+    Number(
+      roomInfo.roomSubtotal ?? baseRoomPrice * (isDormitory ? guestCount : 1),
+    ) - multiNightDiscountAmount,
     0,
   );
   const displayBaseRoomPrice = Math.max(
     roomInfo.totalPrice != null || totalPrice != null
-      ? Number(roomInfo.totalPrice ?? totalPrice) - Number(roomInfo.extraPersonTotalPrice || 0)
+      ? Number(roomInfo.totalPrice ?? totalPrice) -
+          Number(roomInfo.extraPersonTotalPrice || 0)
       : discountedRoomSubtotal,
     0,
   );
@@ -168,7 +182,9 @@ const GuesthouseReservationEntry = ({route}) => {
 
   const displayTotalPrice = useMemo(() => {
     if (isDormitory) {
-      return Number(roomInfo.totalPrice ?? totalPrice ?? discountedRoomSubtotal);
+      return Number(
+        roomInfo.totalPrice ?? totalPrice ?? discountedRoomSubtotal,
+      );
     }
 
     return isServerPriceForCurrentGuestCount && roomInfo.totalPrice != null
@@ -212,10 +228,15 @@ const GuesthouseReservationEntry = ({route}) => {
   const renderDiscountDescription = () => (
     <>
       <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-        {formatCurrency(originalRoomSubtotal)} - {formatCurrency(multiNightDiscountAmount)}
+        {formatCurrency(originalRoomSubtotal)} -{' '}
+        {formatCurrency(multiNightDiscountAmount)}
       </Text>
       <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-        정상가 {nights}박 - 연박할인 {discountedNights}박
+        {t('guesthouse.regularPrice')}
+        {nights}
+        {t('guesthouse.nightsConsecutiveNightDiscount')}
+        {discountedNights}
+        {t('common.nights')}
       </Text>
     </>
   );
@@ -260,7 +281,9 @@ const GuesthouseReservationEntry = ({route}) => {
         guestCount,
       });
 
-      setAvailabilityDays(Array.isArray(response?.data?.days) ? response.data.days : []);
+      setAvailabilityDays(
+        Array.isArray(response?.data?.days) ? response.data.days : [],
+      );
     } catch (error) {
       console.warn('객실 예약 가능 달력 조회 실패:', error);
       setAvailabilityDays([]);
@@ -328,7 +351,8 @@ const GuesthouseReservationEntry = ({route}) => {
     const isUnavailable =
       isCurrentMonth &&
       dayAvailability &&
-      (dayAvailability.available === false || dayAvailability.status === 'CLOSED');
+      (dayAvailability.available === false ||
+        dayAvailability.status === 'CLOSED');
     const isAvailable =
       isCurrentMonth && dayAvailability && dayAvailability.available === true;
     const nightlyPrice = getNightlyPrice(dayAvailability);
@@ -425,7 +449,11 @@ const GuesthouseReservationEntry = ({route}) => {
       availableBedLimit != null &&
       guestCount >= availableBedLimit
     ) {
-      showLimitToast(`현재 예약 가능한 베드 수는 ${availableBedLimit}개입니다`);
+      showLimitToast(
+        t('guesthouse.theNumberOfBedsCurrentlyAvailableForReservationIsValue', {
+          availableBedLimit: availableBedLimit,
+        }),
+      );
       return;
     }
 
@@ -442,7 +470,11 @@ const GuesthouseReservationEntry = ({route}) => {
   };
   const increasePrivateGuest = () => {
     if (guestCount >= maxCapacity) {
-      showLimitToast(`예약 가능한 최대 인원은 ${maxCapacity}명입니다`);
+      showLimitToast(
+        t('guesthouse.theMaximumNumberOfPeopleWhoCanMakeAReservation', {
+          maxCapacity: maxCapacity,
+        }),
+      );
       return;
     }
 
@@ -471,14 +503,14 @@ const GuesthouseReservationEntry = ({route}) => {
 
   return (
     <View style={styles.container}>
-      <Header title={guesthouseName || '객실 예약'} />
+      <Header title={guesthouseName || t('guesthouse.roomReservation')} />
       <ScrollView
         contentContainerStyle={styles.scrollContent}
         showsVerticalScrollIndicator={false}>
         <View style={styles.sectionHeader}>
           <CalendarIcon width={20} height={20} />
           <Text style={[FONTS.fs_16_semibold, styles.sectionHeaderText]}>
-            일정선택
+            {t('guesthouse.selectSchedule')}
           </Text>
         </View>
 
@@ -526,6 +558,7 @@ const GuesthouseReservationEntry = ({route}) => {
               },
             }}
           />
+
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendSelected]} />
@@ -558,9 +591,12 @@ const GuesthouseReservationEntry = ({route}) => {
               <Text style={[FONTS.fs_20_bold, styles.priceText]}>
                 {formatCurrency(displayTotalPrice)}
               </Text>
-              {hasMultiNightDiscount ? renderDiscountDescription() : (
+              {hasMultiNightDiscount ? (
+                renderDiscountDescription()
+              ) : (
                 <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-                  1베드 당 {formatCurrency(displayUnitRoomPrice)}
+                  {t('common.perBed')}
+                  {formatCurrency(displayUnitRoomPrice)}
                 </Text>
               )}
             </View>
@@ -597,7 +633,8 @@ const GuesthouseReservationEntry = ({route}) => {
               </Text>
               {hasMultiNightDiscount && renderDiscountDescription()}
               <Text style={[FONTS.fs_14_regular, styles.unitPriceText]}>
-                {baseCapacity}인 기준
+                {baseCapacity}
+                {t('guesthouse.phosphorusStandard')}
               </Text>
             </View>
 
@@ -613,11 +650,13 @@ const GuesthouseReservationEntry = ({route}) => {
                     <View style={styles.optionIconDot} />
                   </View>
                   <Text style={[FONTS.fs_16_semibold, styles.optionTitle]}>
-                    추가옵션
+                    {t('guesthouse.additionalOptions')}
                   </Text>
                 </View>
                 <Text style={[FONTS.fs_14_regular, styles.optionDescription]}>
-                  투숙 인원을 선택해주세요 (최대 {maxCapacity}인)
+                  {t('guesthouse.pleaseSelectTheNumberOfGuestsMaximum')}
+                  {maxCapacity}
+                  {t('common.phosphorus')}
                 </Text>
 
                 <View style={styles.optionPriceRow}>
@@ -625,8 +664,11 @@ const GuesthouseReservationEntry = ({route}) => {
                     <Text style={[FONTS.fs_16_semibold, styles.extraPriceText]}>
                       {formatCurrency(extraGuestUnitPrice)}
                     </Text>
-                    <Text style={[FONTS.fs_14_regular, styles.extraPriceSubText]}>
-                      기준 인원 초과 시 1인당
+                    <Text
+                      style={[FONTS.fs_14_regular, styles.extraPriceSubText]}>
+                      {t(
+                        'guesthouse.perPersonIfTheStandardNumberOfPeopleIsExceeded',
+                      )}
                     </Text>
                   </View>
 
@@ -639,7 +681,8 @@ const GuesthouseReservationEntry = ({route}) => {
                         style={styles.stepperButton}>
                         <MinusIcon width={20} height={20} />
                       </TouchableOpacity>
-                      <Text style={[FONTS.fs_16_semibold, styles.guestCountText]}>
+                      <Text
+                        style={[FONTS.fs_16_semibold, styles.guestCountText]}>
                         {guestCount}
                       </Text>
                       <TouchableOpacity
@@ -650,7 +693,9 @@ const GuesthouseReservationEntry = ({route}) => {
                       </TouchableOpacity>
                     </View>
                     <Text style={[FONTS.fs_14_medium, styles.totalGuestText]}>
-                      추가 인원 {extraGuestCount}명
+                      {t('common.additionalPeople')}
+                      {extraGuestCount}
+                      {t('common.peopleUnit')}
                     </Text>
                   </View>
                 </View>
@@ -670,7 +715,7 @@ const GuesthouseReservationEntry = ({route}) => {
 
       <View style={styles.fixedButton}>
         <ButtonScarlet
-          title="다음 단계"
+          title={t('guesthouse.nextSteps')}
           onPress={goNext}
           disabled={!selectedCheckIn || !selectedCheckOut}
         />

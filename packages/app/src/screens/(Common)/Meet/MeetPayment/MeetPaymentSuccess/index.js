@@ -1,9 +1,9 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -13,6 +13,7 @@ import AppImage from '@components/AppImage';
 import Logo from '@assets/images/meet_reservation_success.svg';
 
 const MeetPaymentSuccess = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {
@@ -58,11 +59,17 @@ const MeetPaymentSuccess = () => {
   return (
     <View style={styles.container}>
       <Logo />
-      <Text style={[FONTS.fs_20_semibold, styles.commentTitle]}>신청 접수 완료!</Text>
+      <Text style={[FONTS.fs_20_semibold, styles.commentTitle]}>
+        {t('meet.applicationAccepted')}
+      </Text>
       <Text style={[FONTS.fs_16_medium, styles.text]}>
-        사장님이 확인 후 <Text style={{color: COLORS.semantic_red}}>최종 확정 알림</Text>을 
+        {t('meet.afterTheBossConfirmed')}
+        <Text style={{color: COLORS.semantic_red}}>
+          {t('meet.finalConfirmationNotification')}
+        </Text>
+        {t('meet.to')}
         {'\n'}
-        보내드릴 예정입니다
+        {t('meet.iMPlanningToSendItToYou')}
       </Text>
 
       <View style={styles.bottomRow}>
@@ -78,7 +85,7 @@ const MeetPaymentSuccess = () => {
           )}
           <View style={styles.infoText}>
             <Text style={[FONTS.fs_16_medium, styles.titleText]}>
-              {partyTitle || '콘텐츠'}
+              {partyTitle || t('common.activity')}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.timeText]}>
               {eventDateTimeText}
@@ -87,11 +94,12 @@ const MeetPaymentSuccess = () => {
         </View>
 
         <View style={styles.button}>
-          <ButtonScarlet title={'신청내역 확인하기'} onPress={handleGoHome} />
+          <ButtonScarlet
+            title={t('meet.checkApplicationDetails')}
+            onPress={handleGoHome}
+          />
         </View>
-
       </View>
-      
     </View>
   );
 };

@@ -1,4 +1,3 @@
-
 export const PAYMENT_TYPE = {
   CARD: 'CARD',
   VIRTUAL_ACCOUNT: 'VIRTUAL_ACCOUNT',
@@ -11,14 +10,26 @@ export const PAYMENT_TYPE = {
   UNKNOWN: 'UNKNOWN',
 };
 
-export const PAYMENT_TYPE_LABEL = {
-  [PAYMENT_TYPE.CARD]: '카드',
-  [PAYMENT_TYPE.VIRTUAL_ACCOUNT]: '가상계좌',
-  [PAYMENT_TYPE.EASY_PAY]: '간편결제',
-  [PAYMENT_TYPE.MOBILE_PHONE]: '휴대폰',
-  [PAYMENT_TYPE.BANK_TRANSFER]: '계좌이체',
-  [PAYMENT_TYPE.CULTURE_GIFT_CERT]: '문화상품권',
-  [PAYMENT_TYPE.BOOK_GIFT_CERT]: '도서문화상품권',
-  [PAYMENT_TYPE.GAME_GIFT_CERT]: '게임문화상품권',
-  [PAYMENT_TYPE.UNKNOWN]: '알 수 없음',
+const PAYMENT_TYPE_KEY = {
+  [PAYMENT_TYPE.CARD]: 'payment.method.card',
+  [PAYMENT_TYPE.VIRTUAL_ACCOUNT]: 'payment.method.virtualAccount',
+  [PAYMENT_TYPE.EASY_PAY]: 'payment.method.easyPay',
+  [PAYMENT_TYPE.MOBILE_PHONE]: 'payment.method.mobilePhone',
+  [PAYMENT_TYPE.BANK_TRANSFER]: 'payment.method.bankTransfer',
+  [PAYMENT_TYPE.CULTURE_GIFT_CERT]: 'payment.method.cultureGiftCertificate',
+  [PAYMENT_TYPE.BOOK_GIFT_CERT]: 'payment.method.bookGiftCertificate',
+  [PAYMENT_TYPE.GAME_GIFT_CERT]: 'payment.method.gameGiftCertificate',
+  [PAYMENT_TYPE.UNKNOWN]: 'payment.method.unknown',
 };
+
+export const PAYMENT_TYPE_LABEL = {};
+Object.entries(PAYMENT_TYPE_KEY).forEach(([type, key]) => {
+  Object.defineProperty(PAYMENT_TYPE_LABEL, type, {
+    enumerable: true,
+    get: () => i18n.t(key),
+  });
+});
+
+export const getPaymentTypeLabel = type =>
+  i18n.t(PAYMENT_TYPE_KEY[type] || PAYMENT_TYPE_KEY[PAYMENT_TYPE.UNKNOWN]);
+import i18n from '../i18n';

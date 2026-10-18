@@ -1,3 +1,6 @@
+import i18n from '../i18n';
+import {getLocaleTag} from './localeFormat';
+
 // export const formatDate = isoString => {
 //   if (!isoString) return '날짜 없음';
 //   const date = new Date(isoString);
@@ -27,7 +30,7 @@
  * LocalDate (year-month-day) →  "year.month.day"
  */
 export const formatLocalDateToDot = localDate => {
-  if (!localDate) return '날짜 없음';
+  if (!localDate) return i18n.t('common.dateUnavailable');
   const [year, month, day] = localDate.split('-');
   return `${year}.${month}.${day.split('T')[0]}`;
 };
@@ -36,12 +39,13 @@ export const formatLocalDateToDot = localDate => {
  * LocalDate (year-month-day) → 요일까지 "year.month.day (요일)"
  */
 export const formatLocalDateToDotWithDay = localDate => {
-  if (!localDate) return '날짜 없음';
+  if (!localDate) return i18n.t('common.dateUnavailable');
   const date = new Date(localDate);
   const [year, month, dayWithTime] = localDate.split('-');
   const day = dayWithTime.split('T')[0];
-  const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekDay = weekNames[date.getDay()];
+  const weekDay = new Intl.DateTimeFormat(getLocaleTag(), {
+    weekday: 'short',
+  }).format(date);
   return `${year}.${month}.${day} (${weekDay})`;
 };
 
@@ -51,7 +55,12 @@ export const formatLocalDateToDotWithDay = localDate => {
  *  - 시간은 "hour:minute"
  */
 export const formatLocalDateTimeToDotAndTime = localDateTime => {
-  if (!localDateTime) return {date: '날짜 없음', time: '시간 없음'};
+  if (!localDateTime) {
+    return {
+      date: i18n.t('common.dateUnavailable'),
+      time: i18n.t('common.timeUnavailable'),
+    };
+  }
   const [datePart, timePart] = localDateTime.split('T');
   const [hour, minute] = timePart.split(':');
   const [year, month, day] = datePart.split('-');
@@ -68,15 +77,21 @@ export const formatLocalDateTimeToDotAndTime = localDateTime => {
  *  - 시간은 "hour:minute"
  */
 export const formatLocalDateTimeToDotAndTimeWithDay = localDateTime => {
-  if (!localDateTime) return {date: '날짜 없음', time: '시간 없음'};
+  if (!localDateTime) {
+    return {
+      date: i18n.t('common.dateUnavailable'),
+      time: i18n.t('common.timeUnavailable'),
+    };
+  }
 
   const [datePart, timePart] = localDateTime.split('T');
   const [hour, minute] = timePart.split(':');
   const [year, month, day] = datePart.split('-');
 
   const dateObj = new Date(datePart);
-  const weekNames = ['일', '월', '화', '수', '목', '금', '토'];
-  const weekDay = weekNames[dateObj.getDay()];
+  const weekDay = new Intl.DateTimeFormat(getLocaleTag(), {
+    weekday: 'short',
+  }).format(dateObj);
 
   return {
     date: `${year}.${month}.${day} (${weekDay})`,
@@ -145,7 +160,7 @@ export const parseSlashDateToYearMonthDot = slashDate => {
  * 24시간 추후에 바뀔 수도 있어서 일단 만들어 놓음
  */
 export const formatLocalTime = localTime => {
-  return localTime || '시간 없음';
+  return localTime || i18n.t('common.timeUnavailable');
 };
 
 // 보내기
@@ -162,12 +177,15 @@ export const parseTimeToLocalTime = time => {
  *  - 예: "15:00:00" → "오후 3:00"
  */
 export const formatLocalTimeToKorean12Hour = localTime => {
-  if (!localTime) return '시간 없음';
+  if (!localTime) return i18n.t('common.timeUnavailable');
   const [hourStr, minuteStr] = localTime.split(':');
   const hour = Number(hourStr);
   const minute = Number(minuteStr);
 
-  const ampm = hour >= 12 ? '오후' : '오전';
-  const hour12 = hour % 12 === 0 ? 12 : hour % 12;
-  return `${ampm} ${hour12}:${minute.toString().padStart(2, '0')}`;
+  const date = new Date(2000, 0, 1, hour, minute);
+  return new Intl.DateTimeFormat(getLocaleTag(), {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(date);
 };

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
@@ -6,8 +7,15 @@ import RightChevron from '@assets/images/chevron_right_gray.svg';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
-const DOW_HEADER = ['월', '화', '수', '목', '금', '토', '일'];
-const DOW_KR = ['일', '월', '화', '수', '목', '금', '토'];
+const DOW_KEYS = [
+  'common.work',
+  'common.month',
+  'common.angry',
+  'common.number',
+  'common.neck',
+  'common.gold',
+  'common.sat',
+];
 
 const pad2 = value => String(value).padStart(2, '0');
 const isSameDay = (a, b) =>
@@ -17,19 +25,22 @@ const isSameDay = (a, b) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-const formatSelected = date =>
-  `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}(${
-    DOW_KR[date.getDay()]
-  })`;
-
 const ApplicantInfoDatePicker = ({
   value,
   onChange,
   minDate,
   maxDate,
-  label = '날짜',
+  label,
   style,
 }) => {
+  const {t} = useTranslation();
+  const dayNames = DOW_KEYS.map(key => t(key));
+  const dayHeaders = [...dayNames.slice(1), dayNames[0]];
+  const formatSelected = date =>
+    `${pad2(date.getMonth() + 1)}.${pad2(date.getDate())}(${
+      dayNames[date.getDay()]
+    })`;
+  const resolvedLabel = label ?? t('common.date');
   const [current, setCurrent] = useState(value ?? new Date());
   const [selected, setSelected] = useState(value ?? null);
 
@@ -132,9 +143,9 @@ const ApplicantInfoDatePicker = ({
   return (
     <View style={[styles.card, style]}>
       <View style={styles.headerRow}>
-        <Text style={styles.labelText}>{label}</Text>
+        <Text style={styles.labelText}>{resolvedLabel}</Text>
         <Text style={styles.valueText}>
-          {selected ? formatSelected(selected) : '선택'}
+          {selected ? formatSelected(selected) : t('common.select')}
         </Text>
       </View>
 
@@ -148,7 +159,10 @@ const ApplicantInfoDatePicker = ({
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={styles.monthTitle}>
-          {year}년 {month + 1}월
+          {year}
+          {t('common.year')}
+          {month + 1}
+          {t('common.month')}
         </Text>
         <TouchableOpacity
           onPress={() => canGoNext && setCurrent(new Date(year, month + 1, 1))}
@@ -159,7 +173,7 @@ const ApplicantInfoDatePicker = ({
       </View>
 
       <View style={styles.dowRow}>
-        {DOW_HEADER.map(day => (
+        {dayHeaders.map(day => (
           <Text key={day} style={styles.dowText}>
             {day}
           </Text>

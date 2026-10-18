@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useMemo, useState} from 'react';
 import {
   Keyboard,
@@ -26,21 +28,22 @@ import PersonGray from '@assets/images/person20_gray.svg';
 import styles from './ForeignRegisterProfile.styles';
 
 const LANGUAGE_OPTIONS = [
-  ['KO', 'Korean'],
-  ['EN', 'English'],
-  ['JA', 'Japanese'],
-  ['ZH', 'Chinese'],
+  ['KO', i18n.t('language.korean')],
+  ['EN', i18n.t('language.english')],
+  ['JA', i18n.t('auth.japanese')],
+  ['ZH', i18n.t('auth.chinese')],
 ];
 
 const AGREEMENT_LABELS = {
-  TERMS_OF_SERVICE: 'I agree to the Terms of Service',
-  AGE_OVER_14_CONFIRMATION: 'I confirm that I am at least 14 years old',
-  PRIVACY_POLICY: 'I agree to the Privacy Policy',
-  LOCATION_BASED_SERVICE: 'I agree to the Location-Based Service Terms',
-  MARKETING_NOTIFICATION: 'I agree to receive marketing notifications',
+  TERMS_OF_SERVICE: i18n.t('auth.iAgreeToTheTermsOfService'),
+  AGE_OVER_14_CONFIRMATION: i18n.t('auth.iConfirmThatIAmAtLeast14YearsOld'),
+  PRIVACY_POLICY: i18n.t('auth.iAgreeToThePrivacyPolicy'),
+  LOCATION_BASED_SERVICE: i18n.t('auth.iAgreeToTheLocationBasedServiceTerms'),
+  MARKETING_NOTIFICATION: i18n.t('auth.iAgreeToReceiveMarketingNotifications'),
 };
 
 const ForeignRegisterProfile = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {
     provider = 'GOOGLE',
@@ -65,7 +68,9 @@ const ForeignRegisterProfile = ({route}) => {
   const [errorMessage, setErrorMessage] = useState('');
 
   const nicknameValidation = useMemo(
-    () => validateRegisterProfile({...form, password: '', passwordConfirm: ''}).nickname,
+    () =>
+      validateRegisterProfile({...form, password: '', passwordConfirm: ''})
+        .nickname,
     [form],
   );
   const requiredAgreementsAccepted = agreements
@@ -85,7 +90,7 @@ const ForeignRegisterProfile = ({route}) => {
   const updateForm = (key, value) => setForm(prev => ({...prev, [key]: value}));
 
   const handleNicknameChange = value => {
-    updateForm('nickname', value);
+    updateForm(t('auth.nickname'), value);
     setNicknameChecked(false);
     setNicknameMessage('');
   };
@@ -96,7 +101,7 @@ const ForeignRegisterProfile = ({route}) => {
       .slice(0, 8)
       .replace(/^(\d{4})(\d)/, '$1-$2')
       .replace(/^(\d{4}-\d{2})(\d)/, '$1-$2');
-    updateForm('birthday', formatted);
+    updateForm(t('auth.birthday'), formatted);
   };
 
   const checkNickname = async () => {
@@ -104,13 +109,13 @@ const ForeignRegisterProfile = ({route}) => {
       const response = await authApi.checkNickname(form.nickname);
       setNicknameChecked(true);
       setNicknameDuplicated(false);
-      setNicknameMessage(response?.data || 'This nickname is available.');
+      setNicknameMessage(response?.data || t('auth.thisNicknameIsAvailable'));
       return true;
     } catch (error) {
       setNicknameChecked(true);
       setNicknameDuplicated(true);
       setNicknameMessage(
-        error?.response?.data?.message || 'This nickname is already in use.',
+        error?.response?.data?.message || t('auth.thisNicknameIsAlreadyInUse'),
       );
       return false;
     }
@@ -126,9 +131,7 @@ const ForeignRegisterProfile = ({route}) => {
 
   const toggleAllAgreements = () => {
     const nextAgreed = !allAgreementsAccepted;
-    setAgreements(prev =>
-      prev.map(item => ({...item, isAgree: nextAgreed})),
-    );
+    setAgreements(prev => prev.map(item => ({...item, isAgree: nextAgreed})));
   };
 
   const handleSubmit = async () => {
@@ -164,7 +167,7 @@ const ForeignRegisterProfile = ({route}) => {
       const {accessToken, refreshToken} = response.data || {};
 
       if (!accessToken || !refreshToken) {
-        throw new Error('The sign-up token response is empty.');
+        throw new Error(t('auth.theSignUpTokenResponseIsEmpty'));
       }
 
       await storeLoginTokens({accessToken, refreshToken, userRole: 'USER'});
@@ -179,7 +182,7 @@ const ForeignRegisterProfile = ({route}) => {
       setErrorMessage(
         error?.response?.data?.message ||
           error?.message ||
-          'Registration failed. Please try again.',
+          t('auth.registrationFailedPleaseTryAgain'),
       );
     } finally {
       setSubmitting(false);
@@ -208,199 +211,214 @@ const ForeignRegisterProfile = ({route}) => {
         directionalLockEnabled
         showsVerticalScrollIndicator={false}
         onScrollBeginDrag={Keyboard.dismiss}>
-          <LogoOrange width={60} height={29} />
-          <View style={styles.heading}>
-            <Text style={styles.title}>Complete Profile</Text>
-            <Text style={styles.subtitle}>
-              Please fill in your details below to register.
-            </Text>
-          </View>
+        <LogoOrange width={60} height={29} />
+        <View style={styles.heading}>
+          <Text style={styles.title}>{t('auth.completeProfile')}</Text>
+          <Text style={styles.subtitle}>
+            {t('auth.pleaseFillInYourDetailsBelowToRegister')}
+          </Text>
+        </View>
 
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Personal Information</Text>
-            <View style={styles.divider} />
-            {renderField({
-              label: 'Full Name *',
-              icon: PersonGray,
-              children: (
-                <TextInput
-                  style={styles.input}
-                  value={form.name}
-                  onChangeText={value => updateForm('name', value)}
-                  placeholder="Enter your full name"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  maxLength={30}
-                />
-              ),
-            })}
-            <View style={styles.field}>
-              <Text style={styles.label}>Nickname *</Text>
-              <View style={styles.inputBox}>
-                <PersonGray width={20} height={20} />
-                <TextInput
-                  style={styles.input}
-                  value={form.nickname}
-                  onChangeText={handleNicknameChange}
-                  placeholder="Enter your nickname"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  maxLength={10}
-                />
-                <TouchableOpacity
-                  style={styles.smallButton}
-                  disabled={
-                    !nicknameValidation.hasNoSpecialChars ||
-                    !nicknameValidation.isLengthValid
-                  }
-                  onPress={checkNickname}>
-                  <Text style={styles.smallButtonText}>Check</Text>
-                </TouchableOpacity>
-              </View>
-              {!!nicknameMessage && (
-                <Text
-                  style={[
-                    styles.helper,
-                    nicknameDuplicated ? styles.error : styles.success,
-                  ]}>
-                  {nicknameMessage}
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('auth.personalInformation')}</Text>
+          <View style={styles.divider} />
+          {renderField({
+            label: t('auth.fullName_9e2a35'),
+            icon: PersonGray,
+            children: (
+              <TextInput
+                style={styles.input}
+                value={form.name}
+                onChangeText={value =>
+                  updateForm(t('common.name_9aa18e'), value)
+                }
+                placeholder={t('auth.enterYourFullName')}
+                placeholderTextColor={COLORS.grayscale_400}
+                maxLength={30}
+              />
+            ),
+          })}
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('auth.nickname_a34f2c')}</Text>
+            <View style={styles.inputBox}>
+              <PersonGray width={20} height={20} />
+              <TextInput
+                style={styles.input}
+                value={form.nickname}
+                onChangeText={handleNicknameChange}
+                placeholder={t('auth.enterYourNickname')}
+                placeholderTextColor={COLORS.grayscale_400}
+                maxLength={10}
+              />
+
+              <TouchableOpacity
+                style={styles.smallButton}
+                disabled={
+                  !nicknameValidation.hasNoSpecialChars ||
+                  !nicknameValidation.isLengthValid
+                }
+                onPress={checkNickname}>
+                <Text style={styles.smallButtonText}>
+                  {t('common.confirm_468266')}
                 </Text>
-              )}
+              </TouchableOpacity>
             </View>
-            {renderField({
-              label: 'Date of Birth *',
-              icon: CalendarGray,
-              children: (
-                <TextInput
-                  style={styles.input}
-                  value={form.birthday}
-                  onChangeText={handleBirthdayChange}
-                  placeholder="YYYY-MM-DD"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  keyboardType="number-pad"
-                  maxLength={10}
-                />
-              ),
-            })}
-            <View style={styles.field}>
-              <Text style={styles.label}>Gender *</Text>
-              <View style={styles.choiceRow}>
-                {[
-                  ['F', 'Female'],
-                  ['M', 'Male'],
-                ].map(([value, label]) => (
-                  <TouchableOpacity
-                    key={value}
-                    style={[
-                      styles.choice,
-                      form.gender === value && styles.choiceSelected,
-                    ]}
-                    onPress={() => updateForm('gender', value)}>
-                    <Text
-                      style={[
-                        styles.choiceText,
-                        form.gender === value && styles.choiceTextSelected,
-                      ]}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
+            {!!nicknameMessage && (
+              <Text
+                style={[
+                  styles.helper,
+                  nicknameDuplicated ? styles.error : styles.success,
+                ]}>
+                {nicknameMessage}
+              </Text>
+            )}
           </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Nationality & Language</Text>
-            <View style={styles.divider} />
-            {renderField({
-              label: 'Nationality (ISO country code) *',
-              children: (
-                <TextInput
-                  style={styles.input}
-                  value={form.nationalityCountryCode}
-                  onChangeText={value =>
-                    updateForm(
-                      'nationalityCountryCode',
-                      value.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2),
-                    )
-                  }
-                  placeholder="e.g. US, JP, FR"
-                  placeholderTextColor={COLORS.grayscale_400}
-                  autoCapitalize="characters"
-                  maxLength={2}
-                />
-              ),
-            })}
-            <View style={styles.field}>
-              <Text style={styles.label}>Preferred Language *</Text>
-              <View style={styles.languageGrid}>
-                {LANGUAGE_OPTIONS.map(([value, label]) => (
-                  <TouchableOpacity
-                    key={value}
-                    style={[
-                      styles.languageChoice,
-                      form.preferredLanguage === value && styles.choiceSelected,
-                    ]}
-                    onPress={() => updateForm('preferredLanguage', value)}>
-                    <Text
-                      style={[
-                        styles.choiceText,
-                        form.preferredLanguage === value &&
-                          styles.choiceTextSelected,
-                      ]}>
-                      {label}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </View>
-          </View>
-
-          <View style={styles.card}>
-            <Text style={styles.cardTitle}>Agreements</Text>
-            <View style={styles.divider} />
-            <TouchableOpacity
-              style={styles.allAgreementRow}
-              onPress={toggleAllAgreements}>
-              {allAgreementsAccepted ? (
-                <CheckOrange width={24} height={24} />
-              ) : (
-                <CheckGray width={24} height={24} />
-              )}
-              <Text style={styles.allAgreementText}>Agree to all</Text>
-            </TouchableOpacity>
-            <View style={styles.divider} />
-            {agreements.map(item => (
-              <View key={item.id} style={styles.agreementRow}>
-                <TouchableOpacity onPress={() => toggleAgreement(item.id)}>
-                  {item.isAgree ? (
-                    <CheckOrange width={24} height={24} />
-                  ) : (
-                    <CheckGray width={24} height={24} />
-                  )}
-                </TouchableOpacity>
+          {renderField({
+            label: t('auth.dateOfBirth'),
+            icon: CalendarGray,
+            children: (
+              <TextInput
+                style={styles.input}
+                value={form.birthday}
+                onChangeText={handleBirthdayChange}
+                placeholder="YYYY-MM-DD"
+                placeholderTextColor={COLORS.grayscale_400}
+                keyboardType="number-pad"
+                maxLength={10}
+              />
+            ),
+          })}
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('auth.gender')}</Text>
+            <View style={styles.choiceRow}>
+              {[
+                ['F', t('auth.female')],
+                ['M', t('auth.male')],
+              ].map(([value, label]) => (
                 <TouchableOpacity
-                  style={styles.agreementLabel}
-                  onPress={() => toggleAgreement(item.id)}>
-                  <Text style={styles.agreementText}>
-                    {AGREEMENT_LABELS[item.id] || item.title}
-                    {item.isRequired ? ' *' : ''}
+                  key={value}
+                  style={[
+                    styles.choice,
+                    form.gender === value && styles.choiceSelected,
+                  ]}
+                  onPress={() => updateForm(t('auth.gender_77737f'), value)}>
+                  <Text
+                    style={[
+                      styles.choiceText,
+                      form.gender === value && styles.choiceTextSelected,
+                    ]}>
+                    {label}
                   </Text>
                 </TouchableOpacity>
-                <TouchableOpacity
-                  onPress={() =>
-                    navigation.navigate('AgreeDetail', {id: item.id, who: 'USER'})
-                  }>
-                  <Text style={styles.viewText}>View</Text>
-                </TouchableOpacity>
-              </View>
-            ))}
+              ))}
+            </View>
           </View>
+        </View>
 
-          <ButtonScarlet
-            title={submitting ? 'Registering...' : 'Complete Registration'}
-            disabled={!formValid || submitting}
-            onPress={handleSubmit}
-            style={styles.submitButton}
-          />
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>
+            {t('auth.nationalityLanguage_89be5b')}
+          </Text>
+          <View style={styles.divider} />
+          {renderField({
+            label: t('auth.nationalityIsoCountryCode'),
+            children: (
+              <TextInput
+                style={styles.input}
+                value={form.nationalityCountryCode}
+                onChangeText={value =>
+                  updateForm(
+                    t('auth.nationalitycountrycode'),
+
+                    value
+                      .replace(/[^a-zA-Z]/g, '')
+                      .toUpperCase()
+                      .slice(0, 2),
+                  )
+                }
+                placeholder={t('auth.eGUsJpFr')}
+                placeholderTextColor={COLORS.grayscale_400}
+                autoCapitalize={t('auth.characters')}
+                maxLength={2}
+              />
+            ),
+          })}
+          <View style={styles.field}>
+            <Text style={styles.label}>{t('auth.preferredLanguage')}</Text>
+            <View style={styles.languageGrid}>
+              {LANGUAGE_OPTIONS.map(([value, label]) => (
+                <TouchableOpacity
+                  key={value}
+                  style={[
+                    styles.languageChoice,
+                    form.preferredLanguage === value && styles.choiceSelected,
+                  ]}
+                  onPress={() =>
+                    updateForm(t('auth.preferredlanguage'), value)
+                  }>
+                  <Text
+                    style={[
+                      styles.choiceText,
+                      form.preferredLanguage === value &&
+                        styles.choiceTextSelected,
+                    ]}>
+                    {label}
+                  </Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </View>
+        </View>
+
+        <View style={styles.card}>
+          <Text style={styles.cardTitle}>{t('auth.agreements')}</Text>
+          <View style={styles.divider} />
+          <TouchableOpacity
+            style={styles.allAgreementRow}
+            onPress={toggleAllAgreements}>
+            {allAgreementsAccepted ? (
+              <CheckOrange width={24} height={24} />
+            ) : (
+              <CheckGray width={24} height={24} />
+            )}
+            <Text style={styles.allAgreementText}>{t('auth.agreeToAll')}</Text>
+          </TouchableOpacity>
+          <View style={styles.divider} />
+          {agreements.map(item => (
+            <View key={item.id} style={styles.agreementRow}>
+              <TouchableOpacity onPress={() => toggleAgreement(item.id)}>
+                {item.isAgree ? (
+                  <CheckOrange width={24} height={24} />
+                ) : (
+                  <CheckGray width={24} height={24} />
+                )}
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={styles.agreementLabel}
+                onPress={() => toggleAgreement(item.id)}>
+                <Text style={styles.agreementText}>
+                  {AGREEMENT_LABELS[item.id] || item.title}
+                  {item.isRequired ? ' *' : ''}
+                </Text>
+              </TouchableOpacity>
+              <TouchableOpacity
+                onPress={() =>
+                  navigation.navigate('AgreeDetail', {id: item.id, who: 'USER'})
+                }>
+                <Text style={styles.viewText}>{t('auth.view')}</Text>
+              </TouchableOpacity>
+            </View>
+          ))}
+        </View>
+
+        <ButtonScarlet
+          title={
+            submitting ? t('auth.registering') : t('auth.completeRegistration')
+          }
+          disabled={!formValid || submitting}
+          onPress={handleSubmit}
+          style={styles.submitButton}
+        />
       </ScrollView>
       <AlertModal
         visible={!!errorMessage}

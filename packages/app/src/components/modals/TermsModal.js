@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo} from 'react';
 import {
   View,
@@ -9,8 +10,8 @@ import {
 import Modal from '@components/modals/AdaptiveModal';
 import {WebView} from 'react-native-webview';
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 import XIcon from '@assets/images/x_gray.svg';
@@ -32,7 +33,15 @@ const escapeHtml = text =>
     .replace(/</g, '&lt;')
     .replace(/>/g, '&gt;');
 
-const TermsModal = ({ visible, onClose, title, content, contentHtml, onAgree }) => {
+const TermsModal = ({
+  visible,
+  onClose,
+  title,
+  content,
+  contentHtml,
+  onAgree,
+}) => {
+  const {t} = useTranslation();
   const scheme = useColorScheme();
   const rawHtml =
     contentHtml ||
@@ -74,14 +83,14 @@ const TermsModal = ({ visible, onClose, title, content, contentHtml, onAgree }) 
       animationType="slide"
       transparent={true}
       visible={visible}
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <View style={styles.overlay}>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.backdrop}
           onPress={onClose}
         />
+
         <View style={styles.modalContainer}>
           <View style={styles.contentContainer}>
             {/* 헤더 */}
@@ -109,12 +118,8 @@ const TermsModal = ({ visible, onClose, title, content, contentHtml, onAgree }) 
 
           {/* 동의 버튼 */}
           <View style={styles.agreeButton}>
-            <ButtonScarlet
-              onPress={onAgree}
-              title={'동의합니다'}
-            />
+            <ButtonScarlet onPress={onAgree} title={t('components.iAgree')} />
           </View>
-
         </View>
       </View>
     </Modal>
@@ -125,7 +130,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
     alignItems: 'center',
   },
   backdrop: {
@@ -162,8 +167,7 @@ const styles = StyleSheet.create({
   },
 
   // 동의 버튼
-  agreeButton: {
-  },
+  agreeButton: {},
 });
 
 export default TermsModal;
