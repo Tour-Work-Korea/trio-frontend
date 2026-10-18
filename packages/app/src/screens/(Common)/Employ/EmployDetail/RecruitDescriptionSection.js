@@ -1,12 +1,14 @@
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 
 export default function RecruitDescriptionSection({description}) {
+  const {t} = useTranslation();
   return (
     <View style={styles.detailSection}>
-      <Text style={styles.detailTitle}>상세 정보</Text>
+      <Text style={styles.detailTitle}>{t('common.details')}</Text>
       <View style={styles.detailContentContainer}>
         <Text style={styles.detailContent}>{description}</Text>
       </View>

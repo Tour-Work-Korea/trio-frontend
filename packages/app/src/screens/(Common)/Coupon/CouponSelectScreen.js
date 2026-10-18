@@ -1,6 +1,11 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
-import {CommonActions, useFocusEffect, useNavigation} from '@react-navigation/native';
+import {
+  CommonActions,
+  useFocusEffect,
+  useNavigation,
+} from '@react-navigation/native';
 
 import EmptyState from '@components/EmptyState';
 import Header from '@components/Header';
@@ -22,12 +27,13 @@ import CouponEmptyIcon from '@assets/images/cancel_reservation.svg';
 import CheckIcon from '@assets/images/check_white.svg';
 
 const CouponSelectScreen = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {
     totalPrice = 0,
     selectedCouponId: initialSelectedCouponId = null,
     targetScreen = 'GuesthouseReservation',
-    title = '쿠폰 할인',
+    title = t('common.couponDiscount'),
   } = route.params || {};
   const [coupons, setCoupons] = useState([]);
   const [selectedCouponId, setSelectedCouponId] = useState(
@@ -80,9 +86,10 @@ const CouponSelectScreen = ({route}) => {
     const discountType = coupon?.discountType || coupon?.couponType;
 
     if (discountType === 'PERCENTAGE' || discountType === 'PERCENT') {
-      return `${discountAmount.toLocaleString('ko-KR')}원 (${getDiscountRateLabel(
-        coupon,
-      )})`;
+      return t('coupon.valueWonValue', {
+        value1: discountAmount.toLocaleString('ko-KR'),
+        value2: getDiscountRateLabel(coupon),
+      });
     }
 
     return getDiscountRateLabel(coupon);
@@ -94,7 +101,9 @@ const CouponSelectScreen = ({route}) => {
           userCouponId: getCouponId(selectedCoupon),
           title: getCouponTitle(selectedCoupon),
           discountAmount: selectedDiscountAmount,
-          discountLabel: `${selectedDiscountAmount.toLocaleString('ko-KR')}원`,
+          discountLabel: t('common.valueWon', {
+            value1: selectedDiscountAmount.toLocaleString('ko-KR'),
+          }),
         }
       : null;
 
@@ -127,7 +136,10 @@ const CouponSelectScreen = ({route}) => {
       <Header title={title} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[FONTS.fs_14_medium, styles.summaryText]}>
-          적용가능 {usableCouponCount} / 보유 {coupons.length}
+          {t('coupon.applicable')}
+          {usableCouponCount}
+          {t('coupon.holds')}
+          {coupons.length}
         </Text>
 
         {coupons.length > 0 ? (
@@ -154,9 +166,7 @@ const CouponSelectScreen = ({route}) => {
                       isSelected && styles.checkedCheckbox,
                       isDisabled && styles.disabledCheckbox,
                     ]}>
-                    {isSelected ? (
-                      <CheckIcon height={16} width={16}/>
-                    ) : null}
+                    {isSelected ? <CheckIcon height={16} width={16} /> : null}
                   </View>
                   <View style={styles.cardContent}>
                     <Text
@@ -204,8 +214,8 @@ const CouponSelectScreen = ({route}) => {
             <EmptyState
               icon={CouponEmptyIcon}
               iconSize={{width: 160, height: 120}}
-              title="보유한 쿠폰이 없어요"
-              description="쿠폰 등록 후 사용할 수 있어요."
+              title={t('common.iDonTHaveAnyCoupons')}
+              description={t('common.youCanUseTheCouponAfterRegisteringIt')}
             />
           </View>
         )}
@@ -213,7 +223,9 @@ const CouponSelectScreen = ({route}) => {
 
       <View style={styles.buttonContainer}>
         <ButtonScarlet
-          title={`${selectedDiscountAmount.toLocaleString('ko-KR')}원 적용하기`}
+          title={t('coupon.applyValueWon', {
+            value1: selectedDiscountAmount.toLocaleString('ko-KR'),
+          })}
           onPress={handleApplyCoupon}
         />
       </View>

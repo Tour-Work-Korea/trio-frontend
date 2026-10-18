@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {
   Alert,
@@ -29,6 +30,7 @@ const getDisplayRating = rating => {
 };
 
 const UserPartyReviewList = () => {
+  const {t} = useTranslation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -53,41 +55,48 @@ const UserPartyReviewList = () => {
 
   const handleDelete = useCallback(
     reviewId => {
-      Alert.alert('리뷰 삭제', '정말로 이 리뷰를 삭제하시겠어요?', [
-        {text: '취소', style: 'cancel'},
-        {
-          text: '삭제',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await userMyApi.deletePartyReview(reviewId);
-              Toast.show({
-                type: 'success',
-                text1: '삭제되었어요!',
-                position: 'top',
-                visibilityTime: 2000,
-              });
-              await fetchReviews();
-            } catch (error) {
-              Alert.alert('삭제 실패', '리뷰 삭제 중 문제가 발생했어요.');
-            }
+      Alert.alert(
+        t('common.deleteReview'),
+        t('common.areYouSureYouWantToDeleteThisReview'),
+        [
+          {text: t('common.cancel'), style: 'cancel'},
+          {
+            text: t('common.delete'),
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await userMyApi.deletePartyReview(reviewId);
+                Toast.show({
+                  type: 'success',
+                  text1: t('common.deleted'),
+                  position: 'top',
+                  visibilityTime: 2000,
+                });
+                await fetchReviews();
+              } catch (error) {
+                Alert.alert(
+                  t('common.deletionFailed'),
+                  t('common.thereWasAProblemDeletingTheReview'),
+                );
+              }
+            },
           },
-        },
-      ]);
+        ],
+      );
     },
-    [fetchReviews],
+    [fetchReviews, t],
   );
 
   if (loading) {
-    return <Loading title="리뷰를 불러오는 중이에요" />;
+    return <Loading title={t('common.loadingReviews')} />;
   }
 
   if (items.length === 0) {
     return (
       <EmptyState
         icon={NoReview}
-        title="아직 작성된 리뷰가 없어요"
-        description="첫 리뷰를 남겨주세요!"
+        title={t('common.thereAreNoReviewsWrittenYet')}
+        description={t('common.beTheFirstToLeaveAReview')}
         iconSize={{width: 100, height: 60}}
       />
     );
@@ -116,10 +125,12 @@ const UserPartyReviewList = () => {
                   {item.partyTitle}
                 </Text>
                 <Text style={[FONTS.fs_12_medium, styles.metaText]}>
-                  작성일 {createdAt.date}
+                  {t('common.creationDate')}
+                  {createdAt.date}
                 </Text>
                 <Text style={[FONTS.fs_12_medium, styles.metaText]}>
-                  참여 {start.date} {start.time}
+                  {t('guesthouse.participation')}
+                  {start.date} {start.time}
                 </Text>
               </View>
               <View style={styles.headerActions}>

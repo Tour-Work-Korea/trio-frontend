@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import {View, ScrollView} from 'react-native';
@@ -17,6 +18,7 @@ import hostEmployApi from '@utils/api/hostEmployApi';
 import {showErrorModal} from '@utils/loginModalHub';
 
 const EmployDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const userRole = useUserStore.getState()?.userRole;
   const {id, fromHost = false} = route.params ?? {};
@@ -39,11 +41,11 @@ const EmployDetail = ({route}) => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: '공고 상세 조회에 실패했습니다.',
-        buttonText: '확인',
+        message: t('employ.failedToCheckAnnouncementDetails'),
+        buttonText: t('common.confirm'),
       });
     }
-  }, [fromHost, id, userRole]);
+  }, [fromHost, id, userRole, t]);
 
   useEffect(() => {
     tryFetchRecruitById();
@@ -59,7 +61,7 @@ const EmployDetail = ({route}) => {
   };
 
   if (!recruit) {
-    return <Loading title="채용 공고를 불러오고 있어요" />;
+    return <Loading title={t('employ.loadingJobPostings')} />;
   }
 
   return (
@@ -71,12 +73,14 @@ const EmployDetail = ({route}) => {
           guesthouseName={recruit?.guesthouseName}
           recruitImages={recruit?.recruitImages}
         />
+
         <View style={styles.contentContainer}>
           {/* 상단 기본 정보(공고 제목, 위치, 요약) */}
           <RecruitProfileSection
             recruit={recruit}
             toggleFavorite={handleFavorite}
           />
+
           <View style={styles.devide} />
           {/* 탭 */}
           <RecruitTapSection recruit={recruit} />
@@ -90,9 +94,9 @@ const EmployDetail = ({route}) => {
               onPress={() => {
                 if (userRole !== 'USER') {
                   showErrorModal({
-                    message: '지원하기는\n알바 로그인 후 사용해주세요',
-                    buttonText2: '취소',
-                    buttonText: '로그인하기',
+                    message: t('common.toApplyPleaseLogInToPartTimeJob'),
+                    buttonText2: t('common.cancel'),
+                    buttonText: t('common.logIn'),
                     onPress: () => {
                       navigation.navigate('Login');
                     },
@@ -109,7 +113,7 @@ const EmployDetail = ({route}) => {
                   });
                 }
               }}
-              title="지원하기"
+              title={t('common.apply_c60c86')}
             />
           </View>
         )}

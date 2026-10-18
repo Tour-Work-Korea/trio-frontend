@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {
   View,
@@ -24,6 +25,7 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
 
 export default function LoginByEmail({route}) {
+  const {t} = useTranslation();
   const userRole = route?.params?.userRole ?? 'USER';
   const navigation = useNavigation();
   const MainLogo = LogoOrange;
@@ -77,8 +79,9 @@ export default function LoginByEmail({route}) {
       setErrorModal({
         visible: true,
         message:
-          error?.response?.data?.message || '로그인 중 오류가 발생했습니다',
-        buttonText: '확인',
+          error?.response?.data?.message ||
+          t('auth.anErrorOccurredWhileLoggingIn'),
+        buttonText: t('common.confirm'),
       });
     }
   };
@@ -91,15 +94,17 @@ export default function LoginByEmail({route}) {
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
               <MainLogo width={60} height={29} />
-              <Text style={[styles.titleText]}>이메일로 로그인해주세요</Text>
+              <Text style={[styles.titleText]}>
+                {t('auth.pleaseLogInWithYourEmail')}
+              </Text>
             </View>
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>이메일</Text>
+                <Text style={styles.inputLabel}>{t('common.email')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="이메일을 입력해주세요"
+                    placeholder={t('auth.pleaseEnterYourEmail')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={email}
                     onChangeText={setEmail}
@@ -110,11 +115,11 @@ export default function LoginByEmail({route}) {
                 </View>
               </View>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>비밀번호</Text>
+                <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="비밀번호를 입력해주세요"
+                    placeholder={t('common.pleaseEnterYourPassword')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={password}
                     onChangeText={setPassword}
@@ -122,6 +127,7 @@ export default function LoginByEmail({route}) {
                     secureTextEntry={!isPasswordVisible}
                     autoCapitalize="none"
                   />
+
                   <TouchableOpacity
                     onPress={() => setIsPasswordVisible(prev => !prev)}>
                     {isPasswordVisible ? (
@@ -138,23 +144,26 @@ export default function LoginByEmail({route}) {
             <View>
               <View style={styles.buttonSection}>
                 <ButtonWhite
-                  title={'로그인하기'}
+                  title={t('common.logIn')}
                   onPress={handleLogin}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
+
                 <ButtonWhite
-                  title={'이메일로 가입하기'}
+                  title={t('auth.signUpWithEmail')}
                   onPress={handleMoveToRegister}
                 />
               </View>
             </View>
             <View style={styles.findSection}>
               <TouchableOpacity onPress={moveToFindId}>
-                <Text style={styles.findText}>아이디찾기</Text>
+                <Text style={styles.findText}>{t('auth.findId')}</Text>
               </TouchableOpacity>
               <TouchableOpacity onPress={moveToFindPassword}>
-                <Text style={styles.findText}>비밀번호찾기</Text>
+                <Text style={styles.findText}>
+                  {t('auth.findYourPassword')}
+                </Text>
               </TouchableOpacity>
             </View>
           </View>

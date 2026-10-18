@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
@@ -13,7 +14,6 @@ import {useNavigation} from '@react-navigation/native';
 import Carousel from 'react-native-reanimated-carousel';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import styles from './RoomDetail.styles';
 import {FONTS} from '@constants/fonts';
@@ -29,6 +29,7 @@ import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 
 const RoomDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   // 호스트 예약 막기
@@ -69,7 +70,7 @@ const RoomDetail = ({route}) => {
   const isReservationClosed = reservationPolicyMode === 'CLOSED';
   const formatTime = timeStr => {
     if (!timeStr) {
-      return '시간 없음';
+      return t('common.noTime');
     }
 
     const date = dayjs(timeStr);
@@ -142,9 +143,9 @@ const RoomDetail = ({route}) => {
   );
 
   const roomTypeMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: t('common.mixedDormitory'),
+    FEMALE_ONLY: t('common.womenOnly'),
+    MALE_ONLY: t('common.menOnly'),
   };
   const isDormitory = roomType === 'DORMITORY';
   const genderText = roomTypeMap[dormitoryGenderType] || '';
@@ -217,7 +218,8 @@ const RoomDetail = ({route}) => {
                     styles.roomType,
                     {color: COLORS.grayscale_500},
                   ]}>
-                  [{roomCapacity}인 도미토리]
+                  [{roomCapacity}
+                  {t('common.inDormitory')}
                 </Text>
                 {dormitoryGenderType !== 'MIXED' && !!genderText && (
                   <Text
@@ -234,10 +236,13 @@ const RoomDetail = ({route}) => {
               <View
                 style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
                 <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-                  {roomCapacity}인 기준(최대 {roomMaxCapacity}인)
+                  {roomCapacity}
+                  {t('common.basedOnPhosphorusMaximum')}
+                  {roomMaxCapacity}
+                  {t('common.phosphorus')}
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-                  {femaleOnly ? ', 여성전용' : ''}
+                  {femaleOnly ? t('common.womenOnly_40edf9') : ''}
                 </Text>
               </View>
             )}
@@ -246,11 +251,12 @@ const RoomDetail = ({route}) => {
             </Text>
             <View style={styles.priceRow}>
               <Text style={[FONTS.fs_14_medium, styles.priceInfoText]}>
-                {isDormitory ? '1베드 당' : '1객실 당'}
+                {isDormitory ? t('common.perBed') : t('common.perRoom')}
               </Text>
               <View style={styles.priceAmountRow}>
                 <Text style={[FONTS.fs_20_bold, styles.price]}>
-                  {roomPrice.toLocaleString()}원
+                  {roomPrice.toLocaleString()}
+                  {t('common.won')}
                 </Text>
                 {multiNightDiscount?.enabled === true && (
                   <View style={styles.multiNightDiscountBadge}>
@@ -259,7 +265,7 @@ const RoomDetail = ({route}) => {
                         FONTS.fs_12_medium,
                         styles.multiNightDiscountBadgeText,
                       ]}>
-                      연박할인
+                      {t('common.consecutiveNightDiscount')}
                     </Text>
                   </View>
                 )}
@@ -267,11 +273,13 @@ const RoomDetail = ({route}) => {
             </View>
           </View>
 
-          <Text style={[FONTS.fs_16_medium, styles.dateTitle]}>선택 날짜</Text>
+          <Text style={[FONTS.fs_16_medium, styles.dateTitle]}>
+            {t('guesthouse.selectDate')}
+          </Text>
           <View style={styles.dateBoxContainer}>
             <View style={styles.dateBoxCheckIn}>
               <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-                체크인
+                {t('common.checkIn')}
               </Text>
               <Text style={[FONTS.fs_16_regular, styles.dateText]}>
                 {formatDateWithDay(checkIn)}
@@ -282,7 +290,7 @@ const RoomDetail = ({route}) => {
             </View>
             <View style={styles.dateBoxCheckOut}>
               <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
-                체크아웃
+                {t('common.checkOut')}
               </Text>
               <Text style={[FONTS.fs_16_regular, styles.dateText]}>
                 {formatDateWithDay(checkOut)}
@@ -294,8 +302,13 @@ const RoomDetail = ({route}) => {
           </View>
 
           <View style={styles.guestCountRow}>
-            <Text style={[FONTS.fs_16_medium]}>선택 인원</Text>
-            <Text style={[FONTS.fs_16_semibold]}>{guestCount}명</Text>
+            <Text style={[FONTS.fs_16_medium]}>
+              {t('guesthouse.selectedNumberOfPeople')}
+            </Text>
+            <Text style={[FONTS.fs_16_semibold]}>
+              {guestCount}
+              {t('common.peopleUnit')}
+            </Text>
           </View>
         </View>
       </ScrollView>
@@ -306,7 +319,7 @@ const RoomDetail = ({route}) => {
           {/* 베드라디오 동문점 */}
           {/* 이상한밤 게스트하우스 */}
           <ButtonScarlet
-            title="숙박 예약"
+            title={t('guesthouse.accommodationReservation')}
             onPress={() => {
               if (
                 Platform.OS !== 'web' &&
@@ -317,9 +330,11 @@ const RoomDetail = ({route}) => {
 
               if (userRole !== 'USER') {
                 showErrorModal({
-                  message: '숙박 예약은\n 로그인 후 사용해주세요',
-                  buttonText2: '취소',
-                  buttonText: '로그인하기',
+                  message: t(
+                    'common.pleaseLogInToMakeAccommodationReservations',
+                  ),
+                  buttonText2: t('common.cancel'),
+                  buttonText: t('common.logIn'),
                   onPress: () => {
                     navigation.navigate('Login');
                   },
@@ -327,10 +342,13 @@ const RoomDetail = ({route}) => {
                 });
               } else if (!isDormitory && guestCount > roomMaxCapacity) {
                 showErrorModal({
-                  message: `해당 객실은 최대 ${roomMaxCapacity}인 입니다\n인원수를 조절해주세요`,
-                  buttonText: '확인',
+                  message: t(
+                    'guesthouse.theMaximumNumberOfPeopleInThisRoomIsValue',
+                    {roomMaxCapacity: roomMaxCapacity},
+                  ),
+                  buttonText: t('common.confirm'),
                 });
-              } else if (guesthouseName === '비지터 게스트하우스') {
+              } else if (guesthouseName === t('common.visitorGuestHouse')) {
                 const url =
                   'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
 
@@ -339,13 +357,19 @@ const RoomDetail = ({route}) => {
                     if (supported) {
                       Linking.openURL(url);
                     } else {
-                      Alert.alert('알림', '링크를 열 수 없어요');
+                      Alert.alert(
+                        t('common.notification'),
+                        t('common.iCanTOpenTheLink'),
+                      );
                     }
                   })
                   .catch(() => {
-                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                    Alert.alert(
+                      t('common.notification'),
+                      t('common.anErrorOccurredWhileOpeningTheLink'),
+                    );
                   });
-              } else if (guesthouseName === '베드라디오 동문점') {
+              } else if (guesthouseName === t('common.bedRadioDongmunBranch')) {
                 const url =
                   'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
 
@@ -354,13 +378,21 @@ const RoomDetail = ({route}) => {
                     if (supported) {
                       Linking.openURL(url);
                     } else {
-                      Alert.alert('알림', '링크를 열 수 없어요');
+                      Alert.alert(
+                        t('common.notification'),
+                        t('common.iCanTOpenTheLink'),
+                      );
                     }
                   })
                   .catch(() => {
-                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                    Alert.alert(
+                      t('common.notification'),
+                      t('common.anErrorOccurredWhileOpeningTheLink'),
+                    );
                   });
-              } else if (guesthouseName === '이상한밤 게스트하우스') {
+              } else if (
+                guesthouseName === t('common.strangeNightGuesthouse')
+              ) {
                 const url =
                   'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
 
@@ -369,11 +401,17 @@ const RoomDetail = ({route}) => {
                     if (supported) {
                       Linking.openURL(url);
                     } else {
-                      Alert.alert('알림', '링크를 열 수 없어요');
+                      Alert.alert(
+                        t('common.notification'),
+                        t('common.iCanTOpenTheLink'),
+                      );
                     }
                   })
                   .catch(() => {
-                    Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+                    Alert.alert(
+                      t('common.notification'),
+                      t('common.anErrorOccurredWhileOpeningTheLink'),
+                    );
                   });
               } else {
                 navigation.navigate('GuesthouseReservationEntry', {

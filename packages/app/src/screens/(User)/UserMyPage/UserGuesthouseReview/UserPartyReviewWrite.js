@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {FlatList, StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -12,6 +13,7 @@ import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
 
 const UserPartyReviewWrite = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [items, setItems] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ const UserPartyReviewWrite = () => {
   );
 
   if (loading) {
-    return <Loading title="리뷰 목록을 불러오고 있어요." />;
+    return <Loading title={t('common.loadingTheReviewList')} />;
   }
 
   return (
@@ -96,7 +98,7 @@ const UserPartyReviewWrite = () => {
                 })
               }>
               <Text style={[FONTS.fs_16_semibold, styles.reviewButtonText]}>
-                리뷰 작성하기
+                {t('common.writeAReview')}
               </Text>
             </TouchableOpacity>
 
@@ -108,9 +110,9 @@ const UserPartyReviewWrite = () => {
         <EmptyState
           icon={NoReview}
           iconSize={{width: 100, height: 60}}
-          title="아직 작성할 리뷰가 없어요"
-          description="콘텐츠에 참여하러 가볼까요?"
-          buttonText="콘텐츠 찾아보기"
+          title={t('common.thereAreNoReviewsToWriteYet')}
+          description={t('guesthouse.shallWeGoParticipateInTheActivity')}
+          buttonText={t('common.browseActivity')}
           onPressButton={() =>
             navigation.navigate('MainTabs', {screen: '콘텐츠'})
           }

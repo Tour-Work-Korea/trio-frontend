@@ -1,9 +1,10 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {Alert, View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ButtonWhite from '@components/ButtonWhite';
 import userMyApi from '@utils/api/userMyApi';
@@ -16,6 +17,7 @@ const ReviewConfirmModal = ({
   onConfirm,
   onSuccess,
 }) => {
+  const {t} = useTranslation();
 
   const handleConfirm = async () => {
     try {
@@ -34,8 +36,9 @@ const ReviewConfirmModal = ({
         (typeof responseData === 'string' ? responseData : null);
 
       Alert.alert(
-        '리뷰 등록 실패',
-        serverMessage || '잠시 후 다시 시도해주세요.'
+        t('guesthouse.reviewRegistrationFailed'),
+
+        serverMessage || t('common.pleaseTryAgainLater'),
       );
     }
   };
@@ -45,25 +48,26 @@ const ReviewConfirmModal = ({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onCancel}
-    >
+      onRequestClose={onCancel}>
       <View style={styles.overlay}>
         <View style={styles.modalContainer}>
           {/* 안내 문구 */}
           <Text style={[FONTS.fs_14_medium, styles.message]}>
-            한 번 등록한 리뷰는 수정할 수 없어요{'\n'}
-            리뷰를 등록하시겠습니까?
+            {t('guesthouse.reviewsOncePostedCannotBeEdited')}
+            {'\n'}
+            {t('guesthouse.wouldYouLikeToPostAReview')}
           </Text>
 
           {/* 버튼 영역 */}
           <View style={styles.buttonRow}>
             <ButtonWhite
-              title={'다시쓰기'}
+              title={t('common.rewrite')}
               onPress={onCancel}
               style={styles.confirmButton}
             />
+
             <ButtonScarlet
-              title={'등록하기'}
+              title={t('guesthouse.register')}
               onPress={handleConfirm}
               style={styles.confirmButton}
             />

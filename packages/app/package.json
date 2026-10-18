@@ -2,5 +2,9 @@
   "name": "@trio/app",
   "version": "3.0.9",
   "private": true,
-  "main": "App.native.js"
+  "main": "App.native.js",
+  "dependencies": {
+    "i18next": "^26.4.7",
+    "react-i18next": "^17.0.19"
+  }
 }

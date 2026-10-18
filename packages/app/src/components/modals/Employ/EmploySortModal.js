@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
@@ -11,12 +13,13 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
 const sortOptions = [
-  {label: '추천 순', value: 'RECOMMEND'},
-  {label: '최신 순', value: 'LATEST'},
-  {label: '좋아요 순', value: 'LIKE_COUNT'},
+  {label: i18n.t('common.recommended'), value: 'RECOMMEND'},
+  {label: i18n.t('employ.newest'), value: 'LATEST'},
+  {label: i18n.t('employ.likes'), value: 'LIKE_COUNT'},
 ];
 
 const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
+  const {t} = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -27,7 +30,9 @@ const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
         <View style={styles.modal}>
           {/* 헤더 */}
           <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>정렬</Text>
+            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+              {t('common.sort')}
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <XIcon width={24} height={24} />
             </TouchableOpacity>

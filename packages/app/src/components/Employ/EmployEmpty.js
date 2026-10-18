@@ -1,10 +1,10 @@
 import React from 'react';
-import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
+import {StyleSheet, View} from 'react-native';
 
 import ApplyLogo from '@assets/images/wa_blue_apply.svg';
-import ArrowRight from '@assets/images/arrow_right_white.svg';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
+import AdaptiveText from '@components/AdaptiveText';
 
 export default function EmployEmpty({
   title,
@@ -17,8 +17,12 @@ export default function EmployEmpty({
       <View style={styles.contentBox}>
         <ApplyLogo width={187} />
         <View style={styles.textBox}>
-          <Text style={styles.titleText}>{title}</Text>
-          <Text style={styles.subtitleText}>{subTitle}</Text>
+          <AdaptiveText variant="title" style={styles.titleText}>
+            {title}
+          </AdaptiveText>
+          <AdaptiveText variant="body" style={styles.subtitleText}>
+            {subTitle}
+          </AdaptiveText>
         </View>
         {/* <TouchableOpacity onPress={onPress} style={styles.button}>
           <Text style={styles.buttonText}>{buttonText}</Text>
@@ -44,6 +48,8 @@ const styles = StyleSheet.create({
   },
   textBox: {
     gap: 4,
+    paddingHorizontal: 20,
+    alignItems: 'center',
   },
   titleText: {
     ...FONTS.fs_20_semibold,
@@ -53,6 +59,7 @@ const styles = StyleSheet.create({
   subtitleText: {
     ...FONTS.fs_16_medium,
     color: COLORS.grayscale_500,
+    textAlign: 'center',
   },
   button: {
     paddingVertical: 8,

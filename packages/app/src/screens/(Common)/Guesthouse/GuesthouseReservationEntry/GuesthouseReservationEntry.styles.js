@@ -91,6 +91,11 @@ const styles = StyleSheet.create({
   dayNumberSelected: {
     color: COLORS.grayscale_0,
   },
+  dayPrice: {
+    fontSize: 8,
+    lineHeight: 10,
+    maxWidth: '100%',
+  },
   daySubLabel: {
     marginTop: 0,
     color: COLORS.primary_orange,
@@ -102,6 +107,8 @@ const styles = StyleSheet.create({
   },
   legendRow: {
     flexDirection: 'row',
+    flexWrap: 'wrap',
+    rowGap: 8,
     alignItems: 'center',
     gap: 14,
     marginTop: 8,

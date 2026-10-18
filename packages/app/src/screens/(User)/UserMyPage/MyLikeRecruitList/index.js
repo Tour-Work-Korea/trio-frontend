@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback} from 'react';
 import {StyleSheet, View} from 'react-native';
 import {useNavigation, useFocusEffect} from '@react-navigation/native';
@@ -12,6 +13,7 @@ import EmployEmpty from '@components/Employ/EmployEmpty';
 import {COLORS} from '@constants/colors';
 
 export default function MyLikeRecruitList({hideHeader = false}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [recruits, setRecruits] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -37,8 +39,9 @@ export default function MyLikeRecruitList({hideHeader = false}) {
         visible: true,
         title:
           error?.response?.data?.message ||
-          '즐겨찾기한 공고를 불러오는 중 오류가 발생했습니다',
-        buttonText: '확인',
+          t('myPage.anErrorOccurredWhileRetrievingYourFavoriteAnnouncements'),
+
+        buttonText: t('common.confirm'),
       });
     } finally {
       setLoading(false);
@@ -70,14 +73,14 @@ export default function MyLikeRecruitList({hideHeader = false}) {
 
   return (
     <View style={styles.container}>
-      {!hideHeader && <Header title={'즐겨찾는 알바'} />}
+      {!hideHeader && <Header title={t('myPage.favoritePartTimeJob')} />}
       <View style={styles.contentContainer}>
         {loading ? (
           <></>
         ) : recruits?.length === 0 ? (
           <EmployEmpty
-            title={'아직 즐겨찾는 알바가 없어요'}
-            subTitle={'마음에 드는 알바를 빠르게 볼 수 있어요 !'}
+            title={t('myPage.iDonTHaveAFavoritePartTimeJobYet')}
+            subTitle={t('myPage.youCanQuicklySeePartTimeJobsYouLike')}
             // buttonText={'알바 찾으러 가기'}
             // onPress={() => navigation.navigate('MainTabs', {screen: '채용'})}
           />

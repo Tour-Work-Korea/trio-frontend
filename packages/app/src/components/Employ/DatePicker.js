@@ -1,4 +1,4 @@
-// KoreanDatePicker.js
+import {useTranslation} from 'react-i18next'; // KoreanDatePicker.js
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React, {useEffect, useMemo, useState} from 'react';
@@ -6,8 +6,15 @@ import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
 
-const DOW_HEADER = ['월', '화', '수', '목', '금', '토', '일']; // 월요일 시작
-const DOW_KR = ['일', '월', '화', '수', '목', '금', '토']; // 표기용(선택일 포맷)
+const DOW_KEYS = [
+  'common.work',
+  'common.month',
+  'common.angry',
+  'common.number',
+  'common.neck',
+  'common.gold',
+  'common.sat',
+];
 
 const pad2 = n => String(n).padStart(2, '0');
 const isSameDay = (a, b) =>
@@ -17,18 +24,21 @@ const isSameDay = (a, b) =>
   a.getMonth() === b.getMonth() &&
   a.getDate() === b.getDate();
 
-const formatSelected = d =>
-  `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}(${DOW_KR[d.getDay()]})`;
-
 export default function DatePicker({
   value, // Date | null
   onChange, // (date: Date) => void
   minDate, // Date (옵션)
   maxDate, // Date (옵션)
-  label = '날짜', // 상단 라벨
+  label, // 상단 라벨
   style, // 외부 스타일 래핑용
   theme = {}, // 색상/크기 커스터마이즈용
 }) {
+  const {t} = useTranslation();
+  const dayNames = DOW_KEYS.map(key => t(key));
+  const dayHeaders = [...dayNames.slice(1), dayNames[0]];
+  const formatSelected = d =>
+    `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}(${dayNames[d.getDay()]})`;
+  const resolvedLabel = label ?? t('common.date');
   const [current, setCurrent] = useState(value ?? new Date()); // 현재 달
   const [selected, setSelected] = useState(value ?? null);
 
@@ -144,9 +154,9 @@ export default function DatePicker({
     <View style={[styles.card]}>
       {/* 상단 라벨/선택일 */}
       <View style={[styles.headerRow]}>
-        <Text style={[styles.labelText, theme.labelText]}>{label}</Text>
+        <Text style={[styles.labelText, theme.labelText]}>{resolvedLabel}</Text>
         <Text style={[styles.valueText, theme.valueText]}>
-          {selected ? formatSelected(selected) : '선택'}
+          {selected ? formatSelected(selected) : t('common.select')}
         </Text>
       </View>
 
@@ -161,7 +171,10 @@ export default function DatePicker({
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={[styles.monthTitle, theme.monthTitle]}>
-          {year}년 {month + 1}월
+          {year}
+          {t('common.year')}
+          {month + 1}
+          {t('common.month')}
         </Text>
         <TouchableOpacity
           onPress={goNext}
@@ -173,7 +186,7 @@ export default function DatePicker({
 
       {/* 요일 헤더 */}
       <View style={styles.dowRow}>
-        {DOW_HEADER.map(d => (
+        {dayHeaders.map(d => (
           <Text key={d} style={styles.dowText}>
             {d}
           </Text>

@@ -1,5 +1,6 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import {StyleSheet, View, Text, Platform} from 'react-native';
+import {StyleSheet, View, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -20,10 +21,12 @@ import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {useGuesthouseRegionStore} from './Guesthouse/regions/store';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
+import AdaptiveText from '@components/AdaptiveText';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
+  const {t} = useTranslation();
   return (
     <View style={styles.container}>
       <Tab.Navigator
@@ -46,20 +49,28 @@ const BottomTabs = () => {
           },
           tabBarShowLabel: true,
           tabBarLabel: ({focused}) => (
-            <Text
+            <AdaptiveText
+              variant="tab"
               style={[
                 FONTS.fs_12_medium,
                 styles.label,
                 focused && styles.labelFocused,
               ]}
-              numberOfLines={1}
               allowFontScaling={false}>
-              {route.name}
-            </Text>
+              {{
+                홈: t('common.home'),
+                커뮤니티: t('common.community'),
+                지도: t('common.map'),
+                콘텐츠: t('common.activity'),
+                마이: t('common.my'),
+              }[route.name] || route.name}
+            </AdaptiveText>
           ),
+
           tabBarStyle: [
             Platform.OS === 'android' ? styles.tabBarAndroid : styles.tabBarIOS,
           ],
+
           tabBarItemStyle: styles.tabBarItem,
           tabBarSafeAreaInset: {bottom: 0},
           headerShown: false,
@@ -75,6 +86,7 @@ const BottomTabs = () => {
             },
           })}
         />
+
         <Tab.Screen
           name="지도"
           component={Guesthouse}
@@ -89,6 +101,7 @@ const BottomTabs = () => {
             },
           })}
         />
+
         <Tab.Screen name="콘텐츠" component={Meet} />
         <Tab.Screen
           name="마이"
@@ -100,9 +113,9 @@ const BottomTabs = () => {
                 e.preventDefault();
 
                 showErrorModal({
-                  message: '마이페이지는\n 로그인 후 사용해주세요',
-                  buttonText2: '취소',
-                  buttonText: '로그인하기',
+                  message: t('common.pleaseUseMyPageAfterLoggingIn'),
+                  buttonText2: t('common.cancel'),
+                  buttonText: t('common.logIn'),
                   onPress: () => navigation.navigate('Login'),
                   onPress2: () => {},
                 });
@@ -141,10 +154,13 @@ const styles = StyleSheet.create({
   },
   tabBarItem: {
     paddingVertical: 4,
+    minWidth: 0,
   },
   label: {
     color: COLORS.grayscale_500,
     marginTop: 2,
+    maxWidth: '100%',
+    textAlign: 'center',
   },
   labelFocused: {
     color: COLORS.grayscale_900,

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {View, Text, TextInput, ActivityIndicator} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -15,6 +16,7 @@ import {COLORS} from '@constants/colors';
 const PAGE_SIZE = 8;
 
 const EmploySearchList = () => {
+  const {t} = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
 
@@ -66,8 +68,10 @@ const EmploySearchList = () => {
         console.warn('fetchRecruitList 실패:', error);
         setErrorModal({
           visible: true,
-          message: '채용 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          message: t(
+            'common.jobInformationCouldNotBeLoadedPleaseTryAgainLater',
+          ),
+          buttonText: t('common.confirm'),
         });
       } finally {
         if (isLoadMore) {
@@ -77,7 +81,7 @@ const EmploySearchList = () => {
         }
       }
     },
-    [userRole],
+    [userRole, t],
   );
 
   useFocusEffect(
@@ -102,8 +106,8 @@ const EmploySearchList = () => {
   if (isInitialLoading && page === 0) {
     return (
       <View style={styles.container}>
-        <Header title="채용공고" />
-        <Loading title="채용 정보를 가져오는 중입니다..." />
+        <Header title={t('common.recruitmentNotice')} />
+        <Loading title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }
@@ -111,7 +115,7 @@ const EmploySearchList = () => {
   return (
     <View style={[styles.container]}>
       {/* 헤더 */}
-      <Header title="채용공고" />
+      <Header title={t('common.recruitmentNotice')} />
 
       {/* 검색 박스 */}
       <View style={styles.headerBox}>
@@ -119,7 +123,7 @@ const EmploySearchList = () => {
           <SearchIcon width={24} height={24} style={styles.searchIcon} />
           <TextInput
             style={styles.searchInput}
-            placeholder="일할 게스트하우스를 찾아보세요"
+            placeholder={t('common.findAGuesthouseToWorkIn')}
             placeholderTextColor={COLORS.grayscale_600}
             value={searchText}
             onChangeText={setSearchText}
@@ -134,7 +138,7 @@ const EmploySearchList = () => {
       {/* 뽑고 있는 게스트하우스 */}
       <View style={styles.employContainer}>
         <View style={styles.titleSection}>
-          <Text style={styles.titleText}>채용 중인 게스트하우스</Text>
+          <Text style={styles.titleText}>{t('employ.guesthouseHiring')}</Text>
         </View>
 
         <RecruitList

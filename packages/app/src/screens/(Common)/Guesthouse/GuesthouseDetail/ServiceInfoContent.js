@@ -1,3 +1,4 @@
+import i18n from '@trio/app/src/i18n';
 import React, {useMemo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
@@ -6,28 +7,29 @@ import {FONTS} from '@constants/fonts';
 import useAmenityStore from '@stores/amenityStore';
 
 const CATEGORY_TITLES = {
-  PUBLIC: '숙소 공용시설',
-  PUBLIC_FACILITY: '숙소 공용시설',
-  COMMON: '숙소 공용시설',
-  COMMON_FACILITY: '숙소 공용시설',
-  ROOM: '객실 내 시설',
-  ROOM_FACILITY: '객실 내 시설',
-  PRIVATE: '객실 내 시설',
-  SERVICE: '기타시설 및 서비스',
-  ETC: '기타시설 및 서비스',
+  PUBLIC: i18n.t('common.accommodationCommonFacilities'),
+  PUBLIC_FACILITY: i18n.t('common.accommodationCommonFacilities'),
+  COMMON: i18n.t('common.accommodationCommonFacilities'),
+  COMMON_FACILITY: i18n.t('common.accommodationCommonFacilities'),
+  ROOM: i18n.t('common.inRoomFacilities'),
+  ROOM_FACILITY: i18n.t('common.inRoomFacilities'),
+  PRIVATE: i18n.t('common.inRoomFacilities'),
+  SERVICE: i18n.t('common.otherFacilitiesAndServices'),
+  ETC: i18n.t('common.otherFacilitiesAndServices'),
 };
 
 const getCategoryTitle = category => {
   if (!category) {
-    return '기타시설 및 서비스';
+    return i18n.t('common.otherFacilitiesAndServices');
   }
 
-  return CATEGORY_TITLES[category] ?? (
-    category.includes('ROOM')
-      ? '객실 내 시설'
+  return (
+    CATEGORY_TITLES[category] ??
+    (category.includes('ROOM')
+      ? i18n.t('common.inRoomFacilities')
       : category.includes('SERVICE')
-        ? '기타시설 및 서비스'
-        : '숙소 공용시설'
+      ? i18n.t('common.otherFacilitiesAndServices')
+      : i18n.t('common.accommodationCommonFacilities'))
   );
 };
 
@@ -45,7 +47,8 @@ const normalizeAmenity = (amenity, index) => ({
     typeof amenity === 'string'
       ? amenity
       : amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? '',
-  category: typeof amenity === 'object' ? amenity?.category ?? 'SERVICE' : 'SERVICE',
+  category:
+    typeof amenity === 'object' ? amenity?.category ?? 'SERVICE' : 'SERVICE',
 });
 
 const ServiceInfoContent = ({selectedAmenities = []}) => {
@@ -58,16 +61,22 @@ const ServiceInfoContent = ({selectedAmenities = []}) => {
           if (typeof amenity === 'string') {
             return amenity;
           }
-          return amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? null;
+          return (
+            amenity?.amenityType ??
+            amenity?.amenityName ??
+            amenity?.name ??
+            null
+          );
         })
         .filter(Boolean),
     [selectedAmenities],
   );
 
   const groupedAmenities = useMemo(() => {
-    const amenitySource = amenities.length > 0
-      ? amenities
-      : selectedAmenities.map(normalizeAmenity);
+    const amenitySource =
+      amenities.length > 0
+        ? amenities
+        : selectedAmenities.map(normalizeAmenity);
 
     return amenitySource.reduce((acc, amenity) => {
       const categoryTitle = getCategoryTitle(amenity.category);

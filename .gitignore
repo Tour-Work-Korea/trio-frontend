@@ -84,6 +84,9 @@ yarn.lock
 
 .env
 
+# Local cache used while auditing and generating translation resources
+packages/app/src/locales/.translation-cache.json
+
 # Local agent instructions
 AGENTS.md
 
@@ -91,3 +94,4 @@ AGENTS.md
 ANDROID_PERFORMANCE_TEST_REPORT.md
 IOS_PERFORMANCE_TEST_REPORT.md
 WEB_PERFORMANCE_TEST_REPORT.md
+.i18n-screenshots/

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React from 'react';
@@ -10,6 +11,7 @@ const ApplicantItem = ({
   handleDeletePosting = null,
   isRemovable = false,
 }) => {
+  const {t} = useTranslation();
   return (
     <TouchableOpacity onPress={() => onPress(item)}>
       <View style={styles.postingCard}>
@@ -37,13 +39,18 @@ const ApplicantItem = ({
         </View>
 
         <View style={[styles.titleRow, styles.fullWidth, {marginTop: 10}]}>
-          <Text style={styles.detailText}>마감일: {item.deadline}</Text>
+          <Text style={styles.detailText}>
+            {t('employ.deadline')}
+            {item.deadline}
+          </Text>
           {isRemovable ? (
             <View style={styles.iconsContainer}>
               <TouchableOpacity
                 onPress={() => handleDeletePosting(item.recruitId)}
                 hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}>
-                <Text style={styles.deleteButton}>마감요청</Text>
+                <Text style={styles.deleteButton}>
+                  {t('employ.closingRequest')}
+                </Text>
               </TouchableOpacity>
             </View>
           ) : (

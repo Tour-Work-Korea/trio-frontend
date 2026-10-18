@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
 
@@ -9,6 +10,7 @@ import {getStoreUrlForWebDevice} from '@utils/webOpenApp';
 import LogoOrange from '@assets/images/logo_orange.svg';
 
 const WebDownloadBanner = () => {
+  const {t} = useTranslation();
   const [isAppInstallPromptVisible, setIsAppInstallPromptVisible] =
     useState(false);
 
@@ -31,27 +33,29 @@ const WebDownloadBanner = () => {
         </View>
         <View style={styles.textContainer}>
           <Text numberOfLines={1} style={[FONTS.fs_14_semibold, styles.title]}>
-            게딱지(게스트하우스 딱, 지금!)
+            {t('components.ddakjiGuesthousePerfectNow')}
           </Text>
           <Text
             numberOfLines={1}
             style={[FONTS.fs_12_medium, styles.description]}>
-            지금 회원가입 시 20% 할인 쿠폰 제공
+            {t('components.getA20DiscountCouponWhenYouSignUpNow')}
           </Text>
         </View>
         <TouchableOpacity
           activeOpacity={0.85}
           onPress={handlePressAppDownload}
           style={styles.button}>
-          <Text style={[FONTS.fs_14_semibold, styles.buttonText]}>다운로드</Text>
+          <Text style={[FONTS.fs_14_semibold, styles.buttonText]}>
+            {t('common.download')}
+          </Text>
         </TouchableOpacity>
       </View>
       <AppInstallPromptModal
         visible={isAppInstallPromptVisible}
         onClose={() => setIsAppInstallPromptVisible(false)}
-        title="게딱지 앱 다운로드"
-        message="스토어 QR 코드를 휴대폰으로 스캔해 주세요."
-        buttonText="다운로드"
+        title={t('common.downloadTheDdakjiApp')}
+        message={t('components.pleaseScanTheStoreQrCodeWithYourPhone')}
+        buttonText={t('common.download')}
       />
     </>
   );

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React from 'react';
@@ -7,6 +8,7 @@ import LottieView from 'lottie-react-native';
 import loadingAnimation from '@assets/lottie/loading.json';
 
 export default function Loading({title}) {
+  const {t} = useTranslation();
   return (
     <View
       style={{
@@ -21,7 +23,8 @@ export default function Loading({title}) {
         autoPlay
         loop
       />
-      <Text style={styles.text}>{title ? title : '로딩 중...'}</Text>
+
+      <Text style={styles.text}>{title ? title : t('common.loading')}</Text>
     </View>
   );
 }

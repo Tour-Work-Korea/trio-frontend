@@ -1,11 +1,12 @@
-import React, { useEffect, useState } from 'react';
-import { View, Text, FlatList, TouchableOpacity, Alert } from 'react-native';
+import {useTranslation} from 'react-i18next';
+import React, {useEffect, useState} from 'react';
+import {View, Text, FlatList, TouchableOpacity, Alert} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import styles from './UserFavoriteGuesthouse.styles';
 import Header from '@components/Header';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import Loading from '@components/Loading';
 import EmptyState from '@components/EmptyState';
@@ -17,6 +18,7 @@ import Star from '@assets/images/star_white.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
 
 const UserFavoriteGuesthouse = ({hideHeader = false}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -47,16 +49,16 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
     }
   };
 
-  const toggleFavorite = async (item) => {
+  const toggleFavorite = async item => {
     try {
       await userMyApi.unfavoriteGuesthouse(item.id);
       await fetchFavoriteList();
     } catch (error) {
-      Alert.alert('즐겨찾기 취소를 실패 했습니다.');
+      Alert.alert(t('guesthouse.failedToCancelFavorite'));
     }
   };
 
-  const renderItem = ({ item }) => {
+  const renderItem = ({item}) => {
     const displayRating = getDisplayRating(item.averageRating);
 
     return (
@@ -71,14 +73,14 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
             checkOut: tomorrow.format('YYYY-MM-DD'),
             guestCount: 1,
           });
-        }}
-      >
+        }}>
         <View>
           <AppImage
             uri={item.thumbnailImgUrl}
             style={styles.image}
             resizeMode="cover"
           />
+
           {displayRating && (
             <View style={styles.ratingBox}>
               <Star width={14} height={14} />
@@ -93,37 +95,45 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
             <View style={styles.hashtagContainer}>
               {item.hashtags.map((tag, idx) => (
                 <View key={`${tag}-${idx}`} style={styles.hashtagBox}>
-                  <Text style={[FONTS.fs_12_medium, styles.hashtag]}>#{tag}</Text>
+                  <Text style={[FONTS.fs_12_medium, styles.hashtag]}>
+                    #{tag}
+                  </Text>
                 </View>
               ))}
             </View>
             <TouchableOpacity
-              activeOpacity={1} style={styles.favoriteButton} onPress={() => toggleFavorite(item)}>
+              activeOpacity={1}
+              style={styles.favoriteButton}
+              onPress={() => toggleFavorite(item)}>
               <FillHeart width={18} height={18} />
             </TouchableOpacity>
           </View>
           <Text style={[FONTS.fs_16_medium, styles.name]}>{item.name}</Text>
-          <Text style={[FONTS.fs_12_medium, styles.address]}>{item.address}</Text>
-          <Text style={[FONTS.fs_18_semibold, styles.price]}>{item.minPrice.toLocaleString()}원 ~</Text>
+          <Text style={[FONTS.fs_12_medium, styles.address]}>
+            {item.address}
+          </Text>
+          <Text style={[FONTS.fs_18_semibold, styles.price]}>
+            {item.minPrice.toLocaleString()}
+            {t('common.won_989c0f')}
+          </Text>
         </View>
-
       </TouchableOpacity>
     );
   };
 
   return (
     <View style={styles.container}>
-      {!hideHeader && <Header title='즐겨찾는 게하' />}
+      {!hideHeader && <Header title={t('guesthouse.favoriteGuesthouse')} />}
       {loading ? (
-        <Loading title='게스트하우스를 불러오는 중이에요' />
+        <Loading title={t('guesthouse.loadingGuesthouse_aa316d')} />
       ) : guesthouses.length === 0 ? (
         <View style={styles.emptyContainer}>
           <EmptyState
             icon={SearchEmpty}
-            iconSize={{ width: 120, height: 120 }}
-            title='즐겨찾는 게스트하우스가 없어요'
-            description='마음에 드는 게스트 하우스를 찾으러 가볼까요?'
-            buttonText="게하 찾으러 가기"
+            iconSize={{width: 120, height: 120}}
+            title={t('guesthouse.iDonTHaveAFavoriteGuesthouse')}
+            description={t('guesthouse.shallWeGoFindAGuestHouseYouLike')}
+            buttonText={t('guesthouse.goFindGuesthouse')}
             onPressButton={() =>
               navigation.navigate('MainTabs', {screen: '지도'})
             }

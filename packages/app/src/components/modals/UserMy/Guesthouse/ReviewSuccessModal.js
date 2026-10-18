@@ -1,9 +1,16 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import {View, Text, StyleSheet, TouchableOpacity, TouchableWithoutFeedback} from 'react-native';
+import {
+  View,
+  Text,
+  StyleSheet,
+  TouchableOpacity,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 
-import { COLORS } from '@constants/colors';
-import { FONTS } from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 import SuccessIcon from '@assets/images/meet_reservation_success.svg';
 import XBtn from '@assets/images/x_gray.svg';
@@ -15,6 +22,7 @@ const ReviewSuccessModal = ({
   photoPointAmount = '1,000',
   showPointReward = true,
 }) => {
+  const {t} = useTranslation();
   const pointAmount = hasPhotoReview ? photoPointAmount : '300';
 
   return (
@@ -24,40 +32,40 @@ const ReviewSuccessModal = ({
       animationType="fade"
       onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
-      <View style={styles.overlay}>
-        <TouchableWithoutFeedback>
-        <View style={styles.modalContainer}>
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.closeButton}
-            onPress={onClose}
-          >
-            <XBtn width={24} height={24}/>
-          </TouchableOpacity>
-          <View style={styles.body}>
-            <SuccessIcon width={180} height={140} />
-            <Text style={[FONTS.fs_18_semibold, styles.title]}>
-              리뷰 작성 완료!
-            </Text>
-            {showPointReward && (
-              <View style={styles.pointBadge}>
-                <Text style={[FONTS.fs_18_semibold, styles.pointText]}>
-                  +{pointAmount}P 적립 완료
+        <View style={styles.overlay}>
+          <TouchableWithoutFeedback>
+            <View style={styles.modalContainer}>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.closeButton}
+                onPress={onClose}>
+                <XBtn width={24} height={24} />
+              </TouchableOpacity>
+              <View style={styles.body}>
+                <SuccessIcon width={180} height={140} />
+                <Text style={[FONTS.fs_18_semibold, styles.title]}>
+                  {t('guesthouse.reviewCompleted')}
                 </Text>
+                {showPointReward && (
+                  <View style={styles.pointBadge}>
+                    <Text style={[FONTS.fs_18_semibold, styles.pointText]}>
+                      +{pointAmount}
+                      {t('guesthouse.pAccumulationCompleted')}
+                    </Text>
+                  </View>
+                )}
+                <Text style={[FONTS.fs_14_medium, styles.description]}>
+                  {t('guesthouse.thankYouForYourValuableReview')}
+                </Text>
+                {showPointReward && (
+                  <Text style={[FONTS.fs_14_medium, styles.description]}>
+                    {t('guesthouse.pointsCanBeCheckedOnMyPage')}
+                  </Text>
+                )}
               </View>
-            )}
-            <Text style={[FONTS.fs_14_medium, styles.description]}>
-              소중한 리뷰 감사합니다
-            </Text>
-            {showPointReward && (
-              <Text style={[FONTS.fs_14_medium, styles.description]}>
-                포인트는 마이페이지에서 확인 가능합니다
-              </Text>
-            )}
-          </View>
+            </View>
+          </TouchableWithoutFeedback>
         </View>
-        </TouchableWithoutFeedback>
-      </View>
       </TouchableWithoutFeedback>
     </Modal>
   );

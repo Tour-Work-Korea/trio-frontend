@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -9,6 +10,7 @@ import {COLORS} from '@constants/colors';
 import LogoOrange from '@assets/images/logo_orange.svg';
 
 export default function FindIntro({route}) {
+  const {t} = useTranslation();
   const {find, originPhone = null} = route.params;
   const navigation = useNavigation();
   const userRole = 'USER';
@@ -22,19 +24,22 @@ export default function FindIntro({route}) {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <View  style={styles.titleContainer}>
+              <View style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
               </View>
               <View>
                 <Text style={[styles.titleText]}>
-                  {find === 'email' ? '아이디' : '비밀번호'}를 찾으려면
+                  {find === 'email' ? t('auth.id') : t('auth.password')}
+                  {t('auth.toFind')}
                 </Text>
-                <Text style={[styles.titleText]}>본인 인증이 필요해요!</Text>
+                <Text style={[styles.titleText]}>
+                  {t('auth.youNeedToVerifyYourIdentity')}
+                </Text>
               </View>
             </View>
           </View>
           <ButtonWhite
-            title={'본인 인증하기'}
+            title={t('auth.verifyYourIdentity')}
             onPress={() =>
               navigation.navigate('VerifyPhone', {find, userRole, originPhone})
             }

@@ -1,10 +1,6 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
@@ -18,6 +14,7 @@ import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
 
 const UserMeetReservationCancelled = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -56,12 +53,12 @@ const UserMeetReservationCancelled = () => {
         : item.partyImage;
     const statusText =
       item.approvalStatus === 'EXPIRED'
-        ? '신청 만료'
+        ? t('common.applicationExpires')
         : item.approvalStatus === 'REJECTED'
-        ? '신청 반려'
+        ? t('common.applicationRejected')
         : item.cancelledByType === 'HOST'
-          ? '업체 취소'
-          : '신청 취소';
+        ? t('meet.cancellationOfBusiness')
+        : t('common.cancelApplication_1ffccc');
 
     return (
       <View style={styles.listStylesContainer}>
@@ -72,8 +69,7 @@ const UserMeetReservationCancelled = () => {
             navigation.navigate('MeetCancelledReceipt', {
               reservationId: item.reservationId,
             })
-          }
-        >
+          }>
           <View style={styles.statusRow}>
             <Text style={[FONTS.fs_14_semibold, styles.statusText]}>
               {statusText}
@@ -91,6 +87,7 @@ const UserMeetReservationCancelled = () => {
               style={styles.image}
               resizeMode="cover"
             />
+
             <View style={styles.infoContent}>
               <Text
                 style={[FONTS.fs_18_medium, styles.partyTitle]}
@@ -113,10 +110,10 @@ const UserMeetReservationCancelled = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="취소·반려된 콘텐츠" />
+      <Header title={t('meet.canceledRejectedActivity')} />
       <View style={styles.content}>
         {loading ? (
-          <Loading title="예약 목록을 불러오고 있어요." />
+          <Loading title={t('common.loadingTheReservationList')} />
         ) : (
           <>
             <FlatList
@@ -127,16 +124,15 @@ const UserMeetReservationCancelled = () => {
               scrollEnabled
               contentContainerStyle={[
                 styles.listContent,
-                cancelledReservations.length === 0 &&
-                  styles.emptyListContent,
+                cancelledReservations.length === 0 && styles.emptyListContent,
               ]}
               ListEmptyComponent={
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="취소·반려 내역이 없어요"
-                  description="콘텐츠를 예약하러 가볼까요?"
-                  buttonText="콘텐츠 찾아보기"
+                  title={t('meet.thereIsNoCancellationOrRejectionHistory')}
+                  description={t('meet.shallWeGoReserveActivity')}
+                  buttonText={t('common.browseActivity')}
                   onPressButton={() =>
                     navigation.navigate('MainTabs', {screen: '콘텐츠'})
                   }

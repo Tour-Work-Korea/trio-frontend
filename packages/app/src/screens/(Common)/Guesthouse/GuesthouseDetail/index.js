@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
@@ -51,12 +53,12 @@ import MapPinIcon from '@assets/images/map_pin_fill_black.svg';
 import RightChevronBlack from '@assets/images/chevron_right_black.svg';
 
 const TAB_OPTIONS = [
-  {key: 'room', label: '객실'},
-  {key: 'intro', label: '소개'},
-  {key: 'rule', label: '이용규칙'},
-  {key: 'review', label: '리뷰'},
-  {key: 'refund', label: '취소규정'},
-  {key: 'service', label: '시설/서비스'},
+  {key: 'room', label: i18n.t('common.guestRoom')},
+  {key: 'intro', label: i18n.t('guesthouse.introduction')},
+  {key: 'rule', label: i18n.t('common.rulesOfUse')},
+  {key: 'review', label: i18n.t('common.review')},
+  {key: 'refund', label: i18n.t('guesthouse.cancellationPolicy')},
+  {key: 'service', label: i18n.t('guesthouse.facilitiesServices')},
 ];
 
 const getSortedGuesthouseImages = images =>
@@ -98,11 +100,17 @@ const formatTodayPartyTime = startDateTime => {
     return '';
   }
 
-  const meridiem = start.hour() < 12 ? '오전' : '오후';
-  return `${start.format('M/D')} 오늘, ${meridiem} ${start.format('h:mm')}`;
+  const meridiem =
+    start.hour() < 12 ? i18n.t('common.morning') : i18n.t('common.afternoon');
+  return i18n.t('common.valueTodayValueValue', {
+    value1: start.format('M/D'),
+    meridiem: meridiem,
+    value3: start.format('h:mm'),
+  });
 };
 
 const GuesthouseDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
@@ -323,7 +331,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 로딩처리
   if (!detail) {
-    return <Loading title="게스트하우스를 불러오고 있어요" />;
+    return <Loading title={t('guesthouse.loadingGuesthouse')} />;
   }
 
   //  공유 링크
@@ -337,7 +345,7 @@ const GuesthouseDetail = ({route}) => {
 
     Toast.show({
       type: 'success',
-      text1: '복사되었어요!',
+      text1: t('common.copied'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -360,7 +368,7 @@ const GuesthouseDetail = ({route}) => {
 
     Toast.show({
       type: 'success',
-      text1: '복사되었어요!',
+      text1: t('common.copied'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -393,7 +401,7 @@ const GuesthouseDetail = ({route}) => {
         ) : (
           <View style={styles.todayPartyImagePlaceholder}>
             <Text style={[FONTS.fs_12_medium, styles.todayPartyImageText]}>
-              콘텐츠
+              {t('common.activity')}
             </Text>
           </View>
         )}
@@ -404,12 +412,14 @@ const GuesthouseDetail = ({route}) => {
               <Text
                 style={[FONTS.fs_14_semibold, styles.todayPartyTitle]}
                 numberOfLines={2}>
-                {party.partyTitle || '게스트하우스 콘텐츠'}
+                {party.partyTitle || t('guesthouse.guestHouseActivity')}
               </Text>
               <View style={styles.todayPartyPeopleRow}>
                 <PeopleIcon width={12} height={12} />
                 <Text style={[FONTS.fs_12_medium, styles.todayPartyPeopleText]}>
-                  최대인원 {party.maxAttendees ?? 0}명
+                  {t('guesthouse.maximumNumberOfPeopleValue', {
+                    count: party.maxAttendees ?? 0,
+                  })}
                 </Text>
               </View>
             </View>
@@ -442,7 +452,9 @@ const GuesthouseDetail = ({route}) => {
     if (tabKey === 'intro') {
       return (
         <View style={styles.introductionContainer}>
-          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>소개</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+            {t('guesthouse.introduction')}
+          </Text>
           <View style={styles.longTextContainer}>
             <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
               {detail.guesthouseLongDesc}
@@ -455,7 +467,9 @@ const GuesthouseDetail = ({route}) => {
     if (tabKey === 'rule') {
       return (
         <View style={styles.introductionContainer}>
-          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>이용 규칙</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+            {t('guesthouse.rulesOfUse')}
+          </Text>
           <View style={styles.longTextContainer}>
             <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
               {detail.rules}
@@ -475,7 +489,7 @@ const GuesthouseDetail = ({route}) => {
           {!!detail.refundPolicyAdditionalNotice && (
             <>
               <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
-                추가 안내사항
+                {t('guesthouse.additionalInformation')}
               </Text>
               <View style={styles.longTextContainer}>
                 <Text style={[FONTS.fs_14_regular, styles.introductionText]}>
@@ -485,7 +499,7 @@ const GuesthouseDetail = ({route}) => {
             </>
           )}
           <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
-            취소 수수료
+            {t('common.cancellationFee')}
           </Text>
           {refundPolicies.length > 0 ? (
             <View style={styles.refundPolicyContainer}>
@@ -494,16 +508,18 @@ const GuesthouseDetail = ({route}) => {
                   key={`${policy.daysBeforeCheckin}-${index}`}
                   style={styles.refundPolicyRow}>
                   <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
-                    방문 {policy.daysBeforeCheckin}일 전
+                    {t('guesthouse.visitDaysAgo', {
+                      count: policy.daysBeforeCheckin,
+                    })}
                   </Text>
                   <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
-                    총금액의
+                    {t('guesthouse.ofTheTotalAmount')}
                   </Text>
                   <Text style={[FONTS.fs_14_semibold, styles.refundRateText]}>
                     {policy.refundRate}
                   </Text>
                   <Text style={[FONTS.fs_12_medium, styles.refundPolicyText]}>
-                    % 환불
+                    {t('guesthouse.refund_d120db')}
                   </Text>
                 </View>
               ))}
@@ -511,7 +527,7 @@ const GuesthouseDetail = ({route}) => {
           ) : (
             <View style={styles.refundEmptyBox}>
               <Text style={[FONTS.fs_14_regular, styles.refundEmptyText]}>
-                등록된 취소규정이 없어요.
+                {t('guesthouse.thereIsNoRegisteredCancellationPolicy')}
               </Text>
             </View>
           )}
@@ -522,7 +538,9 @@ const GuesthouseDetail = ({route}) => {
     return (
       <View style={styles.introductionContainer}>
         <View style={styles.reviewRowContainer}>
-          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>리뷰</Text>
+          <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+            {t('common.review')}
+          </Text>
           {displayRating && (
             <View style={styles.reviewRow}>
               <View style={styles.reviewBoxBlue}>
@@ -532,7 +550,8 @@ const GuesthouseDetail = ({route}) => {
                 </Text>
                 <Text style={styles.ratingDevide}>·</Text>
                 <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                  {detail.reviewCount} 리뷰
+                  {detail.reviewCount}
+                  {t('common.review')}
                 </Text>
               </View>
             </View>
@@ -719,7 +738,7 @@ const GuesthouseDetail = ({route}) => {
                 onPress={handleCopyPhone}
                 style={styles.phoneButton}>
                 <Text style={[FONTS.fs_14_regular, styles.phone]}>
-                  숙소 문의 :{' '}
+                  {t('guesthouse.accommodationInquiries')}{' '}
                   <Text style={styles.copyableText}>
                     {detail.guesthousePhone}
                   </Text>
@@ -736,7 +755,8 @@ const GuesthouseDetail = ({route}) => {
                   </Text>
                   <Text style={styles.ratingDevide}>·</Text>
                   <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-                    {detail.reviewCount} 리뷰
+                    {detail.reviewCount}
+                    {t('common.review')}
                   </Text>
                 </View>
               </View>
@@ -772,7 +792,9 @@ const GuesthouseDetail = ({route}) => {
                   onPress={() => setShortIntroExpanded(prev => !prev)}>
                   <Text
                     style={[FONTS.fs_14_medium, styles.shortIntroToggleText]}>
-                    {shortIntroExpanded ? '닫기' : '더보기'}
+                    {shortIntroExpanded
+                      ? t('common.close')
+                      : t('common.seeMore')}
                   </Text>
                 </TouchableOpacity>
               )}
@@ -781,7 +803,8 @@ const GuesthouseDetail = ({route}) => {
             {todayParties.length > 0 && (
               <View style={styles.todayPartiesContainer}>
                 <Text style={[FONTS.fs_16_semibold, styles.todayContentTitle]}>
-                  오늘의 콘텐츠
+                  {t('guesthouse.todaySActivity')}
+
                   {todayParties.length > 1 && (
                     <Text style={styles.todayContentCount}>
                       {' '}
@@ -822,7 +845,8 @@ const GuesthouseDetail = ({route}) => {
               <View style={styles.guestInfoContainer}>
                 <PersonIcon width={20} height={20} />
                 <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-                  인원 {localAdults + localChildren}
+                  {t('common.numberOfPeople')}
+                  {localAdults + localChildren}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -919,16 +943,19 @@ const GuesthouseDetail = ({route}) => {
         <View style={styles.loginModalOverlay}>
           <View style={styles.loginModalContainer}>
             <Text style={[FONTS.fs_18_semibold, styles.loginModalTitle]}>
-              좋아요 기능은{'\n'} 로그인 후 사용해주세요
+              {t('guesthouse.theLikeFunctionIs')}
+              {'\n'}
+              {t('guesthouse.pleaseUseAfterLoggingIn')}
             </Text>
             <View style={styles.loginModalButtonRow}>
               <ButtonWhite
-                title="취소"
+                title={t('common.cancel')}
                 onPress={() => setLoginModalVisible(false)}
                 style={styles.loginModalButton}
               />
+
               <ButtonWhite
-                title="로그인하기"
+                title={t('common.logIn')}
                 backgroundColor={COLORS.primary_orange}
                 textColor={COLORS.grayscale_0}
                 onPress={() => {

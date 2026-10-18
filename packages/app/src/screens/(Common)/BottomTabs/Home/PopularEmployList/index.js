@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useRef, useState} from 'react';
 import {
   View,
@@ -25,6 +26,7 @@ import userEmployApi from '@utils/api/userEmployApi';
 import AppImage from '@components/AppImage';
 
 const PopularEmployList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -59,10 +61,7 @@ const PopularEmployList = () => {
         openReviewLink(item.reviewLink);
       }}>
       {item.reviewImageUrl ? (
-        <AppImage
-          uri={item.reviewImageUrl}
-          style={styles.trendingImage}
-        />
+        <AppImage uri={item.reviewImageUrl} style={styles.trendingImage} />
       ) : (
         <View
           style={[
@@ -97,8 +96,8 @@ const PopularEmployList = () => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: '공고 리뷰 조회에 실패했습니다',
-        buttonText: '확인',
+        message: t('employ.failedToRetrieveNoticeReview'),
+        buttonText: t('common.confirm'),
       });
     }
   };
@@ -128,14 +127,14 @@ const PopularEmployList = () => {
       } catch (error) {
         setErrorModal({
           visible: true,
-          message: '추천 공고 조회에 실패했습니다',
-          buttonText: '확인',
+          message: t('employ.recommendationNoticeSearchFailed'),
+          buttonText: t('common.confirm'),
         });
       } finally {
         setIsRecruitsLoading(false);
       }
     },
-    [isRecruitsLoading, isRecruitsLast],
+    [isRecruitsLoading, isRecruitsLast, t],
   );
 
   const openReviewLink = async url => {
@@ -185,18 +184,20 @@ const PopularEmployList = () => {
             <LeftChevron width={28} height={28} />
           </TouchableOpacity>
           <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>
-            인기 공고
+            {t('employ.popularAnnouncements')}
           </Text>
         </View>
         <View style={styles.headerSubtitle}>
           <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
-            가장 인기 있는 공고들만 모아봤어요
+            {t('employ.weVeCollectedOnlyTheMostPopularAnnouncements')}
           </Text>
         </View>
       </View>
 
       <View style={styles.bodyContainer}>
-        <Text style={[FONTS.fs_16_semibold, styles.title]}>게하 스탭 후기</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.title]}>
+          {t('employ.guesthouseStaffReview')}
+        </Text>
         <FlatList
           ref={flatListRef}
           data={reviews?.slice(0, 3)}
@@ -212,6 +213,7 @@ const PopularEmployList = () => {
           }}
           style={styles.trendingList}
         />
+
         {/* 인디케이터 */}
         <View style={styles.indicatorContainer}>
           {reviews?.slice(0, 3).map((_, index) => (
@@ -225,7 +227,9 @@ const PopularEmployList = () => {
           ))}
         </View>
 
-        <Text style={[FONTS.fs_16_semibold, styles.title]}>추천 일자리</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.title]}>
+          {t('common.recommendedJobs')}
+        </Text>
 
         {/* 추천 공고 리스트 */}
         <RecruitList

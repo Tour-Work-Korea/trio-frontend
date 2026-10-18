@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo, useState} from 'react';
 import {ScrollView, Text, TextInput, View} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -27,14 +28,11 @@ const formatLocalDate = date =>
   `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
 
 const ApplicantInfo = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const {
-    recruitId,
-    recruitTitle,
-    guesthouseName,
-    recruitEnd,
-  } = route.params ?? {};
+  const {recruitId, recruitTitle, guesthouseName, recruitEnd} =
+    route.params ?? {};
   const [startDate, setStartDate] = useState(null);
   const [message, setMessage] = useState('');
   const {
@@ -54,6 +52,7 @@ const ApplicantInfo = () => {
       styles.bottomContainer,
       keyboardHeight > 0 ? {bottom: keyboardHeight} : null,
     ],
+
     [keyboardHeight],
   );
 
@@ -74,14 +73,19 @@ const ApplicantInfo = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="지원 정보 입력" onPress={() => navigation.goBack()} />
+      <Header
+        title={t('employ.enterApplicationInformation')}
+        onPress={() => navigation.goBack()}
+      />
 
       <ScrollView
         ref={scrollRef}
         showsVerticalScrollIndicator={false}
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={[styles.content, keyboardAwareContentStyle]}>
-        <Text style={[FONTS.fs_16_semibold, styles.label]}>입도 가능 날짜</Text>
+        <Text style={[FONTS.fs_16_semibold, styles.label]}>
+          {t('employ.dateAvailableForEntry')}
+        </Text>
 
         <View style={styles.dateInput}>
           <Text
@@ -97,13 +101,13 @@ const ApplicantInfo = () => {
         <ApplicantInfoDatePicker
           value={startDate}
           onChange={setStartDate}
-          label="날짜"
+          label={t('common.date')}
           style={styles.calendar}
         />
 
         <View style={styles.messageHeader}>
           <Text style={[FONTS.fs_16_semibold, styles.label]}>
-            추가 문의 사항
+            {t('employ.additionalInquiries')}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.messageCount]}>
             <Text style={styles.messageCountActive}>{message.length}</Text>/
@@ -114,7 +118,7 @@ const ApplicantInfo = () => {
         <View {...messageInputField}>
           <TextInput
             style={[FONTS.fs_14_regular, styles.messageInput]}
-            placeholder="ex. 서빙, 설거지, 계산"
+            placeholder={t('employ.exServingWashingDishesCalculating')}
             placeholderTextColor={COLORS.grayscale_400}
             value={message}
             maxLength={MESSAGE_MAX_LENGTH}
@@ -127,7 +131,7 @@ const ApplicantInfo = () => {
 
       <View style={bottomContainerStyle}>
         <ButtonScarlet
-          title="다음"
+          title={t('common.next')}
           onPress={handleNext}
           disabled={!startDate}
           style={styles.nextButton}

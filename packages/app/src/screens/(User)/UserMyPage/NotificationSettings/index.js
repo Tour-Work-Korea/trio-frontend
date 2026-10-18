@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useState} from 'react';
 import {StyleSheet, Switch, Text, TouchableOpacity, View} from 'react-native';
 
@@ -13,6 +14,7 @@ const DEFAULT_SETTINGS = {
 };
 
 const NotificationSettings = () => {
+  const {t} = useTranslation();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [submitting, setSubmitting] = useState(false);
 
@@ -69,14 +71,18 @@ const NotificationSettings = () => {
 
   return (
     <View style={styles.background}>
-      <Header title="알림 설정" />
+      <Header title={t('settings.notificationSettings')} />
 
       <View style={styles.container}>
         <View style={styles.pushHeaderRow}>
-          <Text style={styles.pushTitle}>푸시 알림 받기</Text>
+          <Text style={styles.pushTitle}>
+            {t('settings.receivePushNotifications')}
+          </Text>
           <View style={styles.pushControlRow}>
             <Text style={styles.pushStatusText}>
-              {settings.isPushEnabled ? '받음' : '꺼짐'}
+              {settings.isPushEnabled
+                ? t('settings.received')
+                : t('settings.off')}
             </Text>
             <Switch
               value={settings.isPushEnabled}
@@ -93,7 +99,7 @@ const NotificationSettings = () => {
         </View>
 
         <Text style={styles.pushDescription}>
-          소리와 진동으로 알려주는 알림입니다.
+          {t('settings.thisIsANotificationThatNotifiesYouWithSoundAnd')}
         </Text>
 
         <View style={styles.divider} />
@@ -103,7 +109,9 @@ const NotificationSettings = () => {
           activeOpacity={1}
           disabled={submitting}
           onPress={() => toggleSetting('isEventEnabled')}>
-          <Text style={styles.benefitTitle}>콘텐츠/혜택 알림</Text>
+          <Text style={styles.benefitTitle}>
+            {t('settings.activityBenefitNotification')}
+          </Text>
           <View
             style={[
               styles.checkbox,

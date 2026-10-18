@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useRef, useState} from 'react';
 import {
   View,
@@ -30,6 +31,7 @@ const RoomList = ({
   localAdults,
   localChildren,
 }) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [roomModalImages, setRoomModalImages] = useState([]);
   const [roomImageModalVisible, setRoomImageModalVisible] = useState(false);
@@ -41,9 +43,9 @@ const RoomList = ({
   const formatTime = timeStr => (timeStr ? timeStr.slice(0, 5) : '');
   const totalGuestCount = localAdults + localChildren;
   const dormitoryGenderMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: t('common.mixedDormitory'),
+    FEMALE_ONLY: t('common.womenOnly'),
+    MALE_ONLY: t('common.menOnly'),
   };
 
   const getRoomImages = room =>
@@ -144,9 +146,9 @@ const RoomList = ({
 
     if (userRole !== 'USER') {
       showErrorModal({
-        message: '숙박 예약은\n 로그인 후 사용해주세요',
-        buttonText2: '취소',
-        buttonText: '로그인하기',
+        message: t('common.pleaseLogInToMakeAccommodationReservations'),
+        buttonText2: t('common.cancel'),
+        buttonText: t('common.logIn'),
         onPress: () => {
           navigation.navigate('Login');
         },
@@ -155,7 +157,7 @@ const RoomList = ({
       return;
     }
 
-    if (detail.guesthouseName === '비지터 게스트하우스') {
+    if (detail.guesthouseName === t('common.visitorGuestHouse')) {
       const url =
         'https://m.place.naver.com/accommodation/1017382020/room?entry=plt&businessCategory=guesthouse';
       Linking.canOpenURL(url)
@@ -163,16 +165,19 @@ const RoomList = ({
           if (supported) {
             Linking.openURL(url);
           } else {
-            Alert.alert('알림', '링크를 열 수 없어요');
+            Alert.alert(t('common.notification'), t('common.iCanTOpenTheLink'));
           }
         })
         .catch(() => {
-          Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+          Alert.alert(
+            t('common.notification'),
+            t('common.anErrorOccurredWhileOpeningTheLink'),
+          );
         });
       return;
     }
 
-    if (detail.guesthouseName === '베드라디오 동문점') {
+    if (detail.guesthouseName === t('common.bedRadioDongmunBranch')) {
       const url =
         'https://m.place.naver.com/accommodation/1982132289/room?entry=pll&businessCategory=guesthouse';
       Linking.canOpenURL(url)
@@ -180,16 +185,19 @@ const RoomList = ({
           if (supported) {
             Linking.openURL(url);
           } else {
-            Alert.alert('알림', '링크를 열 수 없어요');
+            Alert.alert(t('common.notification'), t('common.iCanTOpenTheLink'));
           }
         })
         .catch(() => {
-          Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+          Alert.alert(
+            t('common.notification'),
+            t('common.anErrorOccurredWhileOpeningTheLink'),
+          );
         });
       return;
     }
 
-    if (detail.guesthouseName === '이상한밤 게스트하우스') {
+    if (detail.guesthouseName === t('common.strangeNightGuesthouse')) {
       const url =
         'https://m.place.naver.com/accommodation/1285287809/room?entry=plt&businessCategory=guesthouse';
       Linking.canOpenURL(url)
@@ -197,11 +205,14 @@ const RoomList = ({
           if (supported) {
             Linking.openURL(url);
           } else {
-            Alert.alert('알림', '링크를 열 수 없어요');
+            Alert.alert(t('common.notification'), t('common.iCanTOpenTheLink'));
           }
         })
         .catch(() => {
-          Alert.alert('알림', '링크를 여는 중 오류가 발생했어요');
+          Alert.alert(
+            t('common.notification'),
+            t('common.anErrorOccurredWhileOpeningTheLink'),
+          );
         });
       return;
     }
@@ -245,7 +256,10 @@ const RoomList = ({
 
   const renderCommonCardShell = (room, infoNode, actionNode) => {
     const images = getRoomImages(room);
-    const imageIndex = Math.min(roomImageIndices[room.id] ?? 0, images.length - 1);
+    const imageIndex = Math.min(
+      roomImageIndices[room.id] ?? 0,
+      images.length - 1,
+    );
     const thumbnailImage = images[imageIndex]?.roomImageUrl;
 
     return (
@@ -262,13 +276,16 @@ const RoomList = ({
               }}
               activeOpacity={1}
               accessibilityRole="button"
-              accessibilityLabel={`${room.roomName} 사진 보기`}
+              accessibilityLabel={t('guesthouse.valueViewPhotos', {
+                room_roomName: room.roomName,
+              })}
               onPress={() => openRoomImageModal(room)}>
               <AppImage
                 uri={thumbnailImage}
                 style={[
                   styles.roomImage,
-                  roomImageModalVisible && activeRoomId === room.id && {opacity: 0},
+                  roomImageModalVisible &&
+                    activeRoomId === room.id && {opacity: 0},
                 ]}
               />
             </TouchableOpacity>
@@ -289,13 +306,13 @@ const RoomList = ({
                       styles.roomNameText,
                     ]}
                     numberOfLines={1}
-                    ellipsizeMode="tail"
-                  >
+                    ellipsizeMode="tail">
                     {room.roomName}
                   </Text>
                 </View>
                 <Text style={[FONTS.fs_18_semibold, styles.roomPrice]}>
-                  {(room.totalPrice ?? room.roomPrice)?.toLocaleString()}원
+                  {(room.totalPrice ?? room.roomPrice)?.toLocaleString()}
+                  {t('common.won')}
                 </Text>
                 {room.multiNightDiscount?.enabled === true && (
                   <View style={styles.multiNightDiscountBadge}>
@@ -304,7 +321,7 @@ const RoomList = ({
                         FONTS.fs_12_medium,
                         styles.multiNightDiscountBadgeText,
                       ]}>
-                      연박할인
+                      {t('common.consecutiveNightDiscount')}
                     </Text>
                   </View>
                 )}
@@ -337,7 +354,8 @@ const RoomList = ({
                 styles.roomType,
                 {color: COLORS.grayscale_500},
               ]}>
-              [{room.roomCapacity}인 도미토리]
+              [{room.roomCapacity}
+              {t('common.inDormitory')}
             </Text>
             {room.dormitoryGenderType !== 'MIXED' && !!genderText && (
               <Text
@@ -356,16 +374,18 @@ const RoomList = ({
               styles.roomType,
               {color: COLORS.grayscale_500},
             ]}>
-              1베드 당
-            </Text>
+            {t('common.perBed')}
+          </Text>
         </View>
 
         <View style={styles.checkTimeContainer}>
           <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-            입실 {formatTime(detail.checkIn)}
+            {t('common.enteringTheRoom')}
+            {formatTime(detail.checkIn)}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-            퇴실 {formatTime(detail.checkOut)}
+            {t('common.checkOut_91151a')}
+            {formatTime(detail.checkOut)}
           </Text>
         </View>
 
@@ -373,12 +393,11 @@ const RoomList = ({
           style={styles.roomDetailBtn}
           activeOpacity={0.8}
           accessibilityRole="button"
-          onPress={() => goRoomDetail(room, totalGuestCount)}
-        >
+          onPress={() => goRoomDetail(room, totalGuestCount)}>
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
-            상세보기
+            {t('guesthouse.viewDetails')}
           </Text>
-          <RightArrow width={16} height={16}/>
+          <RightArrow width={16} height={16} />
         </TouchableOpacity>
       </>
     );
@@ -386,7 +405,9 @@ const RoomList = ({
     const dormitoryAction = !isReservationClosed ? (
       <View style={styles.roomInfoBottomRow}>
         <View style={styles.remainingRow}>
-          <Text style={[FONTS.fs_14_medium, styles.remainingText]}>베드 수</Text>
+          <Text style={[FONTS.fs_14_medium, styles.remainingText]}>
+            {t('guesthouse.numberOfBeds')}
+          </Text>
           <Text style={[FONTS.fs_14_medium, styles.remainingText]}>
             {totalGuestCount}
           </Text>
@@ -397,18 +418,21 @@ const RoomList = ({
               FONTS.fs_14_medium,
               styles.roomType,
               {color: COLORS.primary_orange},
-            ]}
-          >
-              남아 있는 베드 수 {room.remaining}개
+            ]}>
+            {t('guesthouse.remainingBedCount', {count: room.remaining})}
           </Text>
           {reserved ? (
             <Text
-              style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}>
-              예약 마감
+              style={[
+                FONTS.fs_16_semibold,
+                {color: COLORS.grayscale_300},
+                styles.fullBooked,
+              ]}>
+              {t('guesthouse.reservationDeadline')}
             </Text>
           ) : (
             <ButtonWhite
-              title='예약하기'
+              title={t('common.makeAReservation')}
               backgroundColor={COLORS.primary_orange}
               textColor={COLORS.grayscale_0}
               disabled={isGuestCountOverRemaining}
@@ -436,24 +460,25 @@ const RoomList = ({
               styles.roomType,
               {color: COLORS.grayscale_500},
             ]}>
-            [일반객실]
+            {t('guesthouse.generalRoom')}
           </Text>
           <Text
             style={[
               FONTS.fs_14_medium,
               styles.roomType,
               {color: COLORS.grayscale_500},
-            ]}
-          >
-            1객실 당
+            ]}>
+            {t('common.perRoom')}
           </Text>
         </View>
         <View style={styles.checkTimeContainer}>
           <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-            입실 {formatTime(detail.checkIn)}
+            {t('common.enteringTheRoom')}
+            {formatTime(detail.checkIn)}
           </Text>
           <Text style={[FONTS.fs_12_medium, styles.checkin]}>
-            퇴실 {formatTime(detail.checkOut)}
+            {t('common.checkOut_91151a')}
+            {formatTime(detail.checkOut)}
           </Text>
         </View>
 
@@ -461,12 +486,11 @@ const RoomList = ({
           style={styles.roomDetailBtn}
           activeOpacity={0.8}
           accessibilityRole="button"
-          onPress={() => goRoomDetail(room, totalGuestCount)}
-        >
+          onPress={() => goRoomDetail(room, totalGuestCount)}>
           <Text style={[FONTS.fs_14_medium, styles.roomDetailBtnText]}>
-            상세보기
+            {t('guesthouse.viewDetails')}
           </Text>
-          <RightArrow width={16} height={16}/>
+          <RightArrow width={16} height={16} />
         </TouchableOpacity>
       </>
     );
@@ -474,32 +498,39 @@ const RoomList = ({
     const normalAction = !isReservationClosed ? (
       <View style={[styles.roomInfoRow, {marginBottom: 0, marginTop: 24}]}>
         <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-          <Text
-            style={[FONTS.fs_14_medium, styles.roomType]}
-          >
-            {room.roomCapacity}인 기준(최대 {room.roomMaxCapacity}인)
+          <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+            {room.roomCapacity}
+            {t('common.basedOnPhosphorusMaximum')}
+            {room.roomMaxCapacity}
+            {t('common.phosphorus')}
           </Text>
           <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-            {room.femaleOnly ? ', 여성전용' : ''}
+            {room.femaleOnly ? t('common.womenOnly_40edf9') : ''}
           </Text>
         </View>
         <View style={{width: 128, alignItems: 'center'}}>
           {reserved ? (
             <Text
-              style={[FONTS.fs_16_semibold, {color: COLORS.grayscale_300}, styles.fullBooked]}
-            >
-              예약 마감
+              style={[
+                FONTS.fs_16_semibold,
+                {color: COLORS.grayscale_300},
+                styles.fullBooked,
+              ]}>
+              {t('guesthouse.reservationDeadline')}
             </Text>
           ) : (
             <ButtonWhite
-              title='예약하기'
+              title={t('common.makeAReservation')}
               backgroundColor={COLORS.primary_orange}
               textColor={COLORS.grayscale_0}
               onPress={() => {
                 if (isOverCapacity) {
                   showErrorModal({
-                    message: `해당 객실은 최대 ${room.roomMaxCapacity}인 입니다\n인원수를 조절해주세요`,
-                    buttonText: '확인',
+                    message: t(
+                      'guesthouse.thisRoomAccommodatesAMaximumOfValuePeoplePleaseAdjust',
+                      {room_roomMaxCapacity: room.roomMaxCapacity},
+                    ),
+                    buttonText: t('common.confirm'),
                   });
                 } else {
                   handleReservationPress(room, totalGuestCount);
@@ -516,7 +547,9 @@ const RoomList = ({
 
   return (
     <View style={styles.roomContentWrapper}>
-      <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>객실</Text>
+      <Text style={[FONTS.fs_18_semibold, styles.tabTitle]}>
+        {t('common.guestRoom')}
+      </Text>
 
       {detail.roomInfos?.map(room => {
         const isDormitory = room.roomType === 'DORMITORY';

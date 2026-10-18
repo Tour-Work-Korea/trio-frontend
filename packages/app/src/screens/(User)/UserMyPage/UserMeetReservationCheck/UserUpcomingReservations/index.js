@@ -1,13 +1,7 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  StyleSheet,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -18,6 +12,7 @@ import AppImage from '@components/AppImage';
 import {trimJejuPrefix} from '@utils/formatAddress';
 
 export default function UserUpcomingReservations({data, onRefresh}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const renderItem = ({item, index}) => {
@@ -31,10 +26,10 @@ export default function UserUpcomingReservations({data, onRefresh}) {
         : item.partyImage;
     const isRejected = item.approvalStatus === 'REJECTED';
     const statusText = isRejected
-      ? '신청 반려'
+      ? t('common.applicationRejected')
       : item.reservationStatus === 'PENDING'
-        ? '승인 대기 중'
-        : '신청 확정';
+      ? t('common.waitingForApproval')
+      : t('common.applicationConfirmed');
 
     return (
       <View style={styles.container}>
@@ -49,8 +44,7 @@ export default function UserUpcomingReservations({data, onRefresh}) {
                 partyId: item.partyId,
               },
             )
-          }
-        >
+          }>
           {/* 상단 상태 및 날짜/시간 */}
           <View style={styles.headerRow}>
             <Text
@@ -82,12 +76,17 @@ export default function UserUpcomingReservations({data, onRefresh}) {
             style={[FONTS.fs_12_medium, styles.addressText]}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {trimJejuPrefix(item.guesthouseAddress) || '주소 정보 없음'}
+            {trimJejuPrefix(item.guesthouseAddress) ||
+              t('common.noAddressInformation')}
           </Text>
 
           {/* 썸네일 */}
           <View style={styles.imageWrap}>
-            <AppImage source={imageSource} style={styles.image} resizeMode="cover" />
+            <AppImage
+              source={imageSource}
+              style={styles.image}
+              resizeMode="cover"
+            />
           </View>
 
           {/* 예약취소 */}
@@ -129,13 +128,12 @@ export default function UserUpcomingReservations({data, onRefresh}) {
               }}>
               <Text style={[FONTS.fs_12_medium, styles.cancelBtnText]}>
                 {item.reservationStatus === 'PENDING'
-                  ? '신청취소'
-                  : '취소/ 환불 문의'}
+                  ? t('common.cancelApplication')
+                  : t('common.cancellationRefundInquiry')}
               </Text>
             </TouchableOpacity>
           )}
         </TouchableOpacity>
-
       </View>
     );
   };
@@ -155,16 +153,15 @@ export default function UserUpcomingReservations({data, onRefresh}) {
           <EmptyState
             icon={SearchEmpty}
             iconSize={{width: 120, height: 120}}
-            title="신청내역이 없어요"
-            description="콘텐츠 신청하러 가볼까요?"
-            buttonText="콘텐츠 찾아보기"
+            title={t('common.thereIsNoApplicationHistory')}
+            description={t('common.shallWeGoApplyForActivity')}
+            buttonText={t('common.browseActivity')}
             onPressButton={() =>
               navigation.navigate('MainTabs', {screen: '콘텐츠'})
             }
           />
         }
       />
-
     </>
   );
 }

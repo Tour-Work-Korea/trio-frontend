@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback, useEffect, useMemo} from 'react';
 import {
   View,
@@ -44,6 +45,7 @@ const normalizeRegisterProfileData = data => ({
 });
 
 const UserRegisterProfile = () => {
+  const {t} = useTranslation();
   const route = useRoute();
   const {prevData} = route.params;
   const normalizedPrevData = useMemo(
@@ -173,13 +175,13 @@ const UserRegisterProfile = () => {
       const response = await authApi.checkNickname(formData.nickname);
       setIsNicknameChecked(true);
       setISNicknameDuplicated(false);
-      setNicknameCheckMessage(response?.data || '사용가능한 닉네임입니다');
+      setNicknameCheckMessage(response?.data || t('auth.availableNicknames'));
     } catch (error) {
       setIsNicknameChecked(true);
       setISNicknameDuplicated(true);
       setNicknameCheckMessage(
         error.response?.data?.message ||
-          '이미 있는 닉네임입니다. 다른 닉네임을 입력해주세요.',
+          t('auth.thisNicknameAlreadyExistsPleaseEnterADifferentNickname'),
       );
     }
   };
@@ -209,8 +211,14 @@ const UserRegisterProfile = () => {
       const languageValid = ['KO', 'EN', 'JA', 'ZH'].includes(
         formData.preferredLanguage,
       );
-      return nameValid && birthdayValid && genderValid && nicknameValid &&
-        nationalityValid && languageValid;
+      return (
+        nameValid &&
+        birthdayValid &&
+        genderValid &&
+        nicknameValid &&
+        nationalityValid &&
+        languageValid
+      );
     }
 
     if (isSocialSignUp) {
@@ -254,7 +262,7 @@ const UserRegisterProfile = () => {
         const {accessToken, refreshToken} = res.data || {};
 
         if (!accessToken || !refreshToken) {
-          throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+          throw new Error(t('common.theSocialSignupTokenResponseIsEmpty'));
         }
 
         await storeLoginTokens({
@@ -301,8 +309,9 @@ const UserRegisterProfile = () => {
         visible: true,
         message:
           error.response?.data?.message ||
-          '오류가 발생했습니다\n다시 시도해주세요',
-        buttonText: '확인',
+          t('common.anErrorOccurredPleaseTryAgain'),
+
+        buttonText: t('common.confirm'),
         onPress: '',
       });
     }
@@ -313,11 +322,15 @@ const UserRegisterProfile = () => {
     if (formData?.isIntegration && !isIntegrationNoticeShown) {
       setIsIntegrationNoticeShown(true);
 
-      const platforms = (formData?.socialTypes || []).join(', ') || '소셜';
+      const platforms =
+        (formData?.socialTypes || []).join(', ') || t('common.social');
       setErrorModal({
         visible: true,
-        message: `이미 존재하는 계정과 회원 정보를 연동합니다.\n연동 플랫폼 : ${platforms}`,
-        buttonText: '확인',
+        message: t(
+          'auth.linkMemberInformationWithAnAlreadyExistingAccountLinkedPlatform',
+          {platforms: platforms},
+        ),
+        buttonText: t('common.confirm'),
         onPress: 'integrationConfirm',
       });
 
@@ -344,8 +357,8 @@ const UserRegisterProfile = () => {
     } else {
       setErrorModal({
         visible: true,
-        message: '자동 로그인에 실패했습니다\n로그인 페이지로 이동합니다',
-        buttonText: '확인',
+        message: t('auth.automaticLoginFailedGoToLoginPage'),
+        buttonText: t('common.confirm'),
         onPress: 'moveToLogin',
       });
     }
@@ -370,10 +383,14 @@ const UserRegisterProfile = () => {
               <Logo width={60} height={29} />
               <View>
                 <Text style={[styles.titleText]}>
-                  {isForeignSignUp ? 'Complete Profile' : '게딱지에서 활동하기 위한,'}
+                  {isForeignSignUp
+                    ? 'Complete Profile'
+                    : t('auth.forActivityInDdakji')}
                 </Text>
                 <Text style={[styles.titleText]}>
-                  {isForeignSignUp ? '필수 정보를 입력해주세요' : '필수정보를 알려주세요'}
+                  {isForeignSignUp
+                    ? t('auth.pleaseEnterRequiredInformation')
+                    : t('auth.pleaseProvideEssentialInformation')}
                 </Text>
                 {isForeignSignUp && (
                   <Text style={styles.titleDescription}>
@@ -383,16 +400,14 @@ const UserRegisterProfile = () => {
               </View>
             </View>
             <View style={styles.inputGroup}>
-              <View
-                style={styles.inputContainer}
-                onLayout={nameField.onLayout}>
+              <View style={styles.inputContainer} onLayout={nameField.onLayout}>
                 <Text style={styles.inputLabel}>
-                  {isForeignSignUp ? '이름 / Full name' : '이름'}
+                  {isForeignSignUp ? t('auth.nameFullName') : t('common.name')}
                 </Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="이름을 입력해주세요"
+                    placeholder={t('auth.pleaseEnterYourName')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={formData.name}
                     onChangeText={handleNameChange}
@@ -406,7 +421,9 @@ const UserRegisterProfile = () => {
                 style={styles.inputContainer}
                 onLayout={birthdayField.onLayout}>
                 <Text style={styles.inputLabel}>
-                  {isForeignSignUp ? '생년월일 / Date of birth' : '생년월일'}
+                  {isForeignSignUp
+                    ? t('auth.dateOfBirth_af774c')
+                    : t('common.dateOfBirth')}
                 </Text>
                 <View style={styles.inputBox}>
                   <TextInput
@@ -427,18 +444,21 @@ const UserRegisterProfile = () => {
                   style={styles.inputContainer}
                   onLayout={nicknameField.onLayout}>
                   <Text style={styles.inputLabel}>
-                    {isForeignSignUp ? '닉네임 / Nickname' : '닉네임'}
+                    {isForeignSignUp
+                      ? t('auth.nicknameNickname')
+                      : t('common.nickname')}
                   </Text>
                   <View style={[styles.inputBox, styles.inputRelative]}>
                     <TextInput
                       style={styles.textInput}
-                      placeholder="닉네임을 입력해주세요"
+                      placeholder={t('common.pleaseEnterYourNickname')}
                       placeholderTextColor={COLORS.grayscale_400}
                       value={formData.nickname}
                       onChangeText={handleNicknameChange}
                       onFocus={nicknameField.onFocus}
                       maxLength={10}
                     />
+
                     <TouchableOpacity
                       activeOpacity={1}
                       disabled={
@@ -465,7 +485,7 @@ const UserRegisterProfile = () => {
                               ? COLORS.grayscale_0
                               : COLORS.grayscale_400,
                         }}>
-                        중복확인
+                        {t('auth.duplicateCheck')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -490,7 +510,7 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        특수문자 제외
+                        {t('auth.excludingSpecialCharacters')}
                       </Text>
                       <Text
                         style={[
@@ -499,7 +519,7 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        2-10자 내외
+                        {t('auth.around210Characters')}
                       </Text>
                     </View>
                   )}
@@ -508,17 +528,22 @@ const UserRegisterProfile = () => {
               {isForeignSignUp && (
                 <>
                   <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>국적 / Nationality</Text>
+                    <Text style={styles.inputLabel}>
+                      {t('auth.nationality')}
+                    </Text>
                     <View style={styles.inputBox}>
                       <TextInput
                         style={styles.textInput}
-                        placeholder="국가 코드 2자리 (예: US, JP)"
+                        placeholder={t('auth.2LetterCountryCodeEGUsJp')}
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.nationalityCountryCode}
                         onChangeText={text =>
                           updateField(
                             'nationalityCountryCode',
-                            text.replace(/[^a-zA-Z]/g, '').toUpperCase().slice(0, 2),
+                            text
+                              .replace(/[^a-zA-Z]/g, '')
+                              .toUpperCase()
+                              .slice(0, 2),
                           )
                         }
                         autoCapitalize="characters"
@@ -527,10 +552,12 @@ const UserRegisterProfile = () => {
                     </View>
                   </View>
                   <View style={styles.inputContainer}>
-                    <Text style={styles.inputLabel}>선호 언어 / Preferred language</Text>
+                    <Text style={styles.inputLabel}>
+                      {t('auth.preferredLanguage_3e0de9')}
+                    </Text>
                     <View style={styles.languageGroup}>
                       {[
-                        ['KO', '한국어'],
+                        ['KO', t('language.korean_6e081b')],
                         ['EN', 'English'],
                         ['JA', '日本語'],
                         ['ZH', '中文'],
@@ -542,7 +569,9 @@ const UserRegisterProfile = () => {
                             formData.preferredLanguage === value &&
                               styles.languageButtonActive,
                           ]}
-                          onPress={() => updateField('preferredLanguage', value)}>
+                          onPress={() =>
+                            updateField('preferredLanguage', value)
+                          }>
                           <Text
                             style={[
                               styles.languageButtonText,
@@ -562,11 +591,11 @@ const UserRegisterProfile = () => {
                   <View
                     style={styles.inputContainer}
                     onLayout={passwordField.onLayout}>
-                    <Text style={styles.inputLabel}>비밀번호</Text>
+                    <Text style={styles.inputLabel}>{t('auth.password')}</Text>
                     <View style={styles.inputBox}>
                       <TextInput
                         style={styles.textInput}
-                        placeholder="비밀번호를 입력해주세요"
+                        placeholder={t('common.pleaseEnterYourPassword')}
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.password}
                         onChangeText={handlePasswordChange}
@@ -575,6 +604,7 @@ const UserRegisterProfile = () => {
                         secureTextEntry={!isPasswordVisible}
                         autoCapitalize="none"
                       />
+
                       <TouchableOpacity
                         activeOpacity={1}
                         onPress={() => setIsPasswordVisible(prev => !prev)}>
@@ -593,16 +623,14 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        영문 대소문자 포함
+                        {t('common.includesUppercaseAndLowercaseLetters')}
                       </Text>
                       <Text
                         style={[
                           styles.validDefaultText,
-                          formValid.password.hasNumber
-                            ? styles.validText
-                            : '',
+                          formValid.password.hasNumber ? styles.validText : '',
                         ]}>
-                        숫자 포함
+                        {t('common.containsNumbers')}
                       </Text>
                       <Text
                         style={[
@@ -611,7 +639,7 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        특수문자 포함
+                        {t('common.containsSpecialCharacters')}
                       </Text>
                       <Text
                         style={[
@@ -620,7 +648,7 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        8-20자 이내
+                        {t('common.820CharactersOrLess')}
                       </Text>
                     </View>
                   </View>
@@ -630,7 +658,7 @@ const UserRegisterProfile = () => {
                     <View style={styles.inputBox}>
                       <TextInput
                         style={styles.textInput}
-                        placeholder="다시 한 번 입력해주세요"
+                        placeholder={t('common.pleaseEnterAgain')}
                         placeholderTextColor={COLORS.grayscale_400}
                         value={formData.passwordConfirm}
                         onChangeText={handlePasswordConfirmChange}
@@ -638,6 +666,7 @@ const UserRegisterProfile = () => {
                         maxLength={20}
                         secureTextEntry={!isPasswordCheckVisible}
                       />
+
                       <TouchableOpacity
                         activeOpacity={1}
                         onPress={() =>
@@ -658,7 +687,7 @@ const UserRegisterProfile = () => {
                             ? styles.validText
                             : '',
                         ]}>
-                        비밀번호 일치
+                        {t('common.passwordMatch')}
                       </Text>
                     </View>
                   </View>
@@ -666,7 +695,9 @@ const UserRegisterProfile = () => {
               )}
               <View style={styles.inputContainer}>
                 <Text style={styles.inputLabel}>
-                  {isForeignSignUp ? '성별 / Gender' : '성별'}
+                  {isForeignSignUp
+                    ? t('auth.gender_c18e9a')
+                    : t('common.gender')}
                 </Text>
                 <View style={styles.genderGroup}>
                   <TouchableOpacity
@@ -682,7 +713,7 @@ const UserRegisterProfile = () => {
                         formData.gender === 'F' &&
                           styles.genderButtonTextActive,
                       ]}>
-                      여성
+                      {t('common.female')}
                     </Text>
                   </TouchableOpacity>
                   <TouchableOpacity
@@ -698,7 +729,7 @@ const UserRegisterProfile = () => {
                         formData.gender === 'M' &&
                           styles.genderButtonTextActive,
                       ]}>
-                      남성
+                      {t('common.male')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -707,7 +738,7 @@ const UserRegisterProfile = () => {
           </View>
           <View>
             <ButtonScarlet
-              title="가입하기"
+              title={t('auth.signUp')}
               onPress={handleSubmit}
               disabled={!isFormValid()}
             />

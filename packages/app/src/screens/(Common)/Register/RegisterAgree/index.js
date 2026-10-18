@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useEffect} from 'react';
 import {Text, View, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -9,9 +10,10 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import CheckGray from '@assets/images/check20_gray.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
-import { COLORS } from '@constants/colors';
+import {COLORS} from '@constants/colors';
 
 const RegisterAgree = ({route}) => {
+  const {t} = useTranslation();
   const {
     user,
     isSocial = false,
@@ -150,8 +152,10 @@ const RegisterAgree = ({route}) => {
         <View style={styles.groupParent}>
           <MainLogo style={styles.frameChild} width={60} height={29} />
           <View>
-            <Text style={[styles.titleText]}>서비스 이용을 위한</Text>
-            <Text style={[styles.titleText]}>약관 동의가 필요해요</Text>
+            <Text style={[styles.titleText]}>{t('auth.toUseTheService')}</Text>
+            <Text style={[styles.titleText]}>
+              {t('auth.iNeedToAgreeToTheTermsAndConditions')}
+            </Text>
           </View>
         </View>
 
@@ -161,7 +165,9 @@ const RegisterAgree = ({route}) => {
             <View style={[styles.checkboxParent, styles.parentWrapperFlexBox]}>
               {renderCheckbox(isAllAgreed, () => handleAgreement('all'))}
               <View style={styles.parentWrapperFlexBox}>
-                <Text style={[styles.textAllAgree]}>전체동의</Text>
+                <Text style={[styles.textAllAgree]}>
+                  {t('auth.fullAgreement')}
+                </Text>
               </View>
             </View>
             {/* 동의 목록 */}
@@ -179,7 +185,7 @@ const RegisterAgree = ({route}) => {
                     <View style={[styles.parent, styles.parentWrapperFlexBox]}>
                       {item.isRequired ? (
                         <Text style={[styles.textRequired, styles.textBlue]}>
-                          [필수]
+                          {t('common.required')}
                         </Text>
                       ) : null}
                       <Text style={styles.textAgreeTitle}>{item.title}</Text>
@@ -187,7 +193,7 @@ const RegisterAgree = ({route}) => {
                     <TouchableOpacity
                       onPress={() => handleAgreeDetail(item.id)}>
                       <Text style={[styles.textSmall, styles.textBlue]}>
-                        보기
+                        {t('common.view')}
                       </Text>
                     </TouchableOpacity>
                   </View>
@@ -197,13 +203,13 @@ const RegisterAgree = ({route}) => {
           </View>
           {isRequiredAgreed ? (
             <ButtonWhite
-              title="다음"
+              title={t('common.next')}
               onPress={handleMoveNext}
               backgroundColor={mainColor}
               textColor={COLORS.grayscale_0}
             />
           ) : (
-            <ButtonWhite title="다음" disabled={true} />
+            <ButtonWhite title={t('common.next')} disabled={true} />
           )}
         </View>
       </View>

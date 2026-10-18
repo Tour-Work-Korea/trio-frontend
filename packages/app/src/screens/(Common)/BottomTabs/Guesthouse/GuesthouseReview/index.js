@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
@@ -32,6 +33,7 @@ const GuesthouseReview = ({
   averageRating = 0,
   totalCount = 0,
 }) => {
+  const {t} = useTranslation();
   const loadingRef = useRef(false);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -69,36 +71,33 @@ const GuesthouseReview = ({
   }, []);
 
   // 첫 로드 or 새로고침
-  const fetchReviews = useCallback(
-    async () => {
-      if (loadingRef.current) {
-        return;
-      }
+  const fetchReviews = useCallback(async () => {
+    if (loadingRef.current) {
+      return;
+    }
 
-      loadingRef.current = true;
-      setLoading(true);
+    loadingRef.current = true;
+    setLoading(true);
 
-      try {
-        const res = await userGuesthouseApi.getGuesthouseReviews({
-          guesthouseId,
-          page: 0,
-          size: Math.max(PAGE_SIZE, Number(totalCount) || 0),
-          sort: SORT,
-        });
+    try {
+      const res = await userGuesthouseApi.getGuesthouseReviews({
+        guesthouseId,
+        page: 0,
+        size: Math.max(PAGE_SIZE, Number(totalCount) || 0),
+        sort: SORT,
+      });
 
-        const newReviews = (res.data.content || []).filter(
-          r => r.isJobReview === false,
-        );
-        setReviews(newReviews);
-      } catch (e) {
-        setReviews([]);
-      } finally {
-        loadingRef.current = false;
-        setLoading(false);
-      }
-    },
-    [guesthouseId, totalCount],
-  );
+      const newReviews = (res.data.content || []).filter(
+        r => r.isJobReview === false,
+      );
+      setReviews(newReviews);
+    } catch (e) {
+      setReviews([]);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }, [guesthouseId, totalCount]);
 
   // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
@@ -141,6 +140,7 @@ const GuesthouseReview = ({
                 iconSize={18}
                 style={styles.userImage}
               />
+
               <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>
                 {item.nickname}
               </Text>
@@ -204,7 +204,7 @@ const GuesthouseReview = ({
           {item.replies && item.replies.length > 0 && (
             <View style={styles.replyContainer}>
               <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>
-                사장님의 한마디
+                {t('common.aWordFromTheBoss')}
               </Text>
               {item.replies.map((reply, ri) => (
                 <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
@@ -216,7 +216,7 @@ const GuesthouseReview = ({
         </View>
       );
     },
-    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
+    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal, t],
   );
 
   return (
@@ -231,8 +231,9 @@ const GuesthouseReview = ({
         <View style={styles.emptyReviewContainer}>
           <NoReviewIcon />
           <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-            아직 등록된 리뷰가 없어요.{'\n'}
-            당신의 첫 리뷰를 남겨주세요!
+            {t('common.thereAreNoReviewsRegisteredYet')}
+            {'\n'}
+            {t('common.leaveYourFirstReview')}
           </Text>
         </View>
       )}

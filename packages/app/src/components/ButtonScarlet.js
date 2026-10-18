@@ -1,14 +1,18 @@
 import React from 'react';
-import {TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import {TouchableOpacity, StyleSheet, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {navigationRef} from '@utils/navigationService';
+import AdaptiveText from '@components/AdaptiveText';
 
 // props로
 // 1. 버튼 안에 글씨 - title
 // 2. 어디 페이지로 이동 할건지 - to
 // 사용 예시 Home에 있음
 const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
+  const {i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const handlePress = () => {
     if (onPress) {
       onPress(); // 함수가 있으면 함수 실행
@@ -21,6 +25,7 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
     <TouchableOpacity
       style={[
         styles.button,
+        isEnglish && styles.englishButton,
         {
           backgroundColor: disabled
             ? COLORS.grayscale_200
@@ -31,7 +36,8 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
       onPress={handlePress}
       disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}
-      <Text
+      <AdaptiveText
+        variant="button"
         style={[
           styles.text,
           {
@@ -39,7 +45,7 @@ const ButtonScarlet = ({title, to, onPress, Icon, disabled = false, style}) => {
           },
         ]}>
         {title}
-      </Text>
+      </AdaptiveText>
       {Icon ? (
         <View style={[styles.hiddenButton]}>
           <View style={styles.hiddenIconSpace} />
@@ -62,9 +68,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     alignItems: 'center',
   },
+  englishButton: {
+    height: undefined,
+    minHeight: 40,
+  },
   text: {
     textAlign: 'center',
     flex: 1,
+    minWidth: 0,
     ...FONTS.fs_16_semibold,
     color: COLORS.grayscale_0,
     lineHeight: 22,

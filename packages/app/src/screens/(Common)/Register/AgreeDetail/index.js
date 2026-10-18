@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo} from 'react';
 import {
   View,
@@ -23,12 +24,13 @@ const onShouldStartLoadWithRequest = request => {
 };
 
 export default function AgreeDetail({route}) {
+  const {t} = useTranslation();
   const {id, who = 'USER', headerTitle} = route.params || {};
   const scheme = useColorScheme();
   const navigation = useNavigation();
 
   const doc = (AGREEMENT_CONTENT[who] || {})[id] || {
-    title: '약관',
+    title: t('auth.termsAndConditions'),
     detailHtml: '',
     detail: '',
   };
@@ -74,7 +76,9 @@ export default function AgreeDetail({route}) {
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View />
-        <Text style={styles.titleText}>{headerTitle || '이용약관 동의'}</Text>
+        <Text style={styles.titleText}>
+          {headerTitle || t('auth.agreeToTermsOfUse')}
+        </Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <XBtn width={24} height={24} />
         </TouchableOpacity>

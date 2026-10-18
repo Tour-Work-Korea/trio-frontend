@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -28,6 +29,7 @@ const getDisplayRating = rating => {
 };
 
 const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
+  const {t} = useTranslation();
   const loadingRef = useRef(false);
   const imageSourceRefs = useRef(new Map());
   const [reviews, setReviews] = useState([]);
@@ -136,7 +138,7 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
   return (
     <View>
       <View style={styles.header}>
-        <Text style={FONTS.fs_18_semibold}>리뷰</Text>
+        <Text style={FONTS.fs_18_semibold}>{t('common.review')}</Text>
         {Number(totalCount) > 0 && (
           <View style={styles.ratingBadge}>
             <Star width={14} height={14} />
@@ -145,16 +147,15 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
             </Text>
             <Text style={styles.divider}>·</Text>
             <Text style={[FONTS.fs_12_medium, styles.reviewCount]}>
-              {totalCount} 리뷰
+              {totalCount}
+              {t('common.review')}
             </Text>
           </View>
         )}
       </View>
 
       {reviews.map((review, index) => {
-        const images = Array.isArray(review.imageUrls)
-          ? review.imageUrls
-          : [];
+        const images = Array.isArray(review.imageUrls) ? review.imageUrls : [];
         return (
           <View
             key={String(review.reviewId ?? index)}
@@ -167,21 +168,16 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
                   iconSize={18}
                   style={reviewStyles.userImage}
                 />
+
                 <Text
-                  style={[
-                    FONTS.fs_14_medium,
-                    reviewStyles.userNicknameText,
-                  ]}>
+                  style={[FONTS.fs_14_medium, reviewStyles.userNicknameText]}>
                   {review.nickname}
                 </Text>
               </View>
               <View style={reviewStyles.userRatingContainer}>
                 <Star width={14} height={14} />
                 <Text
-                  style={[
-                    FONTS.fs_14_semibold,
-                    reviewStyles.userRatingText,
-                  ]}>
+                  style={[FONTS.fs_14_semibold, reviewStyles.userRatingText]}>
                   {getDisplayRating(review.reviewRating)}
                 </Text>
               </View>
@@ -198,9 +194,9 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
                   onMoveShouldSetResponderCapture={() => true}
                   contentContainerStyle={styles.imageRow}>
                   {images.map((imageUrl, imageIndex) => {
-                    const sourceKey = `party-review:${
-                      review.reviewId
-                    }:${imageUrl ?? imageIndex}`;
+                    const sourceKey = `party-review:${review.reviewId}:${
+                      imageUrl ?? imageIndex
+                    }`;
                     return (
                       <TouchableOpacity
                         ref={node => {
@@ -213,11 +209,7 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
                         activeOpacity={1}
                         key={sourceKey}
                         onPress={() =>
-                          openImageModal(
-                            review.reviewId,
-                            images,
-                            imageIndex,
-                          )
+                          openImageModal(review.reviewId, images, imageIndex)
                         }>
                         <AppImage
                           uri={imageUrl}
@@ -246,21 +238,23 @@ const PartyReview = ({templateId, averageRating = 0, totalCount = 0}) => {
       {!loading && templateId == null && Number(totalCount) > 0 && (
         <View style={reviewStyles.emptyReviewContainer}>
           <Text style={[FONTS.fs_14_medium, reviewStyles.emptyText]}>
-            리뷰 정보를 불러오지 못했어요.{'\n'}
-            잠시 후 다시 시도해주세요.
+            {t('meet.failedToLoadReviewInformation')}
+            {'\n'}
+            {t('common.pleaseTryAgainLater')}
           </Text>
         </View>
       )}
       {!loading &&
         !(templateId == null && Number(totalCount) > 0) &&
         reviews.length === 0 && (
-        <View style={reviewStyles.emptyReviewContainer}>
-          <NoReviewIcon />
-          <Text style={[FONTS.fs_14_medium, reviewStyles.emptyText]}>
-            아직 등록된 리뷰가 없어요.{'\n'}
-            당신의 첫 리뷰를 남겨주세요!
-          </Text>
-        </View>
+          <View style={reviewStyles.emptyReviewContainer}>
+            <NoReviewIcon />
+            <Text style={[FONTS.fs_14_medium, reviewStyles.emptyText]}>
+              {t('common.thereAreNoReviewsRegisteredYet')}
+              {'\n'}
+              {t('common.leaveYourFirstReview')}
+            </Text>
+          </View>
         )}
 
       {imageModalVisible && (

@@ -1,9 +1,16 @@
-import React, { useEffect, useMemo, useState } from 'react';
-import {View, Text, TouchableOpacity, StyleSheet, TouchableWithoutFeedback} from 'react-native';
+import {useTranslation} from 'react-i18next';
+import React, {useEffect, useMemo, useState} from 'react';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  StyleSheet,
+  TouchableWithoutFeedback,
+} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import { Picker } from '@react-native-picker/picker';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {Picker} from '@react-native-picker/picker';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 
 // 데이터 주고 받을 때 로컬 타임으로 주고받음 initialValue
@@ -24,8 +31,15 @@ export default function TimePickerModal({
   onClose,
   onConfirm,
   minuteStep = 15,
-  labels = { am: '오전', pm: '오후', hour: '시', minute: '분' }
+  labels,
 }) {
+  const {t} = useTranslation();
+  const resolvedLabels = labels ?? {
+    am: t('common.morning'),
+    pm: t('common.afternoon'),
+    hour: t('components.poetry'),
+    minute: t('components.minutes'),
+  };
   const parsed = useMemo(() => parseTime(initialValue), [initialValue]);
 
   const minuteOptions = useMemo(() => {
@@ -59,36 +73,44 @@ export default function TimePickerModal({
       visible={visible}
       transparent
       animationType="fade"
-      onRequestClose={onClose}
-    >
+      onRequestClose={onClose}>
       <TouchableWithoutFeedback onPress={onClose}>
         <View style={styles.overlay}>
           <TouchableWithoutFeedback>
             <View style={styles.modalContent}>
-              <View style={{ flexDirection: 'row' }}>
+              <View style={{flexDirection: 'row'}}>
                 {/* 오전/오후 */}
-                <Picker selectedValue={ampm} onValueChange={setAmpm} style={{ flex: 1 }}>
-                  <Picker.Item label={labels.am} value="AM" />
-                  <Picker.Item label={labels.pm} value="PM" />
+                <Picker
+                  selectedValue={ampm}
+                  onValueChange={setAmpm}
+                  style={{flex: 1}}>
+                  <Picker.Item label={resolvedLabels.am} value="AM" />
+                  <Picker.Item label={resolvedLabels.pm} value="PM" />
                 </Picker>
                 {/* 시 */}
-                <Picker selectedValue={hour12} onValueChange={setHour12} style={{ flex: 1 }}>
-                  {Array.from({ length: 12 }, (_, i) => i + 1).map((h) => (
+                <Picker
+                  selectedValue={hour12}
+                  onValueChange={setHour12}
+                  style={{flex: 1}}>
+                  {Array.from({length: 12}, (_, i) => i + 1).map(h => (
                     <Picker.Item key={h} label={String(h)} value={h} />
                   ))}
                 </Picker>
                 {/* 분 */}
-                <Picker selectedValue={minute} onValueChange={setMinute} style={{ flex: 1 }}>
-                  {minuteOptions.map((m) => (
+                <Picker
+                  selectedValue={minute}
+                  onValueChange={setMinute}
+                  style={{flex: 1}}>
+                  {minuteOptions.map(m => (
                     <Picker.Item key={m} label={pad2(m)} value={m} />
                   ))}
                 </Picker>
               </View>
 
               <ButtonScarlet
-                title="적용하기"
+                title={t('common.apply')}
                 onPress={handleApply}
-                style={{ marginTop: 16 }}
+                style={{marginTop: 16}}
               />
             </View>
           </TouchableWithoutFeedback>
@@ -100,7 +122,9 @@ export default function TimePickerModal({
 
 function parseTime(str) {
   const m = /^([01]?\d|2[0-3]):([0-5]\d):([0-5]\d)$/.exec(String(str || ''));
-  let hour24 = 0, minute = 0, second = 0;
+  let hour24 = 0,
+    minute = 0,
+    second = 0;
   if (m) {
     hour24 = Number(m[1]);
     minute = Number(m[2]);
@@ -108,7 +132,7 @@ function parseTime(str) {
   }
   const ampm = hour24 >= 12 ? 'PM' : 'AM';
   const hour12 = hour24 % 12 === 0 ? 12 : hour24 % 12;
-  return { hour24, minute, second, ampm, hour12 };
+  return {hour24, minute, second, ampm, hour12};
 }
 
 function to24Hour(ampm, hour12) {
@@ -130,12 +154,12 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: COLORS.modal_background,
     justifyContent: 'center',
-    alignItems: 'center'
+    alignItems: 'center',
   },
   modalContent: {
     width: '85%',
     backgroundColor: COLORS.grayscale_0,
     borderRadius: 12,
-    padding: 16
-  }
+    padding: 16,
+  },
 });

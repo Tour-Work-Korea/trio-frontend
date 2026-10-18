@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import React from 'react';
@@ -12,6 +13,7 @@ import Share from '@assets/images/share_gray.svg';
 import HeartIcon from '@assets/images/heart_empty.svg';
 import FilledHeartIcon from '@assets/images/heart_filled.svg';
 export default function RecruitProfileSection({recruit, toggleFavorite}) {
+  const {t} = useTranslation();
   return (
     <>
       {/* 공고 제목 및 정보 */}
@@ -33,7 +35,9 @@ export default function RecruitProfileSection({recruit, toggleFavorite}) {
               onPress={() => {
                 const deepLinkUrl = employDetailDeeplink(recruit.recruitId);
                 copyDeeplinkToClipboard(deepLinkUrl);
-                Alert.alert('복사가 완료되었습니다. 바로 공유해볼까요?');
+                Alert.alert(
+                  t('employ.copyingIsCompleteShallWeShareItRightAway'),
+                );
               }}>
               <Share width={24} height={24} />
             </TouchableOpacity>

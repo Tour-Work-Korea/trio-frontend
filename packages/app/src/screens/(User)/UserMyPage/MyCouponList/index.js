@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 
@@ -9,16 +11,17 @@ import MyCouponOwnList from './MyCouponOwnList';
 import MyCouponReceive from './MyCouponReceive';
 
 const TABS = [
-  {key: 'owned', label: '보유'},
-  {key: 'receive', label: '쿠폰 받기'},
+  {key: 'owned', label: i18n.t('common.holding')},
+  {key: 'receive', label: i18n.t('common.getCoupon')},
 ];
 
 const MyCouponList = () => {
+  const {t} = useTranslation();
   const [activeTab, setActiveTab] = useState('owned');
 
   return (
     <View style={styles.container}>
-      <Header title="쿠폰" />
+      <Header title={t('common.coupon')} />
 
       <View style={styles.tabContainer}>
         {TABS.map(tab => (

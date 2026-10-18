@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {memo, useCallback, useMemo} from 'react';
 import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -14,11 +15,14 @@ import {
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
 import AppImage from '@components/AppImage';
+import AdaptiveText from '@components/AdaptiveText';
 
 const guesthouseSeparatorStyle = {width: 20};
 const GuesthouseSeparator = () => <View style={guesthouseSeparatorStyle} />;
 
 function Guesthouses({guesthouses = []}) {
+  const {t, i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const navigation = useNavigation();
   const today = useMemo(() => dayjs(), []);
   const tomorrow = useMemo(() => today.add(1, 'day'), [today]);
@@ -32,88 +36,117 @@ function Guesthouses({guesthouses = []}) {
       : null;
   }, []);
 
-  const getTagLabels = useCallback(item =>
-    (Array.isArray(item.hashtags) ? item.hashtags : [])
-      .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
-      .filter(Boolean)
-      .slice(0, 3), []);
+  const getTagLabels = useCallback(
+    item =>
+      (Array.isArray(item.hashtags) ? item.hashtags : [])
+        .map(tag =>
+          typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null,
+        )
+        .filter(Boolean)
+        .slice(0, 3),
+    [],
+  );
 
-  const renderGuesthouse = useCallback(({item}) => {
-    const displayRating = getDisplayRating(item.avgRating);
+  const renderGuesthouse = useCallback(
+    ({item}) => {
+      const displayRating = getDisplayRating(item.avgRating);
 
-    return (
-      <TouchableOpacity
-        activeOpacity={1}
-        onPress={() => {
-          if (shouldIgnoreHomeHorizontalPress()) {
-            return;
-          }
+      return (
+        <TouchableOpacity
+          activeOpacity={1}
+          onPress={() => {
+            if (shouldIgnoreHomeHorizontalPress()) {
+              return;
+            }
 
-          navigation.navigate('GuesthouseDetail', {
-            id: item.guesthouseId,
-            checkIn,
-            checkOut,
-            guestCount: 1,
-          });
-        }}
-      >
-        <View style={styles.guesthouseCard}>
-          <View>
-            {item.thumbnailUrl ? (
-              <AppImage
-                uri={item.thumbnailUrl}
-                style={styles.guesthouseImage}
-              />
-            ) : (
-              <View style={[styles.guesthouseImage, { backgroundColor: COLORS.grayscale_200 }]} />
-            )}
-            {displayRating && (
-              <View style={styles.ratingBox}>
-                <Star width={14} height={14}/>
-                <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{displayRating}</Text>
-              </View>
-            )}
+            navigation.navigate('GuesthouseDetail', {
+              id: item.guesthouseId,
+              checkIn,
+              checkOut,
+              guestCount: 1,
+            });
+          }}>
+          <View style={styles.guesthouseCard}>
+            <View>
+              {item.thumbnailUrl ? (
+                <AppImage
+                  uri={item.thumbnailUrl}
+                  style={styles.guesthouseImage}
+                />
+              ) : (
+                <View
+                  style={[
+                    styles.guesthouseImage,
+                    {backgroundColor: COLORS.grayscale_200},
+                  ]}
+                />
+              )}
+              {displayRating && (
+                <View style={styles.ratingBox}>
+                  <Star width={14} height={14} />
+                  <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
+                    {displayRating}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={[styles.titleSection, {marginBottom: 10}]}>
+              <Text
+                style={styles.guesthouseTitle}
+                numberOfLines={1}
+                ellipsizeMode="tail">
+                {item.guesthouseName}
+              </Text>
+              {Number(item.minAmount) > 0 ? (
+                // 정상 가격 노출
+                <View style={styles.guesthousePrice}>
+                  {!isEnglish && (
+                    <Text
+                      style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
+                      {t('common.lowestPrice')}
+                    </Text>
+                  )}
+                  <Text style={FONTS.fs_16_semibold}>
+                    {Number(item.minAmount).toLocaleString()}
+                    {t('common.won_989c0f')}
+                  </Text>
+                </View>
+              ) : (
+                // 예약 마감 노출
+                <View style={styles.guesthousePrice}>
+                  <Text
+                    style={[
+                      FONTS.fs_16_semibold,
+                      {color: COLORS.grayscale_300},
+                    ]}>
+                    {t('guesthouse.checkOtherDates')}
+                  </Text>
+                </View>
+              )}
+            </View>
+            <View style={styles.hashTagContainer}>
+              {getTagLabels(item).map((tag, index) => (
+                <View style={styles.hashtagButton} key={`${tag}-${index}`}>
+                  <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
+                    {tag}
+                  </Text>
+                </View>
+              ))}
+            </View>
           </View>
-          <View style={[styles.titleSection, {marginBottom: 10}]}>
-            <Text
-              style={styles.guesthouseTitle}
-              numberOfLines={1}
-              ellipsizeMode="tail"
-            >
-              {item.guesthouseName}
-            </Text>
-            {Number(item.minAmount) > 0 ? (
-              // 정상 가격 노출
-              <View style={styles.guesthousePrice}>
-                <Text style={[FONTS.fs_12_medium, styles.guesthousePriceName]}>
-                  최저가
-                </Text>
-                <Text style={FONTS.fs_16_semibold}>
-                  {Number(item.minAmount).toLocaleString()}원 ~
-                </Text>
-              </View>
-            ) : (
-              // 예약 마감 노출
-              <View style={styles.guesthousePrice}>
-                <Text style={[FONTS.fs_16_semibold, { color: COLORS.grayscale_300 }]}>
-                  다른 날짜 확인
-                </Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.hashTagContainer}>
-            {getTagLabels(item).map((tag, index) => (
-              <View style={styles.hashtagButton} key={`${tag}-${index}`}>
-                <Text style={[FONTS.fs_12_medium, styles.hashtagText]}>
-                  {tag}
-                </Text>
-              </View>
-            ))}
-          </View>
-        </View>
-      </TouchableOpacity>
-    );
-  }, [checkIn, checkOut, getDisplayRating, getTagLabels, navigation]);
+        </TouchableOpacity>
+      );
+    },
+    [
+      checkIn,
+      checkOut,
+      getDisplayRating,
+      getTagLabels,
+      isEnglish,
+      navigation,
+      t,
+    ],
+  );
 
   const handlePressSeeMore = useCallback(() => {
     navigation.navigate('PopularGuesthouseList', {
@@ -124,15 +157,17 @@ function Guesthouses({guesthouses = []}) {
   return (
     <View style={styles.guesthouseContainer}>
       <View style={[styles.titleSection, {marginBottom: 10}]}>
-        <Text style={styles.sectionTitle}>
-          <Text style={{color: COLORS.primary_orange}}>게딱지</Text> 추천 게하
-        </Text>
+        <AdaptiveText variant="title" style={styles.sectionTitle}>
+          <Text style={{color: COLORS.primary_orange}}>
+            {t('guesthouse.ddakji')}
+          </Text>{' '}
+          {t('guesthouse.recommendedGuesthouse')}
+        </AdaptiveText>
         <TouchableOpacity
           activeOpacity={1}
           style={styles.seeMoreButton}
-          onPress={handlePressSeeMore}
-        >
-          <Text style={styles.seeMoreText}>더보기</Text>
+          onPress={handlePressSeeMore}>
+          <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
           <Chevron_right_gray width={24} height={24} />
         </TouchableOpacity>
       </View>

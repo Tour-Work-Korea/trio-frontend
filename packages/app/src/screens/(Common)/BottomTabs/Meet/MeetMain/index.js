@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo, useRef, useState, useCallback} from 'react';
 import {
   View,
@@ -17,7 +18,7 @@ import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
-import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -101,6 +102,7 @@ const getPartyPrice = party => {
 };
 
 const MeetMain = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
   const region = useMeetRegionStore(state => state.region);
@@ -230,7 +232,7 @@ const MeetMain = () => {
       ).items;
 
     const grouped = uniqueParties.reduce((acc, party) => {
-      const guesthouseName = party.guesthouseName || '게스트하우스';
+      const guesthouseName = party.guesthouseName || t('common.guestHouse');
       const guesthouseId = party.guesthouseId ?? party.guesthouse?.id ?? null;
       const key = guesthouseId ? `${guesthouseId}` : guesthouseName;
       if (!acc.has(key)) {
@@ -244,7 +246,7 @@ const MeetMain = () => {
       return acc;
     }, new Map());
     return Array.from(grouped.values());
-  }, [meets]);
+  }, [meets, t]);
 
   const dateEvents = useMemo(() => {
     const now = dayjs();
@@ -283,7 +285,9 @@ const MeetMain = () => {
 
   function formatWhenTime(isoStr) {
     const d = dayjs(isoStr);
-    return `${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+    return `${
+      d.hour() < 12 ? t('common.morning') : t('common.afternoon')
+    } ${d.format('h:mm')}`;
   }
 
   const handleToggleFavorite = async item => {
@@ -334,14 +338,16 @@ const MeetMain = () => {
               <Text
                 style={[FONTS.fs_12_medium, styles.partyMetaText]}
                 numberOfLines={1}>
-                {trimJejuPrefix(item.location)} ·{' '}
+                {formatServiceRegion(item.regionType)} ·{' '}
                 {formatWhenTime(item.partyStartDateTime)}
               </Text>
             </View>
             <View style={styles.partyPeopleRow}>
               <PeopleIcon width={16} height={16} />
               <Text style={[FONTS.fs_12_medium, styles.partyMetaText]}>
-                최대인원 {item.maxAttendance}명
+                {t('meet.maximumNumberOfPeopleValuePeople', {
+                  maxAttendance: item.maxAttendance,
+                })}
               </Text>
             </View>
           </View>
@@ -352,7 +358,8 @@ const MeetMain = () => {
 
   const renderDateEvent = item => {
     const start = dayjs(getPartyStartDateTime(item));
-    const startTime = item?.partyStartTime?.slice(0, 5) ?? start.format('HH:mm');
+    const startTime =
+      item?.partyStartTime?.slice(0, 5) ?? start.format('HH:mm');
     const endTime = item?.partyEndTime?.slice(0, 5);
     const price = getPartyPrice(item);
     const handleMoveGuesthouse = () => {
@@ -371,14 +378,14 @@ const MeetMain = () => {
       <View key={String(item.partyId)} style={styles.eventGuesthouseSection}>
         <View style={styles.eventGuesthouseTitleRow}>
           <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
-            {item.guesthouseName || '게스트하우스'}
+            {item.guesthouseName || t('common.guestHouse')}
           </Text>
           <TouchableOpacity
             style={styles.moveGuesthouseButton}
             activeOpacity={1}
             onPress={handleMoveGuesthouse}>
             <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
-              게하 보러가기
+              {t('common.goSeeGuesthouse')}
             </Text>
             <ChevronRightBlue width={12} height={12} />
           </TouchableOpacity>
@@ -403,24 +410,28 @@ const MeetMain = () => {
               {startTime}
               {endTime ? ` ~ ${endTime}` : ''}
             </Text>
-            {!!item.location && (
+            {!!item.regionType && (
               <View style={styles.eventMetaRow}>
                 <MapPinIcon width={16} height={16} />
                 <Text
                   style={[FONTS.fs_12_medium, styles.eventMetaText]}
                   numberOfLines={1}>
-                  {trimJejuPrefix(item.location)}
+                  {formatServiceRegion(item.regionType)}
                 </Text>
               </View>
             )}
             <View style={styles.eventMetaRow}>
               <PeopleIcon width={16} height={16} />
               <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
-                최대인원 {item.maxAttendance}명
+                {t('meet.maximumNumberOfPeopleValuePeople', {
+                  maxAttendance: item.maxAttendance,
+                })}
               </Text>
             </View>
             <Text style={[FONTS.fs_14_semibold, styles.eventPrice]}>
-              {price === 0 ? '무료' : `${price.toLocaleString('ko-KR')}원`}
+              {price === 0
+                ? t('common.free')
+                : t('common.valueWon', {value1: price.toLocaleString('ko-KR')})}
             </Text>
           </View>
         </TouchableOpacity>
@@ -453,22 +464,22 @@ const MeetMain = () => {
             activeOpacity={1}
             onPress={handleMoveGuesthouse}>
             <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
-              게하 보러가기
+              {t('common.goSeeGuesthouse')}
             </Text>
             <ChevronRightBlue width={12} height={12} />
           </TouchableOpacity>
         </View>
 
         {/* <View style={styles.chipRow}>
-          <View style={[styles.countChip, styles.partyCountChip]}>
-            <Text style={[FONTS.fs_12_medium, styles.partyCountText]}>
-              게하 파티 {item.parties.length}
-            </Text>
-          </View>
-          <View style={styles.countChip}>
-            <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>콘텐츠 0</Text>
-          </View>
-        </View> */}
+            <View style={[styles.countChip, styles.partyCountChip]}>
+              <Text style={[FONTS.fs_12_medium, styles.partyCountText]}>
+                게하 파티 {item.parties.length}
+              </Text>
+            </View>
+            <View style={styles.countChip}>
+              <Text style={[FONTS.fs_12_medium, styles.eventCountText]}>콘텐츠 0</Text>
+            </View>
+           </View> */}
 
         <View style={styles.partyList}>
           {item.parties.map(renderPartyItem)}
@@ -483,18 +494,20 @@ const MeetMain = () => {
   };
 
   const quickTags = [
-    {label: '카테고리', target: 'category'},
-    {label: '참여 대상', target: 'guest'},
-    {label: '정원', target: 'capacity'},
-    {label: '가격', target: 'price'},
+    {label: t('common.category'), target: 'category'},
+    {label: t('common.whoShouldParticipate'), target: 'guest'},
+    {label: t('common.garden'), target: 'capacity'},
+    {label: t('common.price'), target: 'price'},
   ];
 
   return (
     <View style={styles.container}>
       <View style={styles.topContent}>
-        <Text style={[FONTS.fs_20_semibold, styles.contentTitle]}>콘텐츠</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.contentTitle]}>
+          {t('common.activity')}
+        </Text>
         <Text style={[FONTS.fs_16_medium, styles.contentSubTitle]}>
-          콘텐츠가 있는 게스트하우스를 찾아보세요
+          {t('meet.findAGuesthouseWithActivity')}
         </Text>
         <TouchableOpacity
           style={styles.searchBox}
@@ -502,7 +515,7 @@ const MeetMain = () => {
           onPress={() => navigation.navigate('MeetSearch')}>
           <SearchIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_regular, styles.searchPlaceholder]}>
-            언제 어디로 떠나시나요?
+            {t('meet.whenAndWhereAreYouLeaving')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -533,7 +546,7 @@ const MeetMain = () => {
                     onPress={() => openFilterModal(null)}>
                     <FilterIcon width={18} height={18} />
                     <Text style={[FONTS.fs_16_medium, styles.filterText]}>
-                      필터
+                      {t('common.filter')}
                     </Text>
                   </TouchableOpacity>
 
@@ -555,34 +568,34 @@ const MeetMain = () => {
                   </ScrollView>
                 </View>
                 {/* <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.sortButton}
-                  onPress={() => setSortModalVisible(true)}>
-                  <SortIcon width={20} height={20} />
-                  <Text style={[FONTS.fs_16_medium, styles.sortText]}>정렬</Text>
+                activeOpacity={1}
+                style={styles.sortButton}
+                onPress={() => setSortModalVisible(true)}>
+                <SortIcon width={20} height={20} />
+                <Text style={[FONTS.fs_16_medium, styles.sortText]}>정렬</Text>
                 </TouchableOpacity> */}
               </View>
               {dateEvents.length > 0 && (
                 <View style={styles.eventSection}>
                   <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                    이벤트
+                    {t('meet.event')}
                   </Text>
                   <Text
                     style={[FONTS.fs_14_regular, styles.sectionDescription]}>
-                    놓치기 아쉬운 특별한 이벤트를 만나보세요
+                    {t('meet.experienceSpecialEventsYouDonTWantToMiss')}
                   </Text>
                   {dateEvents.map(renderDateEvent)}
                   {groupedGuesthouses.length > 0 && (
                     <View style={styles.dailySectionHeader}>
                       <Text style={[FONTS.fs_18_semibold, styles.sectionTitle]}>
-                        데일리 콘텐츠
+                        {t('meet.dailyActivity')}
                       </Text>
                       <Text
                         style={[
                           FONTS.fs_14_regular,
                           styles.sectionDescription,
                         ]}>
-                        오늘도 새로운 사람들과 특별한 추억을 만들어보세요
+                        {t('meet.makeSpecialMemoriesWithNewPeopleToday')}
                       </Text>
                     </View>
                   )}
@@ -596,7 +609,7 @@ const MeetMain = () => {
                 <ActivityIndicator />
               ) : dateEvents.length === 0 ? (
                 <Text style={[FONTS.fs_16_regular, styles.emptyText]}>
-                  표시할 콘텐츠가 없어요.
+                  {t('meet.thereIsNoActivityToDisplay')}
                 </Text>
               ) : null}
             </View>

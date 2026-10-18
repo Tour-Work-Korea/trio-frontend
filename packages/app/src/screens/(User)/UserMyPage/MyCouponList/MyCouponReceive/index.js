@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect} from '@react-navigation/native';
@@ -30,11 +32,14 @@ const formatValidUntil = coupon => {
 
   const date = dayjs(expiryDate);
   return date.isValid()
-    ? `${date.format('YY.MM.DD HH:mm')}까지 발급 가능`
+    ? i18n.t('coupon.upToValueCanBeIssued', {
+        value1: date.format('YY.MM.DD HH:mm'),
+      })
     : expiryDate;
 };
 
 const MyCouponReceive = () => {
+  const {t} = useTranslation();
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
   const [issuingCouponId, setIssuingCouponId] = useState(null);
@@ -99,7 +104,7 @@ const MyCouponReceive = () => {
     }
 
     if (coupon?.isIssued) {
-      showAlert('이미 발급된 쿠폰입니다.');
+      showAlert(t('coupon.thisCouponHasAlreadyBeenIssued'));
       return;
     }
 
@@ -108,10 +113,10 @@ const MyCouponReceive = () => {
     try {
       await userMyApi.issueCouponByTemplate(couponId);
       setCoupons(prev => prev.filter(item => getCouponId(item) !== couponId));
-      showAlert('쿠폰 발급이 완료되었습니다.');
+      showAlert(t('coupon.couponIssuanceHasBeenCompleted'));
     } catch (error) {
       const message =
-        error?.response?.data?.message || '쿠폰 발급에 실패했습니다.';
+        error?.response?.data?.message || t('coupon.couponIssuanceFailed');
       showAlert(message);
     } finally {
       setIssuingCouponId(null);
@@ -119,7 +124,7 @@ const MyCouponReceive = () => {
   };
 
   if (loading) {
-    return <Loading title="쿠폰을 불러오는 중이에요" />;
+    return <Loading title={t('common.loadingCoupons')} />;
   }
 
   if (!coupons.length) {
@@ -127,7 +132,7 @@ const MyCouponReceive = () => {
       <View style={styles.emptyContainer}>
         <View style={styles.topRow}>
           <Text style={[FONTS.fs_16_regular, styles.countText]}>
-            쿠폰 {coupons.length}개
+            {t('coupon.count', {count: coupons.length})}
           </Text>
         </View>
 
@@ -135,8 +140,10 @@ const MyCouponReceive = () => {
           <EmptyState
             icon={CouponIcon}
             iconSize={{width: 160, height: 120}}
-            title="준비 중인 쿠폰이 없어요"
-            description="콘텐츠나 프로모션이 열리면 여기에서 받을 수 있어요."
+            title={t('coupon.thereAreNoCouponsReady')}
+            description={t(
+              'coupon.whenActivityOrPromotionsOpenYouCanReceiveThemHere',
+            )}
           />
         </View>
       </View>
@@ -148,7 +155,7 @@ const MyCouponReceive = () => {
       <ScrollView contentContainerStyle={styles.content}>
         <View style={styles.topRow}>
           <Text style={[FONTS.fs_16_regular, styles.countText]}>
-            쿠폰 {coupons.length}개
+            {t('coupon.count', {count: coupons.length})}
           </Text>
         </View>
 
@@ -188,17 +195,17 @@ const MyCouponReceive = () => {
                       isIssued && styles.issueButtonTextDisabled,
                     ]}>
                     {isIssued
-                      ? '발급 완료'
+                      ? t('coupon.issuedCompleted')
                       : isIssuing
-                      ? '발급중'
-                      : '쿠폰 받기'}
+                      ? t('coupon.issuing')
+                      : t('common.getCoupon')}
                   </Text>
                 </TouchableOpacity>
               </View>
 
               <Text style={[FONTS.fs_14_medium, styles.descriptionText]}>
                 {getCouponConditionText(coupon) ||
-                  '사용 조건이 없는 쿠폰입니다.'}
+                  t('common.thisIsACouponWithNoUsageConditions')}
               </Text>
 
               {validUntilText ? (
@@ -221,7 +228,7 @@ const MyCouponReceive = () => {
       <AlertModal
         visible={alertState.visible}
         message={alertState.message}
-        buttonText="확인"
+        buttonText={t('common.confirm')}
         onPress={closeAlert}
         onRequestClose={closeAlert}
       />

@@ -12,11 +12,15 @@ import {tryLogout} from '@utils/auth/login';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
+import {useTranslation} from 'react-i18next';
+import useLocaleStore from '@stores/localeStore';
 
 const LOGOUT_HOME_LOCK_KEY = '__TRIO_LOGOUT_HOME_LOCK__';
 
 const Settings = () => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
+  const language = useLocaleStore(state => state.language);
   const [modalVisible, setModalVisible] = useState(false);
   const [isWithdrawing, setIsWithdrawing] = useState(false);
   const userProfile = useUserStore(state => state.userProfile);
@@ -61,56 +65,78 @@ const Settings = () => {
 
   return (
     <View style={styles.background}>
-      <Header title={'설정'} />
+      <Header title={t('settings.title')} />
 
       <View style={styles.container}>
         <View>
-          <Text style={styles.menuHeader}>계정 정보</Text>
+          <Text style={styles.menuHeader}>
+            {t('settings.accountInformation')}
+          </Text>
           <View style={styles.menuContainer}>
             <View style={styles.menuRow}>
-              <Text style={styles.menuText}>이름</Text>
+              <Text style={styles.menuText}>{t('common.name')}</Text>
               <Text style={styles.versionText}>{accountName || '-'}</Text>
             </View>
             <View style={styles.menuRow}>
-              <Text style={styles.menuText}>이메일 주소</Text>
+              <Text style={styles.menuText}>{t('common.emailAddress')}</Text>
               <Text style={styles.versionText}>{accountEmail || '-'}</Text>
             </View>
             <View style={styles.menuRow}>
-              <Text style={styles.menuText}>휴대폰 번호</Text>
+              <Text style={styles.menuText}>
+                {t('common.phoneNumber_581698')}
+              </Text>
               <Text style={styles.versionText}>{accountPhone || '-'}</Text>
             </View>
             <View style={styles.menuRow}>
-                <Text style={styles.menuText}>비밀번호</Text>
-                <View style={styles.menuButtonRow}>
-                  <Text style={styles.versionText}>**********</Text>
-                  <TouchableOpacity
-                    onPress={() =>
-                      navigation.navigate('FindIntro', {
-                        find: 'password',
-                        userRole: 'USER',
-                        originPhone: accountPhone,
-                      })
-                    }>
-                    <Text style={styles.logoutText}>변경</Text>
-                  </TouchableOpacity>
-                </View>
+              <Text style={styles.menuText}>{t('auth.password')}</Text>
+              <View style={styles.menuButtonRow}>
+                <Text style={styles.versionText}>**********</Text>
+                <TouchableOpacity
+                  onPress={() =>
+                    navigation.navigate('FindIntro', {
+                      find: 'password',
+                      userRole: 'USER',
+                      originPhone: accountPhone,
+                    })
+                  }>
+                  <Text style={styles.logoutText}>{t('common.change')}</Text>
+                </TouchableOpacity>
               </View>
+            </View>
           </View>
         </View>
 
         <View>
-          <Text style={styles.menuHeader}>서비스 정보</Text>
+          <Text style={styles.menuHeader}>
+            {t('settings.serviceInformation')}
+          </Text>
           <View style={styles.menuContainer}>
+            <TouchableOpacity
+              accessibilityLabel={t('language.title')}
+              style={styles.menuRow}
+              onPress={() => navigation.navigate('Language')}>
+              <Text style={styles.menuText}>{t('language.title')}</Text>
+              <View style={styles.menuButtonRow}>
+                <Text style={styles.versionText}>
+                  {t(
+                    language === 'ko' ? 'language.korean' : 'language.english',
+                  )}
+                </Text>
+                <RightArrow width={20} height={20} />
+              </View>
+            </TouchableOpacity>
             {Platform.OS !== 'web' ? (
               <View style={styles.menuRow}>
-                <Text style={styles.menuText}>버전 정보</Text>
+                <Text style={styles.menuText}>
+                  {t('settings.versionInformation')}
+                </Text>
                 <Text style={styles.versionText}>ver.{appVersion}</Text>
               </View>
             ) : null}
             <TouchableOpacity
               style={styles.menuRow}
               onPress={() => navigation.navigate('Terms')}>
-              <Text style={styles.menuText}>이용 약관</Text>
+              <Text style={styles.menuText}>{t('settings.termsOfUse')}</Text>
               <RightArrow width={20} height={20} />
             </TouchableOpacity>
           </View>
@@ -118,32 +144,44 @@ const Settings = () => {
 
         <View style={styles.logoutContainer}>
           <TouchableOpacity style={styles.menuRow} onPress={handleLogout}>
-            <Text style={styles.logoutText}>로그아웃</Text>
+            <Text style={styles.logoutText}>{t('auth.logout')}</Text>
           </TouchableOpacity>
           <View style={styles.devide} />
           <TouchableOpacity
             style={styles.menuRow}
             onPress={() => setModalVisible(true)}>
-            <Text style={[styles.logoutText, {textDecorationLine:'none'}]}>회원 탈퇴</Text>
+            <Text style={[styles.logoutText, {textDecorationLine: 'none'}]}>
+              {t('settings.withdrawMembership')}
+            </Text>
           </TouchableOpacity>
         </View>
 
         <View style={styles.detailContainer}>
-          <Text style={styles.detailText}>상호명 : 워커웨이</Text>
-          <Text style={styles.detailText}>사업자등록번호: 888-25-02003</Text>
-          <Text style={styles.detailText}>연락처: 010-4123-0075</Text>
           <Text style={styles.detailText}>
-            통신판매번호: 2025-서울양천-0825
+            {t('common.companyNameWalkerway')}
           </Text>
-          <Text style={styles.detailText}>주소: 제주시 연동 263-13 레지던스이타스3</Text>
-          <Text style={styles.detailText}>대표자 : 이하늘, 정재원</Text>
+          <Text style={styles.detailText}>
+            {t('common.businessRegistrationNumber8882502003')}
+          </Text>
+          <Text style={styles.detailText}>
+            {t('common.contactNumber01041230075')}
+          </Text>
+          <Text style={styles.detailText}>
+            {t('common.mailOrderNumber2025SeoulYangcheon0825')}
+          </Text>
+          <Text style={styles.detailText}>
+            {t('common.addressResidenceItas326313YeonDongJejuSi')}
+          </Text>
+          <Text style={styles.detailText}>
+            {t('common.representativesLeeHaNeulJeongJaeWon')}
+          </Text>
         </View>
       </View>
       <AlertModal
         visible={modalVisible}
-        title={'정말 탈퇴하시겠어요?'}
-        buttonText={'취소'}
-        buttonText2={'탈퇴하기'}
+        title={t('settings.areYouSureYouWantToWithdraw')}
+        buttonText={t('common.cancel')}
+        buttonText2={t('settings.unsubscribe')}
         onPress={() => setModalVisible(false)}
         onPress2={handleWithdrawal}
       />

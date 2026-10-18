@@ -1,4 +1,5 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {useTranslation} from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -8,20 +9,19 @@ import {
   ActivityIndicator,
   Platform,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
-const { width: SCREEN_WIDTH } = Dimensions.get('window');
-const APP_FRAME_WIDTH = Platform.OS === 'web'
-  ? Math.min(SCREEN_WIDTH, 430)
-  : SCREEN_WIDTH;
+const {width: SCREEN_WIDTH} = Dimensions.get('window');
+const APP_FRAME_WIDTH =
+  Platform.OS === 'web' ? Math.min(SCREEN_WIDTH, 430) : SCREEN_WIDTH;
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import styles from './PopularGuesthouseList.styles';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
-import { trimJejuPrefix } from '@utils/formatAddress';
-import { toggleFavorite } from '@utils/toggleFavorite';
+import {trimJejuPrefix} from '@utils/formatAddress';
+import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import HeaderImg from '@assets/images/guesthouse_popular_header.svg';
@@ -36,6 +36,8 @@ const TRENDING_CARD_GAP = 16;
 const TRENDING_SNAP_INTERVAL = TRENDING_CARD_WIDTH + TRENDING_CARD_GAP;
 
 const PopularGuesthouseList = () => {
+  const {t, i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);
@@ -52,19 +54,21 @@ const PopularGuesthouseList = () => {
 
   const getTagLabels = item =>
     (Array.isArray(item.hashtags) ? item.hashtags : [])
-      .map(tag => (typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null))
+      .map(tag =>
+        typeof tag === 'string' ? tag : tag?.hashtag ?? tag?.name ?? null,
+      )
       .filter(Boolean)
       .slice(0, 3);
 
-  const getRatingInfo = (avgRating) => {
+  const getRatingInfo = avgRating => {
     const num = Number(avgRating);
     const valid = Number.isFinite(num) && num > 0;
-    return { hasRating: valid, text: valid ? num.toFixed(1) : '0.0' };
+    return {hasRating: valid, text: valid ? num.toFixed(1) : '0.0'};
   };
 
   const normalizeGuesthouses = useCallback(
     (list = []) =>
-      list.map((it) => ({
+      list.map(it => ({
         ...it,
         isLiked: Boolean(it?.isLiked ?? it?.isFavorite ?? it?.favorite),
       })),
@@ -79,14 +83,17 @@ const PopularGuesthouseList = () => {
     setLoading(true);
 
     try {
-      const { data } = await userGuesthouseApi.getPopularGuesthouses({
+      const {data} = await userGuesthouseApi.getPopularGuesthouses({
         page: page + 1,
         size: PAGE_SIZE,
       });
 
       const normalized = normalizeGuesthouses(data?.content ?? []);
       setGuesthouses(prev => [...prev, ...normalized]);
-      prefetchImageUrls(normalized.map(item => item.thumbnailUrl), {limit: 8});
+      prefetchImageUrls(
+        normalized.map(item => item.thumbnailUrl),
+        {limit: 8},
+      );
       setPage(page + 1);
       setHasNext(!data?.last);
     } catch (e) {
@@ -102,7 +109,7 @@ const PopularGuesthouseList = () => {
     setInitialLoading(true);
 
     try {
-      const { data } = await userGuesthouseApi.getPopularGuesthouses({
+      const {data} = await userGuesthouseApi.getPopularGuesthouses({
         page: 0,
         size: PAGE_SIZE,
       });
@@ -110,7 +117,10 @@ const PopularGuesthouseList = () => {
       const normalized = normalizeGuesthouses(data?.content ?? []);
 
       setGuesthouses(normalized);
-      prefetchImageUrls(normalized.map(item => item.thumbnailUrl), {limit: 8});
+      prefetchImageUrls(
+        normalized.map(item => item.thumbnailUrl),
+        {limit: 8},
+      );
       setPage(0);
       setHasNext(!data?.last);
     } catch (e) {
@@ -129,14 +139,14 @@ const PopularGuesthouseList = () => {
   const restList = guesthouses.slice(3);
 
   // --- 카드 UI들 (FlatList 제거, 컴포넌트만 재사용) ---
-  const TrendingCard = ({ item, style }) => {
-    const { hasRating, text } = getRatingInfo(item.avgRating);
+  const TrendingCard = ({item, style}) => {
+    const {hasRating, text} = getRatingInfo(item.avgRating);
     return (
       <TouchableOpacity
         activeOpacity={1}
         style={[
           styles.trendingCard,
-          { width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP },
+          {width: TRENDING_CARD_WIDTH, marginRight: TRENDING_CARD_GAP},
           style,
         ]}
         onPress={() =>
@@ -150,14 +160,21 @@ const PopularGuesthouseList = () => {
         {item.thumbnailUrl ? (
           <AppImage uri={item.thumbnailUrl} style={styles.trendingImage} />
         ) : (
-          <View style={[styles.trendingImage, { backgroundColor: COLORS.grayscale_200 }]} />
+          <View
+            style={[
+              styles.trendingImage,
+              {backgroundColor: COLORS.grayscale_200},
+            ]}
+          />
         )}
 
         {hasRating && (
           <View style={styles.trendingRating}>
             <View style={styles.ratingRow}>
               <StarIcon width={14} height={14} />
-              <Text style={[FONTS.fs_14_medium, styles.ratingText]}>{text}</Text>
+              <Text style={[FONTS.fs_14_medium, styles.ratingText]}>
+                {text}
+              </Text>
             </View>
           </View>
         )}
@@ -169,15 +186,25 @@ const PopularGuesthouseList = () => {
 
           {Number(item.minAmount) > 0 ? (
             <View style={styles.trendingPriceContainer}>
-              <Text style={[FONTS.fs_12_medium, styles.trendingPrice]}>최저가</Text>
+              {!isEnglish && (
+                <Text style={[FONTS.fs_12_medium, styles.trendingPrice]}>
+                  {t('common.lowestPrice')}
+                </Text>
+              )}
               <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText]}>
-                {item.minAmount?.toLocaleString()}원 ~
+                {item.minAmount?.toLocaleString()}
+                {t('common.won_989c0f')}
               </Text>
             </View>
           ) : (
             <View style={styles.trendingPriceContainer}>
-              <Text style={[FONTS.fs_16_semibold, styles.trendingPriceText, { color: COLORS.grayscale_300 }]}>
-                예약마감
+              <Text
+                style={[
+                  FONTS.fs_16_semibold,
+                  styles.trendingPriceText,
+                  {color: COLORS.grayscale_300},
+                ]}>
+                {t('common.reservationDeadline')}
               </Text>
             </View>
           )}
@@ -196,8 +223,8 @@ const PopularGuesthouseList = () => {
     );
   };
 
-  const PopularCard = ({ item }) => {
-    const { hasRating, text } = getRatingInfo(item.avgRating);
+  const PopularCard = ({item}) => {
+    const {hasRating, text} = getRatingInfo(item.avgRating);
     const handleToggleFavorite = () => {
       toggleFavorite({
         type: 'guesthouse',
@@ -219,17 +246,23 @@ const PopularGuesthouseList = () => {
             guestCount: 1,
           })
         }>
-
         <View style={styles.imgRatingContainer}>
           {item.thumbnailUrl ? (
             <AppImage uri={item.thumbnailUrl} style={styles.popularImage} />
           ) : (
-            <View style={[styles.popularImage, { backgroundColor: COLORS.grayscale_200 }]} />
+            <View
+              style={[
+                styles.popularImage,
+                {backgroundColor: COLORS.grayscale_200},
+              ]}
+            />
           )}
           {hasRating && (
             <View style={styles.rating}>
               <StarIcon width={14} height={14} />
-              <Text style={[FONTS.fs_12_medium, styles.ratingText]}>{text}</Text>
+              <Text style={[FONTS.fs_12_medium, styles.ratingText]}>
+                {text}
+              </Text>
             </View>
           )}
         </View>
@@ -238,12 +271,13 @@ const PopularGuesthouseList = () => {
           <View style={styles.tagRow}>
             {getTagLabels(item).map((tag, index) => (
               <View key={`${tag}-${index}`} style={styles.tagContainer}>
-                <Text style={[FONTS.fs_body, styles.tagText]}>
-                  {tag}
-                </Text>
+                <Text style={[FONTS.fs_body, styles.tagText]}>{tag}</Text>
               </View>
             ))}
-            <TouchableOpacity activeOpacity={1} style={styles.heartIcon} onPress={handleToggleFavorite}>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.heartIcon}
+              onPress={handleToggleFavorite}>
               {item.isLiked ? (
                 <FillHeart width={20} height={20} />
               ) : (
@@ -252,11 +286,15 @@ const PopularGuesthouseList = () => {
             </TouchableOpacity>
           </View>
 
-          <Text style={[FONTS.fs_16_medium, styles.popularName]} numberOfLines={1}>
+          <Text
+            style={[FONTS.fs_16_medium, styles.popularName]}
+            numberOfLines={1}>
             {item.guesthouseName}
           </Text>
           {item.guesthouseAddress ? (
-            <Text style={[FONTS.fs_12_medium, styles.popularAddress]} numberOfLines={1}>
+            <Text
+              style={[FONTS.fs_12_medium, styles.popularAddress]}
+              numberOfLines={1}>
               {trimJejuPrefix(item.guesthouseAddress)}
             </Text>
           ) : null}
@@ -264,11 +302,12 @@ const PopularGuesthouseList = () => {
           <View style={styles.popularBottomRow}>
             {Number(item.minAmount) > 0 ? (
               <Text style={[FONTS.fs_18_semibold, styles.popularPrice]}>
-                {item.minAmount?.toLocaleString()}원 ~
+                {item.minAmount?.toLocaleString()}
+                {t('common.won_989c0f')}
               </Text>
             ) : (
               <Text style={[FONTS.fs_16_semibold, styles.popularEmptyPrice]}>
-                예약마감
+                {t('common.reservationDeadline')}
               </Text>
             )}
           </View>
@@ -281,49 +320,54 @@ const PopularGuesthouseList = () => {
   return (
     <View style={styles.container}>
       {initialLoading ? (
-        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
           <ActivityIndicator size="large" color={COLORS.grayscale_400} />
         </View>
       ) : (
         <ScrollView
           ref={scrollViewRef}
-          onScroll={({ nativeEvent }) => {
+          onScroll={({nativeEvent}) => {
             const bottomReached =
-              nativeEvent.layoutMeasurement.height + nativeEvent.contentOffset.y >=
+              nativeEvent.layoutMeasurement.height +
+                nativeEvent.contentOffset.y >=
               nativeEvent.contentSize.height - 200;
 
             if (bottomReached) loadMore();
           }}
           scrollEventThrottle={16}
-          showsVerticalScrollIndicator={false}
-        >
+          showsVerticalScrollIndicator={false}>
           {/* --- 상단 헤더 --- */}
           <View style={styles.headerContainer}>
             <HeaderImg style={styles.headerImg} />
             <View style={styles.headerTitle}>
-              <TouchableOpacity activeOpacity={1} style={styles.backButton} onPress={() => navigation.goBack()}>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={styles.backButton}
+                onPress={() => navigation.goBack()}>
                 <LeftChevron width={28} height={28} />
               </TouchableOpacity>
               <Text style={[FONTS.fs_20_semibold, styles.headerTitleText]}>
-                인기 게스트하우스
+                {t('guesthouse.popularGuesthouses')}
               </Text>
             </View>
 
             <View style={styles.headerSubtitle}>
               <Text style={[FONTS.fs_16_medium, styles.headerSubtitleText]}>
-                가장 인기 있는 게스트하우스들만 모아봤어요
+                {t('guesthouse.weVeCollectedOnlyTheMostPopularGuesthouses')}
               </Text>
             </View>
           </View>
 
           {/* 지금 뜨는 게하 */}
-          <Text style={[FONTS.fs_16_semibold, styles.title]}>지금 뜨는 게하</Text>
+          <Text style={[FONTS.fs_16_semibold, styles.title]}>
+            {t('guesthouse.whatSUpNow')}
+          </Text>
 
           <ScrollView
             horizontal
             showsHorizontalScrollIndicator={false}
             style={styles.trendingList}
-            onScroll={(e) => {
+            onScroll={e => {
               if (!trendingList.length) return;
 
               const offsetX = e.nativeEvent.contentOffset.x;
@@ -340,15 +384,14 @@ const PopularGuesthouseList = () => {
             }}
             decelerationRate="fast"
             snapToInterval={TRENDING_SNAP_INTERVAL}
-            snapToAlignment="start"
-          >
+            snapToAlignment="start">
             {trendingList.map((item, index) => {
               const isLast = index === trendingList.length - 1;
               return (
                 <TrendingCard
                   key={item.guesthouseId}
                   item={item}
-                  style={isLast && { marginRight: 0 }}
+                  style={isLast && {marginRight: 0}}
                 />
               );
             })}
@@ -369,16 +412,16 @@ const PopularGuesthouseList = () => {
 
           {/* 믿고 가는 인기 게하 */}
           <Text style={[FONTS.fs_16_semibold, styles.title]}>
-            믿고 가는 인기 게하
+            {t('guesthouse.aPopularGuesthouseYouCanTrust')}
           </Text>
 
-          {restList.map((item) => (
+          {restList.map(item => (
             <PopularCard key={item.guesthouseId} item={item} />
           ))}
 
           {/* --- 하단 로딩 --- */}
           {loading && hasNext && (
-            <View style={{ paddingVertical: 20 }}>
+            <View style={{paddingVertical: 20}}>
               <ActivityIndicator size="small" color={COLORS.grayscale_400} />
             </View>
           )}

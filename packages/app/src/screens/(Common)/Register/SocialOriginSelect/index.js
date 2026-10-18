@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -10,21 +12,24 @@ import styles from './SocialOriginSelect.styles';
 const OPTIONS = [
   {
     value: 'DOMESTIC',
-    title: '내국인',
-    englishTitle: 'DOMESTIC RESIDENT',
+    title: i18n.t('auth.korean'),
+    englishTitle: i18n.t('auth.domesticResident'),
     icon: '🇰🇷',
-    description: '대한민국 휴대폰 번호로 본인 인증을 진행해요.',
+    description: i18n.t(
+      'auth.verifyYourIdentityUsingYourKoreanMobilePhoneNumber',
+    ),
   },
   {
     value: 'FOREIGN',
-    title: '외국인',
+    title: i18n.t('auth.foreigner'),
     englishTitle: 'FOREIGNER',
     icon: '🌐',
-    description: 'Registration process for non-Korean citizens.',
+    description: i18n.t('auth.registrationProcessForNonKoreanCitizens'),
   },
 ];
 
 const SocialOriginSelect = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [originType, setOriginType] = useState(null);
   const params = route.params || {};
@@ -55,10 +60,11 @@ const SocialOriginSelect = ({route}) => {
         <View style={styles.header}>
           <LogoOrange width={60} height={29} />
           <View>
-            <Text style={styles.title}>Welcome! / 환영합니다!</Text>
+            <Text style={styles.title}>{t('auth.welcomeWelcome')}</Text>
             <Text style={styles.description}>
-              가입을 계속하려면 사용자 유형을 선택해주세요.{'\n'}
-              Registration steps vary depending on your selection.
+              {t('auth.pleaseSelectYourUserTypeToContinueSigningUp')}
+              {'\n'}
+              {t('auth.registrationStepsVaryDependingOnYourSelection')}
             </Text>
           </View>
         </View>
@@ -91,7 +97,9 @@ const SocialOriginSelect = ({route}) => {
                   <Text style={styles.optionEnglishTitle}>
                     {option.englishTitle}
                   </Text>
-                  <Text style={styles.optionDescription}>{option.description}</Text>
+                  <Text style={styles.optionDescription}>
+                    {option.description}
+                  </Text>
                 </View>
               </TouchableOpacity>
             );
@@ -100,8 +108,14 @@ const SocialOriginSelect = ({route}) => {
       </View>
 
       <View style={styles.footer}>
-        <Text style={styles.secureText}>안전한 가입 절차 · Secure registration</Text>
-        <ButtonScarlet title="다음" onPress={handleNext} disabled={!originType} />
+        <Text style={styles.secureText}>
+          {t('auth.secureRegistrationProcessSecureRegistration')}
+        </Text>
+        <ButtonScarlet
+          title={t('common.next')}
+          onPress={handleNext}
+          disabled={!originType}
+        />
       </View>
     </View>
   );

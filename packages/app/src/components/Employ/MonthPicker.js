@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity, FlatList, StyleSheet} from 'react-native';
 import dayjs from 'dayjs';
@@ -8,6 +9,7 @@ import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
 
 const MonthPicker = ({selectedDate, onChange}) => {
+  const {t} = useTranslation();
   const [currentYear, setCurrentYear] = useState(dayjs().year());
 
   const months = Array.from({length: 12}, (_, i) => i + 1);
@@ -19,13 +21,11 @@ const MonthPicker = ({selectedDate, onChange}) => {
     <View style={styles.container}>
       {/* 연도 이동 */}
       <View style={styles.yearHeader}>
-        <TouchableOpacity
-          activeOpacity={1} onPress={handlePrevYear}>
+        <TouchableOpacity activeOpacity={1} onPress={handlePrevYear}>
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={styles.yearText}>{currentYear}</Text>
-        <TouchableOpacity
-          activeOpacity={1} onPress={handleNextYear}>
+        <TouchableOpacity activeOpacity={1} onPress={handleNextYear}>
           <RightChevron width={24} />
         </TouchableOpacity>
       </View>
@@ -43,7 +43,8 @@ const MonthPicker = ({selectedDate, onChange}) => {
               style={[styles.monthButton, isSelected && styles.selectedMonth]}
               onPress={() => onChange({year: currentYear, month: month})}>
               <Text style={isSelected ? styles.selectedText : styles.monthText}>
-                {month}월
+                {month}
+                {t('common.month')}
               </Text>
             </TouchableOpacity>
           );

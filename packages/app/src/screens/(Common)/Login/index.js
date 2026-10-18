@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {createNativeStackNavigator} from '@react-navigation/native-stack';
@@ -26,6 +27,7 @@ import styles from './Login.styles';
 const Stack = createNativeStackNavigator();
 
 export default function Login() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
 
   const handleClose = headerNavigation => {
@@ -51,7 +53,7 @@ export default function Login() {
       <TouchableOpacity
         activeOpacity={0.8}
         accessibilityRole="button"
-        accessibilityLabel="로그인 닫기"
+        accessibilityLabel={t('auth.loginClose')}
         style={styles.loginCloseButton}
         onPress={() => handleClose(headerNavigation)}>
         <XIcon width={22} height={22} />
@@ -79,41 +81,49 @@ export default function Login() {
           component={SocialOriginSelect}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="ForeignRegisterProfile"
           component={ForeignRegisterProfile}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="ForeignSignupComplete"
           component={ForeignSignupComplete}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="RegisterAgree"
           component={RegisterAgree}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="AgreeDetail"
           component={AgreeDetail}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="PhoneCertificate"
           component={PhoneCertificate}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="EmailCertificate"
           component={EmailCertificate}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="UserRegisterProfile"
           component={UserRegisterProfile}
           options={{headerShown: false}}
         />
+
         <Stack.Screen
           name="Result"
           component={Result}

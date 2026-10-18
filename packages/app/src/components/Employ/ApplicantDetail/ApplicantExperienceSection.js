@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -16,6 +17,7 @@ const ApplicantExperienceSection = ({
   onAddExperience = () => {},
   onEditExperience = () => {},
 }) => {
+  const {t} = useTranslation();
   // 추가 버튼 클릭
   const handleAdd = () => {
     onAddExperience();
@@ -35,7 +37,7 @@ const ApplicantExperienceSection = ({
   return (
     <View style={styles.sectionBox}>
       <Text style={{...FONTS.fs_16_medium, color: COLORS.grayscale_800}}>
-        경력
+        {t('common.career')}
       </Text>
 
       {experiences.map((exp, idx) => (
@@ -46,6 +48,7 @@ const ApplicantExperienceSection = ({
               colors={[COLORS.primary_orange, COLORS.grayscale_0]} // 예: 진한 오렌지에서 밝은 오렌지로
               style={styles.timelineLine}
             />
+
             {/* 상세 내용 */}
             <View style={styles.experienceContent}>
               <Text style={styles.experiencePeriod}>
@@ -74,11 +77,13 @@ const ApplicantExperienceSection = ({
         </View>
       ))}
       {isEditable ? (
-        <ButtonWhite title="경력 추가하기" onPress={() => handleAdd()} />
+        <ButtonWhite
+          title={t('employ.addExperience')}
+          onPress={() => handleAdd()}
+        />
       ) : (
         <></>
       )}
-
     </View>
   );
 };

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import {useCallback, useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 import {navigate, reset, navigationRef} from './navigationService';
@@ -38,7 +39,9 @@ const parseQueryParams = query => {
 
     const [rawKey, ...rawValueParts] = pair.split('=');
     const key = decodeURIComponent(rawKey.replace(/\+/g, ' '));
-    const value = decodeURIComponent(rawValueParts.join('=').replace(/\+/g, ' '));
+    const value = decodeURIComponent(
+      rawValueParts.join('=').replace(/\+/g, ' '),
+    );
 
     if (key) {
       params[key] = value;
@@ -50,10 +53,7 @@ const parseQueryParams = query => {
 
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
-  const withoutScheme = normalized.replace(
-    /^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//,
-    '',
-  );
+  const withoutScheme = normalized.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
   const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
   const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
   const parts = rawPath ? rawPath.split('/').filter(Boolean) : [];
@@ -138,143 +138,146 @@ const resetToHomeThenDetail = (name, params) => {
 };
 
 const DeeplinkHandler = ({enabled = true}) => {
+  const {t} = useTranslation();
   const promptingRef = useRef(false); // 중복 알림/네비게이션 가드
 
-  const promptLogin = useCallback((message = '서비스 이용을 위해 로그인 해주세요.') => {
-    if (promptingRef.current) {
-      return;
-    }
-
-    promptingRef.current = true;
-    showErrorModal({
-      title: '로그인이 필요합니다',
-      message,
-      buttonText: '확인',
-      buttonText2: '취소',
-      onPress: () => {
-        navigate('Login');
-        promptingRef.current = false;
-      },
-      onPress2: () => {
-        promptingRef.current = false;
-      },
-    });
-  }, []);
-
-  const handleUrl = useCallback(async url => {
-    console.log('딥링크 URL 받음:', url);
-
-    try {
-      const navReady = await waitForNavigationReady();
-      if (!navReady) {
-        console.warn('네비게이션 준비 전이라 딥링크 이동을 건너뜀', url);
+  const promptLogin = useCallback(
+    (message = t('common.pleaseLogInToUseTheService')) => {
+      if (promptingRef.current) {
         return;
       }
 
-      const {parts, searchParams} = parseDeeplink(url);
-      const currentUser = useUserStore.getState();
+      promptingRef.current = true;
+      showErrorModal({
+        title: t('common.loginRequired'),
+        message,
+        buttonText: t('common.confirm'),
+        buttonText2: t('common.cancel'),
+        onPress: () => {
+          navigate('Login');
+          promptingRef.current = false;
+        },
+        onPress2: () => {
+          promptingRef.current = false;
+        },
+      });
+    },
+    [t],
+  );
 
-      // 경로별 로그인 필요 여부 분리
-      if (
-        shouldRequireLogin(parts) &&
-        (!currentUser.accessToken || currentUser.userRole !== 'USER')
-      ) {
-        const message =
-          !currentUser.accessToken
-            ? '서비스 이용을 위해 로그인 해주세요.'
-            : '유저 계정으로 로그인 후 이용해주세요.';
-        promptLogin(message);
-        return;
-      }
+  const handleUrl = useCallback(
+    async url => {
+      console.log('딥링크 URL 받음:', url);
 
-      // 게하 디테일 화면 (로그인 불필요)
-      if (parts[0] === 'guesthouse' && parts[1]) {
-        const guesthouseId = parts[1];
-        const today = new Date();
-        const tomorrow = new Date(today);
-        tomorrow.setDate(today.getDate() + 1);
-
-        const formatDate = date => {
-          return date.toISOString().split('T')[0];
-        };
-
-        const checkIn = formatDate(today);
-        const checkOut = formatDate(tomorrow);
-        const guestCount = 1;
-
-        navigate('GuesthouseDetail', {
-          id: guesthouseId,
-          checkIn,
-          checkOut,
-          guestCount,
-          isFromDeeplink: true,
-        });
-        console.log('게하 디테일 화면으로 이동');
-      }
-      // 스탭 공고 디테일 화면 (로그인 불필요)
-      else if (parts[0] === 'employ' && parts[1]) {
-        const employId = parts[1];
-
-        resetToHomeThenDetail('EmployDetail', {
-          id: employId,
-        });
-        console.log('스탭 공고 디테일 화면으로 이동');
-      }
-      // 콘텐츠 디테일 화면 (로그인 불필요)
-      else if (parts[0] === 'party' && parts[1]) {
-        const partyId =
-          parts[1] === 'detail'
-            ? getQueryParam(searchParams, ['partyId', 'id'])
-            : parts[1];
-
-        if (!partyId) {
-          console.warn('partyId 누락', url);
+      try {
+        const navReady = await waitForNavigationReady();
+        if (!navReady) {
+          console.warn('네비게이션 준비 전이라 딥링크 이동을 건너뜀', url);
           return;
         }
 
-        resetToEventThenDetail('MeetDetail', {
-          partyId,
-        });
-        console.log('콘텐츠 디테일 화면으로 이동');
-      }
-      // 게하 예약내역 상세 (로그인 필요)
-      else if (
-        parts[0] === 'reservation' &&
-        parts[1] === 'guesthouse' &&
-        parts[2] === 'detail'
-      ) {
-        const reservationId = parts[3] || getQueryParam(searchParams, [
-          'reservationId',
-          'id',
-        ]);
-        if (!reservationId) {
-          console.warn('reservationId 누락', url);
+        const {parts, searchParams} = parseDeeplink(url);
+        const currentUser = useUserStore.getState();
+
+        // 경로별 로그인 필요 여부 분리
+        if (
+          shouldRequireLogin(parts) &&
+          (!currentUser.accessToken || currentUser.userRole !== 'USER')
+        ) {
+          const message = !currentUser.accessToken
+            ? t('common.pleaseLogInToUseTheService')
+            : t('common.pleaseLogInWithYourUserAccountAndUseIt');
+
+          promptLogin(message);
           return;
         }
-        resetToGuesthouseReservationFlow(reservationId);
-      }
-      // 콘텐츠 예약내역 상세 (로그인 필요)
-      else if (
-        parts[0] === 'reservation' &&
-        parts[1] === 'party' &&
-        parts[2] === 'detail'
-      ) {
-        const reservationId = parts[3] || getQueryParam(searchParams, [
-          'reservationId',
-          'id',
-        ]);
-        if (!reservationId) {
-          console.warn('reservationId 누락', url);
-          return;
+
+        // 게하 디테일 화면 (로그인 불필요)
+        if (parts[0] === 'guesthouse' && parts[1]) {
+          const guesthouseId = parts[1];
+          const today = new Date();
+          const tomorrow = new Date(today);
+          tomorrow.setDate(today.getDate() + 1);
+
+          const formatDate = date => {
+            return date.toISOString().split('T')[0];
+          };
+
+          const checkIn = formatDate(today);
+          const checkOut = formatDate(tomorrow);
+          const guestCount = 1;
+
+          navigate('GuesthouseDetail', {
+            id: guesthouseId,
+            checkIn,
+            checkOut,
+            guestCount,
+            isFromDeeplink: true,
+          });
+          console.log('게하 디테일 화면으로 이동');
         }
-        resetToPartyReservationFlow(reservationId);
-      } else {
-        console.warn('지원하지 않는 딥링크 경로', url, parts);
+        // 스탭 공고 디테일 화면 (로그인 불필요)
+        else if (parts[0] === 'employ' && parts[1]) {
+          const employId = parts[1];
+
+          resetToHomeThenDetail('EmployDetail', {
+            id: employId,
+          });
+          console.log('스탭 공고 디테일 화면으로 이동');
+        }
+        // 콘텐츠 디테일 화면 (로그인 불필요)
+        else if (parts[0] === 'party' && parts[1]) {
+          const partyId =
+            parts[1] === 'detail'
+              ? getQueryParam(searchParams, ['partyId', 'id'])
+              : parts[1];
+
+          if (!partyId) {
+            console.warn('partyId 누락', url);
+            return;
+          }
+
+          resetToEventThenDetail('MeetDetail', {
+            partyId,
+          });
+          console.log('콘텐츠 디테일 화면으로 이동');
+        }
+        // 게하 예약내역 상세 (로그인 필요)
+        else if (
+          parts[0] === 'reservation' &&
+          parts[1] === 'guesthouse' &&
+          parts[2] === 'detail'
+        ) {
+          const reservationId =
+            parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
+          if (!reservationId) {
+            console.warn('reservationId 누락', url);
+            return;
+          }
+          resetToGuesthouseReservationFlow(reservationId);
+        }
+        // 콘텐츠 예약내역 상세 (로그인 필요)
+        else if (
+          parts[0] === 'reservation' &&
+          parts[1] === 'party' &&
+          parts[2] === 'detail'
+        ) {
+          const reservationId =
+            parts[3] || getQueryParam(searchParams, ['reservationId', 'id']);
+          if (!reservationId) {
+            console.warn('reservationId 누락', url);
+            return;
+          }
+          resetToPartyReservationFlow(reservationId);
+        } else {
+          console.warn('지원하지 않는 딥링크 경로', url, parts);
+        }
+      } catch (e) {
+        console.warn('딥링크 파싱 실패', e);
       }
-    } catch (e) {
-      console.warn('딥링크 파싱 실패', e);
-    }
-  }, [promptLogin]);
+    },
+    [promptLogin, t],
+  );
 
   // 최초 실행시 (앱이 딥링크로 켜질 때)
   useEffect(() => {
