@@ -33,6 +33,19 @@ export const WEB_ROUTES = {
 };
 
 export const WEB_STATIC_ROUTE_BY_SCREEN = {
+  CompanionDetail: '/companions/detail',
+  CompanionWrite: '/companions/write',
+  MyCompanions: '/companions/my',
+  CompanionManage: '/companions/manage',
+  CompanionChatAccess: '/companions/chat-access',
+  CompanionInbox: '/companions/inbox',
+  CompanionChat: '/companions/chat',
+  CompanionChatInfo: '/companions/chat/info',
+  CompanionChatNotice: '/companions/chat/notice',
+  CompanionChatSearch: '/companions/chat/search',
+  CompanionChatPlace: '/companions/chat/place',
+  CompanionChatShared: '/companions/chat/shared',
+  CompanionChatReport: '/companions/chat/report',
   AgreeDetail: '/register/agree/detail',
   ApplicantForm: '/employ/apply',
   ApplySuccess: '/employ/apply/success',

@@ -10,6 +10,8 @@ const webStubs = path.resolve(appSrc, 'web/stubs');
 
 const exposedEnvKeys = [
   'API_BASE_URL',
+  'CHAT_BASE_URL',
+  'COMPANION_ENABLED',
   'KAKAO_CLIENT_ID',
   'KAKAO_JS_KEY',
   'KAKAO_NATIVEAPP_KEY',

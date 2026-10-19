@@ -23,6 +23,7 @@ import {FONTS} from '@constants/fonts';
 import communityApi from '@utils/api/communityApi';
 import {normalizeCommunityLocation} from '@utils/communityLocation';
 import styles from './CommunityWrite.styles';
+import {companionEnabled} from '../../../../features/companion/api';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PhotoIcon from '@assets/images/add_image_gray.svg';
@@ -198,6 +199,16 @@ const CommunityWrite = ({route}) => {
     setImages(normalizeExistingImages(editingPost));
     setImagesChanged(false);
   }, [editingPost, isEditMode]);
+
+  useEffect(() => {
+    if (
+      companionEnabled &&
+      selectedCategory?.code === 'COMPANION' &&
+      !isEditMode
+    ) {
+      navigation.replace('CompanionWrite');
+    }
+  }, [selectedCategory?.code, isEditMode, navigation]);
 
   useEffect(() => {
     const nextLocation = normalizeCommunityLocation(selectedLocationParam);

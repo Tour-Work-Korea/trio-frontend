@@ -21,6 +21,8 @@ import useSwipeTabs from '@hooks/useSwipeTabs';
 import styles from './Community.styles';
 import Staff from './Staff';
 import CommunityPostList from './CommunityPostList';
+import {ChatEntry, CompanionList} from '../../../../features/companion/screens';
+import {companionEnabled} from '../../../../features/companion/api';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
@@ -391,7 +393,11 @@ const Community = () => {
       return;
     }
 
-    navigation.navigate('CommunityWrite');
+    navigation.navigate(
+      companionEnabled && activeCategory?.code === 'COMPANION'
+        ? 'CompanionWrite'
+        : 'CommunityWrite',
+    );
   };
 
   const renderHeader = useCallback(
@@ -400,6 +406,11 @@ const Community = () => {
         <Text style={[FONTS.fs_20_semibold, styles.title]}>
           {t('common.community')}
         </Text>
+        {companionEnabled && (
+          <View style={{position: 'absolute', right: 14, top: 12}}>
+            <ChatEntry navigation={navigation} />
+          </View>
+        )}
 
         <View style={styles.filterRow}>
           <View style={styles.sortWrapper}>
@@ -454,6 +465,7 @@ const Community = () => {
 
     [
       activeIndex,
+      navigation,
       categoryTabs,
       handleToggleSortMenu,
       onTabPress,
@@ -474,7 +486,9 @@ const Community = () => {
 
       return (
         <View key={category.key} style={pageStyle}>
-          {category.contentType === 'RECRUIT' ? (
+          {companionEnabled && category.code === 'COMPANION' ? (
+            <CompanionList isActive={isActive(category.key)} />
+          ) : category.contentType === 'RECRUIT' ? (
             <Staff isActive={isActive(category.key)} />
           ) : (
             <CommunityPostList
