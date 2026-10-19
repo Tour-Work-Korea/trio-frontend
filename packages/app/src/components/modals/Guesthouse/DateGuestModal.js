@@ -211,8 +211,8 @@ const DateGuestModal = ({
   const formattedSelectedText =
     checkInDate && checkOutDate
       ? t('guesthouse.valueValueValue', {
-          value1: dayjs(checkInDate).format('M.D(dd)'),
-          value2: dayjs(checkOutDate).format('M.D(dd)'),
+          value1: dayjs(checkInDate).format('M.D(ddd)'),
+          value2: dayjs(checkOutDate).format('M.D(ddd)'),
           value3: dayjs(checkOutDate).diff(dayjs(checkInDate), 'day'),
         })
       : t('common.pleaseSelectADate');

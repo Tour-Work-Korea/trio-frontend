@@ -26,11 +26,13 @@ import styles from './MeetDetail.styles';
 import NaverMapView from '@components/LocalizedNaverMapView';
 import Avatar from '@components/Avatar';
 import AppImage from '@components/AppImage';
+import AdaptiveText from '@components/AdaptiveText';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
 import {
   partyDetailDeeplink,
   partyDetailShareUrl,
@@ -58,10 +60,10 @@ import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg'
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
 const TABS = [
-  {key: 'intro', label: i18n.t('meet.activityIntroduction')},
-  {key: 'detail', label: i18n.t('meet.detailedInformation')},
-  {key: 'review', label: i18n.t('common.review')},
-  {key: 'way', label: i18n.t('meet.directions')},
+  {key: 'intro', labelKey: 'meet.activityIntroduction'},
+  {key: 'detail', labelKey: 'meet.detailedInformation'},
+  {key: 'review', labelKey: 'common.review'},
+  {key: 'way', labelKey: 'meet.directions'},
 ];
 
 const SNACK_TAG_LABEL = {
@@ -552,7 +554,7 @@ const MeetDetail = () => {
     const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
       ? `${date.format('MM.DD')} ${
-          date.isSame(dayjs(), 'day') ? t('common.today') : date.format('dd')
+          date.isSame(dayjs(), 'day') ? t('common.today') : date.format('ddd')
         }`
       : '-';
     const timeLabel = `${formatTime(
@@ -731,10 +733,7 @@ const MeetDetail = () => {
   }, [guesthousePhone, t]);
 
   const handlePressGuesthouse = () => {
-    const guesthouseId =
-      detail?.guesthouseId ??
-      detail?.guesthouse?.id ??
-      detail?.profileSummary?.guesthouseId;
+    const guesthouseId = getPartyGuesthouseId(detail);
     if (!guesthouseId) {
       return;
     }
@@ -858,10 +857,7 @@ const MeetDetail = () => {
   const displayGuesthouseAddress = trimJejuPrefix(
     guesthouseAddress || location,
   );
-  const guesthouseId =
-    detail?.guesthouseId ??
-    detail?.guesthouse?.id ??
-    detail?.profileSummary?.guesthouseId;
+  const guesthouseId = getPartyGuesthouseId(detail);
 
   const handlePressLocationMap = () => {
     if (!mapCoordinate) {
@@ -914,38 +910,44 @@ const MeetDetail = () => {
     );
   };
 
-  const renderGuesthouseLink = () => (
-    <View style={styles.guesthouseLinkCard}>
-      <View style={styles.guesthouseLinkTopRow}>
-        <View style={styles.guesthouseLinkTitleBox}>
+  const renderGuesthouseLink = () => {
+    if (!guesthouseId) {
+      return null;
+    }
+
+    return (
+      <View style={styles.guesthouseLinkCard}>
+        <View style={styles.guesthouseLinkTopRow}>
+          <View style={styles.guesthouseLinkTitleBox}>
+            <Text
+              style={styles.guesthouseLinkTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {displayGuesthouseName}
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.guesthouseLinkActionButton}
+            onPress={handlePressGuesthouse}
+            disabled={!guesthouseId}>
+            <Text style={styles.guesthouseLinkAction}>
+              {t('common.goSeeGuesthouse')}
+            </Text>
+            <ChevroRight width={14} height={14} />
+          </TouchableOpacity>
+        </View>
+        {!!displayGuesthouseAddress && (
           <Text
-            style={styles.guesthouseLinkTitle}
+            style={styles.guesthouseLinkAddress}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {displayGuesthouseName}
+            {displayGuesthouseAddress}
           </Text>
-        </View>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.guesthouseLinkActionButton}
-          onPress={handlePressGuesthouse}
-          disabled={!guesthouseId}>
-          <Text style={styles.guesthouseLinkAction}>
-            {t('common.goSeeGuesthouse')}
-          </Text>
-          <ChevroRight width={14} height={14} />
-        </TouchableOpacity>
+        )}
       </View>
-      {!!displayGuesthouseAddress && (
-        <Text
-          style={styles.guesthouseLinkAddress}
-          numberOfLines={1}
-          ellipsizeMode="tail">
-          {displayGuesthouseAddress}
-        </Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   // 빈 값일때
   const renderEmptyInfo = () => (
@@ -1420,7 +1422,7 @@ const MeetDetail = () => {
                           styles.partyDateCardDate,
                           !open && styles.partyDateCardTextDisabled,
                         ]}>
-                        {date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-'}
+                        {date.isValid() ? date.format('YYYY.MM.DD (ddd)') : '-'}
                       </Text>
                       <Text
                         style={[
@@ -1465,15 +1467,16 @@ const MeetDetail = () => {
                   isActive(tab.key) && styles.tabButtonActive,
                 ]}
                 onPress={() => onTabPress(index)}>
-                <Text
+                <AdaptiveText
+                  variant="tab"
                   style={[
                     FONTS.fs_14_medium,
                     styles.tabText,
                     isActive(tab.key) && styles.tabTextActive,
                     isActive(tab.key) && FONTS.fs_14_semibold,
                   ]}>
-                  {tab.label}
-                </Text>
+                  {t(tab.labelKey)}
+                </AdaptiveText>
               </Pressable>
             ))}
           </ScrollView>

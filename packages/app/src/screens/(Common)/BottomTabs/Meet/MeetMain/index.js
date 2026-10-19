@@ -19,6 +19,7 @@ import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 import {formatServiceRegion} from '@utils/formatServiceRegion';
+import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import FilterIcon from '@assets/images/filter_gray.svg';
@@ -233,8 +234,10 @@ const MeetMain = () => {
 
     const grouped = uniqueParties.reduce((acc, party) => {
       const guesthouseName = party.guesthouseName || t('common.guestHouse');
-      const guesthouseId = party.guesthouseId ?? party.guesthouse?.id ?? null;
-      const key = guesthouseId ? `${guesthouseId}` : guesthouseName;
+      const guesthouseId = getPartyGuesthouseId(party);
+      const key = guesthouseId
+        ? `guesthouse:${guesthouseId}`
+        : `party:${getPartyDisplayKey(party)}`;
       if (!acc.has(key)) {
         acc.set(key, {
           guesthouseId,
@@ -357,17 +360,18 @@ const MeetMain = () => {
   };
 
   const renderDateEvent = item => {
+    const guesthouseId = getPartyGuesthouseId(item);
     const start = dayjs(getPartyStartDateTime(item));
     const startTime =
       item?.partyStartTime?.slice(0, 5) ?? start.format('HH:mm');
     const endTime = item?.partyEndTime?.slice(0, 5);
     const price = getPartyPrice(item);
     const handleMoveGuesthouse = () => {
-      if (!item.guesthouseId) {
+      if (!guesthouseId) {
         return;
       }
       navigation.navigate('GuesthouseDetail', {
-        id: item.guesthouseId,
+        id: guesthouseId,
         checkIn: dayjs().format('YYYY-MM-DD'),
         checkOut: dayjs().add(1, 'day').format('YYYY-MM-DD'),
         guestCount: 1,
@@ -376,20 +380,22 @@ const MeetMain = () => {
 
     return (
       <View key={String(item.partyId)} style={styles.eventGuesthouseSection}>
-        <View style={styles.eventGuesthouseTitleRow}>
-          <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
-            {item.guesthouseName || t('common.guestHouse')}
-          </Text>
-          <TouchableOpacity
-            style={styles.moveGuesthouseButton}
-            activeOpacity={1}
-            onPress={handleMoveGuesthouse}>
-            <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
-              {t('common.goSeeGuesthouse')}
+        {!!guesthouseId && (
+          <View style={styles.eventGuesthouseTitleRow}>
+            <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
+              {item.guesthouseName || t('common.guestHouse')}
             </Text>
-            <ChevronRightBlue width={12} height={12} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.moveGuesthouseButton}
+              activeOpacity={1}
+              onPress={handleMoveGuesthouse}>
+              <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
+                {t('common.goSeeGuesthouse')}
+              </Text>
+              <ChevronRightBlue width={12} height={12} />
+            </TouchableOpacity>
+          </View>
+        )}
         <TouchableOpacity
           activeOpacity={1}
           style={styles.eventCard}
@@ -404,7 +410,7 @@ const MeetMain = () => {
               {item.partyTitle}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
-              {start.format('YY.MM.DD (dd)')}
+              {start.format('YY.MM.DD (ddd)')}
             </Text>
             <Text style={[FONTS.fs_12_medium, styles.eventMetaText]}>
               {startTime}
@@ -455,20 +461,22 @@ const MeetMain = () => {
 
     return (
       <View style={styles.guesthouseSection}>
-        <View style={styles.guesthouseTitleRow}>
-          <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
-            {item.guesthouseName}
-          </Text>
-          <TouchableOpacity
-            style={styles.moveGuesthouseButton}
-            activeOpacity={1}
-            onPress={handleMoveGuesthouse}>
-            <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
-              {t('common.goSeeGuesthouse')}
+        {!!item.guesthouseId && (
+          <View style={styles.guesthouseTitleRow}>
+            <Text style={[FONTS.fs_16_semibold, styles.guesthouseName]}>
+              {item.guesthouseName}
             </Text>
-            <ChevronRightBlue width={12} height={12} />
-          </TouchableOpacity>
-        </View>
+            <TouchableOpacity
+              style={styles.moveGuesthouseButton}
+              activeOpacity={1}
+              onPress={handleMoveGuesthouse}>
+              <Text style={[FONTS.fs_12_medium, styles.moveGuesthouseText]}>
+                {t('common.goSeeGuesthouse')}
+              </Text>
+              <ChevronRightBlue width={12} height={12} />
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* <View style={styles.chipRow}>
             <View style={[styles.countChip, styles.partyCountChip]}>

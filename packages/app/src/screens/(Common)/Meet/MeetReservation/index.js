@@ -1,5 +1,5 @@
 import i18n from '@trio/app/src/i18n';
-import {useTranslation} from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -441,11 +441,11 @@ const MeetReservation = () => {
     if (!date.isValid()) {
       return '-';
     }
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
   const formatReservationOption = option => {
     const date = dayjs(option?.partyStartDateTime);
-    const dateText = date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-';
+    const dateText = date.isValid() ? date.format('YYYY.MM.DD (ddd)') : '-';
     return `${dateText} ${formatTime(
       option?.partyStartTime ?? option?.partyStartDateTime,
     )}`;
@@ -910,10 +910,16 @@ const MeetReservation = () => {
                 )}
               </TouchableOpacity>
               <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
-                  {t('common.required')}
-                </Text>{' '}
-                {t('common.iAgreeToTheCollectionAndUseOfPersonalInformation')}
+                <Trans
+                  i18nKey="meet.personalInformationConsent"
+                  components={{
+                    required: (
+                      <Text
+                        style={[FONTS.fs_14_semibold, styles.nessesaryText]}
+                      />
+                    ),
+                  }}
+                />
               </Text>
               <TouchableOpacity
                 activeOpacity={1}

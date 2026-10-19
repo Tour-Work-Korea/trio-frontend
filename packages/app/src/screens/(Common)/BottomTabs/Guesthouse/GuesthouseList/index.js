@@ -169,9 +169,9 @@ const GuesthouseList = () => {
   const [mapViewport, setMapViewport] = useState(null);
   const listRequestRef = useRef(0);
   const countRequestRef = useRef(0);
-  const defaultDisplayDate = `${dayjs().format('M.D dd')} - ${dayjs()
+  const defaultDisplayDate = `${dayjs().format('M.D ddd')} - ${dayjs()
     .add(1, 'day')
-    .format('M.D dd')}`;
+    .format('M.D ddd')}`;
 
   const [guesthouses, setGuesthouses] = useState([]);
   const [page, setPage] = useState(0);

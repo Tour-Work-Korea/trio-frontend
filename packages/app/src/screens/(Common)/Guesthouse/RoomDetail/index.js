@@ -78,7 +78,7 @@ const RoomDetail = ({route}) => {
   };
   const formatDateWithDay = dateStr => {
     const date = dayjs(dateStr);
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
 
   // 이미지 처리

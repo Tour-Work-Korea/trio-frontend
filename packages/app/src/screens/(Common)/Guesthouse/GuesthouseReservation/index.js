@@ -221,7 +221,7 @@ const GuesthouseReservation = ({route}) => {
   };
   const formatDateWithDay = dateStr => {
     const date = dayjs(dateStr);
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
   const formatDateTime = (dateStr, timeStr) => {
     const dateLabel = formatDateWithDay(dateStr);
