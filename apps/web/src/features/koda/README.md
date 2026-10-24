@@ -65,7 +65,7 @@ src/features/koda/
 │  └─ archive/     # 이태원·치킨·기존 할로윈 고정 데이터
 ├─ services/       # 콘텐츠 저장소·API 데이터 변환·표시 모델
 ├─ auth/           # 인증 상태·가입 모델·인증/예약 복귀
-├─ build/          # 기존 웹과 함께 제공하는 진입/빌드 어댑터
+├─ hosting/        # 기존 웹과 함께 제공하는 진입/빌드 어댑터
 ├─ styles/         # KODA CSS
 ├─ tests/          # Node 회귀 테스트
 ├─ main.jsx        # HTML 진입점

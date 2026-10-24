@@ -2,7 +2,7 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {defineConfig, mergeConfig} from 'vite';
 import webConfig from './vite.config.js';
-import {hostedBookingEnabled} from './src/features/koda/build/hostedBuild.js';
+import {hostedBookingEnabled} from './src/features/koda/hosting/hostedBuild.js';
 
 const webRoot = path.dirname(fileURLToPath(import.meta.url));
 
@@ -76,7 +76,7 @@ export default defineConfig(environment => {
             const sourceEntry = 'src="/src/main.jsx"';
             if (!html.includes(sourceEntry)) throw new Error('The shared web HTML entry changed; review the KODA build adapter.');
             return {
-              html: html.replace(sourceEntry, 'src="/src/features/koda/build/hostedEntry.jsx"'),
+              html: html.replace(sourceEntry, 'src="/src/features/koda/hosting/hostedEntry.jsx"'),
               tags: [{
                 tag: 'script',
                 attrs: {

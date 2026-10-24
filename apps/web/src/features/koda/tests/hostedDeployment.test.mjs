@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {hostedKodaRoute} from '../build/hostedRouting.js';
-import {hostedBookingEnabled} from '../build/hostedBuild.js';
+import {hostedKodaRoute} from '../hosting/hostedRouting.js';
+import {hostedBookingEnabled} from '../hosting/hostedBuild.js';
 import {automaticBookingConfig} from '../services/liveEventModel.js';
 
 test('shared SPA fallback recognizes every KODA page and explicit HTML aliases', () => {
