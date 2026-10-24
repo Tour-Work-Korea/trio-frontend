@@ -99,7 +99,7 @@ jobs:
           echo "Web environment file created from AWS SSM for ${DEPLOY_ENV}."
 
       - name: Build web app
-        run: npm run build:web
+        run: KODA_DEPLOY_TARGET="$DEPLOY_ENV" npm exec --workspace @trio/web -- vite build --config vite.koda.config.js --outDir dist
 
       - name: Verify build output
         run: ls -al apps/web/dist
