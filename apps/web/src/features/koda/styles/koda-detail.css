@@ -1,0 +1,244 @@
+/* Shared by every event, isolated from the hub and the existing Ddakji app. */
+.le-page--detail {
+  --le-bg: #fffefa;
+  --le-panel: #f7f5ee;
+  --le-text: #1b1c18;
+  --le-muted: #5e6057;
+  --le-accent: #f0c637;
+  --le-line: #e8e7de;
+}
+.le-page--detail :where(a, button, summary, [tabindex]):focus-visible {
+  outline-color: var(--le-text);
+}
+.le-page--detail .le-header {
+  background: #fffefaf5;
+  border-bottom-color: var(--le-line);
+}
+.le-page--detail .le-wordmark {
+  font-family: 'Pretendard-Bold', sans-serif;
+  text-transform: uppercase;
+  font-size: 16px;
+  letter-spacing: -0.6px;
+}
+.le-page--detail .le-languages button {
+  border-radius: 2px;
+}
+.le-page--detail .le-languages button[aria-pressed='true'] {
+  background: var(--le-accent);
+  color: var(--le-text);
+}
+.le-page--detail .le-poster-wrap {
+  padding: 24px 28px;
+  background: transparent;
+}
+.le-page--detail .le-poster {
+  border: 1px solid #1b1c1826;
+  border-radius: 2px;
+  box-shadow: none;
+  max-width: 280px;
+  margin-inline: auto;
+}
+.le-page--detail .le-intro {
+  padding-top: 16px;
+}
+.le-page--detail .le-badges {
+  gap: 6px;
+  margin-bottom: 24px;
+}
+.le-page--detail .le-badges span {
+  border-radius: 2px;
+  color: var(--le-text);
+}
+.le-page--detail .le-eyebrow {
+  color: var(--le-muted);
+  font-family: 'Pretendard-Bold', sans-serif;
+  letter-spacing: 1.5px;
+}
+.le-page--detail h1,
+.le-page--detail h2,
+.le-page--detail strong {
+  font-family: 'Pretendard-Bold', sans-serif;
+}
+.le-page--detail h1 {
+  font-size: clamp(26px, 7.5vw, 32px);
+  letter-spacing: -1.3px;
+}
+.le-page--detail .le-facts {
+  border: 0;
+  background: var(--le-panel);
+  padding: 8px 16px;
+  border-radius: 10px;
+}
+.le-page--detail .le-facts > div {
+  border: 0;
+  padding-block: 12px;
+}
+.le-page--detail .le-facts a,
+.le-page--detail .le-related em,
+.le-page--detail .le-faq summary::after {
+  color: var(--le-text);
+}
+.le-page--detail .le-section {
+  padding: 32px 0;
+  border-top: 0;
+}
+.le-page--detail .le-section h2 {
+  color: var(--le-text);
+  font-size: 19px;
+}
+.le-page--detail .le-section h2::before {
+  content: '';
+  display: inline-block;
+  width: 9px;
+  height: 17px;
+  margin-right: 10px;
+  background: var(--le-accent);
+  transform: skew(-12deg);
+}
+.le-page--detail .le-program li {
+  align-items: flex-start;
+  gap: 12px;
+  border: 0;
+}
+.le-page--detail .le-program li > span {
+  display: grid;
+  place-items: center;
+  flex-basis: 28px;
+  height: 28px;
+  padding: 0;
+  background: var(--le-accent);
+  color: var(--le-text);
+  font-family: 'Pretendard-Bold', sans-serif;
+  font-size: 11px;
+}
+.le-page--detail .le-program-poster,
+.le-page--detail .le-gallery img,
+.le-page--detail .le-gallery video,
+.le-page--detail .le-related,
+.le-page--detail .le-related img {
+  border-radius: 2px;
+}
+.le-page--detail .le-related {
+  background: var(--le-panel);
+  border: 0;
+}
+.le-page--detail .le-faq {
+  border: 0;
+}
+.le-page--detail .le-faq + .le-faq {
+  margin-top: 8px;
+}
+.le-page--detail .le-faq[open] {
+  background: var(--le-panel);
+  border-radius: 8px;
+  padding-inline: 12px;
+}
+.le-page--detail .le-share {
+  border-color: var(--le-text);
+  border-radius: 2px;
+}
+.le-page--detail .le-booking {
+  background: #fffefaf5;
+  border-top-color: var(--le-line);
+}
+.le-page--detail .le-registration-button {
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 20px;
+  border: 0;
+  border-radius: 12px;
+  background: var(--le-text);
+  color: #fff;
+  font: 600 16px 'Pretendard-SemiBold', sans-serif;
+  cursor: pointer;
+}
+.le-page--detail .le-registration-button:disabled {
+  background: #e8e7de;
+  color: var(--le-muted);
+  cursor: default;
+}
+@media (max-width: 350px) {
+  .le-page--detail .le-poster-wrap {
+    padding: 24px 28px 32px;
+  }
+  .le-page--detail .le-wordmark {
+    font-size: 14px;
+  }
+}
+
+/* Admin descriptions are documents, not a single numbered program step. */
+.le-program-description {
+  color: var(--le-muted);
+  font-size: 14px;
+  line-height: 1.85;
+  overflow-wrap: anywhere;
+  word-break: keep-all;
+}
+.le-page--detail .le-program-description > * + * {
+  margin-top: 16px;
+}
+.le-program-description p {
+  white-space: pre-wrap;
+}
+.le-program-description h3,
+.le-program-description h4 {
+  color: var(--le-text);
+  font-size: 15px;
+  line-height: 1.55;
+}
+.le-program-description strong {
+  color: var(--le-text);
+  font-weight: 700;
+}
+.le-program-description ul,
+.le-program-description ol {
+  padding-left: 22px;
+}
+.le-program-description li + li {
+  margin-top: 6px;
+}
+
+.le-page--detail .le-detail-images {
+  display: grid;
+  gap: 16px;
+}
+.le-page--detail .le-detail-images a {
+  display: block;
+}
+.le-page--detail .le-detail-images img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+
+.le-page--detail .le-section > * + .le-detail-images {
+  margin-top: 24px;
+}
+
+.le-introduction-block + .le-introduction-block {
+  margin-top: 32px;
+}
+.le-page--detail .le-introduction-block > * + * {
+  margin-top: 16px;
+}
+.le-introduction-block h3 {
+  font-size: 16px;
+  line-height: 1.5;
+  color: var(--le-text);
+}
+
+.le-page--detail .le-program-description a {
+  color: var(--le-text);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  overflow-wrap: anywhere;
+}
+.le-page--detail .le-program-description a:hover {
+  text-decoration-thickness: 2px;
+}
+.le-page--detail .le-program-description a:focus-visible {
+  outline: 2px solid var(--le-accent);
+  outline-offset: 3px;
+}

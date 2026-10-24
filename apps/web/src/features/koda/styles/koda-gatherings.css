@@ -1,0 +1,149 @@
+.le-page--listing .le-list-main {
+  padding: 0 22px 48px;
+  min-height: 65vh;
+}
+.le-page--listing .le-list-heading {
+  padding: 24px 0 12px;
+  text-align: center;
+}
+.le-page--listing .le-list-heading h1 {
+  font: 800 27px/1.15 'Koda-Display', sans-serif;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+.le-page--listing .le-list-filters {
+  display: flex;
+  justify-content: center;
+  gap: 20px;
+  border-bottom: 1px solid var(--le-line);
+}
+.le-page--listing .le-list-filters button {
+  background: none;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  padding: 0 4px;
+  min-height: 44px;
+  font-size: 11px;
+  color: var(--le-muted);
+}
+.le-page--listing .le-list-filters [aria-pressed='true'] {
+  border-bottom-color: var(--le-text);
+  color: var(--le-text);
+  font-family: 'Pretendard-SemiBold', sans-serif;
+}
+.le-page--listing .le-list-toolbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin: 14px 0 14px;
+  font-size: 11px;
+}
+.le-page--listing .le-list-toolbar select {
+  width: 116px;
+  min-height: 36px;
+  border: 1px solid var(--le-line);
+  border-radius: 0;
+  padding: 0 8px;
+  background: #fff;
+  color: var(--le-text);
+  font: inherit;
+  /* Override the shared form minimum only for this compact sorting control. */
+  font-size: 11px !important;
+}
+.le-page--listing .le-list-toolbar:has(select:focus) {
+  box-shadow: none;
+}
+.le-page--listing .le-list-toolbar select:focus-visible {
+  outline: 2px solid var(--le-text);
+  outline-offset: 3px;
+}
+.le-page--listing .le-list-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 32px 16px;
+}
+.le-page--listing .le-list-card {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.le-page--listing .le-list-card > img,
+.le-page--listing .le-list-placeholder {
+  width: 100%;
+  aspect-ratio: 4 / 5;
+  height: auto;
+  object-fit: contain;
+  background: var(--le-panel);
+  border-radius: 5px;
+}
+.le-page--listing .le-list-placeholder {
+  display: grid;
+  place-items: center;
+  font: 24px Georgia, serif;
+}
+.le-page--listing .le-list-status {
+  font-size: 9px;
+  color: var(--le-muted);
+  margin-top: 13px;
+}
+.le-page--listing .le-list-card h2 {
+  font-size: 14px;
+  line-height: 1.5;
+  margin: 6px 0 8px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.le-page--listing .le-list-card time,
+.le-page--listing .le-list-card p {
+  font-size: 10px;
+  color: var(--le-muted);
+  line-height: 1.7;
+}
+.le-page--listing .le-list-card strong {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: auto;
+  padding-top: 12px;
+}
+.le-page--listing .le-list-card strong span {
+  font-size: 16px;
+}
+.le-page--listing .le-list-empty {
+  padding: 36px 0;
+  text-align: center;
+}
+.le-page--listing .le-list-empty p {
+  font-size: 14px;
+}
+.le-page--listing .le-list-empty > span {
+  display: block;
+  font-size: 11px;
+  color: var(--le-muted);
+  margin-top: 8px;
+}
+.le-page--listing .le-list-empty button {
+  margin-top: 18px;
+  min-height: 44px;
+  border: 0;
+  background: transparent;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+@media (max-width: 350px) {
+  .le-page--listing .le-list-main {
+    padding-inline: 18px;
+  }
+  .le-page--listing .le-list-grid {
+    gap: 28px 12px;
+  }
+  .le-page--listing .le-list-card h2 {
+    font-size: 13px;
+  }
+  .le-page--listing .le-list-heading h1 {
+    font-size: 24px;
+  }
+}
