@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 32 32" role="img" aria-labelledby="title">
+  <title id="title">KODA CLUB</title>
+  <circle cx="16" cy="16" r="15.5" fill="#fffefa"/>
+  <!-- The same curved K as the header wordmark, with room at favicon sizes. -->
+  <path d="M4 0h15v35c9 0 14-5 20-12l5-6h18L45 38c-2 2-4 4-7 5 8 3 11 9 15 13 4 5 8 6 15 6v13c-14 0-22-5-28-14-6-9-11-13-21-13v27H4Z" transform="translate(4.84 4.38) scale(.31)" fill="#20211f"/>
+</svg>

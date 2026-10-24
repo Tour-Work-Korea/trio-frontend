@@ -1,0 +1,11 @@
+/* Used only when the CDN returns the shared index.html for a KODA URL. */
+html[data-koda-hosted],
+html[data-koda-hosted] body,
+html[data-koda-hosted] #root {
+  display: block;
+  height: auto;
+  min-height: 100dvh;
+}
+html[data-koda-hosted] body {
+  overflow: visible;
+}

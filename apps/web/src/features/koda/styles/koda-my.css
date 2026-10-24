@@ -1,0 +1,250 @@
+.le-page .le-my-content {
+  padding: 28px 22px 32px;
+  min-height: 65vh;
+}
+.le-page .le-my-heading {
+  margin-bottom: 28px;
+}
+.le-page .le-my-heading > p {
+  font-size: 9px;
+  letter-spacing: 1.5px;
+  color: var(--le-muted);
+  margin: 0 0 8px;
+}
+.le-page .le-my-heading h1 {
+  font: 36px/1.1 'Koda-Display', sans-serif;
+  letter-spacing: -1.5px;
+  margin: 0;
+}
+.le-page .le-my-welcome {
+  background: #f6f5f1;
+  padding: 24px;
+  border-radius: 10px;
+}
+.le-page .le-my-welcome h2 {
+  font: 22px/1.4 'Pretendard-SemiBold', sans-serif;
+  letter-spacing: -0.5px;
+  margin: 0 0 10px;
+}
+.le-page .le-my-welcome p {
+  font-size: 12px;
+  color: var(--le-muted);
+  line-height: 1.7;
+  margin-bottom: 24px;
+  word-break: keep-all;
+}
+.le-page .le-my-primary {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  min-height: 48px;
+  padding: 12px 16px;
+  border: 0;
+  border-radius: 6px;
+  background: #20211f;
+  color: #fff;
+  font-size: 13px;
+}
+.le-page .le-my-primary span {
+  color: #e7cb54;
+}
+.le-page .le-my-browse {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 12px 0;
+  margin-top: 8px;
+  font-size: 12px;
+}
+.le-page .le-my-profile {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin: 4px 0 32px;
+}
+.le-page .le-my-avatar {
+  display: grid;
+  place-items: center;
+  width: 50px;
+  height: 50px;
+  flex-shrink: 0;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #f2e8b6;
+  font: 23px 'Pretendard-SemiBold', sans-serif;
+}
+.le-page .le-my-avatar img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.le-page .le-my-profile p {
+  margin: 0 0 3px;
+  font-size: 12px;
+  color: var(--le-muted);
+}
+.le-page .le-my-profile h2 {
+  font-size: 21px;
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+.le-page .le-my-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 14px;
+}
+.le-page .le-my-section-title h2 {
+  font-size: 16px;
+  margin: 0;
+}
+.le-page .le-my-section-title > span {
+  font-size: 8px;
+  letter-spacing: 1px;
+  color: var(--le-muted);
+}
+.le-page .le-my-tabs {
+  display: flex;
+  gap: 5px;
+  margin-bottom: 12px;
+}
+.le-page .le-my-tabs button {
+  flex: 1;
+  min-height: 44px;
+  padding: 8px 4px;
+  background: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-size: 11px;
+  color: var(--le-muted);
+}
+.le-page .le-my-tabs button[aria-pressed='true'] {
+  background: #20211f;
+  color: #fff;
+}
+.le-page .le-my-state {
+  background: #f6f5f1;
+  border-radius: 8px;
+  padding: 24px 18px;
+  text-align: center;
+  font-size: 12px;
+  line-height: 1.7;
+  color: var(--le-muted);
+}
+.le-page .le-my-state > span {
+  font-size: 26px;
+  color: #8b792d;
+}
+.le-page .le-my-state h3 {
+  font-size: 14px;
+  color: var(--le-text);
+  margin: 10px 0 6px;
+  word-break: keep-all;
+}
+.le-page .le-my-state p {
+  margin: 0;
+}
+.le-page .le-my-state button {
+  min-height: 44px;
+  border: 0;
+  background: none;
+  text-decoration: underline;
+  margin-top: 6px;
+}
+.le-page .le-my-account {
+  margin-top: 28px;
+}
+.le-page .le-my-account dl {
+  margin: 0;
+  padding: 8px 16px;
+  background: #f6f5f1;
+  border-radius: 8px;
+}
+.le-page .le-my-account dl > div {
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 10px 0;
+  font-size: 12px;
+}
+.le-page .le-my-account dt {
+  color: var(--le-muted);
+  flex-shrink: 0;
+}
+.le-page .le-my-account dd {
+  margin: 0;
+  overflow-wrap: anywhere;
+  text-align: right;
+}
+.le-page .le-my-account > p {
+  color: var(--le-muted);
+  font-size: 11px;
+  line-height: 1.6;
+  margin-top: 12px;
+}
+.le-page .le-my-logout {
+  border: 0;
+  background: transparent;
+  color: var(--le-muted);
+  min-height: 44px;
+  padding: 0;
+  margin-top: 18px;
+  font-size: 12px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.le-page .le-my-reservation {
+  display: flex;
+  align-items: flex-start;
+  gap: 16px;
+  padding: 16px;
+  background: #f6f5f1;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.le-page .le-my-reservation .le-my-reservation-status {
+  font-size: 11px;
+  color: #776625;
+  margin: 0 0 8px;
+}
+.le-page .le-my-reservation h3 {
+  font-size: 16px;
+  margin: 0 0 8px;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+.le-page .le-my-reservation-image {
+  width: clamp(64px, 18vw, 88px);
+  height: auto;
+  max-height: 132px;
+  object-fit: contain;
+  border-radius: 4px;
+  flex-shrink: 0;
+}
+.le-page .le-my-reservation-info {
+  min-width: 0;
+  flex: 1;
+}
+.le-page .le-my-reservation .le-my-reservation-location {
+  margin: 6px 0 0;
+  font-size: 11px;
+  color: var(--le-muted);
+  line-height: 1.7;
+  overflow-wrap: anywhere;
+}
+.le-page .le-my-reservation time {
+  display: block;
+  font-size: 11px;
+  line-height: 1.7;
+  color: var(--le-muted);
+}
+.le-page .le-my-reservation a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-size: 12px;
+}
