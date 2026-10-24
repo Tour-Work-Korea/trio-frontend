@@ -4,8 +4,8 @@ export default function ClubNavigation({language, page = 'home'}) {
   const home = page !== 'home' ? `/koda/?lang=${language}` : '';
   const labels =
     language === 'ko'
-      ? ['모임', '일정', '클럽 소개']
-      : ['Meetups', 'Calendar', 'About us'];
+      ? ['모임', '일정', '소개']
+      : ['Meetups', 'Calendar', 'About'];
   return (
     <nav
       className="le-hub-nav"

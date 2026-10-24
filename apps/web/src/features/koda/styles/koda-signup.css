@@ -37,7 +37,7 @@
 .le-signup-steps li {
   display: grid;
   gap: 5px;
-  font-size: 11px;
+  font-size: 12px;
   color: #85877f;
   line-height: 1.4;
 }
@@ -131,9 +131,10 @@
   border: 0;
   border-radius: 8px;
   padding: 0 12px;
-  font-size: 12px;
+  font-size: 13px;
   min-height: 48px;
   color: #20211f;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-signup-input-row > button:disabled {
   color: #84877f;
@@ -181,7 +182,7 @@
 }
 .le-signup-agree-all small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   font-weight: 400;
   color: #777b71;
 }
@@ -208,12 +209,12 @@
   cursor: pointer;
 }
 .le-signup-agreement label small {
-  font-size: 10px;
+  font-size: 11px;
   color: #74776f;
   margin-right: 8px;
 }
 .le-signup-agreement summary {
-  font-size: 11px;
+  font-size: 12px;
   color: #6c7065;
   cursor: pointer;
   margin-left: 28px;
@@ -227,7 +228,7 @@
   box-sizing: border-box;
 }
 .le-signup-hint {
-  font-size: 11px;
+  font-size: 12px;
   color: #6c7065;
   line-height: 1.6;
   margin: 7px 0 0;
@@ -267,7 +268,7 @@
 .le-signup-login {
   margin: 28px 0 0;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   color: #74776f;
 }
 .le-signup-login button {

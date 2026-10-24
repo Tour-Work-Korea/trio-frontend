@@ -27,7 +27,7 @@
   margin: 0 0 10px;
 }
 .le-page .le-my-welcome p {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--le-muted);
   line-height: 1.7;
   margin-bottom: 24px;
@@ -44,7 +44,8 @@
   border-radius: 6px;
   background: #20211f;
   color: #fff;
-  font-size: 13px;
+  font-size: 14px;
+  font-family: 'Pretendard-SemiBold', sans-serif;
 }
 .le-page .le-my-primary span {
   color: #e7cb54;
@@ -56,7 +57,8 @@
   min-height: 48px;
   padding: 12px 0;
   margin-top: 8px;
-  font-size: 12px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-my-profile {
   display: flex;
@@ -83,7 +85,7 @@
 }
 .le-page .le-my-profile p {
   margin: 0 0 3px;
-  font-size: 12px;
+  font-size: 13px;
   color: var(--le-muted);
 }
 .le-page .le-my-profile h2 {
@@ -119,8 +121,9 @@
   background: transparent;
   border: 0;
   border-radius: 6px;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-my-tabs button[aria-pressed='true'] {
   background: #20211f;
@@ -131,7 +134,7 @@
   border-radius: 8px;
   padding: 24px 18px;
   text-align: center;
-  font-size: 12px;
+  font-size: 13px;
   line-height: 1.7;
   color: var(--le-muted);
 }
@@ -169,7 +172,7 @@
   gap: 16px;
   justify-content: space-between;
   padding: 10px 0;
-  font-size: 12px;
+  font-size: 13px;
 }
 .le-page .le-my-account dt {
   color: var(--le-muted);
@@ -182,7 +185,7 @@
 }
 .le-page .le-my-account > p {
   color: var(--le-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.6;
   margin-top: 12px;
 }
@@ -193,7 +196,7 @@
   min-height: 44px;
   padding: 0;
   margin-top: 18px;
-  font-size: 12px;
+  font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -207,9 +210,10 @@
   margin-top: 10px;
 }
 .le-page .le-my-reservation .le-my-reservation-status {
-  font-size: 11px;
+  font-size: 12px;
   color: #776625;
   margin: 0 0 8px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-my-reservation h3 {
   font-size: 16px;
@@ -231,20 +235,22 @@
 }
 .le-page .le-my-reservation .le-my-reservation-location {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--le-muted);
   line-height: 1.7;
   overflow-wrap: anywhere;
 }
 .le-page .le-my-reservation time {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.7;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-my-reservation a {
   display: inline-flex;
   min-height: 44px;
   align-items: center;
-  font-size: 12px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }

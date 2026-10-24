@@ -195,18 +195,20 @@ body {
   border-bottom: 1px solid var(--le-line);
 }
 .le-facts dt {
-  font-size: 12px;
+  font-size: 13px;
   color: var(--le-muted);
   padding-top: 2px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-facts dd {
-  font-size: 14px;
+  font-size: 15px;
   overflow-wrap: anywhere;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-facts small {
   display: block;
   color: var(--le-muted);
-  font-size: 12px;
+  font-size: 13px;
   white-space: pre-line;
   margin-top: 4px;
   line-height: 1.7;
@@ -216,9 +218,10 @@ body {
   align-items: center;
   min-height: 44px;
   color: var(--le-accent);
-  font-size: 12px;
+  font-size: 13px;
   text-decoration: underline;
   text-underline-offset: 4px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-facts strong {
   font-size: 21px;
@@ -236,8 +239,8 @@ body {
 }
 .le-section > p {
   color: var(--le-muted);
-  font-size: 14px;
-  line-height: 1.9;
+  font-size: 15px;
+  line-height: 1.8;
   word-break: keep-all;
   overflow-wrap: anywhere;
 }
@@ -262,7 +265,7 @@ body {
   flex: 0 0 22px;
 }
 .le-program p {
-  font-size: 14px;
+  font-size: 15px;
   color: var(--le-muted);
 }
 .le-program-poster {
@@ -281,7 +284,8 @@ body {
   cursor: pointer;
   padding: 17px 0;
   list-style: none;
-  font-size: 14px;
+  font-size: 15px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-faq summary::-webkit-details-marker {
   display: none;
@@ -296,12 +300,12 @@ body {
   content: '−';
 }
 .le-faq p {
-  font-size: 13px;
+  font-size: 14px;
   color: var(--le-muted);
   padding: 0 16px 20px 0;
 }
 .le-gallery-hint {
-  font-size: 12px !important;
+  font-size: 13px !important;
   margin-bottom: 16px !important;
 }
 .le-gallery {
@@ -332,7 +336,7 @@ body {
 .le-gallery figcaption {
   margin-top: 10px;
   color: var(--le-muted);
-  font-size: 12px;
+  font-size: 13px;
 }
 .le-related {
   display: flex;
@@ -355,13 +359,13 @@ body {
 }
 .le-related small {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--le-muted);
   margin: 4px 0;
 }
 .le-related em {
   color: var(--le-accent);
-  font-size: 12px;
+  font-size: 13px;
   font-style: normal;
 }
 .le-footer {
@@ -397,9 +401,10 @@ body {
 }
 .le-booking > p {
   text-align: center;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--le-muted);
   margin-bottom: 8px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-toast {
   position: fixed;

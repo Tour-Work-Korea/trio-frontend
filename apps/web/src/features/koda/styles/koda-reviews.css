@@ -23,7 +23,7 @@
 }
 .le-page .le-review-heading > p:last-child {
   color: var(--le-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.8;
   margin-top: 6px;
   word-break: keep-all;
@@ -78,8 +78,8 @@
 }
 .le-page .le-review-text {
   margin: 0;
-  font-size: 13px;
-  line-height: 1.65;
+  font-size: 14px;
+  line-height: 1.75;
   white-space: pre-line;
   overflow-wrap: anywhere;
 }
@@ -96,7 +96,8 @@
   border: 0;
   background: none;
   color: var(--le-muted);
-  font-size: 11px;
+  font-size: 12px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-review-card footer {
   display: flex;
@@ -113,16 +114,17 @@
 }
 .le-page .le-review-card time {
   display: block;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--le-muted);
   margin-top: 3px;
 }
 .le-page .le-review-card footer a {
-  font-size: 10px;
+  font-size: 12px;
   min-height: 44px;
   display: grid;
   align-items: center;
   white-space: nowrap;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page .le-review-controls {
   display: flex;
@@ -130,7 +132,7 @@
   justify-content: space-between;
   gap: 12px;
   margin-top: 8px;
-  font-size: 10px;
+  font-size: 11px;
   color: var(--le-muted);
 }
 .le-page .le-review-controls > div {
@@ -181,4 +183,5 @@
 .le-page .le-review-card time {
   margin-top: 0;
   white-space: nowrap;
+  font-size: 11px;
 }

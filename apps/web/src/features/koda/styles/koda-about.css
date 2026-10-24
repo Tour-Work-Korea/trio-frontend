@@ -9,8 +9,9 @@
 }
 .le-page--about .le-about-page-heading p {
   margin-top: 12px;
-  font-size: 11px;
+  font-size: 12px;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--about .le-about-story {
   padding-bottom: 8px;
@@ -26,8 +27,8 @@
   margin-top: 22px;
 }
 .le-page--about .le-about-apps-intro {
-  font-size: 12px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 1.8;
   color: var(--le-muted);
   margin: 12px 0 24px;
   word-break: keep-all;
@@ -43,7 +44,7 @@
   letter-spacing: -0.7px;
 }
 .le-page--about .le-partner-introduction > p {
-  font-size: 12px;
+  font-size: 14px;
   color: var(--le-muted);
   line-height: 1.8;
   word-break: keep-all;
@@ -63,11 +64,12 @@
   min-height: 48px;
   gap: 12px;
   margin-top: 16px;
-  font-size: 12px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--about .le-partner-introduction small {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--le-muted);
   margin-top: 3px;
 }

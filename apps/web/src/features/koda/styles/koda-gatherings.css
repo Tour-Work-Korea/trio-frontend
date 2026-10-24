@@ -25,6 +25,7 @@
   min-height: 44px;
   font-size: 11px;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--listing .le-list-filters [aria-pressed='true'] {
   border-bottom-color: var(--le-text);
@@ -37,7 +38,8 @@
   align-items: center;
   gap: 12px;
   margin: 14px 0 14px;
-  font-size: 11px;
+  font-size: 12px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--listing .le-list-toolbar select {
   width: 116px;
@@ -50,6 +52,7 @@
   font: inherit;
   /* Override the shared form minimum only for this compact sorting control. */
   font-size: 11px !important;
+  font-family: 'Pretendard-Regular', sans-serif;
 }
 .le-page--listing .le-list-toolbar:has(select:focus) {
   box-shadow: none;
@@ -83,9 +86,10 @@
   font: 24px Georgia, serif;
 }
 .le-page--listing .le-list-status {
-  font-size: 9px;
+  font-size: 11px;
   color: var(--le-muted);
   margin-top: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--listing .le-list-card h2 {
   font-size: 14px;
@@ -96,7 +100,7 @@
 }
 .le-page--listing .le-list-card time,
 .le-page--listing .le-list-card p {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--le-muted);
   line-height: 1.7;
 }
@@ -104,7 +108,7 @@
   display: flex;
   justify-content: space-between;
   gap: 4px;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: auto;
   padding-top: 12px;
 }
@@ -120,7 +124,7 @@
 }
 .le-page--listing .le-list-empty > span {
   display: block;
-  font-size: 11px;
+  font-size: 13px;
   color: var(--le-muted);
   margin-top: 8px;
 }

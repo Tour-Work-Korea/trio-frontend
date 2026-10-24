@@ -16,7 +16,7 @@ html:has(.le-page--hub) {
   --le-bg: #fff;
   --le-panel: #f6f6f4;
   --le-text: #20211f;
-  --le-muted: #6b6d66;
+  --le-muted: #595c54;
   --le-accent: #e7cb54;
   --le-line: #e5e5e1;
   padding-bottom: 0;
@@ -71,7 +71,8 @@ html:has(.le-page--hub) {
   display: grid;
   place-items: center;
   min-height: 44px;
-  font-size: 11px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-hub-nav a[aria-current='page'] {
   text-decoration: underline;
@@ -231,7 +232,7 @@ html:has(.le-page--hub) {
 .le-page--hub .le-hero-description > p {
   margin-top: 12px;
   color: var(--le-muted);
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   word-break: keep-all;
 }
@@ -241,8 +242,9 @@ html:has(.le-page--hub) {
   justify-content: space-between;
   min-height: 48px;
   margin-top: 22px;
-  font-size: 12px;
+  font-size: 13px;
   border-bottom: 1px solid var(--le-text);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-hero-link > span {
   display: grid;
@@ -282,7 +284,7 @@ html:has(.le-page--hub) {
   text-wrap: balance;
 }
 .le-page--hub .le-hub-section-heading > p:last-child:not(.le-editorial-title) {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   color: var(--le-muted);
   margin-top: 8px;
@@ -328,11 +330,12 @@ html:has(.le-page--hub) {
   border-collapse: collapse;
 }
 .le-page--hub .le-calendar-table th {
-  font-size: 9px;
+  font-size: 11px;
   font-weight: normal;
   color: var(--le-muted);
   padding: 0 4px 10px;
   text-align: left;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-calendar-table td {
   padding: 0;
@@ -356,9 +359,9 @@ html:has(.le-page--hub) {
   padding: 5px 4px;
   border: 0;
   border-radius: 0;
-  font-size: 10px;
+  font-size: 12px;
   line-height: 1.3;
-  color: #6b6d66;
+  color: var(--le-muted);
   background: transparent;
 }
 .le-page--hub .le-calendar-table td > button {
@@ -426,7 +429,7 @@ html:has(.le-page--hub) {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  font-size: 10px;
+  font-size: 12px;
   color: var(--le-muted);
 }
 .le-page--hub .le-calendar-key > span {
@@ -445,7 +448,8 @@ html:has(.le-page--hub) {
   background: transparent;
   min-height: 44px;
   color: var(--le-text);
-  font-size: 10px;
+  font-size: 12px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-calendar-selection {
   margin-top: 12px;
@@ -472,9 +476,10 @@ html:has(.le-page--hub) {
 }
 .le-page--hub .le-event-status {
   display: inline-block;
-  font-size: 9px;
+  font-size: 11px;
   border-bottom: 1px solid #988243;
   padding-bottom: 3px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-event-status--past {
   color: var(--le-muted);
@@ -490,13 +495,13 @@ html:has(.le-page--hub) {
   overflow-wrap: anywhere;
 }
 .le-page--hub .le-selected-top p {
-  font-size: 11px;
+  font-size: 13px;
   color: var(--le-muted);
 }
 .le-page--hub .le-selected-top strong {
   display: block;
   margin-top: 6px;
-  font-size: 13px;
+  font-size: 15px;
 }
 .le-page--hub .le-selected-schedule {
   display: grid;
@@ -504,7 +509,8 @@ html:has(.le-page--hub) {
   border-top: 1px solid var(--le-line);
   padding-top: 12px;
   margin-top: 16px;
-  font-size: 11px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-selected-schedule span {
   color: var(--le-muted);
@@ -519,7 +525,7 @@ html:has(.le-page--hub) {
   background: var(--le-accent);
   color: var(--le-text);
   font-family: 'Pretendard-SemiBold', sans-serif;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: 18px;
 }
 .le-page--hub .le-primary-link span {
@@ -535,7 +541,7 @@ html:has(.le-page--hub) {
   margin: 8px 0;
 }
 .le-page--hub .le-calendar-empty p {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.8;
   color: var(--le-muted);
 }
@@ -582,8 +588,9 @@ html:has(.le-page--hub) {
 }
 .le-page--hub .le-gathering-status {
   display: block;
-  font-size: 9px;
+  font-size: 11px;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-gathering-card h3 {
   font-family: 'Pretendard-SemiBold', sans-serif;
@@ -595,11 +602,12 @@ html:has(.le-page--hub) {
   overflow-wrap: anywhere;
 }
 .le-page--hub .le-gathering-card time {
-  font-size: 10px;
+  font-size: 12px;
   color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
 }
 .le-page--hub .le-gathering-venue {
-  font-size: 11px;
+  font-size: 13px;
   line-height: 1.5;
   color: var(--le-muted);
 }
@@ -608,9 +616,10 @@ html:has(.le-page--hub) {
   justify-content: space-between;
   gap: 4px;
   align-items: center;
-  font-size: 12px;
+  font-size: 14px;
   margin-top: auto;
   padding-top: 12px;
+  font-family: 'Pretendard-SemiBold', sans-serif;
 }
 .le-page--hub .le-gathering-price > span {
   font-size: 18px;
@@ -619,8 +628,8 @@ html:has(.le-page--hub) {
   background: var(--le-bg);
 }
 .le-page--hub .le-about-description {
-  font-size: 12px;
-  line-height: 1.9;
+  font-size: 14px;
+  line-height: 1.8;
   color: #60635b;
   max-width: 310px;
   margin-left: 0;
@@ -642,8 +651,8 @@ html:has(.le-page--hub) {
   font: 15px/1.5 'Pretendard-SemiBold', sans-serif;
 }
 .le-page--hub .le-name-story p {
-  font-size: 11px;
-  line-height: 1.9;
+  font-size: 13px;
+  line-height: 1.8;
   color: var(--le-muted);
   word-break: keep-all;
 }
@@ -799,7 +808,7 @@ html:has(.le-page--hub) {
   font-weight: 600;
 }
 .le-page--home .le-community-handle {
-  font-size: 10px;
+  font-size: 11px;
   font-weight: 400;
   color: var(--le-muted);
   margin-left: 6px;
@@ -808,7 +817,7 @@ html:has(.le-page--hub) {
   display: block;
   margin-top: 5px;
   color: var(--le-muted);
-  font-size: 11px;
+  font-size: 12px;
   line-height: 1.5;
 }
 .le-page--home .le-community-links a > span:last-child {
@@ -827,7 +836,7 @@ html:has(.le-page--hub) {
   display: grid;
   place-items: center;
   min-height: 44px;
-  font-size: 10px;
+  font-size: 12px;
 }
 .le-page--hub .le-club-footer p,
 .le-page--hub .le-club-footer small {
@@ -839,8 +848,6 @@ html:has(.le-page--hub) {
   margin-top: 8px;
 }
 /* Let the home sections breathe without repeating horizontal rules. */
-.le-page--home .le-hub-nav,
-.le-page--home .le-hero-link,
 .le-page--home .le-section-index,
 .le-page--home .le-selected-event,
 .le-page--home .le-selected-schedule,
@@ -890,7 +897,7 @@ html:has(.le-page--hub) {
     font-size: 17px;
   }
   .le-page--hub .le-hero-description > p {
-    font-size: 10px;
+    font-size: 13px;
   }
   .le-page--hub .le-selected-top {
     gap: 14px;
