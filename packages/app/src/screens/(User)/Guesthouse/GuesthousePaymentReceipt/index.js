@@ -57,13 +57,13 @@ const formatTime = timeStr => {
 const formatDateWithDay = dateStr => {
   if (!dateStr) return '';
   const date = dayjs(dateStr);
-  return date.isValid() ? date.format('YYYY. MM. DD (dd)') : dateStr;
+  return date.isValid() ? date.format('YYYY. MM. DD (ddd)') : dateStr;
 };
 
 const formatPaidAt = paidAt => {
   if (!paidAt) return '';
   const date = dayjs(paidAt);
-  return date.isValid() ? date.format('YYYY.MM.DD (dd) HH:mm') : paidAt;
+  return date.isValid() ? date.format('YYYY.MM.DD (ddd) HH:mm') : paidAt;
 };
 
 const firstNonEmpty = (...values) =>

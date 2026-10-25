@@ -1,0 +1,18 @@
+.le-page .le-koda-logo {
+  display: inline-block;
+  width: 88px;
+  flex-shrink: 0;
+  line-height: 0;
+}
+.le-page .le-koda-logo img {
+  display: block;
+  width: 100%;
+  height: auto;
+}
+.le-page .le-brand-link {
+  flex: 1;
+  min-width: 0;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+}

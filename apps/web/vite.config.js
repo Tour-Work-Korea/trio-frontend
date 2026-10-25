@@ -130,7 +130,7 @@ export default defineConfig(({mode}) => {
       {find: 'react-native-safe-area-context', replacement: path.resolve(webStubs, 'safeAreaContext.js')},
       {find: '@react-native-async-storage/async-storage', replacement: path.resolve(webStubs, 'asyncStorage.js')},
       {find: '@react-native-picker/picker', replacement: path.resolve(webStubs, 'picker.js')},
-      {find: 'react-native-calendars', replacement: path.resolve(webStubs, 'calendars.js')},
+      {find: /^react-native-calendars$/, replacement: path.resolve(webStubs, 'calendars.js')},
       {find: '@mj-studio/react-native-naver-map', replacement: path.resolve(webStubs, 'naverMap.js')},
       {find: '@react-native-clipboard/clipboard', replacement: path.resolve(webStubs, 'clipboard.js')},
       {find: '@react-native-community/geolocation', replacement: path.resolve(webStubs, 'geolocation.js')},

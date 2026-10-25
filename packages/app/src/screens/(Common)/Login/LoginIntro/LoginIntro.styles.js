@@ -66,15 +66,12 @@ const styles = StyleSheet.create({
   languageButton: {
     position: 'absolute',
     top: 16,
-    right: 20,
+    right: 52,
     zIndex: 2,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 16,
     backgroundColor: COLORS.grayscale_100,
-  },
-  englishLanguageButton: {
-    right: 52,
   },
   languageButtonText: {
     ...FONTS.fs_14_medium,

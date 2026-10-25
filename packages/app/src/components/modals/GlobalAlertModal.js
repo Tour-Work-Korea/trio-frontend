@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import {subscribe} from '@utils/loginModalHub';
 import {useEffect, useState} from 'react';
@@ -10,7 +9,7 @@ const initialState = {
   visible: false,
   title: '',
   message: '',
-  buttonText: i18n.t('common.confirm'),
+  buttonText: null,
   buttonText2: null,
   onPress: null,
   onPress2: null,

@@ -2,6 +2,8 @@ import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {StyleSheet, View, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -27,12 +29,18 @@ const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
   const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
+  // Android reserves this space in the app container. Keep the iOS bottom
+  // reserve close to the original tab bar rather than adding the full inset.
+  const bottomInset =
+    Platform.OS === 'android' ? 0 : Math.min(insets.bottom, 18);
   return (
     <View style={styles.container}>
       <Tab.Navigator
         initialRouteName="홈"
         backBehavior="initialRoute"
         detachInactiveScreens={Platform.OS !== 'android'}
+        safeAreaInsets={{bottom: bottomInset}}
         screenOptions={({route}) => ({
           tabBarIcon: ({focused}) => {
             const iconProps = {width: 24, height: 24};
@@ -48,6 +56,7 @@ const BottomTabs = () => {
             return <Icon {...iconProps} />;
           },
           tabBarShowLabel: true,
+          tabBarLabelPosition: 'below-icon',
           tabBarLabel: ({focused}) => (
             <AdaptiveText
               variant="tab"
@@ -68,11 +77,15 @@ const BottomTabs = () => {
           ),
 
           tabBarStyle: [
-            Platform.OS === 'android' ? styles.tabBarAndroid : styles.tabBarIOS,
+            styles.tabBar,
+            {height: 72 + bottomInset, paddingBottom: 6 + bottomInset},
+            route.name === '홈' &&
+              getFocusedRouteNameFromRoute(route) === 'TemporaryEventBanner' &&
+              {display: 'none'},
           ],
 
+          tabBarIconStyle: styles.tabBarIcon,
           tabBarItemStyle: styles.tabBarItem,
-          tabBarSafeAreaInset: {bottom: 0},
           headerShown: false,
         })}>
         <Tab.Screen name="홈" component={Home} />
@@ -132,33 +145,27 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabBarAndroid: {
+  tabBar: {
     position: 'relative',
     backgroundColor: COLORS.grayscale_0,
-    height: 64,
-    paddingTop: 6,
-    paddingBottom: 6,
-    paddingHorizontal: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLORS.grayscale_200,
-  },
-  tabBarIOS: {
-    position: 'relative',
-    backgroundColor: COLORS.grayscale_0,
-    height: 84,
-    paddingTop: 6,
-    paddingBottom: 18,
+    paddingTop: 10,
     paddingHorizontal: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLORS.grayscale_200,
   },
   tabBarItem: {
-    paddingVertical: 4,
+    paddingVertical: 0,
     minWidth: 0,
+  },
+  tabBarIcon: {
+    width: 24,
+    height: 24,
   },
   label: {
     color: COLORS.grayscale_500,
     marginTop: 2,
+    lineHeight: 16,
+    flexShrink: 0,
     maxWidth: '100%',
     textAlign: 'center',
   },

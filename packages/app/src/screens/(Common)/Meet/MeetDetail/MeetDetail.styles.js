@@ -236,6 +236,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: COLORS.grayscale_800,
+    textAlign: 'center',
   },
   tabTextActive: {
     color: COLORS.primary_blue,

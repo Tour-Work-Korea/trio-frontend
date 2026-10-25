@@ -1276,3 +1276,12 @@ export default {
   useNavigationState,
   useRoute,
 };
+export const getFocusedRouteNameFromRoute = route => {
+  const state = route?.state;
+  if (state?.routes?.length) {
+    return state.routes[state.index ?? state.routes.length - 1]?.name;
+  }
+  return typeof route?.params?.screen === 'string'
+    ? route.params.screen
+    : undefined;
+};

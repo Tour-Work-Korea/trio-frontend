@@ -1,5 +1,5 @@
 import i18n from '@trio/app/src/i18n';
-import {useTranslation} from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -20,6 +20,7 @@ import styles from './MeetReservation.styles';
 import {FONTS} from '@constants/fonts';
 import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
+import AlertModal from '@components/modals/AlertModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {AGREEMENT_CONTENT} from '@data/agreeContents';
@@ -88,7 +89,8 @@ const getDateOptionStatusLabel = option => {
 };
 
 const MeetReservation = () => {
-  const {t} = useTranslation();
+  const {t, i18n: translationI18n} = useTranslation();
+  const isEnglish = (translationI18n.resolvedLanguage || translationI18n.language || '').startsWith('en');
   const navigation = useNavigation();
   const route = useRoute();
   const {
@@ -441,11 +443,11 @@ const MeetReservation = () => {
     if (!date.isValid()) {
       return '-';
     }
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
   const formatReservationOption = option => {
     const date = dayjs(option?.partyStartDateTime);
-    const dateText = date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-';
+    const dateText = date.isValid() ? date.format('YYYY.MM.DD (ddd)') : '-';
     return `${dateText} ${formatTime(
       option?.partyStartTime ?? option?.partyStartDateTime,
     )}`;
@@ -484,6 +486,9 @@ const MeetReservation = () => {
   };
 
   const [isModalVisible, setModalVisible] = useState(false);
+  const [reservationError, setReservationError] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const isSubmittingRef = useRef(false);
   const [selectedTerm, setSelectedTerm] = useState(null);
   const selectedAgreementDoc =
     selectedTerm && TERM_DOCUMENT_MAP[selectedTerm]
@@ -507,10 +512,13 @@ const MeetReservation = () => {
 
   // 예약 생성
   const handleCreateReservation = async () => {
-    if (!partyId || !reservationInfo) {
+    if (isSubmittingRef.current || !partyId || !reservationInfo) {
       return;
     }
 
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
+    setReservationError(null);
     let paymentWindowRef = null;
 
     try {
@@ -572,10 +580,28 @@ const MeetReservation = () => {
     } catch (e) {
       paymentWindowRef?.close();
       console.log('createPartyReservation error', e);
-      const msg =
-        e?.response?.data?.message ||
-        t('meet.anErrorOccurredWhileCreatingTheReservation');
-      Toast.show({type: 'error', text1: msg, position: 'top'});
+      const message = e?.response?.data?.message;
+      const normalizedMessage =
+        typeof message === 'string'
+          ? message.trim().replace(/[.!。]+$/, '').trim()
+          : '';
+      const isDuplicate =
+        e?.response?.data?.code === 'DUPLICATE_RESOURCE' ||
+        ['ko', 'en'].some(
+          language =>
+            normalizedMessage ===
+            i18n
+              .getFixedT(language)('meet.alreadyApplied')
+              .replace(/[.!。]+$/, '')
+              .trim(),
+        );
+      setReservationError({
+        isDuplicate,
+        message: normalizedMessage ? message : null,
+      });
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -661,6 +687,7 @@ const MeetReservation = () => {
                 style={[
                   FONTS.fs_16_medium,
                   styles.guideAgreeText,
+                  isEnglish && {flex: 1, minWidth: 0},
                   checked && styles.guideAgreeTextActive,
                 ]}>
                 {t('meet.iCheckedTheUsageRules')}
@@ -803,16 +830,17 @@ const MeetReservation = () => {
                       onPress={() => setSelectedPriceOptionId(option.id)}
                       style={[
                         styles.priceOption,
+                        isEnglish && {paddingVertical: 12},
                         selected && styles.priceOptionSelected,
                       ]}>
-                      <View style={styles.priceOptionNameRow}>
+                      <View style={[styles.priceOptionNameRow, isEnglish && {flexWrap: 'wrap', minWidth: 0}]}>
                         {selected ? (
                           <RadioChecked width={20} height={20} />
                         ) : (
                           <RadioUnchecked width={20} height={20} />
                         )}
                         <Text
-                          numberOfLines={1}
+                          numberOfLines={isEnglish ? undefined : 1}
                           ellipsizeMode="tail"
                           style={[FONTS.fs_14_medium, styles.priceOptionName]}>
                           {option?.optionName}
@@ -894,11 +922,11 @@ const MeetReservation = () => {
         {/* 약관 동의 */}
         <View style={styles.agreeRowContainer}>
           <View style={styles.agreeRowConent}>
-            <View style={styles.agreeRow}>
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => toggleAgreement('personalInfo')}
-                style={styles.agreeRow}>
+                style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
                 {agreements.personalInfo ? (
                   <View style={styles.checkedBox}>
                     <Checked width={24} height={24} />
@@ -909,15 +937,21 @@ const MeetReservation = () => {
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
-                  {t('common.required')}
-                </Text>{' '}
-                {t('common.iAgreeToTheCollectionAndUseOfPersonalInformation')}
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
+                <Trans
+                  i18nKey="meet.personalInformationConsent"
+                  components={{
+                    required: (
+                      <Text
+                        style={[FONTS.fs_14_semibold, styles.nessesaryText]}
+                      />
+                    ),
+                  }}
+                />
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
-                style={styles.seeMore}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
                 onPress={() => openTermModal('personalInfo')}>
                 <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
                   {t('common.view')}
@@ -933,6 +967,7 @@ const MeetReservation = () => {
           <ButtonScarlet
             title={t('common.apply_15e2a7')}
             disabled={
+              isSubmitting ||
               !isAllRequiredAgreed ||
               !canApplySelectedDate ||
               (priceOptions.length > 0 && !selectedPriceOption)
@@ -950,6 +985,18 @@ const MeetReservation = () => {
         content={selectedAgreementDoc?.detail || ''}
         contentHtml={selectedAgreementDoc?.detailHtml || ''}
         onAgree={handleAgreeModal}
+      />
+      <AlertModal
+        visible={Boolean(reservationError)}
+        title={
+          reservationError?.isDuplicate
+            ? t('meet.alreadyApplied')
+            : reservationError?.message ||
+              t('meet.anErrorOccurredWhileCreatingTheReservation')
+        }
+        buttonText={t('common.confirm')}
+        onPress={() => setReservationError(null)}
+        onRequestClose={() => setReservationError(null)}
       />
     </View>
   );

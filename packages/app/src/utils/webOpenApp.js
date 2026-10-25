@@ -85,7 +85,7 @@ const getBridgeHtml = ({deepLinkUrl, storeUrl}) => {
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>게딱지 앱으로 이동</title>
+    <title>${i18n.t('events.openAppTitle')}</title>
     <style>
       html, body {
         margin: 0;

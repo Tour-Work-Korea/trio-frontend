@@ -1,0 +1,92 @@
+.le-page--about .le-about-page-heading {
+  padding: 38px 22px 0;
+  text-align: center;
+}
+.le-page--about .le-about-page-heading h1 {
+  font: 800 27px/1.15 'Koda-Display', sans-serif;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+}
+.le-page--about .le-about-page-heading p {
+  margin-top: 12px;
+  font-size: 12px;
+  color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--about .le-about-story {
+  padding-bottom: 8px;
+}
+.le-page--about .le-about-story h2,
+.le-page--about .le-about-apps h2 {
+  font-size: 18px;
+  line-height: 1.5;
+  white-space: pre-line;
+  letter-spacing: -0.5px;
+}
+.le-page--about .le-about-description {
+  margin-top: 22px;
+}
+.le-page--about .le-about-apps-intro {
+  font-size: 14px;
+  line-height: 1.8;
+  color: var(--le-muted);
+  margin: 12px 0 24px;
+  word-break: keep-all;
+}
+.le-page--about .le-partner-introduction {
+  padding: 24px 0;
+  border-top: 1px solid var(--le-line);
+  scroll-margin-top: 120px;
+}
+.le-page--about .le-partner-introduction h3 {
+  margin: 0 0 10px;
+  font: 24px/1.2 'Pretendard-SemiBold', sans-serif;
+  letter-spacing: -0.7px;
+}
+.le-page--about .le-partner-introduction > p {
+  font-size: 14px;
+  color: var(--le-muted);
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.le-page--about .le-partner-name-note {
+  display: block;
+  margin-top: 7px;
+  font: 13px/1.5 'Pretendard-Regular', sans-serif;
+  letter-spacing: -0.2px;
+  color: var(--le-muted);
+  word-break: keep-all;
+}
+.le-page--about .le-partner-introduction a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  min-height: 48px;
+  gap: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--about .le-partner-introduction small {
+  display: block;
+  font-size: 12px;
+  color: var(--le-muted);
+  margin-top: 3px;
+}
+.le-page--about .le-partner-introduction a > span:last-child {
+  font-size: 22px;
+}
+.le-page--about .le-about-browse {
+  padding: 0 22px 40px;
+}
+.le-page--about .le-about-browse .le-primary-link {
+  margin-top: 0;
+}
+@media (max-width: 350px) {
+  .le-page--about .le-about-page-heading h1 {
+    font-size: 24px;
+  }
+  .le-page--about .le-about-browse {
+    padding-inline: 18px;
+  }
+}

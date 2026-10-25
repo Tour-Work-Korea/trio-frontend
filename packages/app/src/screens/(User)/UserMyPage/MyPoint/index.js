@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {
@@ -19,14 +18,6 @@ import userMyApi from '@utils/api/userMyApi';
 import styles from './MyPoint.styles';
 
 const PAGE_SIZE = 20;
-
-const POINT_TYPE_LABELS = {
-  EARN: i18n.t('myPage.earn'),
-  SPEND: i18n.t('myPage.use'),
-  ADJUSTMENT: i18n.t('myPage.adjustment'),
-  EXPIRATION: i18n.t('myPage.extinction'),
-  RECOVER: i18n.t('myPage.recovery'),
-};
 
 const POSITIVE_TYPES = ['EARN', 'RECOVER'];
 const NEGATIVE_TYPES = ['SPEND', 'EXPIRATION'];
@@ -139,6 +130,14 @@ const getPointSign = item => {
 
 const PointHistoryItem = ({item}) => {
   const {t} = useTranslation();
+  const POINT_TYPE_LABELS = {
+    EARN: t('myPage.earn'),
+    SPEND: t('myPage.use'),
+    ADJUSTMENT: t('myPage.adjustment'),
+    EXPIRATION: t('myPage.extinction'),
+    RECOVER: t('myPage.recovery'),
+  };
+
   const sign = getPointSign(item);
   const amount = Math.abs(Number(item?.amount || 0)).toLocaleString('ko-KR');
   const isPositive = sign === '+';

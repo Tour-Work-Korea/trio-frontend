@@ -17,11 +17,8 @@ const MESSAGE_MAX_LENGTH = 50;
 const pad2 = value => String(value).padStart(2, '0');
 
 const formatYearMonth = date => {
-  if (!date) {
-    return '2025. 04';
-  }
-
-  return `${date.getFullYear()}. ${pad2(date.getMonth() + 1)}`;
+  const currentDate = date || new Date();
+  return `${currentDate.getFullYear()}. ${pad2(currentDate.getMonth() + 1)}`;
 };
 
 const formatLocalDate = date =>

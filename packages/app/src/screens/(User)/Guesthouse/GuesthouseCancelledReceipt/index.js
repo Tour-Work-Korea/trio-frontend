@@ -18,11 +18,11 @@ import XBtn from '@assets/images/x_gray.svg';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
-const genderMap = {
+const getGenderMap = () => ({
   MIXED: i18n.t('common.mixedDormitory'),
   FEMALE_ONLY: i18n.t('common.womenOnly'),
   MALE_ONLY: i18n.t('common.menOnly'),
-};
+});
 
 const buildRoomDetailText = item => {
   if (!item) return '';
@@ -32,7 +32,7 @@ const buildRoomDetailText = item => {
     : '';
 
   if (isDormitory) {
-    const genderText = genderMap[item.dormitoryGenderType] || '';
+    const genderText = getGenderMap()[item.dormitoryGenderType] || '';
     const base = capacityText
       ? i18n.t('common.valueDormitory', {capacityText: capacityText})
       : i18n.t('common.dormitory');

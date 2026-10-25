@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState, useRef, useEffect} from 'react';
 import {
@@ -32,16 +31,16 @@ import PlusImg from '@assets/images/add_image_gray.svg';
 import XBtn from '@assets/images/x_gray.svg';
 import ReviewPointIcon from '@assets/images/review_point_orange.svg';
 
-const noticeList = [
-  i18n.t('guesthouse.anyoneCanViewYourReviewAlongWithYourNicknameAnd'),
-  i18n.t('guesthouse.honestReviewsAreOfGreatHelpToGuesthouseGuestsHowever'),
-  i18n.t('guesthouse.responsibilityForTheReviewLiesWithTheAuthorAndWalkaway'),
-];
-
 const MIN_REVIEW_LENGTH = 10;
 
 const UserGuesthouseReviewForm = () => {
   const {t} = useTranslation();
+  const noticeList = [
+    t('guesthouse.anyoneCanViewYourReviewAlongWithYourNicknameAnd'),
+    t('guesthouse.honestReviewsAreOfGreatHelpToGuesthouseGuestsHowever'),
+    t('guesthouse.responsibilityForTheReviewLiesWithTheAuthorAndWalkaway'),
+  ];
+
   const route = useRoute();
   const navigation = useNavigation();
 

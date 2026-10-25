@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
@@ -17,27 +16,27 @@ import useAmenityStore from '@stores/amenityStore';
 import XBtn from '@assets/images/x_gray.svg';
 
 const CATEGORY_TITLES = {
-  PUBLIC: i18n.t('common.accommodationCommonFacilities'),
-  PUBLIC_FACILITY: i18n.t('common.accommodationCommonFacilities'),
-  COMMON: i18n.t('common.accommodationCommonFacilities'),
-  COMMON_FACILITY: i18n.t('common.accommodationCommonFacilities'),
-  ROOM: i18n.t('common.inRoomFacilities'),
-  ROOM_FACILITY: i18n.t('common.inRoomFacilities'),
-  PRIVATE: i18n.t('common.inRoomFacilities'),
-  SERVICE: i18n.t('common.otherFacilitiesAndServices'),
-  ETC: i18n.t('common.otherFacilitiesAndServices'),
+  PUBLIC: 'common.accommodationCommonFacilities',
+  PUBLIC_FACILITY: 'common.accommodationCommonFacilities',
+  COMMON: 'common.accommodationCommonFacilities',
+  COMMON_FACILITY: 'common.accommodationCommonFacilities',
+  ROOM: 'common.inRoomFacilities',
+  ROOM_FACILITY: 'common.inRoomFacilities',
+  PRIVATE: 'common.inRoomFacilities',
+  SERVICE: 'common.otherFacilitiesAndServices',
+  ETC: 'common.otherFacilitiesAndServices',
 };
 
-const getCategoryTitle = category => {
-  if (!category) return i18n.t('common.otherFacilitiesAndServices');
+const getCategoryTitle = (category, t) => {
+  if (!category) return t('common.otherFacilitiesAndServices');
 
   return (
-    CATEGORY_TITLES[category] ??
+    (CATEGORY_TITLES[category] ? t(CATEGORY_TITLES[category]) : null) ??
     (category.includes('ROOM')
-      ? i18n.t('common.inRoomFacilities')
+      ? t('common.inRoomFacilities')
       : category.includes('SERVICE')
-      ? i18n.t('common.otherFacilitiesAndServices')
-      : i18n.t('common.accommodationCommonFacilities'))
+      ? t('common.otherFacilitiesAndServices')
+      : t('common.accommodationCommonFacilities'))
   );
 };
 
@@ -86,7 +85,7 @@ const ServiceInfoModal = ({visible, onClose, selectedAmenities = []}) => {
         }));
 
   const groupedAmenities = amenitySource.reduce((acc, amenity) => {
-    const categoryTitle = getCategoryTitle(amenity.category);
+    const categoryTitle = getCategoryTitle(amenity.category, t);
 
     if (!acc[categoryTitle]) {
       acc[categoryTitle] = [];

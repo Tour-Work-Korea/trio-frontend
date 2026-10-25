@@ -1,0 +1,81 @@
+.le-motion-root {
+  display: contents;
+}
+
+@keyframes le-soft-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Only animate on request: reduced-motion users get the static layout. */
+@media (prefers-reduced-motion: no-preference) {
+  .le-page .le-entered {
+    animation: le-soft-enter 520ms cubic-bezier(0.2, 0.65, 0.3, 1) both;
+  }
+  .le-page .le-entered:focus-within {
+    animation: none;
+  }
+  .le-page .le-selected-event,
+  .le-page .le-calendar-empty,
+  .le-page .le-list-card,
+  .le-page .le-faq[open] > p {
+    animation: le-soft-enter 320ms ease-out both;
+  }
+  .le-page
+    :where(
+      .le-primary-link,
+      .le-share,
+      .le-list-card > img,
+      .le-calendar-toolbar button,
+      .le-calendar-table button
+    ) {
+    transition: transform 180ms ease, background-color 180ms ease,
+      box-shadow 180ms ease;
+  }
+  .le-page
+    :where(
+      .le-hero-link > span,
+      .le-primary-link > span,
+      .le-partner-introduction a > span:last-child,
+      .le-list-card strong > span
+    ) {
+    transition: transform 180ms ease;
+  }
+  .le-page :where(.le-hub-nav a, .le-list-filters button) {
+    transition: color 180ms ease, border-color 180ms ease;
+  }
+  .le-page
+    :where(.le-primary-link, .le-share, .le-calendar-toolbar button):active {
+    transform: scale(0.98);
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .le-page :where(.le-primary-link, .le-share):hover {
+    box-shadow: 0 3px 12px #20211f14;
+  }
+  .le-page .le-calendar-toolbar button:hover,
+  .le-page .le-calendar-table button:hover {
+    background-color: var(--le-panel);
+  }
+  .le-page .le-hub-nav a:hover,
+  .le-page .le-list-filters button:hover {
+    color: #847026;
+  }
+  @media (prefers-reduced-motion: no-preference) {
+    .le-page .le-list-card:hover > img {
+      transform: translateY(-3px);
+    }
+    .le-page :where(.le-hero-link, .le-primary-link):hover > span,
+    .le-page .le-partner-introduction a:hover > span:last-child,
+    .le-page .le-list-card:hover strong > span {
+      transform: translate(2px, -2px);
+    }
+  }
+}

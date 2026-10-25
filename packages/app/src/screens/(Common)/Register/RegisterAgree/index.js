@@ -188,7 +188,9 @@ const RegisterAgree = ({route}) => {
                           {t('common.required')}
                         </Text>
                       ) : null}
-                      <Text style={styles.textAgreeTitle}>{item.title}</Text>
+                      <Text style={styles.textAgreeTitle}>
+                        {t(item.titleKey)}
+                      </Text>
                     </View>
                     <TouchableOpacity
                       onPress={() => handleAgreeDetail(item.id)}>

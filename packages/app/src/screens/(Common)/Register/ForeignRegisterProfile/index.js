@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useMemo, useState} from 'react';
 import {
@@ -27,23 +26,22 @@ import CalendarGray from '@assets/images/calendar_gray.svg';
 import PersonGray from '@assets/images/person20_gray.svg';
 import styles from './ForeignRegisterProfile.styles';
 
-const LANGUAGE_OPTIONS = [
-  ['KO', i18n.t('language.korean')],
-  ['EN', i18n.t('language.english')],
-  ['JA', i18n.t('auth.japanese')],
-  ['ZH', i18n.t('auth.chinese')],
-];
-
-const AGREEMENT_LABELS = {
-  TERMS_OF_SERVICE: i18n.t('auth.iAgreeToTheTermsOfService'),
-  AGE_OVER_14_CONFIRMATION: i18n.t('auth.iConfirmThatIAmAtLeast14YearsOld'),
-  PRIVACY_POLICY: i18n.t('auth.iAgreeToThePrivacyPolicy'),
-  LOCATION_BASED_SERVICE: i18n.t('auth.iAgreeToTheLocationBasedServiceTerms'),
-  MARKETING_NOTIFICATION: i18n.t('auth.iAgreeToReceiveMarketingNotifications'),
-};
-
 const ForeignRegisterProfile = ({route}) => {
   const {t} = useTranslation();
+  const LANGUAGE_OPTIONS = [
+    ['KO', t('language.korean')],
+    ['EN', t('language.english')],
+    ['JA', t('auth.japanese')],
+    ['ZH', t('auth.chinese')],
+  ];
+  const AGREEMENT_LABELS = {
+    TERMS_OF_SERVICE: t('auth.iAgreeToTheTermsOfService'),
+    AGE_OVER_14_CONFIRMATION: t('auth.iConfirmThatIAmAtLeast14YearsOld'),
+    PRIVACY_POLICY: t('auth.iAgreeToThePrivacyPolicy'),
+    LOCATION_BASED_SERVICE: t('auth.iAgreeToTheLocationBasedServiceTerms'),
+    MARKETING_NOTIFICATION: t('auth.iAgreeToReceiveMarketingNotifications'),
+  };
+
   const navigation = useNavigation();
   const {
     provider = 'GOOGLE',
@@ -397,7 +395,7 @@ const ForeignRegisterProfile = ({route}) => {
                 style={styles.agreementLabel}
                 onPress={() => toggleAgreement(item.id)}>
                 <Text style={styles.agreementText}>
-                  {AGREEMENT_LABELS[item.id] || item.title}
+                  {AGREEMENT_LABELS[item.id] || t(item.titleKey)}
                   {item.isRequired ? ' *' : ''}
                 </Text>
               </TouchableOpacity>
@@ -423,7 +421,7 @@ const ForeignRegisterProfile = ({route}) => {
       <AlertModal
         visible={!!errorMessage}
         title={errorMessage}
-        buttonText="OK"
+        buttonText={t('common.confirm')}
         onPress={() => setErrorMessage('')}
       />
     </View>

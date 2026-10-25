@@ -15,10 +15,10 @@ import NotificationList from './NotificationList';
 import styles from './NotificationCenter.styles';
 
 const FILTER_CHIPS = [
-  {key: 'all', label: i18n.t('common.all')},
-  {key: 'roomReservation', label: i18n.t('common.accommodation_fe9320')},
-  {key: 'partyReservation', label: i18n.t('common.activity')},
-  {key: 'community', label: i18n.t('common.community')},
+  {key: 'all', labelKey: 'common.all'},
+  {key: 'roomReservation', labelKey: 'common.accommodation_fe9320'},
+  {key: 'partyReservation', labelKey: 'common.activity'},
+  {key: 'community', labelKey: 'common.community'},
 ];
 
 const extractItems = data =>
@@ -252,7 +252,7 @@ const NotificationCenter = () => {
                   styles.chipText,
                   isSelected && styles.chipTextActive,
                 ]}>
-                {chip.label}
+                {t(chip.labelKey)}
               </Text>
             </TouchableOpacity>
           );

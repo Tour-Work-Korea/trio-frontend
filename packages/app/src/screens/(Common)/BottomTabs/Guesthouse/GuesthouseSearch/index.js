@@ -176,8 +176,8 @@ const GuesthouseSearch = () => {
 
     const today = dayjs();
     const tomorrow = today.add(1, 'day');
-    const formattedToday = today.format('M.D dd');
-    const formattedTomorrow = tomorrow.format('M.D dd');
+    const formattedToday = today.format('M.D ddd');
+    const formattedTomorrow = tomorrow.format('M.D ddd');
     setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
   }, [routeDisplayDate]);
 
@@ -623,8 +623,8 @@ const GuesthouseSearch = () => {
             setAdultCount(adults);
             setChildCount(children);
 
-            const formattedCheckIn = dayjs(checkIn).format('M.D dd');
-            const formattedCheckOut = dayjs(checkOut).format('M.D dd');
+            const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+            const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
             setDisplayDate(`${formattedCheckIn} - ${formattedCheckOut}`);
 
             setDateGuestModalVisible(false);

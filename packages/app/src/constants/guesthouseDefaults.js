@@ -7,7 +7,7 @@ export const getDefaultGuesthouseListParams = () => {
   const tomorrow = today.add(1, 'day');
 
   return {
-    displayDate: `${today.format('M.D dd')} - ${tomorrow.format('M.D dd')}`,
+    displayDate: `${today.format('M.D ddd')} - ${tomorrow.format('M.D ddd')}`,
     adultCount: 1,
     childCount: 0,
     regionBounds: GUESTHOUSE_MAP_BOUNDS.ALL,

@@ -7,7 +7,10 @@ const formatDaysBeforeCheckin = days => {
   const numericDays = Number(days);
   return numericDays === 0
     ? i18n.t('common.onTheDayOfCheckIn')
-    : i18n.t('common.checkInValueDaysAgo', {numericDays: numericDays});
+    : i18n.t('common.checkInValueDaysAgo', {
+        numericDays: numericDays,
+        count: numericDays,
+      });
 };
 
 export const normalizeRefundPolicies = refundPolicies => {

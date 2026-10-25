@@ -154,10 +154,7 @@ const LoginIntro = () => {
       <View style={styles.view}>
         <TouchableOpacity
           accessibilityLabel={t('language.title')}
-          style={[
-            styles.languageButton,
-            language === 'en' && styles.englishLanguageButton,
-          ]}
+          style={styles.languageButton}
           onPress={() => navigation.navigate('Language')}>
           <Text style={styles.languageButtonText}>
             {language === 'ko' ? '한국어' : 'English'}

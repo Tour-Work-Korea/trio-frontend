@@ -52,7 +52,7 @@ const GuesthouseCancelConfirm = () => {
     t('common.priceDifference'),
     t('common.etc'),
   ];
-  const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
+  const nowText = dayjs().format('YYYY. MM. DD (ddd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);

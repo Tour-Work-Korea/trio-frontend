@@ -78,7 +78,7 @@ const RoomDetail = ({route}) => {
   };
   const formatDateWithDay = dateStr => {
     const date = dayjs(dateStr);
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
 
   // 이미지 처리
@@ -306,8 +306,7 @@ const RoomDetail = ({route}) => {
               {t('guesthouse.selectedNumberOfPeople')}
             </Text>
             <Text style={[FONTS.fs_16_semibold]}>
-              {guestCount}
-              {t('common.peopleUnit')}
+              {t('units.guest', {count: guestCount})}
             </Text>
           </View>
         </View>

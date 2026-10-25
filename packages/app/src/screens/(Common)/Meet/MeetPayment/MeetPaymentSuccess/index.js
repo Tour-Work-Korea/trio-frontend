@@ -34,7 +34,7 @@ const MeetPaymentSuccess = () => {
     if (!dateStr) return '-';
     const date = dayjs(dateStr);
     if (!date.isValid()) return '-';
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
 
   const eventDateText = formatDateWithDay(partyStartDateTime || partyStartTime);

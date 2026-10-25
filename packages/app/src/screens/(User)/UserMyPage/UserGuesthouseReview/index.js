@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {View, Text, TouchableOpacity} from 'react-native';
@@ -13,13 +12,13 @@ import UserPartyReviewWrite from './UserPartyReviewWrite';
 import UserPartyReviewList from './UserPartyReviewList';
 
 const REVIEW_TYPES = [
-  {key: 'guesthouse', label: i18n.t('common.guesthouse')},
-  {key: 'party', label: i18n.t('common.activity')},
+  {key: 'guesthouse', labelKey: 'common.guesthouse'},
+  {key: 'party', labelKey: 'common.activity'},
 ];
 
 const TABS = [
-  {key: 'write', label: i18n.t('guesthouse.writeAReview_324296')},
-  {key: 'written', label: i18n.t('guesthouse.writtenReview')},
+  {key: 'write', labelKey: 'guesthouse.writeAReview_324296'},
+  {key: 'written', labelKey: 'guesthouse.writtenReview'},
 ];
 
 const UserGuesthouseReview = () => {
@@ -63,7 +62,7 @@ const UserGuesthouseReview = () => {
                 styles.reviewTypeText,
                 reviewType === type.key && styles.activeReviewTypeText,
               ]}>
-              {type.label}
+              {t(type.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -83,7 +82,7 @@ const UserGuesthouseReview = () => {
                 activeTab === tab.key && styles.activeTabText,
                 activeTab === tab.key && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
