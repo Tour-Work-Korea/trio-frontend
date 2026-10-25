@@ -27,6 +27,12 @@ import {COLORS} from '@constants/colors';
 
 const PAGE_SIZE = 10;
 
+const SORT_LABEL_KEYS = {
+  RECOMMEND: 'common.recommended',
+  LATEST: 'employ.newest',
+  LIKE_COUNT: 'employ.likes',
+};
+
 const EmploySearchResult = ({route}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
@@ -242,7 +248,12 @@ const EmploySearchResult = ({route}) => {
             style={styles.sortContainer}
             onPress={() => setSortModalVisible(true)}>
             <SortIcon width={20} height={20} />
-            <Text style={styles.sortText}>{selectedSort.label}</Text>
+            <Text style={styles.sortText}>
+              {t(
+                SORT_LABEL_KEYS[selectedSort.value] ??
+                  SORT_LABEL_KEYS.RECOMMEND,
+              )}
+            </Text>
           </TouchableOpacity>
         </View>
 

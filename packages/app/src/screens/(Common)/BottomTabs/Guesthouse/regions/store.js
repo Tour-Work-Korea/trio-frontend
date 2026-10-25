@@ -1,9 +1,18 @@
+import i18n from '@trio/app/src/i18n';
 import {create} from 'zustand';
 import {regionGuesthouseApi} from './api';
 
 export const useGuesthouseRegionStore = create((set, get) => ({
   region: 'ALL',
-  regions: [{code: 'ALL', displayName: '전체', mapBounds: null}],
+  regions: [
+    {
+      code: 'ALL',
+      get displayName() {
+        return i18n.t('common.all');
+      },
+      mapBounds: null,
+    },
+  ],
   loaded: false,
   loading: false,
   setRegion: region => set({region}),

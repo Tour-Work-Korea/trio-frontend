@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Platform, View, ActivityIndicator} from 'react-native';
@@ -25,12 +24,6 @@ import {
 
 const KAKAO_WEB_CALLBACK_PATH = '/auth/kakao/callback';
 const KAKAO_WEB_STATE_KEY = 'trio-kakao-oauth-state';
-
-const PROVIDER_LABELS = {
-  KAKAO: i18n.t('common.cacao'),
-  NAVER: i18n.t('common.naver'),
-  GOOGLE: i18n.t('common.google'),
-};
 
 const generateState = provider =>
   `${provider.toLowerCase()}-${Date.now()}-${Math.random()
@@ -100,6 +93,12 @@ const parseUrlParams = url => {
 
 const SocialLogin = () => {
   const {t} = useTranslation();
+  const PROVIDER_LABELS = {
+    KAKAO: t('common.cacao'),
+    NAVER: t('common.naver'),
+    GOOGLE: t('common.google'),
+  };
+
   const navigation = useNavigation();
   const route = useRoute();
   const webviewRef = useRef(null);

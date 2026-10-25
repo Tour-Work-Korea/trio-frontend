@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
@@ -27,33 +26,33 @@ import {useMeetRegionStore} from '@screens/(Common)/BottomTabs/Meet/regions/stor
 const {height} = Dimensions.get('window');
 
 const CATEGORY_OPTIONS = [
-  {id: null, label: i18n.t('common.all')},
-  {id: 'POTLUCK', label: i18n.t('common.potluck')},
-  {id: 'DINNER_PARTY', label: i18n.t('common.dinnerParty')},
-  {id: 'BOOK', label: i18n.t('common.reading')},
-  {id: 'WALK', label: i18n.t('common.walk')},
+  {id: null, labelKey: 'common.all'},
+  {id: 'POTLUCK', labelKey: 'common.potluck'},
+  {id: 'DINNER_PARTY', labelKey: 'common.dinnerParty'},
+  {id: 'BOOK', labelKey: 'common.reading'},
+  {id: 'WALK', labelKey: 'common.walk'},
 ];
 
 const GUEST_OPTIONS = [
-  {id: null, label: i18n.t('meet.anyoneCanParticipate')},
-  {id: true, label: i18n.t('common.forHotelGuestsOnly')},
+  {id: null, labelKey: 'meet.anyoneCanParticipate'},
+  {id: true, labelKey: 'common.forHotelGuestsOnly'},
 ];
 
 const CAPACITY_OPTIONS = [
-  {id: null, label: i18n.t('common.all')},
-  {id: 'FROM_3_TO_10', label: i18n.t('meet.310People')},
-  {id: 'FROM_11_TO_20', label: i18n.t('meet.1120People')},
-  {id: 'FROM_21_TO_30', label: i18n.t('meet.2130People')},
-  {id: 'FROM_31_TO_60', label: i18n.t('meet.3160People')},
+  {id: null, labelKey: 'common.all'},
+  {id: 'FROM_3_TO_10', labelKey: 'meet.310People'},
+  {id: 'FROM_11_TO_20', labelKey: 'meet.1120People'},
+  {id: 'FROM_21_TO_30', labelKey: 'meet.2130People'},
+  {id: 'FROM_31_TO_60', labelKey: 'meet.3160People'},
 ];
 
 const PRICE_OPTIONS = [
-  {id: 'all', label: i18n.t('common.all')},
-  {id: 'FREE', label: i18n.t('common.free')},
-  {id: 'UNDER_10000', label: i18n.t('meet.lessThan10000Won')},
-  {id: 'UNDER_30000', label: i18n.t('meet.lessThan30000Won')},
-  {id: 'UNDER_50000', label: i18n.t('meet.lessThan50000Won')},
-  {id: 'custom', label: i18n.t('meet.enterDirectly')},
+  {id: 'all', labelKey: 'common.all'},
+  {id: 'FREE', labelKey: 'common.free'},
+  {id: 'UNDER_10000', labelKey: 'meet.lessThan10000Won'},
+  {id: 'UNDER_30000', labelKey: 'meet.lessThan30000Won'},
+  {id: 'UNDER_50000', labelKey: 'meet.lessThan50000Won'},
+  {id: 'custom', labelKey: 'meet.enterDirectly'},
 ];
 
 const DEFAULT_FILTERS = {
@@ -237,7 +236,7 @@ const MeetFilterModal = ({
             styles.priceChipText,
             selected && styles.priceChipTextSelected,
           ]}>
-          {option.label}
+          {t(option.labelKey)}
         </Text>
       </TouchableOpacity>
     );
@@ -290,8 +289,8 @@ const MeetFilterModal = ({
               <View style={styles.radioGrid}>
                 {CATEGORY_OPTIONS.map(option =>
                   renderRadioOption({
-                    key: option.label,
-                    label: option.label,
+                    key: option.id ?? 'all',
+                    label: t(option.labelKey),
                     selected: filters.contentType === option.id,
                     onPress: () => setFilter({contentType: option.id}),
                   }),
@@ -312,7 +311,7 @@ const MeetFilterModal = ({
                   return (
                     <TouchableOpacity
                       activeOpacity={1}
-                      key={option.label}
+                      key={String(option.id)}
                       style={styles.segment}
                       onPress={() => setFilter({isGuest: option.id})}>
                       <Text
@@ -321,7 +320,7 @@ const MeetFilterModal = ({
                           styles.segmentText,
                           selected && styles.segmentTextSelected,
                         ]}>
-                        {option.label}
+                        {t(option.labelKey)}
                       </Text>
                     </TouchableOpacity>
                   );
@@ -338,8 +337,8 @@ const MeetFilterModal = ({
               <View style={styles.radioGrid}>
                 {CAPACITY_OPTIONS.map(option =>
                   renderRadioOption({
-                    key: option.label,
-                    label: option.label,
+                    key: option.id ?? 'all',
+                    label: t(option.labelKey),
                     selected: filters.attendeeRange === option.id,
                     onPress: () =>
                       setFilter({

@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
@@ -25,31 +24,32 @@ import CheckIcon from '@assets/images/check20_orange.svg';
 const {height, width} = Dimensions.get('window');
 const MIN_PRICE = 10000;
 const MAX_PRICE = 1000000;
+// Keep filter values stable; translate only their display labels.
 const CONTENT_OPTIONS = [
-  i18n.t('common.potluck'),
-  i18n.t('common.reading'),
-  i18n.t('common.dinnerParty'),
-  i18n.t('common.program'),
-  i18n.t('common.rest'),
+  {value: '포틀럭', labelKey: 'common.potluck'},
+  {value: '독서', labelKey: 'common.reading'},
+  {value: '디너파티', labelKey: 'common.dinnerParty'},
+  {value: '프로그램', labelKey: 'common.program'},
+  {value: '쉼', labelKey: 'common.rest'},
 ];
 
 const ROOM_TYPE_OPTIONS = [
-  i18n.t('common.standardRoom'),
-  i18n.t('guesthouse.dormitory'),
+  {value: '일반 객실', labelKey: 'common.standardRoom'},
+  {value: '도미토리', labelKey: 'guesthouse.dormitory'},
 ];
 const SORT_OPTIONS = [
-  {label: i18n.t('common.recommended'), value: 'RECOMMEND'},
-  {label: i18n.t('guesthouse.lowestPrice'), value: 'LOW_PRICE'},
-  {label: i18n.t('guesthouse.highestPrice'), value: 'HIGH_PRICE'},
-  {label: i18n.t('guesthouse.favoriteList'), value: 'LIKE_COUNT'},
+  {labelKey: 'common.recommended', value: 'RECOMMEND'},
+  {labelKey: 'guesthouse.lowestPrice', value: 'LOW_PRICE'},
+  {labelKey: 'guesthouse.highestPrice', value: 'HIGH_PRICE'},
+  {labelKey: 'guesthouse.favoriteList', value: 'LIKE_COUNT'},
 ];
 
 const TAB_LIST = [
-  {key: 'sort', label: i18n.t('common.sort')},
-  {key: 'region', label: i18n.t('common.region')},
-  {key: 'content', label: i18n.t('common.activity')},
-  {key: 'price', label: i18n.t('common.priceRange')},
-  {key: 'room', label: i18n.t('guesthouse.roomType')},
+  {key: 'sort', labelKey: 'common.sort'},
+  {key: 'region', labelKey: 'common.region'},
+  {key: 'content', labelKey: 'common.activity'},
+  {key: 'price', labelKey: 'common.priceRange'},
+  {key: 'room', labelKey: 'guesthouse.roomType'},
 ];
 
 const GuesthouseFilterModal = ({
@@ -270,7 +270,7 @@ const GuesthouseFilterModal = ({
                   selected && styles.sortTextSelected,
                   selected && FONTS.fs_14_semibold,
                 ]}>
-                {option.label}
+                {t(option.labelKey)}
               </Text>
               {selected && <CheckIcon width={20} height={20} />}
             </TouchableOpacity>
@@ -295,9 +295,9 @@ const GuesthouseFilterModal = ({
         contentContainerStyle={styles.contentChipRow}>
         {CONTENT_OPTIONS.map(option =>
           renderChip({
-            label: option,
-            selected: selectedTags.includes(option),
-            onPress: () => toggleValue(option, setSelectedTags),
+            label: t(option.labelKey),
+            selected: selectedTags.includes(option.value),
+            onPress: () => toggleValue(option.value, setSelectedTags),
           }),
         )}
       </ScrollView>
@@ -368,10 +368,12 @@ const GuesthouseFilterModal = ({
       <View style={styles.chipRow}>
         {ROOM_TYPE_OPTIONS.map(option =>
           renderChip({
-            label: option,
-            selected: selectedRoomType === option,
+            label: t(option.labelKey),
+            selected: selectedRoomType === option.value,
             onPress: () =>
-              setSelectedRoomType(prev => (prev === option ? null : option)),
+              setSelectedRoomType(prev =>
+                prev === option.value ? null : option.value,
+              ),
           }),
         )}
       </View>
@@ -412,7 +414,7 @@ const GuesthouseFilterModal = ({
                       selected && styles.tabTextActive,
                       selected && FONTS.fs_16_semibold,
                     ]}>
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );

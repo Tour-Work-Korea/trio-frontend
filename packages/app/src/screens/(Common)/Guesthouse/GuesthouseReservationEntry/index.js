@@ -28,7 +28,6 @@ import MinusIcon from '@assets/images/minus_gray.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
 
-
 const formatCurrency = value =>
   i18n.t('common.valueWon', {value1: Number(value || 0).toLocaleString()});
 const toDateKey = value => dayjs(value).format('YYYY-MM-DD');
@@ -60,7 +59,8 @@ const getNightCount = (checkIn, checkOut) => {
 };
 
 const GuesthouseReservationEntry = ({route}) => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const isEnglish = (i18n.resolvedLanguage || i18n.language || '').startsWith('en');
   const navigation = useNavigation();
   const today = dayjs().startOf('day');
   const maxReservationDate = today.add(3, 'month');
@@ -102,6 +102,32 @@ const GuesthouseReservationEntry = ({route}) => {
     dayjs(checkIn).format('YYYY-MM'),
   );
   const [availabilityDays, setAvailabilityDays] = useState([]);
+  const [priceColorSeed] = useState(() => Math.random() * 360);
+  const monthlyPriceColors = useMemo(() => {
+    const prices = [...new Set(
+      availabilityDays
+        .filter(day =>
+          day?.date?.startsWith(`${currentMonth}-`) &&
+          day.available === true && day.status !== 'CLOSED',
+        )
+        .map(getNightlyPrice)
+        .filter(price => price != null),
+    )].sort((a, b) => a - b);
+
+    if (prices.length <= 1) {
+      return [];
+    }
+
+    return prices.map((price, index) => {
+      const preset = CALENDAR_PRICE_BANDS[index];
+      const hue = (priceColorSeed + index * 137.508) % 360;
+      return {
+        price,
+        backgroundColor: preset?.backgroundColor || `hsl(${hue}, 70%, 94%)`,
+        color: preset?.color || `hsl(${hue}, 65%, 30%)`,
+      };
+    });
+  }, [availabilityDays, currentMonth, priceColorSeed]);
   const [roomInfo, setRoomInfo] = useState({
     ...params,
     extraPersonPrice:
@@ -356,9 +382,10 @@ const GuesthouseReservationEntry = ({route}) => {
     const isAvailable =
       isCurrentMonth && dayAvailability && dayAvailability.available === true;
     const nightlyPrice = getNightlyPrice(dayAvailability);
-    const priceBand = isAvailable && nightlyPrice != null
-      ? CALENDAR_PRICE_BANDS.find(band => nightlyPrice >= band.min && nightlyPrice < band.max)
-      : null;
+    const priceBand =
+      isAvailable && nightlyPrice != null
+        ? monthlyPriceColors.find(band => nightlyPrice === band.price)
+        : null;
     const isSelectedStart = dateString === selectedCheckIn;
     const isSelectedEnd = dateString === selectedCheckOut;
     const isSelectedEdge = isSelectedStart || isSelectedEnd;
@@ -388,9 +415,10 @@ const GuesthouseReservationEntry = ({route}) => {
         style={[
           styles.dayCell,
           isAvailable && styles.dayCellAvailable,
-          isAvailable && nightlyPrice != null && {
-            backgroundColor: priceBand?.backgroundColor || COLORS.grayscale_0,
-          },
+          isAvailable &&
+            nightlyPrice != null && {
+              backgroundColor: priceBand?.backgroundColor || COLORS.grayscale_0,
+            },
           isPastDate && styles.dayCellUnavailable,
           isUnavailable && styles.dayCellUnavailable,
           isAfterReservationLimit && styles.dayCellUnavailable,
@@ -417,18 +445,30 @@ const GuesthouseReservationEntry = ({route}) => {
               styles.daySubLabel,
               isSelectedEdge && styles.daySubLabelSelected,
             ]}>
-            {isSelectedStart ? calendarText.checkIn : isSelectedEnd ? calendarText.checkOut : calendarText.today}
+            {isSelectedStart
+              ? calendarText.checkIn
+              : isSelectedEnd
+              ? calendarText.checkOut
+              : calendarText.today}
           </Text>
         )}
-        {isAvailable && !isDisabled && !isSelectedEdge && !isSelectedRange && nightlyPrice != null && (
-          <Text
-            numberOfLines={1}
-            adjustsFontSizeToFit
-            minimumFontScale={0.7}
-            style={[FONTS.fs_12_medium, styles.dayPrice, {color: priceBand?.color || COLORS.grayscale_900}]}>
-            {formatCalendarPrice(nightlyPrice, calendarLocale, true)}
-          </Text>
-        )}
+        {isAvailable &&
+          !isDisabled &&
+          !isSelectedEdge &&
+          !isSelectedRange &&
+          nightlyPrice != null && (
+            <Text
+              numberOfLines={1}
+              adjustsFontSizeToFit
+              minimumFontScale={0.7}
+              style={[
+                FONTS.fs_12_medium,
+                styles.dayPrice,
+                {color: priceBand?.color || COLORS.grayscale_900},
+              ]}>
+              {formatCalendarPrice(nightlyPrice, calendarLocale, true)}
+            </Text>
+          )}
       </TouchableOpacity>
     );
   };
@@ -516,6 +556,7 @@ const GuesthouseReservationEntry = ({route}) => {
 
         <View style={styles.calendarCard}>
           <Calendar
+            key={i18n.resolvedLanguage || i18n.language}
             {...CALENDAR_COMMON_PROPS}
             current={calendarCurrentDate}
             minDate={minReservationDateKey}
@@ -562,21 +603,29 @@ const GuesthouseReservationEntry = ({route}) => {
           <View style={styles.legendRow}>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendSelected]} />
-              <Text style={[FONTS.fs_12_medium, styles.legendText]}>{calendarText.selected}</Text>
+              <Text style={[FONTS.fs_12_medium, styles.legendText]}>
+                {calendarText.selected}
+              </Text>
             </View>
             <View style={styles.legendItem}>
               <View style={[styles.legendDot, styles.legendDisabled]} />
-              <Text style={[FONTS.fs_12_medium, styles.legendText]}>{calendarText.unavailable}</Text>
+              <Text style={[FONTS.fs_12_medium, styles.legendText]}>
+                {calendarText.unavailable}
+              </Text>
             </View>
-            {CALENDAR_PRICE_BANDS.map(band => (
+            {monthlyPriceColors.map(band => (
               <View key={band.price} style={styles.legendItem}>
-                <View style={[styles.legendDot, {backgroundColor: band.backgroundColor}]} />
+                <View
+                  style={[
+                    styles.legendDot,
+                    {backgroundColor: band.backgroundColor},
+                  ]}
+                />
                 <Text style={[FONTS.fs_12_medium, styles.legendText]}>
                   {formatCalendarPrice(band.price, calendarLocale)}
                 </Text>
               </View>
             ))}
-
           </View>
         </View>
 
@@ -654,12 +703,10 @@ const GuesthouseReservationEntry = ({route}) => {
                   </Text>
                 </View>
                 <Text style={[FONTS.fs_14_regular, styles.optionDescription]}>
-                  {t('guesthouse.pleaseSelectTheNumberOfGuestsMaximum')}
-                  {maxCapacity}
-                  {t('common.phosphorus')}
+                  {t('reservationCalendar.guestLimit', {count: maxCapacity})}
                 </Text>
 
-                <View style={styles.optionPriceRow}>
+                <View style={[styles.optionPriceRow, isEnglish && {flexDirection: 'column', gap: 16}]}>
                   <View>
                     <Text style={[FONTS.fs_16_semibold, styles.extraPriceText]}>
                       {formatCurrency(extraGuestUnitPrice)}
@@ -667,12 +714,12 @@ const GuesthouseReservationEntry = ({route}) => {
                     <Text
                       style={[FONTS.fs_14_regular, styles.extraPriceSubText]}>
                       {t(
-                        'guesthouse.perPersonIfTheStandardNumberOfPeopleIsExceeded',
+                        'reservationCalendar.extraGuestFee',
                       )}
                     </Text>
                   </View>
 
-                  <View style={styles.optionStepperColumn}>
+                  <View style={[styles.optionStepperColumn, isEnglish && {alignSelf: 'flex-end', maxWidth: '100%'}]}>
                     <View style={styles.guestStepper}>
                       <TouchableOpacity
                         activeOpacity={0.8}
@@ -692,10 +739,8 @@ const GuesthouseReservationEntry = ({route}) => {
                         <PlusIcon width={20} height={20} />
                       </TouchableOpacity>
                     </View>
-                    <Text style={[FONTS.fs_14_medium, styles.totalGuestText]}>
-                      {t('common.additionalPeople')}
-                      {extraGuestCount}
-                      {t('common.peopleUnit')}
+                    <Text style={[FONTS.fs_14_medium, styles.totalGuestText, isEnglish && {flexShrink: 1, textAlign: 'right'}]}>
+                      {t('reservationCalendar.additionalGuests', {count: extraGuestCount})}
                     </Text>
                   </View>
                 </View>
@@ -715,7 +760,7 @@ const GuesthouseReservationEntry = ({route}) => {
 
       <View style={styles.fixedButton}>
         <ButtonScarlet
-          title={t('guesthouse.nextSteps')}
+          title={t('reservationCalendar.continue')}
           onPress={goNext}
           disabled={!selectedCheckIn || !selectedCheckOut}
         />

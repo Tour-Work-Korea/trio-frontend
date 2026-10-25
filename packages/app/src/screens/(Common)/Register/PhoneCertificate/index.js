@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
@@ -27,22 +26,6 @@ import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 
 import styles from '../../Login/Login.styles';
 
-const PROVIDER_LABELS = {
-  KAKAO: i18n.t('common.cacao'),
-  NAVER: i18n.t('common.naver'),
-  GOOGLE: i18n.t('common.google'),
-};
-
-const SOCIAL_SMS_STATUS_MESSAGES = {
-  EXISTING_USER_LINK_REQUIRED: i18n.t(
-    'auth.verifyYourMobilePhoneToLinkYourSocialAccountTo',
-  ),
-
-  NEW_USER_SIGNUP_REQUIRED: i18n.t(
-    'auth.mobilePhoneVerificationIsRequiredToRegisterAsANew',
-  ),
-};
-
 /**
  * NICE 기반 USER 본인인증/가입 보조 경로는 백엔드에서 제거되어 비활성화함.
  *
@@ -59,6 +42,21 @@ const SOCIAL_SMS_STATUS_MESSAGES = {
  */
 const PhoneCertificate = ({route}) => {
   const {t} = useTranslation();
+  const PROVIDER_LABELS = {
+    KAKAO: t('common.cacao'),
+    NAVER: t('common.naver'),
+    GOOGLE: t('common.google'),
+  };
+  const SOCIAL_SMS_STATUS_MESSAGES = {
+    EXISTING_USER_LINK_REQUIRED: t(
+      'auth.verifyYourMobilePhoneToLinkYourSocialAccountTo',
+    ),
+
+    NEW_USER_SIGNUP_REQUIRED: t(
+      'auth.mobilePhoneVerificationIsRequiredToRegisterAsANew',
+    ),
+  };
+
   const {
     user = 'USER',
     agreements = [],

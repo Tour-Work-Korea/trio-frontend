@@ -26,6 +26,7 @@ import notificationApi from '@utils/api/notificationApi';
 import userEmployApi from '@utils/api/userEmployApi';
 import userMeetApi from '@utils/api/userMeetApi';
 import {isUserNotification} from '@utils/notifications';
+import {formatNumber} from '@utils/localeFormat';
 
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
@@ -74,7 +75,7 @@ const UserMyPage = () => {
   const formattedPointBalance = Number(pointBalance || 0).toLocaleString(
     'ko-KR',
   );
-  const reviewRewardPoint = (reviewableCount * 1000).toLocaleString('ko-KR');
+  const reviewRewardPoint = formatNumber(reviewableCount * 1000);
 
   const goToEditProfile = () => {
     navigation.navigate('UserEditProfile', {
@@ -331,14 +332,8 @@ const UserMyPage = () => {
                   <View style={styles.reviewBubbleContent}>
                     <Text
                       style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
-                      numberOfLines={1}>
-                      {t('myPage.ifYouWriteAReview')}
-                    </Text>
-                    <Text
-                      style={[FONTS.fs_14_semibold, styles.reviewBubbleText]}
-                      numberOfLines={1}>
-                      {reviewRewardPoint}
-                      {t('myPage.pCanBeEarned')}
+                      numberOfLines={2}>
+                      {t('myPage.reviewReward', {points: reviewRewardPoint})}
                     </Text>
                   </View>
                   <TouchableOpacity

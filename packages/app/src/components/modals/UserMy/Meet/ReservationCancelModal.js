@@ -83,7 +83,7 @@ export default function ReservationCancelModal({
     }`,
   );
 
-  const cancelDateTime = dayjs().format('YYYY. MM. DD (dd) HH:mm');
+  const cancelDateTime = dayjs().format('YYYY. MM. DD (ddd) HH:mm');
 
   const reasons = [
     t('common.simpleChangeOfMind'),

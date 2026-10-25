@@ -46,7 +46,7 @@ const MeetCancelConfirm = () => {
     t('common.priceDifference'),
     t('common.etc'),
   ];
-  const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
+  const nowText = dayjs().format('YYYY. MM. DD (ddd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
@@ -144,7 +144,7 @@ const MeetCancelConfirm = () => {
     t('common.valueWon', {value1: Number(n || 0).toLocaleString('ko-KR')});
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const startDateTimeText = viewData.startDateTime
-    ? `${dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')}${
+    ? `${dayjs(viewData.startDateTime).format('YY.MM.DD (ddd) HH:mm')}${
         viewData.endDateTime && viewData.endTime ? ` ~ ${viewData.endTime}` : ''
       }`
     : '-';

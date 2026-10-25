@@ -1,3 +1,5 @@
+import {useTranslation} from 'react-i18next';
+import {formatDate} from '@utils/localeFormat';
 import i18n from '@trio/app/src/i18n';
 import React from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
@@ -110,11 +112,10 @@ export function Calendar({
   style,
   theme = {},
 }) {
+  useTranslation();
   const currentDate = toDate(current);
   const days = getMonthDays({current, firstDay, hideExtraDays});
-  const title = `${currentDate.getFullYear()}년 ${
-    currentDate.getMonth() + 1
-  }월`;
+  const title = formatDate(currentDate, {year: 'numeric', month: 'long'});
 
   const pressDay = day => {
     onDayPress?.(day);

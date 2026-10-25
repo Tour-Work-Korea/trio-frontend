@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
@@ -11,8 +10,8 @@ import MyCouponOwnList from './MyCouponOwnList';
 import MyCouponReceive from './MyCouponReceive';
 
 const TABS = [
-  {key: 'owned', label: i18n.t('common.holding')},
-  {key: 'receive', label: i18n.t('common.getCoupon')},
+  {key: 'owned', labelKey: 'common.holding'},
+  {key: 'receive', labelKey: 'common.getCoupon'},
 ];
 
 const MyCouponList = () => {
@@ -37,7 +36,7 @@ const MyCouponList = () => {
                 activeTab === tab.key && styles.activeTabText,
                 activeTab === tab.key && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}

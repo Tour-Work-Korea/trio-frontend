@@ -182,9 +182,9 @@ const MeetSearchConditionModal = ({
           </Text>
           <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>
             {checkInDate && checkOutDate
-              ? `${dayjs(checkInDate).format('M.D(dd)')} - ${dayjs(
+              ? `${dayjs(checkInDate).format('M.D(ddd)')} - ${dayjs(
                   checkOutDate,
-                ).format('M.D(dd)')}`
+                ).format('M.D(ddd)')}`
               : t('common.pleaseSelectADate')}
           </Text>
         </TouchableOpacity>

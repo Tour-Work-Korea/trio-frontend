@@ -1,5 +1,9 @@
-import i18n from '@trio/app/src/i18n';
-const HIDDEN_ADDRESS_DETAILS = [i18n.t('common.temporaryDetailedAddress')];
+import ko from '../locales/ko.json';
+import en from '../locales/en.json';
+const HIDDEN_ADDRESS_DETAILS = [
+  ko['common.temporaryDetailedAddress'],
+  en['common.temporaryDetailedAddress'],
+];
 
 const removeHiddenAddressDetails = value =>
   HIDDEN_ADDRESS_DETAILS.reduce(

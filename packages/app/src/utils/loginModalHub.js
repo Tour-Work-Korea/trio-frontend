@@ -1,11 +1,10 @@
-import i18n from '@trio/app/src/i18n';
 let listener = null;
 
 const defaultModalState = {
   visible: false,
   title: '',
   message: '',
-  buttonText: i18n.t('common.confirm'),
+  buttonText: null,
   buttonText2: null,
   onPress: null,
   onPress2: null,

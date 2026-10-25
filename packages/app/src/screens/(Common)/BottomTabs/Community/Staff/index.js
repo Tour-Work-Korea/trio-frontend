@@ -181,8 +181,8 @@ const Staff = ({isActive}) => {
   const selectedRegionName = useMemo(
     () =>
       regions.find(item => item.code === region)?.displayName ??
-      (region === 'ALL' ? '전체' : region),
-    [region, regions],
+      (region === 'ALL' ? t('common.all') : region),
+    [region, regions, t],
   );
 
   const handleRetry = useCallback(() => {

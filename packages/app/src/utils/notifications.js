@@ -406,7 +406,7 @@ export const openNotificationTarget = async (notification, navigation) => {
         if (data?.reservationStatus === 'CANCELLED') {
           Toast.show({
             type: 'error',
-            text1: '이미 취소된 신청 건입니다.',
+            text1: i18n.t('notifications.applicationAlreadyCancelled'),
           });
           return;
         }

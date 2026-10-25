@@ -1,59 +1,27 @@
-// @data/agree.ts
 import {AGREEMENT_CONTENT} from './agreeContents';
 
-// 회원가입 시 유저 약관 동의
+const createAgreement = (id, isRequired) => ({
+  id,
+  titleKey: `agreements.${id}.title`,
+  get title() {
+    return AGREEMENT_CONTENT.USER[id].title;
+  },
+  get description() {
+    return AGREEMENT_CONTENT.USER[id].detailHtml;
+  },
+  isRequired,
+  isAgree: false,
+});
+
 export const userRegisterAgrees = [
-  {
-    id: 'TERMS_OF_SERVICE',
-    title: '서비스 이용약관 동의',
-    description: AGREEMENT_CONTENT.USER.TERMS_OF_SERVICE.detailHtml,
-    isRequired: true,
-    isAgree: false,
-  },
-  {
-    id: 'AGE_OVER_14_CONFIRMATION',
-    title: '만 14세 이상 확인',
-    description: AGREEMENT_CONTENT.USER.AGE_OVER_14_CONFIRMATION.detailHtml,
-    isRequired: true,
-    isAgree: false,
-  },
-  {
-    id: 'PRIVACY_POLICY',
-    title: '개인정보 수집 및 이용 동의',
-    description: AGREEMENT_CONTENT.USER.PRIVACY_POLICY.detailHtml,
-    isRequired: true,
-    isAgree: false,
-  },
-  {
-    id: 'LOCATION_BASED_SERVICE',
-    title: '위치기반 서비스 이용약관 동의',
-    description: AGREEMENT_CONTENT.USER.LOCATION_BASED_SERVICE.detailHtml,
-    isRequired: false,
-    isAgree: false,
-  },
-  {
-    id: 'MARKETING_NOTIFICATION',
-    title: '마케팅 알림 수신 동의',
-    description: AGREEMENT_CONTENT.USER.MARKETING_NOTIFICATION.detailHtml,
-    isRequired: false,
-    isAgree: false,
-  },
+  createAgreement('TERMS_OF_SERVICE', true),
+  createAgreement('AGE_OVER_14_CONFIRMATION', true),
+  createAgreement('PRIVACY_POLICY', true),
+  createAgreement('LOCATION_BASED_SERVICE', false),
+  createAgreement('MARKETING_NOTIFICATION', false),
 ];
 
-// 지원하기 시 유저 약관 동의
 export const userApplyAgrees = [
-  {
-    id: 'TERMS_OF_SERVICE',
-    title: '서비스 이용약관 동의',
-    description: AGREEMENT_CONTENT.USER.TERMS_OF_SERVICE.detailHtml,
-    isRequired: true,
-    isAgree: false,
-  },
-  {
-    id: 'AGE_OVER_14_CONFIRMATION',
-    title: '만 14세 이상 확인',
-    description: AGREEMENT_CONTENT.USER.AGE_OVER_14_CONFIRMATION.detailHtml,
-    isRequired: true,
-    isAgree: false,
-  },
+  createAgreement('TERMS_OF_SERVICE', true),
+  createAgreement('AGE_OVER_14_CONFIRMATION', true),
 ];

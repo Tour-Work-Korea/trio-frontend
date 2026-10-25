@@ -1,3 +1,4 @@
+import {formatDate} from '@utils/localeFormat';
 import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {StyleSheet, Text, TouchableOpacity, View} from 'react-native';
@@ -159,10 +160,7 @@ const ApplicantInfoDatePicker = ({
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={styles.monthTitle}>
-          {year}
-          {t('common.year')}
-          {month + 1}
-          {t('common.month')}
+          {formatDate(current, {year: 'numeric', month: 'long'})}
         </Text>
         <TouchableOpacity
           onPress={() => canGoNext && setCurrent(new Date(year, month + 1, 1))}

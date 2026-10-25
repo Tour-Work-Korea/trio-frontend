@@ -15,7 +15,7 @@ import {
   setRecentGuesthouses,
 } from '@utils/recentGuesthouses';
 import {toggleFavorite} from '@utils/toggleFavorite';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {trimJejuPrefix, formatAddressDetail} from '@utils/formatAddress';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import FillHeart from '@assets/images/heart_filled.svg';
@@ -124,7 +124,10 @@ const RecentGuesthouseList = () => {
           style={[FONTS.fs_12_medium, styles.address]}
           numberOfLines={1}
           ellipsizeMode="tail">
-          {[trimJejuPrefix(item.address), item.addressDetail]
+          {[
+            trimJejuPrefix(item.address),
+            formatAddressDetail(item.addressDetail),
+          ]
             .filter(Boolean)
             .join(' ')}
         </Text>

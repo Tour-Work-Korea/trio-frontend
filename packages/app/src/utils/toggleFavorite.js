@@ -77,7 +77,7 @@ export const toggleFavorite = async ({
 
     showErrorModal({
       message: i18n.t('common.loginToUseFavorites'),
-      buttonText: i18n.t('common.login'),
+      buttonText: i18n.t('common.logIn'),
       buttonText2: i18n.t('common.cancel'),
       onPress: () => {
         if (navigationRef.isReady?.()) {

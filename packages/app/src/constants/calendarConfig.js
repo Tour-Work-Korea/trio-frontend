@@ -1,64 +1,69 @@
-import i18n from '@trio/app/src/i18n';
+import i18n, {normalizeLanguage} from '@trio/app/src/i18n';
 import {LocaleConfig} from 'react-native-calendars';
 
 import {COLORS} from './colors';
 
-const createCalendarLocale = () => ({
-  monthNames: [
-    i18n.t('common.january'),
-    i18n.t('common.february'),
-    i18n.t('common.march'),
-    i18n.t('common.april'),
-    i18n.t('common.may'),
-    i18n.t('common.june'),
-    i18n.t('common.july'),
-    i18n.t('common.august'),
-    i18n.t('common.september'),
-    i18n.t('common.october'),
-    i18n.t('common.november'),
-    i18n.t('common.december'),
-  ],
+const createCalendarLocale = language => {
+  const t = i18n.getFixedT(language);
+  return {
+    monthNames: [
+      t('common.january'),
+      t('common.february'),
+      t('common.march'),
+      t('common.april'),
+      t('common.may'),
+      t('common.june'),
+      t('common.july'),
+      t('common.august'),
+      t('common.september'),
+      t('common.october'),
+      t('common.november'),
+      t('common.december'),
+    ],
 
-  monthNamesShort: [
-    i18n.t('common.january'),
-    i18n.t('common.february'),
-    i18n.t('common.march'),
-    i18n.t('common.april'),
-    i18n.t('common.may'),
-    i18n.t('common.june'),
-    i18n.t('common.july'),
-    i18n.t('common.august'),
-    i18n.t('common.september'),
-    i18n.t('common.october'),
-    i18n.t('common.november'),
-    i18n.t('common.december'),
-  ],
+    monthNamesShort: [
+      t('common.january'),
+      t('common.february'),
+      t('common.march'),
+      t('common.april'),
+      t('common.may'),
+      t('common.june'),
+      t('common.july'),
+      t('common.august'),
+      t('common.september'),
+      t('common.october'),
+      t('common.november'),
+      t('common.december'),
+    ],
 
-  dayNames: [
-    i18n.t('common.sunday'),
-    i18n.t('common.monday'),
-    i18n.t('common.tuesday'),
-    i18n.t('common.wednesday'),
-    i18n.t('common.thursday'),
-    i18n.t('common.friday'),
-    i18n.t('common.saturday'),
-  ],
+    dayNames: [
+      t('common.sunday'),
+      t('common.monday'),
+      t('common.tuesday'),
+      t('common.wednesday'),
+      t('common.thursday'),
+      t('common.friday'),
+      t('common.saturday'),
+    ],
 
-  dayNamesShort: [
-    i18n.t('common.work'),
-    i18n.t('common.month'),
-    i18n.t('common.angry'),
-    i18n.t('common.number'),
-    i18n.t('common.neck'),
-    i18n.t('common.gold'),
-    i18n.t('common.sat'),
-  ],
-  today: i18n.t('common.today'),
-});
+    dayNamesShort: [
+      t('common.work'),
+      t('common.month'),
+      t('common.angry'),
+      t('common.number'),
+      t('common.neck'),
+      t('common.gold'),
+      t('common.sat'),
+    ],
+    today: t('common.today'),
+    formatAccessibilityLabel:
+      language === 'ko' ? 'yyyy년 M월 d일 dddd' : 'dddd, MMMM d, yyyy',
+  };
+};
 
 const applyCalendarLocale = language => {
-  const locale = language === 'en' ? 'en' : 'ko';
-  LocaleConfig.locales[locale] = createCalendarLocale();
+  const locale = normalizeLanguage(language);
+  LocaleConfig.locales[locale] = createCalendarLocale(locale);
   LocaleConfig.defaultLocale = locale;
 };
 

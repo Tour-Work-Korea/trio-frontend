@@ -68,7 +68,7 @@ export default function EmployFilterModal({
   // 큰 지역
   const renderRegionItem = region => (
     <TouchableOpacity
-      key={region.name}
+      key={t(region.labelKey)}
       style={[
         styles.regionItem,
         selectedRegion === region.name && styles.regionItemSelected,
@@ -80,7 +80,7 @@ export default function EmployFilterModal({
           styles.regionText,
           selectedRegion === region.name && styles.regionTextSelected,
         ]}>
-        {region.name}
+        {t(region.labelKey)}
       </Text>
     </TouchableOpacity>
   );
@@ -138,17 +138,19 @@ export default function EmployFilterModal({
 
       const formattedRegions = [
         {
-          name: t('common.chiefMourner'),
+          name: 'JEJU',
+          labelKey: 'common.chiefMourner',
           subRegions: jejuSubRegions,
         },
         {
-          name: t('common.etc'),
+          name: 'OTHER',
+          labelKey: 'common.etc',
           subRegions: otherRegions,
         },
       ];
 
       setRegionsData(formattedRegions);
-      setSelectedRegion(t('common.chiefMourner')); // 초기 선택값
+      setSelectedRegion('JEJU'); // 초기 선택값
     } catch (error) {
       console.warn('지역 조회 실패:', error);
     }

@@ -206,14 +206,15 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_600,
   },
   agreeText: {
+    flex: 1,
+    minWidth: 0,
     color: COLORS.grayscale_600,
   },
   nessesaryText: {
     color: COLORS.primary_blue,
   },
   seeMore: {
-    position: 'absolute',
-    right: 0,
+    flexShrink: 0,
   },
   seeMoreText: {
     color: COLORS.primary_blue,
