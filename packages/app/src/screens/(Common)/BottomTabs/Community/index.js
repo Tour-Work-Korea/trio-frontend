@@ -81,6 +81,9 @@ const isStaffCategory = category =>
   category?.id === 'STAFF' ||
   category?.displayName === i18n.t('common.staff');
 
+const isCompanionCategory = category =>
+  category?.code === 'COMPANION' || category?.id === 'COMPANION';
+
 const withRequiredCategories = categories => {
   const normalizedCategories = [
     allCategory,
@@ -91,12 +94,19 @@ const withRequiredCategories = categories => {
     normalizedCategories.find(isStaffCategory) ??
     defaultCategories.find(isStaffCategory);
 
+  const companionCategory =
+    normalizedCategories.find(isCompanionCategory) ??
+    defaultCategories.find(isCompanionCategory);
+
   return [
     allCategory,
     staffCategory,
+    companionCategory,
     ...normalizedCategories.filter(
       category =>
-        category.code !== allCategory.code && !isStaffCategory(category),
+        category.code !== allCategory.code &&
+        !isStaffCategory(category) &&
+        !isCompanionCategory(category),
     ),
   ];
 };
@@ -487,7 +497,10 @@ const Community = () => {
       return (
         <View key={category.key} style={pageStyle}>
           {companionEnabled && category.code === 'COMPANION' ? (
-            <CompanionList isActive={isActive(category.key)} />
+            <CompanionList
+              isActive={isActive(category.key)}
+              selectedSort={selectedSort}
+            />
           ) : category.contentType === 'RECRUIT' ? (
             <Staff isActive={isActive(category.key)} />
           ) : (

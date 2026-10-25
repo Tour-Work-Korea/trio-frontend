@@ -28,6 +28,15 @@ describe('companion lifecycle and validation', () => {
       'companion.validation',
     );
   });
+  test.each([
+    ['title', '가'.repeat(120), null],
+    ['title', '가'.repeat(121), 'companion.validation'],
+    ['description', '가'.repeat(1000), null],
+    ['description', '가'.repeat(1001), 'companion.validation'],
+    ['description', ' '.repeat(1000), 'companion.validation'],
+  ])('content boundary %s', (field, value, expected) => {
+    expect(validateDraft({...valid, [field]: value}, now)).toBe(expected);
+  });
   test('30 inclusive days are permitted, 31 days and reversed ranges are rejected', () => {
     expect(
       validateDraft(
@@ -48,12 +57,20 @@ describe('companion lifecycle and validation', () => {
       'companion.dateValidation',
     );
   });
-  test('deadline uses the start date at 18:00 KST on the previous day, even for a range', () => {
-    const plan = {...valid, endDate: '2026-11-25'};
-    expect(validateDraft(plan, new Date('2026-11-19T08:59:59Z'))).toBeNull();
-    expect(validateDraft(plan, new Date('2026-11-19T09:00:00Z'))).toBe(
-      'companion.deadlineValidation',
+  test('today and same-day plans are allowed; dates before today in Korea are rejected', () => {
+    const plan = {...valid, startDate: '2026-11-20', endDate: '2026-11-20'};
+    expect(validateDraft(plan, new Date('2026-11-20T14:59:59Z'))).toBeNull();
+    expect(validateDraft(plan, new Date('2026-11-20T15:00:00Z'))).toBe(
+      'companion.dateValidation',
     );
+  });
+  test('server failure cannot open a room even when stale room ids remain in the response', () => {
+    expect(
+      roomForAccess({status: 'FAILED', directRoomId: 4}, {status: 'OPEN'}),
+    ).toBeNull();
+    expect(
+      roomForAccess({status: 'NONE', directRoomId: 4}, {status: 'OPEN'}),
+    ).toBeNull();
   });
   test('editing keeps content checks without requiring new dates', () => {
     expect(validateDraft(valid, new Date('2027-01-01'), false)).toBeNull();

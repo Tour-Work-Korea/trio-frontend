@@ -113,7 +113,9 @@ const CommunityWrite = ({route}) => {
   const scrollFocusTimerRef = useRef(null);
   const locationMapRef = useRef(null);
   const [categories, setCategories] = useState(defaultCategories);
-  const [selectedCategory, setSelectedCategory] = useState(null);
+  const [selectedCategory, setSelectedCategory] = useState(
+    route?.params?.initialCategory ?? null,
+  );
   const [categoryVisible, setCategoryVisible] = useState(false);
   const [title, setTitle] = useState('');
   const [body, setBody] = useState('');

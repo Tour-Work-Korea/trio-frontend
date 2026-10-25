@@ -86,6 +86,8 @@ chat.interceptors.response.use(
 );
 const rooms = '/api/v1/chat/rooms';
 export const chatApi = {
+  profile: id => chat.get(`/api/v1/chat/users/${id}/profile`),
+  report: body => chat.post('/api/v1/chat/reports', body),
   list: role =>
     chat.get(rooms, {params: {context: 'COMPANION', ...(role ? {role} : {})}}),
   detail: id => chat.get(`${rooms}/${id}`),

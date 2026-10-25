@@ -1,3 +1,5 @@
+import {Platform} from 'react-native';
+import {loadCompanionFeedPage} from '../../../packages/app/src/features/companion/communityFeed';
 import communityApi from '@utils/api/communityApi';
 import api from '@utils/api/axiosInstance';
 import {
@@ -7,6 +9,9 @@ import {
   uploadPostImages,
 } from '../../../packages/app/src/features/companion/api';
 
+jest.mock('react-native-config', () => ({
+  CHAT_BASE_URL: 'https://chat-dev.ddakji.kr',
+}));
 jest.mock('@utils/api/axiosInstance', () => ({
   get: jest.fn(),
   post: jest.fn(),
@@ -136,5 +141,100 @@ test('publishing images sends only the documented metadata and preserves existin
   } finally {
     global.fetch = oldFetch;
     presign.mockRestore();
+  }
+});
+
+test('the community feed joins author/body/place and retains closed posts without duplicate lifecycle rows', async () => {
+  const list = jest.spyOn(companionApi, 'list').mockImplementation(({status}) =>
+    Promise.resolve({
+      data: {
+        content:
+          status === 'OPEN'
+            ? [{companionId: 1, postId: 11}]
+            : [
+                {companionId: 1, postId: 11},
+                {companionId: 2, postId: 12},
+              ],
+        last: status === 'CLOSED',
+      },
+    }),
+  );
+  const detail = jest.spyOn(companionApi, 'detail').mockImplementation(id =>
+    Promise.resolve({
+      data: {
+        companionId: id,
+        status: id === 2 ? 'CLOSED' : 'OPEN',
+        description: 'trip introduction',
+        meetingPlace: 'meeting place',
+      },
+    }),
+  );
+  const post = jest
+    .spyOn(communityApi, 'getPostDetail')
+    .mockImplementation(id =>
+      Promise.resolve({
+        data: {
+          postId: id,
+          author: {nickname: 'original nickname'},
+          content: 'original body',
+        },
+      }),
+    );
+  try {
+    const result = await loadCompanionFeedPage(0);
+    expect(result.content).toHaveLength(2);
+    expect(result.last).toBe(false);
+    expect(result.content[1]).toMatchObject({
+      status: 'CLOSED',
+      description: 'trip introduction',
+      meetingPlace: 'meeting place',
+      post: {postId: 12, author: {nickname: 'original nickname'}},
+    });
+    expect(detail).toHaveBeenCalledTimes(2);
+  } finally {
+    list.mockRestore();
+    detail.mockRestore();
+    post.mockRestore();
+  }
+});
+test('a feed page abandoned during navigation does not hydrate more detail requests', async () => {
+  const list = jest.spyOn(companionApi, 'list').mockResolvedValue({
+    data: {content: [{companionId: 1, postId: 11}], last: true},
+  });
+  const detail = jest.spyOn(companionApi, 'detail');
+  try {
+    const result = await loadCompanionFeedPage(0, () => false);
+    expect(result.content).toEqual([]);
+    expect(detail).not.toHaveBeenCalled();
+  } finally {
+    list.mockRestore();
+    detail.mockRestore();
+  }
+});
+
+test('native WebSocket uses the documented room path and bearer header', () => {
+  const previousSocket = global.WebSocket;
+  const previousPlatform = Platform.OS;
+  const onMessage = jest.fn();
+  const socket = {};
+  global.WebSocket = jest.fn(() => socket);
+  Platform.OS = 'ios';
+  try {
+    chatApi.connect(17, onMessage, jest.fn(), jest.fn());
+    expect(global.WebSocket).toHaveBeenCalledWith(
+      'wss://chat-dev.ddakji.kr/ws/chat/rooms/17',
+      null,
+      {headers: {Authorization: 'Bearer test-jwt'}},
+    );
+    socket.onmessage({
+      data: JSON.stringify({type: 'MESSAGE', payload: {messageId: 9}}),
+    });
+    expect(onMessage).toHaveBeenCalledWith({
+      type: 'MESSAGE',
+      payload: {messageId: 9},
+    });
+  } finally {
+    global.WebSocket = previousSocket;
+    Platform.OS = previousPlatform;
   }
 });

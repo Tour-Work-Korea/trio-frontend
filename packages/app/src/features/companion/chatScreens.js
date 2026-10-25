@@ -1,10 +1,12 @@
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   AppState,
+  RefreshControl,
+  Keyboard,
+  Linking,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
-  Switch,
   TextInput,
   TouchableOpacity,
   View,
@@ -22,11 +24,28 @@ import {normalizePlaceSearchResult} from '@utils/communityLocation';
 import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
 import {formatNumber} from '@utils/localeFormat';
 import {COLORS as C} from '@constants/colors';
+import {
+  GroupForm,
+  GroupDialog,
+  GroupOption,
+  parseNotice,
+  noticeContent,
+} from './groupChatUi';
+import CheckIcon from '@assets/images/check_black.svg';
+import {ChatSchedule} from './participantChatUi';
+import {ChatReentryPrompt} from './chatReentryUi';
+import {OrganizerRequestCard} from './organizerChatUi';
+import {InboxRoom} from './inboxUi';
+import BackIcon from '@assets/images/chevron_left_gray.svg';
+import MoreIcon from '@assets/images/more_v_gray.svg';
+import {
+  ChatRecruitmentSummary,
+  ParticipantRequestCard,
+} from './participantChatUi';
 import ChatBlueIcon from '@assets/images/chat_bubbles_blue.svg';
 import SearchIcon from '@assets/images/search_black.svg';
 import MenuIcon from '@assets/images/bullet_list_black.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
-import SendIcon from '@assets/images/arrow_right_white.svg';
 import PhotoIcon from '@assets/images/Photo.svg';
 import CameraIcon from '@assets/images/camera_black.svg';
 import PinIcon from '@assets/images/map_pin_black.svg';
@@ -49,7 +68,6 @@ import {
 import {
   Action,
   Chip,
-  CompanionCard,
   Field,
   LoginGate,
   Person,
@@ -67,6 +85,8 @@ export function CompanionInbox({navigation, route}) {
   const {t} = useTranslation();
   const feedback = useFeedback();
   const [role, setRole] = useState('');
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [query, setQuery] = useState('');
   const endedShown = useRef(false);
   useEffect(() => {
     if (route?.params?.ended && !endedShown.current) {
@@ -76,116 +96,187 @@ export function CompanionInbox({navigation, route}) {
   }, [route?.params?.ended, feedback, t]);
   const token = useUserStore(state => state.accessToken);
   const resource = useResource(
-    async () => (token ? (await chatApi.list(role)).data : []),
-    [role, token],
+    async isCurrent => {
+      if (!token) {
+        return [];
+      }
+      const rooms = (await chatApi.list()).data;
+      const result = [...rooms];
+      let cursor = 0;
+      await Promise.all(
+        Array.from({length: Math.min(4, rooms.length)}, async () => {
+          while (cursor < rooms.length && isCurrent()) {
+            const index = cursor++;
+            try {
+              const detail = (await chatApi.detail(rooms[index].roomId)).data;
+              result[index] = {
+                ...rooms[index],
+                myMemberRole: detail.myMemberRole,
+                activeMemberCount: detail.activeMemberCount,
+              };
+            } catch {
+              // Keep the room visible if supplementary role/count data is unavailable.
+            }
+          }
+        }),
+      );
+      return result;
+    },
+    [token],
   );
+  const rooms = resource.data || [];
+  const filtered = rooms.filter(
+    room =>
+      (!role ||
+        (role === 'ORGANIZER'
+          ? room.myMemberRole === 'OWNER'
+          : room.myMemberRole && room.myMemberRole !== 'OWNER')) &&
+      (!query.trim() ||
+        `${room.title || ''} ${room.lastMessagePreview || ''}`
+          .toLocaleLowerCase()
+          .includes(query.trim().toLocaleLowerCase())),
+  );
+  const findCompanions = () =>
+    navigation.navigate('MainTabs', {
+      screen: '커뮤니티',
+      params: {tab: 'COMPANION'},
+    });
   return (
-    <Screen title={t('companion.inbox')}>
+    <View style={s.screen}>
+      <View
+        style={{
+          flexDirection: 'row',
+          alignItems: 'center',
+          paddingHorizontal: 20,
+          paddingVertical: 16,
+          gap: 10,
+        }}>
+        <TouchableOpacity
+          accessibilityLabel={t('companion.chat.back')}
+          onPress={() => navigation.goBack()}>
+          <BackIcon width={24} height={24} />
+        </TouchableOpacity>
+        <Title style={s.grow}>{t('companion.inbox')}</Title>
+        {rooms.length > 0 && (
+          <TouchableOpacity
+            accessibilityLabel={t('companion.search')}
+            onPress={() => setSearchOpen(value => !value)}>
+            <SearchIcon width={24} height={24} />
+          </TouchableOpacity>
+        )}
+      </View>
       <LoginGate navigation={navigation}>
-        <View style={[s.wrap, {padding: 20}]}>
-          {['', 'ORGANIZER', 'PARTICIPANT'].map(value => (
-            <Chip
-              key={value}
-              label={t(value ? `companion.role.${value}` : 'common.all')}
-              selected={value === role}
-              onPress={() => setRole(value)}
-            />
-          ))}
-        </View>
-        <ResourceBody resource={resource}>
-          {!resource.data?.length ? (
-            <View style={s.empty}>
-              <ChatBlueIcon width={56} height={56} />
-              <Title>{t('companion.inboxEmpty')}</Title>
-              <Txt style={[s.muted, {textAlign: 'center'}]}>
+        {rooms.length > 0 && (
+          <View
+            style={{
+              paddingHorizontal: 20,
+              paddingTop: 4,
+              paddingBottom: 18,
+              gap: 12,
+            }}>
+            <View style={s.wrap}>
+              {['', 'ORGANIZER', 'PARTICIPANT'].map(value => (
+                <Chip
+                  key={value}
+                  label={t(value ? `companion.role.${value}` : 'common.all')}
+                  selected={value === role}
+                  onPress={() => setRole(value)}
+                />
+              ))}
+            </View>
+            {searchOpen && (
+              <TextInput
+                accessibilityLabel={t('companion.inbox.searchPlaceholder')}
+                placeholder={t('companion.inbox.searchPlaceholder')}
+                placeholderTextColor={C.grayscale_400}
+                value={query}
+                onChangeText={setQuery}
+                style={[
+                  s.input,
+                  {backgroundColor: C.grayscale_100, borderWidth: 0},
+                ]}
+                returnKeyType="search"
+              />
+            )}
+          </View>
+        )}
+        <ResourceBody resource={resource} scroll={false}>
+          {!rooms.length ? (
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                alignItems: 'center',
+                padding: 30,
+                paddingBottom: 90,
+                gap: 22,
+              }}>
+              <View
+                style={{
+                  width: 88,
+                  height: 88,
+                  borderRadius: 44,
+                  backgroundColor: C.secondary_blue,
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                }}>
+                <ChatBlueIcon width={40} height={40} />
+              </View>
+              <Title style={{textAlign: 'center'}}>
+                {t('companion.inboxEmpty')}
+              </Title>
+              <Txt style={[s.muted, {textAlign: 'center', marginBottom: 14}]}>
                 {t('companion.inboxEmptyBody')}
               </Txt>
               <Action
+                style={{width: '100%', maxWidth: 240}}
                 label={t('companion.find')}
-                onPress={() =>
-                  navigation.navigate('MainTabs', {
-                    screen: '커뮤니티',
-                    params: {tab: 'COMPANION'},
-                  })
-                }
+                onPress={findCompanions}
               />
             </View>
           ) : (
-            resource.data.map(room => (
-              <TouchableOpacity
-                key={room.roomId}
-                style={[s.row, {paddingVertical: 12}]}
-                onPress={() =>
-                  navigation.navigate('CompanionChat', {
-                    roomId: room.roomId,
-                    companionId: room.companionId,
-                  })
-                }>
-                <View style={{width: 52, height: 48}}>
-                  <Avatar size={38} />
-                  {room.roomType === 'COMPANION_GROUP' && (
-                    <Avatar
-                      size={32}
-                      style={{
-                        position: 'absolute',
-                        right: 0,
-                        bottom: 0,
-                        borderWidth: 2,
-                        borderColor: C.grayscale_0,
-                      }}
-                    />
-                  )}
-                </View>
-                <View style={[s.grow, {gap: 5}]}>
-                  <View style={s.wrap}>
-                    <View style={s.roleBadge}>
-                      <Txt style={s.small}>
-                        {t(
-                          room.myMemberRole === 'OWNER'
-                            ? 'companion.role.ORGANIZER'
-                            : 'companion.role.PARTICIPANT',
-                        )}
-                      </Txt>
-                    </View>
-                    <Txt numberOfLines={1} style={{flexShrink: 1}}>
-                      {room.title}
-                    </Txt>
-                    {room.roomType === 'COMPANION_GROUP' && (
-                      <Txt style={s.small}>
-                        {formatNumber(room.activeMemberCount)}
-                      </Txt>
-                    )}
-                  </View>
-                  <Txt numberOfLines={1} style={s.small}>
-                    {room.lastMessage?.content ?? room.lastMessageContent ?? ''}
-                  </Txt>
-                </View>
-                <View style={{alignItems: 'flex-end', gap: 8}}>
-                  <Txt style={s.small}>
-                    {displayTime(
-                      room.lastMessage?.sentAt || room.lastMessageAt,
-                    )}
-                  </Txt>
-                  {room.unreadCount > 0 && (
-                    <View
-                      style={[s.badge, {backgroundColor: C.primary_orange}]}>
-                      <Txt style={[s.small, {color: C.grayscale_0}]}>
-                        {formatNumber(room.unreadCount)}
-                      </Txt>
-                    </View>
-                  )}
-                </View>
-              </TouchableOpacity>
-            ))
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode="on-drag"
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingTop: 4,
+                paddingBottom: 30,
+              }}
+              refreshControl={
+                <RefreshControl
+                  refreshing={resource.loading}
+                  onRefresh={resource.reload}
+                />
+              }>
+              {filtered.map(room => (
+                <InboxRoom
+                  key={room.roomId}
+                  room={room}
+                  onPress={() =>
+                    navigation.navigate('CompanionChat', {
+                      roomId: room.roomId,
+                      companionId: room.companionId,
+                    })
+                  }
+                />
+              ))}
+              {!filtered.length && (
+                <Txt
+                  style={[s.small, {paddingVertical: 40, textAlign: 'center'}]}>
+                  {t('companion.inbox.noMatches')}
+                </Txt>
+              )}
+            </ScrollView>
           )}
         </ResourceBody>
       </LoginGate>
       {feedback.modal}
-    </Screen>
+    </View>
   );
 }
 
-function PrivateImage({message, roomId}) {
+function PrivateImage({message, roomId, compact = false}) {
   const {t} = useTranslation();
   const [uri, setUri] = useState(null);
   const [failed, setFailed] = useState(false);
@@ -217,7 +308,12 @@ function PrivateImage({message, roomId}) {
   return uri ? (
     <AppImage
       uri={uri}
-      style={{width: 200, maxWidth: '100%', height: 160, borderRadius: 8}}
+      style={{
+        width: compact ? 120 : 200,
+        maxWidth: '100%',
+        height: compact ? 80 : 160,
+        borderRadius: 8,
+      }}
       onError={() => {
         if (retries.current++ < 1) {
           load();
@@ -244,12 +340,19 @@ function MessageContent({message, roomId}) {
         {payload.address && (
           <Txt style={s.small}>{trimJejuPrefix(payload.address)}</Txt>
         )}
-        <Txt style={s.small}>
-          {t('companion.coordinates', {
-            latitude: payload.latitude,
-            longitude: payload.longitude,
-          })}
-        </Txt>
+        <TouchableOpacity
+          accessibilityRole="button"
+          onPress={() =>
+            Linking.openURL(
+              `https://map.naver.com/p/search/${encodeURIComponent(
+                payload.name || message.content || '',
+              )}`,
+            )
+          }>
+          <Txt style={[s.small, s.orange]}>
+            {t('companion.group.viewPlace')}
+          </Txt>
+        </TouchableOpacity>
       </View>
     );
   }
@@ -258,8 +361,11 @@ function MessageContent({message, roomId}) {
 
 export function CompanionChat({navigation, route}) {
   const {t} = useTranslation();
+  const keyboardFrame = useRef(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const [keyboardVisible, setKeyboardVisible] = useState(false);
   const {roomId, companionId, participant, mayRejoin} = route.params || {};
-  const feedback = useFeedback();
+  const feedback = useFeedback({horizontalButtons: true});
   const task = useTask(feedback, () => resource.reload());
   const focused = useIsFocused();
   const userId = useUserStore(state => state.userProfile?.userId);
@@ -279,6 +385,26 @@ export function CompanionChat({navigation, route}) {
   const scroll = useRef(null);
   const ending = useRef(false);
   useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    const show = Keyboard.addListener('keyboardWillShow', () =>
+      setKeyboardVisible(true),
+    );
+    const shown = Keyboard.addListener('keyboardDidShow', () =>
+      scroll.current?.scrollToEnd({animated: true}),
+    );
+    const hide = Keyboard.addListener('keyboardWillHide', () =>
+      setKeyboardVisible(false),
+    );
+    return () => {
+      show.remove();
+      shown.remove();
+      hide.remove();
+    };
+  }, []);
+
+  useEffect(() => {
     setMessages([]);
     setCursor(null);
     setHasNext(false);
@@ -286,10 +412,26 @@ export function CompanionChat({navigation, route}) {
   }, [roomId]);
   const resource = useResource(
     async isCurrent => {
-      const [room, detail] = await Promise.all([
-        chatApi.detail(roomId),
-        companionApi.detail(companionId),
-      ]);
+      const detail = await companionApi.detail(companionId);
+      let room;
+      try {
+        room = await chatApi.detail(roomId);
+      } catch (error) {
+        if (
+          mayRejoin &&
+          error.response?.status === 403 &&
+          detail.data.status === 'CLOSED'
+        ) {
+          const access = (await companionApi.access(companionId)).data;
+          if (
+            access.status === 'READY' &&
+            String(access.groupRoomId) === String(roomId)
+          ) {
+            return {rejoinRequired: true, detail: detail.data};
+          }
+        }
+        throw error;
+      }
       if (!isCurrent()) {
         return null;
       }
@@ -338,7 +480,7 @@ export function CompanionChat({navigation, route}) {
       }
       return {room: room.data, detail: detail.data};
     },
-    [roomId, companionId, retry, navigation, userId],
+    [roomId, companionId, retry, navigation, userId, mayRejoin],
   );
   const room = resource.data?.room;
   const detail = resource.data?.detail;
@@ -403,6 +545,52 @@ export function CompanionChat({navigation, route}) {
     userId,
   ]);
   useEffect(() => {
+    if (!focused || !room || isGroup || left) {
+      return;
+    }
+    let disposed = false;
+    let checking = false;
+    const timer = setInterval(async () => {
+      if (checking || disposed) {
+        return;
+      }
+      checking = true;
+      try {
+        const [current, access] = await Promise.all([
+          companionApi.detail(companionId),
+          companionApi.access(companionId),
+        ]);
+        const next = roomForAccess(access.data, current.data);
+        if (
+          !disposed &&
+          ((next && String(next) !== String(roomId)) ||
+            current.data.status !== detail?.status ||
+            current.data.myParticipationStatus !==
+              detail?.myParticipationStatus)
+        ) {
+          transition();
+        }
+      } catch {
+      } finally {
+        checking = false;
+      }
+    }, 5000);
+    return () => {
+      disposed = true;
+      clearInterval(timer);
+    };
+  }, [
+    focused,
+    room?.roomId,
+    isGroup,
+    left,
+    companionId,
+    roomId,
+    detail?.status,
+    detail?.myParticipationStatus,
+    transition,
+  ]);
+  useEffect(() => {
     if (!focused || !room || left) {
       return;
     }
@@ -437,7 +625,7 @@ export function CompanionChat({navigation, route}) {
             ) {
               setMessages(previous =>
                 mergeMessages(previous, [
-                  {...payload, sentAt: payload.acceptedAt},
+                  {...payload, mine: true, sentAt: payload.acceptedAt},
                 ]),
               );
             } else if (event.type === 'ROOM_READ_UPDATED') {
@@ -614,7 +802,8 @@ export function CompanionChat({navigation, route}) {
         mergeMessages(previous, [
           {
             ...frame,
-            senderUserId: String(userId),
+            senderUserId: userId == null ? undefined : String(userId),
+            mine: true,
             sentAt: new Date().toISOString(),
             pending: true,
             frame,
@@ -683,7 +872,8 @@ export function CompanionChat({navigation, route}) {
           mergeMessages(previous, [
             {
               ...frame,
-              senderUserId: String(userId),
+              senderUserId: userId == null ? undefined : String(userId),
+              mine: true,
               sentAt: new Date().toISOString(),
               pending: true,
               frame,
@@ -743,387 +933,584 @@ export function CompanionChat({navigation, route}) {
         setHasNext(result.data.hasNext);
       },
     );
+  const participantDirect = !isGroup && !own;
+  const findOthers = () =>
+    navigation.navigate('MainTabs', {
+      screen: '커뮤니티',
+      params: {tab: 'COMPANION'},
+    });
+  if (resource.data?.rejoinRequired) {
+    return (
+      <Screen title={t('companion.groupChat')}>
+        <ChatReentryPrompt
+          busy={task.busy}
+          onRejoin={() =>
+            task.run(
+              `rejoin:${roomId}`,
+              () => chatApi.rejoin(roomId),
+              () => setRetry(value => value + 1),
+            )
+          }
+          onMyCompanions={() => navigation.navigate('MyCompanions')}
+        />
+        {feedback.modal}
+      </Screen>
+    );
+  }
   return (
-    <Screen
-      title={room?.title || t('companion.chat')}
-      right={
-        <View style={s.row}>
+    <View
+      ref={keyboardFrame}
+      collapsable={false}
+      style={s.screen}
+      onLayout={() => {
+        if (Platform.OS === 'ios') {
+          keyboardFrame.current?.measureInWindow((x, y) =>
+            setKeyboardOffset(y),
+          );
+        }
+      }}>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={keyboardOffset}>
+        <View
+          style={{
+            flexDirection: 'row',
+            alignItems: 'center',
+            paddingHorizontal: 16,
+            paddingVertical: 12,
+            gap: 10,
+          }}>
           <TouchableOpacity
-            accessibilityLabel={t('companion.search')}
-            onPress={() =>
-              navigation.navigate('CompanionChatSearch', {roomId, companionId})
-            }>
-            <SearchIcon width={22} height={22} />
+            accessibilityLabel={t('companion.chat.back')}
+            onPress={() => navigation.goBack()}
+            style={{padding: 4}}>
+            <BackIcon width={24} height={24} />
           </TouchableOpacity>
+          <View style={s.grow}>
+            <Txt numberOfLines={1} style={{fontWeight: '600'}}>
+              {(!isGroup && own && currentParticipant?.userName) ||
+                room?.title ||
+                t('companion.chat')}
+            </Txt>
+            {isGroup && (
+              <Txt style={s.small}>
+                {countText(
+                  t,
+                  'companion.chat.groupMembers',
+                  room?.activeMemberCount || 0,
+                )}
+              </Txt>
+            )}
+          </View>
+          {isGroup && (
+            <TouchableOpacity
+              accessibilityLabel={t('companion.search')}
+              onPress={() =>
+                navigation.navigate('CompanionChatSearch', {
+                  roomId,
+                  companionId,
+                })
+              }>
+              <SearchIcon width={22} height={22} />
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             accessibilityLabel={t('companion.roomInfo')}
             onPress={() =>
               navigation.navigate('CompanionChatInfo', {roomId, companionId})
             }>
-            <MenuIcon width={24} height={24} />
+            {isGroup ? (
+              <MenuIcon width={24} height={24} />
+            ) : (
+              <MoreIcon width={24} height={24} />
+            )}
           </TouchableOpacity>
         </View>
-      }>
-      {resource.error && mayRejoin && (
-        <View style={s.footer}>
-          <Action
-            label={t('companion.rejoin')}
-            disabled={task.busy}
-            onPress={() =>
-              task.run(
-                `rejoin:${roomId}`,
-                () => chatApi.rejoin(roomId),
-                () => setRetry(value => value + 1),
-              )
-            }
-          />
-        </View>
-      )}
-      <ResourceBody resource={resource} scroll={false}>
-        <KeyboardAvoidingView
-          style={s.grow}
-          behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-          <ScrollView
-            ref={scroll}
-            contentContainerStyle={[s.content, {gap: 14}]}
-            keyboardShouldPersistTaps="handled">
-            {detail && !isGroup && (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('CompanionDetail', {companionId})
-                }>
-                <CompanionCard
+        <ResourceBody resource={resource} scroll={false}>
+          {isGroup && !!room?.noticeContent && (
+            <TouchableOpacity
+              onPress={() =>
+                navigation.navigate('CompanionChatNotice', {
+                  roomId,
+                  companionId,
+                })
+              }
+              style={{
+                marginHorizontal: 20,
+                marginBottom: 8,
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                backgroundColor: C.grayscale_100,
+                borderRadius: 10,
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: 8,
+              }}>
+              <PinIcon width={16} height={16} />
+              <Txt numberOfLines={2} style={[s.small, s.grow]}>
+                {room.noticeContent}
+              </Txt>
+            </TouchableOpacity>
+          )}
+
+          <View style={{flex: 1}}>
+            <ScrollView
+              ref={scroll}
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 20,
+                gap: 16,
+                flexGrow: 1,
+              }}
+              keyboardDismissMode="interactive"
+              keyboardShouldPersistTaps="handled">
+              {detail && !isGroup && (
+                <ChatRecruitmentSummary
                   item={detail}
                   onPress={() =>
                     navigation.navigate('CompanionDetail', {companionId})
                   }
                 />
-                <View style={[s.soft, {marginTop: 8}]}>
-                  <Txt style={s.small}>{t('companion.directDeletion')}</Txt>
-                </View>
-              </TouchableOpacity>
-            )}
-            {!!room?.noticeContent && (
-              <TouchableOpacity
-                style={s.soft}
-                onPress={() =>
-                  navigation.navigate('CompanionChatNotice', {
-                    roomId,
-                    companionId,
-                  })
-                }>
-                <Txt numberOfLines={2}>{room.noticeContent}</Txt>
-              </TouchableOpacity>
-            )}
-            {hasNext && (
-              <Action
-                secondary
-                label={t('companion.olderMessages')}
-                disabled={task.busy}
-                onPress={loadOlder}
-              />
-            )}
-            {!messages.length && (
-              <Txt style={[s.small, {textAlign: 'center'}]}>
-                {t('companion.startConversation')}
-              </Txt>
-            )}
-            {messages.map((message, index) => {
-              const mine =
-                message.mine ?? String(message.senderUserId) === String(userId);
-              const previous = messages[index - 1];
-              const day = displayDate(message.sentAt);
-              const unread = message.unreadMemberCount || 0;
-              return (
-                <View
-                  key={message.messageId || message.clientMessageId}
-                  onLayout={event => {
-                    if (String(message.messageId) === String(anchorMessageId)) {
-                      anchorY.current = event.nativeEvent.layout.y;
-                      scroll.current?.scrollTo({
-                        y: anchorY.current,
-                        animated: true,
-                      });
-                    }
-                  }}
-                  style={[
-                    {gap: 8},
-                    String(message.messageId) === String(anchorMessageId) &&
-                      s.info,
-                  ]}>
-                  {(!previous || displayDate(previous.sentAt) !== day) && (
-                    <Txt style={[s.small, {textAlign: 'center'}]}>{day}</Txt>
-                  )}
-                  <View style={[s.bubble, mine && s.mine]}>
-                    {!mine && (
-                      <Txt style={[s.small, s.blue]}>
-                        {message.senderName ||
-                          t('companion.memberId', {id: message.senderUserId})}
+              )}
+              {!isGroup && !!room?.noticeContent && (
+                <TouchableOpacity
+                  style={s.soft}
+                  onPress={() =>
+                    navigation.navigate('CompanionChatNotice', {
+                      roomId,
+                      companionId,
+                    })
+                  }>
+                  <Txt numberOfLines={2}>{room.noticeContent}</Txt>
+                </TouchableOpacity>
+              )}
+              {hasNext && (
+                <Action
+                  secondary
+                  label={t('companion.olderMessages')}
+                  disabled={task.busy}
+                  onPress={loadOlder}
+                />
+              )}
+              {!messages.length && (
+                <Txt style={[s.small, {textAlign: 'center'}]}>
+                  {t('companion.startConversation')}
+                </Txt>
+              )}
+              {participantDirect &&
+                detail?.myParticipationStatus === 'REJECTED' && (
+                  <ParticipantRequestCard item={detail} onFind={findOthers} />
+                )}
+              {!isGroup && own && currentParticipant?.status === 'REJECTED' && (
+                <OrganizerRequestCard
+                  item={detail}
+                  person={currentParticipant}
+                />
+              )}
+              {messages.map((message, index) => {
+                const mine =
+                  userId != null && message.senderUserId != null
+                    ? String(message.senderUserId) === String(userId)
+                    : message.mine === true;
+                const previous = messages[index - 1];
+                const day = displayDate(message.sentAt);
+                const unread = message.unreadMemberCount || 0;
+                return (
+                  <View
+                    key={message.messageId || message.clientMessageId}
+                    onLayout={event => {
+                      if (
+                        String(message.messageId) === String(anchorMessageId)
+                      ) {
+                        anchorY.current = event.nativeEvent.layout.y;
+                        scroll.current?.scrollTo({
+                          y: anchorY.current,
+                          animated: true,
+                        });
+                      }
+                    }}
+                    style={[
+                      {gap: 8},
+                      String(message.messageId) === String(anchorMessageId) &&
+                        s.info,
+                    ]}>
+                    {(!previous || displayDate(previous.sentAt) !== day) && (
+                      <Txt style={[s.small, {textAlign: 'center'}]}>{day}</Txt>
+                    )}
+                    {isGroup && index === 0 && (
+                      <Txt style={[s.small, {textAlign: 'center'}]}>
+                        {t('companion.chat.groupOpened')}
                       </Txt>
                     )}
-                    <MessageContent message={message} roomId={roomId} />
-                    <View style={s.wrap}>
-                      <Txt style={s.small}>{displayTime(message.sentAt)}</Txt>
-                      {mine && unread > 0 && (
-                        <Txt style={[s.small, s.orange]}>
-                          {countText(t, 'companion.unread', unread)}
+                    <View
+                      style={{
+                        flexDirection: 'row',
+                        justifyContent: mine ? 'flex-end' : 'flex-start',
+                        alignItems: 'flex-end',
+                        gap: 8,
+                      }}>
+                      {!mine && <Avatar size={28} />}
+                      {mine && !isGroup && (
+                        <Txt style={[s.small, {fontSize: 10}]}>
+                          {displayTime(message.sentAt)}
                         </Txt>
                       )}
-                      {message.pending && (
-                        <TouchableOpacity
-                          onPress={() =>
-                            message.frame && sendFrame(message.frame)
-                          }>
-                          <Txt style={[s.small, s.orange]}>
-                            {t('companion.sendPending')}
+                      <View style={{maxWidth: '78%', gap: 4}}>
+                        {!mine && isGroup && (
+                          <Txt style={s.small}>
+                            {String(message.senderUserId) ===
+                            String(detail?.organizerId)
+                              ? t('companion.group.organizerSender', {
+                                  name:
+                                    message.senderName ||
+                                    t('companion.memberId', {
+                                      id: message.senderUserId,
+                                    }),
+                                })
+                              : message.senderName ||
+                                t('companion.memberId', {
+                                  id: message.senderUserId,
+                                })}
                           </Txt>
-                        </TouchableOpacity>
+                        )}
+                        <View
+                          style={{
+                            backgroundColor: mine
+                              ? C.secondary_orange
+                              : C.grayscale_100,
+                            borderRadius: 14,
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                          }}>
+                          <MessageContent message={message} roomId={roomId} />
+                        </View>
+                        {isGroup && (
+                          <View
+                            style={[
+                              s.row,
+                              mine && {justifyContent: 'flex-end'},
+                            ]}>
+                            {mine && unread > 0 && (
+                              <Txt style={[s.small, s.orange]}>
+                                {countText(t, 'companion.unread', unread)}
+                              </Txt>
+                            )}
+                            <Txt style={[s.small, mine && s.orange]}>
+                              {displayTime(message.sentAt)}
+                            </Txt>
+                          </View>
+                        )}
+                        {message.pending && (
+                          <TouchableOpacity
+                            onPress={() =>
+                              message.frame && sendFrame(message.frame)
+                            }>
+                            <Txt style={[s.small, s.orange]}>
+                              {t('companion.sendPending')}
+                            </Txt>
+                          </TouchableOpacity>
+                        )}
+                      </View>
+                      {!mine && !isGroup && (
+                        <Txt style={[s.small, {fontSize: 10}]}>
+                          {displayTime(message.sentAt)}
+                        </Txt>
                       )}
                     </View>
                   </View>
+                );
+              })}
+              {participantDirect &&
+                detail?.myParticipationStatus === 'PENDING' && (
+                  <ParticipantRequestCard
+                    item={detail}
+                    busy={task.busy}
+                    onWithdraw={withdraw}
+                  />
+                )}
+              {participantDirect &&
+                ['INQUIRING', 'WITHDRAWN'].includes(
+                  detail?.myParticipationStatus,
+                ) && (
+                  <View
+                    style={{
+                      backgroundColor: C.grayscale_100,
+                      borderRadius: 6,
+                      padding: 12,
+                    }}>
+                    <Txt style={{fontSize: 12, lineHeight: 19}}>
+                      {t('companion.chat.requestHint')}
+                    </Txt>
+                  </View>
+                )}
+              {participantDirect &&
+                detail?.myParticipationStatus === 'REJECTED' && (
+                  <View
+                    style={{
+                      backgroundColor: C.grayscale_100,
+                      borderRadius: 6,
+                      padding: 12,
+                    }}>
+                    <Txt style={s.small}>
+                      {t('companion.chat.deletionHint')}
+                    </Txt>
+                  </View>
+                )}
+              {!isGroup &&
+                own &&
+                ['PENDING', 'ACCEPTED'].includes(
+                  currentParticipant?.status,
+                ) && (
+                  <OrganizerRequestCard
+                    item={detail}
+                    person={currentParticipant}
+                    busy={task.busy}
+                    onReject={() => decide(false)}
+                    onAccept={() => decide(true)}
+                  />
+                )}
+              {!isGroup && detail?.myParticipationStatus === 'ACCEPTED' && (
+                <View style={s.info}>
+                  <Title>{t('companion.acceptedTitle')}</Title>
+                  <Txt>{t('companion.acceptedBody')}</Txt>
                 </View>
-              );
-            })}
-            {detail?.myParticipationStatus === 'REJECTED' && (
-              <View style={s.info}>
-                <Title>{t('companion.rejectedTitle')}</Title>
-                <Txt>{t('companion.rejectedBody')}</Txt>
-                <Action
-                  secondary
-                  label={t('companion.find')}
-                  onPress={() =>
-                    navigation.navigate('MainTabs', {
-                      screen: '커뮤니티',
-                      params: {tab: 'COMPANION'},
-                    })
-                  }
-                />
+              )}
+            </ScrollView>
+            {connection !== 'CONNECTED' && (
+              <View style={[s.soft, {borderRadius: 0}]}>
+                <Txt style={s.small}>
+                  {t(`companion.connection.${connection}`)}
+                </Txt>
+                {connection !== 'CONNECTING' && (
+                  <Action
+                    secondary
+                    label={t('companion.reconnect')}
+                    onPress={() => {
+                      setRetry(value => value + 1);
+                    }}
+                  />
+                )}
               </View>
             )}
-            {!isGroup && own && currentParticipant?.status === 'REJECTED' && (
-              <View style={s.info}>
-                <Title>{t('companion.rejectedOrganizerTitle')}</Title>
-                <Txt>{t('companion.rejectedOrganizerBody')}</Txt>
-              </View>
+            {(left || (mayRejoin && connection === 'ERROR')) && isGroup && (
+              <Action
+                label={t('companion.rejoin')}
+                onPress={() =>
+                  task.run(
+                    `rejoin:${roomId}`,
+                    () => chatApi.rejoin(roomId),
+                    () => setRetry(value => value + 1),
+                  )
+                }
+                disabled={task.busy}
+              />
             )}
-            {!isGroup && own && currentParticipant?.status === 'ACCEPTED' && (
-              <View style={s.info}>
-                <Title>{t('companion.acceptedOrganizerTitle')}</Title>
-                <Txt>{t('companion.acceptedBody')}</Txt>
+            {!isGroup &&
+              !own &&
+              detail?.status === 'OPEN' &&
+              hasAction(detail, 'APPLY') && (
+                <View style={{paddingHorizontal: 20, paddingBottom: 8}}>
+                  {hasAction(detail, 'APPLY') && (
+                    <Action
+                      label={t('companion.apply')}
+                      onPress={apply}
+                      disabled={task.busy || connection !== 'CONNECTED'}
+                    />
+                  )}
+                  {own && hasAction(detail, 'WITHDRAW') && (
+                    <Action
+                      secondary
+                      label={t('companion.withdraw')}
+                      onPress={withdraw}
+                      disabled={task.busy}
+                    />
+                  )}
+                </View>
+              )}
+            <View
+              style={[
+                s.row,
+                {
+                  paddingHorizontal: 16,
+                  paddingTop: 10,
+                  paddingBottom:
+                    Platform.OS === 'ios' ? (keyboardVisible ? 10 : 30) : 12,
+                  borderTopWidth: 1,
+                  borderColor: C.grayscale_100,
+                },
+              ]}>
+              <TouchableOpacity
+                accessibilityLabel={t('companion.attach')}
+                style={s.iconButton}
+                disabled={connection !== 'CONNECTED'}
+                onPress={() => setAttachment(true)}>
+                <PlusIcon width={24} height={24} />
+              </TouchableOpacity>
+              <TextInput
+                accessibilityLabel={t('companion.messagePlaceholder')}
+                placeholder={t('companion.messagePlaceholder')}
+                value={content}
+                onChangeText={setContent}
+                style={[
+                  s.grow,
+                  {
+                    borderWidth: 1,
+                    borderColor: C.grayscale_200,
+                    borderRadius: 24,
+                    backgroundColor: C.grayscale_0,
+                    paddingHorizontal: 14,
+                    paddingVertical: 10,
+                    minHeight: 40,
+                    maxHeight: 100,
+                    color: C.grayscale_800,
+                  },
+                ]}
+                placeholderTextColor={C.grayscale_400}
+                onFocus={() => scroll.current?.scrollToEnd({animated: true})}
+                multiline
+                maxLength={2000}
+                editable={connection === 'CONNECTED'}
+              />
+              <TouchableOpacity
+                style={{
+                  padding: 4,
+                  borderRadius: 12,
+                  backgroundColor: 'transparent',
+                  opacity:
+                    connection === 'CONNECTED' && content.trim() ? 1 : 0.4,
+                }}
+                accessibilityLabel={t('companion.send')}
+                onPress={send}
+                disabled={connection !== 'CONNECTED' || !content.trim()}>
+                <Txt style={[s.small, s.orange]}>{t('companion.send')}</Txt>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </ResourceBody>
+        <Modal
+          visible={attachment}
+          transparent
+          onRequestClose={() => setAttachment(false)}>
+          <View
+            style={{
+              flex: 1,
+              justifyContent: 'center',
+              padding: 20,
+              backgroundColor: C.modal_background,
+            }}>
+            <View
+              style={[
+                s.content,
+                {
+                  flexGrow: 0,
+                  backgroundColor: C.grayscale_0,
+                  borderRadius: 20,
+                },
+              ]}>
+              <Title>{t('companion.attachTitle')}</Title>
+              <View style={s.between}>
+                {[
+                  [PhotoIcon, 'companion.photo', () => sendPhoto(false)],
+                  [CameraIcon, 'companion.camera', () => sendPhoto(true)],
+                  [
+                    PinIcon,
+                    'companion.place',
+                    () => {
+                      setAttachment(false);
+                      navigation.navigate('CompanionChatPlace', {
+                        roomId,
+                        companionId,
+                      });
+                    },
+                  ],
+                ].map(([Icon, label, onPress]) => (
+                  <TouchableOpacity
+                    key={label}
+                    style={[s.soft, s.grow, {alignItems: 'center'}]}
+                    onPress={onPress}>
+                    <Icon width={24} height={24} />
+                    <Txt>{t(label)}</Txt>
+                  </TouchableOpacity>
+                ))}
               </View>
-            )}
-            {!isGroup && detail?.myParticipationStatus === 'ACCEPTED' && (
-              <View style={s.info}>
-                <Title>{t('companion.acceptedTitle')}</Title>
-                <Txt>{t('companion.acceptedBody')}</Txt>
-              </View>
-            )}
-            {!isGroup && own && (
+              <Txt style={s.small}>{t('companion.group.attachmentHelp')}</Txt>
               <Action
                 secondary
-                label={t('companion.manage')}
-                onPress={() =>
-                  navigation.navigate('CompanionManage', {companionId})
-                }
+                label={t('common.close')}
+                onPress={() => setAttachment(false)}
               />
-            )}
-          </ScrollView>
-          {connection !== 'CONNECTED' && (
-            <View style={[s.soft, {borderRadius: 0}]}>
-              <Txt style={s.small}>
-                {t(`companion.connection.${connection}`)}
-              </Txt>
-              {connection !== 'CONNECTING' && (
-                <Action
-                  secondary
-                  label={t('companion.reconnect')}
-                  onPress={() => {
-                    setRetry(value => value + 1);
-                  }}
-                />
-              )}
             </View>
-          )}
-          {(left || (mayRejoin && connection === 'ERROR')) && isGroup && (
-            <Action
-              label={t('companion.rejoin')}
-              onPress={() =>
-                task.run(
-                  `rejoin:${roomId}`,
-                  () => chatApi.rejoin(roomId),
-                  () => setRetry(value => value + 1),
-                )
-              }
-              disabled={task.busy}
-            />
-          )}
-          {!isGroup && detail?.status === 'OPEN' && (
-            <View style={{paddingHorizontal: 20, paddingBottom: 8}}>
-              {hasAction(detail, 'APPLY') && (
-                <Action
-                  label={t('companion.apply')}
-                  onPress={apply}
-                  disabled={task.busy || connection !== 'CONNECTED'}
-                />
-              )}
-              {hasAction(detail, 'WITHDRAW') && (
-                <Action
-                  secondary
-                  label={t('companion.withdraw')}
-                  onPress={withdraw}
-                  disabled={task.busy}
-                />
-              )}
-              {own && currentParticipant?.status === 'PENDING' && (
-                <View style={s.row}>
-                  <Action
-                    style={s.grow}
-                    secondary
-                    label={t('companion.reject')}
-                    disabled={task.busy}
-                    onPress={() => decide(false)}
-                  />
-                  <Action
-                    style={s.grow}
-                    label={t('companion.accept')}
-                    disabled={task.busy}
-                    onPress={() => decide(true)}
-                  />
-                </View>
-              )}
-            </View>
-          )}
-          <View style={[s.footer, s.row]}>
-            <TouchableOpacity
-              accessibilityLabel={t('companion.attach')}
-              style={s.iconButton}
-              disabled={connection !== 'CONNECTED'}
-              onPress={() => setAttachment(true)}>
-              <PlusIcon width={24} height={24} />
-            </TouchableOpacity>
-            <TextInput
-              accessibilityLabel={t('companion.messagePlaceholder')}
-              placeholder={t('companion.messagePlaceholder')}
-              value={content}
-              onChangeText={setContent}
-              style={[s.input, s.grow, {maxHeight: 100}]}
-              multiline
-              maxLength={2000}
-              editable={connection === 'CONNECTED'}
-            />
-            <TouchableOpacity
-              style={[
-                s.iconButton,
-                {
-                  backgroundColor:
-                    connection === 'CONNECTED' && content.trim()
-                      ? C.primary_orange
-                      : C.grayscale_300,
-                  borderRadius: 24,
-                },
-              ]}
-              accessibilityLabel={t('companion.send')}
-              onPress={send}
-              disabled={connection !== 'CONNECTED' || !content.trim()}>
-              <SendIcon
-                width={22}
-                height={22}
-                style={{transform: [{rotate: '-90deg'}]}}
-              />
-            </TouchableOpacity>
           </View>
-        </KeyboardAvoidingView>
-      </ResourceBody>
-      <Modal
-        visible={attachment}
-        transparent
-        onRequestClose={() => setAttachment(false)}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'flex-end',
-            backgroundColor: C.modal_background,
-          }}>
-          <View
-            style={[
-              s.content,
-              {
-                flexGrow: 0,
-                backgroundColor: C.grayscale_0,
-                borderTopLeftRadius: 20,
-                borderTopRightRadius: 20,
-              },
-            ]}>
-            <Title>{t('companion.attachTitle')}</Title>
-            <View style={s.between}>
-              {[
-                [PhotoIcon, 'companion.photo', () => sendPhoto(false)],
-                [CameraIcon, 'companion.camera', () => sendPhoto(true)],
-                [
-                  PinIcon,
-                  'companion.place',
-                  () => {
-                    setAttachment(false);
-                    navigation.navigate('CompanionChatPlace', {
-                      roomId,
-                      companionId,
-                    });
-                  },
-                ],
-              ].map(([Icon, label, onPress]) => (
-                <TouchableOpacity
-                  key={label}
-                  style={[s.soft, s.grow, {alignItems: 'center'}]}
-                  onPress={onPress}>
-                  <Icon width={24} height={24} />
-                  <Txt>{t(label)}</Txt>
-                </TouchableOpacity>
-              ))}
-            </View>
-            <Action
-              secondary
-              label={t('common.close')}
-              onPress={() => setAttachment(false)}
-            />
-          </View>
-        </View>
-      </Modal>
-      {feedback.modal}
-    </Screen>
-  );
-}
-
-function InfoLink({Icon, label, onPress}) {
-  return (
-    <TouchableOpacity onPress={onPress} style={[s.row, {paddingVertical: 16}]}>
-      <Icon width={22} height={22} />
-      <Txt style={s.grow}>{label}</Txt>
-      <ChevronRight width={22} height={22} />
-    </TouchableOpacity>
+        </Modal>
+        {feedback.modal}
+      </KeyboardAvoidingView>
+    </View>
   );
 }
 
 export function CompanionChatInfo({navigation, route}) {
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
-  const feedback = useFeedback();
+  const myId = useUserStore(state => state.userProfile?.userId);
+  const myEmail = useUserStore(state => state.userProfile?.email);
+  const feedback = useFeedback({horizontalButtons: true});
   const task = useTask(feedback, () => resource.reload());
-  const resource = useResource(
-    async isCurrent => {
-      const [room, members, companion] = await Promise.all([
-        chatApi.detail(roomId),
-        chatApi.members(roomId),
-        companionApi.detail(companionId),
-      ]);
-      return {
-        room: room.data,
-        members: members.data,
-        companion: companion.data,
-      };
-    },
-    [roomId, companionId],
+  const [notificationOpen, setNotificationOpen] = useState(false);
+  const [sharedOpen, setSharedOpen] = useState(false);
+  const resource = useResource(async () => {
+    const [room, members, companion] = await Promise.all([
+      chatApi.detail(roomId),
+      chatApi.members(roomId),
+      companionApi.detail(companionId),
+    ]);
+    const visible = members.data.filter(
+      member => member.membershipStatus === 'ACTIVE',
+    );
+    const enriched = [...visible];
+    let cursor = 0;
+    await Promise.all(
+      Array.from({length: Math.min(4, visible.length)}, async () => {
+        while (cursor < visible.length) {
+          const index = cursor++;
+          try {
+            const {data} = await chatApi.profile(visible[index].userId);
+            enriched[index] = {
+              ...visible[index],
+              displayName: data.displayName,
+              profileImageUrl: data.profileImageUrl,
+              isMe: !!myEmail && data.email === myEmail,
+            };
+          } catch {}
+        }
+      }),
+    );
+    return {room: room.data, members: enriched, companion: companion.data};
+  }, [roomId, companionId, myEmail]);
+  const shared = useResource(
+    async () => (sharedOpen ? (await chatApi.messages(roomId)).data : null),
+    [roomId, sharedOpen],
   );
   const room = resource.data?.room;
+  const group = room?.roomType === 'COMPANION_GROUP';
+  const notify = enabled =>
+    task.run(
+      `notification:${enabled}`,
+      () => chatApi.notification(roomId, enabled),
+      async () => {
+        setNotificationOpen(false);
+        await resource.reload();
+        feedback.inform(
+          t(
+            enabled
+              ? 'companion.notificationOn'
+              : 'companion.group.notificationOffTitle',
+          ),
+          t('companion.group.notificationResult'),
+        );
+      },
+    );
   const leave = () =>
     feedback.confirm(
       t('companion.leaveTitle'),
@@ -1133,112 +1520,172 @@ export function CompanionChatInfo({navigation, route}) {
         task.run(
           `leave:${roomId}`,
           () => chatApi.leave(roomId),
-          () => navigation.replace('CompanionInbox'),
+          () =>
+            navigation.reset({
+              index: 1,
+              routes: [
+                {
+                  name: 'MainTabs',
+                  params: {screen: '커뮤니티', params: {tab: 'COMPANION'}},
+                },
+                {name: 'CompanionInbox'},
+              ],
+            }),
         ),
     );
   return (
-    <Screen title={t('companion.roomInfo')}>
-      <ResourceBody resource={resource}>
-        {room && (
-          <>
-            <Title>{room.title}</Title>
-            <Txt style={s.small}>
-              {countText(t, 'companion.activeMembers', room.activeMemberCount)}
-            </Txt>
-            {resource.data.members.map(member => (
-              <Person
-                key={member.userId}
-                name={
-                  member.userName ||
-                  member.nickname ||
-                  t('companion.memberId', {id: member.userId})
-                }
-                subtitle={t(
-                  member.role === 'OWNER'
-                    ? 'companion.organizer'
-                    : 'companion.confirmedMember',
-                )}
+    <View style={s.screen}>
+      <Screen title={t('companion.roomInfo')}>
+        <ResourceBody resource={resource}>
+          {room && (
+            <>
+              <Title>{room.title}</Title>
+              <ChatSchedule
+                item={resource.data.companion}
+                includePlace={false}
               />
-            ))}
-            {room.roomType === 'COMPANION_GROUP' && (
-              <InfoLink
-                Icon={PinIcon}
-                label={t('companion.notice')}
-                onPress={() =>
-                  navigation.navigate('CompanionChatNotice', {
+              <Txt>
+                {countText(
+                  t,
+                  'companion.group.membersHeading',
+                  room.activeMemberCount,
+                )}
+              </Txt>
+              {resource.data.members.map(member => (
+                <Person
+                  key={member.userId}
+                  uri={member.profileImageUrl}
+                  name={
+                    String(member.userId) === String(myId) || member.isMe
+                      ? t('companion.group.me', {
+                          name:
+                            member.displayName ||
+                            t('companion.memberId', {id: member.userId}),
+                        })
+                      : member.displayName ||
+                        t('companion.memberId', {id: member.userId})
+                  }
+                  subtitle={t(
+                    member.role === 'OWNER'
+                      ? 'companion.organizer'
+                      : group
+                      ? 'companion.confirmedMember'
+                      : 'companion.role.PARTICIPANT',
+                  )}
+                />
+              ))}
+              <View style={{marginTop: 8}}>
+                {group && (
+                  <GroupOption
+                    Icon={PinIcon}
+                    title={t('companion.notice')}
+                    subtitle={room.noticeContent || t('companion.noNotice')}
+                    onPress={() =>
+                      navigation.navigate('CompanionChatNotice', {
+                        roomId,
+                        companionId,
+                      })
+                    }
+                  />
+                )}
+                <GroupOption
+                  Icon={PhotoIcon}
+                  title={t('companion.shared')}
+                  onPress={() => setSharedOpen(true)}
+                />
+                <GroupOption
+                  Icon={BellIcon}
+                  title={t('companion.notification')}
+                  subtitle={t('companion.notificationBody')}
+                  value={t(
+                    room.notificationEnabled
+                      ? 'companion.group.on'
+                      : 'companion.group.off',
+                  )}
+                  onPress={() => setNotificationOpen(true)}
+                />
+                <GroupOption
+                  Icon={ReportIcon}
+                  title={t('companion.report')}
+                  onPress={() =>
+                    navigation.navigate('CompanionChatReport', {
+                      roomId,
+                      companionId,
+                    })
+                  }
+                />
+                {group && (
+                  <GroupOption
+                    Icon={ExitIcon}
+                    title={t('companion.leave')}
+                    danger
+                    disabled={task.busy}
+                    onPress={leave}
+                  />
+                )}
+              </View>
+            </>
+          )}
+        </ResourceBody>
+      </Screen>
+      <GroupDialog
+        visible={notificationOpen}
+        title={t('companion.notification')}
+        onClose={() => setNotificationOpen(false)}>
+        <Txt style={s.small}>{t('companion.notificationBody')}</Txt>
+        <Action
+          secondary
+          label={t('companion.group.enableNotifications')}
+          disabled={task.busy}
+          onPress={() => notify(true)}
+        />
+        <Action
+          secondary
+          label={t('companion.group.disableNotifications')}
+          disabled={task.busy}
+          onPress={() => notify(false)}
+        />
+      </GroupDialog>
+      <GroupDialog
+        visible={sharedOpen}
+        title={t('companion.shared')}
+        onClose={() => setSharedOpen(false)}>
+        <ScrollView style={{maxHeight: 380}}>
+          <ResourceBody resource={shared}>
+            {(shared.data?.messages || [])
+              .filter(message =>
+                ['IMAGE', 'LOCATION'].includes(message.contentKind),
+              )
+              .map(message => (
+                <View key={message.messageId} style={s.soft}>
+                  {message.contentKind === 'IMAGE' ? (
+                    <PrivateImage message={message} roomId={roomId} compact />
+                  ) : (
+                    <MessageContent message={message} roomId={roomId} />
+                  )}
+                </View>
+              ))}
+            {!shared.data?.messages?.some(message =>
+              ['IMAGE', 'LOCATION'].includes(message.contentKind),
+            ) && <Txt style={s.small}>{t('companion.sharedEmpty')}</Txt>}
+            {shared.data?.hasNext && (
+              <Action
+                secondary
+                label={t('companion.group.viewAllShared')}
+                onPress={() => {
+                  setSharedOpen(false);
+                  navigation.navigate('CompanionChatShared', {
                     roomId,
                     companionId,
-                  })
-                }
+                  });
+                }}
               />
             )}
-            <InfoLink
-              Icon={PhotoIcon}
-              label={t('companion.shared')}
-              onPress={() =>
-                navigation.navigate('CompanionChatShared', {
-                  roomId,
-                  companionId,
-                })
-              }
-            />
-            <View style={s.between}>
-              <BellIcon width={22} height={22} />
-              <View style={s.grow}>
-                <Title>{t('companion.notification')}</Title>
-                <Txt style={s.small}>{t('companion.notificationBody')}</Txt>
-              </View>
-              <Switch
-                accessibilityLabel={t('companion.notification')}
-                value={room.notificationEnabled}
-                thumbColor={C.grayscale_0}
-                {...(Platform.OS === 'web'
-                  ? {activeThumbColor: C.grayscale_0}
-                  : {})}
-                ios_backgroundColor={C.grayscale_200}
-                disabled={task.busy}
-                trackColor={{true: C.primary_orange, false: C.grayscale_200}}
-                onValueChange={enabled =>
-                  task.run(
-                    `notification:${enabled}`,
-                    () => chatApi.notification(roomId, enabled),
-                    async () => {
-                      await resource.reload();
-                      feedback.inform(
-                        t(
-                          enabled
-                            ? 'companion.notificationOn'
-                            : 'companion.notificationOff',
-                        ),
-                      );
-                    },
-                  )
-                }
-              />
-            </View>
-            <InfoLink
-              Icon={ReportIcon}
-              label={t('companion.report')}
-              onPress={() =>
-                navigation.navigate('CompanionChatReport', {
-                  roomId,
-                  companionId,
-                })
-              }
-            />
-            {room.roomType === 'COMPANION_GROUP' && (
-              <InfoLink
-                Icon={ExitIcon}
-                label={t('companion.leave')}
-                onPress={leave}
-                disabled={task.busy}
-              />
-            )}
-          </>
-        )}
-      </ResourceBody>
+          </ResourceBody>
+        </ScrollView>
+      </GroupDialog>
       {feedback.modal}
-    </Screen>
+    </View>
   );
 }
 
@@ -1246,62 +1693,118 @@ export function CompanionChatNotice({navigation, route}) {
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
   const feedback = useFeedback();
-  const task = useTask(feedback, () => resource.reload());
+  const task = useTask(feedback);
   const [editing, setEditing] = useState(false);
-  const [content, setContent] = useState('');
+  const [draft, setDraft] = useState({time: '', place: '', body: ''});
   const resource = useResource(
     async isCurrent => {
-      const room = (await chatApi.detail(roomId)).data;
+      const {data} = await chatApi.detail(roomId);
       if (isCurrent()) {
-        setContent(room.noticeContent || '');
+        setDraft(parseNotice(data.noticeContent));
       }
-      return room;
+      return data;
     },
     [roomId],
   );
   const own = resource.data?.myMemberRole === 'OWNER';
+  const notice = parseNotice(resource.data?.noticeContent);
+  const showPlace = place =>
+    Linking.openURL(
+      `https://map.naver.com/p/search/${encodeURIComponent(place)}`,
+    );
   return (
-    <Screen
-      title={t('companion.notice')}
-      footer={
-        own &&
-        editing && (
+    <View style={s.screen}>
+      <GroupForm
+        title={t(
+          editing ? 'companion.group.editNoticeTitle' : 'companion.notice',
+        )}
+        footer={
           <Action
-            label={t('companion.saveNotice')}
-            disabled={task.busy}
-            onPress={() =>
-              task.run(
-                `notice:${content}`,
-                () => chatApi.notice(roomId, content),
-                async () => {
-                  setEditing(false);
-                  await resource.reload();
-                },
-              )
+            label={t(editing ? 'companion.saveNotice' : 'companion.goChat')}
+            disabled={
+              task.busy ||
+              (editing &&
+                (!draft.body.trim() || noticeContent(draft).length > 2000))
+            }
+            onPress={
+              editing
+                ? () =>
+                    task.run(
+                      `notice:${noticeContent(draft)}`,
+                      () => chatApi.notice(roomId, noticeContent(draft)),
+                      async () => {
+                        setEditing(false);
+                        await resource.reload();
+                      },
+                    )
+                : () =>
+                    navigation.navigate('CompanionChat', {roomId, companionId})
             }
           />
-        )
-      }>
-      <ResourceBody resource={resource}>
-        {editing ? (
+        }>
+        {resource.loading && !resource.data ? (
+          <Txt>{t('companion.loading')}</Txt>
+        ) : resource.error ? (
+          <Action label={t('companion.retry')} onPress={resource.reload} />
+        ) : editing ? (
           <>
             <Txt>{t('companion.noticeHelp')}</Txt>
             <Field
-              label={t('companion.noticeContent')}
-              value={content}
-              onChangeText={setContent}
-              multiline
-              maxLength={2000}
+              label={t('companion.group.meetingTime')}
+              maxLength={120}
+              value={draft.time}
+              onChangeText={time => setDraft(previous => ({...previous, time}))}
+              style={{backgroundColor: C.grayscale_100, borderWidth: 0}}
             />
+            <Field
+              label={t('companion.group.meetingPlace')}
+              maxLength={255}
+              value={draft.place}
+              onChangeText={place =>
+                setDraft(previous => ({...previous, place}))
+              }
+              style={{backgroundColor: C.grayscale_100, borderWidth: 0}}
+            />
+            <Field
+              label={t('companion.noticeContent')}
+              value={draft.body}
+              onChangeText={body => setDraft(previous => ({...previous, body}))}
+              multiline
+              maxLength={Math.max(
+                0,
+                2000 - draft.time.length - draft.place.length - 3,
+              )}
+              style={{backgroundColor: C.grayscale_100, borderWidth: 0}}
+            />
+            <Txt style={s.small}>{t('companion.noticePinned')}</Txt>
           </>
         ) : (
           <>
             <Title>{t('companion.noticeHeading')}</Title>
-            <View style={s.soft}>
-              <Txt>
-                {resource.data?.noticeContent || t('companion.noNotice')}
-              </Txt>
-            </View>
+            {(notice.time || notice.place) && (
+              <View style={[s.soft, {padding: 16, gap: 16}]}>
+                {!!notice.time && (
+                  <View style={s.row}>
+                    <PinIcon width={20} height={20} />
+                    <Txt style={s.grow}>{notice.time}</Txt>
+                  </View>
+                )}
+                {!!notice.place && (
+                  <View style={s.row}>
+                    <PinIcon width={20} height={20} />
+                    <Txt style={s.grow}>{trimJejuPrefix(notice.place)}</Txt>
+                  </View>
+                )}
+              </View>
+            )}
+            <Txt>{notice.body || t('companion.noNotice')}</Txt>
+            {!!notice.place && (
+              <Action
+                secondary
+                label={t('companion.group.viewPlace')}
+                onPress={() => showPlace(notice.place)}
+              />
+            )}
             <Txt style={s.small}>{t('companion.noticePinned')}</Txt>
             {own && (
               <Action
@@ -1310,17 +1813,11 @@ export function CompanionChatNotice({navigation, route}) {
                 onPress={() => setEditing(true)}
               />
             )}
-            <Action
-              label={t('companion.goChat')}
-              onPress={() =>
-                navigation.navigate('CompanionChat', {roomId, companionId})
-              }
-            />
           </>
         )}
-      </ResourceBody>
+      </GroupForm>
       {feedback.modal}
-    </Screen>
+    </View>
   );
 }
 
@@ -1354,26 +1851,36 @@ export function CompanionChatSearch({navigation, route}) {
   return (
     <Screen title={t('companion.search')}>
       <View style={{padding: 20, gap: 10}}>
-        <Field
-          label={t('companion.searchLabel')}
-          value={query}
-          onChangeText={setQuery}
-          returnKeyType="search"
-          onSubmitEditing={() => {
-            setCursor(null);
-            setSubmitted(query.trim());
-          }}
-        />
-        <Action
-          label={t('companion.search')}
-          disabled={!query.trim()}
-          onPress={() => {
-            setCursor(null);
-            setSubmitted(query.trim());
-          }}
-        />
+        <View
+          style={[
+            s.row,
+            {
+              backgroundColor: C.grayscale_100,
+              borderRadius: 12,
+              paddingHorizontal: 12,
+            },
+          ]}>
+          <SearchIcon width={20} height={20} />
+          <TextInput
+            style={[s.grow, {minHeight: 48, color: C.grayscale_800}]}
+            accessibilityLabel={t('companion.searchLabel')}
+            placeholder={t('companion.searchLabel')}
+            value={query}
+            onChangeText={setQuery}
+            returnKeyType="search"
+            onSubmitEditing={() => {
+              setCursor(null);
+              setSubmitted(query.trim());
+            }}
+          />
+        </View>
       </View>
       <ResourceBody resource={resource}>
+        {!!submitted && (
+          <Txt style={s.small}>
+            {countText(t, 'companion.group.searchCount', results.length)}
+          </Txt>
+        )}
         {results.map(message => (
           <TouchableOpacity
             style={s.soft}
@@ -1385,11 +1892,20 @@ export function CompanionChatSearch({navigation, route}) {
                 anchorMessageId: message.messageId,
               })
             }>
-            <Txt>{message.senderName}</Txt>
-            <Txt style={s.small}>{displayDate(message.sentAt)}</Txt>
+            <Txt style={{fontWeight: '600'}}>
+              {t('companion.group.searchSender', {
+                name:
+                  message.senderName ||
+                  t('companion.memberId', {id: message.senderUserId}),
+                time: displayTime(message.sentAt),
+              })}
+            </Txt>
             <Txt>{message.content}</Txt>
           </TouchableOpacity>
         ))}
+        {!!results.length && (
+          <Txt style={s.small}>{t('companion.group.searchHint')}</Txt>
+        )}
         {submitted && !results.length && <Txt>{t('companion.noResults')}</Txt>}
         {more && (
           <Action
@@ -1456,6 +1972,9 @@ export function CompanionChatPlace({navigation, route}) {
             content: name,
             payload: {
               name,
+              address: trimJejuPrefix(
+                selected.roadAddress || selected.address || '',
+              ),
               longitude: selected.longitude,
               latitude: selected.latitude,
             },
@@ -1504,7 +2023,7 @@ export function CompanionChatPlace({navigation, route}) {
       () => navigation.navigate('CompanionChat', {roomId, companionId}),
     );
   return (
-    <Screen
+    <GroupForm
       title={t('companion.sharePlace')}
       footer={
         selected && (
@@ -1515,43 +2034,55 @@ export function CompanionChatPlace({navigation, route}) {
           />
         )
       }>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={s.content}>
-        <Field
-          label={t('companion.placeSearch')}
+      <View
+        style={[
+          s.row,
+          {
+            backgroundColor: C.grayscale_100,
+            borderRadius: 12,
+            paddingHorizontal: 12,
+          },
+        ]}>
+        <SearchIcon width={20} height={20} />
+        <TextInput
+          accessibilityLabel={t('companion.placeSearch')}
+          placeholder={t('companion.placeSearch')}
+          placeholderTextColor={C.grayscale_400}
+          style={[s.grow, {minHeight: 48, color: C.grayscale_800}]}
           value={query}
           onChangeText={setQuery}
+          returnKeyType="search"
           onSubmitEditing={search}
         />
-        <Action
-          label={t('companion.placeSearch')}
-          disabled={task.busy || !query.trim()}
-          onPress={search}
-        />
-        {results.map((place, index) => (
-          <TouchableOpacity
-            key={index}
-            style={[s.soft, selected === place && s.info]}
-            onPress={() => setSelected(place)}>
-            <Txt>{place.placeName}</Txt>
-            <Txt style={s.small}>
-              {trimJejuPrefix(place.roadAddress || place.address)}
-            </Txt>
-          </TouchableOpacity>
-        ))}
-        {selected && (
-          <View style={s.card}>
-            <PinIcon width={24} height={24} />
-            <Title>{selected.placeName}</Title>
-            <Txt style={s.small}>
-              {trimJejuPrefix(selected.roadAddress || selected.address)}
-            </Txt>
-          </View>
-        )}
-      </ScrollView>
+      </View>
+      <Txt>{t('companion.group.searchResults')}</Txt>
+      {results.map((place, index) => (
+        <TouchableOpacity
+          key={index}
+          style={s.soft}
+          onPress={() => setSelected(place)}>
+          <Txt>{place.placeName}</Txt>
+          <Txt style={s.small}>
+            {trimJejuPrefix(place.roadAddress || place.address)}
+          </Txt>
+          {selected === place && <CheckIcon width={20} height={20} />}
+        </TouchableOpacity>
+      ))}
+      {selected && (
+        <Txt style={s.small}>{t('companion.group.selectedPlace')}</Txt>
+      )}
+      {selected && (
+        <View style={s.soft}>
+          <PinIcon width={24} height={24} />
+          <Title>{selected.placeName}</Title>
+          <Txt style={s.small}>
+            {trimJejuPrefix(selected.roadAddress || selected.address)}
+          </Txt>
+        </View>
+      )}
+
       {feedback.modal}
-    </Screen>
+    </GroupForm>
   );
 }
 
@@ -1597,45 +2128,170 @@ export function CompanionChatShared({route}) {
   );
 }
 
-export function CompanionChatReport() {
+export function CompanionChatReport({navigation, route}) {
   const {t} = useTranslation();
+  const roomId = route.params?.roomId;
+  const companionId = route.params?.companionId;
+  const myId = useUserStore(state => state.userProfile?.userId);
+  const myEmail = useUserStore(state => state.userProfile?.email);
+  const feedback = useFeedback();
+  const task = useTask(feedback);
   const [reason, setReason] = useState('ABUSE');
   const [description, setDescription] = useState('');
+  const [target, setTarget] = useState(route.params?.targetUserId || null);
+  const [done, setDone] = useState(false);
+  const members = useResource(async () => {
+    const [membersResponse, roomResponse, companionResponse] =
+      await Promise.all([
+        chatApi.members(roomId),
+        chatApi.detail(roomId),
+        companionApi.detail(companionId),
+      ]);
+    const room = roomResponse.data;
+    const ownId =
+      myId ??
+      (room.myMemberRole === 'OWNER'
+        ? companionResponse.data.organizerId
+        : room.roomType === 'COMPANION_DIRECT'
+        ? room.inquirerUserId
+        : null);
+    const others = membersResponse.data.filter(member =>
+      ownId != null
+        ? String(member.userId) !== String(ownId)
+        : myEmail
+        ? true
+        : member.role === 'OWNER',
+    );
+    const results = await Promise.all(
+      others.map(async member => {
+        try {
+          const {data: profile} = await chatApi.profile(member.userId);
+          if (myEmail && profile.email === myEmail) return null;
+          return {...member, displayName: profile.displayName};
+        } catch {
+          return myId != null ? member : null;
+        }
+      }),
+    );
+    return results.filter(Boolean);
+  }, [roomId, companionId, myId, myEmail]);
   return (
-    <Screen
-      title={t('companion.report')}
-      footer={<Action label={t('companion.submitReport')} disabled />}>
-      <ScrollView
-        keyboardShouldPersistTaps="handled"
-        contentContainerStyle={s.content}>
+    <View style={s.screen}>
+      <GroupForm
+        title={t('companion.report')}
+        footer={
+          <Action
+            label={t('companion.submitReport')}
+            disabled={task.busy || !target}
+            onPress={() =>
+              task.run(
+                `report:${target}:${reason}:${description}`,
+                () =>
+                  chatApi.report({
+                    targetUserId: target,
+                    roomId,
+                    reasonType: reason === 'INAPPROPRIATE' ? 'OTHER' : reason,
+                    description: description.trim() || null,
+                  }),
+                () => setDone(true),
+              )
+            }
+          />
+        }>
         <Title>{t('companion.reportHeading')}</Title>
         <Txt style={s.small}>{t('companion.reportPrivacy')}</Txt>
-        <View style={s.soft}>
-          <Txt>{t('companion.reportUnavailableBody')}</Txt>
-        </View>
+        <Txt>{t('companion.group.reportTarget')}</Txt>
+        <ResourceBody resource={members} scroll={false}>
+          {members.data?.map(member => (
+            <TouchableOpacity
+              key={member.userId}
+              accessibilityRole="radio"
+              accessibilityState={{
+                checked: String(target) === String(member.userId),
+              }}
+              onPress={() => setTarget(member.userId)}
+              style={[
+                s.row,
+                {
+                  padding: 12,
+                  backgroundColor:
+                    String(target) === String(member.userId)
+                      ? C.grayscale_100
+                      : C.grayscale_0,
+                  borderRadius: 12,
+                },
+              ]}>
+              {String(target) === String(member.userId) ? (
+                <RadioOn width={20} height={20} />
+              ) : (
+                <RadioOff width={20} height={20} />
+              )}
+              <Txt>
+                {member.displayName ||
+                  t('companion.memberId', {id: member.userId})}
+              </Txt>
+            </TouchableOpacity>
+          ))}
+        </ResourceBody>
         {['ABUSE', 'SPAM', 'INAPPROPRIATE', 'OTHER'].map(value => (
           <TouchableOpacity
             key={value}
             accessibilityRole="radio"
             accessibilityState={{checked: reason === value}}
             onPress={() => setReason(value)}
-            style={[s.row, s.soft]}>
+            style={[
+              s.row,
+              {
+                padding: 14,
+                borderRadius: 12,
+                backgroundColor:
+                  reason === value ? C.grayscale_100 : C.grayscale_0,
+              },
+            ]}>
             {reason === value ? (
-              <RadioOn width={22} height={22} />
+              <RadioOn width={20} height={20} />
             ) : (
-              <RadioOff width={22} height={22} />
+              <RadioOff width={20} height={20} />
             )}
             <Txt>{t(`companion.reportReason.${value}`)}</Txt>
           </TouchableOpacity>
         ))}
-        <Field
-          label={t('companion.reportDescription')}
-          value={description}
-          onChangeText={setDescription}
-          multiline
-          maxLength={1000}
+        <View style={[s.soft, {gap: 8}]}>
+          <Txt>{t('companion.reportDescription')}</Txt>
+          <TextInput
+            accessibilityLabel={t('companion.reportDescription')}
+            placeholder={t('companion.group.reportPlaceholder')}
+            placeholderTextColor={C.grayscale_400}
+            style={{
+              minHeight: 60,
+              color: C.grayscale_800,
+              textAlignVertical: 'top',
+            }}
+            value={description}
+            onChangeText={setDescription}
+            multiline
+            maxLength={1000}
+          />
+        </View>
+      </GroupForm>
+      <GroupDialog
+        visible={done}
+        title={t('companion.group.reportDone')}
+        onClose={() => {
+          setDone(false);
+          navigation.goBack();
+        }}>
+        <CheckIcon width={24} height={24} />
+        <Txt style={s.small}>{t('companion.group.reportDoneBody')}</Txt>
+        <Action
+          label={t('common.confirm')}
+          onPress={() => {
+            setDone(false);
+            navigation.goBack();
+          }}
         />
-      </ScrollView>
-    </Screen>
+      </GroupDialog>
+      {feedback.modal}
+    </View>
   );
 }

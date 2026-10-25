@@ -1,16 +1,41 @@
-import React, {useEffect, useRef, useState} from 'react';
-import {ScrollView, TouchableOpacity, View} from 'react-native';
+import React, {useEffect, useMemo, useRef, useState} from 'react';
+import {
+  ActivityIndicator,
+  AppState,
+  Text,
+  FlatList,
+  Keyboard,
+  KeyboardAvoidingView,
+  Platform,
+  RefreshControl,
+  ScrollView,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from 'react-native';
 import {useTranslation} from 'react-i18next';
-import {useNavigation} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import Modal from '@components/modals/AdaptiveModal';
 import DatePicker from '@components/Employ/DatePicker';
 import AppImage from '@components/AppImage';
 import communityApi from '@utils/api/communityApi';
+import CommunityDetailScreen from '../../screens/(Common)/Community/CommunityDetail';
+import homeStyles from '../../screens/(Common)/BottomTabs/Home/HomeMain/Home.styles';
+import communityStyles from '../../screens/(Common)/BottomTabs/Community/Community.styles';
+import {CompanionPost, CompanionPostInfo} from './communityPost';
+import {loadCompanionFeedPage} from './communityFeed';
+import {MyCompanionCard} from './myCompanionUi';
+import {postSchedule} from './communityPost';
 import useUserStore from '@stores/userStore';
 import {COLORS as C} from '@constants/colors';
-import {formatNumber} from '@utils/localeFormat';
+import {formatNumber, formatDate} from '@utils/localeFormat';
+import writeStyles from '../../screens/(Common)/Community/CommunityWrite/CommunityWrite.styles';
+import {FONTS} from '@constants/fonts';
+import UpIcon from '@assets/images/chevron_up_gray.svg';
+import DownIcon from '@assets/images/chevron_down_gray.svg';
+import PlaceOrangeIcon from '@assets/images/map_pin_fill_orange.svg';
 import ChatIcon from '@assets/images/chat_bubbles_black.svg';
 import ChatBlueIcon from '@assets/images/chat_bubbles_blue.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
@@ -18,6 +43,7 @@ import MinusIcon from '@assets/images/minus_black.svg';
 import CloseIcon from '@assets/images/x_gray.svg';
 import {
   companionApi,
+  chatApi,
   companionEnabled,
   newIntentKey,
   uploadPostImages,
@@ -37,7 +63,6 @@ import {
 import {
   Action,
   Chip,
-  CompanionCard,
   Field,
   LoginGate,
   Meta,
@@ -60,102 +85,155 @@ const goCompanions = navigation =>
   });
 export function ChatEntry({navigation, label}) {
   const {t} = useTranslation();
+  const focused = useIsFocused();
+  const token = useUserStore(state => state.accessToken);
+  const [unreadCount, setUnreadCount] = useState(0);
+  useEffect(() => {
+    setUnreadCount(0);
+    if (!focused || !token) {
+      return;
+    }
+    let disposed = false;
+    let busy = false;
+    let appState = AppState.currentState;
+    const refresh = async () => {
+      if (disposed || busy || (appState && appState !== 'active')) {
+        return;
+      }
+      busy = true;
+      try {
+        const {data} = await chatApi.list();
+        if (!disposed) {
+          setUnreadCount(
+            (Array.isArray(data) ? data : []).reduce((total, room) => {
+              const count = Number(room.unreadCount);
+              return total + (Number.isFinite(count) ? Math.max(0, count) : 0);
+            }, 0),
+          );
+        }
+      } catch {
+        // A transient chat failure must not hide the community screen.
+      } finally {
+        busy = false;
+      }
+    };
+    refresh();
+    const timer = setInterval(refresh, 30000);
+    const subscription = AppState.addEventListener('change', nextState => {
+      appState = nextState;
+      if (nextState === 'active') {
+        refresh();
+      }
+    });
+    return () => {
+      disposed = true;
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, [focused, token]);
   return (
     <TouchableOpacity
       style={s.iconButton}
-      accessibilityLabel={label || t('companion.inbox')}
+      accessibilityRole="button"
+      accessibilityLabel={
+        unreadCount > 0
+          ? t('companion.inbox.unreadLabel', {value: formatNumber(unreadCount)})
+          : label || t('companion.inbox')
+      }
       onPress={() => navigation.navigate('CompanionInbox')}>
       <ChatIcon width={24} height={24} />
+      {unreadCount > 0 && (
+        <View
+          pointerEvents="none"
+          style={[homeStyles.unreadBadge, {top: 3, right: 3}]}>
+          <Text style={homeStyles.unreadBadgeText}>
+            {unreadCount > 99
+              ? t('companion.inbox.countOverflow', {value: formatNumber(99)})
+              : formatNumber(unreadCount)}
+          </Text>
+        </View>
+      )}
     </TouchableOpacity>
   );
 }
-export function CompanionList({isActive = true}) {
+export function CompanionList({isActive = true, selectedSort = 'LATEST'}) {
   const {t} = useTranslation();
   const navigation = useNavigation();
-  const [status, setStatus] = useState('OPEN');
-  const [region, setRegion] = useState('');
   const [page, setPage] = useState(0);
   const [items, setItems] = useState([]);
+  const advancing = useRef(false);
   const resource = useResource(
     async isCurrent => {
       if (!isActive) {
         return null;
       }
-      const result = (
-        await companionApi.list({
-          status,
-          ...(region ? {regionCode: region} : {}),
-          page,
-          size: 20,
-        })
-      ).data;
-      if (!isCurrent()) {
-        return null;
+      try {
+        const result = await loadCompanionFeedPage(page, isCurrent);
+        if (!isCurrent()) {
+          return null;
+        }
+        setItems(previous =>
+          page
+            ? [
+                ...previous.filter(
+                  item =>
+                    !result.content.some(
+                      next => next.companionId === item.companionId,
+                    ),
+                ),
+                ...result.content,
+              ]
+            : result.content,
+        );
+        return result;
+      } finally {
+        advancing.current = false;
       }
-      setItems(previous =>
-        page
-          ? [
-              ...previous.filter(
-                item =>
-                  !result.content.some(
-                    next => next.companionId === item.companionId,
-                  ),
-              ),
-              ...result.content,
-            ]
-          : result.content,
-      );
-      return result;
     },
-    [status, region, page, isActive],
+    [page, isActive],
   );
+  const sorted = [...items].sort((a, b) => {
+    const difference =
+      (a.post.createdAt ? +kstDate(a.post.createdAt) : 0) -
+      (b.post.createdAt ? +kstDate(b.post.createdAt) : 0);
+    return selectedSort === 'OLDEST' ? difference : -difference;
+  });
+  const refresh = () => {
+    if (page) {
+      setPage(0);
+    } else {
+      resource.reload();
+    }
+  };
   return (
     <View style={s.screen}>
-      <ScrollView
-        horizontal
-        showsHorizontalScrollIndicator={false}
-        style={{flexGrow: 0}}
-        contentContainerStyle={{
-          paddingHorizontal: 20,
-          paddingBottom: 16,
-          gap: 8,
-        }}>
-        {['OPEN', 'CLOSED'].map(value => (
-          <Chip
-            key={value}
-            label={t(`companion.status.${value}`)}
-            selected={status === value}
-            onPress={() => {
-              setPage(0);
-              setStatus(value);
-            }}
-          />
-        ))}
-        <Chip
-          label={t('common.all')}
-          selected={!region}
-          onPress={() => {
-            setPage(0);
-            setRegion('');
+      <ResourceBody
+        resource={{
+          ...resource,
+          data: resource.data || (items.length ? {} : null),
+        }}
+        scroll={false}>
+        <FlatList
+          data={sorted}
+          keyExtractor={item => String(item.companionId)}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={communityStyles.listContent}
+          refreshControl={
+            <RefreshControl refreshing={resource.loading} onRefresh={refresh} />
+          }
+          onEndReachedThreshold={0.35}
+          onEndReached={() => {
+            if (
+              !advancing.current &&
+              !resource.loading &&
+              resource.data?.last === false
+            ) {
+              advancing.current = true;
+              setPage(value => value + 1);
+            }
           }}
-        />
-        {REGIONS.map(value => (
-          <Chip
-            key={value}
-            label={t(`companion.region.${value}`)}
-            selected={region === value}
-            onPress={() => {
-              setPage(0);
-              setRegion(value);
-            }}
-          />
-        ))}
-      </ScrollView>
-      <ResourceBody resource={resource}>
-        {items.length ? (
-          items.map(item => (
-            <CompanionCard
-              key={item.companionId}
+          renderItem={({item}) => (
+            <CompanionPost
               item={item}
               onPress={() =>
                 navigation.navigate('CompanionDetail', {
@@ -163,22 +241,18 @@ export function CompanionList({isActive = true}) {
                 })
               }
             />
-          ))
-        ) : (
-          <View style={s.empty}>
-            <ChatBlueIcon width={48} height={48} />
-            <Title>{t('companion.listEmpty')}</Title>
-            <Txt style={s.muted}>{t('companion.listEmptyBody')}</Txt>
-          </View>
-        )}
-        {resource.data?.last === false && (
-          <Action
-            secondary
-            label={t('companion.loadMore')}
-            disabled={resource.loading}
-            onPress={() => setPage(value => value + 1)}
-          />
-        )}
+          )}
+          ListEmptyComponent={
+            <Txt style={communityStyles.emptyText}>
+              {t('companion.listEmpty')}
+            </Txt>
+          }
+          ListFooterComponent={
+            resource.loading && items.length > 0 ? (
+              <ActivityIndicator color={C.grayscale_500} />
+            ) : null
+          }
+        />
       </ResourceBody>
     </View>
   );
@@ -194,13 +268,6 @@ export function CompanionDetail({navigation, route}) {
     [id],
   );
   const item = resource.data;
-  const post = useResource(
-    async () =>
-      item?.postId
-        ? (await communityApi.getPostDetail(item.postId)).data
-        : null,
-    [item?.postId],
-  );
   const own =
     String(item?.organizerId) ===
     String(useUserStore(state => state.userProfile?.userId));
@@ -213,119 +280,131 @@ export function CompanionDetail({navigation, route}) {
     }
     task.run(`inquire:${id}`, key => companionApi.inquire(id, key), openChat);
   };
+  if (!item || resource.error) {
+    return (
+      <Screen title={t('companion.title')}>
+        <ResourceBody resource={resource} />
+      </Screen>
+    );
+  }
+  const canOpenDirect =
+    item.status === 'OPEN' &&
+    !own &&
+    (hasAction(item, 'OPEN_INQUIRY') ||
+      ['INQUIRING', 'PENDING', 'ACCEPTED', 'WITHDRAWN', 'REJECTED'].includes(
+        item.myParticipationStatus,
+      ) ||
+      !useUserStore.getState().accessToken);
+  const canOpenGroup =
+    item.status === 'CLOSED' &&
+    (own || item.myParticipationStatus === 'ACCEPTED') &&
+    item.confirmedCount > 0;
+  const action =
+    own && item.status === 'OPEN'
+      ? () => navigation.navigate('CompanionManage', {companionId: id})
+      : canOpenGroup
+      ? openChat
+      : hasAction(item, 'OPEN_INQUIRY') || !useUserStore.getState().accessToken
+      ? inquire
+      : openChat;
   return (
-    <Screen
-      title={t('companion.title')}
-      right={<ChatEntry navigation={navigation} />}
-      footer={
-        item && (
-          <>
-            {item.status === 'OPEN' && !own && (
-              <Action
-                label={t(
-                  hasAction(item, 'OPEN_INQUIRY') ||
-                    !useUserStore.getState().accessToken
-                    ? 'companion.chat'
-                    : 'companion.goChat',
-                )}
-                disabled={
-                  task.busy ||
-                  (!hasAction(item, 'OPEN_INQUIRY') &&
-                    ![
-                      'INQUIRING',
-                      'PENDING',
-                      'ACCEPTED',
-                      'WITHDRAWN',
-                      'REJECTED',
-                    ].includes(item.myParticipationStatus) &&
-                    !!useUserStore.getState().accessToken)
-                }
-                onPress={
-                  hasAction(item, 'OPEN_INQUIRY') ||
-                  !useUserStore.getState().accessToken
-                    ? inquire
-                    : openChat
-                }
-              />
-            )}
-            {own && (
-              <Action
-                label={t('companion.manage')}
-                onPress={() =>
-                  navigation.navigate('CompanionManage', {companionId: id})
-                }
-              />
-            )}
-            {item.status === 'CLOSED' &&
-              (own || item.myParticipationStatus === 'ACCEPTED') &&
-              item.confirmedCount > 0 && (
-                <Action label={t('companion.groupChat')} onPress={openChat} />
+    <View style={s.screen}>
+      <CommunityDetailScreen
+        route={{
+          ...route,
+          params: {
+            ...route.params,
+            postId: item.postId,
+            sourceTab: 'COMPANION',
+          },
+        }}
+        headerTitle={t('companion.title')}
+        contentOverride={{title: item.title, content: item.description}}
+        hidePostLocation
+        afterPostContent={
+          <CompanionPostInfo item={item}>
+            <Action
+              label={t(
+                own && item.status === 'OPEN'
+                  ? 'companion.manage'
+                  : canOpenGroup
+                  ? 'companion.groupChat'
+                  : item.status !== 'OPEN'
+                  ? 'companion.status.CLOSED'
+                  : 'companion.chat',
               )}
-          </>
-        )
-      }>
-      <ResourceBody resource={resource}>
-        {item && (
-          <>
-            <View style={s.wrap}>
-              <Status item={item} />
-              <Txt style={s.small}>
-                {t(`companion.activity.${item.activityType}`, {
-                  defaultValue: item.activityType,
-                })}
-              </Txt>
-            </View>
-            {post.data?.author?.nickname && (
-              <Person
-                name={post.data.author.nickname}
-                uri={post.data.author.profileImageUrl}
-                subtitle={t('companion.organizer')}
-              />
-            )}
-            <Title>{item.title}</Title>
-            <Txt>{item.description}</Txt>
-            {post.data?.images?.map((image, index) => (
-              <AppImage
-                key={image.imageId || index}
-                uri={image.imageUrl}
-                style={{width: '100%', height: 220, borderRadius: 12}}
-              />
-            ))}
-            <View style={s.soft}>
-              <Title>{t('companion.info')}</Title>
-              <Meta item={item} total />
-            </View>
-            {item.status === 'OPEN' && (
-              <View style={s.soft}>
-                <Txt>
-                  {t('companion.closesAt', {
-                    date: displayDate(item.closeAt),
-                    time: displayTime(item.closeAt),
-                  })}
-                </Txt>
-                <Txt style={s.small}>{t('companion.closesEarly')}</Txt>
-              </View>
-            )}
-            {item.myParticipationStatus && (
-              <Txt style={s.blue}>
-                {t(`companion.participation.${item.myParticipationStatus}`)}
-              </Txt>
-            )}
-            {item.status === 'CLOSED' && !item.confirmedCount && (
-              <Txt style={s.muted}>{t('companion.noGroup')}</Txt>
-            )}
-          </>
-        )}
-      </ResourceBody>
+              disabled={
+                task.busy ||
+                (!own && !canOpenDirect && !canOpenGroup) ||
+                (own && item.status !== 'OPEN' && !canOpenGroup)
+              }
+              onPress={action}
+            />
+          </CompanionPostInfo>
+        }
+      />
       {feedback.modal}
-    </Screen>
+    </View>
   );
 }
 
+// Local form styling: preserve shared fields used by the other companion screens.
+function CompanionWriteField({label, style, ...props}) {
+  return (
+    <View style={{gap: 10}}>
+      <Txt style={FONTS.fs_14_regular}>{label}</Txt>
+      <TextInput
+        {...props}
+        accessibilityLabel={label}
+        placeholderTextColor={C.grayscale_400}
+        style={[
+          {
+            ...FONTS.fs_14_regular,
+            color: C.grayscale_900,
+            borderWidth: 1,
+            borderColor: C.grayscale_200,
+            borderRadius: 24,
+            minHeight: 48,
+            paddingHorizontal: 14,
+            paddingVertical: 12,
+            textAlignVertical: props.multiline ? 'top' : 'center',
+          },
+          style,
+        ]}
+      />
+    </View>
+  );
+}
 export function CompanionWrite({navigation, route}) {
   const {t} = useTranslation();
+  const keyboardContainer = useRef(null);
+  const formScroll = useRef(null);
+  const focusedInput = useRef(null);
+  const [keyboardOffset, setKeyboardOffset] = useState(0);
+  const revealInput = () => {
+    if (Platform.OS === 'ios' && focusedInput.current != null) {
+      formScroll.current
+        ?.getScrollResponder()
+        ?.scrollResponderScrollNativeHandleToKeyboard(
+          focusedInput.current,
+          24,
+          true,
+        );
+    }
+  };
+  const focusInput = event => {
+    focusedInput.current = event.target;
+    requestAnimationFrame(revealInput);
+  };
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return;
+    }
+    const subscription = Keyboard.addListener('keyboardDidShow', revealInput);
+    return () => subscription.remove();
+  }, []);
   const editing = route.params?.companion;
-  const feedback = useFeedback();
+  const feedback = useFeedback({horizontalButtons: true});
   const task = useTask(feedback);
   const showError = feedback.error;
   const [step, setStep] = useState(1);
@@ -343,6 +422,47 @@ export function CompanionWrite({navigation, route}) {
   const [editReady, setEditReady] = useState(!editing);
   const [expectedUpdatedAt, setExpectedUpdatedAt] = useState(null);
   const [dateField, setDateField] = useState(null);
+  const [regionOpen, setRegionOpen] = useState(false);
+  // Keep the calendar date stable while its own month/selection state changes.
+  const calendarMinDate = useMemo(() => {
+    if (dateField === 'endDate' && draft.startDate) {
+      return kstDate(draft.startDate);
+    }
+    return kstDate(dateKey(new Date()));
+  }, [dateField, draft.startDate]);
+  const calendarValue = useMemo(
+    () => (draft[dateField] ? kstDate(draft[dateField]) : calendarMinDate),
+    [dateField, draft.startDate, draft.endDate, calendarMinDate],
+  );
+  const [categoryOpen, setCategoryOpen] = useState(false);
+  const [categories, setCategories] = useState([]);
+  const {i18n} = useTranslation();
+  useEffect(() => {
+    let active = true;
+    communityApi
+      .getCategories()
+      .then(({data}) => {
+        if (active && Array.isArray(data)) {
+          setCategories(
+            data.filter(
+              category =>
+                category.contentType === 'COMMUNITY' &&
+                category.code !== 'STAFF',
+            ),
+          );
+        }
+      })
+      .catch(showError);
+    return () => {
+      active = false;
+    };
+  }, [showError]);
+  const firstStepValid = !validateDraft(
+    {...draft, description: '0123456789'},
+    new Date(),
+    !editing,
+  );
+  const completeValid = !validateDraft(draft, new Date(), !editing);
   const transaction = useRef(null);
   const changed = Object.keys(draft).some(key => draft[key] !== editing?.[key]);
   const set = (key, value) =>
@@ -542,264 +662,508 @@ export function CompanionWrite({navigation, route}) {
     }
   };
   return (
-    <Screen
-      title={t(editing ? 'companion.edit' : 'companion.write')}
-      onBack={back}
-      footer={
-        <Action
-          label={t(
-            step === 1
-              ? 'common.next'
-              : editing
-              ? 'companion.save'
-              : 'companion.publish',
-          )}
-          disabled={
-            task.busy ||
-            !editReady ||
-            !companionEnabled ||
-            !useUserStore.getState().accessToken
-          }
-          onPress={step === 1 ? next : () => submit()}
-        />
-      }>
-      <LoginGate navigation={navigation}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          contentContainerStyle={s.content}>
-          <View style={s.between}>
-            <Txt style={s.orange}>
-              {t(step === 1 ? 'companion.stepSchedule' : 'companion.stepIntro')}
-            </Txt>
-            <Txt style={s.small}>{t('companion.stepValue', {step})}</Txt>
-          </View>
-          <View style={{height: 3, backgroundColor: C.grayscale_200}}>
-            <View
+    <View
+      ref={keyboardContainer}
+      collapsable={false}
+      style={{flex: 1}}
+      onLayout={() => {
+        if (Platform.OS === 'ios') {
+          keyboardContainer.current?.measureInWindow((x, y) =>
+            setKeyboardOffset(y),
+          );
+        }
+      }}>
+      <KeyboardAvoidingView
+        style={{flex: 1}}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        keyboardVerticalOffset={keyboardOffset}>
+        <Screen
+          title={t(editing ? 'companion.edit' : 'companion.writeHeader')}
+          onBack={back}
+          footer={
+            <Action
               style={{
-                height: 3,
-                width: step === 1 ? '50%' : '100%',
-                backgroundColor: C.primary_orange,
+                marginTop: -1,
+                marginBottom: Platform.OS === 'ios' ? 20 : 0,
               }}
-            />
-          </View>
-          {step === 1 ? (
-            <>
-              <Field
-                label={t('companion.titleLabel')}
-                value={draft.title}
-                onChangeText={value => set('title', value)}
-                maxLength={120}
-                editable={!task.busy && !transaction.current}
-                placeholder={t('companion.titlePlaceholder')}
-              />
-              <Txt>{t('companion.activityLabel')}</Txt>
-              <View style={s.wrap}>
-                {ACTIVITIES.map(activity => (
-                  <Chip
-                    key={activity}
-                    label={t(`companion.activity.${activity}`)}
-                    selected={draft.activityType === activity}
-                    onPress={() =>
-                      !editing?.confirmedCount &&
-                      !task.busy &&
-                      !transaction.current &&
-                      set('activityType', activity)
-                    }
-                  />
-                ))}
-              </View>
-              <Txt>{t('companion.regionLabel')}</Txt>
-              <View style={s.wrap}>
-                {REGIONS.map(region => (
-                  <Chip
-                    key={region}
-                    label={t(`companion.region.${region}`)}
-                    selected={draft.regionCode === region}
-                    onPress={() =>
-                      !editing?.confirmedCount &&
-                      !task.busy &&
-                      !transaction.current &&
-                      set('regionCode', region)
-                    }
-                  />
-                ))}
-              </View>
-              <Field
-                label={t('companion.placeLabel')}
-                placeholder={t('companion.placePlaceholder')}
-                value={draft.meetingPlace}
-                maxLength={255}
-                editable={!task.busy && !transaction.current}
-                onChangeText={value => set('meetingPlace', value)}
-              />
-              <Txt>{t('companion.dateLabel')}</Txt>
-              <View style={s.row}>
-                {['startDate', 'endDate'].map(key => (
-                  <View style={s.grow} key={key}>
-                    <Action
-                      secondary
-                      label={
-                        draft[key]
-                          ? displayDate(draft[key])
-                          : t(`companion.${key}`)
-                      }
-                      disabled={!!editing || task.busy || !!transaction.current}
-                      onPress={() => setDateField(key)}
-                    />
-                  </View>
-                ))}
-              </View>
-              <Txt style={s.small}>
-                {t(editing ? 'companion.dateLocked' : 'companion.deadlineRule')}
-              </Txt>
-              <Txt>{t('companion.capacityLabel')}</Txt>
-              <View style={s.between}>
-                <TouchableOpacity
-                  disabled={
-                    draft.capacity <=
-                      Math.max(1, editing?.confirmedCount || 0) ||
-                    task.busy ||
-                    !!transaction.current
-                  }
-                  onPress={() => set('capacity', draft.capacity - 1)}
-                  style={s.iconButton}
-                  accessibilityLabel={t('companion.decrease')}>
-                  <MinusIcon width={24} height={24} />
-                </TouchableOpacity>
-                <Title>
-                  {countText(t, 'companion.people', draft.capacity)}
-                </Title>
-                <TouchableOpacity
-                  disabled={
-                    draft.capacity >= 100 || task.busy || !!transaction.current
-                  }
-                  onPress={() => set('capacity', draft.capacity + 1)}
-                  style={s.iconButton}
-                  accessibilityLabel={t('companion.increase')}>
-                  <PlusIcon width={24} height={24} />
-                </TouchableOpacity>
-              </View>
-              {!!editing?.confirmedCount && (
-                <Txt style={s.small}>{t('companion.acceptedEditRule')}</Txt>
+              label={t(
+                step === 1
+                  ? 'common.next'
+                  : editing
+                  ? 'companion.save'
+                  : 'companion.publish',
               )}
-            </>
-          ) : (
-            <>
-              <Field
-                label={t('companion.descriptionLabel')}
-                placeholder={t('companion.descriptionPlaceholder')}
-                value={draft.description}
-                onChangeText={value => set('description', value)}
-                maxLength={1000}
-                multiline
-                editable={!task.busy && !transaction.current}
-              />
-              <Txt style={s.small}>
-                {t('companion.descriptionCount', {
-                  count: formatNumber(draft.description.length),
-                })}
-              </Txt>
-              <Txt>{t('companion.photosLabel')}</Txt>
-              <View style={s.wrap}>
-                {images.map((image, index) => (
-                  <View key={image.uri} style={{width: 84, height: 84}}>
-                    <AppImage
-                      uri={image.uri}
-                      style={{width: 84, height: 84, borderRadius: 8}}
-                    />
-                    <TouchableOpacity
-                      accessibilityLabel={t('companion.removePhoto', {
-                        index: index + 1,
-                      })}
-                      disabled={task.busy || !!transaction.current}
-                      onPress={() =>
-                        setImages(previous =>
-                          previous.filter((_, position) => position !== index),
-                        )
-                      }
-                      style={{
-                        position: 'absolute',
-                        right: 0,
-                        top: 0,
-                        backgroundColor: C.grayscale_0,
-                        borderRadius: 12,
-                      }}>
-                      <CloseIcon width={24} height={24} />
-                    </TouchableOpacity>
+              disabled={
+                !(step === 1 ? firstStepValid : completeValid) ||
+                task.busy ||
+                !editReady ||
+                !companionEnabled ||
+                !useUserStore.getState().accessToken
+              }
+              onPress={step === 1 ? next : () => submit()}
+            />
+          }>
+          <LoginGate navigation={navigation}>
+            <ScrollView
+              ref={formScroll}
+              style={{flex: 1}}
+              keyboardDismissMode="interactive"
+              keyboardShouldPersistTaps="handled"
+              contentContainerStyle={{
+                paddingHorizontal: 20,
+                paddingTop: 8,
+                paddingBottom: 24,
+                gap: 14,
+                flexGrow: 1,
+              }}>
+              <View style={[writeStyles.categoryWrapper, {marginBottom: 16}]}>
+                <TouchableOpacity
+                  style={writeStyles.categoryButton}
+                  disabled={!!editing || task.busy || !!transaction.current}
+                  onPress={() => setCategoryOpen(value => !value)}>
+                  <Txt style={writeStyles.selectedCategoryButtonText}>
+                    {t('companion.title')}
+                  </Txt>
+                  {categoryOpen ? (
+                    <UpIcon width={16} height={16} />
+                  ) : (
+                    <DownIcon width={16} height={16} />
+                  )}
+                </TouchableOpacity>
+                {categoryOpen && (
+                  <View style={writeStyles.categoryMenu}>
+                    {categories.map(category => (
+                      <TouchableOpacity
+                        key={category.code}
+                        style={writeStyles.categoryMenuItem}
+                        onPress={() => {
+                          setCategoryOpen(false);
+                          if (category.code !== 'COMPANION') {
+                            navigation.replace('CommunityWrite', {
+                              initialCategory: category,
+                            });
+                          }
+                        }}>
+                        <Txt
+                          style={[
+                            writeStyles.categoryMenuText,
+                            category.code === 'COMPANION' &&
+                              writeStyles.selectedCategoryMenuText,
+                          ]}>
+                          {category.displayName}
+                        </Txt>
+                      </TouchableOpacity>
+                    ))}
                   </View>
-                ))}
-                {images.length < 5 && (
-                  <TouchableOpacity
-                    style={[s.soft, {alignItems: 'center'}]}
-                    onPress={addImages}
-                    disabled={task.busy || !!transaction.current}
-                    accessibilityLabel={t('companion.addPhoto')}>
-                    <PlusIcon width={24} height={24} />
-                    <Txt style={s.small}>
-                      {t('companion.photoCount', {count: images.length})}
-                    </Txt>
-                  </TouchableOpacity>
                 )}
               </View>
-              <Txt style={s.small}>{t('companion.imageLimit')}</Txt>
-              {transaction.current && (
-                <Txt style={s.small}>{t('companion.publishRetry')}</Txt>
+              <View style={s.between}>
+                <Txt style={s.orange}>
+                  {t(
+                    step === 1
+                      ? 'companion.stepSchedule'
+                      : 'companion.stepIntro',
+                  )}
+                </Txt>
+                <Txt style={s.small}>{t('companion.stepValue', {step})}</Txt>
+              </View>
+              <View
+                style={{
+                  height: 3,
+                  borderRadius: 3,
+                  overflow: 'hidden',
+                  backgroundColor: C.grayscale_200,
+                }}>
+                <View
+                  style={{
+                    height: 3,
+                    width: step === 1 ? '50%' : '100%',
+                    backgroundColor: C.primary_orange,
+                  }}
+                />
+              </View>
+              {step === 1 ? (
+                <>
+                  <CompanionWriteField
+                    onFocus={focusInput}
+                    style={{
+                      borderRadius: 24,
+                      minHeight: 48,
+                      paddingVertical: 10,
+                    }}
+                    label={t('companion.titleLabel')}
+                    value={draft.title}
+                    onChangeText={value => set('title', value)}
+                    maxLength={120}
+                    editable={!task.busy && !transaction.current}
+                    placeholder={t('companion.titlePlaceholder')}
+                  />
+                  <Txt>{t('companion.activityLabel')}</Txt>
+                  <View
+                    style={{flexDirection: 'row', flexWrap: 'wrap', gap: 8}}>
+                    {ACTIVITIES.map(activity => (
+                      <TouchableOpacity
+                        key={activity}
+                        accessibilityRole="button"
+                        accessibilityState={{
+                          selected: draft.activityType === activity,
+                        }}
+                        disabled={
+                          !!editing?.confirmedCount ||
+                          task.busy ||
+                          !!transaction.current
+                        }
+                        onPress={() => set('activityType', activity)}
+                        style={{
+                          borderRadius: 100,
+                          paddingHorizontal: 12,
+                          paddingVertical: 10,
+                          backgroundColor:
+                            draft.activityType === activity
+                              ? C.primary_orange
+                              : C.grayscale_100,
+                        }}>
+                        <Txt
+                          style={{
+                            ...FONTS.fs_14_regular,
+                            color:
+                              draft.activityType === activity
+                                ? C.grayscale_0
+                                : C.grayscale_900,
+                          }}>
+                          {t(`companion.activity.${activity}`)}
+                        </Txt>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
+                  <Txt>{t('companion.regionLabel')}</Txt>
+                  <View style={{position: 'relative', zIndex: 1}}>
+                    <TouchableOpacity
+                      accessibilityRole="button"
+                      accessibilityLabel={t('companion.regionLabel')}
+                      disabled={
+                        !!editing?.confirmedCount ||
+                        task.busy ||
+                        !!transaction.current
+                      }
+                      onPress={() => setRegionOpen(value => !value)}
+                      style={{
+                        borderWidth: 1,
+                        borderColor: C.grayscale_200,
+                        borderRadius: 24,
+                        minHeight: 48,
+                        paddingHorizontal: 14,
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: 8,
+                      }}>
+                      <Txt style={s.grow}>
+                        {draft.regionCode
+                          ? t(`companion.region.${draft.regionCode}`)
+                          : t('companion.regionSelect')}
+                      </Txt>
+                      <DownIcon width={20} height={20} />
+                    </TouchableOpacity>
+                    {regionOpen && (
+                      <View
+                        style={{
+                          position: 'absolute',
+                          top: 52,
+                          left: 0,
+                          right: 0,
+                          backgroundColor: C.grayscale_0,
+                          borderWidth: 1,
+                          borderColor: C.grayscale_200,
+                          borderRadius: 16,
+                          paddingVertical: 8,
+                          elevation: 4,
+                        }}>
+                        {REGIONS.map(region => (
+                          <TouchableOpacity
+                            key={region}
+                            accessibilityRole="button"
+                            accessibilityState={{
+                              selected: draft.regionCode === region,
+                            }}
+                            onPress={() => {
+                              set('regionCode', region);
+                              setRegionOpen(false);
+                            }}
+                            style={{
+                              paddingHorizontal: 14,
+                              paddingVertical: 12,
+                            }}>
+                            <Txt
+                              style={draft.regionCode === region && s.orange}>
+                              {t(`companion.region.${region}`)}
+                            </Txt>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                  <View style={{position: 'relative'}}>
+                    <CompanionWriteField
+                      onFocus={focusInput}
+                      label={t('companion.placeLabel')}
+                      placeholder={t('companion.placePlaceholder')}
+                      value={draft.meetingPlace}
+                      maxLength={255}
+                      style={{
+                        borderRadius: 24,
+                        minHeight: 48,
+                        paddingVertical: 12,
+                        paddingRight: 40,
+                      }}
+                      editable={!task.busy && !transaction.current}
+                      onChangeText={value => set('meetingPlace', value)}
+                    />
+                    <View
+                      pointerEvents="none"
+                      style={{position: 'absolute', right: 14, bottom: 12}}>
+                      <PlaceOrangeIcon width={20} height={20} />
+                    </View>
+                  </View>
+                  <Txt>{t('companion.dateLabel')}</Txt>
+                  <View style={s.row}>
+                    {['startDate', 'endDate'].map(key => (
+                      <View style={s.grow} key={key}>
+                        <TouchableOpacity
+                          accessibilityRole="button"
+                          accessibilityLabel={t(`companion.${key}`)}
+                          style={{
+                            borderWidth: 1,
+                            borderColor: C.grayscale_200,
+                            borderRadius: 24,
+                            minHeight: 48,
+                            justifyContent: 'center',
+                            paddingHorizontal: 14,
+                          }}
+                          disabled={
+                            !!editing || task.busy || !!transaction.current
+                          }
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            setDateField(key);
+                          }}>
+                          <Txt>
+                            {draft[key]
+                              ? i18n.resolvedLanguage?.startsWith('ko')
+                                ? draft[key].replace(/-/g, '. ')
+                                : formatDate(kstDate(draft[key]), {
+                                    timeZone: 'Asia/Seoul',
+                                    year: 'numeric',
+                                    month: '2-digit',
+                                    day: '2-digit',
+                                  })
+                              : t(`companion.${key}`)}
+                          </Txt>
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                  </View>
+                  {!!editing && (
+                    <Txt style={s.small}>{t('companion.dateLocked')}</Txt>
+                  )}
+                  <Txt>{t('companion.capacityLabel')}</Txt>
+                  <View style={s.between}>
+                    <TouchableOpacity
+                      disabled={
+                        draft.capacity <=
+                          Math.max(1, editing?.confirmedCount || 0) ||
+                        task.busy ||
+                        !!transaction.current
+                      }
+                      onPress={() => set('capacity', draft.capacity - 1)}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: C.grayscale_200,
+                        borderRadius: 8,
+                      }}
+                      accessibilityLabel={t('companion.decrease')}>
+                      <MinusIcon width={24} height={24} />
+                    </TouchableOpacity>
+                    <Title>
+                      {countText(t, 'companion.people', draft.capacity)}
+                    </Title>
+                    <TouchableOpacity
+                      disabled={
+                        draft.capacity >= 100 ||
+                        task.busy ||
+                        !!transaction.current
+                      }
+                      onPress={() => set('capacity', draft.capacity + 1)}
+                      style={{
+                        width: 44,
+                        height: 44,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderWidth: 1,
+                        borderColor: C.grayscale_200,
+                        borderRadius: 8,
+                      }}
+                      accessibilityLabel={t('companion.increase')}>
+                      <PlusIcon width={24} height={24} />
+                    </TouchableOpacity>
+                  </View>
+                  {!!editing?.confirmedCount && (
+                    <Txt style={s.small}>{t('companion.acceptedEditRule')}</Txt>
+                  )}
+                </>
+              ) : (
+                <>
+                  <CompanionWriteField
+                    onFocus={focusInput}
+                    style={{height: 180, minHeight: 180, borderRadius: 24}}
+                    label={t('companion.descriptionLabel')}
+                    placeholder={t('companion.descriptionPlaceholder')}
+                    value={draft.description}
+                    onChangeText={value => set('description', value)}
+                    maxLength={1000}
+                    multiline
+                    editable={!task.busy && !transaction.current}
+                  />
+                  <Txt style={s.small}>{t('companion.descriptionHelp')}</Txt>
+                  <Txt>{t('companion.photosLabel')}</Txt>
+                  <View style={s.wrap}>
+                    {images.map((image, index) => (
+                      <View key={image.uri} style={{width: 84, height: 84}}>
+                        <AppImage
+                          uri={image.uri}
+                          style={{width: 84, height: 84, borderRadius: 8}}
+                        />
+                        <TouchableOpacity
+                          accessibilityLabel={t('companion.removePhoto', {
+                            index: index + 1,
+                          })}
+                          disabled={task.busy || !!transaction.current}
+                          onPress={() =>
+                            setImages(previous =>
+                              previous.filter(
+                                (_, position) => position !== index,
+                              ),
+                            )
+                          }
+                          style={{
+                            position: 'absolute',
+                            right: 0,
+                            top: 0,
+                            backgroundColor: C.grayscale_0,
+                            borderRadius: 12,
+                          }}>
+                          <CloseIcon width={24} height={24} />
+                        </TouchableOpacity>
+                      </View>
+                    ))}
+                    {images.length < 5 && (
+                      <TouchableOpacity
+                        style={{
+                          width: 70,
+                          height: 70,
+                          borderWidth: 1,
+                          borderColor: C.grayscale_200,
+                          borderRadius: 12,
+                          backgroundColor: C.grayscale_100,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: 4,
+                        }}
+                        onPress={addImages}
+                        disabled={task.busy || !!transaction.current}
+                        accessibilityLabel={t('companion.addPhoto')}>
+                        <PlusIcon width={24} height={24} />
+                        <Txt style={s.small}>
+                          {t('companion.photoCount', {count: images.length})}
+                        </Txt>
+                      </TouchableOpacity>
+                    )}
+                  </View>
+                  <Txt style={s.small}>{t('companion.photosHelp')}</Txt>
+                  {transaction.current && (
+                    <Txt style={s.small}>{t('companion.publishRetry')}</Txt>
+                  )}
+                </>
               )}
-            </>
-          )}
-        </ScrollView>
-      </LoginGate>
-      <Modal
-        visible={!!dateField}
-        transparent
-        onRequestClose={() => setDateField(null)}>
-        <View
-          style={{
-            flex: 1,
-            justifyContent: 'center',
-            padding: 20,
-            backgroundColor: C.modal_background,
-          }}>
-          <DatePicker
-            label={t(`companion.${dateField || 'startDate'}`)}
-            value={draft[dateField] ? kstDate(draft[dateField]) : undefined}
-            minDate={
-              dateField === 'endDate' && draft.startDate
-                ? kstDate(draft.startDate)
-                : new Date(
-                    Date.now() +
-                      (new Date().getTime() >=
-                      new Date(
-                        `${dateKey(new Date())}T18:00:00+09:00`,
-                      ).getTime()
-                        ? 2
-                        : 1) *
-                        86400000,
-                  )
-            }
-            onChange={date => {
-              const value = dateKey(date);
-              setDraft(previous => ({
-                ...previous,
-                [dateField]: value,
-                ...(dateField === 'startDate' &&
-                (!previous.endDate || previous.endDate < value)
-                  ? {endDate: value}
-                  : {}),
-              }));
-              setDateField(null);
-            }}
-          />
-          <Action
-            secondary
-            label={t('common.cancel')}
-            onPress={() => setDateField(null)}
-          />
-        </View>
-      </Modal>
-      {feedback.modal}
-    </Screen>
+            </ScrollView>
+          </LoginGate>
+          <Modal
+            visible={!!dateField}
+            transparent
+            onRequestClose={() => setDateField(null)}>
+            <View
+              style={{
+                flex: 1,
+                justifyContent: 'center',
+                padding: 20,
+                backgroundColor: C.modal_background,
+              }}>
+              <TouchableOpacity
+                accessibilityRole="button"
+                accessibilityLabel={t('common.close')}
+                onPress={() => setDateField(null)}
+                style={{
+                  alignSelf: 'flex-end',
+                  width: 44,
+                  height: 44,
+                  borderRadius: 22,
+                  backgroundColor: C.grayscale_0,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  marginBottom: 8,
+                }}>
+                <CloseIcon width={24} height={24} />
+              </TouchableOpacity>
+              {!!dateField && (
+                <DatePicker
+                  key={dateField}
+                  label={t(`companion.${dateField}`)}
+                  value={calendarValue}
+                  minDate={calendarMinDate}
+                  onChange={date => {
+                    const value = dateKey(date);
+                    setDraft(previous => ({
+                      ...previous,
+                      [dateField]: value,
+                      ...(dateField === 'startDate' &&
+                      (!previous.endDate || previous.endDate < value)
+                        ? {endDate: value}
+                        : {}),
+                    }));
+                    setDateField(null);
+                  }}
+                />
+              )}
+            </View>
+          </Modal>
+          {feedback.modal}
+        </Screen>
+      </KeyboardAvoidingView>
+    </View>
   );
+}
+
+async function loadMyManagement(id) {
+  const first = (await companionApi.management(id)).data;
+  const content = [...first.applications.content];
+  let last = first.applications.last;
+  let nextPage = 1;
+  while (!last) {
+    const next = (await companionApi.management(id, nextPage++)).data
+      .applications;
+    content.push(...next.content);
+    last = next.last;
+  }
+  return {
+    data: {
+      ...first,
+      summary: {...first.summary, conversationCount: content.length},
+      applications: {content, last: true},
+    },
+  };
 }
 
 export function MyCompanions({navigation}) {
@@ -814,18 +1178,33 @@ export function MyCompanions({navigation}) {
         return {last: true};
       }
       const result = (await companionApi.mine({role, page, size: 20})).data;
-      // /me summaries do not include participation status: hydrate participant cards.
-      const cards =
-        role === 'PARTICIPANT'
-          ? await Promise.all(
-              result.content.map(
-                async item =>
-                  (
-                    await companionApi.detail(item.companionId)
-                  ).data,
-              ),
-            )
-          : result.content;
+      // Unpublished draft posts are not readable through the public community endpoint.
+      const summaries = result.content.filter(item => item.status !== 'DRAFT');
+      const cards = new Array(summaries.length);
+      let cursor = 0;
+      await Promise.all(
+        Array.from({length: Math.min(4, summaries.length)}, async () => {
+          while (cursor < summaries.length && isCurrent()) {
+            const index = cursor++;
+            const summary = summaries[index];
+            const [detail, post, management] = await Promise.all([
+              companionApi.detail(summary.companionId),
+              summary.postId
+                ? communityApi.getPostDetail(summary.postId, {commentSize: 1})
+                : Promise.resolve({data: {}}),
+              role === 'ORGANIZER'
+                ? loadMyManagement(summary.companionId)
+                : Promise.resolve(null),
+            ]);
+            cards[index] = {
+              ...summary,
+              ...detail.data,
+              author: post.data.author,
+              summary: management?.data.summary,
+            };
+          }
+        }),
+      );
       if (!isCurrent()) {
         return null;
       }
@@ -845,9 +1224,7 @@ export function MyCompanions({navigation}) {
     [role, page, token],
   );
   return (
-    <Screen
-      title={t('companion.my')}
-      right={<ChatEntry navigation={navigation} />}>
+    <Screen title={t('companion.my')}>
       <LoginGate navigation={navigation}>
         <View style={[s.wrap, {paddingHorizontal: 20}]}>
           {['ORGANIZER', 'PARTICIPANT'].map(value => (
@@ -864,61 +1241,105 @@ export function MyCompanions({navigation}) {
         </View>
         <ResourceBody resource={resource}>
           <View style={s.soft}>
-            <Txt style={s.small}>{t('companion.myDescription')}</Txt>
-          </View>
-          {items.map(item => (
-            <CompanionCard
-              key={item.companionId}
-              item={item}
-              onPress={() =>
-                navigation.navigate('CompanionDetail', {
-                  companionId: item.companionId,
-                })
-              }>
-              {item.myParticipationStatus && (
-                <Txt style={[s.small, s.blue]}>
-                  {t(`companion.participation.${item.myParticipationStatus}`)}
-                </Txt>
+            <Txt style={s.small}>
+              {t(
+                role === 'ORGANIZER'
+                  ? 'companion.myUi.organizerHelp'
+                  : 'companion.myUi.participantHelp',
               )}
-              <View style={s.wrap}>
-                {role === 'ORGANIZER' && (
+            </Txt>
+          </View>
+          {items.map(item => {
+            const organizer = role === 'ORGANIZER';
+            const open = item.status === 'OPEN';
+            const showPost = () =>
+              navigation.navigate('CompanionDetail', {
+                companionId: item.companionId,
+              });
+            return (
+              <View key={item.companionId} style={{gap: 12, marginBottom: 12}}>
+                <MyCompanionCard
+                  item={item}
+                  organizer={organizer}
+                  onPress={showPost}
+                />
+                {open && (
+                  <View style={s.soft}>
+                    <Txt style={s.small}>
+                      {organizer
+                        ? t('companion.myUi.recruitmentSummary', {
+                            pending: formatNumber(
+                              item.summary?.pendingCount || 0,
+                            ),
+                            inquiries: formatNumber(
+                              item.summary?.conversationCount || 0,
+                            ),
+                          })
+                        : t(
+                            item.myParticipationStatus === 'PENDING'
+                              ? 'companion.myUi.waiting'
+                              : 'companion.myUi.participationHelp',
+                          )}
+                    </Txt>
+                  </View>
+                )}
+                <View style={s.row}>
                   <Action
+                    style={s.grow}
                     secondary
-                    label={t('companion.manage')}
-                    onPress={() =>
-                      navigation.navigate('CompanionManage', {
-                        companionId: item.companionId,
-                      })
+                    label={t(
+                      organizer && open
+                        ? 'companion.manage'
+                        : 'companion.myUi.viewPost',
+                    )}
+                    onPress={
+                      organizer && open
+                        ? () =>
+                            navigation.navigate('CompanionManage', {
+                              companionId: item.companionId,
+                            })
+                        : showPost
                     }
                   />
-                )}
-                <Action
-                  label={t(
-                    item.status === 'CLOSED'
-                      ? 'companion.groupChat'
-                      : role === 'ORGANIZER'
-                      ? 'companion.inquiries'
-                      : 'companion.goChat',
-                  )}
-                  disabled={
-                    item.status === 'CANCELLED' ||
-                    (item.status === 'CLOSED' &&
-                      (!item.confirmedCount ||
-                        (role === 'PARTICIPANT' &&
-                          item.myParticipationStatus !== 'ACCEPTED')))
-                  }
-                  onPress={() =>
-                    navigation.navigate(
-                      role === 'ORGANIZER' && item.status === 'OPEN'
-                        ? 'CompanionManage'
-                        : 'CompanionChatAccess',
-                      {companionId: item.companionId},
-                    )
-                  }
-                />
+                  <Action
+                    style={s.grow}
+                    label={
+                      open && organizer
+                        ? countText(
+                            t,
+                            'companion.myUi.chatCount',
+                            item.summary?.conversationCount || 0,
+                          )
+                        : t(
+                            item.status === 'CLOSED'
+                              ? 'companion.groupChat'
+                              : 'companion.goChat',
+                          )
+                    }
+                    disabled={
+                      item.status === 'CANCELLED' ||
+                      item.status === 'DRAFT' ||
+                      (item.status === 'CLOSED' &&
+                        (!item.confirmedCount ||
+                          (!organizer &&
+                            item.myParticipationStatus !== 'ACCEPTED')))
+                    }
+                    onPress={() =>
+                      navigation.navigate(
+                        organizer && open
+                          ? 'CompanionManage'
+                          : 'CompanionChatAccess',
+                        {
+                          companionId: item.companionId,
+                          mode: organizer && open ? 'inquiries' : undefined,
+                        },
+                      )
+                    }
+                  />
+                </View>
               </View>
-            </CompanionCard>
-          ))}
+            );
+          })}
           {!items.length && (
             <View style={s.empty}>
               <Title>{t('companion.myEmpty')}</Title>
@@ -945,16 +1366,36 @@ export function MyCompanions({navigation}) {
 export function CompanionManage({navigation, route}) {
   const {t} = useTranslation();
   const id = route.params?.companionId;
-  const feedback = useFeedback();
+  const inquiryMode = route.params?.mode === 'inquiries';
+  const feedback = useFeedback({horizontalButtons: true});
   const task = useTask(feedback, () => resource.reload());
   const [page, setPage] = useState(0);
   const [people, setPeople] = useState([]);
   const resource = useResource(
     async isCurrent => {
-      const [detail, management] = await Promise.all([
+      const [detail, management, chats] = await Promise.all([
         companionApi.detail(id),
-        companionApi.management(id, page),
+        loadMyManagement(id),
+        chatApi.list().catch(() => ({data: []})),
       ]);
+      const members = management.data.applications.content;
+      let memberCursor = 0;
+      await Promise.all(
+        Array.from({length: Math.min(4, members.length)}, async () => {
+          while (memberCursor < members.length && isCurrent()) {
+            const index = memberCursor++;
+            try {
+              const {data: profile} = await chatApi.profile(
+                members[index].userId,
+              );
+              members[index] = {
+                ...members[index],
+                profileImageUrl: profile.profileImageUrl,
+              };
+            } catch {}
+          }
+        }),
+      );
       if (!isCurrent()) {
         return null;
       }
@@ -971,7 +1412,7 @@ export function CompanionManage({navigation, route}) {
             ]
           : management.data.applications.content,
       );
-      return {item: detail.data, ...management.data};
+      return {item: detail.data, ...management.data, chats: chats.data};
     },
     [id, page],
   );
@@ -1009,137 +1450,253 @@ export function CompanionManage({navigation, route}) {
           },
         ),
     );
-  const decide = async (person, accept) => {
+  const decide = (person, accept) => {
     const perform = () =>
       task.run(
-        `decide:${id}:${person.participationId}:${person.requestGeneration}:${accept}`,
+        `manage-decision:${id}:${person.participationId}:${person.requestGeneration}:${accept}`,
         key => companionApi.decide(id, person, accept, key),
         async () => {
           refresh();
           const current = (await companionApi.detail(id)).data;
-          if (current.status === 'CLOSED' && current.confirmedCount) {
+          if (current.status === 'CLOSED' && current.confirmedCount)
             navigation.navigate('CompanionChatAccess', {companionId: id});
-          }
         },
       );
-    if (accept && item.confirmedCount + 1 >= item.capacity) {
+    if (accept && item.confirmedCount + 1 >= item.capacity)
       feedback.confirm(
         t('companion.acceptLastTitle'),
         t('companion.closeBody'),
         t('companion.acceptAndGroup'),
         perform,
       );
-    } else {
-      perform();
-    }
+    else perform();
   };
   return (
     <Screen
-      title={t('companion.manage')}
+      title={t(
+        inquiryMode ? 'companion.myUi.inquiryTitle' : 'companion.manage',
+      )}
       footer={
-        item?.status === 'CLOSED' &&
-        item.confirmedCount > 0 && (
-          <Action
-            label={t('companion.groupChat')}
-            onPress={() =>
-              navigation.navigate('CompanionChatAccess', {companionId: id})
-            }
-          />
+        !inquiryMode &&
+        item && (
+          <View style={{paddingBottom: Platform.OS === 'ios' ? 20 : 0}}>
+            <Action
+              label={
+                item.status === 'OPEN'
+                  ? countText(
+                      t,
+                      'companion.myUi.inquiryButton',
+                      resource.data.summary.conversationCount,
+                    )
+                  : t('companion.groupChat')
+              }
+              disabled={
+                item.status === 'CANCELLED' ||
+                item.status === 'DRAFT' ||
+                (item.status === 'CLOSED' && !item.confirmedCount)
+              }
+              onPress={() =>
+                navigation.navigate(
+                  item.status === 'OPEN'
+                    ? 'CompanionManage'
+                    : 'CompanionChatAccess',
+                  {
+                    companionId: id,
+                    mode: item.status === 'OPEN' ? 'inquiries' : undefined,
+                  },
+                )
+              }
+            />
+          </View>
         )
       }>
       <ResourceBody resource={resource}>
         {item && (
           <>
-            <Status item={item} />
-            <Title>{item.title}</Title>
-            <Meta item={item} />
-            <View style={[s.soft, s.between]}>
-              {['inquiryCount', 'pendingCount', 'confirmedCount'].map(key => (
-                <View key={key} style={[s.grow, {alignItems: 'center'}]}>
-                  <Title>
-                    {key === 'confirmedCount'
-                      ? t('companion.ratio', {
-                          confirmed: resource.data.summary[key],
-                          capacity: item.capacity,
-                        })
-                      : formatNumber(resource.data.summary[key])}
-                  </Title>
-                  <Txt style={s.small}>{t(`companion.metric.${key}`)}</Txt>
+            {inquiryMode ? (
+              <>
+                <View style={s.soft}>
+                  <View style={s.row}>
+                    <Status item={item} />
+                    <Txt style={s.small}>
+                      {t('companion.myUi.confirmedRatio', {
+                        confirmed: formatNumber(item.confirmedCount),
+                        capacity: formatNumber(item.capacity),
+                      })}
+                    </Txt>
+                  </View>
+                  <Title>{item.title}</Title>
+                  <Txt style={s.small}>{postSchedule(item, t)}</Txt>
                 </View>
-              ))}
-            </View>
-            {item.status === 'OPEN' && (
-              <View style={s.row}>
-                <Action
-                  style={s.grow}
-                  secondary
-                  label={t('companion.edit')}
-                  disabled={task.busy}
-                  onPress={() =>
-                    navigation.navigate('CompanionWrite', {companion: item})
-                  }
-                />
-                <Action
-                  style={s.grow}
-                  secondary
-                  label={t('companion.close')}
-                  disabled={task.busy}
-                  onPress={close}
-                />
-              </View>
-            )}
-            <Title>{t('companion.requests')}</Title>
-            {people
-              .filter(person => person.status !== 'ACCEPTED')
-              .map(person => (
-                <View key={person.participationId} style={s.soft}>
-                  <Person
-                    name={person.userName}
-                    subtitle={t(`companion.participation.${person.status}`)}
-                  />
-                  {item.status === 'OPEN' && person.directRoomId && (
+                <View style={s.soft}>
+                  <Txt style={s.small}>
+                    {countText(
+                      t,
+                      'companion.myUi.inquiryHelp',
+                      resource.data.summary.conversationCount,
+                    )}
+                  </Txt>
+                </View>
+                {people.map(person => (
+                  <TouchableOpacity
+                    key={person.participationId}
+                    disabled={!person.directRoomId}
+                    onPress={() =>
+                      navigation.navigate('CompanionChat', {
+                        roomId: person.directRoomId,
+                        companionId: id,
+                        participant: person,
+                      })
+                    }
+                    style={{
+                      paddingVertical: 16,
+                      borderBottomWidth: 1,
+                      borderColor: C.grayscale_200,
+                    }}>
+                    <Person
+                      name={person.userName}
+                      uri={person.profileImageUrl}
+                      subtitle={t(`companion.participation.${person.status}`)}>
+                      <Txt style={s.small}>
+                        {displayTime(
+                          resource.data.chats.find(
+                            chat =>
+                              String(chat.roomId) ===
+                              String(person.directRoomId),
+                          )?.lastMessageAt,
+                        )}
+                      </Txt>
+                    </Person>
+                    <Txt style={[s.small, {marginTop: 8, marginLeft: 48}]}>
+                      {resource.data.chats.find(
+                        chat =>
+                          String(chat.roomId) === String(person.directRoomId),
+                      )?.lastMessagePreview ||
+                        t(`companion.participation.${person.status}`)}
+                    </Txt>
+                  </TouchableOpacity>
+                ))}
+              </>
+            ) : (
+              <>
+                <Status item={item} />
+                <Title>{item.title}</Title>
+                <Meta item={item} />
+                <View style={[s.soft, s.between]}>
+                  {['inquiryCount', 'pendingCount', 'confirmedCount'].map(
+                    key => (
+                      <View key={key} style={[s.grow, {alignItems: 'center'}]}>
+                        <Title>
+                          {key === 'confirmedCount'
+                            ? t('companion.ratio', {
+                                confirmed: resource.data.summary[key],
+                                capacity: item.capacity,
+                              })
+                            : formatNumber(resource.data.summary[key])}
+                        </Title>
+                        <Txt style={s.small}>
+                          {t(`companion.metric.${key}`)}
+                        </Txt>
+                      </View>
+                    ),
+                  )}
+                </View>
+                {item.status === 'OPEN' && (
+                  <View style={s.row}>
                     <Action
+                      style={s.grow}
                       secondary
-                      label={t('companion.viewConversation')}
+                      label={t('companion.edit')}
+                      disabled={task.busy}
                       onPress={() =>
-                        navigation.navigate('CompanionChat', {
-                          roomId: person.directRoomId,
-                          companionId: id,
-                          participant: person,
-                        })
+                        navigation.navigate('CompanionWrite', {companion: item})
                       }
                     />
+                    <Action
+                      style={s.grow}
+                      secondary
+                      label={t('companion.close')}
+                      disabled={task.busy}
+                      onPress={close}
+                    />
+                  </View>
+                )}
+                <Title>
+                  {countText(
+                    t,
+                    'companion.myUi.pendingHeading',
+                    resource.data.summary.pendingCount,
                   )}
-                  {item.status === 'OPEN' && person.status === 'PENDING' && (
-                    <View style={s.row}>
-                      <Action
-                        style={s.grow}
-                        secondary
-                        disabled={task.busy}
-                        label={t('companion.reject')}
-                        onPress={() => decide(person, false)}
+                </Title>
+                {people
+                  .filter(person => person.status === 'PENDING')
+                  .map(person => (
+                    <View key={person.participationId} style={s.soft}>
+                      <Person
+                        name={person.userName}
+                        uri={person.profileImageUrl}
+                        subtitle={t(`companion.participation.${person.status}`)}
                       />
-                      <Action
-                        style={s.grow}
-                        disabled={task.busy}
-                        label={t('companion.accept')}
-                        onPress={() => decide(person, true)}
-                      />
+                      {item.status === 'OPEN' && person.directRoomId && (
+                        <Action
+                          secondary
+                          label={t('companion.viewConversation')}
+                          onPress={() =>
+                            navigation.navigate('CompanionChat', {
+                              roomId: person.directRoomId,
+                              companionId: id,
+                              participant: person,
+                            })
+                          }
+                        />
+                      )}
+                      {item.status === 'OPEN' && (
+                        <View style={s.row}>
+                          <Action
+                            style={s.grow}
+                            secondary
+                            label={t('companion.reject')}
+                            disabled={task.busy}
+                            onPress={() => decide(person, false)}
+                          />
+                          <Action
+                            style={s.grow}
+                            label={t('companion.accept')}
+                            disabled={task.busy}
+                            onPress={() => decide(person, true)}
+                          />
+                        </View>
+                      )}
                     </View>
+                  ))}
+                <Title>
+                  {countText(
+                    t,
+                    'companion.myUi.confirmedHeading',
+                    resource.data.summary.confirmedCount,
                   )}
+                </Title>
+                {people
+                  .filter(person => person.status === 'ACCEPTED')
+                  .map(person => (
+                    <Person
+                      key={person.participationId}
+                      name={person.userName}
+                      uri={person.profileImageUrl}
+                      subtitle={t('companion.participation.ACCEPTED')}
+                    />
+                  ))}
+                <View style={s.soft}>
+                  <Txt style={s.small}>
+                    {t('companion.myUi.peoplePolicy', {
+                      capacity: formatNumber(item.capacity),
+                      total: formatNumber(item.capacity + 1),
+                      confirmed: formatNumber(item.confirmedCount + 1),
+                    })}
+                  </Txt>
                 </View>
-              ))}
-            <Title>{t('companion.confirmed')}</Title>
-            {people
-              .filter(person => person.status === 'ACCEPTED')
-              .map(person => (
-                <Person
-                  key={person.participationId}
-                  name={person.userName}
-                  subtitle={t('companion.participation.ACCEPTED')}
-                />
-              ))}
-            <Txt style={s.small}>{t('companion.peoplePolicy')}</Txt>
+              </>
+            )}
             {resource.data.applications.last === false && (
               <Action
                 secondary
@@ -1211,6 +1768,7 @@ export function CompanionChatAccess({navigation, route}) {
         </Title>
         <Txt style={s.muted}>{t('companion.accessHelp')}</Txt>
         <Action
+          style={{width: '100%', maxWidth: 360}}
           label={t('companion.retry')}
           onPress={() => {
             setError(null);
@@ -1220,6 +1778,7 @@ export function CompanionChatAccess({navigation, route}) {
         />
         <Action
           secondary
+          style={{width: '100%', maxWidth: 360}}
           label={t('companion.inbox')}
           onPress={() => navigation.replace('CompanionInbox')}
         />

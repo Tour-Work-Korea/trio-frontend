@@ -320,7 +320,7 @@ export function Person({name, subtitle, uri, children}) {
     </View>
   );
 }
-export function useFeedback() {
+export function useFeedback({horizontalButtons = false} = {}) {
   const {t} = useTranslation();
   const [dialog, setDialog] = useState(null);
   const dismiss = () => setDialog(null);
@@ -387,8 +387,30 @@ export function useFeedback() {
             }}>
             <Title>{dialog.title}</Title>
             <Txt>{dialog.message}</Txt>
-            <Action label={dialog.buttonText} onPress={dialog.onPress} />
-            <Action secondary label={dialog.buttonText2} onPress={dismiss} />
+            {horizontalButtons ? (
+              <View style={{flexDirection: 'row', gap: 10}}>
+                <Action
+                  secondary
+                  style={{flex: 1}}
+                  label={dialog.buttonText2}
+                  onPress={dismiss}
+                />
+                <Action
+                  style={{flex: 1}}
+                  label={dialog.buttonText}
+                  onPress={dialog.onPress}
+                />
+              </View>
+            ) : (
+              <>
+                <Action label={dialog.buttonText} onPress={dialog.onPress} />
+                <Action
+                  secondary
+                  label={dialog.buttonText2}
+                  onPress={dismiss}
+                />
+              </>
+            )}
           </View>
         </View>
       </Modal>

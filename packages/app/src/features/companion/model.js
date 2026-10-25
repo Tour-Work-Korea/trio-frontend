@@ -87,14 +87,13 @@ export function validateDraft(draft, now = new Date(), checkDates = true) {
     !Number.isFinite(+end) ||
     dateKey(start) !== draft.startDate ||
     dateKey(end) !== draft.endDate ||
+    draft.startDate < dateKey(now) ||
     end < start ||
     (end - start) / 86400000 > 29
   ) {
     return 'companion.dateValidation';
   }
-  const closeAt =
-    new Date(`${draft.startDate}T18:00:00+09:00`).getTime() - 86400000;
-  return closeAt <= +now ? 'companion.deadlineValidation' : null;
+  return null;
 }
 export function mergeMessages(current, incoming) {
   const result = [...current];
@@ -120,7 +119,15 @@ export function mergeMessages(current, incoming) {
     if (index < 0) {
       result.push(normalized);
     } else {
-      result[index] = {...result[index], ...normalized, pending: false};
+      const existing = result[index];
+      result[index] = {
+        ...existing,
+        ...normalized,
+        // An acknowledged local send remains ours when a shared broadcast
+        // contains a non-personalized mine=false value.
+        ...(existing.mine === true ? {mine: true} : {}),
+        pending: false,
+      };
     }
   });
   return result.sort(
