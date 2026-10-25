@@ -95,3 +95,6 @@ ANDROID_PERFORMANCE_TEST_REPORT.md
 IOS_PERFORMANCE_TEST_REPORT.md
 WEB_PERFORMANCE_TEST_REPORT.md
 .i18n-screenshots/
+
+# Local-only audit and work reports
+/docs/local-reports/
