@@ -1,17 +1,13 @@
-import i18n from '@trio/app/src/i18n';
+import ko from '@trio/app/src/locales/ko.json';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useMemo, useState} from 'react';
-import {Image, View, Linking, Platform, StyleSheet} from 'react-native';
-import {
-  useFocusEffect,
-  useNavigation,
-  useRoute,
-} from '@react-navigation/native';
+import {Image, View, Linking, Platform} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 
 import styles from './TemporaryEventBanner.styles';
 import {COLORS} from '@constants/colors';
-import {COUPON_EVENT_HTML_FRAGMENT} from './couponEventHtml';
+import {getCouponEventHtml} from './couponEventHtml';
 import couponEventImage from '@assets/images/coupon_event_signup_202606.png';
 import AlertModal from '@components/modals/AlertModal';
 import useUserStore from '@stores/userStore';
@@ -20,47 +16,20 @@ import {showErrorModal} from '@utils/loginModalHub';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
-const TARGET_COUPON_NAME = i18n.t('common.20DiscountCouponForNewMembersOnly');
+// Legacy name matching must use the server's canonical name, independent of UI language.
+const TARGET_COUPON_NAME = ko['common.20DiscountCouponForNewMembersOnly'];
 const COUPON_EVENT_IMAGE_URL =
   'https://api.builder.io/api/v1/image/assets/TEMP/6a48cec6e4bd9dfd0ff9e2d3b959f9e9be4ce6c1?width=648';
 const couponEventImageUri =
   typeof Image.resolveAssetSource === 'function'
     ? Image.resolveAssetSource(couponEventImage)?.uri
     : couponEventImage;
-const defaultTabBarStyle =
-  Platform.OS === 'android'
-    ? {
-        position: 'relative',
-        backgroundColor: COLORS.grayscale_0,
-        height: 64,
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingHorizontal: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.grayscale_200,
-      }
-    : {
-        position: 'relative',
-        backgroundColor: COLORS.grayscale_0,
-        height: 84,
-        paddingTop: 6,
-        paddingBottom: 18,
-        paddingHorizontal: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.grayscale_200,
-      };
-
-const FALLBACK_HTML_FRAGMENT = `
-  <div style="min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px;text-align:center;font-family:-apple-system,BlinkMacSystemFont,'Noto Sans KR',sans-serif;background:#FAFBFF;color:#111827;">
-    <div>
-      <div style="font-size:18px;font-weight:800;margin-bottom:8px;">이벤트 상세</div>
-      <div style="font-size:14px;line-height:22px;color:#73787E;">이벤트 화면을 불러오지 못했어요.</div>
-    </div>
-  </div>
-`;
-
-const createHtmlDocument = fragment => `<!doctype html>
-<html lang="ko">
+const createHtmlDocument = (
+  fragment,
+  language,
+  fallbackHtml,
+) => `<!doctype html>
+<html lang="${language}">
   <head>
     <meta charset="utf-8" />
     <meta
@@ -182,7 +151,7 @@ const createHtmlDocument = fragment => `<!doctype html>
     </style>
   </head>
   <body>
-    ${fragment || FALLBACK_HTML_FRAGMENT}
+    ${fragment || fallbackHtml}
     <script>
       (function () {
         function post(message) {
@@ -221,7 +190,7 @@ const createHtmlDocument = fragment => `<!doctype html>
 </html>`;
 
 const TemporaryEventBanner = () => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {bannerHtml, banner} = route.params ?? {};
@@ -235,35 +204,32 @@ const TemporaryEventBanner = () => {
     navigateOnConfirm: false,
   });
 
-  useFocusEffect(
-    useCallback(() => {
-      const tabNavigation = navigation.getParent();
-
-      tabNavigation?.setOptions({tabBarStyle: {display: 'none'}});
-
-      return () => {
-        tabNavigation?.setOptions({tabBarStyle: defaultTabBarStyle});
-      };
-    }, [navigation]),
-  );
-
   const webViewSource = useMemo(() => {
     if (bannerHtml) {
       const processedHtml =
         typeof bannerHtml === 'string'
           ? bannerHtml.replace(/쿠폰 상세/g, t('common.eventDetails'))
           : bannerHtml;
-      return {html: createHtmlDocument(processedHtml)};
+      return {
+        html: createHtmlDocument(
+          processedHtml,
+          i18n.resolvedLanguage,
+          `<h2>${t('common.eventDetails')}</h2><p>${t(
+            'events.detailsUnavailable',
+          )}</p>`,
+        ),
+      };
     }
     return {
       html: createHtmlDocument(
-        COUPON_EVENT_HTML_FRAGMENT.replace(
+        getCouponEventHtml().replace(
           COUPON_EVENT_IMAGE_URL,
           couponEventImageUri || COUPON_EVENT_IMAGE_URL,
         ),
+        i18n.resolvedLanguage,
       ),
     };
-  }, [bannerHtml, t]);
+  }, [bannerHtml, t, i18n.resolvedLanguage]);
 
   const injectedJs = useMemo(() => {
     const hasLink = !!(
@@ -276,10 +242,10 @@ const TemporaryEventBanner = () => {
       return `
         (function() {
           function updateButton() {
-            var textSpan = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="쿠폰 받기"] span');
+            var textSpan = document.querySelector('[layer-name="Bottom Action Button"] [layer-name="Coupon CTA"] span, [layer-name="Bottom Action Button"] [layer-name="쿠폰 받기"] span');
             var svgIcons = document.querySelectorAll('[layer-name="Bottom Action Button"] [layer-name="Button"] svg');
-            if (textSpan && textSpan.textContent.trim() === '쿠폰 받기') {
-              textSpan.textContent = '참여하기';
+            if (textSpan) {
+              textSpan.textContent = ${JSON.stringify(t('events.participate'))};
             }
             if (svgIcons) {
               svgIcons.forEach(function(icon) {
@@ -308,7 +274,7 @@ const TemporaryEventBanner = () => {
       `;
     }
     return '';
-  }, [banner?.link]);
+  }, [banner?.link, t]);
 
   const closeAlert = useCallback(() => {
     const shouldNavigate = alertState.navigateOnConfirm;

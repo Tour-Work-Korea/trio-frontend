@@ -46,7 +46,7 @@ const ForeignSignupComplete = ({route}) => {
             <Text style={styles.value}>{name}</Text>
           </View>
           <View style={styles.row}>
-            <Text style={styles.label}>NICKNAME</Text>
+            <Text style={styles.label}>{t('common.nickname')}</Text>
             <Text style={styles.value}>{nickname}</Text>
           </View>
           <View style={styles.row}>

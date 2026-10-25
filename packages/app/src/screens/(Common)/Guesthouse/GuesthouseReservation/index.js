@@ -1,3 +1,4 @@
+import {formatNumber} from '@utils/localeFormat';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
@@ -84,7 +85,8 @@ const TERM_DOCUMENT_MAP = {
 };
 
 const GuesthouseReservation = ({route}) => {
-  const {t} = useTranslation();
+  const {t, i18n: translationI18n} = useTranslation();
+  const isEnglish = (translationI18n.resolvedLanguage || translationI18n.language || '').startsWith('en');
   const {
     roomId,
     roomName,
@@ -631,8 +633,7 @@ const GuesthouseReservation = ({route}) => {
           </View>
           <View style={styles.nightsBox}>
             <Text style={[FONTS.fs_14_regular]}>
-              {nights}
-              {t('common.nights')}
+              {t('units.night', {count: nights})}
             </Text>
           </View>
           <View style={styles.dateBoxCheckOut}>
@@ -849,7 +850,10 @@ const GuesthouseReservation = ({route}) => {
               {hasMultiNightDiscount
                 ? t('guesthouse.roomPriceValueValueNights', {
                     value1: isDormitory
-                      ? t('guesthouse.valueBeds', {guestCount: guestCount})
+                      ? t('guesthouse.valueBeds', {
+                          guestCount: guestCount,
+                          count: guestCount,
+                        })
                       : t('guesthouse.1Room'),
                     nights: nights,
                   })
@@ -895,14 +899,19 @@ const GuesthouseReservation = ({route}) => {
             <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
               {hasMultiNightDiscount
                 ? t('common.totalPrice')
-                : t('guesthouse.totalPriceValueValueNights', {
-                    value1: isDormitory
-                      ? t('guesthouse.valueBeds_0f69d4', {
-                          guestCount: guestCount,
-                        })
-                      : '',
-                    nights: nights,
-                  })}
+                : t(
+                    isDormitory
+                      ? 'reservation.totalBedPrice'
+                      : 'reservation.totalRoomPrice',
+                    {
+                      context:
+                        isDormitory && guestCount !== 1
+                          ? 'multipleBeds'
+                          : undefined,
+                      beds: guestCount,
+                      count: nights,
+                    },
+                  )}
             </Text>
             <Text style={FONTS.fs_14_medium}>
               {totalPrice?.toLocaleString()}
@@ -1000,8 +1009,9 @@ const GuesthouseReservation = ({route}) => {
             </View>
           </View>
           <Text style={[FONTS.fs_12_medium, styles.pointText]}>
-            {t('common.holding')}
-            {Number(pointBalance || 0).toLocaleString()}P
+            {t('reservation.pointBalance', {
+              points: formatNumber(pointBalance),
+            })}
           </Text>
           {isPointOverBalance ? (
             <Text style={[FONTS.fs_12_medium, styles.pointWarningText]}>
@@ -1050,13 +1060,11 @@ const GuesthouseReservation = ({route}) => {
             style={styles.agreeRowTitle}>
             {agreeAll ? (
               <View style={styles.checkedBox}>
-                {' '}
-                <Checked width={24} height={24} />{' '}
+                <Checked width={24} height={24} />
               </View>
             ) : (
               <View style={styles.uncheckedBox}>
-                {' '}
-                <Unchecked width={24} height={24} />{' '}
+                <Unchecked width={24} height={24} />
               </View>
             )}
             <Text style={FONTS.fs_14_semibold}>
@@ -1065,23 +1073,21 @@ const GuesthouseReservation = ({route}) => {
           </TouchableOpacity>
 
           <View style={styles.agreeRowConent}>
-            <View style={styles.agreeRow}>
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => toggleAgreement('terms')}>
                 {agreements.terms ? (
                   <View style={styles.checkedBox}>
-                    {' '}
-                    <Checked width={24} height={24} />{' '}
+                    <Checked width={24} height={24} />
                   </View>
                 ) : (
                   <View style={styles.uncheckedBox}>
-                    {' '}
-                    <Unchecked width={24} height={24} />{' '}
+                    <Unchecked width={24} height={24} />
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
                 <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
                   {t('common.required')}
                 </Text>
@@ -1091,7 +1097,7 @@ const GuesthouseReservation = ({route}) => {
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
-                style={styles.seeMore}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
                 onPress={() => openTermModal('terms')}>
                 <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
                   {t('common.view')}
@@ -1099,24 +1105,22 @@ const GuesthouseReservation = ({route}) => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.agreeRow}>
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => toggleAgreement('personalInfo')}
-                style={styles.agreeRow}>
+                style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
                 {agreements.personalInfo ? (
                   <View style={styles.checkedBox}>
-                    {' '}
-                    <Checked width={24} height={24} />{' '}
+                    <Checked width={24} height={24} />
                   </View>
                 ) : (
                   <View style={styles.uncheckedBox}>
-                    {' '}
-                    <Unchecked width={24} height={24} />{' '}
+                    <Unchecked width={24} height={24} />
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
                 <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
                   {t('common.required')}
                 </Text>
@@ -1124,7 +1128,7 @@ const GuesthouseReservation = ({route}) => {
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
-                style={styles.seeMore}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
                 onPress={() => openTermModal('personalInfo')}>
                 <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
                   {t('common.view')}
@@ -1132,24 +1136,22 @@ const GuesthouseReservation = ({route}) => {
               </TouchableOpacity>
             </View>
 
-            <View style={styles.agreeRow}>
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
               <TouchableOpacity
                 activeOpacity={1}
                 onPress={() => toggleAgreement('thirdParty')}
-                style={styles.agreeRow}>
+                style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
                 {agreements.thirdParty ? (
                   <View style={styles.checkedBox}>
-                    {' '}
-                    <Checked width={24} height={24} />{' '}
+                    <Checked width={24} height={24} />
                   </View>
                 ) : (
                   <View style={styles.uncheckedBox}>
-                    {' '}
-                    <Unchecked width={24} height={24} />{' '}
+                    <Unchecked width={24} height={24} />
                   </View>
                 )}
               </TouchableOpacity>
-              <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
                 <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
                   {t('common.required')}
                 </Text>
@@ -1159,7 +1161,7 @@ const GuesthouseReservation = ({route}) => {
               </Text>
               <TouchableOpacity
                 activeOpacity={1}
-                style={styles.seeMore}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
                 onPress={() => openTermModal('thirdParty')}>
                 <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
                   {t('common.view')}

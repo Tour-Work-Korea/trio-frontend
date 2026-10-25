@@ -1,11 +1,14 @@
+import i18n from '@trio/app/src/i18n';
 const SERVICE_REGION_NAMES = {
-  JEJU_EAST: '제주 동부',
-  JEJU_WEST: '제주 서부',
-  JEJU_SOUTH: '제주 남부',
-  JEJU_NORTH: '제주 북부',
-  BUSAN: '부산',
-  UNKNOWN: '지역 미정',
+  JEJU_EAST: 'regions.jejuEast',
+  JEJU_WEST: 'regions.jejuWest',
+  JEJU_SOUTH: 'regions.jejuSouth',
+  JEJU_NORTH: 'regions.jejuNorth',
+  BUSAN: 'regions.busan',
+  UNKNOWN: 'regions.unknown',
 };
 
 export const formatServiceRegion = regionType =>
-  SERVICE_REGION_NAMES[regionType] ?? regionType ?? '';
+  SERVICE_REGION_NAMES[regionType]
+    ? i18n.t(SERVICE_REGION_NAMES[regionType])
+    : regionType ?? '';

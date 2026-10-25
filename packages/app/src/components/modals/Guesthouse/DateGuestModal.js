@@ -1,3 +1,4 @@
+import {formatDate} from '@utils/localeFormat';
 import {useTranslation} from 'react-i18next';
 import React, {useState, useEffect, useMemo} from 'react';
 import {
@@ -12,6 +13,8 @@ import {
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import {Calendar} from 'react-native-calendars';
+import PeriodDay from 'react-native-calendars/src/calendar/day/period';
+import '@constants/calendarConfig';
 import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
@@ -50,7 +53,7 @@ const DateGuestModal = ({
   initChildGuestCount,
   initialSection = 'date',
 }) => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const today = dayjs().startOf('day');
   const maxReservationDate = today.add(3, 'month');
   const minReservationDateKey = today.format('YYYY-MM-DD');
@@ -155,7 +158,7 @@ const DateGuestModal = ({
     }
   };
 
-  const markedDates = useMemo(() => {
+  const baseMarkedDates = useMemo(() => {
     if (!visible) {
       return {};
     }
@@ -213,6 +216,7 @@ const DateGuestModal = ({
       ? t('guesthouse.valueValueValue', {
           value1: dayjs(checkInDate).format('M.D(ddd)'),
           value2: dayjs(checkOutDate).format('M.D(ddd)'),
+          count: dayjs(checkOutDate).diff(dayjs(checkInDate), 'day'),
           value3: dayjs(checkOutDate).diff(dayjs(checkInDate), 'day'),
         })
       : t('common.pleaseSelectADate');
@@ -221,9 +225,7 @@ const DateGuestModal = ({
   const increaseGuest = () => setGuestCount(guestCount + 1);
   const decreaseGuest = () => setGuestCount(Math.max(1, guestCount - 1));
 
-  const formattedGuestText = t('guesthouse.personnelValue', {
-    count: guestCount,
-  });
+  const formattedGuestText = t('units.guest', {count: guestCount});
   const canApply = Boolean(checkInDate && checkOutDate);
 
   // 아코디언 효과
@@ -341,13 +343,41 @@ const DateGuestModal = ({
                   minDate={minReservationDateKey}
                   maxDate={maxReservationDateKey}
                   markingType="period"
-                  markedDates={markedDates}
+                  markedDates={baseMarkedDates}
+                  dayComponent={props => {
+                    const {date, marking = {}, state} = props;
+                    const labelKey =
+                      marking.startingDay && marking.endingDay
+                        ? 'calendar.rangeStartAndEnd'
+                        : marking.startingDay
+                        ? 'calendar.rangeStart'
+                        : marking.endingDay
+                        ? 'calendar.rangeEnd'
+                        : marking.color
+                        ? 'calendar.rangeSelected'
+                        : 'calendar.date';
+                    return (
+                      <PeriodDay
+                        {...props}
+                        date={date.dateString}
+                        accessibilityLabel={t(labelKey, {
+                          date: formatDate(`${date.dateString}T12:00:00`, {
+                            dateStyle: 'full',
+                          }),
+                          context: state === 'today' ? 'today' : undefined,
+                        })}>
+                        {date.day}
+                      </PeriodDay>
+                    );
+                  }}
                   onDayPress={onDayPress}
                   firstDay={1}
                   hideDayNames={true}
                   current={currentMonth}
                   renderHeader={() => null}
-                  key={currentMonth}
+                  key={`${currentMonth}-${
+                    i18n.resolvedLanguage || i18n.language
+                  }`}
                   hideArrows={true}
                   theme={{
                     textDayFontFamily: 'Pretendard-Medium',

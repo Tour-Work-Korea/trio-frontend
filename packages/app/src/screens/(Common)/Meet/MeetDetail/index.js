@@ -59,6 +59,13 @@ import PartyInfoPriceIcon from '@assets/images/party_info_price.svg';
 import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg';
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
+const CONTENT_TYPE_LABEL = {
+  POTLUCK: 'common.potluck',
+  DINNER_PARTY: 'common.dinnerParty',
+  BOOK: 'common.reading',
+  WALK: 'common.walk',
+};
+
 const TABS = [
   {key: 'intro', labelKey: 'meet.activityIntroduction'},
   {key: 'detail', labelKey: 'meet.detailedInformation'},
@@ -66,48 +73,9 @@ const TABS = [
   {key: 'way', labelKey: 'meet.directions'},
 ];
 
-const SNACK_TAG_LABEL = {
-  PARTY_FOOD: i18n.t('meet.catering'),
-  PARTY_ALCOHOL: i18n.t('meet.alcoholProvided'),
-  PARTY_INDIVIDUAL: i18n.t('meet.prepareYourself'),
-  PARTY_TOGETHER: i18n.t('meet.prepareTogether'),
-  PARTY_FREE: i18n.t('meet.freedom'),
-};
-
-const PARKING_TAG_LABEL = {
-  PARTY_PARKING: i18n.t('meet.parkingAvailable'),
-  PARTY_GUESTHOUSE_PARKING: i18n.t('meet.privateParking'),
-  PARTY_PUBLIC_PARKING: i18n.t('meet.publicParking'),
-  PARTY_STREET_PARKING: i18n.t('meet.streetParking'),
-  PARTY_NO_PARKING: i18n.t('meet.noParking'),
-};
-
-const CONTENT_TYPE_LABEL = {
-  POTLUCK: i18n.t('common.potluck'),
-  DINNER_PARTY: i18n.t('common.dinnerParty'),
-  BOOK: i18n.t('common.reading'),
-  WALK: i18n.t('common.walk'),
-};
-
 const {width: SCREEN_W} = Dimensions.get('window');
 const IMAGE_H = 280;
 const TAB_CONTENT_HORIZONTAL_PADDING = 20;
-
-const PARTY_STATUS_LABEL = {
-  RECRUIT_BEFORE: i18n.t('common.recruitmentScheduled'),
-  RECRUIT: i18n.t('common.apply_15e2a7'),
-  RECRUIT_END: i18n.t('meet.recruitmentDeadline'),
-  RECRUIT_BLOCK: i18n.t('meet.pleaseInquireSeparately'),
-  PARTY_END: i18n.t('meet.partyOver'),
-  CANCELED: i18n.t('meet.canceledParty'),
-  DELETED: i18n.t('meet.deletedParty'),
-};
-
-const UNKNOWN_PARTY_STATUS_NOTICE = i18n.t(
-  'meet.iCanTCheckThePartyStatusPleaseContactThe',
-);
-
-const NO_RECRUIT_NOTICE = i18n.t('meet.pleaseContactTheCompanyToApply');
 
 const isPartyDateOpen = option =>
   option?.partyStatus === 'RECRUIT' &&
@@ -213,6 +181,35 @@ const PartyEventImage = ({uri, width}) => {
 
 const MeetDetail = () => {
   const {t} = useTranslation();
+  const SNACK_TAG_LABEL = {
+    PARTY_FOOD: t('meet.catering'),
+    PARTY_ALCOHOL: t('meet.alcoholProvided'),
+    PARTY_INDIVIDUAL: t('meet.prepareYourself'),
+    PARTY_TOGETHER: t('meet.prepareTogether'),
+    PARTY_FREE: t('meet.freedom'),
+  };
+  const PARKING_TAG_LABEL = {
+    PARTY_PARKING: t('meet.parkingAvailable'),
+    PARTY_GUESTHOUSE_PARKING: t('meet.privateParking'),
+    PARTY_PUBLIC_PARKING: t('meet.publicParking'),
+    PARTY_STREET_PARKING: t('meet.streetParking'),
+    PARTY_NO_PARKING: t('meet.noParking'),
+  };
+
+  const PARTY_STATUS_LABEL = {
+    RECRUIT_BEFORE: t('common.recruitmentScheduled'),
+    RECRUIT: t('common.apply_15e2a7'),
+    RECRUIT_END: t('meet.recruitmentDeadline'),
+    RECRUIT_BLOCK: t('meet.pleaseInquireSeparately'),
+    PARTY_END: t('meet.partyOver'),
+    CANCELED: t('meet.canceledParty'),
+    DELETED: t('meet.deletedParty'),
+  };
+  const UNKNOWN_PARTY_STATUS_NOTICE = t(
+    'meet.iCanTCheckThePartyStatusPleaseContactThe',
+  );
+  const NO_RECRUIT_NOTICE = t('meet.pleaseContactTheCompanyToApply');
+
   const navigation = useNavigation();
   const route = useRoute();
   const {partyId, templateId: routeTemplateId} = route.params ?? {};
@@ -656,7 +653,7 @@ const MeetDetail = () => {
       {
         key: 'category',
         Icon: PartyInfoCategoryIcon,
-        text: CONTENT_TYPE_LABEL[contentType] ?? t('common.activity'),
+        text: t(CONTENT_TYPE_LABEL[contentType] ?? 'common.activity'),
       },
       {
         key: 'capacity',
@@ -801,11 +798,9 @@ const MeetDetail = () => {
   };
 
   // 음료 음식 태그
-  const snackTagTexts = useMemo(() => {
-    return toArray(snackTags)
-      .map(tag => SNACK_TAG_LABEL[tag])
-      ?.filter(Boolean); // 혹시 모를 undefined 제거
-  }, [snackTags]);
+  const snackTagTexts = toArray(snackTags)
+    .map(tag => SNACK_TAG_LABEL[tag])
+    .filter(Boolean);
 
   // 주차 내용
   const parkingContentText = useMemo(() => {
@@ -821,11 +816,9 @@ const MeetDetail = () => {
   }, [parkingPlaceList]);
 
   // 주차 태그
-  const parkingTagTexts = useMemo(() => {
-    return toArray(parkingTag)
-      .map(tag => PARKING_TAG_LABEL[tag])
-      ?.filter(Boolean);
-  }, [parkingTag]);
+  const parkingTagTexts = toArray(parkingTag)
+    .map(tag => PARKING_TAG_LABEL[tag])
+    .filter(Boolean);
   const eventImageWidth = Math.max(
     (pageWidth || SCREEN_W) - TAB_CONTENT_HORIZONTAL_PADDING * 2,
     0,
@@ -1342,7 +1335,8 @@ const MeetDetail = () => {
         {/* 본문 */}
         <View style={styles.contentContainer}>
           <View style={styles.summaryCard}>
-            <TouchableOpacity
+            {!!guesthouseId && (
+              <TouchableOpacity
               activeOpacity={0.8}
               onPress={handlePressGuesthouse}
               style={styles.guesthousePressArea}>
@@ -1357,7 +1351,8 @@ const MeetDetail = () => {
                 style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
                 {displayGuesthouseName}
               </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
             <Text
               style={[FONTS.fs_20_semibold, styles.titleText]}
               numberOfLines={2}

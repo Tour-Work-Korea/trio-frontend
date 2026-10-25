@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
@@ -21,9 +20,9 @@ import {FONTS} from '@constants/fonts';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 
 const TAB_ITEMS = [
-  {key: 'guesthouse', label: i18n.t('common.guesthouse')},
-  {key: 'meet', label: i18n.t('common.activity')},
-  {key: 'recruit', label: i18n.t('common.staff')},
+  {key: 'guesthouse', labelKey: 'common.guesthouse'},
+  {key: 'meet', labelKey: 'common.activity'},
+  {key: 'recruit', labelKey: 'common.staff'},
 ];
 
 const UserFavorite = () => {
@@ -64,7 +63,7 @@ const UserFavorite = () => {
                   styles.tabLabel,
                   active && styles.tabLabelActive,
                 ]}>
-                {tab.label}
+                {t(tab.labelKey)}
               </Text>
             </TouchableOpacity>
           );

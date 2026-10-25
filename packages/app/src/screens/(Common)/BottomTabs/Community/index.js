@@ -44,31 +44,41 @@ const defaultCategories = [
   {
     id: 'GUESTHOUSE_RECOMMEND',
     code: 'GUESTHOUSE_RECOMMEND',
-    displayName: '게하 추천',
+    get displayName() {
+      return i18n.t('community.guesthouseRecommendation');
+    },
     contentType: 'COMMUNITY',
   },
   {
     id: 'FOOD',
     code: 'FOOD',
-    displayName: '맛집',
+    get displayName() {
+      return i18n.t('common.restaurant');
+    },
     contentType: 'COMMUNITY',
   },
   {
     id: 'CAFE',
     code: 'CAFE',
-    displayName: '카페',
+    get displayName() {
+      return i18n.t('common.cafe');
+    },
     contentType: 'COMMUNITY',
   },
   {
     id: 'COMPANION',
     code: 'COMPANION',
-    displayName: '동행',
+    get displayName() {
+      return i18n.t('common.accompany');
+    },
     contentType: 'COMMUNITY',
   },
   {
     id: 'STAFF',
     code: 'STAFF',
-    displayName: '스탭',
+    get displayName() {
+      return i18n.t('common.staff');
+    },
     contentType: 'RECRUIT',
   },
 ];
@@ -178,9 +188,13 @@ const Community = () => {
     () =>
       withRequiredCategories(categories).map(category => ({
         ...category,
+        displayName:
+          category.id === allCategory.id
+            ? t('common.all')
+            : category.displayName,
         key: getCategoryKey(category),
       })),
-    [categories],
+    [categories, t],
   );
   const initialCategoryKey = useMemo(
     () => getInitialCategoryKey(categoryTabs, route.params),

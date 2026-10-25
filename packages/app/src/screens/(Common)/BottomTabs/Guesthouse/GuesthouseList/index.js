@@ -52,11 +52,11 @@ import {pushWebPath} from '@web/navigation';
 const EMPTY_REGION_IDS = [];
 const EMPTY_CATEGORY_TAGS = [];
 const CATEGORY_FILTERS = [
-  i18n.t('common.potluck'),
-  i18n.t('common.reading'),
-  i18n.t('common.dinnerParty'),
-  i18n.t('common.program'),
-  i18n.t('common.rest'),
+  {value: '포틀럭', labelKey: 'common.potluck'},
+  {value: '독서', labelKey: 'common.reading'},
+  {value: '디너파티', labelKey: 'common.dinnerParty'},
+  {value: '프로그램', labelKey: 'common.program'},
+  {value: '쉼', labelKey: 'common.rest'},
 ];
 
 const CATEGORY_FILTER_WIDTHS = {
@@ -802,7 +802,7 @@ const GuesthouseList = () => {
         style={styles.categoryFilterScroll}
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.categoryFilterContainer}>
-        {CATEGORY_FILTERS.map(tag => {
+        {CATEGORY_FILTERS.map(({value: tag, labelKey}) => {
           const isSelected = filterOptions.tags.includes(tag);
 
           return (
@@ -811,7 +811,9 @@ const GuesthouseList = () => {
               activeOpacity={0.8}
               style={[
                 styles.categoryFilterChip,
-                {width: CATEGORY_FILTER_WIDTHS[tag]},
+                i18n.resolvedLanguage === 'en'
+                  ? {minWidth: CATEGORY_FILTER_WIDTHS[tag]}
+                  : {width: CATEGORY_FILTER_WIDTHS[tag]},
                 isSelected && styles.categoryFilterChipActive,
               ]}
               onPress={() => handlePressCategoryFilter(tag)}>
@@ -822,7 +824,7 @@ const GuesthouseList = () => {
                   styles.categoryFilterText,
                   isSelected && styles.categoryFilterTextActive,
                 ]}>
-                {tag}
+                {t(labelKey)}
               </Text>
             </TouchableOpacity>
           );

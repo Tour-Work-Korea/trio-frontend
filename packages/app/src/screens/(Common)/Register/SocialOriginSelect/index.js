@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
@@ -9,27 +8,25 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './SocialOriginSelect.styles';
 
-const OPTIONS = [
-  {
-    value: 'DOMESTIC',
-    title: i18n.t('auth.korean'),
-    englishTitle: i18n.t('auth.domesticResident'),
-    icon: '🇰🇷',
-    description: i18n.t(
-      'auth.verifyYourIdentityUsingYourKoreanMobilePhoneNumber',
-    ),
-  },
-  {
-    value: 'FOREIGN',
-    title: i18n.t('auth.foreigner'),
-    englishTitle: 'FOREIGNER',
-    icon: '🌐',
-    description: i18n.t('auth.registrationProcessForNonKoreanCitizens'),
-  },
-];
-
 const SocialOriginSelect = ({route}) => {
   const {t} = useTranslation();
+  const OPTIONS = [
+    {
+      value: 'DOMESTIC',
+      title: t('auth.korean'),
+      englishTitle: t('auth.domesticResident'),
+      icon: '🇰🇷',
+      description: t('auth.verifyYourIdentityUsingYourKoreanMobilePhoneNumber'),
+    },
+    {
+      value: 'FOREIGN',
+      title: t('auth.foreigner'),
+      englishTitle: t('auth.foreignResident'),
+      icon: '🌐',
+      description: t('auth.registrationProcessForNonKoreanCitizens'),
+    },
+  ];
+
   const navigation = useNavigation();
   const [originType, setOriginType] = useState(null);
   const params = route.params || {};

@@ -6,6 +6,7 @@ import {
   StyleSheet,
   TouchableOpacity,
   useColorScheme,
+  useWindowDimensions,
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
 import {WebView} from 'react-native-webview';
@@ -41,8 +42,10 @@ const TermsModal = ({
   contentHtml,
   onAgree,
 }) => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const scheme = useColorScheme();
+  const {height} = useWindowDimensions();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const rawHtml =
     contentHtml ||
     `<pre style="white-space:pre-wrap;font-family:system-ui, -apple-system, Roboto;line-height:1.6">${escapeHtml(
@@ -52,12 +55,13 @@ const TermsModal = ({
   const html = useMemo(
     () => `
     <!doctype html>
-    <html lang="ko">
+    <html lang="${i18n.resolvedLanguage || i18n.language}">
       <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
         <style>
           body {
+            font-family: system-ui, -apple-system, Roboto, sans-serif;
             margin: 0; padding: 16px;
             background: ${scheme === 'dark' ? '#000' : '#fff'};
             color: ${scheme === 'dark' ? '#fff' : '#111'};
@@ -75,7 +79,7 @@ const TermsModal = ({
       </body>
     </html>
   `,
-    [rawHtml, scheme],
+    [rawHtml, scheme, i18n.resolvedLanguage, i18n.language],
   );
 
   return (
@@ -95,14 +99,20 @@ const TermsModal = ({
           <View style={styles.contentContainer}>
             {/* 헤더 */}
             <View style={styles.header}>
-              <Text style={[FONTS.fs_18_semibold]}>{title}</Text>
+              <Text style={[FONTS.fs_18_semibold, styles.title]}>{title}</Text>
               <TouchableOpacity onPress={onClose} style={styles.closeButton}>
                 <XIcon width={24} height={24} />
               </TouchableOpacity>
             </View>
 
             {/* 본문 */}
-            <View style={styles.contentBox}>
+            <View
+              style={[
+                styles.contentBox,
+                isEnglish && {
+                  minHeight: Math.min(520, Math.max(160, height * 0.8 - 240)),
+                },
+              ]}>
               <WebView
                 originWhitelist={['*']}
                 source={{html}}
@@ -153,6 +163,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 20,
   },
+  title: {paddingHorizontal: 32, textAlign: 'center', width: '100%'},
   closeButton: {
     position: 'absolute',
     right: 0,

@@ -384,7 +384,7 @@ const UserRegisterProfile = () => {
               <View>
                 <Text style={[styles.titleText]}>
                   {isForeignSignUp
-                    ? 'Complete Profile'
+                    ? t('auth.completeProfile')
                     : t('auth.forActivityInDdakji')}
                 </Text>
                 <Text style={[styles.titleText]}>
@@ -394,7 +394,7 @@ const UserRegisterProfile = () => {
                 </Text>
                 {isForeignSignUp && (
                   <Text style={styles.titleDescription}>
-                    Please fill in your details to complete registration.
+                    {t('auth.completeProfileDescription')}
                   </Text>
                 )}
               </View>

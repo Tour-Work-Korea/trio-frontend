@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
@@ -24,14 +23,15 @@ import HomeIcon from '@assets/images/home_white_filled.svg';
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
 const recruitTabs = [
-  i18n.t('employ.recruitmentConditions'),
-  i18n.t('employ.workingConditions'),
-  i18n.t('employ.workInformation'),
+  'employ.recruitmentConditions',
+  'employ.workingConditions',
+  'employ.workInformation',
 ];
 const recruitTabItems = recruitTabs.map(tab => ({key: tab}));
 
 export default function RecruitTapSection({recruit}) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
@@ -128,7 +128,7 @@ export default function RecruitTapSection({recruit}) {
     }
 
     navigation.navigate('GuesthouseLocationMap', {
-      guesthouseName: recruit?.guesthouseName || '근무지 위치',
+      guesthouseName: recruit?.guesthouseName || t('employ.workLocation'),
       guesthouseAddress: recruit?.location,
       latitude: mapCoordinate.latitude,
       longitude: mapCoordinate.longitude,
@@ -188,24 +188,40 @@ export default function RecruitTapSection({recruit}) {
 
   const renderTabContent = tabName => {
     switch (tabName) {
-      case t('employ.recruitmentConditions'):
+      case 'employ.recruitmentConditions':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
                 {t('employ.recruitmentPeriod')}
               </Text>
-              <Text style={styles.infoValue}>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {formatLocalDateTimeToDotAndTime(recruit.recruitStart).date}~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.recruitEnd).date}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
                 {t('employ.numberOfPeopleRecruited')}
               </Text>
-              <Text style={styles.infoValue}>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {t('employ.recruitmentGenderCounts', {
                   female: recruit.recruitNumberFemale,
                   male: recruit.recruitNumberMale,
@@ -214,9 +230,19 @@ export default function RecruitTapSection({recruit}) {
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('employ.age')}</Text>
-              <Text style={styles.infoValue}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.age')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {t('employ.ageRange', {
                   min: recruit.recruitMinAge,
                   max: recruit.recruitMaxAge,
@@ -224,49 +250,117 @@ export default function RecruitTapSection({recruit}) {
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('employ.entryDate')}</Text>
-              <Text style={styles.infoValue}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.entryDate')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {formatLocalDateTimeToDotAndTime(recruit.entryStartDate).date} ~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.entryEndDate).date}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
                 {t('employ.preferentialConditions')}
               </Text>
-              <Text style={styles.infoValue}>{recruit.recruitCondition}</Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.recruitCondition}
+              </Text>
             </View>
           </View>
         );
 
-      case t('employ.workingConditions'):
+      case 'employ.workingConditions':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('employ.workType')}</Text>
-              <Text style={styles.infoValue}>{recruit.workType}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.workType')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workType}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('employ.mainTasks')}</Text>
-              <Text style={styles.infoValue}>{recruit.workPart}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.mainTasks')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workPart}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('common.workingPeriod')}</Text>
-              <Text style={styles.infoValue}>{recruit.workDuration}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('common.workingPeriod')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workDuration}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>{t('employ.welfare')}</Text>
-              <Text style={styles.infoValue}>{recruit.welfare}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.welfare')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.welfare}
+              </Text>
             </View>
           </View>
         );
 
-      case t('employ.workInformation'):
+      case 'employ.workInformation':
         return (
           <View style={styles.tabContent}>
             <Text style={styles.sectionTitle}>{t('employ.workingPhoto')}</Text>
@@ -365,7 +459,7 @@ export default function RecruitTapSection({recruit}) {
       <View style={styles.tabContainer}>
         {recruitTabs.map((tabName, tabIndex) => (
           <TouchableOpacity
-            key={tabName}
+            key={t(tabName)}
             activeOpacity={1}
             style={[styles.tab, isActive(tabName) && styles.activeTab]}
             onPress={() => onTabPress(tabIndex)}>
@@ -374,7 +468,7 @@ export default function RecruitTapSection({recruit}) {
                 styles.tabText,
                 isActive(tabName) && styles.activeTabText,
               ]}>
-              {tabName}
+              {t(tabName)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -402,7 +496,7 @@ export default function RecruitTapSection({recruit}) {
           {...webSwipeHandlers}>
           {recruitTabs.map(tabName => (
             <View
-              key={tabName}
+              key={t(tabName)}
               style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
               <View onLayout={handleTabContentLayout(tabName)}>
                 {renderedTabs.has(tabName) ? renderTabContent(tabName) : null}
@@ -481,6 +575,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
     width: 60,
   },
+  infoRowEnglish: {flexDirection: 'column', gap: 4},
+  infoLabelEnglish: {width: '100%'},
+  infoValueEnglish: {flex: 0, width: '100%'},
   infoValue: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,

@@ -136,10 +136,10 @@ const CouponSelectScreen = ({route}) => {
       <Header title={title} />
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={[FONTS.fs_14_medium, styles.summaryText]}>
-          {t('coupon.applicable')}
-          {usableCouponCount}
-          {t('coupon.holds')}
-          {coupons.length}
+          {t('coupon.selectionSummary', {
+            usable: usableCouponCount,
+            total: coupons.length,
+          })}
         </Text>
 
         {coupons.length > 0 ? (

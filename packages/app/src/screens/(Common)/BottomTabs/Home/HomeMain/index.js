@@ -2,7 +2,6 @@ import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   InteractionManager,
-  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -85,28 +84,6 @@ const HOME_AGREEMENT_LINK_DEFINITIONS = [
 ];
 
 const HOME_DATA_CACHE_TTL_MS = 60 * 1000;
-const HOME_TAB_BAR_STYLE =
-  Platform.OS === 'android'
-    ? {
-        position: 'relative',
-        backgroundColor: COLORS.grayscale_0,
-        height: 64,
-        paddingTop: 6,
-        paddingBottom: 6,
-        paddingHorizontal: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.grayscale_200,
-      }
-    : {
-        position: 'relative',
-        backgroundColor: COLORS.grayscale_0,
-        height: 84,
-        paddingTop: 6,
-        paddingBottom: 18,
-        paddingHorizontal: 12,
-        borderTopWidth: StyleSheet.hairlineWidth,
-        borderTopColor: COLORS.grayscale_200,
-      };
 const BUSINESS_INFO_KEYS = [
   'common.companyNameWalkerway',
   'common.businessRegistrationNumber8882502003',
@@ -127,7 +104,10 @@ const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 
 const HomeMain = () => {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
+  const isEnglish = (i18n.resolvedLanguage || i18n.language || '')
+    .toLowerCase()
+    .startsWith('en');
   const GUESTHOUSE_CATEGORIES = GUESTHOUSE_CATEGORY_DEFINITIONS.map(item => ({
     ...item,
     label: t(item.labelKey),
@@ -235,8 +215,6 @@ const HomeMain = () => {
 
   useFocusEffect(
     useCallback(() => {
-      navigation.getParent()?.setOptions({tabBarStyle: HOME_TAB_BAR_STYLE});
-
       const now = Date.now();
       const hasFreshHomeData =
         lastHomeDataFetchAtRef.current > 0 &&
@@ -682,6 +660,7 @@ const HomeMain = () => {
                </View> */}
 
           {/* 제주 한달살기 공고 배너 시작: 필요 없을 때 이 블록과 관련 스타일을 삭제해주세요. */}
+          {!isEnglish && (
           <View style={styles.boxContainer}>
             <View style={styles.staffNoticeBanner}>
               <View style={styles.staffNoticeBannerLeft}>
@@ -704,6 +683,7 @@ const HomeMain = () => {
               </TouchableOpacity>
             </View>
           </View>
+          )}
           {/* 제주 한달살기 공고 배너 끝 */}
 
           <View style={styles.boxContainer}>

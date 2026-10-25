@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback, useRef} from 'react';
 import {
@@ -26,8 +25,8 @@ import Loading from '@components/Loading';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 const TABS = [
-  {key: 'upcoming', label: i18n.t('meet.upcomingActivity')},
-  {key: 'past', label: i18n.t('meet.pastActivity')},
+  {key: 'upcoming', labelKey: 'meet.upcomingActivity'},
+  {key: 'past', labelKey: 'meet.pastActivity'},
 ];
 
 const UserMeetReservationCheck = () => {
@@ -160,7 +159,7 @@ const UserMeetReservationCheck = () => {
                 isActive(tab.key) && styles.activeTabText,
                 isActive(tab.key) && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}

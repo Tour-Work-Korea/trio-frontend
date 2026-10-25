@@ -24,7 +24,7 @@ const onShouldStartLoadWithRequest = request => {
 };
 
 export default function AgreeDetail({route}) {
-  const {t} = useTranslation();
+  const {t, i18n} = useTranslation();
   const {id, who = 'USER', headerTitle} = route.params || {};
   const scheme = useColorScheme();
   const navigation = useNavigation();
@@ -47,12 +47,13 @@ export default function AgreeDetail({route}) {
   const html = useMemo(
     () => `
     <!doctype html>
-    <html lang="ko">
+    <html lang="${i18n.resolvedLanguage || i18n.language}">
       <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
         <style>
           body {
+            font-family: system-ui, -apple-system, Roboto, sans-serif;
             margin: 0; padding: 16px;
             background: ${scheme === 'dark' ? '#000' : '#fff'};
             color: ${scheme === 'dark' ? '#fff' : '#111'};
@@ -69,7 +70,7 @@ export default function AgreeDetail({route}) {
       </body>
     </html>
   `,
-    [rawHtml, scheme],
+    [rawHtml, scheme, i18n.resolvedLanguage, i18n.language],
   );
 
   return (
@@ -77,7 +78,7 @@ export default function AgreeDetail({route}) {
       <View style={styles.contentContainer}>
         <View />
         <Text style={styles.titleText}>
-          {headerTitle || t('auth.agreeToTermsOfUse')}
+          {doc.title || headerTitle || t('auth.agreeToTermsOfUse')}
         </Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <XBtn width={24} height={24} />
@@ -104,5 +105,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  titleText: {...FONTS.fs_20_bold, color: COLORS.grayscale_900},
+  titleText: {
+    ...FONTS.fs_20_bold,
+    color: COLORS.grayscale_900,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 24,
+  },
 });

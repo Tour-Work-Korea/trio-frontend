@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback, useRef} from 'react';
 import {AppState, View, Text, TouchableOpacity, ScrollView} from 'react-native';
@@ -23,9 +22,9 @@ import {getReviewableReservationIds} from '@utils/reviewEligibility';
 const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
 
 const TABS = [
-  {key: 'upcoming', label: i18n.t('myPage.beforeUse')},
-  {key: 'past', label: i18n.t('myPage.afterUse')},
-  {key: 'cancelled', label: i18n.t('myPage.canceled')},
+  {key: 'upcoming', labelKey: 'myPage.beforeUse'},
+  {key: 'past', labelKey: 'myPage.afterUse'},
+  {key: 'cancelled', labelKey: 'myPage.canceled'},
 ];
 
 const UPCOMING_STATUS_ORDER = {
@@ -185,7 +184,7 @@ const UserReservationCheck = () => {
                 isActive(tab.key) && styles.activeTabText,
                 isActive(tab.key) && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}

@@ -53,12 +53,12 @@ import MapPinIcon from '@assets/images/map_pin_fill_black.svg';
 import RightChevronBlack from '@assets/images/chevron_right_black.svg';
 
 const TAB_OPTIONS = [
-  {key: 'room', label: i18n.t('common.guestRoom')},
-  {key: 'intro', label: i18n.t('guesthouse.introduction')},
-  {key: 'rule', label: i18n.t('common.rulesOfUse')},
-  {key: 'review', label: i18n.t('common.review')},
-  {key: 'refund', label: i18n.t('guesthouse.cancellationPolicy')},
-  {key: 'service', label: i18n.t('guesthouse.facilitiesServices')},
+  {key: 'room', labelKey: 'common.guestRoom'},
+  {key: 'intro', labelKey: 'guesthouse.introduction'},
+  {key: 'rule', labelKey: 'common.rulesOfUse'},
+  {key: 'review', labelKey: 'common.review'},
+  {key: 'refund', labelKey: 'guesthouse.cancellationPolicy'},
+  {key: 'service', labelKey: 'guesthouse.facilitiesServices'},
 ];
 
 const getSortedGuesthouseImages = images =>
@@ -845,8 +845,9 @@ const GuesthouseDetail = ({route}) => {
               <View style={styles.guestInfoContainer}>
                 <PersonIcon width={20} height={20} />
                 <Text style={[FONTS.fs_14_medium, styles.dateGuestText]}>
-                  {t('common.numberOfPeople')}
-                  {localAdults + localChildren}
+                  {t('guesthouse.guestCountSummary', {
+                    count: localAdults + localChildren,
+                  })}
                 </Text>
               </View>
             </TouchableOpacity>
@@ -873,7 +874,7 @@ const GuesthouseDetail = ({route}) => {
                           : COLORS.grayscale_800,
                       },
                     ]}>
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </Text>
                   {isActive(tab.key) && <View style={styles.tabUnderline} />}
                 </View>

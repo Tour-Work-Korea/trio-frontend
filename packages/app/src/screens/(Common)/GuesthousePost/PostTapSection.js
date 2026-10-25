@@ -1,4 +1,3 @@
-import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useMemo, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
@@ -7,9 +6,9 @@ import {FONTS} from '@constants/fonts';
 import AppImage from '@components/AppImage';
 
 const TABS = [
-  {key: 'GREETING', label: i18n.t('guesthouse.greetings')},
-  {key: 'SPACE', label: i18n.t('guesthouse.space')},
-  {key: 'LIFE', label: i18n.t('guesthouse.life')},
+  {key: 'GREETING', labelKey: 'guesthouse.greetings'},
+  {key: 'SPACE', labelKey: 'guesthouse.space'},
+  {key: 'LIFE', labelKey: 'guesthouse.life'},
 ];
 
 export default function PostTapSection({intro}) {
@@ -53,7 +52,7 @@ export default function PostTapSection({intro}) {
               style={[styles.tab, isActive && styles.activeTab]}
               onPress={() => setActiveTab(tab.key)}>
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {tab.label}
+                {t(tab.labelKey)}
               </Text>
             </TouchableOpacity>
           );

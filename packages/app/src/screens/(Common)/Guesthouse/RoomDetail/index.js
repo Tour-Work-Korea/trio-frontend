@@ -306,8 +306,7 @@ const RoomDetail = ({route}) => {
               {t('guesthouse.selectedNumberOfPeople')}
             </Text>
             <Text style={[FONTS.fs_16_semibold]}>
-              {guestCount}
-              {t('common.peopleUnit')}
+              {t('units.guest', {count: guestCount})}
             </Text>
           </View>
         </View>
