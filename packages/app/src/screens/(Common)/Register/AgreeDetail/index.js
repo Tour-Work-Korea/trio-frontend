@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo} from 'react';
 import {
   View,
@@ -23,12 +24,13 @@ const onShouldStartLoadWithRequest = request => {
 };
 
 export default function AgreeDetail({route}) {
+  const {t, i18n} = useTranslation();
   const {id, who = 'USER', headerTitle} = route.params || {};
   const scheme = useColorScheme();
   const navigation = useNavigation();
 
   const doc = (AGREEMENT_CONTENT[who] || {})[id] || {
-    title: '약관',
+    title: t('auth.termsAndConditions'),
     detailHtml: '',
     detail: '',
   };
@@ -45,12 +47,13 @@ export default function AgreeDetail({route}) {
   const html = useMemo(
     () => `
     <!doctype html>
-    <html lang="ko">
+    <html lang="${i18n.resolvedLanguage || i18n.language}">
       <head>
         <meta charset="utf-8"/>
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover"/>
         <style>
           body {
+            font-family: system-ui, -apple-system, Roboto, sans-serif;
             margin: 0; padding: 16px;
             background: ${scheme === 'dark' ? '#000' : '#fff'};
             color: ${scheme === 'dark' ? '#fff' : '#111'};
@@ -67,14 +70,16 @@ export default function AgreeDetail({route}) {
       </body>
     </html>
   `,
-    [rawHtml, scheme],
+    [rawHtml, scheme, i18n.resolvedLanguage, i18n.language],
   );
 
   return (
     <View style={styles.container}>
       <View style={styles.contentContainer}>
         <View />
-        <Text style={styles.titleText}>{headerTitle || '이용약관 동의'}</Text>
+        <Text style={styles.titleText}>
+          {doc.title || headerTitle || t('auth.agreeToTermsOfUse')}
+        </Text>
         <TouchableOpacity onPress={() => navigation.goBack()}>
           <XBtn width={24} height={24} />
         </TouchableOpacity>
@@ -100,5 +105,11 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     justifyContent: 'space-between',
   },
-  titleText: {...FONTS.fs_20_bold, color: COLORS.grayscale_900},
+  titleText: {
+    ...FONTS.fs_20_bold,
+    color: COLORS.grayscale_900,
+    flex: 1,
+    textAlign: 'center',
+    marginHorizontal: 24,
+  },
 });

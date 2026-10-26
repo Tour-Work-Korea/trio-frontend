@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {Animated, Pressable, StyleSheet, Text, View} from 'react-native';
 import {useSafeAreaInsets} from 'react-native-safe-area-context';
@@ -42,12 +44,14 @@ const normalizeStatus = data => {
 const mapRemoteMessage = remoteMessage => {
   const data = remoteMessage?.data ?? {};
   const type = normalizeType(data);
-  const title = remoteMessage?.notification?.title || '새로운 알림';
+  const title =
+    remoteMessage?.notification?.title || i18n.t('common.newNotifications');
   const body =
     remoteMessage?.notification?.body ||
     data.body ||
     data.message ||
-    '알림센터에서 자세한 내용을 확인해주세요.';
+    i18n.t('notification.pleaseCheckTheNotificationCenterForMoreDetails');
+
   const lines = String(body)
     .split('\n')
     .map(line => line.trim())
@@ -56,40 +60,44 @@ const mapRemoteMessage = remoteMessage => {
 
   return {
     title,
-    lines: lines.length ? lines : ['알림센터에서 자세한 내용을 확인해주세요.'],
+    lines: lines.length
+      ? lines
+      : [i18n.t('notification.pleaseCheckTheNotificationCenterForMoreDetails')],
     type,
     status: normalizeStatus(data),
-    timestamp: data.sentAt || data.createdAt || '방금 도착',
+    timestamp:
+      data.sentAt || data.createdAt || i18n.t('notification.justArrived'),
   };
 };
 
 const BannerBadge = ({type, status}) => {
+  const {t} = useTranslation();
   const isNotice = type === 'notice';
   const isCancelled = status === 'cancelled';
 
   const label = isNotice
-    ? '공지'
+    ? t('notification.notice')
     : type === 'community'
-      ? '커뮤니티'
-      : type === 'partyReservation'
-        ? isCancelled
-          ? '취소'
-          : '동행'
-        : isCancelled
-          ? '취소'
-          : '예약';
+    ? t('common.community')
+    : type === 'partyReservation'
+    ? isCancelled
+      ? t('common.cancel')
+      : t('common.accompany')
+    : isCancelled
+    ? t('common.cancel')
+    : t('common.reservation');
 
   const badgeStyle = isNotice
     ? styles.noticeBadge
     : isCancelled
-      ? styles.cancelledBadge
-      : styles.confirmedBadge;
+    ? styles.cancelledBadge
+    : styles.confirmedBadge;
 
   const textStyle = isNotice
     ? styles.noticeBadgeText
     : isCancelled
-      ? styles.cancelledBadgeText
-      : styles.confirmedBadgeText;
+    ? styles.cancelledBadgeText
+    : styles.confirmedBadgeText;
 
   return (
     <View style={[styles.badge, badgeStyle]}>

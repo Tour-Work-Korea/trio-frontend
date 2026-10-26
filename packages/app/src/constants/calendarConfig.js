@@ -1,24 +1,74 @@
-import { LocaleConfig } from 'react-native-calendars';
+import i18n, {normalizeLanguage} from '@trio/app/src/i18n';
+import {LocaleConfig} from 'react-native-calendars';
 
-import { COLORS } from './colors';
+import {COLORS} from './colors';
 
-LocaleConfig.locales.ko = {
-  monthNames: [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월',
-  ],
-  monthNamesShort: [
-    '1월', '2월', '3월', '4월', '5월', '6월',
-    '7월', '8월', '9월', '10월', '11월', '12월',
-  ],
-  dayNames: [
-    '일요일', '월요일', '화요일', '수요일', '목요일', '금요일', '토요일',
-  ],
-  dayNamesShort: ['일', '월', '화', '수', '목', '금', '토'],
-  today: '오늘',
+const createCalendarLocale = language => {
+  const t = i18n.getFixedT(language);
+  return {
+    monthNames: [
+      t('common.january'),
+      t('common.february'),
+      t('common.march'),
+      t('common.april'),
+      t('common.may'),
+      t('common.june'),
+      t('common.july'),
+      t('common.august'),
+      t('common.september'),
+      t('common.october'),
+      t('common.november'),
+      t('common.december'),
+    ],
+
+    monthNamesShort: [
+      t('common.january'),
+      t('common.february'),
+      t('common.march'),
+      t('common.april'),
+      t('common.may'),
+      t('common.june'),
+      t('common.july'),
+      t('common.august'),
+      t('common.september'),
+      t('common.october'),
+      t('common.november'),
+      t('common.december'),
+    ],
+
+    dayNames: [
+      t('common.sunday'),
+      t('common.monday'),
+      t('common.tuesday'),
+      t('common.wednesday'),
+      t('common.thursday'),
+      t('common.friday'),
+      t('common.saturday'),
+    ],
+
+    dayNamesShort: [
+      t('common.work'),
+      t('common.month'),
+      t('common.angry'),
+      t('common.number'),
+      t('common.neck'),
+      t('common.gold'),
+      t('common.sat'),
+    ],
+    today: t('common.today'),
+    formatAccessibilityLabel:
+      language === 'ko' ? 'yyyy년 M월 d일 dddd' : 'dddd, MMMM d, yyyy',
+  };
 };
 
-LocaleConfig.defaultLocale = 'ko';
+const applyCalendarLocale = language => {
+  const locale = normalizeLanguage(language);
+  LocaleConfig.locales[locale] = createCalendarLocale(locale);
+  LocaleConfig.defaultLocale = locale;
+};
+
+applyCalendarLocale(i18n.resolvedLanguage || i18n.language);
+i18n.on('languageChanged', applyCalendarLocale);
 
 export const CALENDAR_THEME = {
   todayTextColor: COLORS.primary_orange,

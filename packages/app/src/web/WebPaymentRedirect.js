@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {ActivityIndicator, Alert, StyleSheet, Text, View} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -13,8 +14,7 @@ const POLLING_INTERVAL_MS = 1500;
 const isCompletedPayment = (reservationType, data) => {
   if (reservationType === 'PARTY') {
     return Boolean(
-      data?.approvedAt ||
-      (data?.paymentType && data.paymentType !== 'UNKNOWN'),
+      data?.approvedAt || (data?.paymentType && data.paymentType !== 'UNKNOWN'),
     );
   }
 
@@ -26,13 +26,10 @@ const isCompletedPayment = (reservationType, data) => {
 };
 
 export default function WebPaymentRedirect({route, reservationType}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
-  const {
-    reservationId,
-    userCouponId,
-    pointUsed,
-    paymentWindowName,
-  } = route.params || {};
+  const {reservationId, userCouponId, pointUsed, paymentWindowName} =
+    route.params || {};
   const successParams = useMemo(() => {
     const {
       userCouponId: ignoredCouponId,
@@ -76,13 +73,14 @@ export default function WebPaymentRedirect({route, reservationType}) {
 
   useEffect(() => {
     if (!reservationId || !webBaseUrl || typeof window === 'undefined') {
-      Alert.alert('결제 오류', '결제를 진행할 수 없습니다.', [
-        {text: '확인', onPress: () => navigation.goBack()},
-      ]);
+      Alert.alert(
+        t('common.paymentError'),
+        t('common.paymentCannotBeProcessed'),
+        [{text: t('common.confirm'), onPress: () => navigation.goBack()}],
+      );
       return;
     }
-
-  }, [navigation, reservationId, webBaseUrl]);
+  }, [navigation, reservationId, webBaseUrl, t]);
 
   useEffect(() => {
     if (!reservationId) {
@@ -98,8 +96,12 @@ export default function WebPaymentRedirect({route, reservationType}) {
       try {
         const response =
           reservationType === 'PARTY'
-            ? await reservationPaymentApi.getPartyReservationDetail(reservationId)
-            : await reservationPaymentApi.getRoomReservationDetail(reservationId);
+            ? await reservationPaymentApi.getPartyReservationDetail(
+                reservationId,
+              )
+            : await reservationPaymentApi.getRoomReservationDetail(
+                reservationId,
+              );
 
         if (!isActive || !isCompletedPayment(reservationType, response?.data)) {
           return;
@@ -151,11 +153,16 @@ export default function WebPaymentRedirect({route, reservationType}) {
     <View style={styles.container}>
       <ActivityIndicator size="large" color={COLORS.primary_orange} />
       <Text style={styles.message}>
-        결제 완료를 확인하고 있어요.{'\n'}결제창을 닫지 말아주세요.
+        {t('payment.confirmingPaymentCompletion')}
+        {'\n'}
+        {t('payment.pleaseDoNotCloseThePaymentWindow')}
       </Text>
       {!isPaymentWindowOpen ? (
         <View style={styles.button}>
-          <ButtonScarlet title={'결제창 다시 열기'} onPress={openPaymentWindow} />
+          <ButtonScarlet
+            title={t('payment.reopenThePaymentWindow')}
+            onPress={openPaymentWindow}
+          />
         </View>
       ) : null}
     </View>

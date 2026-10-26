@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -23,26 +24,32 @@ import CheckIcon from '@assets/images/check20_orange.svg';
 const {height, width} = Dimensions.get('window');
 const MIN_PRICE = 10000;
 const MAX_PRICE = 1000000;
+// Keep filter values stable; translate only their display labels.
 const CONTENT_OPTIONS = [
-  '포틀럭',
-  '독서',
-  '디너파티',
-  '프로그램',
-  '쉼',
+  {value: '포틀럭', labelKey: 'common.potluck'},
+  {value: '독서', labelKey: 'common.reading'},
+  {value: '디너파티', labelKey: 'common.dinnerParty'},
+  {value: '프로그램', labelKey: 'common.program'},
+  {value: '쉼', labelKey: 'common.rest'},
 ];
-const ROOM_TYPE_OPTIONS = ['일반 객실', '도미토리'];
+
+const ROOM_TYPE_OPTIONS = [
+  {value: '일반 객실', labelKey: 'common.standardRoom'},
+  {value: '도미토리', labelKey: 'guesthouse.dormitory'},
+];
 const SORT_OPTIONS = [
-  {label: '추천 순', value: 'RECOMMEND'},
-  {label: '낮은 가격 순', value: 'LOW_PRICE'},
-  {label: '높은 가격 순', value: 'HIGH_PRICE'},
-  {label: '찜 많은 순', value: 'LIKE_COUNT'},
+  {labelKey: 'common.recommended', value: 'RECOMMEND'},
+  {labelKey: 'guesthouse.lowestPrice', value: 'LOW_PRICE'},
+  {labelKey: 'guesthouse.highestPrice', value: 'HIGH_PRICE'},
+  {labelKey: 'guesthouse.favoriteList', value: 'LIKE_COUNT'},
 ];
+
 const TAB_LIST = [
-  {key: 'sort', label: '정렬'},
-  {key: 'region', label: '지역'},
-  {key: 'content', label: '콘텐츠'},
-  {key: 'price', label: '가격 범위'},
-  {key: 'room', label: '객실 유형'},
+  {key: 'sort', labelKey: 'common.sort'},
+  {key: 'region', labelKey: 'common.region'},
+  {key: 'content', labelKey: 'common.activity'},
+  {key: 'price', labelKey: 'common.priceRange'},
+  {key: 'room', labelKey: 'guesthouse.roomType'},
 ];
 
 const GuesthouseFilterModal = ({
@@ -54,6 +61,7 @@ const GuesthouseFilterModal = ({
   onCountRequest,
   resultCount,
 }) => {
+  const {t} = useTranslation();
   const region = useGuesthouseRegionStore(state => state.region);
   const setRegion = useGuesthouseRegionStore(state => state.setRegion);
   const [nextRegion, setNextRegion] = useState(region);
@@ -116,7 +124,10 @@ const GuesthouseFilterModal = ({
         });
     }, 250);
 
-    return () => { active = false; clearTimeout(timer); };
+    return () => {
+      active = false;
+      clearTimeout(timer);
+    };
   }, [
     initialFilters,
     onCountRequest,
@@ -182,9 +193,10 @@ const GuesthouseFilterModal = ({
 
   const handleScroll = event => {
     const y = event.nativeEvent.contentOffset.y;
-    const entries = TAB_LIST
-      .map(tab => [tab.key, sectionPositions[tab.key]])
-      .filter(([, position]) => position !== undefined);
+    const entries = TAB_LIST.map(tab => [
+      tab.key,
+      sectionPositions[tab.key],
+    ]).filter(([, position]) => position !== undefined);
 
     let currentTab = activeTab;
 
@@ -235,8 +247,12 @@ const GuesthouseFilterModal = ({
   const renderSortSection = () => (
     <View
       style={styles.section}
-      onLayout={event => setSectionPosition('sort', event.nativeEvent.layout.y)}>
-      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>정렬</Text>
+      onLayout={event =>
+        setSectionPosition('sort', event.nativeEvent.layout.y)
+      }>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+        {t('common.sort')}
+      </Text>
       <View style={styles.optionList}>
         {SORT_OPTIONS.map(option => {
           const selected = nextSort === option.value;
@@ -254,7 +270,7 @@ const GuesthouseFilterModal = ({
                   selected && styles.sortTextSelected,
                   selected && FONTS.fs_14_semibold,
                 ]}>
-                {option.label}
+                {t(option.labelKey)}
               </Text>
               {selected && <CheckIcon width={20} height={20} />}
             </TouchableOpacity>
@@ -270,16 +286,18 @@ const GuesthouseFilterModal = ({
       onLayout={event =>
         setSectionPosition('content', event.nativeEvent.layout.y)
       }>
-      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>콘텐츠</Text>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+        {t('common.activity')}
+      </Text>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
         contentContainerStyle={styles.contentChipRow}>
         {CONTENT_OPTIONS.map(option =>
           renderChip({
-            label: option,
-            selected: selectedTags.includes(option),
-            onPress: () => toggleValue(option, setSelectedTags),
+            label: t(option.labelKey),
+            selected: selectedTags.includes(option.value),
+            onPress: () => toggleValue(option.value, setSelectedTags),
           }),
         )}
       </ScrollView>
@@ -289,13 +307,15 @@ const GuesthouseFilterModal = ({
   const renderPriceSection = () => (
     <View
       style={styles.section}
-      onLayout={event => setSectionPosition('price', event.nativeEvent.layout.y)}>
+      onLayout={event =>
+        setSectionPosition('price', event.nativeEvent.layout.y)
+      }>
       <View style={styles.priceSectionHeader}>
         <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-          가격 범위
+          {t('common.priceRange')}
         </Text>
         <Text style={[FONTS.fs_12_medium, styles.priceSubtitle]}>
-          성인 1, 1박 기준
+          {t('guesthouse.1AdultPerNight')}
         </Text>
       </View>
       <View style={styles.priceMultislider} onLayout={handlePriceSliderLayout}>
@@ -313,7 +333,9 @@ const GuesthouseFilterModal = ({
       </View>
       <View style={styles.priceRangeTextContainer}>
         <View style={styles.priceTextContainer}>
-          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최소 금액</Text>
+          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
+            {t('common.minimumAmount')}
+          </Text>
           <View style={styles.priceContainer}>
             <Text style={[FONTS.fs_14_medium, styles.priceText]}>
               {priceRange[0].toLocaleString()}
@@ -321,7 +343,9 @@ const GuesthouseFilterModal = ({
           </View>
         </View>
         <View style={styles.priceTextContainer}>
-          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>최대 금액</Text>
+          <Text style={[FONTS.fs_14_medium, styles.priceTitle]}>
+            {t('common.maximumAmount')}
+          </Text>
           <View style={styles.priceContainer}>
             <Text style={[FONTS.fs_14_medium, styles.priceText]}>
               {priceRange[1].toLocaleString()}
@@ -335,15 +359,21 @@ const GuesthouseFilterModal = ({
   const renderRoomSection = () => (
     <View
       style={styles.section}
-      onLayout={event => setSectionPosition('room', event.nativeEvent.layout.y)}>
-      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>객실 유형</Text>
+      onLayout={event =>
+        setSectionPosition('room', event.nativeEvent.layout.y)
+      }>
+      <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+        {t('guesthouse.roomType')}
+      </Text>
       <View style={styles.chipRow}>
         {ROOM_TYPE_OPTIONS.map(option =>
           renderChip({
-            label: option,
-            selected: selectedRoomType === option,
+            label: t(option.labelKey),
+            selected: selectedRoomType === option.value,
             onPress: () =>
-              setSelectedRoomType(prev => (prev === option ? null : option)),
+              setSelectedRoomType(prev =>
+                prev === option.value ? null : option.value,
+              ),
           }),
         )}
       </View>
@@ -359,8 +389,11 @@ const GuesthouseFilterModal = ({
       <View style={styles.overlay}>
         <View style={styles.container}>
           <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold]}>필터</Text>
-            <TouchableOpacity activeOpacity={1} style={styles.xBtn} onPress={onClose}>
+            <Text style={[FONTS.fs_20_semibold]}>{t('common.filter')}</Text>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.xBtn}
+              onPress={onClose}>
               <XBtn width={24} height={24} />
             </TouchableOpacity>
           </View>
@@ -381,7 +414,7 @@ const GuesthouseFilterModal = ({
                       selected && styles.tabTextActive,
                       selected && FONTS.fs_16_semibold,
                     ]}>
-                    {tab.label}
+                    {t(tab.labelKey)}
                   </Text>
                 </TouchableOpacity>
               );
@@ -395,9 +428,19 @@ const GuesthouseFilterModal = ({
             contentContainerStyle={styles.content}>
             {renderSortSection()}
             <View style={styles.divider} />
-            <View style={styles.section} onLayout={event => setSectionPosition('region', event.nativeEvent.layout.y)}>
-              <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>지역</Text>
-              <RegionChips value={nextRegion} onChange={setNextRegion} inset={false} />
+            <View
+              style={styles.section}
+              onLayout={event =>
+                setSectionPosition('region', event.nativeEvent.layout.y)
+              }>
+              <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+                {t('common.region')}
+              </Text>
+              <RegionChips
+                value={nextRegion}
+                onChange={setNextRegion}
+                inset={false}
+              />
             </View>
             <View style={styles.divider} />
             {renderContentSection()}
@@ -411,7 +454,10 @@ const GuesthouseFilterModal = ({
             <TouchableOpacity
               activeOpacity={0.8}
               disabled={!isDirty}
-              style={[styles.resetButton, !isDirty && styles.resetButtonDisabled]}
+              style={[
+                styles.resetButton,
+                !isDirty && styles.resetButtonDisabled,
+              ]}
               onPress={handleReset}>
               <Text
                 style={[
@@ -419,7 +465,7 @@ const GuesthouseFilterModal = ({
                   styles.resetText,
                   !isDirty && styles.resetTextDisabled,
                 ]}>
-                초기화
+                {t('common.reset')}
               </Text>
             </TouchableOpacity>
             <TouchableOpacity
@@ -428,8 +474,10 @@ const GuesthouseFilterModal = ({
               onPress={applyFilters}>
               <Text style={[FONTS.fs_16_semibold, styles.confirmText]}>
                 {typeof displayResultCount === 'number'
-                  ? `${displayResultCount}개 게스트하우스 보기`
-                  : '게스트하우스 보기'}
+                  ? t('guesthouse.viewValueGuestHouses', {
+                      displayResultCount: displayResultCount,
+                    })
+                  : t('guesthouse.viewGuestHouses')}
               </Text>
             </TouchableOpacity>
           </View>

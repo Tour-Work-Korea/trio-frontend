@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
@@ -16,7 +17,6 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import ChevronLeft from '@assets/images/chevron_left_black.svg';
@@ -59,8 +59,8 @@ const normalizeFilterOptions = (filters, categoryTags = []) => ({
   tags: Array.isArray(filters?.tags)
     ? filters.tags
     : Array.isArray(categoryTags)
-      ? categoryTags
-      : [],
+    ? categoryTags
+    : [],
   facility: Array.isArray(filters?.facility) ? filters.facility : [],
 });
 
@@ -115,13 +115,17 @@ const readRecentSearches = async () => {
 
 const writeRecentSearches = async searches => {
   try {
-    await AsyncStorage.setItem(RECENT_SEARCH_STORAGE_KEY, JSON.stringify(searches));
+    await AsyncStorage.setItem(
+      RECENT_SEARCH_STORAGE_KEY,
+      JSON.stringify(searches),
+    );
   } catch (e) {
     console.warn('최근 검색 기록 저장 실패', e);
   }
 };
 
 const GuesthouseSearch = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   // 검색어 입력
@@ -145,7 +149,10 @@ const GuesthouseSearch = () => {
   const [filterModalVisible, setFilterModalVisible] = useState(false);
   const [sortBy, setSortBy] = useState(route.params?.sortBy || 'RECOMMEND');
   const [filterOptions, setFilterOptions] = useState(() =>
-    normalizeFilterOptions(route.params?.filterOptions, route.params?.categoryTags),
+    normalizeFilterOptions(
+      route.params?.filterOptions,
+      route.params?.categoryTags,
+    ),
   );
   const [filterResultCount] = useState(null);
 
@@ -169,8 +176,8 @@ const GuesthouseSearch = () => {
 
     const today = dayjs();
     const tomorrow = today.add(1, 'day');
-    const formattedToday = today.format('M.D dd');
-    const formattedTomorrow = tomorrow.format('M.D dd');
+    const formattedToday = today.format('M.D ddd');
+    const formattedTomorrow = tomorrow.format('M.D ddd');
     setDisplayDate(`${formattedToday} - ${formattedTomorrow}`);
   }, [routeDisplayDate]);
 
@@ -190,7 +197,10 @@ const GuesthouseSearch = () => {
       }
       if (route.params?.filterOptions || route.params?.categoryTags) {
         setFilterOptions(
-          normalizeFilterOptions(route.params?.filterOptions, route.params?.categoryTags),
+          normalizeFilterOptions(
+            route.params?.filterOptions,
+            route.params?.categoryTags,
+          ),
         );
       }
       if (route.params?.sortBy) {
@@ -344,11 +354,16 @@ const GuesthouseSearch = () => {
     try {
       const year = dayjs().year();
       const [startLabel, endLabel] = displayDate.split(' - ');
-      const [startMonth, startDay] = startLabel.split(' ')[0].split('.').map(Number);
+      const [startMonth, startDay] = startLabel
+        .split(' ')[0]
+        .split('.')
+        .map(Number);
       const [endMonth, endDay] = endLabel.split(' ')[0].split('.').map(Number);
 
       return {
-        checkIn: dayjs(`${year}-${startMonth}-${startDay}`).format('YYYY-MM-DD'),
+        checkIn: dayjs(`${year}-${startMonth}-${startDay}`).format(
+          'YYYY-MM-DD',
+        ),
         checkOut: dayjs(`${year}-${endMonth}-${endDay}`).format('YYYY-MM-DD'),
       };
     } catch (e) {
@@ -384,20 +399,23 @@ const GuesthouseSearch = () => {
     });
   };
 
-  const fetchFilterResultCount = useCallback(async filters => {
-    const {checkIn, checkOut} = getSearchDates();
-    const params = {
-      checkIn,
-      checkOut,
-      guestCount: adultCount + childCount,
-      region: filters.region ?? 'ALL',
-      ...getGuesthouseFilterApiParams(filters),
-    };
+  const fetchFilterResultCount = useCallback(
+    async filters => {
+      const {checkIn, checkOut} = getSearchDates();
+      const params = {
+        checkIn,
+        checkOut,
+        guestCount: adultCount + childCount,
+        region: filters.region ?? 'ALL',
+        ...getGuesthouseFilterApiParams(filters),
+      };
 
-    const {data} = await userGuesthouseApi.getGuesthouseFilterCount(params);
-    const count = Number(data?.count ?? 0);
-    return count;
-  }, [adultCount, childCount, getSearchDates]);
+      const {data} = await userGuesthouseApi.getGuesthouseFilterCount(params);
+      const count = Number(data?.count ?? 0);
+      return count;
+    },
+    [adultCount, childCount, getSearchDates],
+  );
 
   // 검색어 입력시
   const renderSearchResults = () => (
@@ -413,9 +431,7 @@ const GuesthouseSearch = () => {
                 <GuesthouseIcon width={24} height={24} />
               </View>
               <View>
-                <Text style={[FONTS.fs_14_medium]}>
-                  {guesthouse?.name}
-                </Text>
+                <Text style={[FONTS.fs_14_medium]}>{guesthouse?.name}</Text>
                 {!!guesthouse?.address && (
                   <Text style={[FONTS.fs_12_medium, styles.resultSubText]}>
                     {trimJejuPrefix(guesthouse.address)}
@@ -432,19 +448,22 @@ const GuesthouseSearch = () => {
       )}
 
       <View style={styles.searchResultSection}>
-        {keywordResults.map(({ id, keyword }) => (
-            <TouchableOpacity
-              key={id}
-              style={styles.searchResultRow}
-              onPress={() => {
-                saveRecentSearch(keyword);
-                navigation.navigate('GuesthouseList', getGuesthouseListParams({
+        {keywordResults.map(({id, keyword}) => (
+          <TouchableOpacity
+            key={id}
+            style={styles.searchResultRow}
+            onPress={() => {
+              saveRecentSearch(keyword);
+              navigation.navigate(
+                'GuesthouseList',
+                getGuesthouseListParams({
                   keyword,
                   keywordId: id,
                   searchText: keyword,
                   regionBounds: null,
-                }));
-              }}>
+                }),
+              );
+            }}>
             <View style={styles.resultIconBox}>
               <SearchIcon width={24} height={24} />
             </View>
@@ -459,14 +478,14 @@ const GuesthouseSearch = () => {
     <View style={styles.searchResultContainer}>
       <View style={styles.recentSearchHeader}>
         <Text style={[FONTS.fs_16_semibold, styles.recentSearchTitle]}>
-          최근 검색 기록
+          {t('guesthouse.recentSearchHistory')}
         </Text>
         <TouchableOpacity
           activeOpacity={0.8}
           hitSlop={8}
           onPress={clearRecentSearches}>
           <Text style={[FONTS.fs_12_medium, styles.recentSearchClearText]}>
-            전체삭제
+            {t('guesthouse.deleteAll_3b3cd8')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -493,7 +512,8 @@ const GuesthouseSearch = () => {
               hitSlop={8}
               style={styles.recentSearchDeleteButton}
               onPress={() => removeRecentSearch(keyword)}>
-              <Text style={[FONTS.fs_16_regular, styles.recentSearchDeleteText]}>
+              <Text
+                style={[FONTS.fs_16_regular, styles.recentSearchDeleteText]}>
                 x
               </Text>
             </TouchableOpacity>
@@ -507,7 +527,7 @@ const GuesthouseSearch = () => {
     <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
       <View style={styles.container}>
         <Text style={[FONTS.fs_20_semibold, styles.headerText]}>
-          검색
+          {t('common.search')}
         </Text>
         <View style={styles.searchRow}>
           <TouchableOpacity
@@ -532,7 +552,7 @@ const GuesthouseSearch = () => {
                 styles.searchInput,
                 Platform.OS === 'android' && styles.searchInputAndroid,
               ]}
-              placeholder="찾는 게하가 있으신가요?"
+              placeholder={t('common.isThereSomethingYouReLookingFor')}
               placeholderTextColor={COLORS.grayscale_700}
               value={searchTerm}
               onChangeText={handleChangeSearchTerm}
@@ -543,52 +563,50 @@ const GuesthouseSearch = () => {
         </View>
 
         {/* <View style={styles.selectRow}>
-          <TouchableOpacity
-            style={styles.dateContainer}
-            onPress={() => {
-              setModalInitialSection('date');
-              setDateGuestModalVisible(true);
-            }}>
-            <CalendarIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.dateText]}>
-              {displayDate}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.personRoomContainer}
-            onPress={() => {
-              setModalInitialSection('guest');
-              setDateGuestModalVisible(true);
-            }}>
-            <Person width={20} height={20} />
-            <Text style={[FONTS.fs_14_medium, styles.personText]}>
-              {`인원 ${adultCount + childCount}`}
-            </Text>
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            activeOpacity={1}
-            style={styles.filterButtonContainer}
-            onPress={() => {
-              setFilterModalVisible(true);
-            }}>
-            <FilterIcon width={18} height={18} />
-            <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
-          </TouchableOpacity>
-        </View> */}
+           <TouchableOpacity
+             style={styles.dateContainer}
+             onPress={() => {
+               setModalInitialSection('date');
+               setDateGuestModalVisible(true);
+             }}>
+             <CalendarIcon width={20} height={20} />
+             <Text style={[FONTS.fs_14_medium, styles.dateText]}>
+               {displayDate}
+             </Text>
+           </TouchableOpacity>
+            <TouchableOpacity
+             activeOpacity={1}
+             style={styles.personRoomContainer}
+             onPress={() => {
+               setModalInitialSection('guest');
+               setDateGuestModalVisible(true);
+             }}>
+             <Person width={20} height={20} />
+             <Text style={[FONTS.fs_14_medium, styles.personText]}>
+               {`인원 ${adultCount + childCount}`}
+             </Text>
+           </TouchableOpacity>
+            <TouchableOpacity
+             activeOpacity={1}
+             style={styles.filterButtonContainer}
+             onPress={() => {
+               setFilterModalVisible(true);
+             }}>
+             <FilterIcon width={18} height={18} />
+             <Text style={[FONTS.fs_14_medium, styles.filterText]}>필터</Text>
+           </TouchableOpacity>
+          </View> */}
 
         {searchTerm.trim() === '' ? (
           <>
             {/* 지역 선택
             <View style={styles.regionContainer}>
-              <View style={styles.leftRegionList}>
-                {regions.map(renderRegionItem)}
-              </View>
-              <View style={styles.rightSubRegionGrid}>
-                {currentSubRegions.map(renderSubRegionItem)}
-              </View>
+             <View style={styles.leftRegionList}>
+               {regions.map(renderRegionItem)}
+             </View>
+             <View style={styles.rightSubRegionGrid}>
+               {currentSubRegions.map(renderSubRegionItem)}
+             </View>
             </View> */}
             {renderRecentSearchHistory()}
           </>
@@ -605,8 +623,8 @@ const GuesthouseSearch = () => {
             setAdultCount(adults);
             setChildCount(children);
 
-            const formattedCheckIn = dayjs(checkIn).format('M.D dd');
-            const formattedCheckOut = dayjs(checkOut).format('M.D dd');
+            const formattedCheckIn = dayjs(checkIn).format('M.D ddd');
+            const formattedCheckOut = dayjs(checkOut).format('M.D ddd');
             setDisplayDate(`${formattedCheckIn} - ${formattedCheckOut}`);
 
             setDateGuestModalVisible(false);

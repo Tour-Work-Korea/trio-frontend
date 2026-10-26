@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   Platform,
@@ -25,11 +27,16 @@ import PlusIcon from '@assets/images/plus_black.svg';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
-const sortChips = ['최신순', '등록순'];
+const sortChips = [
+  {code: 'LATEST', labelKey: 'community.latest'},
+  {code: 'OLDEST', labelKey: 'community.registrationOrder'},
+];
 const allCategory = {
   id: 'ALL',
   code: null,
-  displayName: '전체',
+  get displayName() {
+    return i18n.t('common.all');
+  },
   contentType: 'COMMUNITY',
 };
 const defaultCategories = [
@@ -37,31 +44,57 @@ const defaultCategories = [
   {
     id: 'GUESTHOUSE_RECOMMEND',
     code: 'GUESTHOUSE_RECOMMEND',
-    displayName: '게하추천',
+    get displayName() {
+      return i18n.t('community.guesthouseRecommendation');
+    },
     contentType: 'COMMUNITY',
   },
-  {id: 'FOOD', code: 'FOOD', displayName: '맛집', contentType: 'COMMUNITY'},
-  {id: 'CAFE', code: 'CAFE', displayName: '카페', contentType: 'COMMUNITY'},
+  {
+    id: 'FOOD',
+    code: 'FOOD',
+    get displayName() {
+      return i18n.t('common.restaurant');
+    },
+    contentType: 'COMMUNITY',
+  },
+  {
+    id: 'CAFE',
+    code: 'CAFE',
+    get displayName() {
+      return i18n.t('common.cafe');
+    },
+    contentType: 'COMMUNITY',
+  },
   {
     id: 'COMPANION',
     code: 'COMPANION',
-    displayName: '동행',
+    get displayName() {
+      return i18n.t('common.accompany');
+    },
     contentType: 'COMMUNITY',
   },
-  {id: 'STAFF', code: 'STAFF', displayName: '스탭', contentType: 'RECRUIT'},
+  {
+    id: 'STAFF',
+    code: 'STAFF',
+    get displayName() {
+      return i18n.t('common.staff');
+    },
+    contentType: 'RECRUIT',
+  },
 ];
 
 const isStaffCategory = category =>
   category?.contentType === 'RECRUIT' ||
   category?.code === 'STAFF' ||
   category?.id === 'STAFF' ||
-  category?.displayName === '스탭';
+  category?.displayName === i18n.t('common.staff');
 
 const withRequiredCategories = categories => {
   const normalizedCategories = [
     allCategory,
     ...categories.filter(category => category.code !== allCategory.code),
   ];
+
   const staffCategory =
     normalizedCategories.find(isStaffCategory) ??
     defaultCategories.find(isStaffCategory);
@@ -131,13 +164,14 @@ const getInitialCategoryKey = (tabs, routeParams) => {
 };
 
 const Community = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const sortButtonRef = useRef(null);
   const didSyncInitialTabRef = useRef(false);
   const suppressNextWebTabSyncRef = useRef(false);
   const handledRequestedCategoryRef = useRef('');
-  const [selectedSort, setSelectedSort] = useState(sortChips[0]);
+  const [selectedSort, setSelectedSort] = useState(sortChips[0].code);
   const [categories, setCategories] = useState(defaultCategories);
   const [sortVisible, setSortVisible] = useState(false);
   const [sortMenuPosition, setSortMenuPosition] = useState({
@@ -154,9 +188,13 @@ const Community = () => {
     () =>
       withRequiredCategories(categories).map(category => ({
         ...category,
+        displayName:
+          category.id === allCategory.id
+            ? t('common.all')
+            : category.displayName,
         key: getCategoryKey(category),
       })),
-    [categories],
+    [categories, t],
   );
   const initialCategoryKey = useMemo(
     () => getInitialCategoryKey(categoryTabs, route.params),
@@ -180,8 +218,7 @@ const Community = () => {
 
       const tab = getCategoryRouteTab(category);
       const isAllTab = normalizeCategoryParam(tab) === 'ALL';
-      const search =
-        tab && !isAllTab ? `?tab=${encodeURIComponent(tab)}` : '';
+      const search = tab && !isAllTab ? `?tab=${encodeURIComponent(tab)}` : '';
       const normalizedTab = normalizeCategoryParam(tab);
 
       if (requestedCategoryRef.current !== normalizedTab) {
@@ -245,14 +282,16 @@ const Community = () => {
         console.warn('fetchCommunityCategories 실패:', error);
         setErrorModal({
           visible: true,
-          message: '커뮤니티 카테고리를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          message: t(
+            'community.theCommunityCategoryCouldNotBeLoadedPleaseTryAgain',
+          ),
+          buttonText: t('common.confirm'),
         });
       }
     };
 
     fetchCategories();
-  }, []);
+  }, [t]);
 
   useEffect(() => {
     if (didSyncInitialTabRef.current || pageWidth <= 0) {
@@ -357,9 +396,9 @@ const Community = () => {
 
     if (role !== 'USER') {
       showErrorModal({
-        message: '글쓰기는\n 로그인 후 사용해주세요',
-        buttonText2: '취소',
-        buttonText: '로그인하기',
+        message: t('community.pleaseWriteAfterLoggingIn'),
+        buttonText2: t('common.cancel'),
+        buttonText: t('common.logIn'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -372,7 +411,9 @@ const Community = () => {
   const renderHeader = useCallback(
     () => (
       <View style={styles.headerContainer}>
-        <Text style={[FONTS.fs_20_semibold, styles.title]}>커뮤니티</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.title]}>
+          {t('common.community')}
+        </Text>
 
         <View style={styles.filterRow}>
           <View style={styles.sortWrapper}>
@@ -382,7 +423,10 @@ const Community = () => {
               style={styles.sortChip}
               onPress={handleToggleSortMenu}>
               <Text style={[FONTS.fs_14_medium, styles.sortChipText]}>
-                {selectedSort}
+                {t(
+                  sortChips.find(sort => sort.code === selectedSort)
+                    ?.labelKey ?? 'community.latest',
+                )}
               </Text>
               {sortVisible ? (
                 <ChevronUp width={16} height={16} />
@@ -421,6 +465,7 @@ const Community = () => {
         </View>
       </View>
     ),
+
     [
       activeIndex,
       categoryTabs,
@@ -428,6 +473,7 @@ const Community = () => {
       onTabPress,
       selectedSort,
       sortVisible,
+      t,
     ],
   );
 
@@ -496,7 +542,7 @@ const Community = () => {
           onPress={handlePressWrite}>
           <PlusIcon width={20} height={20} />
           <Text style={[FONTS.fs_14_medium, styles.writeButtonText]}>
-            글쓰기
+            {t('common.writing')}
           </Text>
         </TouchableOpacity>
       )}
@@ -511,20 +557,21 @@ const Community = () => {
             style={styles.sortOverlayBackdrop}
             onPress={() => setSortVisible(false)}
           />
+
           <View style={[styles.floatingSortMenu, sortMenuPosition]}>
             {sortChips.map(sort => (
               <TouchableOpacity
-                key={sort}
+                key={sort.code}
                 activeOpacity={0.8}
                 style={styles.sortMenuItem}
-                onPress={() => handleSelectSort(sort)}>
+                onPress={() => handleSelectSort(sort.code)}>
                 <Text
                   style={[
                     FONTS.fs_16_medium,
                     styles.sortMenuText,
-                    selectedSort === sort && styles.selectedSortMenuText,
+                    selectedSort === sort.code && styles.selectedSortMenuText,
                   ]}>
-                  {sort}
+                  {t(sort.labelKey)}
                 </Text>
               </TouchableOpacity>
             ))}

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState} from 'react';
 import {Text, TouchableOpacity, View} from 'react-native';
 
@@ -9,16 +10,17 @@ import MyCouponOwnList from './MyCouponOwnList';
 import MyCouponReceive from './MyCouponReceive';
 
 const TABS = [
-  {key: 'owned', label: '보유'},
-  {key: 'receive', label: '쿠폰 받기'},
+  {key: 'owned', labelKey: 'common.holding'},
+  {key: 'receive', labelKey: 'common.getCoupon'},
 ];
 
 const MyCouponList = () => {
+  const {t} = useTranslation();
   const [activeTab, setActiveTab] = useState('owned');
 
   return (
     <View style={styles.container}>
-      <Header title="쿠폰" />
+      <Header title={t('common.coupon')} />
 
       <View style={styles.tabContainer}>
         {TABS.map(tab => (
@@ -34,7 +36,7 @@ const MyCouponList = () => {
                 activeTab === tab.key && styles.activeTabText,
                 activeTab === tab.key && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}

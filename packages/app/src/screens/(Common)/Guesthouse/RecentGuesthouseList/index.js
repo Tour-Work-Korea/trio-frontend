@@ -1,10 +1,6 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
-import {
-  View,
-  Text,
-  FlatList,
-  TouchableOpacity,
-} from 'react-native';
+import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
@@ -19,13 +15,14 @@ import {
   setRecentGuesthouses,
 } from '@utils/recentGuesthouses';
 import {toggleFavorite} from '@utils/toggleFavorite';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {trimJejuPrefix, formatAddressDetail} from '@utils/formatAddress';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import FillHeart from '@assets/images/heart_filled.svg';
 import EmptyHeart from '@assets/images/heart_empty.svg';
 
 const RecentGuesthouseList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [guesthouses, setGuesthouses] = useState([]);
   const [deleteModalVisible, setDeleteModalVisible] = useState(false);
@@ -39,7 +36,10 @@ const RecentGuesthouseList = () => {
         try {
           const list = await getRecentGuesthouses();
           setGuesthouses(list);
-          prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 8});
+          prefetchImageUrls(
+            list.map(item => item.thumbnailUrl),
+            {limit: 8},
+          );
         } catch (error) {
           console.warn('최근 본 게하 조회 실패', error);
           setGuesthouses([]);
@@ -124,7 +124,10 @@ const RecentGuesthouseList = () => {
           style={[FONTS.fs_12_medium, styles.address]}
           numberOfLines={1}
           ellipsizeMode="tail">
-          {[trimJejuPrefix(item.address), item.addressDetail]
+          {[
+            trimJejuPrefix(item.address),
+            formatAddressDetail(item.addressDetail),
+          ]
             .filter(Boolean)
             .join(' ')}
         </Text>
@@ -144,7 +147,7 @@ const RecentGuesthouseList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="최근 본 게하" />
+      <Header title={t('common.recentlyViewedGuesthouse')} />
 
       {guesthouses.length > 0 ? (
         <>
@@ -153,7 +156,7 @@ const RecentGuesthouseList = () => {
               activeOpacity={1}
               onPress={() => setDeleteModalVisible(true)}>
               <Text style={[FONTS.fs_12_medium, styles.clearText]}>
-                전체 삭제
+                {t('guesthouse.deleteAll')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -168,19 +171,19 @@ const RecentGuesthouseList = () => {
       ) : (
         <View style={styles.emptyContainer}>
           <Text style={[FONTS.fs_16_semibold, styles.emptyTitle]}>
-            최근 본 게스트하우스가 없어요
+            {t('guesthouse.thereAreNoRecentlyViewedGuesthouses')}
           </Text>
           <Text style={[FONTS.fs_14_semibold, styles.emptyDescription]}>
-            게스트하우스를 먼저 둘러보세요.
+            {t('guesthouse.takeALookAroundTheGuesthouseFirst')}
           </Text>
         </View>
       )}
 
       <AlertModal
         visible={deleteModalVisible}
-        title="전체 목록을 삭제할까요?"
-        buttonText="전체 삭제"
-        buttonText2="취소"
+        title={t('guesthouse.wantToDeleteTheEntireList')}
+        buttonText={t('guesthouse.deleteAll')}
+        buttonText2={t('common.cancel')}
         onPress={handleClearAll}
         onPress2={() => setDeleteModalVisible(false)}
         onRequestClose={() => setDeleteModalVisible(false)}

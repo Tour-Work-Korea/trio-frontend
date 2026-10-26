@@ -1,4 +1,5 @@
 import {Platform} from 'react-native';
+import i18n from '../i18n';
 
 const IOS_STORE_URL =
   'https://apps.apple.com/kr/app/%EA%B2%8C%EB%94%B1%EC%A7%80-%EA%B2%8C%EC%8A%A4%ED%8A%B8%ED%95%98%EC%9A%B0%EC%8A%A4-%EB%94%B1-%EC%A7%80%EA%B8%88/id6746732522';
@@ -74,13 +75,17 @@ const escapeHtml = value =>
 const getBridgeHtml = ({deepLinkUrl, storeUrl}) => {
   const deepLinkJson = JSON.stringify(deepLinkUrl);
   const storeUrlJson = JSON.stringify(storeUrl);
+  const language = i18n.resolvedLanguage === 'en' ? 'en' : 'ko';
+  const openingApp = escapeHtml(i18n.t('web.openingApp'));
+  const storeFallback = escapeHtml(i18n.t('web.openStoreFallback'));
+  const downloadApp = escapeHtml(i18n.t('web.downloadApp'));
 
   return `<!doctype html>
-<html lang="ko">
+<html lang="${language}">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>게딱지 앱으로 이동</title>
+    <title>${i18n.t('events.openAppTitle')}</title>
     <style>
       html, body {
         margin: 0;
@@ -127,9 +132,9 @@ const getBridgeHtml = ({deepLinkUrl, storeUrl}) => {
   </head>
   <body>
     <main>
-      <h1>게딱지 앱으로 이동 중</h1>
-      <p>앱이 열리지 않으면 스토어로 이동합니다.</p>
-      <a href="${escapeHtml(storeUrl)}">앱 다운로드하기</a>
+      <h1>${openingApp}</h1>
+      <p>${storeFallback}</p>
+      <a href="${escapeHtml(storeUrl)}">${downloadApp}</a>
     </main>
     <script>
       (function () {

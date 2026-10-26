@@ -47,6 +47,7 @@ export {default as My} from './(Common)/BottomTabs/My';
 export {default as Setting} from './(Common)/Setting';
 export {default as Terms} from './(Common)/Setting/Terms';
 export {default as OpenSourceLicenses} from './(Common)/Setting/OpenSourceLicenses';
+export {default as Language} from './(Common)/Setting/Language';
 // 커뮤니티
 export {default as Community} from './(Common)/BottomTabs/Community';
 export {default as CommunityDetail} from './(Common)/Community/CommunityDetail';
@@ -61,6 +62,9 @@ export {default as AgreeDetail} from './(Common)/Register/AgreeDetail';
 export {default as EmailCertificate} from './(Common)/Register/EmailCertificate';
 export {default as PhoneCertificate} from './(Common)/Register/PhoneCertificate';
 export {default as RegisterAgree} from './(Common)/Register/RegisterAgree';
+export {default as SocialOriginSelect} from './(Common)/Register/SocialOriginSelect';
+export {default as ForeignRegisterProfile} from './(Common)/Register/ForeignRegisterProfile';
+export {default as ForeignSignupComplete} from './(Common)/Register/ForeignSignupComplete';
 export {default as RegisterIntro} from './(Common)/Register/RegisterIntro';
 export {default as Result} from './(Common)/Register/Result';
 export {default as Login} from './(Common)/Login';

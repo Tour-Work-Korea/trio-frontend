@@ -1,8 +1,10 @@
 import React from 'react';
-import {Platform, TouchableOpacity, Text, StyleSheet, View} from 'react-native';
+import {Platform, TouchableOpacity, StyleSheet, View} from 'react-native';
+import {useTranslation} from 'react-i18next';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {navigationRef} from '@utils/navigationService';
+import AdaptiveText from '@components/AdaptiveText';
 
 // props로
 // 1. 버튼 안에 글씨 - title
@@ -24,8 +26,12 @@ const ButtonWhite = ({
   outlined = false,
   borderColor = COLORS.grayscale_400,
 }) => {
+  const {i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const handlePress = () => {
-    if (disabled) return;
+    if (disabled) {
+      return;
+    }
     if (onPress) {
       onPress(); // 함수가 있으면 함수 실행
     } else if (to) {
@@ -52,19 +58,24 @@ const ButtonWhite = ({
 
   return (
     <TouchableOpacity
-      style={[styles.button, buttonStyle, style]}
+      style={[
+        styles.button,
+        isEnglish && styles.englishButton,
+        buttonStyle,
+        style,
+      ]}
       onPress={handlePress}
       disabled={disabled}>
       {Icon ? <Icon width={24} height={24} /> : null}
-      <Text
-        numberOfLines={1}
+      <AdaptiveText
+        variant="button"
         style={[
           {color: textColor},
           styles.text,
           disabled ? styles.textDisabled : null,
         ]}>
         {title}
-      </Text>
+      </AdaptiveText>
       {Icon ? (
         <View style={[styles.hiddenButton]}>
           <View style={styles.hiddenIconSpace} />
@@ -92,9 +103,14 @@ const styles = StyleSheet.create({
       },
     }),
   },
+  englishButton: {
+    height: undefined,
+    minHeight: 40,
+  },
   text: {
     textAlign: 'center',
     flex: 1,
+    minWidth: 0,
     ...FONTS.fs_16_semibold,
     lineHeight: 22,
     ...Platform.select({

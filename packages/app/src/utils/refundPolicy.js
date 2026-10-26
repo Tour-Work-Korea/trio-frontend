@@ -3,6 +3,7 @@ import {
   parseDotDateAndTimeToLocalDateTime,
   parseDotDateToLocalDate,
 } from '@utils/formatDate';
+import i18n from '../i18n';
 
 export const REFUND_POLICY_RESULT = {
   OK: 'OK',
@@ -19,26 +20,48 @@ export const REFUND_POLICY_RESULT = {
 // 환불 불가 모달
 export const REFUND_POLICY_MESSAGE = {
   [REFUND_POLICY_RESULT.CHECKIN_DAY]: {
-    title: '신청을 취소하시겠습니까?',
+    get title() {
+      return i18n.t('refund.cancelApplicationQuestion');
+    },
     highlightText: '',
-    buttonText: '신청 취소하기',
-    buttonText2: '유지하기',
+    get buttonText() {
+      return i18n.t('refund.cancelApplication');
+    },
+    get buttonText2() {
+      return i18n.t('refund.keepApplication');
+    },
   },
   [REFUND_POLICY_RESULT.AFTER_CHECKIN_TIME]: {
-    title: '신청을 취소하시겠습니까?',
+    get title() {
+      return i18n.t('refund.cancelApplicationQuestion');
+    },
     highlightText: '',
-    buttonText: '신청 취소하기',
-    buttonText2: '유지하기',
+    get buttonText() {
+      return i18n.t('refund.cancelApplication');
+    },
+    get buttonText2() {
+      return i18n.t('refund.keepApplication');
+    },
   },
   [REFUND_POLICY_RESULT.FREE_CANCEL_EXPIRED]: {
-    title: '신청을 취소하시겠습니까?',
+    get title() {
+      return i18n.t('refund.cancelApplicationQuestion');
+    },
     highlightText: '',
-    buttonText: '신청 취소하기',
-    buttonText2: '유지하기',
+    get buttonText() {
+      return i18n.t('refund.cancelApplication');
+    },
+    get buttonText2() {
+      return i18n.t('refund.keepApplication');
+    },
   },
   [REFUND_POLICY_RESULT.INVALID_DATA]: {
-    title: '오류',
-    message: '예약 정보를 확인할 수 없어 환불 가능 여부를 판단할 수 없습니다.',
+    get title() {
+      return i18n.t('common.error');
+    },
+    get message() {
+      return i18n.t('refund.invalidReservationData');
+    },
   },
 };
 
@@ -51,7 +74,9 @@ const buildCheckInDateTime = (checkInDate, checkInTime) => {
   if (!checkInDate || !checkInTime) return null;
 
   const normalizedTime = String(checkInTime).slice(0, 5);
-  const rawDate = String(checkInDate).replace(/\s+/g, '').replace(/[()가-힣]/g, '');
+  const rawDate = String(checkInDate)
+    .replace(/\s+/g, '')
+    .replace(/[()가-힣]/g, '');
 
   let localDateTime = '';
   if (rawDate.includes('.')) {

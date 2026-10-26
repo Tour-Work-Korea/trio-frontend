@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {
   ActivityIndicator,
@@ -17,14 +18,6 @@ import userMyApi from '@utils/api/userMyApi';
 import styles from './MyPoint.styles';
 
 const PAGE_SIZE = 20;
-
-const POINT_TYPE_LABELS = {
-  EARN: '적립',
-  SPEND: '사용',
-  ADJUSTMENT: '조정',
-  EXPIRATION: '소멸',
-  RECOVER: '복구',
-};
 
 const POSITIVE_TYPES = ['EARN', 'RECOVER'];
 const NEGATIVE_TYPES = ['SPEND', 'EXPIRATION'];
@@ -136,6 +129,15 @@ const getPointSign = item => {
 };
 
 const PointHistoryItem = ({item}) => {
+  const {t} = useTranslation();
+  const POINT_TYPE_LABELS = {
+    EARN: t('myPage.earn'),
+    SPEND: t('myPage.use'),
+    ADJUSTMENT: t('myPage.adjustment'),
+    EXPIRATION: t('myPage.extinction'),
+    RECOVER: t('myPage.recovery'),
+  };
+
   const sign = getPointSign(item);
   const amount = Math.abs(Number(item?.amount || 0)).toLocaleString('ko-KR');
   const isPositive = sign === '+';
@@ -146,7 +148,7 @@ const PointHistoryItem = ({item}) => {
         <Text
           style={[FONTS.fs_16_medium, styles.historyTitle]}
           numberOfLines={1}>
-          {item?.description || '포인트 내역'}
+          {item?.description || t('myPage.pointsDetails')}
         </Text>
         <Text style={[FONTS.fs_14_medium, styles.historyDate]}>
           {formatHistoryDate(item?.transactionDate)}
@@ -171,6 +173,7 @@ const PointHistoryItem = ({item}) => {
 };
 
 const MyPoint = () => {
+  const {t} = useTranslation();
   const [currentPoints, setCurrentPoints] = useState(0);
   const [expiringPoints, setExpiringPoints] = useState(0);
   const [histories, setHistories] = useState([]);
@@ -180,56 +183,58 @@ const MyPoint = () => {
   const [refreshing, setRefreshing] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
 
-  const fetchPointData = useCallback(async ({
-    nextPage = 0,
-    append = false,
-    refresh = false,
-  } = {}) => {
-    if (append) {
-      setLoadingMore(true);
-    } else if (refresh) {
-      setRefreshing(true);
-    } else {
-      setLoading(true);
-    }
-
-    try {
-      const [balanceRes, historyRes] = await Promise.all([
-        userMyApi.getPointBalance(),
-        userMyApi.getPointHistory({
-          page: nextPage,
-          size: PAGE_SIZE,
-          sort: ['transactionDate,desc'],
-        }),
-      ]);
-      const balanceData = balanceRes?.data;
-      const historyData = historyRes?.data;
-      const nextCurrentPoints = balanceData?.currentPoints ?? 0;
-      const serverExpiringPoints = getServerExpiringPoints(balanceData);
-      const nextExpiringPoints =
-        serverExpiringPoints ??
-        calculateExpiringSoonPoints(historyData?.content || [], nextCurrentPoints);
-
-      setCurrentPoints(nextCurrentPoints);
-      setExpiringPoints(nextExpiringPoints);
-      setHistories(prev =>
-        append
-          ? [...prev, ...(historyData?.content || [])]
-          : historyData?.content || [],
-      );
-      setPage(historyData?.number ?? nextPage);
-      setLast(historyData?.last ?? true);
-    } catch (error) {
-      console.warn('포인트 내역 조회 실패:', error);
-      if (!append) {
-        setHistories([]);
+  const fetchPointData = useCallback(
+    async ({nextPage = 0, append = false, refresh = false} = {}) => {
+      if (append) {
+        setLoadingMore(true);
+      } else if (refresh) {
+        setRefreshing(true);
+      } else {
+        setLoading(true);
       }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-      setLoadingMore(false);
-    }
-  }, []);
+
+      try {
+        const [balanceRes, historyRes] = await Promise.all([
+          userMyApi.getPointBalance(),
+          userMyApi.getPointHistory({
+            page: nextPage,
+            size: PAGE_SIZE,
+            sort: ['transactionDate,desc'],
+          }),
+        ]);
+        const balanceData = balanceRes?.data;
+        const historyData = historyRes?.data;
+        const nextCurrentPoints = balanceData?.currentPoints ?? 0;
+        const serverExpiringPoints = getServerExpiringPoints(balanceData);
+        const nextExpiringPoints =
+          serverExpiringPoints ??
+          calculateExpiringSoonPoints(
+            historyData?.content || [],
+            nextCurrentPoints,
+          );
+
+        setCurrentPoints(nextCurrentPoints);
+        setExpiringPoints(nextExpiringPoints);
+        setHistories(prev =>
+          append
+            ? [...prev, ...(historyData?.content || [])]
+            : historyData?.content || [],
+        );
+        setPage(historyData?.number ?? nextPage);
+        setLast(historyData?.last ?? true);
+      } catch (error) {
+        console.warn('포인트 내역 조회 실패:', error);
+        if (!append) {
+          setHistories([]);
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
+        setLoadingMore(false);
+      }
+    },
+    [],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -253,14 +258,14 @@ const MyPoint = () => {
     <View style={styles.listHeader}>
       <View style={styles.pointCard}>
         <Text style={[FONTS.fs_16_semibold, styles.pointCardTitle]}>
-          보유 포인트
+          {t('myPage.pointsHeld')}
         </Text>
         <Text style={[styles.currentPointText]}>
           {formatPoint(currentPoints)}
         </Text>
         <View style={styles.expiringRow}>
           <Text style={[FONTS.fs_16_medium, styles.expiringLabel]}>
-            소멸 예정 포인트 (30일 내)
+            {t('myPage.pointsScheduledToExpireWithin30Days')}
           </Text>
           <Text style={[FONTS.fs_16_medium, styles.expiringPoint]}>
             {formatPoint(expiringPoints)}
@@ -269,7 +274,7 @@ const MyPoint = () => {
       </View>
 
       <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-        이용 내역
+        {t('myPage.usageHistory')}
       </Text>
     </View>
   );
@@ -286,7 +291,7 @@ const MyPoint = () => {
     return (
       <View style={styles.emptyContainer}>
         <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-          포인트 이용 내역이 없습니다.
+          {t('myPage.thereIsNoHistoryOfPointUsage')}
         </Text>
       </View>
     );
@@ -294,7 +299,7 @@ const MyPoint = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="포인트" />
+      <Header title={t('common.point')} />
       <FlatList
         data={histories}
         keyExtractor={item => String(item.transactionId)}

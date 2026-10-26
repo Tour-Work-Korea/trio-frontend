@@ -1,4 +1,6 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import {formatNumber} from '@utils/localeFormat';
+import {useTranslation} from 'react-i18next';
+import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -9,21 +11,20 @@ import {
   Dimensions,
   Platform,
 } from 'react-native';
-import { useFocusEffect, useNavigation } from '@react-navigation/native';
+import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import Header from '@components/Header';
 import styles from './GuesthouseReservation.styles';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import userMyApi from '@utils/api/userMyApi';
-import { getUsableCouponCount } from '@utils/coupon/couponUtils';
-import { applyRefundPoliciesToAgreementHtml } from '@utils/refundPolicyAgreement';
-import { AGREEMENT_CONTENT } from '@data/agreeContents';
+import {getUsableCouponCount} from '@utils/coupon/couponUtils';
+import {applyRefundPoliciesToAgreementHtml} from '@utils/refundPolicyAgreement';
+import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import useUserStore from '@stores/userStore';
 import TermsModal from '@components/modals/TermsModal';
@@ -44,7 +45,8 @@ const EXPECTED_CHECK_IN_ITEM_HEIGHT = 44;
 const EXPECTED_CHECK_IN_OPTIONS = Array.from(
   {
     length:
-      (EXPECTED_CHECK_IN_END_MINUTES - EXPECTED_CHECK_IN_START_MINUTES) / 30 + 1,
+      (EXPECTED_CHECK_IN_END_MINUTES - EXPECTED_CHECK_IN_START_MINUTES) / 30 +
+      1,
   },
   (_, index) => {
     const totalMinutes = EXPECTED_CHECK_IN_START_MINUTES + index * 30;
@@ -55,7 +57,9 @@ const EXPECTED_CHECK_IN_OPTIONS = Array.from(
 );
 
 const getInitialExpectedCheckInIndex = (...timeValues) => {
-  const timeValue = timeValues.find(value => typeof value === 'string' && value);
+  const timeValue = timeValues.find(
+    value => typeof value === 'string' && value,
+  );
   const match = timeValue?.match(/(?:T|^)(\d{2}):(\d{2})/);
   if (!match) return 0;
 
@@ -65,13 +69,11 @@ const getInitialExpectedCheckInIndex = (...timeValues) => {
     Math.max(EXPECTED_CHECK_IN_START_MINUTES, totalMinutes),
   );
 
-  return Math.floor(
-    (boundedMinutes - EXPECTED_CHECK_IN_START_MINUTES) / 30,
-  );
+  return Math.floor((boundedMinutes - EXPECTED_CHECK_IN_START_MINUTES) / 30);
 };
 
 // 번화번호 사이에 '-' 집어넣기
-const formatPhoneNumber = (phone) => {
+const formatPhoneNumber = phone => {
   if (!phone || phone.length !== 11) return phone; // 예외 처리
   return `${phone.slice(0, 3)}-${phone.slice(3, 7)}-${phone.slice(7)}`;
 };
@@ -82,7 +84,9 @@ const TERM_DOCUMENT_MAP = {
   thirdParty: 'GUESTHOUSE_PRIVACY_THIRD_PARTY',
 };
 
-const GuesthouseReservation = ({ route }) => {
+const GuesthouseReservation = ({route}) => {
+  const {t, i18n: translationI18n} = useTranslation();
+  const isEnglish = (translationI18n.resolvedLanguage || translationI18n.language || '').startsWith('en');
   const {
     roomId,
     roomName,
@@ -123,20 +127,28 @@ const GuesthouseReservation = ({ route }) => {
   });
   const name = useUserStore(state => state.userProfile.name);
   const phone = useUserStore(state => state.userProfile.phone);
+  const userOriginType = useUserStore(
+    state => state.userProfile.userOriginType,
+  );
+  const isForeignUser = userOriginType === 'FOREIGN';
   const [requestMessage, setRequestMessage] = useState('');
   const [expectedCheckInTime, setExpectedCheckInTime] = useState(null);
   const [isExpectedCheckInOpen, setExpectedCheckInOpen] = useState(false);
   const [isActualGuestExpanded, setActualGuestExpanded] = useState(false);
   const [actualGuestName, setActualGuestName] = useState('');
   const [actualGuestPhone, setActualGuestPhone] = useState('');
+  const [emergencyContactName, setEmergencyContactName] = useState('');
+  const [emergencyContactPhone, setEmergencyContactPhone] = useState('');
   const [pointValue, setPointValue] = useState('');
   const [pointBalance, setPointBalance] = useState(0);
   const [coupons, setCoupons] = useState([]);
 
   const [isConfirmVisible, setConfirmVisible] = useState(false);
   const [isSameDayNoticeVisible, setSameDayNoticeVisible] = useState(false);
-  const [isRequestConfirmationNoticeVisible, setRequestConfirmationNoticeVisible] =
-    useState(false);
+  const [
+    isRequestConfirmationNoticeVisible,
+    setRequestConfirmationNoticeVisible,
+  ] = useState(false);
   const [reservationErrorMessage, setReservationErrorMessage] = useState('');
   const {
     scrollRef,
@@ -204,16 +216,14 @@ const GuesthouseReservation = ({ route }) => {
     [scrollInputAboveKeyboard],
   );
 
-  const formatTime = (timeStr) => {
-    if (!timeStr) return '시간 없음';
+  const formatTime = timeStr => {
+    if (!timeStr) return t('common.noTime');
     const date = dayjs(timeStr);
-    return date.isValid()
-        ? date.format('HH:mm')
-        : timeStr.slice(0, 5);
+    return date.isValid() ? date.format('HH:mm') : timeStr.slice(0, 5);
   };
-  const formatDateWithDay = (dateStr) => {
+  const formatDateWithDay = dateStr => {
     const date = dayjs(dateStr);
-    return `${date.format('YY.MM.DD')} (${date.format('dd')})`;
+    return `${date.format('YY.MM.DD')} (${date.format('ddd')})`;
   };
   const formatDateTime = (dateStr, timeStr) => {
     const dateLabel = formatDateWithDay(dateStr);
@@ -229,9 +239,9 @@ const GuesthouseReservation = ({ route }) => {
     nights >= 2 &&
     Number(multiNightDiscountAmount) > 0;
   const roomTypeMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: t('common.mixedDormitory'),
+    FEMALE_ONLY: t('common.womenOnly'),
+    MALE_ONLY: t('common.menOnly'),
   };
   const isDormitory = roomType === 'DORMITORY';
   const genderText = roomTypeMap[dormitoryGenderType] || '';
@@ -250,8 +260,7 @@ const GuesthouseReservation = ({ route }) => {
     Number(extraPersonTotalPrice) > 0
       ? Number(extraPersonTotalPrice || 0)
       : extraGuestUnitPrice * displayExtraGuestCount * nights;
-  const shouldShowExtraGuestPrice =
-    !isDormitory && displayExtraGuestCount > 0;
+  const shouldShowExtraGuestPrice = !isDormitory && displayExtraGuestCount > 0;
   const originalRoomSubtotal = Number(
     roomSubtotal ??
       Math.max(
@@ -264,7 +273,10 @@ const GuesthouseReservation = ({ route }) => {
   const isPointOverBalance = numericPointValue > Number(pointBalance || 0);
   const usableCouponCount = getUsableCouponCount(coupons, totalPrice);
   const couponDiscountAmount = Number(selectedCoupon?.discountAmount || 0);
-  const priceAfterCoupon = Math.max(Number(totalPrice || 0) - couponDiscountAmount, 0);
+  const priceAfterCoupon = Math.max(
+    Number(totalPrice || 0) - couponDiscountAmount,
+    0,
+  );
   const appliedPointAmount = Math.min(
     numericPointValue,
     Number(pointBalance || 0),
@@ -274,22 +286,23 @@ const GuesthouseReservation = ({ route }) => {
   const totalDiscountAmount = couponDiscountAmount + appliedPointAmount;
   const isSameDayReservation = dayjs(checkIn).isSame(dayjs(), 'day');
   const isSameDayInstantReservation =
-    reservationPolicy?.mode === 'INSTANT_CONFIRMATION' &&
-    isSameDayReservation;
+    reservationPolicy?.mode === 'INSTANT_CONFIRMATION' && isSameDayReservation;
   const isRequestConfirmationReservation =
     reservationPolicy?.mode === 'REQUEST_CONFIRMATION';
   const requestConfirmationNoticeTitle = isSameDayReservation
-    ? '당일 예약 전 꼭 확인해 주세요!'
-    : '예약 전 꼭 확인해 주세요!';
+    ? t('guesthouse.beSureToCheckBeforeMakingASameDayReservation')
+    : t('guesthouse.beSureToCheckBeforeMakingAReservation');
+
   const requestConfirmationNoticeMessage = isSameDayReservation
-    ? '사장님 승인 후 확정되는 숙소입니다\n사장님 거절 시 100% 환불해 드리니 안심하세요!\n(단, 당일 예약이라 확정 후 취소나 환불은 불가능합니다)'
-    : '사장님 승인 후 확정되는 숙소입니다\n사장님 거절 시 100% 환불해 드리니 안심하고 예약하세요!';
+    ? t('guesthouse.accommodationWillBeConfirmedAfterTheOwnerSApprovalDon')
+    : t('guesthouse.thisAccommodationIsConfirmedAfterApprovalByTheOwnerIf');
 
   // 유효성 검사
-  const isAllRequiredAgreed = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+  const isAllRequiredAgreed =
+    agreements.terms && agreements.personalInfo && agreements.thirdParty;
 
-  const toggleAgreement = (key) => {
-    setAgreements((prev) => ({
+  const toggleAgreement = key => {
+    setAgreements(prev => ({
       ...prev,
       [key]: !prev[key],
     }));
@@ -305,9 +318,9 @@ const GuesthouseReservation = ({ route }) => {
     });
   };
 
-
   useEffect(() => {
-    const allChecked = agreements.terms && agreements.personalInfo && agreements.thirdParty;
+    const allChecked =
+      agreements.terms && agreements.personalInfo && agreements.thirdParty;
     if (allChecked !== agreeAll) {
       setAgreeAll(allChecked);
     }
@@ -368,7 +381,7 @@ const GuesthouseReservation = ({ route }) => {
       : null;
   const selectedAgreementContent = (selectedAgreementDoc?.detail || '').replace(
     /{{guesthouseName}}/g,
-    guesthouseName || '해당 게스트하우스',
+    guesthouseName || t('common.theGuesthouse'),
   );
   const selectedAgreementBaseHtml =
     selectedTerm === 'terms'
@@ -379,10 +392,10 @@ const GuesthouseReservation = ({ route }) => {
       : selectedAgreementDoc?.detailHtml || '';
   const selectedAgreementHtml = selectedAgreementBaseHtml.replace(
     /{{guesthouseName}}/g,
-    guesthouseName || '해당 게스트하우스',
+    guesthouseName || t('common.theGuesthouse'),
   );
 
-  const openTermModal = (key) => {
+  const openTermModal = key => {
     setSelectedTerm(key);
     setModalVisible(true);
   };
@@ -397,7 +410,7 @@ const GuesthouseReservation = ({ route }) => {
     setModalVisible(false);
   };
 
-  const handleChangePointValue = (text) => {
+  const handleChangePointValue = text => {
     const numericText = text.replace(/[^0-9]/g, '');
 
     if (!numericText) {
@@ -454,7 +467,23 @@ const GuesthouseReservation = ({ route }) => {
         hasActualGuestInfo &&
         (!trimmedActualGuestName || !trimmedActualGuestPhone)
       ) {
-        Alert.alert('방문자 정보 확인', '실제 방문자 이름과 연락처를 모두 입력해주세요.');
+        Alert.alert(
+          t('guesthouse.checkVisitorInformation'),
+          t('guesthouse.pleaseEnterAllActualVisitorNamesAndContactInformation'),
+        );
+        return;
+      }
+
+      const trimmedEmergencyContactName = emergencyContactName.trim();
+      const trimmedEmergencyContactPhone = emergencyContactPhone.trim();
+      if (
+        isForeignUser &&
+        (!trimmedEmergencyContactName || !trimmedEmergencyContactPhone)
+      ) {
+        Alert.alert(
+          t('guesthouse.checkEmergencyContactInformation'),
+          t('guesthouse.pleaseEnterAllEmergencyContactNamesAndPhoneNumbers'),
+        );
         return;
       }
 
@@ -476,13 +505,21 @@ const GuesthouseReservation = ({ route }) => {
         body.actualGuestPhone = trimmedActualGuestPhone;
       }
 
+      if (trimmedEmergencyContactName || trimmedEmergencyContactPhone) {
+        body.emergencyContactName = trimmedEmergencyContactName;
+        body.emergencyContactPhone = trimmedEmergencyContactPhone;
+      }
+
       const preparedPaymentWindow =
         Platform.OS === 'web'
           ? prepareWebPaymentWindow()
           : {name: null, windowRef: null};
       paymentWindowRef = preparedPaymentWindow.windowRef;
 
-      const res = await reservationPaymentApi.createRoomReservation(roomId, body);
+      const res = await reservationPaymentApi.createRoomReservation(
+        roomId,
+        body,
+      );
 
       const reservationId = res?.data;
 
@@ -526,531 +563,724 @@ const GuesthouseReservation = ({ route }) => {
           userPhone: formatPhoneNumber(phone),
         },
       });
-
     } catch (err) {
       paymentWindowRef?.close();
       setReservationErrorMessage(
-        err?.response?.data?.message || '예약 처리 중 문제가 발생했습니다.',
+        err?.response?.data?.message ||
+          t('guesthouse.thereWasAProblemProcessingYourReservation'),
       );
     }
   };
 
   return (
     <View style={styles.container}>
-        <Header title="예약" />
-        <ScrollView
-          ref={scrollRef}
-          onScroll={e => {
-            scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
-          }}
-          scrollEventThrottle={16}
-          contentContainerStyle={[
-            styles.scrollContent,
-            keyboardAwareContentStyle,
-          ]}
-          keyboardDismissMode="on-drag"
-          keyboardShouldPersistTaps="handled"
-        >
-          <Text style={[FONTS.fs_20_semibold, styles.title]}>{guesthouseName}</Text>
-          {/* 방 정보 */}
-          <Text style={[FONTS.fs_16_regular, styles.roomName]}>{roomName}</Text>
-          {isDormitory ? (
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+      <Header title={t('common.reservation')} />
+      <ScrollView
+        ref={scrollRef}
+        onScroll={e => {
+          scrollYRef.current = e?.nativeEvent?.contentOffset?.y ?? 0;
+        }}
+        scrollEventThrottle={16}
+        contentContainerStyle={[
+          styles.scrollContent,
+          keyboardAwareContentStyle,
+        ]}
+        keyboardDismissMode="on-drag"
+        keyboardShouldPersistTaps="handled">
+        <Text style={[FONTS.fs_20_semibold, styles.title]}>
+          {guesthouseName}
+        </Text>
+        {/* 방 정보 */}
+        <Text style={[FONTS.fs_16_regular, styles.roomName]}>{roomName}</Text>
+        {isDormitory ? (
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <Text style={[FONTS.fs_16_regular, {color: COLORS.grayscale_500}]}>
+              [{roomCapacity}
+              {t('common.inDormitory')}
+            </Text>
+            {dormitoryGenderType !== 'MIXED' && !!genderText && (
               <Text
-                style={[
-                  FONTS.fs_16_regular,
-                  {color: COLORS.grayscale_500},
-                ]}>
-                [{roomCapacity}인 도미토리]
+                style={[FONTS.fs_16_regular, {color: COLORS.grayscale_500}]}>
+                {genderText}
               </Text>
-              {dormitoryGenderType !== 'MIXED' && !!genderText && (
-                <Text
-                  style={[
-                    FONTS.fs_16_regular,
-                    {color: COLORS.grayscale_500},
-                  ]}>
-                  {genderText}
+            )}
+          </View>
+        ) : (
+          <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
+            <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+              {roomCapacity}
+              {t('common.basedOnPhosphorusMaximum')}
+              {roomMaxCapacity}
+              {t('common.phosphorus')}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.roomType]}>
+              {femaleOnly ? t('common.womenOnly_40edf9') : ''}
+            </Text>
+          </View>
+        )}
+        {/* 날짜 */}
+        <View style={styles.dateBoxContainer}>
+          <View style={styles.dateBoxCheckIn}>
+            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+              {t('common.checkIn')}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatDateWithDay(checkIn)}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatTime(checkIn)}
+            </Text>
+          </View>
+          <View style={styles.nightsBox}>
+            <Text style={[FONTS.fs_14_regular]}>
+              {t('units.night', {count: nights})}
+            </Text>
+          </View>
+          <View style={styles.dateBoxCheckOut}>
+            <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>
+              {t('common.checkOut')}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatDateWithDay(checkOut)}
+            </Text>
+            <Text style={[FONTS.fs_16_regular, styles.dateText]}>
+              {formatTime(checkOut)}
+            </Text>
+          </View>
+        </View>
+
+        <View style={styles.devide} />
+
+        {/* 예약자 정보 */}
+        <View style={styles.section}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('common.reservationInformation_206122')}
+          </Text>
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {t('common.name')}
+            </Text>
+            <Text style={FONTS.fs_14_medium}>{name}</Text>
+          </View>
+
+          {isForeignUser && (
+            <View style={styles.actualGuestForm}>
+              <Text style={[FONTS.fs_14_medium, styles.actualGuestGuide]}>
+                {t('guesthouse.pleaseEnterEmergencyContactInformationRequired')}
+              </Text>
+              <View style={styles.actualGuestInputRow}>
+                <Text style={[FONTS.fs_14_medium, styles.actualGuestLabel]}>
+                  {t('common.name')}
                 </Text>
-              )}
-            </View>
-          ) : (
-            <View style={{flexDirection: 'row', alignItems: 'center', gap: 4}}>
-              <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-                {roomCapacity}인 기준(최대 {roomMaxCapacity}인)
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.roomType]}>
-                {femaleOnly ? ', 여성전용' : ''}
-              </Text>
+                <TextInput
+                  ref={setInputRef('emergencyContactName')}
+                  style={styles.actualGuestInput}
+                  value={emergencyContactName}
+                  onChangeText={setEmergencyContactName}
+                  onFocus={() => focusInput('emergencyContactName')}
+                  placeholder={t('guesthouse.emergencyContactName')}
+                  placeholderTextColor={COLORS.grayscale_400}
+                  maxLength={30}
+                />
+              </View>
+              <View style={styles.actualGuestInputRow}>
+                <Text style={[FONTS.fs_14_medium, styles.actualGuestLabel]}>
+                  {t('common.phoneNumber')}
+                </Text>
+                <TextInput
+                  ref={setInputRef('emergencyContactPhone')}
+                  style={styles.actualGuestInput}
+                  value={emergencyContactPhone}
+                  onChangeText={setEmergencyContactPhone}
+                  onFocus={() => focusInput('emergencyContactPhone')}
+                  placeholder={t('guesthouse.includeCountryCodeEG14155551234')}
+                  placeholderTextColor={COLORS.grayscale_400}
+                  keyboardType="phone-pad"
+                  maxLength={20}
+                />
+              </View>
             </View>
           )}
-          {/* 날짜 */}
-          <View style={styles.dateBoxContainer}>
-              <View style={styles.dateBoxCheckIn}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크인</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkIn)}</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkIn)}</Text>
-              </View>
-              <View style={styles.nightsBox}>
-                <Text style={[FONTS.fs_14_regular]}>{nights}박</Text>
-              </View>
-              <View style={styles.dateBoxCheckOut}>
-                  <Text style={[FONTS.fs_14_semibold, styles.dateLabel]}>체크아웃</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatDateWithDay(checkOut)}</Text>
-                  <Text style={[FONTS.fs_16_regular, styles.dateText]}>{formatTime(checkOut)}</Text>
-              </View>
-          </View>
-
-          <View style={styles.devide}/>
-
-          {/* 예약자 정보 */}
-          <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>예약자 정보</Text>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>이름</Text>
-                  <Text style={FONTS.fs_14_medium}>{name}</Text>
-              </View>
-              <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>전화번호</Text>
-                  <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
-              </View>
-
-              <TouchableOpacity
-                style={styles.actualGuestToggle}
-                activeOpacity={1}
-                onPress={() => setActualGuestExpanded(prev => !prev)}>
-                <Text style={[FONTS.fs_14_medium, styles.actualGuestToggleText]}>
-                  {isActualGuestExpanded
-                    ? '방문자 정보 접기'
-                    : '실제 방문자가 다르다면 정보를 추가해주세요'}
-                </Text>
-                {isActualGuestExpanded ? (
-                  <ChevronUp width={18} height={18} />
-                ) : (
-                  <ChevronDown width={18} height={18} />
-                )}
-              </TouchableOpacity>
-
-              {isActualGuestExpanded ? (
-                <View style={styles.actualGuestForm}>
-                  <Text style={[FONTS.fs_14_regular, styles.actualGuestGuide]}>
-                    실제 방문하실 분의 정보를 입력하세요.
-                  </Text>
-                  <View ref={setInputRef('actualGuestName')}>
-                    <View style={styles.actualGuestInputRow}>
-                      <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
-                        이름
-                      </Text>
-                      <TextInput
-                        style={[FONTS.fs_14_regular, styles.actualGuestInput]}
-                        placeholder="이름을 입력해주세요."
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={actualGuestName}
-                        onChangeText={setActualGuestName}
-                        onFocus={() => focusInput('actualGuestName')}
-                      />
-                    </View>
-                  </View>
-                  <View ref={setInputRef('actualGuestPhone')}>
-                    <View style={styles.actualGuestInputRow}>
-                      <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
-                        연락처
-                      </Text>
-                      <TextInput
-                        style={[FONTS.fs_14_regular, styles.actualGuestInput]}
-                        placeholder="연락처를 입력해주세요."
-                        placeholderTextColor={COLORS.grayscale_400}
-                        value={actualGuestPhone}
-                        onChangeText={setActualGuestPhone}
-                        keyboardType="phone-pad"
-                        onFocus={() => focusInput('actualGuestPhone')}
-                      />
-                    </View>
-                  </View>
-                </View>
-              ) : null}
-          </View>
-
-          <View style={styles.devide}/>
-
-          {/* 예상 체크인 시간 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
-              예상 체크인 시간
-            </Text>
-            <TouchableOpacity
-              activeOpacity={1}
-              accessibilityRole="button"
-              accessibilityLabel="예상 체크인 시간 선택"
-              accessibilityState={{expanded: isExpectedCheckInOpen}}
-              style={[
-                styles.expectedCheckInSelector,
-                isExpectedCheckInOpen && styles.expectedCheckInSelectorOpen,
-              ]}
-              onPress={toggleExpectedCheckIn}>
-              <Text
-                style={[
-                  FONTS.fs_14_medium,
-                  expectedCheckInTime
-                    ? styles.expectedCheckInSelectedText
-                    : styles.expectedCheckInPlaceholder,
-                ]}>
-                {expectedCheckInTime || '예상 체크인 시간을 선택해주세요'}
+          {!isForeignUser && (
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                {t('common.phoneNumber')}
               </Text>
-              {isExpectedCheckInOpen ? (
-                <ChevronUp width={18} height={18} />
-              ) : (
-                <ChevronDown width={18} height={18} />
-              )}
-            </TouchableOpacity>
+              <Text style={FONTS.fs_14_medium}>{formatPhoneNumber(phone)}</Text>
+            </View>
+          )}
 
+          <TouchableOpacity
+            style={styles.actualGuestToggle}
+            activeOpacity={1}
+            onPress={() => setActualGuestExpanded(prev => !prev)}>
+            <Text style={[FONTS.fs_14_medium, styles.actualGuestToggleText]}>
+              {isActualGuestExpanded
+                ? t('guesthouse.collapseVisitorInformation')
+                : t(
+                    'guesthouse.ifTheActualVisitorIsDifferentPleaseAddInformation',
+                  )}
+            </Text>
+            {isActualGuestExpanded ? (
+              <ChevronUp width={18} height={18} />
+            ) : (
+              <ChevronDown width={18} height={18} />
+            )}
+          </TouchableOpacity>
+
+          {isActualGuestExpanded ? (
+            <View style={styles.actualGuestForm}>
+              <Text style={[FONTS.fs_14_regular, styles.actualGuestGuide]}>
+                {t(
+                  'guesthouse.pleaseEnterTheInformationOfThePersonWhoWillActually',
+                )}
+              </Text>
+              <View ref={setInputRef('actualGuestName')}>
+                <View style={styles.actualGuestInputRow}>
+                  <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                    {t('common.name')}
+                  </Text>
+                  <TextInput
+                    style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                    placeholder={t('guesthouse.pleaseEnterYourName')}
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={actualGuestName}
+                    onChangeText={setActualGuestName}
+                    onFocus={() => focusInput('actualGuestName')}
+                  />
+                </View>
+              </View>
+              <View ref={setInputRef('actualGuestPhone')}>
+                <View style={styles.actualGuestInputRow}>
+                  <Text style={[FONTS.fs_14_semibold, styles.actualGuestLabel]}>
+                    {t('common.contactInformation')}
+                  </Text>
+                  <TextInput
+                    style={[FONTS.fs_14_regular, styles.actualGuestInput]}
+                    placeholder={t(
+                      'guesthouse.pleaseEnterYourContactInformation',
+                    )}
+                    placeholderTextColor={COLORS.grayscale_400}
+                    value={actualGuestPhone}
+                    onChangeText={setActualGuestPhone}
+                    keyboardType="phone-pad"
+                    onFocus={() => focusInput('actualGuestPhone')}
+                  />
+                </View>
+              </View>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.devide} />
+
+        {/* 예상 체크인 시간 */}
+        <View style={styles.section}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('common.expectedCheckInTime')}
+          </Text>
+          <TouchableOpacity
+            activeOpacity={1}
+            accessibilityRole="button"
+            accessibilityLabel={t('guesthouse.selectExpectedCheckInTime')}
+            accessibilityState={{expanded: isExpectedCheckInOpen}}
+            style={[
+              styles.expectedCheckInSelector,
+              isExpectedCheckInOpen && styles.expectedCheckInSelectorOpen,
+            ]}
+            onPress={toggleExpectedCheckIn}>
+            <Text
+              style={[
+                FONTS.fs_14_medium,
+                expectedCheckInTime
+                  ? styles.expectedCheckInSelectedText
+                  : styles.expectedCheckInPlaceholder,
+              ]}>
+              {expectedCheckInTime ||
+                t('guesthouse.pleaseSelectYourExpectedCheckInTime')}
+            </Text>
             {isExpectedCheckInOpen ? (
-              <View style={styles.expectedCheckInDropdown}>
-                <ScrollView
-                  ref={expectedCheckInListRef}
-                  nestedScrollEnabled
-                  showsVerticalScrollIndicator>
-                  {EXPECTED_CHECK_IN_OPTIONS.map(option => (
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      accessibilityRole="button"
-                      key={option}
-                      style={styles.expectedCheckInOption}
-                      onPress={() => {
-                        setExpectedCheckInTime(option);
-                        setExpectedCheckInOpen(false);
-                      }}>
-                      <Text
-                        style={[
-                          FONTS.fs_14_medium,
-                          styles.expectedCheckInOptionText,
-                          expectedCheckInTime === option &&
-                            styles.expectedCheckInOptionTextSelected,
-                        ]}>
-                        {option}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
-                </ScrollView>
-              </View>
-            ) : null}
-          </View>
+              <ChevronUp width={18} height={18} />
+            ) : (
+              <ChevronDown width={18} height={18} />
+            )}
+          </TouchableOpacity>
 
-          <View style={styles.devide}/>
-
-          {/* 결제 정보 */}
-          <View style={styles.section}>
-              <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>할인 및 결제 정보</Text>
-              <View style={styles.userInfo}>
-                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  {hasMultiNightDiscount
-                    ? `객실 가격 (${isDormitory ? `베드 ${guestCount}개` : '객실 1개'} X ${nights}박)`
-                    : `객실 가격 (${isDormitory ? '1베드 당' : '1객실 당'})`}
-                </Text>
-                <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
-                  {(hasMultiNightDiscount ? originalRoomSubtotal : roomPrice)?.toLocaleString()}원
-                </Text>
-              </View>
-              {hasMultiNightDiscount && (
-                <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                    연박 할인
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.multiNightDiscountText]}>
-                    - {Number(multiNightDiscountAmount).toLocaleString()}원
-                  </Text>
-                </View>
-              )}
-              {shouldShowExtraGuestPrice ? (
-                <View style={styles.userInfo}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                    추가 인원 {displayExtraGuestCount}명
-                  </Text>
-                  <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
-                    {displayExtraGuestTotalPrice.toLocaleString()}원
-                  </Text>
-                </View>
-              ) : null}
-              <View style={styles.userInfo}>
-                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  {hasMultiNightDiscount
-                    ? '총 가격'
-                    : `총 가격 (${isDormitory ? `베드 ${guestCount}개 X ` : ''}${nights}박)`}
-                </Text>
-                <Text style={FONTS.fs_14_medium}>
-                  {totalPrice?.toLocaleString()}원
-                </Text>
-              </View>
-              <View style={[styles.devide,{marginVertical: 8}]}/>
-              {/* 쿠폰 */}
-              <View style={styles.userInfo}>
-                <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                  쿠폰 할인
-                </Text>
-                <TouchableOpacity
-                  activeOpacity={1}
-                  style={styles.couponBtn}
-                  onPress={() =>
-                    navigation.navigate('CouponSelect', {
-                      totalPrice,
-                      selectedCouponId:
-                        selectedCoupon?.userCouponId ||
-                        selectedCoupon?.couponId ||
-                        selectedCoupon?.id ||
-                        null,
-                      targetScreen: 'GuesthouseReservation',
-                      title: '쿠폰 할인',
-                    })
-                  }>
-                  {selectedCoupon?.discountLabel ? (
+          {isExpectedCheckInOpen ? (
+            <View style={styles.expectedCheckInDropdown}>
+              <ScrollView
+                ref={expectedCheckInListRef}
+                nestedScrollEnabled
+                showsVerticalScrollIndicator>
+                {EXPECTED_CHECK_IN_OPTIONS.map(option => (
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    accessibilityRole="button"
+                    key={option}
+                    style={styles.expectedCheckInOption}
+                    onPress={() => {
+                      setExpectedCheckInTime(option);
+                      setExpectedCheckInOpen(false);
+                    }}>
                     <Text
                       style={[
                         FONTS.fs_14_medium,
-                        styles.selectedCouponDiscountText,
+                        styles.expectedCheckInOptionText,
+                        expectedCheckInTime === option &&
+                          styles.expectedCheckInOptionTextSelected,
                       ]}>
-                      - {selectedCoupon.discountLabel}
+                      {option}
                     </Text>
-                  ) : (
-                    <Text style={FONTS.fs_14_medium}>
-                      사용 가능 쿠폰 {usableCouponCount}장
-                    </Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </View>
+          ) : null}
+        </View>
+
+        <View style={styles.devide} />
+
+        {/* 결제 정보 */}
+        <View style={styles.section}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('guesthouse.discountAndPaymentInformation')}
+          </Text>
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {hasMultiNightDiscount
+                ? t('guesthouse.roomPriceValueValueNights', {
+                    value1: isDormitory
+                      ? t('guesthouse.valueBeds', {
+                          guestCount: guestCount,
+                          count: guestCount,
+                        })
+                      : t('guesthouse.1Room'),
+                    nights: nights,
+                  })
+                : t('guesthouse.roomPriceValue', {
+                    value1: isDormitory
+                      ? t('common.perBed')
+                      : t('common.perRoom'),
+                  })}
+            </Text>
+            <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
+              {(hasMultiNightDiscount
+                ? originalRoomSubtotal
+                : roomPrice
+              )?.toLocaleString()}
+              {t('common.won')}
+            </Text>
+          </View>
+          {hasMultiNightDiscount && (
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                {t('guesthouse.consecutiveNightDiscount')}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.multiNightDiscountText]}>
+                - {Number(multiNightDiscountAmount).toLocaleString()}
+                {t('common.won')}
+              </Text>
+            </View>
+          )}
+          {shouldShowExtraGuestPrice ? (
+            <View style={styles.userInfo}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                {t('common.additionalPeople')}
+                {displayExtraGuestCount}
+                {t('common.peopleUnit')}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.roomPriceText]}>
+                {displayExtraGuestTotalPrice.toLocaleString()}
+                {t('common.won')}
+              </Text>
+            </View>
+          ) : null}
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {hasMultiNightDiscount
+                ? t('common.totalPrice')
+                : t(
+                    isDormitory
+                      ? 'reservation.totalBedPrice'
+                      : 'reservation.totalRoomPrice',
+                    {
+                      context:
+                        isDormitory && guestCount !== 1
+                          ? 'multipleBeds'
+                          : undefined,
+                      beds: guestCount,
+                      count: nights,
+                    },
                   )}
-                  <ChevronRight width={16} height={16}/>
+            </Text>
+            <Text style={FONTS.fs_14_medium}>
+              {totalPrice?.toLocaleString()}
+              {t('common.won')}
+            </Text>
+          </View>
+          <View style={[styles.devide, {marginVertical: 8}]} />
+          {/* 쿠폰 */}
+          <View style={styles.userInfo}>
+            <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+              {t('common.couponDiscount')}
+            </Text>
+            <TouchableOpacity
+              activeOpacity={1}
+              style={styles.couponBtn}
+              onPress={() =>
+                navigation.navigate('CouponSelect', {
+                  totalPrice,
+                  selectedCouponId:
+                    selectedCoupon?.userCouponId ||
+                    selectedCoupon?.couponId ||
+                    selectedCoupon?.id ||
+                    null,
+                  targetScreen: 'GuesthouseReservation',
+                  title: t('common.couponDiscount'),
+                })
+              }>
+              {selectedCoupon?.discountLabel ? (
+                <Text
+                  style={[
+                    FONTS.fs_14_medium,
+                    styles.selectedCouponDiscountText,
+                  ]}>
+                  - {selectedCoupon.discountLabel}
+                </Text>
+              ) : (
+                <Text style={FONTS.fs_14_medium}>
+                  {t('guesthouse.availableCouponCount', {
+                    count: usableCouponCount,
+                  })}
+                </Text>
+              )}
+              <ChevronRight width={16} height={16} />
+            </TouchableOpacity>
+          </View>
+          {selectedCoupon ? (
+            <View style={styles.selectedCouponBanner}>
+              <Text
+                style={[FONTS.fs_14_medium, styles.selectedCouponNameText]}
+                numberOfLines={1}>
+                ㄴ {selectedCoupon.title}
+              </Text>
+              <Text
+                style={[FONTS.fs_14_medium, styles.selectedCouponAmountText]}>
+                {selectedCoupon.discountLabel}
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.couponBanner}>
+              <Text style={[FONTS.fs_14_semibold]}>
+                {t('guesthouse.applyTheCoupon')}{' '}
+                <Text style={styles.couponBannerText}>
+                  {t('guesthouse.maximumDiscount')}
+                </Text>{' '}
+                {t('guesthouse.getIt')}
+              </Text>
+            </View>
+          )}
+          {/* 포인트 */}
+          <View ref={setInputRef('point')}>
+            <View style={[styles.userInfo, {marginTop: 4}]}>
+              <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
+                {t('common.point')}
+              </Text>
+              <View style={styles.pointSection}>
+                <TextInput
+                  style={[FONTS.fs_14_medium, styles.pointInput]}
+                  value={pointValue}
+                  onChangeText={handleChangePointValue}
+                  keyboardType="number-pad"
+                  placeholder="0"
+                  placeholderTextColor={COLORS.grayscale_400}
+                  onFocus={() => focusInput('point')}
+                />
+
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={styles.pointBtn}
+                  onPress={() => setPointValue(String(pointBalance || 0))}>
+                  <Text style={FONTS.fs_14_regular}>
+                    {t('guesthouse.fullUse')}
+                  </Text>
                 </TouchableOpacity>
               </View>
-              {selectedCoupon ? (
-                <View style={styles.selectedCouponBanner}>
-                  <Text
-                    style={[FONTS.fs_14_medium, styles.selectedCouponNameText]}
-                    numberOfLines={1}>
-                    ㄴ {selectedCoupon.title}
-                  </Text>
-                  <Text
-                    style={[
-                      FONTS.fs_14_medium,
-                      styles.selectedCouponAmountText,
-                    ]}>
-                    {selectedCoupon.discountLabel}
-                  </Text>
-                </View>
-              ) : (
-                <View style={styles.couponBanner}>
-                  <Text style={[FONTS.fs_14_semibold]}>
-                    쿠폰 적용하고{' '}
-                    <Text style={styles.couponBannerText}>최대 할인 혜택</Text>{' '}
-                    받으세요!
-                  </Text>
-                </View>
-              )}
-              {/* 포인트 */}
-              <View ref={setInputRef('point')}>
-                <View style={[styles.userInfo, {marginTop: 4}]}>
-                  <Text style={[FONTS.fs_14_medium, styles.userInfoTitle]}>
-                    포인트
-                  </Text>
-                  <View style={styles.pointSection}>
-                    <TextInput
-                      style={[FONTS.fs_14_medium, styles.pointInput]}
-                      value={pointValue}
-                      onChangeText={handleChangePointValue}
-                      keyboardType="number-pad"
-                      placeholder="0"
-                      placeholderTextColor={COLORS.grayscale_400}
-                      onFocus={() => focusInput('point')}
-                    />
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      style={styles.pointBtn}
-                      onPress={() => setPointValue(String(pointBalance || 0))}>
-                      <Text style={FONTS.fs_14_regular}>전액사용</Text>
-                    </TouchableOpacity>
-                  </View>
-                </View>
-              </View>
-              <Text style={[FONTS.fs_12_medium, styles.pointText]}>
-                보유 {Number(pointBalance || 0).toLocaleString()}P
-              </Text>
-              {isPointOverBalance ? (
-                <Text style={[FONTS.fs_12_medium, styles.pointWarningText]}>
-                  보유 포인트보다 많이 입력할 수 없어요.
-                </Text>
-              ) : null}
-
-              {/* 총 결제 금액 */}
-              <View style={[styles.userInfo, {marginTop: 12}]}>
-                <Text style={[FONTS.fs_16_semibold, styles.userInfoTitle]}>
-                  총 결제 금액
-                </Text>
-                <Text style={[FONTS.fs_18_semibold, styles.roomPriceText]}>
-                  {finalPaymentAmount.toLocaleString()}원
-                </Text>
-              </View>
-          </View>
-
-          <View style={styles.devide}/>
-
-          {/* 요청사항 */}
-          <View style={styles.section} ref={setInputRef('request')}>
-            <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>요청 사항 (선택)</Text>
-            <View style={styles.inputWrapper}>
-              <TextInput
-                style={[FONTS.fs_14_regular, styles.requestInput]}
-                placeholder="요청사항을 호스트께 전달해보세요"
-                placeholderTextColor={COLORS.grayscale_400}
-                value={requestMessage}
-                onChangeText={setRequestMessage}
-                onFocus={() => focusInput('request')}
-              />
             </View>
           </View>
+          <Text style={[FONTS.fs_12_medium, styles.pointText]}>
+            {t('reservation.pointBalance', {
+              points: formatNumber(pointBalance),
+            })}
+          </Text>
+          {isPointOverBalance ? (
+            <Text style={[FONTS.fs_12_medium, styles.pointWarningText]}>
+              {t('guesthouse.youCannotEnterMorePointsThanYouHave')}
+            </Text>
+          ) : null}
 
-          <View style={styles.devide}/>
-
-          {/* 약관 동의 */}
-          <View style={styles.agreeRowContainer}>
-              <TouchableOpacity
-                activeOpacity={1} onPress={toggleAll} style={styles.agreeRowTitle}>
-              {agreeAll ?
-              <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-              <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  <Text style={FONTS.fs_14_semibold}>전체 동의</Text>
-              </TouchableOpacity>
-
-              <View style={styles.agreeRowConent}>
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity
-                    activeOpacity={1} onPress={() => toggleAgreement('terms')}>
-                  {agreements.terms ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 숙소 취소/환불 규정에 동의합니다.
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('terms')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity
-                    activeOpacity={1} onPress={() => toggleAgreement('personalInfo')} style={styles.agreeRow}>
-                  {agreements.personalInfo ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 수집 및 이용에 동의합니다.
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('personalInfo')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.agreeRow}>
-                  <TouchableOpacity
-                    activeOpacity={1} onPress={() => toggleAgreement('thirdParty')} style={styles.agreeRow}>
-                  {agreements.thirdParty ?
-                    <View style={styles.checkedBox}> <Checked width={24} height={24} /> </View> :
-                    <View style={styles.uncheckedBox}> <Unchecked width={24} height={24} /> </View>}
-                  </TouchableOpacity>
-                  <Text style={[FONTS.fs_14_regular, styles.agreeText]}>
-                    <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>[필수]</Text> 개인정보 제3자 제공에 동의합니다.
-                  </Text>
-                  <TouchableOpacity
-                    activeOpacity={1} style={styles.seeMore} onPress={() => openTermModal('thirdParty')}>
-                    <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>보기</Text>
-                  </TouchableOpacity>
-                </View>
-              </View>
+          {/* 총 결제 금액 */}
+          <View style={[styles.userInfo, {marginTop: 12}]}>
+            <Text style={[FONTS.fs_16_semibold, styles.userInfoTitle]}>
+              {t('common.totalPaymentAmount')}
+            </Text>
+            <Text style={[FONTS.fs_18_semibold, styles.roomPriceText]}>
+              {finalPaymentAmount.toLocaleString()}
+              {t('common.won')}
+            </Text>
           </View>
+        </View>
 
-        </ScrollView>
+        <View style={styles.devide} />
 
-        {!isKeyboardVisible ? (
-          <View style={styles.button}>
-            {totalDiscountAmount > 0 ? (
-              <View style={styles.discountBanner}>
-                <DiscountArrow width={18} height={18} />
-                <Text style={[FONTS.fs_14_semibold]}>
-                  <Text style={styles.discountBannerText}>총 {totalDiscountAmount.toLocaleString()}원</Text> 할인 받았어요
-                </Text>
-              </View>
-            ) : null}
-            <ButtonScarlet
-              title={`${finalPaymentAmount.toLocaleString()}원 결제하기`}
-              onPress={handlePressPayment}
-              disabled={!isAllRequiredAgreed || isPointOverBalance}
+        {/* 요청사항 */}
+        <View style={styles.section} ref={setInputRef('request')}>
+          <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
+            {t('common.requestOptional')}
+          </Text>
+          <View style={styles.inputWrapper}>
+            <TextInput
+              style={[FONTS.fs_14_regular, styles.requestInput]}
+              placeholder={t('common.pleaseConveyYourRequestToTheHost')}
+              placeholderTextColor={COLORS.grayscale_400}
+              value={requestMessage}
+              onChangeText={setRequestMessage}
+              onFocus={() => focusInput('request')}
             />
           </View>
-        ) : null}
+        </View>
 
-        <AlertModal
-          visible={isSameDayNoticeVisible}
-          title="당일 예약 전 꼭 확인해 주세요!"
-          message={'오늘 입실하는 예약은 결제 즉시 확정되며,\n이후 단순 변심으로 인한 취소나 환불이 불가능합니다'}
-          highlightText="불가능"
-          buttonText="확인"
-          buttonText2="취소"
-          onPress={() => {
-            setSameDayNoticeVisible(false);
-            setConfirmVisible(true);
-          }}
-          onPress2={() => setSameDayNoticeVisible(false)}
-        />
+        <View style={styles.devide} />
 
-        <AlertModal
-          visible={isRequestConfirmationNoticeVisible}
-          title={requestConfirmationNoticeTitle}
-          message={requestConfirmationNoticeMessage}
-          highlightText="100% 환불"
-          buttonText="예약하기"
-          buttonText2="취소"
-          onPress={() => {
-            setRequestConfirmationNoticeVisible(false);
-            setConfirmVisible(true);
-          }}
-          onPress2={() => setRequestConfirmationNoticeVisible(false)}
-        />
+        {/* 약관 동의 */}
+        <View style={styles.agreeRowContainer}>
+          <TouchableOpacity
+            activeOpacity={1}
+            onPress={toggleAll}
+            style={styles.agreeRowTitle}>
+            {agreeAll ? (
+              <View style={styles.checkedBox}>
+                <Checked width={24} height={24} />
+              </View>
+            ) : (
+              <View style={styles.uncheckedBox}>
+                <Unchecked width={24} height={24} />
+              </View>
+            )}
+            <Text style={FONTS.fs_14_semibold}>
+              {t('guesthouse.totallyAgree')}
+            </Text>
+          </TouchableOpacity>
 
-        <AlertModal
-          visible={!!reservationErrorMessage}
-          title="예약 실패"
-          message={reservationErrorMessage}
-          buttonText="확인"
-          onPress={() => setReservationErrorMessage('')}
-          onRequestClose={() => setReservationErrorMessage('')}
-        />
+          <View style={styles.agreeRowConent}>
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggleAgreement('terms')}>
+                {agreements.terms ? (
+                  <View style={styles.checkedBox}>
+                    <Checked width={24} height={24} />
+                  </View>
+                ) : (
+                  <View style={styles.uncheckedBox}>
+                    <Unchecked width={24} height={24} />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
+                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                  {t('common.required')}
+                </Text>
+                {t(
+                  'guesthouse.iAgreeToTheAccommodationCancellationRefundPolicy',
+                )}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
+                onPress={() => openTermModal('terms')}>
+                <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                  {t('common.view')}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* 약관동의 모달 */}
-        <TermsModal
-          visible={isModalVisible}
-          onClose={() => setModalVisible(false)}
-          title={selectedAgreementDoc?.title || ''}
-          content={selectedAgreementContent}
-          contentHtml={selectedAgreementHtml}
-          onAgree={handleAgreeModal}
-        />
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggleAgreement('personalInfo')}
+                style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
+                {agreements.personalInfo ? (
+                  <View style={styles.checkedBox}>
+                    <Checked width={24} height={24} />
+                  </View>
+                ) : (
+                  <View style={styles.uncheckedBox}>
+                    <Unchecked width={24} height={24} />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
+                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                  {t('common.required')}
+                </Text>
+                {t('common.iAgreeToTheCollectionAndUseOfPersonalInformation')}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
+                onPress={() => openTermModal('personalInfo')}>
+                <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                  {t('common.view')}
+                </Text>
+              </TouchableOpacity>
+            </View>
 
-        {/* 예약 확인 모달 */}
-        <ReservationConfirmModal
-          visible={isConfirmVisible}
-          onClose={() => setConfirmVisible(false)}
-          onConfirm={() => {
-            setConfirmVisible(false);
-            handleReservation();
-          }}
-          guesthouseName={guesthouseName}
-          roomSummary={`${isDormitory ? `${roomName}(${guestCount}베드)` : `${roomName}`} / ${nights}박`}
-          roomSubSummary={
-            isDormitory
-              ? `[${roomCapacity}인 도미토리]${genderText && dormitoryGenderType !== 'MIXED' ? `, ${genderText}` : ''}`
-              : `[${roomCapacity}인 기준(최대 ${roomMaxCapacity}인)]${femaleOnly ? ', 여성전용' : ''}`
-          }
-          checkInLabel={formatDateTime(checkIn, checkInTime)}
-          checkOutLabel={formatDateTime(checkOut, checkOutTime)}
-        />
+            <View style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
+              <TouchableOpacity
+                activeOpacity={1}
+                onPress={() => toggleAgreement('thirdParty')}
+                style={[styles.agreeRow, isEnglish && {alignItems: 'flex-start'}]}>
+                {agreements.thirdParty ? (
+                  <View style={styles.checkedBox}>
+                    <Checked width={24} height={24} />
+                  </View>
+                ) : (
+                  <View style={styles.uncheckedBox}>
+                    <Unchecked width={24} height={24} />
+                  </View>
+                )}
+              </TouchableOpacity>
+              <Text style={[FONTS.fs_14_regular, styles.agreeText, isEnglish && {flex: 1, minWidth: 0, lineHeight: 20}]}>
+                <Text style={[FONTS.fs_14_semibold, styles.nessesaryText]}>
+                  {t('common.required')}
+                </Text>
+                {t(
+                  'guesthouse.iAgreeToTheProvisionOfPersonalInformationToThird',
+                )}
+              </Text>
+              <TouchableOpacity
+                activeOpacity={1}
+                style={[styles.seeMore, isEnglish && {position: 'relative', flexShrink: 0, alignSelf: 'flex-start', paddingVertical: 2}]}
+                onPress={() => openTermModal('thirdParty')}>
+                <Text style={[FONTS.fs_12_medium, styles.seeMoreText]}>
+                  {t('common.view')}
+                </Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+
+      {!isKeyboardVisible ? (
+        <View style={styles.button}>
+          {totalDiscountAmount > 0 ? (
+            <View style={styles.discountBanner}>
+              <DiscountArrow width={18} height={18} />
+              <Text style={[FONTS.fs_14_semibold]}>
+                <Text style={styles.discountBannerText}>
+                  {t('guesthouse.totalDiscountApplied', {
+                    amount: totalDiscountAmount.toLocaleString(),
+                  })}
+                </Text>
+              </Text>
+            </View>
+          ) : null}
+          <ButtonScarlet
+            title={t('guesthouse.payValueWon', {
+              value1: finalPaymentAmount.toLocaleString(),
+            })}
+            onPress={handlePressPayment}
+            disabled={!isAllRequiredAgreed || isPointOverBalance}
+          />
+        </View>
+      ) : null}
+
+      <AlertModal
+        visible={isSameDayNoticeVisible}
+        title={t('guesthouse.beSureToCheckBeforeMakingASameDayReservation')}
+        message={t(
+          'guesthouse.reservationsForTodayWillBeConfirmedImmediatelyAfterPaymentAnd',
+        )}
+        highlightText={t('guesthouse.impossible')}
+        buttonText={t('common.confirm')}
+        buttonText2={t('common.cancel')}
+        onPress={() => {
+          setSameDayNoticeVisible(false);
+          setConfirmVisible(true);
+        }}
+        onPress2={() => setSameDayNoticeVisible(false)}
+      />
+
+      <AlertModal
+        visible={isRequestConfirmationNoticeVisible}
+        title={requestConfirmationNoticeTitle}
+        message={requestConfirmationNoticeMessage}
+        highlightText={t('guesthouse.100Refund')}
+        buttonText={t('common.makeAReservation')}
+        buttonText2={t('common.cancel')}
+        onPress={() => {
+          setRequestConfirmationNoticeVisible(false);
+          setConfirmVisible(true);
+        }}
+        onPress2={() => setRequestConfirmationNoticeVisible(false)}
+      />
+
+      <AlertModal
+        visible={!!reservationErrorMessage}
+        title={t('guesthouse.reservationFailed')}
+        message={reservationErrorMessage}
+        buttonText={t('common.confirm')}
+        onPress={() => setReservationErrorMessage('')}
+        onRequestClose={() => setReservationErrorMessage('')}
+      />
+
+      {/* 약관동의 모달 */}
+      <TermsModal
+        visible={isModalVisible}
+        onClose={() => setModalVisible(false)}
+        title={selectedAgreementDoc?.title || ''}
+        content={selectedAgreementContent}
+        contentHtml={selectedAgreementHtml}
+        onAgree={handleAgreeModal}
+      />
+
+      {/* 예약 확인 모달 */}
+      <ReservationConfirmModal
+        visible={isConfirmVisible}
+        onClose={() => setConfirmVisible(false)}
+        onConfirm={() => {
+          setConfirmVisible(false);
+          handleReservation();
+        }}
+        guesthouseName={guesthouseName}
+        roomSummary={t('guesthouse.valueValueNights', {
+          value1: isDormitory
+            ? t('guesthouse.valueValueBed', {
+                roomName: roomName,
+                guestCount: guestCount,
+              })
+            : `${roomName}`,
+          nights: nights,
+        })}
+        roomSubSummary={
+          isDormitory
+            ? t('guesthouse.valueDormitoryValue', {
+                roomCapacity: roomCapacity,
+                value2:
+                  genderText && dormitoryGenderType !== 'MIXED'
+                    ? `, ${genderText}`
+                    : '',
+              })
+            : t('guesthouse.basedOnValueUpToValueValue', {
+                roomCapacity: roomCapacity,
+                roomMaxCapacity: roomMaxCapacity,
+                value3: femaleOnly ? t('common.womenOnly_40edf9') : '',
+              })
+        }
+        checkInLabel={formatDateTime(checkIn, checkInTime)}
+        checkOutLabel={formatDateTime(checkOut, checkOutTime)}
+      />
     </View>
   );
 };

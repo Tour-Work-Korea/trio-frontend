@@ -1,10 +1,16 @@
+import i18n from '@trio/app/src/i18n';
 const isValidRefundPolicy = policy =>
   Number.isFinite(Number(policy?.daysBeforeCheckin)) &&
   Number.isFinite(Number(policy?.refundRate));
 
 const formatDaysBeforeCheckin = days => {
   const numericDays = Number(days);
-  return numericDays === 0 ? '체크인 당일' : `체크인 ${numericDays}일 전`;
+  return numericDays === 0
+    ? i18n.t('common.onTheDayOfCheckIn')
+    : i18n.t('common.checkInValueDaysAgo', {
+        numericDays: numericDays,
+        count: numericDays,
+      });
 };
 
 export const normalizeRefundPolicies = refundPolicies => {
@@ -34,14 +40,16 @@ export const buildRefundPolicyTableHtml = refundPolicies => {
       policy => `
             <tr>
               <td>${formatDaysBeforeCheckin(policy.daysBeforeCheckin)}</td>
-              <td>총 결제금액의 ${policy.refundRate}% 환불</td>
+              <td>${i18n.t('refund.percentageOfTotal', {
+                rate: policy.refundRate,
+              })}</td>
             </tr>`,
     )
     .join('');
   const sameDayNonRefundableRow = `
             <tr>
-              <td>체크인 당일</td>
-              <td>취소 및 환불 불가</td>
+              <td>${i18n.t('common.onTheDayOfCheckIn')}</td>
+              <td>${i18n.t('refund.noCancellationOrRefund')}</td>
             </tr>`;
 
   return `

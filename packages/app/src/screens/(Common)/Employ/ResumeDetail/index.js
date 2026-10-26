@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {ScrollView, Text, TouchableOpacity, View} from 'react-native';
 
@@ -30,12 +31,13 @@ import XBtn from '@assets/images/x_gray.svg';
 const RESUME_PHOTO_LIMIT = 5;
 
 const ResumeDetail = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {
     id = null,
     isEditable = false,
     isNew = false,
-    headerTitle = '이력서 수정',
+    headerTitle = t('employ.editYourResume'),
   } = route.params || {};
   const [originalInfo, setOriginalInfo] = useState();
   const [formData, setFormData] = useState({
@@ -122,11 +124,11 @@ const ResumeDetail = ({route}) => {
       console.warn('이력서 조회 실패:', error);
       setErrorModal({
         visible: true,
-        message: '이력서 조회에 실패했습니다',
-        buttonText: '확인',
+        message: t('employ.resumeSearchFailed'),
+        buttonText: t('common.confirm'),
       });
     }
-  }, [id]);
+  }, [id, t]);
 
   useEffect(() => {
     if (id != null) {
@@ -153,8 +155,9 @@ const ResumeDetail = ({route}) => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message || '이력서 등록에 실패했습니다',
-        buttonText: '확인',
+        message:
+          error?.response?.data?.message || t('employ.failedToRegisterResume'),
+        buttonText: t('common.confirm'),
       });
       console.warn('이력서 등록 실패:', error);
     }
@@ -179,8 +182,9 @@ const ResumeDetail = ({route}) => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message || '이력서 등록에 실패했습니다',
-        buttonText: '확인',
+        message:
+          error?.response?.data?.message || t('employ.failedToRegisterResume'),
+        buttonText: t('common.confirm'),
       });
       console.warn('이력서 등록 실패:', error);
     }
@@ -213,8 +217,8 @@ const ResumeDetail = ({route}) => {
       console.warn('이력서 사진 업로드 실패:', error);
       setErrorModal({
         visible: true,
-        message: '사진 업로드에 실패했습니다',
-        buttonText: '확인',
+        message: t('employ.photoUploadFailed'),
+        buttonText: t('common.confirm'),
       });
     } finally {
       setIsUploadingPhotos(false);
@@ -240,7 +244,7 @@ const ResumeDetail = ({route}) => {
     return (
       <View style={styles.photoSection}>
         <View style={styles.photoTitleRow}>
-          <Text style={styles.photoTitle}>내 사진</Text>
+          <Text style={styles.photoTitle}>{t('employ.myPhoto')}</Text>
           <Text style={styles.photoCount}>
             {photos.length}/{RESUME_PHOTO_LIMIT}
           </Text>
@@ -282,9 +286,9 @@ const ResumeDetail = ({route}) => {
         <EmptyState
           icon={EmploySuccessIcon}
           iconSize={{width: 224, height: 171}}
-          title="이력서 작성 완성!"
-          description="스탭 지원하러 가볼까요?"
-          buttonText="스탭 지원하기"
+          title={t('employ.resumeWritingComplete')}
+          description={t('employ.shallWeGoApplyForStaff')}
+          buttonText={t('employ.supportYourStaff')}
           onPressButton={handlePressFindRecruit}
         />
       ) : (
@@ -302,6 +306,7 @@ const ResumeDetail = ({route}) => {
                 }
                 isEditable={isEditable}
               />
+
               {/* 경력 */}
               <ApplicantExperienceSection
                 experiences={formData?.workExperience}
@@ -312,22 +317,25 @@ const ResumeDetail = ({route}) => {
                 onAddExperience={handleOpenAddExperience}
                 onEditExperience={handleOpenEditExperience}
               />
+
               {/* 해시태그 */}
               <ApplicantTag
                 tags={formData?.hashtags}
                 isEditable={isEditable}
                 onEditTags={() => setTagModalVisible(true)}
               />
+
               <ApplicantSelfIntroduction
                 text={formData?.selfIntro}
                 isEditable={isEditable}
                 onEditSelfIntro={() => setSelfIntroModalVisible(true)}
               />
+
               {renderResumePhotos()}
               {isEditable ? (
                 <View style={styles.bottomGap}>
                   <ButtonScarlet
-                    title={'저장하기'}
+                    title={t('employ.save')}
                     onPress={() =>
                       id == null ? tryPostResumeById() : tryUpdateResumeById()
                     }
@@ -338,7 +346,7 @@ const ResumeDetail = ({route}) => {
               )}
             </>
           ) : (
-            <Loading title={'이력서를 불러오는 중입니다...'} />
+            <Loading title={t('employ.loadingYourResume')} />
           )}
         </ScrollView>
       )}
@@ -348,12 +356,14 @@ const ResumeDetail = ({route}) => {
         onClose={handleCloseExperienceModal}
         addExperience={handleApplyExperience}
       />
+
       <EmployTagModal
         visible={tagModalVisible}
         onClose={() => setTagModalVisible(false)}
         addTags={newList => setFormData(prev => ({...prev, hashtags: newList}))}
         initialData={formData?.hashtags}
       />
+
       <EmploySelfIntroModal
         visible={selfIntroModalVisible}
         onClose={() => setSelfIntroModalVisible(false)}
@@ -362,6 +372,7 @@ const ResumeDetail = ({route}) => {
         }
         initialData={formData?.selfIntro}
       />
+
       <AlertModal
         visible={errorModal.visible}
         title={errorModal.message}

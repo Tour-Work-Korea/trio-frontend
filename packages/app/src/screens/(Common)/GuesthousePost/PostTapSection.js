@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet, Platform} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -5,12 +6,13 @@ import {FONTS} from '@constants/fonts';
 import AppImage from '@components/AppImage';
 
 const TABS = [
-  {key: 'GREETING', label: '인사말'},
-  {key: 'SPACE', label: '공간'},
-  {key: 'LIFE', label: '생활'},
+  {key: 'GREETING', labelKey: 'guesthouse.greetings'},
+  {key: 'SPACE', labelKey: 'guesthouse.space'},
+  {key: 'LIFE', labelKey: 'guesthouse.life'},
 ];
 
 export default function PostTapSection({intro}) {
+  const {t} = useTranslation();
   const [activeTab, setActiveTab] = useState('GREETING');
 
   const sectionsByType = useMemo(() => {
@@ -50,7 +52,7 @@ export default function PostTapSection({intro}) {
               style={[styles.tab, isActive && styles.activeTab]}
               onPress={() => setActiveTab(tab.key)}>
               <Text style={[styles.tabText, isActive && styles.activeTabText]}>
-                {tab.label}
+                {t(tab.labelKey)}
               </Text>
             </TouchableOpacity>
           );
@@ -59,7 +61,9 @@ export default function PostTapSection({intro}) {
 
       <View style={styles.tabContent}>
         {blocks.length === 0 ? (
-          <Text style={styles.emptyText}>아직 작성된 내용이 없어요.</Text>
+          <Text style={styles.emptyText}>
+            {t('guesthouse.nothingHasBeenWrittenYet')}
+          </Text>
         ) : (
           blocks.map((b, i) => {
             const hasTitle = (b.title ?? '').trim().length > 0;

@@ -1,6 +1,11 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {View, Text, ScrollView, BackHandler} from 'react-native';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -14,9 +19,11 @@ import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import AppImage from '@components/AppImage';
 
 export default function MeetCancelledReceipt() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId, reservationItem, fromCancelSuccess} = route.params ?? {};
+  const {reservationId, reservationItem, fromCancelSuccess} =
+    route.params ?? {};
   const [reservationDetail, setReservationDetail] = useState(
     reservationItem ?? null,
   );
@@ -26,8 +33,9 @@ export default function MeetCancelledReceipt() {
     if (!reservationId) return;
     try {
       setLoading(true);
-      const {data} =
-        await reservationPaymentApi.getPartyReservationDetail(reservationId);
+      const {data} = await reservationPaymentApi.getPartyReservationDetail(
+        reservationId,
+      );
       setReservationDetail(data);
     } catch (e) {
       console.log('파티 예약 상세 불러오기 실패', e);
@@ -75,14 +83,15 @@ export default function MeetCancelledReceipt() {
   const cancelledFormatted = cancelledAt
     ? formatLocalDateTimeToDotAndTimeWithDay(cancelledAt)
     : null;
-  const formatPrice = value => `${Number(value || 0).toLocaleString('ko-KR')}원`;
+  const formatPrice = value =>
+    t('common.valueWon', {value1: Number(value || 0).toLocaleString('ko-KR')});
   const formatPoint = value => `${Number(value || 0).toLocaleString('ko-KR')}P`;
   const paidAmount =
     typeof reservationDetail?.totalAmount === 'number'
       ? reservationDetail.totalAmount
       : typeof reservationDetail?.amount === 'number'
-        ? reservationDetail.amount
-        : 0;
+      ? reservationDetail.amount
+      : 0;
   const couponDiscountAmount =
     typeof reservationDetail?.couponDiscountAmount === 'number'
       ? reservationDetail.couponDiscountAmount
@@ -93,12 +102,18 @@ export default function MeetCancelledReceipt() {
       : 0;
   const cancelledAmountText =
     typeof reservationDetail?.cancelledAmount === 'number'
-      ? `${reservationDetail.cancelledAmount.toLocaleString()}원`
+      ? t('common.valueWon', {
+          value1: reservationDetail.cancelledAmount.toLocaleString(),
+        })
       : '-';
   const cancelFeeText =
     typeof paidAmount === 'number' &&
     typeof reservationDetail?.cancelledAmount === 'number'
-      ? `${(paidAmount - reservationDetail.cancelledAmount).toLocaleString()}원`
+      ? t('common.valueWon', {
+          value1: (
+            paidAmount - reservationDetail.cancelledAmount
+          ).toLocaleString(),
+        })
       : '-';
   const paymentTypeText = useMemo(() => {
     return PAYMENT_TYPE_LABEL[reservationDetail?.paymentType] || '-';
@@ -110,162 +125,191 @@ export default function MeetCancelledReceipt() {
     <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
       <Header
         title={
-          isRejected ? '신청 반려' : isExpired ? '신청 만료' : '신청 취소'
+          isRejected
+            ? t('common.applicationRejected')
+            : isExpired
+            ? t('common.applicationExpires')
+            : t('common.cancelApplication_1ffccc')
         }
         onPress={fromCancelSuccess ? handleBackPress : null}
       />
 
       {loading ? (
-        <Loading title="신청 정보를 불러오고 있어요." />
+        <Loading title={t('meet.retrievingApplicationInformation')} />
       ) : (
         <>
-        <View style={styles.body}>
-          {/* 콘텐츠 제목, 사진 */}
-          <View style={styles.card}>
-            <Text style={[FONTS.fs_18_medium, styles.title]}>
-              {reservationDetail?.partyTitle || '-'}
-            </Text>
+          <View style={styles.body}>
+            {/* 콘텐츠 제목, 사진 */}
+            <View style={styles.card}>
+              <Text style={[FONTS.fs_18_medium, styles.title]}>
+                {reservationDetail?.partyTitle || '-'}
+              </Text>
 
-            {reservationDetail?.partyImage ? (
-              <AppImage
-                uri={reservationDetail.partyImage}
-                style={styles.image}
-              />
+              {reservationDetail?.partyImage ? (
+                <AppImage
+                  uri={reservationDetail.partyImage}
+                  style={styles.image}
+                />
+              ) : null}
+            </View>
+
+            <View style={styles.divide} />
+
+            <View style={styles.infoRow}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>
+                {t('common.date')}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>
+                {startFormatted.date}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>
+                {t('common.hour')}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>
+                {startFormatted.time}
+                {endFormatted.time ? ` ~ ${endFormatted.time}` : ''}
+              </Text>
+            </View>
+
+            <View style={styles.infoRow}>
+              <Text style={[FONTS.fs_14_medium, styles.label]}>
+                {t('common.location_962eeb')}
+              </Text>
+              <Text style={[FONTS.fs_14_medium, styles.value]}>
+                {trimJejuPrefix(
+                  reservationDetail?.partyLocation ||
+                    reservationDetail?.meetingPlace,
+                ) || '-'}
+              </Text>
+            </View>
+
+            {cancelledFormatted ? (
+              <Text style={[FONTS.fs_12_medium, styles.subText]}>
+                {isExpired
+                  ? t('meet.expirationDateAndTime')
+                  : t('meet.cancellationDateAndTime_64dad5')}{' '}
+                {cancelledFormatted.date} {cancelledFormatted.time}
+              </Text>
             ) : null}
-          </View>
 
-          <View style={styles.divide} />
+            {(paidAmount > 0 || reservationDetail?.paymentType) && (
+              <View>
+                <View style={styles.paymentBox}>
+                  <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+                    {t('common.cancellationRefundInformation')}
+                  </Text>
 
-          <View style={styles.infoRow}>
-            <Text style={[FONTS.fs_14_medium, styles.label]}>날짜</Text>
-            <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {startFormatted.date}
-            </Text>
-          </View>
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.actualPaymentAmount')}
+                    </Text>
+                    <View style={styles.priceValueInline}>
+                      <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                        {formatPrice(paidAmount)}
+                      </Text>
+                      <Text style={[FONTS.fs_14_medium, styles.strikeThrough]}>
+                        {formatPrice(
+                          paidAmount +
+                            couponDiscountAmount +
+                            pointDiscountAmount,
+                        )}
+                      </Text>
+                    </View>
+                  </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[FONTS.fs_14_medium, styles.label]}>시간</Text>
-            <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {startFormatted.time}
-              {endFormatted.time ? ` ~ ${endFormatted.time}` : ''}
-            </Text>
-          </View>
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.couponDiscount')}
+                    </Text>
+                    <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                      {formatPrice(couponDiscountAmount)}
+                    </Text>
+                  </View>
 
-          <View style={styles.infoRow}>
-            <Text style={[FONTS.fs_14_medium, styles.label]}>장소</Text>
-            <Text style={[FONTS.fs_14_medium, styles.value]}>
-              {trimJejuPrefix(reservationDetail?.partyLocation || reservationDetail?.meetingPlace) ||
-                '-'}
-            </Text>
-          </View>
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.applyPoints')}
+                    </Text>
+                    <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                      {formatPoint(pointDiscountAmount)}
+                    </Text>
+                  </View>
 
-          {cancelledFormatted ? (
-            <Text style={[FONTS.fs_12_medium, styles.subText]}>
-              {isExpired ? '만료일시' : '취소일시'} {cancelledFormatted.date}{' '}
-              {cancelledFormatted.time}
-            </Text>
-          ) : null}
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.cancellationFee')}
+                    </Text>
+                    <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
+                      {cancelFeeText}
+                    </Text>
+                  </View>
+                </View>
 
-          {(paidAmount > 0 || reservationDetail?.paymentType) && (
-          <View>
-          <View style={styles.paymentBox}>
-            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-              취소/환불 정보
-            </Text>
+                <View style={styles.divide} />
 
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                실 결제 금액
-              </Text>
-              <View style={styles.priceValueInline}>
-                <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                  {formatPrice(paidAmount)}
-                </Text>
-                <Text style={[FONTS.fs_14_medium, styles.strikeThrough]}>
-                  {formatPrice(
-                    paidAmount + couponDiscountAmount + pointDiscountAmount,
-                  )}
-                </Text>
+                <View style={styles.paymentBox}>
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.refundMethod')}
+                    </Text>
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.priceValue,
+                        {color: COLORS.primary_orange},
+                      ]}>
+                      {paymentTypeText === '-'
+                        ? '-'
+                        : t('meet.valueRefund', {
+                            paymentTypeText: paymentTypeText,
+                          })}
+                    </Text>
+                  </View>
+
+                  <View style={styles.priceInfoRow}>
+                    <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
+                      {t('common.finalRefundAmount')}
+                    </Text>
+                    <Text
+                      style={[
+                        FONTS.fs_14_medium,
+                        styles.priceValue,
+                        {color: COLORS.primary_orange},
+                      ]}>
+                      {cancelledAmountText}
+                    </Text>
+                  </View>
+                </View>
               </View>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                쿠폰 할인
+            )}
+            <View>
+              <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
+                {t('common.reasonForCancellation')}
               </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                {formatPrice(couponDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                포인트 적용
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                {formatPoint(pointDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                취소 수수료
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue]}>
-                {cancelFeeText}
+              <Text style={[FONTS.fs_14_medium, styles.reasonText]}>
+                {reservationDetail?.cancelReason || '-'}
               </Text>
             </View>
           </View>
 
-          <View style={styles.divide}/>
+          {/* <View style={styles.warningBox}>
+           <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
+             예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.
+           </Text>
+          </View> */}
 
-          <View style={styles.paymentBox}>
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                환불 방법
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue, {color:COLORS.primary_orange}]}>
-                {paymentTypeText === '-' ? '-' : `${paymentTypeText} 환불`}
-              </Text>
-            </View>
-
-            <View style={styles.priceInfoRow}>
-              <Text style={[FONTS.fs_14_medium, styles.priceLabel]}>
-                최종 환불 금액
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.priceValue, {color:COLORS.primary_orange}]}>
-                {cancelledAmountText}
-              </Text>
-            </View>
-          </View>
-          </View>
-          )}
-          <View>
-            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-              취소 사유
-            </Text>
-            <Text style={[FONTS.fs_14_medium, styles.reasonText]}>
-              {reservationDetail?.cancelReason || '-'}
+          <View style={styles.warningBox}>
+            <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
+              {isRejected
+                ? t('meet.yourApplicationHasBeenRejected')
+                : isExpired
+                ? t('meet.yourApplicationHasExpired')
+                : t('meet.applicationHasBeenCanceled')}
             </Text>
           </View>
-
-        </View>
-
-        {/* <View style={styles.warningBox}>
-          <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
-            예약취소 되었습니다. 환불은 주말/공휴일을 제외한 영업일 기준 3-5일 소요될 수 있습니다.
-          </Text>
-        </View> */}
-
-        <View style={styles.warningBox}>
-          <Text style={[FONTS.fs_14_semibold, styles.warningText]}>
-            {isRejected
-              ? '신청이 반려되었습니다'
-              : isExpired
-                ? '신청이 만료되었습니다'
-                : '신청취소 되었습니다'}
-          </Text>
-        </View>
         </>
       )}
     </ScrollView>

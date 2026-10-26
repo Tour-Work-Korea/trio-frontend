@@ -1,10 +1,15 @@
-import React, { useState, useCallback, useRef } from 'react';
-import { View, Text, TouchableOpacity, ScrollView } from 'react-native';
-import { useFocusEffect, useNavigation, useRoute } from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
+import React, {useState, useCallback, useRef} from 'react';
+import {AppState, View, Text, TouchableOpacity, ScrollView} from 'react-native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import styles from './UserReservationCheck.styles';
-import { FONTS } from '@constants/fonts';
+import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 
@@ -12,11 +17,14 @@ import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
 import UserCancelledReservations from './UserCancelledReservations';
 import Loading from '@components/Loading';
+import {getReviewableReservationIds} from '@utils/reviewEligibility';
+
+const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
 
 const TABS = [
-  { key: 'upcoming', label: '이용전' },
-  { key: 'past', label: '이용후' },
-  { key: 'cancelled', label: '취소됨' },
+  {key: 'upcoming', labelKey: 'myPage.beforeUse'},
+  {key: 'past', labelKey: 'myPage.afterUse'},
+  {key: 'cancelled', labelKey: 'myPage.canceled'},
 ];
 
 const UPCOMING_STATUS_ORDER = {
@@ -25,17 +33,22 @@ const UPCOMING_STATUS_ORDER = {
 };
 
 const UserReservationCheck = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [reviewableReservationIds, setReviewableReservationIds] = useState(
+    () => new Set(),
+  );
   const hasLoadedReservations = useRef(false);
+  const isFetching = useRef(false);
   const selectedTab = TABS.some(tab => tab.key === route.params?.selectedTab)
     ? route.params.selectedTab
     : 'upcoming';
   const handleTabChange = useCallback(
-    key => navigation.setParams({ selectedTab: key }),
-    [navigation]
+    key => navigation.setParams({selectedTab: key}),
+    [navigation],
   );
   const {
     pagerRef,
@@ -55,15 +68,29 @@ const UserReservationCheck = () => {
   });
 
   const fetchReservationList = async () => {
+    if (isFetching.current) return;
+
     try {
+      isFetching.current = true;
       if (!hasLoadedReservations.current) {
         setLoading(true);
       }
-      const res = await userMyApi.getMyReservations();
-      setReservations(res.data);
+      const [reservationsResponse, reviewsResponse] = await Promise.all([
+        userMyApi.getMyReservations(),
+        userMyApi.getMyReviews(),
+      ]);
+      setReservations(
+        Array.isArray(reservationsResponse.data)
+          ? reservationsResponse.data
+          : [],
+      );
+      setReviewableReservationIds(
+        getReviewableReservationIds(reviewsResponse.data),
+      );
     } catch (error) {
-      console.log('예약 목록 불러오기 실패');
+      console.log('예약 및 리뷰 작성 가능 목록 불러오기 실패:', error);
     } finally {
+      isFetching.current = false;
       hasLoadedReservations.current = true;
       setLoading(false);
     }
@@ -73,7 +100,22 @@ const UserReservationCheck = () => {
   useFocusEffect(
     useCallback(() => {
       fetchReservationList();
-    }, [])
+      const intervalId = setInterval(
+        fetchReservationList,
+        REVIEW_ELIGIBILITY_REFRESH_INTERVAL,
+      );
+      const appStateSubscription = AppState.addEventListener(
+        'change',
+        nextState => {
+          if (nextState === 'active') fetchReservationList();
+        },
+      );
+
+      return () => {
+        clearInterval(intervalId);
+        appStateSubscription.remove();
+      };
+    }, []),
   );
 
   const upcomingReservations = reservations
@@ -102,12 +144,22 @@ const UserReservationCheck = () => {
           <UserUpcomingReservations
             data={filteredReservations.upcoming}
             onRefresh={fetchReservationList}
+            reviewableReservationIds={reviewableReservationIds}
           />
         );
+
       case 'past':
-        return <UserPastReservations data={filteredReservations.past} />;
+        return (
+          <UserPastReservations
+            data={filteredReservations.past}
+            reviewableReservationIds={reviewableReservationIds}
+          />
+        );
+
       case 'cancelled':
-        return <UserCancelledReservations data={filteredReservations.cancelled} />;
+        return (
+          <UserCancelledReservations data={filteredReservations.cancelled} />
+        );
       default:
         return null;
     }
@@ -115,7 +167,7 @@ const UserReservationCheck = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="예약내역" />
+      <Header title={t('common.reservationDetails')} />
 
       {/* 탭 버튼 */}
       <View style={styles.tabContainer}>
@@ -124,17 +176,15 @@ const UserReservationCheck = () => {
             activeOpacity={1}
             key={tab.key}
             style={styles.tabButton}
-            onPress={() => onTabPress(index)}
-          >
+            onPress={() => onTabPress(index)}>
             <Text
               style={[
                 styles.tabText,
                 FONTS.fs_14_regular,
                 isActive(tab.key) && styles.activeTabText,
                 isActive(tab.key) && FONTS.fs_14_semibold,
-              ]}
-            >
-              {tab.label}
+              ]}>
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -143,7 +193,7 @@ const UserReservationCheck = () => {
       {/* 탭 내용 */}
       <View style={styles.tabContentContainer}>
         {loading ? (
-          <Loading title="예약 목록을 불러오고 있어요." />
+          <Loading title={t('common.loadingTheReservationList')} />
         ) : (
           <ScrollView
             ref={pagerRef}
@@ -172,7 +222,6 @@ const UserReservationCheck = () => {
           </ScrollView>
         )}
       </View>
-
     </View>
   );
 };

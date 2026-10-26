@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useMemo} from 'react';
 import {StyleSheet, Text, View} from 'react-native';
 
@@ -6,28 +7,29 @@ import {FONTS} from '@constants/fonts';
 import useAmenityStore from '@stores/amenityStore';
 
 const CATEGORY_TITLES = {
-  PUBLIC: '숙소 공용시설',
-  PUBLIC_FACILITY: '숙소 공용시설',
-  COMMON: '숙소 공용시설',
-  COMMON_FACILITY: '숙소 공용시설',
-  ROOM: '객실 내 시설',
-  ROOM_FACILITY: '객실 내 시설',
-  PRIVATE: '객실 내 시설',
-  SERVICE: '기타시설 및 서비스',
-  ETC: '기타시설 및 서비스',
+  PUBLIC: 'common.accommodationCommonFacilities',
+  PUBLIC_FACILITY: 'common.accommodationCommonFacilities',
+  COMMON: 'common.accommodationCommonFacilities',
+  COMMON_FACILITY: 'common.accommodationCommonFacilities',
+  ROOM: 'common.inRoomFacilities',
+  ROOM_FACILITY: 'common.inRoomFacilities',
+  PRIVATE: 'common.inRoomFacilities',
+  SERVICE: 'common.otherFacilitiesAndServices',
+  ETC: 'common.otherFacilitiesAndServices',
 };
 
-const getCategoryTitle = category => {
+const getCategoryTitle = (category, t) => {
   if (!category) {
-    return '기타시설 및 서비스';
+    return t('common.otherFacilitiesAndServices');
   }
 
-  return CATEGORY_TITLES[category] ?? (
-    category.includes('ROOM')
-      ? '객실 내 시설'
+  return (
+    (CATEGORY_TITLES[category] ? t(CATEGORY_TITLES[category]) : null) ??
+    (category.includes('ROOM')
+      ? t('common.inRoomFacilities')
       : category.includes('SERVICE')
-        ? '기타시설 및 서비스'
-        : '숙소 공용시설'
+      ? t('common.otherFacilitiesAndServices')
+      : t('common.accommodationCommonFacilities'))
   );
 };
 
@@ -45,10 +47,12 @@ const normalizeAmenity = (amenity, index) => ({
     typeof amenity === 'string'
       ? amenity
       : amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? '',
-  category: typeof amenity === 'object' ? amenity?.category ?? 'SERVICE' : 'SERVICE',
+  category:
+    typeof amenity === 'object' ? amenity?.category ?? 'SERVICE' : 'SERVICE',
 });
 
 const ServiceInfoContent = ({selectedAmenities = []}) => {
+  const {t} = useTranslation();
   const amenities = useAmenityStore(state => state.amenities);
 
   const selectedNames = useMemo(
@@ -58,19 +62,25 @@ const ServiceInfoContent = ({selectedAmenities = []}) => {
           if (typeof amenity === 'string') {
             return amenity;
           }
-          return amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? null;
+          return (
+            amenity?.amenityType ??
+            amenity?.amenityName ??
+            amenity?.name ??
+            null
+          );
         })
         .filter(Boolean),
     [selectedAmenities],
   );
 
   const groupedAmenities = useMemo(() => {
-    const amenitySource = amenities.length > 0
-      ? amenities
-      : selectedAmenities.map(normalizeAmenity);
+    const amenitySource =
+      amenities.length > 0
+        ? amenities
+        : selectedAmenities.map(normalizeAmenity);
 
     return amenitySource.reduce((acc, amenity) => {
-      const categoryTitle = getCategoryTitle(amenity.category);
+      const categoryTitle = getCategoryTitle(amenity.category, t);
 
       if (!acc[categoryTitle]) {
         acc[categoryTitle] = [];
@@ -79,7 +89,7 @@ const ServiceInfoContent = ({selectedAmenities = []}) => {
       acc[categoryTitle].push(amenity);
       return acc;
     }, {});
-  }, [amenities, selectedAmenities]);
+  }, [amenities, selectedAmenities, t]);
 
   const renderSection = (title, items) => (
     <View key={title} style={styles.section}>

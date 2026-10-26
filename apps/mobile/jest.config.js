@@ -19,6 +19,8 @@ module.exports = {
       '<rootDir>/packages/app/src/web/stubs/encryptedStorage.js',
     '^@react-native-seoul/kakao-login$':
       '<rootDir>/packages/app/src/web/stubs/kakaoLogin.js',
+    '^@react-native-google-signin/google-signin$':
+      '<rootDir>/apps/mobile/__mocks__/googleSignin.js',
     '^@react-native-firebase/messaging$':
       '<rootDir>/packages/app/src/web/stubs/firebaseMessaging.js',
     '^@react-native-firebase/crashlytics$':

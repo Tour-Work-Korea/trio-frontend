@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {Alert, Linking, Platform} from 'react-native';
 import {WebView} from 'react-native-webview';
@@ -6,6 +7,7 @@ import useUserStore from '@stores/userStore';
 import {WEB_BASE_URL} from '@env';
 
 const GuesthousePayment = ({route}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const {reservationId, amount, receiptContext, userCouponId, pointUsed} =
     route.params || {};
@@ -15,16 +17,18 @@ const GuesthousePayment = ({route}) => {
 
   const webBaseUrl = (WEB_BASE_URL || '').replace(/\/$/, '');
 
-
   if (!reservationId) {
-    Alert.alert('결제 오류', '결제를 진행할 수 없습니다.');
+    Alert.alert(t('common.paymentError'), t('common.paymentCannotBeProcessed'));
     navigation.goBack();
     return null;
   }
 
   if (!webBaseUrl) {
     console.warn('WEB_BASE_URL is missing');
-    Alert.alert('결제 오류', '결제 페이지 주소를 찾을 수 없습니다.');
+    Alert.alert(
+      t('common.paymentError'),
+      t('common.paymentPageAddressNotFound'),
+    );
     navigation.goBack();
     return null;
   }
@@ -43,7 +47,10 @@ const GuesthousePayment = ({route}) => {
       }
 
       if (data.type === 'PAYMENT_FAIL') {
-        Alert.alert('결제 실패', '결제가 취소되었거나 실패했습니다.');
+        Alert.alert(
+          t('common.paymentFailed'),
+          t('common.yourPaymentHasBeenCanceledOrFailed'),
+        );
         navigation.goBack();
       }
     } catch (e) {
@@ -88,9 +95,10 @@ const GuesthousePayment = ({route}) => {
     const showExternalPaymentAppError = error => {
       console.warn('Failed to open external payment app', {url, error});
       Alert.alert(
-        '알림',
-        '해당 앱이 설치되어 있지 않습니다.',
-        [{text: '확인', onPress: () => navigation.goBack()}],
+        t('common.notification'),
+        t('common.theAppIsNotInstalled'),
+
+        [{text: t('common.confirm'), onPress: () => navigation.goBack()}],
       );
     };
 
@@ -100,7 +108,9 @@ const GuesthousePayment = ({route}) => {
 
       if (schemeMatch && schemeMatch[1]) {
         const scheme = schemeMatch[1];
-        const appUrl = url.replace('intent://', `${scheme}://`).split('#Intent')[0];
+        const appUrl = url
+          .replace('intent://', `${scheme}://`)
+          .split('#Intent')[0];
 
         Linking.openURL(appUrl).catch(error => {
           if (packageMatch && packageMatch[1]) {
@@ -125,7 +135,11 @@ const GuesthousePayment = ({route}) => {
       return false;
     }
 
-    if (Platform.OS === 'ios' && !url.startsWith('http') && !url.startsWith('about:blank')) {
+    if (
+      Platform.OS === 'ios' &&
+      !url.startsWith('http') &&
+      !url.startsWith('about:blank')
+    ) {
       Linking.openURL(url).catch(showExternalPaymentAppError);
       return false;
     }
@@ -152,7 +166,6 @@ const GuesthousePayment = ({route}) => {
       setSupportMultipleWindows
       sharedCookiesEnabled
       thirdPartyCookiesEnabled
-
       onError={e => console.log('WebView onError', e.nativeEvent)}
       onHttpError={e => {
         console.log('WebView onHttpError', e.nativeEvent);

@@ -31,6 +31,9 @@ import {
   SocialLogin,
   RegisterIntro,
   RegisterAgree,
+  SocialOriginSelect,
+  ForeignRegisterProfile,
+  ForeignSignupComplete,
   PhoneCertificate,
   EmailCertificate,
   UserRegisterProfile,
@@ -49,6 +52,7 @@ import {
   Setting,
   Terms,
   OpenSourceLicenses,
+  Language,
   ProfileUpdate,
   UserReservationCheck,
   UserFavoriteGuesthouse,
@@ -110,6 +114,7 @@ const RootNavigation = () => {
           name="OpenSourceLicenses"
           component={OpenSourceLicenses}
         />
+        <Stack.Screen name="Language" component={Language} />
 
         <Stack.Screen name="RoomDetail" component={RoomDetail} />
         <Stack.Screen name="GuesthouseDetail" component={GuesthouseDetail} />
@@ -166,6 +171,18 @@ const RootNavigation = () => {
 
         <Stack.Screen name="RegisterIntro" component={RegisterIntro} />
         <Stack.Screen name="RegisterAgree" component={RegisterAgree} />
+        <Stack.Screen
+          name="SocialOriginSelect"
+          component={SocialOriginSelect}
+        />
+        <Stack.Screen
+          name="ForeignRegisterProfile"
+          component={ForeignRegisterProfile}
+        />
+        <Stack.Screen
+          name="ForeignSignupComplete"
+          component={ForeignSignupComplete}
+        />
         <Stack.Screen name="PhoneCertificate" component={PhoneCertificate} />
         <Stack.Screen name="EmailCertificate" component={EmailCertificate} />
         <Stack.Screen
@@ -201,6 +218,10 @@ const RootNavigation = () => {
         />
         <Stack.Screen
           name="UserGuesthouseReviewForm"
+          component={UserGuesthouseReviewForm}
+        />
+        <Stack.Screen
+          name="UserPartyReviewForm"
           component={UserGuesthouseReviewForm}
         />
         <Stack.Screen name="MyCouponList" component={MyCouponList} />

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -11,6 +12,7 @@ import {COLORS} from '@constants/colors';
 import LogoOrange from '@assets/images/logo_orange.svg';
 
 export default function FindId({route}) {
+  const {t} = useTranslation();
   const {phoneNumber} = route.params;
   const userRole = 'USER';
   const navigation = useNavigation();
@@ -29,12 +31,11 @@ export default function FindId({route}) {
       console.warn('아이디 찾기 실패:', error);
       setErrorModal({
         visible: true,
-        title:
-          error?.response?.data?.message || '아이디를 찾기에 실패하였습니다',
-        buttonText: '확인',
+        title: error?.response?.data?.message || t('auth.failedToFindId'),
+        buttonText: t('common.confirm'),
       });
     }
-  }, [phoneNumber, userRole]);
+  }, [phoneNumber, userRole, t]);
 
   useEffect(() => {
     tryFindId();
@@ -50,11 +51,11 @@ export default function FindId({route}) {
           <View>
             {/* 로고 및 문구 */}
             <View style={styles.groupParent}>
-              <View  style={styles.titleContainer}>
+              <View style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
               </View>
               <View>
-                <Text style={[styles.titleText]}>아이디를 찾았어요!</Text>
+                <Text style={[styles.titleText]}>{t('auth.iFoundYourId')}</Text>
               </View>
               {email ? (
                 <View style={styles.findEmailBox}>
@@ -66,7 +67,7 @@ export default function FindId({route}) {
             </View>
           </View>
           <ButtonWhite
-            title={'로그인하러 가기'}
+            title={t('auth.goToLogIn')}
             onPress={() => {
               navigation.navigate('LoginIntro');
             }}

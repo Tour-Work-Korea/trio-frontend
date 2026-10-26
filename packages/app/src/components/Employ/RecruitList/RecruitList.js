@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {FlatList, StyleSheet, View} from 'react-native';
 import RecruitCard from './RecruitCard';
@@ -17,10 +18,11 @@ const RecruitList = ({
   ListHeaderComponent = null,
   contentContainerStyle = null,
 }) => {
+  const {t} = useTranslation();
   if (loading) {
     return (
       <View style={styles.loadingContainer}>
-        <Loading title={'공고를 불러오는 중입니다'} />
+        <Loading title={t('employ.loadingAnnouncements')} />
       </View>
     );
   }

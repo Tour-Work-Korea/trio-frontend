@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useState} from 'react';
 import {
   ActivityIndicator,
@@ -20,7 +22,6 @@ import AppImage from '@components/AppImage';
 import XBtn from '@assets/images/x_gray.svg';
 import PeopleIcon from '@assets/images/people_gray.svg';
 
-dayjs.locale('ko');
 
 const formatPartyTime = startDateTime => {
   const start = dayjs(startDateTime);
@@ -29,12 +30,18 @@ const formatPartyTime = startDateTime => {
     return '';
   }
 
-  const meridiem = start.hour() < 12 ? '오전' : '오후';
+  const meridiem =
+    start.hour() < 12 ? i18n.t('common.morning') : i18n.t('common.afternoon');
 
-  return `${start.format('M/D')} 오늘, ${meridiem} ${start.format('h:mm')}`;
+  return i18n.t('common.valueTodayValueValue', {
+    value1: start.format('M/D'),
+    meridiem: meridiem,
+    value3: start.format('h:mm'),
+  });
 };
 
 export default function GuesthouseCheckInGuide() {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const {reservationId} = route.params ?? {};
@@ -53,7 +60,7 @@ export default function GuesthouseCheckInGuide() {
     async ({refresh = false} = {}) => {
       if (!reservationId) {
         setLoading(false);
-        setError('예약 정보를 찾을 수 없습니다.');
+        setError(t('guesthouse.reservationInformationNotFound'));
         return;
       }
 
@@ -73,13 +80,13 @@ export default function GuesthouseCheckInGuide() {
           'getRoomCheckInGuide error',
           e?.response?.data || e?.message,
         );
-        setError('체크인 안내를 불러오지 못했습니다.');
+        setError(t('guesthouse.checkInInstructionsCouldNotBeLoaded'));
       } finally {
         setLoading(false);
         setRefreshing(false);
       }
     },
-    [reservationId],
+    [reservationId, t],
   );
 
   useEffect(() => {
@@ -102,7 +109,7 @@ export default function GuesthouseCheckInGuide() {
         ) : (
           <View style={styles.partyImagePlaceholder}>
             <Text style={[FONTS.fs_12_medium, styles.partyImageText]}>
-              파티
+              {t('guesthouse.party')}
             </Text>
           </View>
         )}
@@ -112,12 +119,14 @@ export default function GuesthouseCheckInGuide() {
             <Text
               style={[FONTS.fs_16_semibold, styles.partyTitle]}
               numberOfLines={2}>
-              {party.partyTitle || '게스트하우스 파티'}
+              {party.partyTitle || t('guesthouse.guestHouseParty')}
             </Text>
             <View style={styles.partyPeopleRow}>
               <PeopleIcon width={14} height={14} />
               <Text style={[FONTS.fs_12_medium, styles.partyPeopleText]}>
-                최대인원 {party.maxAttendees ?? 0}명
+                {t('common.maximumNumberOfPeople')}
+                {party.maxAttendees ?? 0}
+                {t('common.peopleUnit')}
               </Text>
             </View>
           </View>
@@ -152,20 +161,23 @@ export default function GuesthouseCheckInGuide() {
     return (
       <>
         <Text style={[FONTS.fs_16_semibold, styles.title]}>
-          체크인 안내문
+          {t('guesthouse.checkInInstructions')}
         </Text>
 
         <View style={styles.noticeBox}>
           <Text style={[FONTS.fs_14_medium, styles.noticeText]}>
-            {guide?.noticeText || '호스트가 등록한 체크인 안내문이 없습니다.'}
+            {guide?.noticeText ||
+              t('guesthouse.thereAreNoCheckInInstructionsRegisteredByTheHost')}
           </Text>
         </View>
 
         {parties.length > 0 && (
           <>
             <Text style={[FONTS.fs_16_medium, styles.partySectionTitle]}>
-              놓칠 수 없는{' '}
-              <Text style={styles.partySectionTitleAccent}>오늘의 파티 🎉</Text>
+              {t('guesthouse.unmissable')}{' '}
+              <Text style={styles.partySectionTitleAccent}>
+                {t('guesthouse.todaySParty')}
+              </Text>
             </Text>
 
             <View style={styles.partyList}>{parties.map(renderParty)}</View>

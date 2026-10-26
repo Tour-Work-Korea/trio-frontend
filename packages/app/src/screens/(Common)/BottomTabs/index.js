@@ -1,6 +1,9 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import {StyleSheet, View, Text, Platform} from 'react-native';
+import {StyleSheet, View, Platform} from 'react-native';
 import {createBottomTabNavigator} from '@react-navigation/bottom-tabs';
+import {getFocusedRouteNameFromRoute} from '@react-navigation/native';
+import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 
@@ -20,16 +23,24 @@ import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {useGuesthouseRegionStore} from './Guesthouse/regions/store';
 import {showErrorModal} from '@utils/loginModalHub';
 import useUserStore from '@stores/userStore';
+import AdaptiveText from '@components/AdaptiveText';
 
 const Tab = createBottomTabNavigator();
 
 const BottomTabs = () => {
+  const {t} = useTranslation();
+  const insets = useSafeAreaInsets();
+  // Android reserves this space in the app container. Keep the iOS bottom
+  // reserve close to the original tab bar rather than adding the full inset.
+  const bottomInset =
+    Platform.OS === 'android' ? 0 : Math.min(insets.bottom, 18);
   return (
     <View style={styles.container}>
       <Tab.Navigator
         initialRouteName="홈"
         backBehavior="initialRoute"
         detachInactiveScreens={Platform.OS !== 'android'}
+        safeAreaInsets={{bottom: bottomInset}}
         screenOptions={({route}) => ({
           tabBarIcon: ({focused}) => {
             const iconProps = {width: 24, height: 24};
@@ -45,23 +56,36 @@ const BottomTabs = () => {
             return <Icon {...iconProps} />;
           },
           tabBarShowLabel: true,
+          tabBarLabelPosition: 'below-icon',
           tabBarLabel: ({focused}) => (
-            <Text
+            <AdaptiveText
+              variant="tab"
               style={[
                 FONTS.fs_12_medium,
                 styles.label,
                 focused && styles.labelFocused,
               ]}
-              numberOfLines={1}
               allowFontScaling={false}>
-              {route.name}
-            </Text>
+              {{
+                홈: t('common.home'),
+                커뮤니티: t('common.community'),
+                지도: t('common.map'),
+                콘텐츠: t('common.activity'),
+                마이: t('common.my'),
+              }[route.name] || route.name}
+            </AdaptiveText>
           ),
+
           tabBarStyle: [
-            Platform.OS === 'android' ? styles.tabBarAndroid : styles.tabBarIOS,
+            styles.tabBar,
+            {height: 72 + bottomInset, paddingBottom: 6 + bottomInset},
+            route.name === '홈' &&
+              getFocusedRouteNameFromRoute(route) === 'TemporaryEventBanner' &&
+              {display: 'none'},
           ],
+
+          tabBarIconStyle: styles.tabBarIcon,
           tabBarItemStyle: styles.tabBarItem,
-          tabBarSafeAreaInset: {bottom: 0},
           headerShown: false,
         })}>
         <Tab.Screen name="홈" component={Home} />
@@ -75,6 +99,7 @@ const BottomTabs = () => {
             },
           })}
         />
+
         <Tab.Screen
           name="지도"
           component={Guesthouse}
@@ -89,6 +114,7 @@ const BottomTabs = () => {
             },
           })}
         />
+
         <Tab.Screen name="콘텐츠" component={Meet} />
         <Tab.Screen
           name="마이"
@@ -100,9 +126,9 @@ const BottomTabs = () => {
                 e.preventDefault();
 
                 showErrorModal({
-                  message: '마이페이지는\n 로그인 후 사용해주세요',
-                  buttonText2: '취소',
-                  buttonText: '로그인하기',
+                  message: t('common.pleaseUseMyPageAfterLoggingIn'),
+                  buttonText2: t('common.cancel'),
+                  buttonText: t('common.logIn'),
                   onPress: () => navigation.navigate('Login'),
                   onPress2: () => {},
                 });
@@ -119,32 +145,29 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
-  tabBarAndroid: {
+  tabBar: {
     position: 'relative',
     backgroundColor: COLORS.grayscale_0,
-    height: 64,
-    paddingTop: 6,
-    paddingBottom: 6,
-    paddingHorizontal: 12,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: COLORS.grayscale_200,
-  },
-  tabBarIOS: {
-    position: 'relative',
-    backgroundColor: COLORS.grayscale_0,
-    height: 84,
-    paddingTop: 6,
-    paddingBottom: 18,
+    paddingTop: 10,
     paddingHorizontal: 12,
     borderTopWidth: StyleSheet.hairlineWidth,
     borderTopColor: COLORS.grayscale_200,
   },
   tabBarItem: {
-    paddingVertical: 4,
+    paddingVertical: 0,
+    minWidth: 0,
+  },
+  tabBarIcon: {
+    width: 24,
+    height: 24,
   },
   label: {
     color: COLORS.grayscale_500,
     marginTop: 2,
+    lineHeight: 16,
+    flexShrink: 0,
+    maxWidth: '100%',
+    textAlign: 'center',
   },
   labelFocused: {
     color: COLORS.grayscale_900,

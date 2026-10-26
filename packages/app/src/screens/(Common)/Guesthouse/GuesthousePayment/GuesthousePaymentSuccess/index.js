@@ -1,21 +1,25 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect} from 'react';
-import { View, Text, StyleSheet, Platform } from 'react-native';
-import { useNavigation, useRoute } from '@react-navigation/native';
+import {View, Text, StyleSheet, Platform} from 'react-native';
+import {useNavigation, useRoute} from '@react-navigation/native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
 import Logo from '@assets/images/guesthouse_reservation_success.svg';
 
 const GuesthousePaymentSuccess = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const { reservationId, receiptContext } = route.params || {};
+  const {reservationId, receiptContext} = route.params || {};
   const isRequestConfirmationReservation =
     receiptContext?.reservationPolicy?.mode === 'REQUEST_CONFIRMATION';
   const successMessage = isRequestConfirmationReservation
-    ? '예약 요청 완료!\n호스트 승인 후 예약이 최종 확정됩니다'
-    : '결제 완료되었어요!\n이제 떠날 일만 남았어요';
+    ? t(
+        'guesthouse.reservationRequestCompleteYourReservationWillBeFinalizedAfterHost',
+      )
+    : t('guesthouse.paymentHasBeenCompletedNowAllThatSLeftTo');
 
   // 2초뒤 예약 획정 화면
   useEffect(() => {

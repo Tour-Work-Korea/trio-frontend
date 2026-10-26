@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   View,
@@ -33,11 +34,9 @@ const GuesthouseReview = ({
   totalCount = 0,
   loadMoreSignal = 0,
 }) => {
+  const {t} = useTranslation();
   const loadingRef = useRef(false);
-  const lastPageRef = useRef(false);
-  const hasUserScrolledRef = useRef(false);
   const [reviews, setReviews] = useState([]);
-  const [page, setPage] = useState(0);
   const [loading, setLoading] = useState(false);
 
   // 이미지 모달
@@ -73,79 +72,41 @@ const GuesthouseReview = ({
   }, []);
 
   // 첫 로드 or 새로고침
-  const fetchReviews = useCallback(
-    async (pageToLoad = 0, isRefresh = false) => {
-      if (loadingRef.current || (!isRefresh && lastPageRef.current)) {
-        return;
-      }
+  const fetchReviews = useCallback(async () => {
+    if (loadingRef.current) {
+      return;
+    }
 
-      loadingRef.current = true;
-      setLoading(true);
+    loadingRef.current = true;
+    setLoading(true);
 
-      try {
-        const res = await userGuesthouseApi.getGuesthouseReviews({
-          guesthouseId,
-          page: pageToLoad,
-          size: PAGE_SIZE,
-          sort: SORT,
-        });
+    try {
+      const res = await userGuesthouseApi.getGuesthouseReviews({
+        guesthouseId,
+        page: 0,
+        size: Math.max(PAGE_SIZE, Number(totalCount) || 0),
+        sort: SORT,
+      });
 
-        const newReviews = (res.data.content || []).filter(
-          r => r.isJobReview === false,
-        );
-        lastPageRef.current = res.data.last;
-
-        if (isRefresh || pageToLoad === 0) {
-          setReviews(newReviews);
-        } else {
-          setReviews(prev => [...prev, ...newReviews]);
-        }
-        setPage(pageToLoad);
-      } catch (e) {
-        lastPageRef.current = true;
-        if (pageToLoad === 0) {
-          setReviews([]);
-        }
-      } finally {
-        loadingRef.current = false;
-        setLoading(false);
-      }
-    },
-    [guesthouseId],
-  );
+      const newReviews = (res.data.content || []).filter(
+        r => r.isJobReview === false,
+      );
+      setReviews(newReviews);
+    } catch (e) {
+      setReviews([]);
+    } finally {
+      loadingRef.current = false;
+      setLoading(false);
+    }
+  }, [guesthouseId, totalCount]);
 
   // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
     loadingRef.current = false;
-    lastPageRef.current = false;
-    hasUserScrolledRef.current = false;
     setReviews([]);
-    setPage(0);
     setLoading(false);
-    fetchReviews(0, true);
+    fetchReviews();
   }, [fetchReviews]);
-
-  // 무한스크롤 핸들러
-  const handleEndReached = useCallback(() => {
-    if (
-      !hasUserScrolledRef.current ||
-      loadingRef.current ||
-      lastPageRef.current
-    ) {
-      return;
-    }
-
-    fetchReviews(page + 1);
-  }, [fetchReviews, page]);
-
-  useEffect(() => {
-    if (loadMoreSignal === 0) {
-      return;
-    }
-
-    hasUserScrolledRef.current = true;
-    handleEndReached();
-  }, [handleEndReached, loadMoreSignal]);
 
   // 이미지 모달
   const openImageModal = useCallback(
@@ -180,6 +141,7 @@ const GuesthouseReview = ({
                 iconSize={18}
                 style={styles.userImage}
               />
+
               <Text style={[FONTS.fs_14_medium, styles.userNicknameText]}>
                 {item.nickname}
               </Text>
@@ -243,7 +205,7 @@ const GuesthouseReview = ({
           {item.replies && item.replies.length > 0 && (
             <View style={styles.replyContainer}>
               <Text style={[FONTS.fs_12_medium, styles.replyTitle]}>
-                사장님의 한마디
+                {t('common.aWordFromTheBoss')}
               </Text>
               {item.replies.map((reply, ri) => (
                 <Text key={ri} style={[FONTS.fs_14_regular, styles.replyText]}>
@@ -255,13 +217,13 @@ const GuesthouseReview = ({
         </View>
       );
     },
-    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal],
+    [imageModalVisible, modalIndex, modalSourceKeys, openImageModal, t],
   );
 
   return (
     <View style={styles.reviewRowContainer}>
       {reviews.map((item, index) => (
-        <React.Fragment key={item.id?.toString() ?? index}>
+        <React.Fragment key={String(item.id ?? index)}>
           {renderItem({item, index})}
         </React.Fragment>
       ))}
@@ -270,8 +232,9 @@ const GuesthouseReview = ({
         <View style={styles.emptyReviewContainer}>
           <NoReviewIcon />
           <Text style={[FONTS.fs_14_medium, styles.emptyText]}>
-            아직 등록된 리뷰가 없어요.{'\n'}
-            당신의 첫 리뷰를 남겨주세요!
+            {t('common.thereAreNoReviewsRegisteredYet')}
+            {'\n'}
+            {t('common.leaveYourFirstReview')}
           </Text>
         </View>
       )}

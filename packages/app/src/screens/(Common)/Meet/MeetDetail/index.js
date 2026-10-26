@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -16,23 +18,22 @@ import Toast from 'react-native-toast-message';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
 import Carousel from 'react-native-reanimated-carousel';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
-
-dayjs.locale('ko');
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import Avatar from '@components/Avatar';
 import AppImage from '@components/AppImage';
+import AdaptiveText from '@components/AdaptiveText';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import {openWebLink} from '@utils/openWebLink';
+import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
 import {
   partyDetailDeeplink,
   partyDetailShareUrl,
@@ -41,6 +42,7 @@ import {
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import ImageModal from '@components/modals/ImageModal';
+import PartyReview from './PartyReview';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
 
@@ -58,52 +60,54 @@ import PartyInfoPriceIcon from '@assets/images/party_info_price.svg';
 import PartyInfoEligibilityIcon from '@assets/images/party_info_eligibility.svg';
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
+const CONTENT_TYPE_LABEL = {
+  POTLUCK: 'common.potluck',
+  DINNER_PARTY: 'common.dinnerParty',
+  BOOK: 'common.reading',
+  WALK: 'common.walk',
+};
+
 const TABS = [
-  {key: 'intro', label: '콘텐츠 소개'},
-  {key: 'detail', label: '상세 안내'},
-  {key: 'way', label: '오시는 길'},
+  {key: 'intro', labelKey: 'meet.activityIntroduction'},
+  {key: 'detail', labelKey: 'meet.detailedInformation'},
+  {key: 'way', labelKey: 'meet.directions'},
+  {key: 'review', labelKey: 'common.review'},
 ];
 
-const SNACK_TAG_LABEL = {
-  PARTY_FOOD: '음식 제공',
-  PARTY_ALCOHOL: '주류 제공',
-  PARTY_INDIVIDUAL: '각자 준비',
-  PARTY_TOGETHER: '같이 준비',
-  PARTY_FREE: '자유',
-};
+const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+const URL_TEXT_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
+const TRAILING_URL_PUNCTUATION_REGEX = /[.,!?;:)\]}]+$/;
 
-const PARKING_TAG_LABEL = {
-  PARTY_PARKING: '주차 가능',
-  PARTY_GUESTHOUSE_PARKING: '전용 주차장',
-  PARTY_PUBLIC_PARKING: '공용 주차장',
-  PARTY_STREET_PARKING: '대로변 주차',
-  PARTY_NO_PARKING: '주차 불가',
-};
+const renderMeetingPlaceWithLinks = text =>
+  text.split(URL_SPLIT_REGEX).map((part, index) => {
+    if (!URL_TEXT_REGEX.test(part)) {
+      return part;
+    }
 
-const CONTENT_TYPE_LABEL = {
-  POTLUCK: '포틀럭',
-  DINNER_PARTY: '디너파티',
-  BOOK: '독서',
-  WALK: '산책',
-};
+    const trailingPunctuation = part.match(TRAILING_URL_PUNCTUATION_REGEX)?.[0];
+    const linkText = trailingPunctuation
+      ? part.slice(0, -trailingPunctuation.length)
+      : part;
+    const url = /^https?:\/\//i.test(linkText)
+      ? linkText
+      : `https://${linkText}`;
+
+    return (
+      <React.Fragment key={`${index}-${linkText}`}>
+        <Text
+          style={styles.meetingPlaceLink}
+          accessibilityRole="link"
+          onPress={() => openWebLink(url)}>
+          {linkText}
+        </Text>
+        {trailingPunctuation ?? ''}
+      </React.Fragment>
+    );
+  });
 
 const {width: SCREEN_W} = Dimensions.get('window');
 const IMAGE_H = 280;
 const TAB_CONTENT_HORIZONTAL_PADDING = 20;
-
-const PARTY_STATUS_LABEL = {
-  RECRUIT_BEFORE: '모집 예정',
-  RECRUIT: '신청하기',
-  RECRUIT_END: '모집 마감',
-  RECRUIT_BLOCK: '따로 문의해 주세요',
-  PARTY_END: '종료된 파티',
-  CANCELED: '취소된 파티',
-  DELETED: '삭제된 파티',
-};
-
-const UNKNOWN_PARTY_STATUS_NOTICE =
-  '파티 상태를 확인할 수 없어요. 업체로 문의해 주세요';
-const NO_RECRUIT_NOTICE = '신청은 업체로 문의해주세요';
 
 const isPartyDateOpen = option =>
   option?.partyStatus === 'RECRUIT' &&
@@ -113,16 +117,16 @@ const isPartyDateOpen = option =>
 
 const getPartyDateStatusLabel = option => {
   if (isPartyDateOpen(option)) {
-    return '신청 가능';
+    return i18n.t('common.applicationAvailable');
   }
 
   const statusLabel = {
-    CANCELED: '취소',
-    DELETED: '삭제',
-    PARTY_END: '종료',
-    RECRUIT_BEFORE: '모집 예정',
-    RECRUIT_BLOCK: '문의',
-    RECRUIT_END: '마감',
+    CANCELED: i18n.t('common.cancel'),
+    DELETED: i18n.t('common.delete'),
+    PARTY_END: i18n.t('common.end'),
+    RECRUIT_BEFORE: i18n.t('common.recruitmentScheduled'),
+    RECRUIT_BLOCK: i18n.t('common.contactUs'),
+    RECRUIT_END: i18n.t('common.deadline'),
   }[option?.partyStatus];
 
   if (statusLabel) {
@@ -131,7 +135,7 @@ const getPartyDateStatusLabel = option => {
 
   const startDateTime = dayjs(option?.partyStartDateTime);
   if (startDateTime.isValid() && !startDateTime.isAfter(dayjs())) {
-    return '마감';
+    return i18n.t('common.deadline');
   }
 
   if (
@@ -139,10 +143,10 @@ const getPartyDateStatusLabel = option => {
     option?.isApplyOpen === false ||
     Number(option?.numOfAttendance) >= Number(option?.maxAttendance)
   ) {
-    return '마감';
+    return i18n.t('common.deadline');
   }
 
-  return '신청 불가';
+  return i18n.t('common.applicationNotPossible');
 };
 
 const getPartyImageUrl = image =>
@@ -208,9 +212,39 @@ const PartyEventImage = ({uri, width}) => {
 };
 
 const MeetDetail = () => {
+  const {t} = useTranslation();
+  const SNACK_TAG_LABEL = {
+    PARTY_FOOD: t('meet.catering'),
+    PARTY_ALCOHOL: t('meet.alcoholProvided'),
+    PARTY_INDIVIDUAL: t('meet.prepareYourself'),
+    PARTY_TOGETHER: t('meet.prepareTogether'),
+    PARTY_FREE: t('meet.freedom'),
+  };
+  const PARKING_TAG_LABEL = {
+    PARTY_PARKING: t('meet.parkingAvailable'),
+    PARTY_GUESTHOUSE_PARKING: t('meet.privateParking'),
+    PARTY_PUBLIC_PARKING: t('meet.publicParking'),
+    PARTY_STREET_PARKING: t('meet.streetParking'),
+    PARTY_NO_PARKING: t('meet.noParking'),
+  };
+
+  const PARTY_STATUS_LABEL = {
+    RECRUIT_BEFORE: t('common.recruitmentScheduled'),
+    RECRUIT: t('common.apply_15e2a7'),
+    RECRUIT_END: t('meet.recruitmentDeadline'),
+    RECRUIT_BLOCK: t('meet.pleaseInquireSeparately'),
+    PARTY_END: t('meet.partyOver'),
+    CANCELED: t('meet.canceledParty'),
+    DELETED: t('meet.deletedParty'),
+  };
+  const UNKNOWN_PARTY_STATUS_NOTICE = t(
+    'meet.iCanTCheckThePartyStatusPleaseContactThe',
+  );
+  const NO_RECRUIT_NOTICE = t('meet.pleaseContactTheCompanyToApply');
+
   const navigation = useNavigation();
   const route = useRoute();
-  const {partyId} = route.params ?? {};
+  const {partyId, templateId: routeTemplateId} = route.params ?? {};
 
   const navigateWebHome = useCallback(() => {
     replaceWebPath(WEB_ROUTES.HOME);
@@ -271,9 +305,12 @@ const MeetDetail = () => {
   const [renderedTabs, setRenderedTabs] = useState(
     () => new Set([TABS[0].key]),
   );
+  const tabMenuRef = useRef(null);
+  const [tabMenuWidth, setTabMenuWidth] = useState(0);
   const {
     pagerRef,
     activeKey,
+    activeIndex,
     isActive,
     onTabPress,
     pageWidth,
@@ -287,6 +324,36 @@ const MeetDetail = () => {
     tabs: TABS,
     initialKey: 'intro',
   });
+
+  const tabButtonWidth = tabMenuWidth > 0 ? tabMenuWidth / TABS.length : 90;
+  const tabButtonStyle = useMemo(
+    () => [styles.tabButton, {width: tabButtonWidth}],
+    [tabButtonWidth],
+  );
+  const handleTabMenuLayout = useCallback(event => {
+    const width = Number(event?.nativeEvent?.layout?.width ?? 0);
+    if (width > 0) {
+      setTabMenuWidth(previousWidth =>
+        previousWidth === width ? previousWidth : width,
+      );
+    }
+  }, []);
+
+  useEffect(() => {
+    if (tabMenuWidth <= 0) {
+      return;
+    }
+
+    const contentWidth = tabButtonWidth * TABS.length;
+    const centeredOffset =
+      activeIndex * tabButtonWidth - (tabMenuWidth - tabButtonWidth) / 2;
+    const offset = Math.max(
+      0,
+      Math.min(contentWidth - tabMenuWidth, centeredOffset),
+    );
+
+    tabMenuRef.current?.scrollTo?.({x: offset, y: 0, animated: true});
+  }, [activeIndex, tabButtonWidth, tabMenuWidth]);
 
   useEffect(() => {
     setRenderedTabs(prev => {
@@ -303,7 +370,7 @@ const MeetDetail = () => {
   // 날짜 처리
   const formatTime = timeStr => {
     if (!timeStr) {
-      return '시간 없음';
+      return t('common.noTime');
     }
 
     const date = dayjs(timeStr);
@@ -382,7 +449,14 @@ const MeetDetail = () => {
     partyImages,
     profileSummary,
     priceOptions,
+    reviewSummary,
   } = detail ?? {};
+  const reviewTemplateId =
+    reviewSummary?.templateId ??
+    detail?.templateId ??
+    detail?.partyTemplateId ??
+    detail?.contentId ??
+    routeTemplateId;
 
   const isDateEvent = scheduleType === 'DATE_EVENT';
   const eventStartDateTime =
@@ -495,7 +569,7 @@ const MeetDetail = () => {
   }, [partyTags]);
 
   const displayGuesthouseName =
-    guesthouseName ?? profileSummary?.guesthouseName ?? '게스트하우스';
+    guesthouseName ?? profileSummary?.guesthouseName ?? t('common.guestHouse');
   const displayHostImage =
     hostProfileImage ?? profileSummary?.ownerProfileImageUrl;
   const eventList = useMemo(() => toArray(events), [events]);
@@ -509,7 +583,7 @@ const MeetDetail = () => {
     const date = dayjs(primaryDateTime);
     const dateLabel = date.isValid()
       ? `${date.format('MM.DD')} ${
-          date.isSame(dayjs(), 'day') ? '오늘' : date.format('dd')
+          date.isSame(dayjs(), 'day') ? t('common.today') : date.format('ddd')
         }`
       : '-';
     const timeLabel = `${formatTime(
@@ -517,7 +591,7 @@ const MeetDetail = () => {
     )}~${formatTime(selectedPartyDate?.partyEndTime ?? partyEndTime)}`;
 
     return `${dateLabel} ${timeLabel}`;
-  }, [selectedPartyDate, eventStartDateTime, partyStartTime, partyEndTime]);
+  }, [selectedPartyDate, eventStartDateTime, partyStartTime, partyEndTime, t]);
   const openAdvanceDate =
     applicationType === 'ADVANCE' ? selectedPartyDate : null;
   const eventPartyStatus =
@@ -563,20 +637,20 @@ const MeetDetail = () => {
   const canApply =
     isRecruiting && eventStatus !== 'ENDED' && !hasApplicationEnded;
   const applicationNoticeText = isDateEvent
-    ? '이 이벤트는 시작 시간 전까지 신청할 수 있어요!'
+    ? t('meet.youCanApplyForThisEventUntilTheStartTime')
     : isSameDayApplication
-    ? '이 콘텐츠는 당일에만 신청할 수 있어요!'
+    ? t('meet.youCanOnlyApplyForThisActivityOnTheSame')
     : isAdvanceApplication
-    ? '이 파티는 진행일 7일 전부터 참여 신청이 가능해요!'
+    ? t('meet.youCanApplyForThisPartyUpTo7Days')
     : '';
   const reservationButtonText = hasApplicationEnded
-    ? '신청 마감'
+    ? t('meet.applicationDeadline')
     : effectivePartyStatus === 'RECRUIT_BLOCK'
-    ? '따로 문의해 주세요'
+    ? t('meet.pleaseInquireSeparately')
     : PARTY_STATUS_LABEL[effectivePartyStatus];
   const infoPriceText = useMemo(() => {
     if (chargeType === 'FREE') {
-      return '무료';
+      return t('common.free');
     }
 
     const optionPrices = Array.isArray(priceOptions)
@@ -593,10 +667,10 @@ const MeetDetail = () => {
       .filter(price => Number.isFinite(price) && price > 0);
 
     if (prices.length === 0) {
-      return '무료';
+      return t('common.free');
     }
 
-    return `${Math.min(...prices).toLocaleString()}원`;
+    return t('common.valueWon', {value1: Math.min(...prices).toLocaleString()});
   }, [
     amount,
     chargeType,
@@ -604,20 +678,23 @@ const MeetDetail = () => {
     femaleNonAmount,
     maleNonAmount,
     priceOptions,
+    t,
   ]);
   const detailInfoItems = useMemo(
     () => [
       {
         key: 'category',
         Icon: PartyInfoCategoryIcon,
-        text: CONTENT_TYPE_LABEL[contentType] ?? '콘텐츠',
+        text: t(CONTENT_TYPE_LABEL[contentType] ?? 'common.activity'),
       },
       {
         key: 'capacity',
         Icon: PartyInfoCapacityIcon,
         text: maxAttendance
-          ? `최대인원 ${maxAttendance}명`
-          : '최대인원 정보 없음',
+          ? t('meet.maximumNumberOfPeopleValuePeople', {
+              maxAttendance: maxAttendance,
+            })
+          : t('meet.noInformationOnMaximumNumberOfPeople'),
       },
       {
         key: 'price',
@@ -627,10 +704,13 @@ const MeetDetail = () => {
       {
         key: 'eligibility',
         Icon: PartyInfoEligibilityIcon,
-        text: isGuest ? '숙박객 전용' : '누구나 참여 가능',
+        text: isGuest
+          ? t('common.forHotelGuestsOnly')
+          : t('meet.anyoneCanParticipate_1c78de'),
       },
     ],
-    [contentType, infoPriceText, isGuest, maxAttendance],
+
+    [contentType, infoPriceText, isGuest, maxAttendance, t],
   );
 
   // 콘텐츠 좋아요 토글
@@ -660,7 +740,7 @@ const MeetDetail = () => {
 
     Toast.show({
       type: 'success',
-      text1: '복사되었어요!',
+      text1: t('common.copied'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -675,17 +755,14 @@ const MeetDetail = () => {
     Clipboard.setString(phone);
     Toast.show({
       type: 'success',
-      text1: '전화번호를 복사했어요!',
+      text1: t('common.iCopiedYourPhoneNumber'),
       position: 'top',
       visibilityTime: 2000,
     });
-  }, [guesthousePhone]);
+  }, [guesthousePhone, t]);
 
   const handlePressGuesthouse = () => {
-    const guesthouseId =
-      detail?.guesthouseId ??
-      detail?.guesthouse?.id ??
-      detail?.profileSummary?.guesthouseId;
+    const guesthouseId = getPartyGuesthouseId(detail);
     if (!guesthouseId) {
       return;
     }
@@ -713,9 +790,9 @@ const MeetDetail = () => {
 
     if (role !== 'USER') {
       showErrorModal({
-        message: '콘텐츠는\n 로그인 후 사용해주세요',
-        buttonText2: '취소',
-        buttonText: '로그인하기',
+        message: t('meet.pleaseUseTheActivityAfterLoggingIn'),
+        buttonText2: t('common.cancel'),
+        buttonText: t('common.logIn'),
         onPress: () => navigation.navigate('Login'),
         onPress2: () => {},
       });
@@ -753,11 +830,9 @@ const MeetDetail = () => {
   };
 
   // 음료 음식 태그
-  const snackTagTexts = useMemo(() => {
-    return toArray(snackTags)
-      .map(tag => SNACK_TAG_LABEL[tag])
-      ?.filter(Boolean); // 혹시 모를 undefined 제거
-  }, [snackTags]);
+  const snackTagTexts = toArray(snackTags)
+    .map(tag => SNACK_TAG_LABEL[tag])
+    .filter(Boolean);
 
   // 주차 내용
   const parkingContentText = useMemo(() => {
@@ -773,11 +848,9 @@ const MeetDetail = () => {
   }, [parkingPlaceList]);
 
   // 주차 태그
-  const parkingTagTexts = useMemo(() => {
-    return toArray(parkingTag)
-      .map(tag => PARKING_TAG_LABEL[tag])
-      ?.filter(Boolean);
-  }, [parkingTag]);
+  const parkingTagTexts = toArray(parkingTag)
+    .map(tag => PARKING_TAG_LABEL[tag])
+    .filter(Boolean);
   const eventImageWidth = Math.max(
     (pageWidth || SCREEN_W) - TAB_CONTENT_HORIZONTAL_PADDING * 2,
     0,
@@ -809,10 +882,7 @@ const MeetDetail = () => {
   const displayGuesthouseAddress = trimJejuPrefix(
     guesthouseAddress || location,
   );
-  const guesthouseId =
-    detail?.guesthouseId ??
-    detail?.guesthouse?.id ??
-    detail?.profileSummary?.guesthouseId;
+  const guesthouseId = getPartyGuesthouseId(detail);
 
   const handlePressLocationMap = () => {
     if (!mapCoordinate) {
@@ -865,43 +935,51 @@ const MeetDetail = () => {
     );
   };
 
-  const renderGuesthouseLink = () => (
-    <View style={styles.guesthouseLinkCard}>
-      <View style={styles.guesthouseLinkTopRow}>
-        <View style={styles.guesthouseLinkTitleBox}>
+  const renderGuesthouseLink = () => {
+    if (!guesthouseId) {
+      return null;
+    }
+
+    return (
+      <View style={styles.guesthouseLinkCard}>
+        <View style={styles.guesthouseLinkTopRow}>
+          <View style={styles.guesthouseLinkTitleBox}>
+            <Text
+              style={styles.guesthouseLinkTitle}
+              numberOfLines={1}
+              ellipsizeMode="tail">
+              {displayGuesthouseName}
+            </Text>
+          </View>
+          <TouchableOpacity
+            activeOpacity={0.85}
+            style={styles.guesthouseLinkActionButton}
+            onPress={handlePressGuesthouse}
+            disabled={!guesthouseId}>
+            <Text style={styles.guesthouseLinkAction}>
+              {t('common.goSeeGuesthouse')}
+            </Text>
+            <ChevroRight width={14} height={14} />
+          </TouchableOpacity>
+        </View>
+        {!!displayGuesthouseAddress && (
           <Text
-            style={styles.guesthouseLinkTitle}
+            style={styles.guesthouseLinkAddress}
             numberOfLines={1}
             ellipsizeMode="tail">
-            {displayGuesthouseName}
+            {displayGuesthouseAddress}
           </Text>
-        </View>
-        <TouchableOpacity
-          activeOpacity={0.85}
-          style={styles.guesthouseLinkActionButton}
-          onPress={handlePressGuesthouse}
-          disabled={!guesthouseId}>
-          <Text style={styles.guesthouseLinkAction}>게하 보러가기</Text>
-          <ChevroRight width={14} height={14} />
-        </TouchableOpacity>
+        )}
       </View>
-      {!!displayGuesthouseAddress && (
-        <Text
-          style={styles.guesthouseLinkAddress}
-          numberOfLines={1}
-          ellipsizeMode="tail">
-          {displayGuesthouseAddress}
-        </Text>
-      )}
-    </View>
-  );
+    );
+  };
 
   // 빈 값일때
   const renderEmptyInfo = () => (
     <View style={styles.emptyContainer}>
       <EmptyIcon style={styles.emptyIcon} />
       <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-        더 궁금하신 점은 업체로 문의해 주세요
+        {t('meet.ifYouHaveAnyFurtherQuestionsPleaseContactTheCompany')}
       </Text>
     </View>
   );
@@ -956,11 +1034,11 @@ const MeetDetail = () => {
         <View style={styles.tabContent}>
           <View style={styles.partyInfoSummary}>
             <Text style={[FONTS.fs_20_bold, styles.partyInfoSummaryTitle]}>
-              안내사항
+              {t('meet.instructions')}
             </Text>
             <Text
               style={[FONTS.fs_14_regular, styles.partyInfoSummarySubTitle]}>
-              자세한 정보를 알려드릴게요
+              {t('meet.iLlGiveYouMoreInformation')}
             </Text>
             <View style={styles.partyInfoSummaryList}>
               {detailInfoItems.map(({key, Icon, text}) => (
@@ -976,7 +1054,7 @@ const MeetDetail = () => {
                 <View style={styles.partyInfoPhoneRow}>
                   <Text
                     style={[FONTS.fs_14_medium, styles.partyInfoPhoneLabel]}>
-                    문의하기
+                    {t('common.contactUs_531f6a')}
                   </Text>
                   <TouchableOpacity
                     activeOpacity={0.7}
@@ -990,7 +1068,9 @@ const MeetDetail = () => {
               )}
             </View>
           </View>
-          <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>일정</Text>
+          <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>
+            {t('meet.schedule')}
+          </Text>
           <View style={styles.infoTextContainer}>
             <Text style={[FONTS.fs_16_regular, styles.infoText]}>
               {partySchedule}
@@ -999,7 +1079,7 @@ const MeetDetail = () => {
           {!!snackInfo && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
-                음식 • 음료
+                {t('meet.foodDrinks')}
               </Text>
               {snackTagTexts.length > 0 && (
                 <View style={styles.tagChipRow}>
@@ -1020,7 +1100,7 @@ const MeetDetail = () => {
           {ruleList.length > 0 && (
             <View style={styles.detailInfoContainer}>
               <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
-                이용규칙
+                {t('common.rulesOfUse')}
               </Text>
               <View style={styles.ruleList}>
                 {ruleList.map((rule, index) => (
@@ -1046,6 +1126,18 @@ const MeetDetail = () => {
       );
     }
 
+    if (tabKey === 'review') {
+      return (
+        <View style={styles.tabContent}>
+          <PartyReview
+            templateId={reviewTemplateId}
+            averageRating={reviewSummary?.averageRating}
+            totalCount={reviewSummary?.reviewCount}
+          />
+        </View>
+      );
+    }
+
     return (
       <View style={styles.tabContent}>
         {isEmptyWayInfo ? (
@@ -1057,11 +1149,13 @@ const MeetDetail = () => {
         ) : (
           <>
             <Text style={[FONTS.fs_18_bold, styles.infoMainTitleText]}>
-              위치
+              {t('common.location')}
             </Text>
             {!!displayLocation && (
               <Text style={[FONTS.fs_16_regular, styles.infoText]}>
-                만나는 장소 : {displayLocation}
+                {renderMeetingPlaceWithLinks(
+                  t('meet.meetingPlaceWithValue', {place: displayLocation}),
+                )}
               </Text>
             )}
             {renderLocationMap()}
@@ -1069,7 +1163,7 @@ const MeetDetail = () => {
             {trafficInfoList.length > 0 && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
-                  교통 정보
+                  {t('meet.trafficInformation')}
                 </Text>
                 <View style={styles.ruleList}>
                   {trafficInfoList.map((item, index) => {
@@ -1111,7 +1205,7 @@ const MeetDetail = () => {
             {!!parkingContentText && (
               <View style={styles.detailInfoContainer}>
                 <Text style={[FONTS.fs_18_bold, styles.infoTitleText]}>
-                  주차 정보
+                  {t('meet.parkingInformation')}
                 </Text>
                 {parkingTagTexts.length > 0 && (
                   <View style={styles.tagChipRow}>
@@ -1177,7 +1271,11 @@ const MeetDetail = () => {
 
   return (
     <View style={styles.rootContainer}>
-      <ScrollView style={styles.container} showsVerticalScrollIndicator={false}>
+      <ScrollView
+        style={styles.container}
+        showsVerticalScrollIndicator={false}
+        nestedScrollEnabled
+        directionalLockEnabled>
         {/* 헤더 */}
         <View style={styles.header}>
           {hasImages && Platform.OS === 'web' ? (
@@ -1270,7 +1368,8 @@ const MeetDetail = () => {
         {/* 본문 */}
         <View style={styles.contentContainer}>
           <View style={styles.summaryCard}>
-            <TouchableOpacity
+            {!!guesthouseId && (
+              <TouchableOpacity
               activeOpacity={0.8}
               onPress={handlePressGuesthouse}
               style={styles.guesthousePressArea}>
@@ -1280,11 +1379,13 @@ const MeetDetail = () => {
                 iconSize={16}
                 style={styles.summaryAvatar}
               />
+
               <Text
                 style={[FONTS.fs_16_semibold, styles.summaryGuesthouseName]}>
                 {displayGuesthouseName}
               </Text>
-            </TouchableOpacity>
+              </TouchableOpacity>
+            )}
             <Text
               style={[FONTS.fs_20_semibold, styles.titleText]}
               numberOfLines={2}
@@ -1316,10 +1417,10 @@ const MeetDetail = () => {
             <View style={styles.partyDateSection}>
               <View style={styles.partyDateHeader}>
                 <Text style={[FONTS.fs_16_semibold, styles.partyDateTitle]}>
-                  참여 일정 선택
+                  {t('meet.selectParticipationSchedule')}
                 </Text>
                 <Text style={[FONTS.fs_12_medium, styles.partyDateGuide]}>
-                  * 일주일 단위 신청 가능
+                  {t('meet.availableOnAWeeklyBasis')}
                 </Text>
               </View>
               <ScrollView
@@ -1349,7 +1450,7 @@ const MeetDetail = () => {
                           styles.partyDateCardDate,
                           !open && styles.partyDateCardTextDisabled,
                         ]}>
-                        {date.isValid() ? date.format('YYYY.MM.DD (dd)') : '-'}
+                        {date.isValid() ? date.format('YYYY.MM.DD (ddd)') : '-'}
                       </Text>
                       <Text
                         style={[
@@ -1376,31 +1477,37 @@ const MeetDetail = () => {
           )}
 
           {/* 하단 탭 */}
-          <View
+          <ScrollView
+            ref={tabMenuRef}
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            onLayout={handleTabMenuLayout}
             style={[
               styles.tabContainer,
               showPartyDateSelector && styles.tabContainerAdvance,
-            ]}>
+            ]}
+            contentContainerStyle={styles.tabContainerContent}>
             {TABS.map((tab, index) => (
               <Pressable
                 key={tab.key}
                 style={[
-                  styles.tabButton,
+                  tabButtonStyle,
                   isActive(tab.key) && styles.tabButtonActive,
                 ]}
                 onPress={() => onTabPress(index)}>
-                <Text
+                <AdaptiveText
+                  variant="tab"
                   style={[
                     FONTS.fs_14_medium,
                     styles.tabText,
                     isActive(tab.key) && styles.tabTextActive,
                     isActive(tab.key) && FONTS.fs_14_semibold,
                   ]}>
-                  {tab.label}
-                </Text>
+                  {t(tab.labelKey)}
+                </AdaptiveText>
               </Pressable>
             ))}
-          </View>
+          </ScrollView>
           <ScrollView
             ref={pagerRef}
             horizontal
@@ -1408,6 +1515,7 @@ const MeetDetail = () => {
             directionalLockEnabled
             pagingEnabled
             nestedScrollEnabled
+            decelerationRate="fast"
             bounces={false}
             showsHorizontalScrollIndicator={false}
             onLayout={onPagerLayout}

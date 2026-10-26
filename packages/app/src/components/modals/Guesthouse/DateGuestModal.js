@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useMemo } from "react";
+import {formatDate} from '@utils/localeFormat';
+import {useTranslation} from 'react-i18next';
+import React, {useState, useEffect, useMemo} from 'react';
 import {
   View,
   Text,
@@ -8,16 +10,17 @@ import {
   Platform,
   Dimensions,
   ScrollView,
-} from "react-native";
+} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import { Calendar } from 'react-native-calendars';
-import dayjs from "dayjs";
+import {Calendar} from 'react-native-calendars';
+import PeriodDay from 'react-native-calendars/src/calendar/day/period';
+import '@constants/calendarConfig';
+import dayjs from 'dayjs';
 import isSameOrBefore from 'dayjs/plugin/isSameOrBefore';
 
-dayjs.locale('ko');
 dayjs.extend(isSameOrBefore);
 
-const { height } = Dimensions.get("window");
+const {height} = Dimensions.get('window');
 
 import MinusIcon from '@assets/images/minus_gray.svg';
 import PlusIcon from '@assets/images/plus_gray.svg';
@@ -26,8 +29,8 @@ import LeftArrowIcon from '@assets/images/chevron_left_gray.svg';
 import RightArrowIcon from '@assets/images/chevron_right_gray.svg';
 
 import ButtonScarlet from '@components/ButtonScarlet';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 
 const isLayoutAnimationSupported = Platform.OS !== 'android';
 
@@ -35,8 +38,7 @@ const getInitialGuestCount = (adultCount, childCount) => {
   const adult = Number(adultCount);
   const child = Number(childCount);
   const total =
-    (Number.isFinite(adult) ? adult : 1)
-    + (Number.isFinite(child) ? child : 0);
+    (Number.isFinite(adult) ? adult : 1) + (Number.isFinite(child) ? child : 0);
 
   return Math.max(1, total);
 };
@@ -51,6 +53,7 @@ const DateGuestModal = ({
   initChildGuestCount,
   initialSection = 'date',
 }) => {
+  const {t, i18n} = useTranslation();
   const today = dayjs().startOf('day');
   const maxReservationDate = today.add(3, 'month');
   const minReservationDateKey = today.format('YYYY-MM-DD');
@@ -64,7 +67,9 @@ const DateGuestModal = ({
   // 달력 및 아코디언 상태
   const [checkInDate, setCheckInDate] = useState(initCheckInDate);
   const [checkOutDate, setCheckOutDate] = useState(initCheckOutDate);
-  const [currentMonth, setCurrentMonth] = useState(dayjs().format("YYYY-MM-DD"));
+  const [currentMonth, setCurrentMonth] = useState(
+    dayjs().format('YYYY-MM-DD'),
+  );
   const [isGuestOpen, setIsGuestOpen] = useState(false);
   const [isDateOpen, setIsDateOpen] = useState(false);
 
@@ -72,7 +77,7 @@ const DateGuestModal = ({
     const previousMonth = dayjs(currentMonth).subtract(1, 'month');
 
     if (previousMonth.format('YYYY-MM') >= minReservationMonth) {
-      setCurrentMonth(previousMonth.format("YYYY-MM-DD"));
+      setCurrentMonth(previousMonth.format('YYYY-MM-DD'));
     }
   };
 
@@ -80,7 +85,7 @@ const DateGuestModal = ({
     const nextMonth = dayjs(currentMonth).add(1, 'month');
 
     if (nextMonth.format('YYYY-MM') <= maxReservationMonth) {
-      setCurrentMonth(nextMonth.format("YYYY-MM-DD"));
+      setCurrentMonth(nextMonth.format('YYYY-MM-DD'));
     }
   };
 
@@ -99,7 +104,7 @@ const DateGuestModal = ({
     } else if (initCheckInDate) {
       setCurrentMonth(initCheckInDate);
     } else {
-      setCurrentMonth(dayjs().format("YYYY-MM-DD"));
+      setCurrentMonth(dayjs().format('YYYY-MM-DD'));
     }
     if (visible) {
       setIsDateOpen(initialSection === 'date');
@@ -118,7 +123,7 @@ const DateGuestModal = ({
     minReservationMonth,
   ]);
 
-  const onDayPress = (day) => {
+  const onDayPress = day => {
     if (
       !day?.dateString ||
       day.dateString < minReservationDateKey ||
@@ -138,7 +143,9 @@ const DateGuestModal = ({
         // 날짜 선택 완료 시 자동으로 날짜를 접고 인원 섹션을 열어줌
         setTimeout(() => {
           if (isLayoutAnimationSupported) {
-            LayoutAnimation.configureNext(LayoutAnimation.Presets.easeInEaseOut);
+            LayoutAnimation.configureNext(
+              LayoutAnimation.Presets.easeInEaseOut,
+            );
           }
           setIsDateOpen(false);
           setIsGuestOpen(true);
@@ -151,14 +158,19 @@ const DateGuestModal = ({
     }
   };
 
-  const markedDates = useMemo(() => {
+  const baseMarkedDates = useMemo(() => {
     if (!visible) {
       return {};
     }
 
     const marked = {};
     if (checkInDate && !checkOutDate) {
-      marked[checkInDate] = { startingDay: true, endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+      marked[checkInDate] = {
+        startingDay: true,
+        endingDay: true,
+        color: COLORS.primary_orange,
+        textColor: COLORS.grayscale_0,
+      };
       return marked;
     }
 
@@ -172,37 +184,51 @@ const DateGuestModal = ({
       }
 
       while (current.isSameOrBefore(end)) {
-        const dateStr = current.format("YYYY-MM-DD");
+        const dateStr = current.format('YYYY-MM-DD');
         if (dateStr === checkInDate) {
-          marked[dateStr] = { startingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          marked[dateStr] = {
+            startingDay: true,
+            color: COLORS.primary_orange,
+            textColor: COLORS.grayscale_0,
+          };
         } else if (dateStr === checkOutDate) {
-          marked[dateStr] = { endingDay: true, color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          marked[dateStr] = {
+            endingDay: true,
+            color: COLORS.primary_orange,
+            textColor: COLORS.grayscale_0,
+          };
         } else {
-          marked[dateStr] = { color: COLORS.primary_orange, textColor: COLORS.grayscale_0 };
+          marked[dateStr] = {
+            color: COLORS.primary_orange,
+            textColor: COLORS.grayscale_0,
+          };
         }
-        current = current.add(1, "day");
+        current = current.add(1, 'day');
       }
     }
 
     return marked;
   }, [checkInDate, checkOutDate, visible]);
 
-
-
   // 날짜 텍스트 출력
-  const formattedSelectedText = checkInDate && checkOutDate
-    ? `${dayjs(checkInDate).format("M.D(dd)")} - ${dayjs(checkOutDate).format("M.D(dd)")}, ${dayjs(checkOutDate).diff(dayjs(checkInDate), "day")}박`
-    : "날짜를 선택해주세요";
+  const formattedSelectedText =
+    checkInDate && checkOutDate
+      ? t('guesthouse.valueValueValue', {
+          value1: dayjs(checkInDate).format('M.D(ddd)'),
+          value2: dayjs(checkOutDate).format('M.D(ddd)'),
+          count: dayjs(checkOutDate).diff(dayjs(checkInDate), 'day'),
+          value3: dayjs(checkOutDate).diff(dayjs(checkInDate), 'day'),
+        })
+      : t('common.pleaseSelectADate');
 
   // 인원
   const increaseGuest = () => setGuestCount(guestCount + 1);
   const decreaseGuest = () => setGuestCount(Math.max(1, guestCount - 1));
 
-  const formattedGuestText = `인원 ${guestCount}`;
+  const formattedGuestText = t('units.guest', {count: guestCount});
   const canApply = Boolean(checkInDate && checkOutDate);
 
   // 아코디언 효과
-
 
   const toggleGuestSection = () => {
     if (isLayoutAnimationSupported) {
@@ -230,26 +256,32 @@ const DateGuestModal = ({
       ]}>
       <View style={styles.modal}>
         <View style={styles.header}>
-          <Text style={[FONTS.fs_20_semibold, styles.title]}>날짜, 인원 선택</Text>
+          <Text style={[FONTS.fs_20_semibold, styles.title]}>
+            {t('guesthouse.selectDateAndNumberOfPeople')}
+          </Text>
           <TouchableOpacity
             activeOpacity={1}
             onPress={onClose}
-            style={styles.closeButton}
-          >
+            style={styles.closeButton}>
             <XIcon width={24} height={24} />
           </TouchableOpacity>
         </View>
 
-        <ScrollView style={styles.scrollArea} contentContainerStyle={{ paddingBottom: 80 }}>
+        <ScrollView
+          style={styles.scrollArea}
+          contentContainerStyle={{paddingBottom: 80}}>
           {/* 날짜 */}
           <View style={styles.section}>
             <TouchableOpacity
               activeOpacity={1}
               style={styles.sectionText}
-              onPress={toggleDateSection}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>날짜</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>{formattedSelectedText}</Text>
+              onPress={toggleDateSection}>
+              <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>
+                {t('common.date')}
+              </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>
+                {formattedSelectedText}
+              </Text>
             </TouchableOpacity>
             {isDateOpen && (
               <View style={styles.selectContainer}>
@@ -257,22 +289,32 @@ const DateGuestModal = ({
                   <View style={styles.calendarHeaderText}>
                     <TouchableOpacity
                       activeOpacity={1}
-                      disabled={dayjs(currentMonth).format('YYYY-MM') <= minReservationMonth}
+                      disabled={
+                        dayjs(currentMonth).format('YYYY-MM') <=
+                        minReservationMonth
+                      }
                       style={[
                         styles.monthArrowButton,
-                        dayjs(currentMonth).format('YYYY-MM') <= minReservationMonth &&
+                        dayjs(currentMonth).format('YYYY-MM') <=
+                          minReservationMonth &&
                           styles.monthArrowButtonDisabled,
                       ]}
                       onPress={goPrevMonth}>
                       <LeftArrowIcon width={24} height={24} />
                     </TouchableOpacity>
-                    <Text style={[FONTS.fs_16_semibold, styles.monthText]}>{dayjs(currentMonth).format("YYYY년 M월")}</Text>
+                    <Text style={[FONTS.fs_16_semibold, styles.monthText]}>
+                      {dayjs(currentMonth).format(t('common.monthMYearYyyy'))}
+                    </Text>
                     <TouchableOpacity
                       activeOpacity={1}
-                      disabled={dayjs(currentMonth).format('YYYY-MM') >= maxReservationMonth}
+                      disabled={
+                        dayjs(currentMonth).format('YYYY-MM') >=
+                        maxReservationMonth
+                      }
                       style={[
                         styles.monthArrowButton,
-                        dayjs(currentMonth).format('YYYY-MM') >= maxReservationMonth &&
+                        dayjs(currentMonth).format('YYYY-MM') >=
+                          maxReservationMonth &&
                           styles.monthArrowButtonDisabled,
                       ]}
                       onPress={goNextMonth}>
@@ -280,8 +322,20 @@ const DateGuestModal = ({
                     </TouchableOpacity>
                   </View>
                   <View style={styles.dayTextContainer}>
-                    {["월", "화", "수", "목", "금", "토", "일"].map((d) => (
-                      <Text key={d} style={[FONTS.fs_14_medium, styles.dayText]}>{d}</Text>
+                    {[
+                      t('common.month'),
+                      t('common.angry'),
+                      t('common.number'),
+                      t('common.neck'),
+                      t('common.gold'),
+                      t('common.sat'),
+                      t('common.work'),
+                    ].map(d => (
+                      <Text
+                        key={d}
+                        style={[FONTS.fs_14_medium, styles.dayText]}>
+                        {d}
+                      </Text>
                     ))}
                   </View>
                 </View>
@@ -289,13 +343,41 @@ const DateGuestModal = ({
                   minDate={minReservationDateKey}
                   maxDate={maxReservationDateKey}
                   markingType="period"
-                  markedDates={markedDates}
+                  markedDates={baseMarkedDates}
+                  dayComponent={props => {
+                    const {date, marking = {}, state} = props;
+                    const labelKey =
+                      marking.startingDay && marking.endingDay
+                        ? 'calendar.rangeStartAndEnd'
+                        : marking.startingDay
+                        ? 'calendar.rangeStart'
+                        : marking.endingDay
+                        ? 'calendar.rangeEnd'
+                        : marking.color
+                        ? 'calendar.rangeSelected'
+                        : 'calendar.date';
+                    return (
+                      <PeriodDay
+                        {...props}
+                        date={date.dateString}
+                        accessibilityLabel={t(labelKey, {
+                          date: formatDate(`${date.dateString}T12:00:00`, {
+                            dateStyle: 'full',
+                          }),
+                          context: state === 'today' ? 'today' : undefined,
+                        })}>
+                        {date.day}
+                      </PeriodDay>
+                    );
+                  }}
                   onDayPress={onDayPress}
                   firstDay={1}
                   hideDayNames={true}
                   current={currentMonth}
                   renderHeader={() => null}
-                  key={currentMonth}
+                  key={`${currentMonth}-${
+                    i18n.resolvedLanguage || i18n.language
+                  }`}
                   hideArrows={true}
                   theme={{
                     textDayFontFamily: 'Pretendard-Medium',
@@ -312,25 +394,34 @@ const DateGuestModal = ({
             <TouchableOpacity
               activeOpacity={1}
               style={styles.sectionText}
-              onPress={toggleGuestSection}
-            >
-              <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>인원</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>{formattedGuestText}</Text>
+              onPress={toggleGuestSection}>
+              <Text style={[FONTS.fs_16_medium, styles.selectedTitle]}>
+                {t('common.numberOfPeople')}
+              </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.selectedText]}>
+                {formattedGuestText}
+              </Text>
             </TouchableOpacity>
             {isGuestOpen && (
               <View style={styles.selectContainer}>
                 <View style={styles.guestContainer}>
-                  <Text style={FONTS.fs_16_semibold}>인원</Text>
+                  <Text style={FONTS.fs_16_semibold}>
+                    {t('common.numberOfPeople')}
+                  </Text>
                   <View style={styles.selectGuest}>
                     <TouchableOpacity
-                      activeOpacity={1} style={styles.pmIconContainer} onPress={decreaseGuest}>
+                      activeOpacity={1}
+                      style={styles.pmIconContainer}
+                      onPress={decreaseGuest}>
                       <MinusIcon width={24} height={24} />
                     </TouchableOpacity>
                     <View style={styles.guestText}>
                       <Text style={FONTS.fs_14_medium}>{guestCount}</Text>
                     </View>
                     <TouchableOpacity
-                      activeOpacity={1} style={styles.pmIconContainer} onPress={increaseGuest}>
+                      activeOpacity={1}
+                      style={styles.pmIconContainer}
+                      onPress={increaseGuest}>
                       <PlusIcon width={24} height={24} />
                     </TouchableOpacity>
                   </View>
@@ -343,7 +434,7 @@ const DateGuestModal = ({
         {/* 적용 버튼 */}
         <View style={styles.applyButton}>
           <ButtonScarlet
-            title="적용하기"
+            title={t('common.apply')}
             disabled={!canApply}
             onPress={() => {
               if (!canApply) {
@@ -378,7 +469,7 @@ const styles = StyleSheet.create({
   overlay: {
     flex: 1,
     backgroundColor: COLORS.modal_background,
-    justifyContent: "flex-end",
+    justifyContent: 'flex-end',
   },
   androidOverlay: {
     ...StyleSheet.absoluteFillObject,
@@ -395,8 +486,8 @@ const styles = StyleSheet.create({
 
   // 제목, 닫기 버튼
   header: {
-    flexDirection: "row",
-    justifyContent: "center",
+    flexDirection: 'row',
+    justifyContent: 'center',
     alignItems: 'center',
     paddingVertical: 20,
     marginBottom: 20,
@@ -419,9 +510,9 @@ const styles = StyleSheet.create({
     marginBottom: 8,
   },
   sectionText: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
   selectedTitle: {
     color: COLORS.grayscale_800,
@@ -444,12 +535,12 @@ const styles = StyleSheet.create({
 
   // 인원 선택
   guestContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
   },
   selectGuest: {
-    flexDirection: "row",
+    flexDirection: 'row',
     alignItems: 'center',
   },
   pmIconContainer: {
@@ -476,14 +567,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   calendarHeaderText: {
-    flexDirection: "row",
+    flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
     width: '95%',
   },
-  monthText: {
-  },
+  monthText: {},
   monthArrowButton: {
     width: 32,
     height: 32,
@@ -494,13 +584,13 @@ const styles = StyleSheet.create({
     opacity: 0.3,
   },
   dayTextContainer: {
-    flexDirection: "row",
+    flexDirection: 'row',
     alignSelf: 'center',
     width: '95%',
   },
   dayText: {
     flex: 1,
-    textAlign: "center",
+    textAlign: 'center',
     color: COLORS.grayscale_400,
   },
 

@@ -39,6 +39,7 @@ const styles = StyleSheet.create({
 
   // 콘텐츠 리스트
   meetListContainer: {
+    flex: 1,
     backgroundColor: COLORS.grayscale_0,
     paddingVertical: 16,
   },

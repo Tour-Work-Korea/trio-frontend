@@ -1,7 +1,7 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   InteractionManager,
-  StyleSheet,
   View,
   Text,
   ScrollView,
@@ -59,13 +59,18 @@ import JejuAirplane from '@assets/images/jeju_airplane.svg';
 
 // 오늘의 게하 관련: 나중에 홈 탭 복구할 때 다시 사용
 // const today = {key: 'TODAY', label: '오늘의 게스트하우스'};
-const GUESTHOUSE_CATEGORIES = [
-  {key: 'food', label: '포틀럭', Icon: CategoryFood},
-  {key: 'reading', label: '독서', Icon: CategoryReading},
-  {key: 'dinnerParty', label: '디너파티', Icon: CategoryDinnerParty},
-  {key: 'program', label: '프로그램', Icon: CategoryProgram},
-  {key: 'relax', label: '쉼', Icon: CategoryRelax},
+const GUESTHOUSE_CATEGORY_DEFINITIONS = [
+  {key: 'food', labelKey: 'common.potluck', Icon: CategoryFood},
+  {key: 'reading', labelKey: 'common.reading', Icon: CategoryReading},
+  {
+    key: 'dinnerParty',
+    labelKey: 'common.dinnerParty',
+    Icon: CategoryDinnerParty,
+  },
+  {key: 'program', labelKey: 'common.program', Icon: CategoryProgram},
+  {key: 'relax', labelKey: 'common.rest', Icon: CategoryRelax},
 ];
+
 const mainPageBannerAdUnitId = __DEV__
   ? TestIds.BANNER
   : Platform.select({
@@ -73,52 +78,45 @@ const mainPageBannerAdUnitId = __DEV__
       android: 'ca-app-pub-6098454400067335/5920208998',
       web: 'ca-pub-6098454400067335/4250943648',
     });
-const HOME_AGREEMENT_LINKS = [
-  {id: 'TERMS_OF_SERVICE', label: '서비스 이용약관'},
-  {id: 'PRIVACY_POLICY', label: '개인정보 처리방침'},
+const HOME_AGREEMENT_LINK_DEFINITIONS = [
+  {id: 'TERMS_OF_SERVICE', labelKey: 'common.termsOfService'},
+  {id: 'PRIVACY_POLICY', labelKey: 'common.privacyPolicy'},
 ];
+
 const HOME_DATA_CACHE_TTL_MS = 60 * 1000;
-const HOME_TAB_BAR_STYLE = Platform.OS === 'android'
-  ? {
-      position: 'relative',
-      backgroundColor: COLORS.grayscale_0,
-      height: 64,
-      paddingTop: 6,
-      paddingBottom: 6,
-      paddingHorizontal: 12,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: COLORS.grayscale_200,
-    }
-  : {
-      position: 'relative',
-      backgroundColor: COLORS.grayscale_0,
-      height: 84,
-      paddingTop: 6,
-      paddingBottom: 18,
-      paddingHorizontal: 12,
-      borderTopWidth: StyleSheet.hairlineWidth,
-      borderTopColor: COLORS.grayscale_200,
-    };
-const BUSINESS_INFO = [
-  '상호명 : 워커웨이',
-  '사업자등록번호: 888-25-02003',
-  '연락처: 010-4123-0075',
-  '통신판매번호: 2025-서울양천-0825',
-  '주소: 제주시 연동 263-13 레지던스이타스3',
-  '대표자 : 이하늘, 정재원',
+const BUSINESS_INFO_KEYS = [
+  'common.companyNameWalkerway',
+  'common.businessRegistrationNumber8882502003',
+  'common.contactNumber01041230075',
+  'common.mailOrderNumber2025SeoulYangcheon0825',
+  'common.addressResidenceItas326313YeonDongJejuSi',
+  'common.representativesLeeHaNeulJeongJaeWon',
 ];
 
 const getBannerImageUrl = item =>
-  item?.url
-  ?? item?.adminImageUrl
-  ?? item?.imageUrl
-  ?? item?.bannerImageUrl
-  ?? item?.thumbnailUrl;
+  item?.url ??
+  item?.adminImageUrl ??
+  item?.imageUrl ??
+  item?.bannerImageUrl ??
+  item?.thumbnailUrl;
 
 const extractNotificationItems = data =>
   Array.isArray(data?.content) ? data.content : Array.isArray(data) ? data : [];
 
 const HomeMain = () => {
+  const {t, i18n} = useTranslation();
+  const isEnglish = (i18n.resolvedLanguage || i18n.language || '')
+    .toLowerCase()
+    .startsWith('en');
+  const GUESTHOUSE_CATEGORIES = GUESTHOUSE_CATEGORY_DEFINITIONS.map(item => ({
+    ...item,
+    label: t(item.labelKey),
+  }));
+  const HOME_AGREEMENT_LINKS = HOME_AGREEMENT_LINK_DEFINITIONS.map(item => ({
+    ...item,
+    label: t(item.labelKey),
+  }));
+  const BUSINESS_INFO = BUSINESS_INFO_KEYS.map(key => t(key));
   const navigation = useNavigation();
   const accessToken = useUserStore(state => state.accessToken);
   // 홈 탭 관련: 나중에 탭 UI 복구할 때 다시 사용
@@ -170,7 +168,10 @@ const HomeMain = () => {
       const {data} = await userGuesthouseApi.getPopularGuesthouses();
       const list = data.content || [];
       setGuesthouseList(list);
-      prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 6});
+      prefetchImageUrls(
+        list.map(item => item.thumbnailUrl),
+        {limit: 6},
+      );
     } catch (error) {
       console.warn('게스트하우스 조회 실패', error);
       setGuesthouseList([]);
@@ -186,7 +187,10 @@ const HomeMain = () => {
         ? data
         : data?.content || (data ? [data] : []);
       setEventList(list);
-      prefetchImageUrls(list.map(item => item.partyImageUrl), {limit: 4});
+      prefetchImageUrls(
+        list.map(item => item.partyImageUrl),
+        {limit: 4},
+      );
     } catch (error) {
       console.warn('콘텐츠 조회 실패', error);
       setEventList([]);
@@ -199,7 +203,10 @@ const HomeMain = () => {
     try {
       const list = await getRecentGuesthouses();
       setRecentGuesthouseList(list);
-      prefetchImageUrls(list.map(item => item.thumbnailUrl), {limit: 6});
+      prefetchImageUrls(
+        list.map(item => item.thumbnailUrl),
+        {limit: 6},
+      );
     } catch (error) {
       console.warn('최근 본 게하 조회 실패', error);
       setRecentGuesthouseList([]);
@@ -208,8 +215,6 @@ const HomeMain = () => {
 
   useFocusEffect(
     useCallback(() => {
-      navigation.getParent()?.setOptions({tabBarStyle: HOME_TAB_BAR_STYLE});
-
       const now = Date.now();
       const hasFreshHomeData =
         lastHomeDataFetchAtRef.current > 0 &&
@@ -412,7 +417,7 @@ const HomeMain = () => {
             <TouchableOpacity
               activeOpacity={1}
               accessibilityRole="button"
-              accessibilityLabel="알림함"
+              accessibilityLabel={t('common.notificationBox')}
               style={styles.notificationButton}
               onPress={() => navigation.navigate('NotificationCenter')}>
               <BellIcon width={18} height={18} />
@@ -439,17 +444,17 @@ const HomeMain = () => {
           ]}>
           <SearchIcon width={20} height={20} />
           {/* <TextInput
-            value={searchKeyword}
-            onChangeText={handleChangeSearchKeyword}
-            onFocus={() => setIsSearchFocused(true)}
-            placeholder="찾는 게하가 있으신가요?"
-            placeholderTextColor={COLORS.grayscale_600}
-            style={[
-              FONTS.fs_14_regular,
-              styles.searchInput,
-              Platform.OS === 'android' && styles.searchInputAndroid,
-            ]}
-            returnKeyType="search"
+           value={searchKeyword}
+           onChangeText={handleChangeSearchKeyword}
+           onFocus={() => setIsSearchFocused(true)}
+           placeholder="찾는 게하가 있으신가요?"
+           placeholderTextColor={COLORS.grayscale_600}
+           style={[
+             FONTS.fs_14_regular,
+             styles.searchInput,
+             Platform.OS === 'android' && styles.searchInputAndroid,
+           ]}
+           returnKeyType="search"
           /> */}
           <Text
             style={[
@@ -458,131 +463,127 @@ const HomeMain = () => {
               styles.searchPlaceholder,
               Platform.OS === 'android' && styles.searchInputAndroid,
             ]}>
-            찾는 게하가 있으신가요?
+            {t('common.isThereSomethingYouReLookingFor')}
           </Text>
         </TouchableOpacity>
 
         {/* {isSearchDropdownVisible && (
-          <View style={styles.searchResultDropdown}>
-            {searchedGuesthouses.length > 0 ? (
-              <ScrollView
-                nestedScrollEnabled
-                style={styles.searchResultList}
-                keyboardShouldPersistTaps="handled">
-                {searchedGuesthouses.map((guesthouse, idx) => {
-                  const name = guesthouse?.name || '';
-                  const address = guesthouse?.address || '';
-                  const key = guesthouse?.id || `guesthouse-${idx}`;
-
+         <View style={styles.searchResultDropdown}>
+           {searchedGuesthouses.length > 0 ? (
+             <ScrollView
+               nestedScrollEnabled
+               style={styles.searchResultList}
+               keyboardShouldPersistTaps="handled">
+               {searchedGuesthouses.map((guesthouse, idx) => {
+                 const name = guesthouse?.name || '';
+                 const address = guesthouse?.address || '';
+                 const key = guesthouse?.id || `guesthouse-${idx}`;
                   return (
-                    <TouchableOpacity
-                      key={key}
-                      activeOpacity={1}
-                      onPress={() => {
-                        const guesthouseId =
-                          guesthouse?.id || guesthouse?.guesthouseId;
-                        if (!guesthouseId) return;
-
+                   <TouchableOpacity
+                     key={key}
+                     activeOpacity={1}
+                     onPress={() => {
+                       const guesthouseId =
+                         guesthouse?.id || guesthouse?.guesthouseId;
+                       if (!guesthouseId) return;
                         const today = new Date();
-                        const tomorrow = new Date(today);
-                        tomorrow.setDate(today.getDate() + 1);
-                        const formatDate = date =>
-                          `${date.getFullYear()}-${String(
-                            date.getMonth() + 1,
-                          ).padStart(2, '0')}-${String(date.getDate()).padStart(
-                            2,
-                            '0',
-                          )}`;
-
+                       const tomorrow = new Date(today);
+                       tomorrow.setDate(today.getDate() + 1);
+                       const formatDate = date =>
+                         `${date.getFullYear()}-${String(
+                           date.getMonth() + 1,
+                         ).padStart(2, '0')}-${String(date.getDate()).padStart(
+                           2,
+                           '0',
+                         )}`;
                         navigation.navigate('GuesthouseDetail', {
-                          id: guesthouseId,
-                          checkIn: formatDate(today),
-                          checkOut: formatDate(tomorrow),
-                          guestCount: 1,
-                        });
-                      }}
-                      style={[
-                        styles.searchResultItem,
-                        idx === searchedGuesthouses.length - 1 &&
-                          styles.searchResultItemLast,
-                      ]}>
-                      <View style={styles.searchResultLeftIcon}>
-                        <GuesthouseIcon width={18} height={18} />
-                      </View>
-                      <View style={styles.searchResultContent}>
-                        <Text
-                          numberOfLines={1}
-                          style={[FONTS.fs_14_semibold, styles.searchResultText]}>
-                          {name}
-                        </Text>
-                        {!!address && (
-                          <Text
-                            numberOfLines={1}
-                            style={[
-                              FONTS.fs_12_medium,
-                              styles.searchResultSubText,
-                            ]}>
-                            {trimJejuPrefix(address)}
-                          </Text>
-                        )}
-                      </View>
-                      <ChevronRight width={14} height={14}/>
-                    </TouchableOpacity>
-                  );
-                })}
-              </ScrollView>
-            ) : (
-              <Text style={[FONTS.fs_14_regular, styles.searchResultEmptyText]}>
-                일치하는 게스트하우스가 없어요.
-              </Text>
-            )}
-          </View>
+                         id: guesthouseId,
+                         checkIn: formatDate(today),
+                         checkOut: formatDate(tomorrow),
+                         guestCount: 1,
+                       });
+                     }}
+                     style={[
+                       styles.searchResultItem,
+                       idx === searchedGuesthouses.length - 1 &&
+                         styles.searchResultItemLast,
+                     ]}>
+                     <View style={styles.searchResultLeftIcon}>
+                       <GuesthouseIcon width={18} height={18} />
+                     </View>
+                     <View style={styles.searchResultContent}>
+                       <Text
+                         numberOfLines={1}
+                         style={[FONTS.fs_14_semibold, styles.searchResultText]}>
+                         {name}
+                       </Text>
+                       {!!address && (
+                         <Text
+                           numberOfLines={1}
+                           style={[
+                             FONTS.fs_12_medium,
+                             styles.searchResultSubText,
+                           ]}>
+                           {trimJejuPrefix(address)}
+                         </Text>
+                       )}
+                     </View>
+                     <ChevronRight width={14} height={14}/>
+                   </TouchableOpacity>
+                 );
+               })}
+             </ScrollView>
+           ) : (
+             <Text style={[FONTS.fs_14_regular, styles.searchResultEmptyText]}>
+               일치하는 게스트하우스가 없어요.
+             </Text>
+           )}
+         </View>
         )} */}
       </View>
 
       {/* 홈 탭/오늘의 게하 관련: 나중에 탭 UI 복구할 때 다시 사용 */}
       {/* <View style={headerStyles.tabBar}>
-          <View style={headerStyles.tabBarLeft}>
-            {TABS.map(t => {
-              const isActive = activeTab === t.key;
-
+         <View style={headerStyles.tabBarLeft}>
+           {TABS.map(t => {
+             const isActive = activeTab === t.key;
               return (
-                <TouchableOpacity
-                  activeOpacity={1}
-                  key={t.key}
-                  onPress={() => handleTabPress(t.key)}
-                  style={[
-                    headerStyles.tabBtn,
-                    isActive && headerStyles.tabBtnActive,
-                  ]}>
-                  <Text
-                    style={[
-                      headerStyles.tabText,
-                      isActive && headerStyles.tabTextActive,
-                    ]}>
-                    {t.label}
-                  </Text>
-                </TouchableOpacity>
-              );
-            })}
-          </View>
-          <TouchableOpacity
-            activeOpacity={1}
-            key={today.key}
-            onPress={() => handleTabPress(today.key)}
-            style={[
-              headerStyles.tabBtn,
-              activeTab === today.key && headerStyles.tabBtnActive,
-            ]}>
-            <Text
-              style={[
-                headerStyles.tabText,
-                activeTab === today.key && headerStyles.tabTextActive,
-              ]}>
-              {today.label}
-            </Text>
-          </TouchableOpacity>
-        </View> */}
+               <TouchableOpacity
+                 activeOpacity={1}
+                 key={t.key}
+                 onPress={() => handleTabPress(t.key)}
+                 style={[
+                   headerStyles.tabBtn,
+                   isActive && headerStyles.tabBtnActive,
+                 ]}>
+                 <Text
+                   style={[
+                     headerStyles.tabText,
+                     isActive && headerStyles.tabTextActive,
+                   ]}>
+                   {t.label}
+                 </Text>
+               </TouchableOpacity>
+             );
+           })}
+         </View>
+         <TouchableOpacity
+           activeOpacity={1}
+           key={today.key}
+           onPress={() => handleTabPress(today.key)}
+           style={[
+             headerStyles.tabBtn,
+             activeTab === today.key && headerStyles.tabBtnActive,
+           ]}>
+           <Text
+             style={[
+               headerStyles.tabText,
+               activeTab === today.key && headerStyles.tabTextActive,
+             ]}>
+             {today.label}
+           </Text>
+         </TouchableOpacity>
+       </View> */}
     </View>
   );
 
@@ -592,11 +593,11 @@ const HomeMain = () => {
       {StickyHeader}
       {/* 오늘의 게하 관련: 나중에 홈 탭 복구할 때 다시 사용 */}
       {/* {activeTab === 'TODAY' ? (
-          // <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
-          <View style={styles.todayContainer}>
-            <TodayGuesthouses />
-          </View>
-        ) : ( */}
+           // <Pressable style={styles.todayContainer} onPress={dismissSearchUI}>
+           <View style={styles.todayContainer}>
+             <TodayGuesthouses />
+           </View>
+         ) : ( */}
       <ScrollView
         ref={scrollRef}
         style={[styles.container, styles.verticalScroll]}
@@ -651,14 +652,15 @@ const HomeMain = () => {
           )}
           {/* 콘텐츠 섹션 */}
           {/* <View
-                onLayout={e => {
-                  meetYRef.current = e.nativeEvent.layout.y;
-                }}
-                style={styles.boxContainer}>
-                <Meets events={eventList} setEventList={setEventList} />
-              </View> */}
+                 onLayout={e => {
+                   meetYRef.current = e.nativeEvent.layout.y;
+                 }}
+                 style={styles.boxContainer}>
+                 <Meets events={eventList} setEventList={setEventList} />
+               </View> */}
 
           {/* 제주 한달살기 공고 배너 시작: 필요 없을 때 이 블록과 관련 스타일을 삭제해주세요. */}
+          {!isEnglish && (
           <View style={styles.boxContainer}>
             <View style={styles.staffNoticeBanner}>
               <View style={styles.staffNoticeBannerLeft}>
@@ -668,8 +670,7 @@ const HomeMain = () => {
                   numberOfLines={1}
                   adjustsFontSizeToFit
                   minimumFontScale={0.75}>
-                  제주 <Text style={styles.staffNoticeHighlight}>한달살기</Text>{' '}
-                  어때?
+                  {t('home.jejuLongStayQuestion')}
                 </Text>
               </View>
               <TouchableOpacity
@@ -677,11 +678,12 @@ const HomeMain = () => {
                 style={styles.staffNoticeButton}
                 onPress={handlePressStaffNoticeBanner}>
                 <Text style={styles.staffNoticeButtonText}>
-                  모집 중인 스탭 공고 보러가기
+                  {t('common.clickHereToSeeTheStaffRecruitmentAnnouncement')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
+          )}
           {/* 제주 한달살기 공고 배너 끝 */}
 
           <View style={styles.boxContainer}>
@@ -690,12 +692,12 @@ const HomeMain = () => {
 
           {/* 숙박 섹션 */}
           {/* <View
-                onLayout={e => {
-                  stayYRef.current = e.nativeEvent.layout.y;
-                }}
-                style={styles.boxContainer}>
-                <Guesthouses guesthouses={guesthouseList} />
-              </View> */}
+                 onLayout={e => {
+                   stayYRef.current = e.nativeEvent.layout.y;
+                 }}
+                 style={styles.boxContainer}>
+                 <Guesthouses guesthouses={guesthouseList} />
+               </View> */}
 
           {/* 임시 */}
           {!isMeetLoading && (

@@ -1,42 +1,49 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
-import { View, Text, FlatList, StyleSheet, TouchableOpacity } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import {View, Text, FlatList, StyleSheet, TouchableOpacity} from 'react-native';
+import {useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import Toast from 'react-native-toast-message';
 import Clipboard from '@react-native-clipboard/clipboard';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
-import { getDefaultGuesthouseListParams } from '@constants/guesthouseDefaults';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import ButtonWhite from '@components/ButtonWhite';
 
 import SearchEmpty from '@assets/images/search_empty.svg';
 import ChevronRight from '@assets/images/chevron_right_blue.svg';
 import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
 
-export default function UserPastReservations({ data }) {
+export default function UserPastReservations({data, reviewableReservationIds}) {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const today = dayjs();
   const tomorrow = today.add(1, 'day');
   const genderMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: t('common.mixedDormitory'),
+    FEMALE_ONLY: t('common.womenOnly'),
+    MALE_ONLY: t('common.menOnly'),
   };
 
   const toLocalDateTime = (date, time) =>
     date ? (date.includes('T') ? date : `${date}T${time ?? '00:00:00'}`) : '';
 
-  const buildRoomDetailText = (item) => {
+  const buildRoomDetailText = item => {
     if (!item) return '';
     const isDormitory = item.roomType === 'DORMITORY';
-    const capacityText = item.roomCapacity ? `${item.roomCapacity}인` : '';
+    const capacityText = item.roomCapacity
+      ? t('common.valuePerson', {item_roomCapacity: item.roomCapacity})
+      : '';
 
     if (isDormitory) {
       const genderText = genderMap[item.dormitoryGenderType] || '';
-      const base = capacityText ? `[${capacityText} 도미토리]` : '[도미토리]';
+      const base = capacityText
+        ? t('common.valueDormitory', {capacityText: capacityText})
+        : t('common.dormitory');
       if (genderText && item.dormitoryGenderType !== 'MIXED') {
         return `${base}, ${genderText}`;
       }
@@ -44,26 +51,33 @@ export default function UserPastReservations({ data }) {
     }
 
     const maxCapacityText = item.roomMaxCapacity
-      ? `(최대 ${item.roomMaxCapacity}인)`
+      ? t('common.upToValue', {item_roomMaxCapacity: item.roomMaxCapacity})
       : '';
-    const basePrefix = capacityText ? `${capacityText} 기준` : '기준';
+    const basePrefix = capacityText
+      ? t('common.basedOnValue', {capacityText: capacityText})
+      : t('common.standard');
     const base = `${basePrefix}${maxCapacityText}`;
-    return item.femaleOnly ? `${base}, 여성 전용` : base;
+    return item.femaleOnly ? t('common.valueForWomenOnly', {base: base}) : base;
   };
 
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
+    const canWriteReview = reviewableReservationIds?.has(
+      String(item.reservationId),
+    );
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn),
     );
     const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut),
     );
 
     return (
       <View style={styles.container}>
         <View style={styles.card}>
           <View style={styles.titleRow}>
-            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>이용 완료</Text>
+            <Text style={[FONTS.fs_16_semibold, styles.titleText]}>
+              {t('common.completedUse')}
+            </Text>
             <TouchableOpacity
               activeOpacity={1}
               style={styles.detailButton}
@@ -87,10 +101,11 @@ export default function UserPastReservations({ data }) {
                     expectedCheckInTime: item.expectedCheckInTime,
                   },
                 })
-              }
-            >
-              <Text style={[FONTS.fs_12_medium, styles.detailText]}>예약 상세</Text>
-              <ChevronRight width={16} height={16}/>
+              }>
+              <Text style={[FONTS.fs_12_medium, styles.detailText]}>
+                {t('common.reservationDetails_64171d')}
+              </Text>
+              <ChevronRight width={16} height={16} />
             </TouchableOpacity>
           </View>
           <View style={styles.guesthouseInfo}>
@@ -99,47 +114,57 @@ export default function UserPastReservations({ data }) {
               style={styles.image}
               resizeMode="cover"
             />
+
             <View style={styles.infoContent}>
               <Text
                 style={[FONTS.fs_16_semibold, styles.nameText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.guesthouseName}
               </Text>
               <Text
                 style={[FONTS.fs_14_medium, styles.roomText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.roomName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.roomDetailText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {buildRoomDetailText(item)}
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkInFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkInFormatted.time}{' '}
+              </Text>
             </View>
-            <View style={[FONTS.fs_14_medium, styles.rowDevide]}/>
+            <View style={[FONTS.fs_14_medium, styles.rowDevide]} />
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkOutFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkOutFormatted.time}{' '}
+              </Text>
             </View>
           </View>
         </View>
 
         <View style={styles.buttonRow}>
           <ButtonWhite
-            title='다시 예약'
-            style={{flex:1}}
+            title={t('common.bookAgain')}
+            style={{flex: 1}}
             onPress={() =>
               navigation.navigate('GuesthouseDetail', {
                 id: item.guesthouseId,
@@ -151,24 +176,25 @@ export default function UserPastReservations({ data }) {
             }
             backgroundColor={COLORS.grayscale_100}
           />
-          <ButtonWhite
-            title={item.reviewed ? '리뷰 완료' : '리뷰 작성하기'}
-            style={{flex:1}}
-            disabled={item.reviewed}
-            onPress={() => {
-              if (item.reviewed) return;
-              navigation.navigate('UserGuesthouseReviewForm', {
-                guesthouseId: item.guesthouseId,
-                reservationId: item.reservationId,
-                guesthouseName: item.guesthouseName,
-                roomName: item.roomName,
-                guesthouseAddress: item.guesthouseAddress,
-                checkInFormatted,
-                checkOutFormatted,
-              });
-            }}
-            backgroundColor={COLORS.grayscale_100}
-          />
+
+          {canWriteReview && (
+            <ButtonWhite
+              title={t('common.writeAReview')}
+              style={{flex: 1}}
+              onPress={() =>
+                navigation.navigate('UserGuesthouseReviewForm', {
+                  guesthouseId: item.guesthouseId,
+                  reservationId: item.reservationId,
+                  guesthouseName: item.guesthouseName,
+                  roomName: item.roomName,
+                  guesthouseAddress: trimJejuPrefix(item.guesthouseAddress),
+                  checkInFormatted,
+                  checkOutFormatted,
+                })
+              }
+              backgroundColor={COLORS.grayscale_100}
+            />
+          )}
         </View>
         {index !== data.length - 1 && <View style={styles.devide} />}
       </View>
@@ -189,10 +215,10 @@ export default function UserPastReservations({ data }) {
         ListEmptyComponent={
           <EmptyState
             icon={SearchEmpty}
-            iconSize={{ width: 120, height: 120 }}
-            title="예약내역이 없어요"
-            description="게스트하우스를 예약하러 가볼까요?"
-            buttonText="게스트하우스 찾아보기"
+            iconSize={{width: 120, height: 120}}
+            title={t('common.thereIsNoReservationHistory')}
+            description={t('common.shallWeGoMakeAReservationForAGuesthouse')}
+            buttonText={t('common.findAGuesthouse')}
             onPressButton={() =>
               navigation.navigate('MainTabs', {
                 screen: '지도',
@@ -205,7 +231,6 @@ export default function UserPastReservations({ data }) {
           />
         }
       />
-
     </>
   );
 }
@@ -218,19 +243,17 @@ const styles = StyleSheet.create({
     marginVertical: 16,
     height: 0.4,
     backgroundColor: COLORS.grayscale_200,
-  },  
+  },
 
   // 리스트
-  card: {
-  },
+  card: {},
   titleRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
     marginBottom: 12,
   },
-  titleText: {
-  },
+  titleText: {},
   detailButton: {
     flexDirection: 'row',
     alignItems: 'center',

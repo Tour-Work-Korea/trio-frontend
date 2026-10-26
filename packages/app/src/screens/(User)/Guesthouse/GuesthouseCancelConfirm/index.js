@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
@@ -9,7 +10,6 @@ import {
 import {useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import styles from './GuesthouseCancelConfirm.styles';
 import {FONTS} from '@constants/fonts';
@@ -20,10 +20,7 @@ import {
   applyRefundPoliciesToAgreementHtml,
   normalizeRefundPolicies,
 } from '@utils/refundPolicyAgreement';
-import {
-  getRefundPolicyResult,
-  REFUND_POLICY_RESULT,
-} from '@utils/refundPolicy';
+import {getRefundPolicyResult, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
 import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import Header from '@components/Header';
 import TermsModal from '@components/modals/TermsModal';
@@ -39,6 +36,7 @@ import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
 const GuesthouseCancelConfirm = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const cancelContext = route?.params?.cancelContext ?? null;
@@ -48,8 +46,13 @@ const GuesthouseCancelConfirm = () => {
   const [checked, setChecked] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
-  const reasons = ['단순변심', '예약착오', '가격차이', '기타'];
-  const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
+  const reasons = [
+    t('common.simpleChangeOfMind'),
+    t('common.reservationError'),
+    t('common.priceDifference'),
+    t('common.etc'),
+  ];
+  const nowText = dayjs().format('YYYY. MM. DD (ddd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
   const [isPolicyExpanded, setIsPolicyExpanded] = useState(false);
   const [cancelConfirmOpen, setCancelConfirmOpen] = useState(false);
@@ -58,7 +61,7 @@ const GuesthouseCancelConfirm = () => {
   const [refundlessAlertContent, setRefundlessAlertContent] = useState({
     title: '',
     message: '',
-    highlightText: '환불 없이',
+    highlightText: t('guesthouse.withoutRefund'),
   });
 
   useEffect(() => {
@@ -101,41 +104,41 @@ const GuesthouseCancelConfirm = () => {
       typeof reservationDetail?.totalAmount === 'number'
         ? reservationDetail.totalAmount
         : typeof reservationDetail?.amount === 'number'
-          ? reservationDetail.amount
-          : typeof cancelContext?.paidAmount === 'number'
-            ? cancelContext.paidAmount
-            : 0;
-    const refundRateApplied =
-      isPendingReservation
-        ? 100
-        : typeof reservationDetail?.refundRateApplied === 'number'
-        ? reservationDetail.refundRateApplied
-        : typeof cancelContext?.refundRateApplied === 'number'
-          ? cancelContext.refundRateApplied
-          : null;
+        ? reservationDetail.amount
+        : typeof cancelContext?.paidAmount === 'number'
+        ? cancelContext.paidAmount
+        : 0;
+    const refundRateApplied = isPendingReservation
+      ? 100
+      : typeof reservationDetail?.refundRateApplied === 'number'
+      ? reservationDetail.refundRateApplied
+      : typeof cancelContext?.refundRateApplied === 'number'
+      ? cancelContext.refundRateApplied
+      : null;
     const computedRefundAmount =
       refundRateApplied !== null
         ? Math.floor((paidAmount * refundRateApplied) / 100)
         : typeof cancelContext?.refundAmount === 'number'
-          ? cancelContext.refundAmount
-          : paidAmount;
+        ? cancelContext.refundAmount
+        : paidAmount;
     const cancelFee =
       refundRateApplied !== null
         ? Math.max(paidAmount - computedRefundAmount, 0)
         : typeof cancelContext?.cancelFee === 'number'
-          ? cancelContext.cancelFee
-          : 0;
-    const refundAmount =
-      isPendingReservation
-        ? paidAmount
-        : typeof reservationDetail?.refundRateApplied === 'number'
-        ? computedRefundAmount
-        : typeof cancelContext?.refundAmount === 'number'
-        ? cancelContext.refundAmount
-        : computedRefundAmount;
+        ? cancelContext.cancelFee
+        : 0;
+    const refundAmount = isPendingReservation
+      ? paidAmount
+      : typeof reservationDetail?.refundRateApplied === 'number'
+      ? computedRefundAmount
+      : typeof cancelContext?.refundAmount === 'number'
+      ? cancelContext.refundAmount
+      : computedRefundAmount;
     const refundMethod =
       cancelContext?.refundMethod ||
-      (paymentLabel ? `${paymentLabel} 환불` : '');
+      (paymentLabel
+        ? t('common.valueRefund', {paymentLabel: paymentLabel})
+        : '');
 
     return {
       guesthouseName:
@@ -146,13 +149,20 @@ const GuesthouseCancelConfirm = () => {
       checkInDate: reservationDetail?.checkIn
         ? formatLocalDateToDotWithDay(reservationDetail.checkIn)
         : cancelContext?.checkInDate ?? '',
-      checkInTime: cancelContext?.checkInTime ?? (reservationDetail?.checkIn?.includes('T') ? reservationDetail.checkIn.split('T')[1].slice(0, 5) : ''),
+      checkInTime:
+        cancelContext?.checkInTime ??
+        (reservationDetail?.checkIn?.includes('T')
+          ? reservationDetail.checkIn.split('T')[1].slice(0, 5)
+          : ''),
       checkOutDate: reservationDetail?.checkOut
         ? formatLocalDateToDotWithDay(reservationDetail.checkOut)
         : cancelContext?.checkOutDate ?? '',
-      checkOutTime: cancelContext?.checkOutTime ?? (reservationDetail?.checkOut?.includes('T') ? reservationDetail.checkOut.split('T')[1].slice(0, 5) : ''),
-      originalAmount:
-        paidAmount + couponDiscountAmount + pointDiscountAmount,
+      checkOutTime:
+        cancelContext?.checkOutTime ??
+        (reservationDetail?.checkOut?.includes('T')
+          ? reservationDetail.checkOut.split('T')[1].slice(0, 5)
+          : ''),
+      originalAmount: paidAmount + couponDiscountAmount + pointDiscountAmount,
       paidAmount,
       couponDiscountAmount,
       pointDiscountAmount,
@@ -161,8 +171,9 @@ const GuesthouseCancelConfirm = () => {
       refundAmount,
       refundMethod,
     };
-  }, [reservationDetail, cancelContext, isPendingReservation]);
-  const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+  }, [reservationDetail, cancelContext, isPendingReservation, t]);
+  const formatPrice = n =>
+    t('common.valueWon', {value1: Number(n || 0).toLocaleString('ko-KR')});
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const cancelPolicyDoc = AGREEMENT_CONTENT.USER?.GUESTHOUSE_RESERVATION_POLICY;
   const refundPolicies = normalizeRefundPolicies(
@@ -172,12 +183,15 @@ const GuesthouseCancelConfirm = () => {
   );
   const cancelPolicyContent = (cancelPolicyDoc?.detail || '').replace(
     /{{guesthouseName}}/g,
-    viewData?.guesthouseName || '해당 게스트하우스',
+    viewData?.guesthouseName || t('common.theGuesthouse'),
   );
   const cancelPolicyHtml = applyRefundPoliciesToAgreementHtml(
     cancelPolicyDoc?.detailHtml || '',
     refundPolicies,
-  ).replace(/{{guesthouseName}}/g, viewData?.guesthouseName || '해당 게스트하우스');
+  ).replace(
+    /{{guesthouseName}}/g,
+    viewData?.guesthouseName || t('common.theGuesthouse'),
+  );
   const freeCancelUntil = useMemo(() => {
     if (cancelContext?.freeCancelUntil) {
       return cancelContext.freeCancelUntil;
@@ -196,48 +210,78 @@ const GuesthouseCancelConfirm = () => {
   const cancelPolicyInfo = useMemo(() => {
     if (isPendingReservation) {
       return {
-        text: '승인 전 취소 (100% 환불)',
+        text: t('guesthouse.cancellationBeforeApproval100Refund'),
         dailyInfo: null,
         totalNights: 1,
       };
     }
 
     const appliedRate = viewData.refundRateApplied;
-    if (appliedRate === null) return { text: '-', dailyInfo: null, totalNights: 1 };
+    if (appliedRate === null)
+      return {text: '-', dailyInfo: null, totalNights: 1};
 
-    const freeCancelDeadline = reservationDetail?.freeCancelDeadlineAt ?? cancelContext?.freeCancelDeadlineAt;
-    const cancelTimeStr = reservationDetail?.cancelledAt ?? new Date().toISOString();
-    const isFreeCancel = freeCancelDeadline && dayjs(cancelTimeStr).isBefore(dayjs(freeCancelDeadline).add(1, 'minute'));
+    const freeCancelDeadline =
+      reservationDetail?.freeCancelDeadlineAt ??
+      cancelContext?.freeCancelDeadlineAt;
+    const cancelTimeStr =
+      reservationDetail?.cancelledAt ?? new Date().toISOString();
+    const isFreeCancel =
+      freeCancelDeadline &&
+      dayjs(cancelTimeStr).isBefore(dayjs(freeCancelDeadline).add(1, 'minute'));
 
     let checkInDateObj = null;
     let checkOutDateObj = null;
     const checkInStr = reservationDetail?.checkIn ?? cancelContext?.checkInDate;
-    const checkOutStr = reservationDetail?.checkOut ?? cancelContext?.checkOutDate;
+    const checkOutStr =
+      reservationDetail?.checkOut ?? cancelContext?.checkOutDate;
     if (checkInStr) {
-      checkInDateObj = dayjs(checkInStr.replace(/\. /g, '-').replace(/\./g, '-')).startOf('day');
+      checkInDateObj = dayjs(
+        checkInStr.replace(/\. /g, '-').replace(/\./g, '-'),
+      ).startOf('day');
     }
     if (checkOutStr) {
-      checkOutDateObj = dayjs(checkOutStr.replace(/\. /g, '-').replace(/\./g, '-')).startOf('day');
+      checkOutDateObj = dayjs(
+        checkOutStr.replace(/\. /g, '-').replace(/\./g, '-'),
+      ).startOf('day');
     }
     const cancelDateObj = dayjs(cancelTimeStr).startOf('day');
-    
-    const totalNights = (checkInDateObj && checkOutDateObj) ? checkOutDateObj.diff(checkInDateObj, 'day') : 1;
+
+    const totalNights =
+      checkInDateObj && checkOutDateObj
+        ? checkOutDateObj.diff(checkInDateObj, 'day')
+        : 1;
 
     if (totalNights <= 1 || isFreeCancel) {
-      let diffDays = checkInDateObj ? checkInDateObj.diff(cancelDateObj, 'day') : null;
-      let text = `취소 (${appliedRate}% 환불)`;
+      let diffDays = checkInDateObj
+        ? checkInDateObj.diff(cancelDateObj, 'day')
+        : null;
+      let text = t('common.cancellationValueRefund', {
+        appliedRate: appliedRate,
+      });
       if (isFreeCancel) {
-        text = `무료 취소 기한 내 취소 (${appliedRate}% 환불)`;
+        text = t('common.cancellationWithinFreeCancellationPeriodValueRefund', {
+          appliedRate: appliedRate,
+        });
       } else if (diffDays !== null) {
-        if (diffDays <= 0) text = `체크인 당일 취소 (${appliedRate}% 환불)`;
-        else text = `${diffDays}일 전 취소 (${appliedRate}% 환불)`;
+        if (diffDays <= 0)
+          text = t('common.cancellationOnTheDayOfCheckInValueRefund', {
+            appliedRate: appliedRate,
+          });
+        else
+          text = t('common.cancellationValueDaysInAdvanceValueRefund', {
+            diffDays: diffDays,
+            appliedRate: appliedRate,
+          });
       }
-      return { text, dailyInfo: null, totalNights };
+      return {text, dailyInfo: null, totalNights};
     }
 
-    const policyData = reservationDetail?.refundPolicy ?? cancelContext?.refundPolicy;
+    const policyData =
+      reservationDetail?.refundPolicy ?? cancelContext?.refundPolicy;
     const policies = normalizeRefundPolicies(
-      policyData?.policies ?? reservationDetail?.refundPolicies ?? cancelContext?.refundPolicies
+      policyData?.policies ??
+        reservationDetail?.refundPolicies ??
+        cancelContext?.refundPolicies,
     );
 
     const dailyInfo = [];
@@ -248,15 +292,15 @@ const GuesthouseCancelConfirm = () => {
     for (let i = 0; i < totalNights; i++) {
       const currentNightDate = checkInDateObj.add(i, 'day');
       const diffDays = currentNightDate.diff(cancelDateObj, 'day');
-      
+
       let rate = 0;
       let label = '';
       if (isFreeCancel) {
         rate = 100;
-        label = '무료 취소 기한 내 취소';
+        label = t('common.cancelWithinTheFreeCancellationDeadline');
       } else if (diffDays <= 0) {
         rate = policyData?.sameDayRefundRate ?? 0;
-        label = '체크인 당일 취소';
+        label = t('common.cancellationOnTheDayOfCheckIn');
       } else {
         if (policies.length > 0 && diffDays > policies[0].daysBeforeCheckin) {
           rate = policyData?.defaultRefundRate ?? 100;
@@ -265,7 +309,7 @@ const GuesthouseCancelConfirm = () => {
           if (matched) rate = matched.refundRate;
           else rate = policyData?.sameDayRefundRate ?? 0;
         }
-        label = `${diffDays}일 전 취소`;
+        label = t('common.cancelValueDaysAgo', {diffDays: diffDays});
       }
 
       let dailyAmount = basePrice;
@@ -287,7 +331,7 @@ const GuesthouseCancelConfirm = () => {
     }
 
     return {
-      text: '차등 수수료 적용',
+      text: t('common.differentialFeesApply'),
       dailyInfo,
       totalNights,
       totalFrontendRefundAmount,
@@ -298,13 +342,14 @@ const GuesthouseCancelConfirm = () => {
     viewData.paidAmount,
     reservationDetail,
     cancelContext,
+    t,
   ]);
 
-  const refundAmount = cancelPolicyInfo?.dailyInfo 
-    ? cancelPolicyInfo.totalFrontendRefundAmount 
+  const refundAmount = cancelPolicyInfo?.dailyInfo
+    ? cancelPolicyInfo.totalFrontendRefundAmount
     : viewData.refundAmount;
 
-  const cancelFee = cancelPolicyInfo?.dailyInfo 
+  const cancelFee = cancelPolicyInfo?.dailyInfo
     ? viewData.paidAmount - cancelPolicyInfo.totalFrontendRefundAmount
     : viewData.cancelFee;
 
@@ -331,10 +376,10 @@ const GuesthouseCancelConfirm = () => {
       result === REFUND_POLICY_RESULT.AFTER_CHECKIN_TIME
     ) {
       setRefundlessAlertContent({
-        title: '체크인 당일',
-        message:
-          '체크인 당일에는 환불이 불가능합니다.\n환불 없이 취소하시겠습니까?',
-        highlightText: '환불 없이',
+        title: t('common.onTheDayOfCheckIn'),
+        message: t('guesthouse.refundsAreNotPossibleOnTheDayOfCheckIn'),
+
+        highlightText: t('guesthouse.withoutRefund'),
       });
       setRefundlessAlertOpen(true);
       return;
@@ -342,10 +387,12 @@ const GuesthouseCancelConfirm = () => {
 
     if (result === REFUND_POLICY_RESULT.FREE_CANCEL_EXPIRED) {
       setRefundlessAlertContent({
-        title: '환불 금액 없음',
-        message:
-          '현재 취소 규정에 따라 환불 가능한 금액이 없습니다.\n환불 없이 취소하시겠습니까?',
-        highlightText: '환불 없이',
+        title: t('guesthouse.noRefundAmount'),
+        message: t(
+          'guesthouse.thereAreNoRefundsAvailableUnderOurCurrentCancellationPolicy',
+        ),
+
+        highlightText: t('guesthouse.withoutRefund'),
       });
       setRefundlessAlertOpen(true);
       return;
@@ -364,8 +411,7 @@ const GuesthouseCancelConfirm = () => {
         selectedReason,
       );
       const cancelDetail = res?.data ?? null;
-      const nextReservationId =
-        cancelDetail?.reservationId ?? reservationId;
+      const nextReservationId = cancelDetail?.reservationId ?? reservationId;
       const reservationItem = {
         ...cancelDetail,
         guesthouseImage: viewData.guesthouseImage,
@@ -390,7 +436,7 @@ const GuesthouseCancelConfirm = () => {
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: '예약 취소에 실패했습니다.',
+        text1: t('common.cancellationOfReservationFailed'),
         position: 'top',
         visibilityTime: 2000,
       });
@@ -402,276 +448,352 @@ const GuesthouseCancelConfirm = () => {
   return (
     <View style={styles.container}>
       {detailLoading ? (
-        <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+        <View
+          style={[
+            styles.container,
+            {justifyContent: 'center', alignItems: 'center'},
+          ]}>
           <ActivityIndicator />
-          <Text style={[FONTS.fs_14_medium, {marginTop: 10, color: COLORS.grayscale_500}]}>
-            불러오는 중...
+          <Text
+            style={[
+              FONTS.fs_14_medium,
+              {marginTop: 10, color: COLORS.grayscale_500},
+            ]}>
+            {t('common.loading_c21bd6')}
           </Text>
         </View>
       ) : (
         <>
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Header title='예약취소'/>
+            <Header title={t('common.cancelReservation_fb9a3e')} />
             <View style={styles.body}>
-          {/* 안내 배너 */}
-          <View style={styles.noticeBox}>
-            <Text style={[FONTS.fs_14_semibold, styles.noticeText]}>
-              상세 내역을 확인하고 예약을 취소해주세요!
-            </Text>
-          </View>
-
-          {/* 현재 날짜 및 시간 */}
-          <Text style={[FONTS.fs_12_medium, styles.todayText]}>
-            {nowText} 기준
-          </Text>
-
-          {/* 예약 카드 */}
-          <View style={styles.card}>
-            {viewData.guesthouseImage ? (
-              <AppImage
-                uri={viewData.guesthouseImage}
-                style={styles.thumbnail}
-              />
-            ) : null}
-
-            <View style={styles.cardInfo}>
-              <Text style={[FONTS.fs_16_semibold]}>
-                {viewData.guesthouseName}
-              </Text>
-              <Text style={[FONTS.fs_14_medium, styles.roomName]}>
-                {viewData.roomName}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.roomDesc]}>
-                {viewData.roomDesc}
-              </Text>
-            </View>
-          </View>
-
-          {/* 날짜 */}
-          <View style={styles.dateRow}>
-            <View style={{flex:1}}>
-              <Text style={[FONTS.fs_14_semibold]}>
-                {viewData.checkInDate}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.time]}>
-                {viewData.checkInTime}
-              </Text>
-            </View>
-
-            <View style={styles.dateDivider} />
-
-            <View style={{flex:1, paddingLeft: '8%'}}>
-              <Text style={[FONTS.fs_14_semibold]}>
-                {viewData.checkOutDate}
-              </Text>
-              <Text style={[FONTS.fs_12_medium, styles.time]}>
-                {viewData.checkOutTime}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.devide}/>
-
-          {/* 환불 정보 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, {marginBottom: 12}]}>환불 예상 정보</Text>
-
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>실 결제 금액</Text>
-              <View style={styles.valueInline}>
-                <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                  {formatPrice(viewData.paidAmount)}
-                </Text>
-                <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
-                  {formatPrice(viewData.originalAmount)}
+              {/* 안내 배너 */}
+              <View style={styles.noticeBox}>
+                <Text style={[FONTS.fs_14_semibold, styles.noticeText]}>
+                  {t(
+                    'guesthouse.pleaseCheckTheDetailsAndCancelYourReservation',
+                  )}
                 </Text>
               </View>
-            </View>
 
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>적용 규정</Text>
-              {cancelPolicyInfo.dailyInfo ? (
-                <TouchableOpacity 
-                  style={{flexDirection: 'row', alignItems: 'center'}}
-                  onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}
-                >
-                  <Text style={[FONTS.fs_14_semibold, styles.value, {color: COLORS.semantic_red, marginRight: 4}]}>
-                    {cancelPolicyInfo.text}
+              {/* 현재 날짜 및 시간 */}
+              <Text style={[FONTS.fs_12_medium, styles.todayText]}>
+                {nowText}
+                {t('common.standard')}
+              </Text>
+
+              {/* 예약 카드 */}
+              <View style={styles.card}>
+                {viewData.guesthouseImage ? (
+                  <AppImage
+                    uri={viewData.guesthouseImage}
+                    style={styles.thumbnail}
+                  />
+                ) : null}
+
+                <View style={styles.cardInfo}>
+                  <Text style={[FONTS.fs_16_semibold]}>
+                    {viewData.guesthouseName}
                   </Text>
-                  {isPolicyExpanded ? <ChevronUp width={16} height={16} /> : <ChevronDown width={16} height={16} />}
-                </TouchableOpacity>
-              ) : (
-                <Text style={[FONTS.fs_14_semibold, styles.value, {color: COLORS.semantic_red}]}>
-                  {cancelPolicyInfo.text}
-                </Text>
-              )}
-            </View>
+                  <Text style={[FONTS.fs_14_medium, styles.roomName]}>
+                    {viewData.roomName}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.roomDesc]}>
+                    {viewData.roomDesc}
+                  </Text>
+                </View>
+              </View>
 
-            {isPolicyExpanded && cancelPolicyInfo.dailyInfo && (
-              <View style={styles.dailyPolicyContainer}>
-                {cancelPolicyInfo.dailyInfo.map((info, idx) => (
-                  <View key={idx} style={[styles.dailyPolicyRow, idx !== 0 && styles.dailyPolicyBorder]}>
-                    <View>
-                      <Text style={[FONTS.fs_14_semibold, styles.dailyPolicyTitle]}>
-                        {info.nightIndex}차 ({info.dateStr})
-                      </Text>
-                      <Text style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
-                        {info.daysBeforeLabel}
-                      </Text>
-                    </View>
-                    <Text style={[FONTS.fs_14_medium, styles.dailyPolicyAmount]}>
-                      {info.rate === 0 
-                        ? `환불 금액 없음 (0원)` 
-                        : `${info.rate}% 환불 (${formatPrice(info.refundAmt)})`}
+              {/* 날짜 */}
+              <View style={styles.dateRow}>
+                <View style={{flex: 1}}>
+                  <Text style={[FONTS.fs_14_semibold]}>
+                    {viewData.checkInDate}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.time]}>
+                    {viewData.checkInTime}
+                  </Text>
+                </View>
+
+                <View style={styles.dateDivider} />
+
+                <View style={{flex: 1, paddingLeft: '8%'}}>
+                  <Text style={[FONTS.fs_14_semibold]}>
+                    {viewData.checkOutDate}
+                  </Text>
+                  <Text style={[FONTS.fs_12_medium, styles.time]}>
+                    {viewData.checkOutTime}
+                  </Text>
+                </View>
+              </View>
+
+              <View style={styles.devide} />
+
+              {/* 환불 정보 */}
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_semibold, {marginBottom: 12}]}>
+                  {t('guesthouse.refundExpectationInformation')}
+                </Text>
+
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.actualPaymentAmount')}
+                  </Text>
+                  <View style={styles.valueInline}>
+                    <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                      {formatPrice(viewData.paidAmount)}
+                    </Text>
+                    <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
+                      {formatPrice(viewData.originalAmount)}
                     </Text>
                   </View>
-                ))}
-              </View>
-            )}
+                </View>
 
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                {formatPrice(viewData.couponDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                {formatPoint(viewData.pointDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>예상 취소 수수료</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value, {color: COLORS.semantic_red}]}>
-                {formatPrice(cancelFee)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.devide}/>
-
-          <View style={styles.section}>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>환불 방법</Text>
-              <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
-                {viewData.refundMethod}
-              </Text>
-            </View>
-
-            <View style={styles.row}>
-              <Text style={styles.label}>최종 환불 금액</Text>
-              <Text style={styles.refundAmount}>
-                {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
-              </Text>
-            </View>
-          </View>
-
-          {/* 취소 사유 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, {marginTop: 12}]}>취소 사유</Text>
-
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.dropdown}
-              onPress={() => setReasonOpen(!reasonOpen)}
-            >
-              <Text
-                style={[
-                  FONTS.fs_14_medium,
-                  {color: selectedReason ? COLORS.grayscale_900 : COLORS.grayscale_400},
-                ]}
-              >
-                {selectedReason || '취소 사유를 선택해 주세요'}
-              </Text>
-              {reasonOpen ? (
-                <ChevronUp width={24} height={24} />
-              ) : (
-                <ChevronDown width={24} height={24} />
-              )}
-            </TouchableOpacity>
-
-            {reasonOpen && (
-              <View style={styles.dropdownList}>
-                {reasons.map((r, index) => (
-                  <React.Fragment key={r}>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.applicableRegulations')}
+                  </Text>
+                  {cancelPolicyInfo.dailyInfo ? (
                     <TouchableOpacity
-                      activeOpacity={1}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setSelectedReason(r);
-                        setReasonOpen(false);
-                      }}
-                    >
+                      style={{flexDirection: 'row', alignItems: 'center'}}
+                      onPress={() => setIsPolicyExpanded(!isPolicyExpanded)}>
                       <Text
                         style={[
-                          FONTS.fs_14_medium,
-                          selectedReason === r && FONTS.fs_14_semibold,
-                          {
-                            color:
-                              selectedReason === r
-                                ? COLORS.primary_orange
-                                : COLORS.grayscale_900,
-                          },
-                        ]}
-                      >
-                        {r}
+                          FONTS.fs_14_semibold,
+                          styles.value,
+                          {color: COLORS.semantic_red, marginRight: 4},
+                        ]}>
+                        {cancelPolicyInfo.text}
                       </Text>
+                      {isPolicyExpanded ? (
+                        <ChevronUp width={16} height={16} />
+                      ) : (
+                        <ChevronDown width={16} height={16} />
+                      )}
                     </TouchableOpacity>
+                  ) : (
+                    <Text
+                      style={[
+                        FONTS.fs_14_semibold,
+                        styles.value,
+                        {color: COLORS.semantic_red},
+                      ]}>
+                      {cancelPolicyInfo.text}
+                    </Text>
+                  )}
+                </View>
 
-                    {index < reasons.length - 1 && (
-                      <View style={styles.dropdownDivide} />
-                    )}
-                  </React.Fragment>
-                ))}
+                {isPolicyExpanded && cancelPolicyInfo.dailyInfo && (
+                  <View style={styles.dailyPolicyContainer}>
+                    {cancelPolicyInfo.dailyInfo.map((info, idx) => (
+                      <View
+                        key={idx}
+                        style={[
+                          styles.dailyPolicyRow,
+                          idx !== 0 && styles.dailyPolicyBorder,
+                        ]}>
+                        <View>
+                          <Text
+                            style={[
+                              FONTS.fs_14_semibold,
+                              styles.dailyPolicyTitle,
+                            ]}>
+                            {info.nightIndex}
+                            {t('common.tea')}
+                            {info.dateStr})
+                          </Text>
+                          <Text
+                            style={[FONTS.fs_12_medium, styles.dailyPolicySub]}>
+                            {info.daysBeforeLabel}
+                          </Text>
+                        </View>
+                        <Text
+                          style={[
+                            FONTS.fs_14_medium,
+                            styles.dailyPolicyAmount,
+                          ]}>
+                          {info.rate === 0
+                            ? t('common.noRefundAmount0Won')
+                            : t('common.valueRefundValue', {
+                                info_rate: info.rate,
+                                value2: formatPrice(info.refundAmt),
+                              })}
+                        </Text>
+                      </View>
+                    ))}
+                  </View>
+                )}
+
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.couponDiscount')}
+                  </Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                    {formatPrice(viewData.couponDiscountAmount)}
+                  </Text>
+                </View>
+
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.applyPoints')}
+                  </Text>
+                  <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                    {formatPoint(viewData.pointDiscountAmount)}
+                  </Text>
+                </View>
+
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.estimatedCancellationFee')}
+                  </Text>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      styles.value,
+                      {color: COLORS.semantic_red},
+                    ]}>
+                    {formatPrice(cancelFee)}
+                  </Text>
+                </View>
               </View>
-            )}
 
-          </View>
+              <View style={styles.devide} />
 
-          {/* 약관 동의 */}
-          <View style={styles.agreeRow}>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.agreeBox}
-              onPress={() => setChecked(!checked)}
-            >
-              <View
-                style={[
-                  styles.checkBox,
-                  {
-                    borderColor: checked
-                      ? COLORS.primary_orange
-                      : COLORS.grayscale_300,
-                  },
-                ]}
-              >
-                {checked ? (
-                  <CheckOrange width={20} height={20} />
-                ) : (
-                  <CheckGray width={20} height={20} />
+              <View style={styles.section}>
+                <View style={styles.row}>
+                  <Text style={[FONTS.fs_14_medium, styles.label]}>
+                    {t('common.refundMethod')}
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
+                    {viewData.refundMethod}
+                  </Text>
+                </View>
+
+                <View style={styles.row}>
+                  <Text style={styles.label}>
+                    {t('common.finalRefundAmount')}
+                  </Text>
+                  <Text style={styles.refundAmount}>
+                    {Number(refundAmount || 0).toLocaleString('ko-KR')}
+                    <Text style={{color: COLORS.grayscale_900}}>
+                      {t('common.won')}
+                    </Text>
+                  </Text>
+                </View>
+              </View>
+
+              {/* 취소 사유 */}
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_semibold, {marginTop: 12}]}>
+                  {t('common.reasonForCancellation')}
+                </Text>
+
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={styles.dropdown}
+                  onPress={() => setReasonOpen(!reasonOpen)}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      {
+                        color: selectedReason
+                          ? COLORS.grayscale_900
+                          : COLORS.grayscale_400,
+                      },
+                    ]}>
+                    {selectedReason ||
+                      t('common.pleaseSelectAReasonForCancellation')}
+                  </Text>
+                  {reasonOpen ? (
+                    <ChevronUp width={24} height={24} />
+                  ) : (
+                    <ChevronDown width={24} height={24} />
+                  )}
+                </TouchableOpacity>
+
+                {reasonOpen && (
+                  <View style={styles.dropdownList}>
+                    {reasons.map((r, index) => (
+                      <React.Fragment key={r}>
+                        <TouchableOpacity
+                          activeOpacity={1}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setSelectedReason(r);
+                            setReasonOpen(false);
+                          }}>
+                          <Text
+                            style={[
+                              FONTS.fs_14_medium,
+                              selectedReason === r && FONTS.fs_14_semibold,
+                              {
+                                color:
+                                  selectedReason === r
+                                    ? COLORS.primary_orange
+                                    : COLORS.grayscale_900,
+                              },
+                            ]}>
+                            {r}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {index < reasons.length - 1 && (
+                          <View style={styles.dropdownDivide} />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </View>
                 )}
               </View>
-              <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
-                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 숙소 취소 / 환불
-                규정에 동의합니다.
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={1} onPress={() => setTermsOpen(true)}>
-              <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
-            </TouchableOpacity>
-          </View>
 
+              {/* 약관 동의 */}
+              <View style={styles.agreeRow}>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={styles.agreeBox}
+                  onPress={() => setChecked(!checked)}>
+                  <View
+                    style={[
+                      styles.checkBox,
+                      {
+                        borderColor: checked
+                          ? COLORS.primary_orange
+                          : COLORS.grayscale_300,
+                      },
+                    ]}>
+                    {checked ? (
+                      <CheckOrange width={20} height={20} />
+                    ) : (
+                      <CheckGray width={20} height={20} />
+                    )}
+                  </View>
+                  <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
+                    <Text style={[styles.required, FONTS.fs_14_semibold]}>
+                      {t('common.required')}
+                    </Text>
+                    {t(
+                      'guesthouse.iAgreeToTheAccommodationCancellationRefundPolicy_217d59',
+                    )}
+                  </Text>
+                </TouchableOpacity>
+                <TouchableOpacity
+                  activeOpacity={1}
+                  onPress={() => setTermsOpen(true)}>
+                  <Text style={[styles.required, FONTS.fs_12_medium]}>
+                    {t('common.view')}
+                  </Text>
+                </TouchableOpacity>
+              </View>
             </View>
           </ScrollView>
 
           <TermsModal
             visible={termsOpen}
             onClose={() => setTermsOpen(false)}
-            title={cancelPolicyDoc?.title || '숙소 취소 / 환불 규정'}
+            title={
+              cancelPolicyDoc?.title ||
+              t('guesthouse.accommodationCancellationRefundPolicy')
+            }
             content={cancelPolicyContent}
             contentHtml={cancelPolicyHtml}
             onAgree={() => setTermsOpen(false)}
@@ -686,7 +808,7 @@ const GuesthouseCancelConfirm = () => {
               cancelFee: cancelFee,
               refundAmount,
               payMethodLabel: viewData.refundMethod
-                ? viewData.refundMethod.replace(' 환불', '')
+                ? viewData.refundMethod.replace(t('guesthouse.refund'), '')
                 : '',
               refundMethodLabel: viewData.refundMethod,
               appliedPolicyText: cancelPolicyInfo?.text,
@@ -699,8 +821,8 @@ const GuesthouseCancelConfirm = () => {
             title={refundlessAlertContent.title}
             message={refundlessAlertContent.message}
             highlightText={refundlessAlertContent.highlightText}
-            buttonText="환불 없이 취소하기"
-            buttonText2="유지하기"
+            buttonText={t('guesthouse.cancelWithoutRefund')}
+            buttonText2={t('guesthouse.maintain')}
             onPress={() => {
               setRefundlessAlertOpen(false);
               handleCancelConfirm();
@@ -718,9 +840,10 @@ const GuesthouseCancelConfirm = () => {
               },
             ]}
             disabled={!checked || !selectedReason || cancelSubmitting}
-            onPress={handlePressSubmit}
-          >
-            <Text style={[styles.submitText, FONTS.fs_14_medium]}>취소 요청하기</Text>
+            onPress={handlePressSubmit}>
+            <Text style={[styles.submitText, FONTS.fs_14_medium]}>
+              {t('common.requestCancellation')}
+            </Text>
           </TouchableOpacity>
         </>
       )}

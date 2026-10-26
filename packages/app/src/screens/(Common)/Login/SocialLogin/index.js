@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {Platform, View, ActivityIndicator} from 'react-native';
 import {CommonActions, useNavigation, useRoute} from '@react-navigation/native';
@@ -23,12 +24,6 @@ import {
 
 const KAKAO_WEB_CALLBACK_PATH = '/auth/kakao/callback';
 const KAKAO_WEB_STATE_KEY = 'trio-kakao-oauth-state';
-
-const PROVIDER_LABELS = {
-  KAKAO: '카카오',
-  NAVER: '네이버',
-  GOOGLE: '구글',
-};
 
 const generateState = provider =>
   `${provider.toLowerCase()}-${Date.now()}-${Math.random()
@@ -97,12 +92,19 @@ const parseUrlParams = url => {
 };
 
 const SocialLogin = () => {
+  const {t} = useTranslation();
+  const PROVIDER_LABELS = {
+    KAKAO: t('common.cacao'),
+    NAVER: t('common.naver'),
+    GOOGLE: t('common.google'),
+  };
+
   const navigation = useNavigation();
   const route = useRoute();
   const webviewRef = useRef(null);
 
   const provider = route?.params?.provider || 'KAKAO';
-  const providerLabel = PROVIDER_LABELS[provider] || '소셜';
+  const providerLabel = PROVIDER_LABELS[provider] || t('common.social');
 
   const [loading, setLoading] = useState(true);
   const [modal, setModal] = useState({
@@ -120,7 +122,7 @@ const SocialLogin = () => {
       return {
         clientId: KAKAO_CLIENT_ID,
         redirectUri,
-        requiredLabel: 'KAKAO_CLIENT_ID 또는 KAKAO_REDIRECT_URI',
+        requiredLabel: t('auth.kakaoClientIdOrKakaoRedirectUri'),
         authUrl: `https://kauth.kakao.com/oauth/authorize?response_type=code&client_id=${KAKAO_CLIENT_ID}&redirect_uri=${encodeURIComponent(
           redirectUri,
         )}&state=${encodeURIComponent(state)}`,
@@ -135,8 +137,10 @@ const SocialLogin = () => {
         clientId: NAVER_SEARCH_CLIENT_ID,
         redirectUri: NAVER_REDIRECT_URI,
         clientSecret: NAVER_SEARCH_CLIENT_SECRET,
-        requiredLabel:
-          'NAVER_SEARCH_CLIENT_ID, NAVER_SEARCH_CLIENT_SECRET 또는 NAVER_REDIRECT_URI',
+        requiredLabel: t(
+          'auth.naverSearchClientIdNaverSearchClientSecretOrNaver',
+        ),
+
         authUrl: `https://nid.naver.com/oauth2.0/authorize?response_type=code&client_id=${NAVER_SEARCH_CLIENT_ID}&redirect_uri=${encodeURIComponent(
           NAVER_REDIRECT_URI,
         )}&state=${encodeURIComponent(state)}`,
@@ -148,7 +152,7 @@ const SocialLogin = () => {
       return {
         clientId: '',
         redirectUri: '',
-        requiredLabel: '구글 로그인은 앱 SDK ID Token 방식으로 처리됩니다',
+        requiredLabel: t('auth.googleLoginIsProcessedUsingTheAppSdkIdToken'),
         authUrl: '',
       };
     }
@@ -156,10 +160,10 @@ const SocialLogin = () => {
     return {
       clientId: '',
       redirectUri: '',
-      requiredLabel: '지원하지 않는 소셜 provider',
+      requiredLabel: t('auth.socialProviderNotSupported'),
       authUrl: '',
     };
-  }, [provider]);
+  }, [provider, t]);
 
   const openError = (message, onPress = null) =>
     setModal({visible: true, message, onPress});
@@ -209,7 +213,9 @@ const SocialLogin = () => {
 
     if (!response.ok || !data.access_token) {
       throw new Error(
-        data.error_description || data.error || '카카오 access token 발급 실패',
+        data.error_description ||
+          data.error ||
+          t('auth.kakaoAccessTokenIssuanceFailure'),
       );
     }
 
@@ -238,7 +244,7 @@ const SocialLogin = () => {
 
     if (!response.ok || !data.access_token) {
       throw new Error(
-        data.error_description || '네이버 access token 발급 실패',
+        data.error_description || t('auth.naverAccessTokenIssuanceFailure'),
       );
     }
 
@@ -278,17 +284,18 @@ const SocialLogin = () => {
       const data = res?.data;
 
       if (!data) {
-        openError('로그인 응답이 비어있음', resetToLoginIntro);
+        openError(t('auth.loginResponseIsEmpty'), resetToLoginIntro);
         return;
       }
 
       const shouldContinueSocialSignUp =
+        data.status === 'NEW_USER_SIGNUP_REQUIRED' ||
         data.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
         (data.status == null && data.isNewUser);
 
       if (shouldContinueSocialSignUp) {
         if (!data.socialSignupToken) {
-          openError('소셜 가입 세션이 없음', resetToLoginIntro);
+          openError(t('auth.noSocialSignUpSessions'), resetToLoginIntro);
           return;
         }
 
@@ -300,14 +307,17 @@ const SocialLogin = () => {
           providerProfile,
         );
 
-        navigation.replace('PhoneCertificate', {
-          user: 'USER',
-          agreements: [],
-          isSocial: true,
-          provider,
-          socialSignupToken: data.socialSignupToken,
-          socialProfile,
-        });
+        navigation.replace(
+          provider === 'GOOGLE' ? 'SocialOriginSelect' : 'PhoneCertificate',
+          {
+            user: 'USER',
+            agreements: [],
+            isSocial: true,
+            provider,
+            socialSignupToken: data.socialSignupToken,
+            socialProfile,
+          },
+        );
         return;
       }
 
@@ -316,7 +326,10 @@ const SocialLogin = () => {
 
       if (Platform.OS === 'web') {
         if (!isLinkedSocialAccount) {
-          openError('로그인 응답 상태를 확인할 수 없음', resetToLoginIntro);
+          openError(
+            t('auth.unableToDetermineLoginResponseStatus'),
+            resetToLoginIntro,
+          );
           return;
         }
 
@@ -333,7 +346,7 @@ const SocialLogin = () => {
       }
 
       if (!isLinkedSocialAccount || !data.accessToken || !data.refreshToken) {
-        openError('토큰이 없음', resetToLoginIntro);
+        openError(t('auth.noToken'), resetToLoginIntro);
         return;
       }
 
@@ -351,7 +364,7 @@ const SocialLogin = () => {
         });
       };
 
-      if (data.message === '기존 워커웨이 계정과 연동합니다.') {
+      if (data.message === t('auth.linksToExistingWorkawayAccount')) {
         openNotice(data.message, moveToMain);
         return;
       }
@@ -361,7 +374,9 @@ const SocialLogin = () => {
       const msg =
         e?.response?.data?.message ||
         e?.message ||
-        `${providerLabel} 로그인 중 오류가 발생했습니다.`;
+        t('auth.valueAnErrorOccurredWhileLoggingIn', {
+          providerLabel: providerLabel,
+        });
       openError(msg, resetToLoginIntro);
     } finally {
       setIsSubmitting(false);
@@ -377,7 +392,10 @@ const SocialLogin = () => {
 
       if (error) {
         openError(
-          errorDescription || `${providerLabel} 인증이 취소되었습니다.`,
+          errorDescription ||
+            t('auth.valueAuthenticationHasBeenRevoked', {
+              providerLabel: providerLabel,
+            }),
           resetToLoginIntro,
         );
         return false;
@@ -388,7 +406,7 @@ const SocialLogin = () => {
           .then(handleLoginByToken)
           .catch(e =>
             openError(
-              e?.message || '네이버 access token 발급 실패',
+              e?.message || t('auth.naverAccessTokenIssuanceFailure'),
               resetToLoginIntro,
             ),
           );
@@ -400,7 +418,7 @@ const SocialLogin = () => {
           .then(handleLoginByToken)
           .catch(e =>
             openError(
-              e?.message || '카카오 access token 발급 실패',
+              e?.message || t('auth.kakaoAccessTokenIssuanceFailure'),
               resetToLoginIntro,
             ),
           );
@@ -418,7 +436,10 @@ const SocialLogin = () => {
         provider === 'NAVER' && url ? `\n${url.slice(0, 180)}` : '';
 
       openError(
-        `${providerLabel} 인증 토큰이 없음${debugUrl}`,
+        t('auth.valueNoAuthenticationTokenValue', {
+          providerLabel: providerLabel,
+          debugUrl: debugUrl,
+        }),
         resetToLoginIntro,
       );
       return false;
@@ -448,7 +469,8 @@ const SocialLogin = () => {
     if (isCallback) {
       if (params.error) {
         openError(
-          params.errorDescription || '카카오 인증이 취소되었습니다.',
+          params.errorDescription ||
+            t('auth.kakaoCertificationHasBeenCanceled'),
           resetToLoginIntro,
         );
         return;
@@ -456,14 +478,17 @@ const SocialLogin = () => {
 
       const savedState = window.sessionStorage.getItem(KAKAO_WEB_STATE_KEY);
       if (savedState && params.state && savedState !== params.state) {
-        openError('카카오 인증 상태가 일치하지 않습니다.', resetToLoginIntro);
+        openError(
+          t('auth.kakaoAuthenticationStatusDoesNotMatch'),
+          resetToLoginIntro,
+        );
         return;
       }
 
       window.sessionStorage.removeItem(KAKAO_WEB_STATE_KEY);
 
       if (!params.code) {
-        openError('카카오 인증 코드가 없음', resetToLoginIntro);
+        openError(t('auth.noKakaoVerificationCode'), resetToLoginIntro);
         return;
       }
 
@@ -471,7 +496,7 @@ const SocialLogin = () => {
         .then(handleLoginByToken)
         .catch(e =>
           openError(
-            e?.message || '카카오 access token 발급 실패',
+            e?.message || t('auth.kakaoAccessTokenIssuanceFailure'),
             resetToLoginIntro,
           ),
         );
@@ -480,7 +505,7 @@ const SocialLogin = () => {
 
     window.sessionStorage.setItem(KAKAO_WEB_STATE_KEY, oauthConfig.state);
     window.location.assign(oauthConfig.authUrl);
-  }, [oauthConfig, provider, navigation]);
+  }, [oauthConfig, provider, navigation, t]);
 
   if (
     !oauthConfig.clientId ||
@@ -493,8 +518,10 @@ const SocialLogin = () => {
         <ActivityIndicator size="large" color={COLORS.primary_orange} />
         <AlertModal
           visible={true}
-          title={`${oauthConfig.requiredLabel}가 비어있음.\n`}
-          buttonText={'확인'}
+          title={t('auth.valueIsEmpty', {
+            oauthConfig_requiredLabel: oauthConfig.requiredLabel,
+          })}
+          buttonText={t('common.confirm')}
           onPress={() => navigation.goBack()}
         />
       </View>
@@ -508,7 +535,7 @@ const SocialLogin = () => {
         <AlertModal
           visible={modal.visible}
           title={modal.message}
-          buttonText={'확인'}
+          buttonText={t('common.confirm')}
           onPress={() => {
             if (typeof modal.onPress === 'function') {
               const action = modal.onPress;
@@ -553,7 +580,7 @@ const SocialLogin = () => {
       <AlertModal
         visible={modal.visible}
         title={modal.message}
-        buttonText={'확인'}
+        buttonText={t('common.confirm')}
         onPress={() => {
           if (typeof modal.onPress === 'function') {
             const action = modal.onPress;

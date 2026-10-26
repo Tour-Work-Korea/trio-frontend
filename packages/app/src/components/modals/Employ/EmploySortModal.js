@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
@@ -11,12 +12,13 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 
 const sortOptions = [
-  {label: '추천 순', value: 'RECOMMEND'},
-  {label: '최신 순', value: 'LATEST'},
-  {label: '좋아요 순', value: 'LIKE_COUNT'},
+  {labelKey: 'common.recommended', value: 'RECOMMEND'},
+  {labelKey: 'employ.newest', value: 'LATEST'},
+  {labelKey: 'employ.likes', value: 'LIKE_COUNT'},
 ];
 
 const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
+  const {t} = useTranslation();
   return (
     <Modal
       visible={visible}
@@ -27,7 +29,9 @@ const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
         <View style={styles.modal}>
           {/* 헤더 */}
           <View style={styles.header}>
-            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>정렬</Text>
+            <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+              {t('common.sort')}
+            </Text>
             <TouchableOpacity onPress={onClose} style={styles.closeButton}>
               <XIcon width={24} height={24} />
             </TouchableOpacity>
@@ -42,7 +46,9 @@ const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
                   styles.optionItem,
                   selected === option.value && styles.optionItemSelected,
                 ]}
-                onPress={() => onSelect(option)}>
+                onPress={() =>
+                  onSelect({...option, label: t(option.labelKey)})
+                }>
                 <View style={{flexDirection: 'row', alignItems: 'center'}}>
                   {/* 추천 순만 아이콘 보여주기 */}
                   {option.value === 'RECOMMEND' &&
@@ -58,7 +64,7 @@ const EmploySortModal = ({visible, onClose, selected, onSelect}) => {
                       selected === option.value && styles.optionSelectedText,
                       selected === option.value && FONTS.fs_14_semibold,
                     ]}>
-                    {option.label}
+                    {t(option.labelKey)}
                   </Text>
                 </View>
                 {selected === option.value && (

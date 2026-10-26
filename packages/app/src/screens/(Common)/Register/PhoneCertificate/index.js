@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {
   Keyboard,
@@ -25,18 +26,6 @@ import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 
 import styles from '../../Login/Login.styles';
 
-const PROVIDER_LABELS = {
-  KAKAO: '카카오',
-  NAVER: '네이버',
-  GOOGLE: '구글',
-};
-
-const SOCIAL_SMS_STATUS_MESSAGES = {
-  EXISTING_USER_LINK_REQUIRED:
-    '기존 계정에 소셜 계정을 연결하기 위해\n휴대폰 인증을 진행합니다.',
-  NEW_USER_SIGNUP_REQUIRED: '신규 회원가입을 위해\n휴대폰 인증을 진행합니다.',
-};
-
 /**
  * NICE 기반 USER 본인인증/가입 보조 경로는 백엔드에서 제거되어 비활성화함.
  *
@@ -52,6 +41,22 @@ const SOCIAL_SMS_STATUS_MESSAGES = {
  * - UserRegisterProfile에서 /auth/user/signup 호출
  */
 const PhoneCertificate = ({route}) => {
+  const {t} = useTranslation();
+  const PROVIDER_LABELS = {
+    KAKAO: t('common.cacao'),
+    NAVER: t('common.naver'),
+    GOOGLE: t('common.google'),
+  };
+  const SOCIAL_SMS_STATUS_MESSAGES = {
+    EXISTING_USER_LINK_REQUIRED: t(
+      'auth.verifyYourMobilePhoneToLinkYourSocialAccountTo',
+    ),
+
+    NEW_USER_SIGNUP_REQUIRED: t(
+      'auth.mobilePhoneVerificationIsRequiredToRegisterAsANew',
+    ),
+  };
+
   const {
     user = 'USER',
     agreements = [],
@@ -63,7 +68,7 @@ const PhoneCertificate = ({route}) => {
   } = route.params || {};
   const userRole = user || 'USER';
   const navigation = useNavigation();
-  const providerLabel = PROVIDER_LABELS[provider] || '소셜';
+  const providerLabel = PROVIDER_LABELS[provider] || t('common.social');
 
   const [smsPurpose, setSmsPurpose] = useState('SIGN_UP');
   const [socialSmsStatus, setSocialSmsStatus] = useState(null);
@@ -136,7 +141,7 @@ const PhoneCertificate = ({route}) => {
     return (
       errorCode.includes('PROFILE') ||
       errorCode.includes('REQUIRED') ||
-      message.includes('필수')
+      message.includes(t('auth.required'))
     );
   };
 
@@ -163,7 +168,7 @@ const PhoneCertificate = ({route}) => {
         const {accessToken, refreshToken} = data;
 
         if (!accessToken || !refreshToken) {
-          throw new Error('소셜 회원가입 토큰 응답이 비어있습니다.');
+          throw new Error(t('common.theSocialSignupTokenResponseIsEmpty'));
         }
 
         await storeLoginTokens({
@@ -186,8 +191,10 @@ const PhoneCertificate = ({route}) => {
           visible: true,
           message:
             error?.response?.data?.message ||
-            `${providerLabel}에서 받은 정보를 확인해주세요.`,
-          buttonText: '확인',
+            t('auth.pleaseCheckTheInformationReceivedFromValue', {
+              providerLabel: providerLabel,
+            }),
+          buttonText: t('common.confirm'),
           onPress: moveToSocialProfileFallback,
         });
         return;
@@ -198,8 +205,9 @@ const PhoneCertificate = ({route}) => {
         message:
           error?.response?.data?.message ||
           error?.message ||
-          '소셜 회원가입에 실패했습니다.',
-        buttonText: '확인',
+          t('auth.socialMembershipRegistrationFailed'),
+
+        buttonText: t('common.confirm'),
         onPress: null,
       });
     } finally {
@@ -217,6 +225,7 @@ const PhoneCertificate = ({route}) => {
     socialProfileName,
     socialSignupToken,
     userRole,
+    t,
   ]);
 
   useFocusEffect(
@@ -312,13 +321,13 @@ const PhoneCertificate = ({route}) => {
       setIsTimerActive(false);
       setErrorModal({
         visible: true,
-        message: '인증 유효 시간이 만료되었습니다.',
-        buttonText: '확인',
+        message: t('common.theAuthenticationValidityPeriodHasExpired'),
+        buttonText: t('common.confirm'),
       });
     }
 
     return () => clearInterval(interval);
-  }, [isTimerActive, timeLeft]);
+  }, [isTimerActive, timeLeft, t]);
 
   const sendVerificationCode = async (purpose = smsPurpose) => {
     try {
@@ -345,8 +354,10 @@ const PhoneCertificate = ({route}) => {
         message:
           SOCIAL_SMS_STATUS_MESSAGES[responseData.status] ||
           responseData.message ||
-          `${phoneNumber}으로\n인증 번호가 발송 되었습니다`,
-        buttonText: '확인',
+          t('common.aVerificationNumberHasBeenSentToValue', {
+            phoneNumber: phoneNumber,
+          }),
+        buttonText: t('common.confirm'),
       });
 
       setIsResendEnabled(false);
@@ -355,8 +366,9 @@ const PhoneCertificate = ({route}) => {
       setErrorModal({
         visible: true,
         message:
-          error?.response?.data?.message || '인증번호 전송에 실패했습니다',
-        buttonText: '확인',
+          error?.response?.data?.message ||
+          t('common.failedToSendAuthenticationNumber'),
+        buttonText: t('common.confirm'),
         onPress: null,
       });
     }
@@ -386,7 +398,7 @@ const PhoneCertificate = ({route}) => {
         setSocialSmsStatus(responseData.status);
       }
       if (isSocial && responseData.verified === false) {
-        throw new Error(responseData.message || '인증에 실패했습니다.');
+        throw new Error(responseData.message || t('auth.authenticationFailed'));
       }
 
       setIsTimerActive(false);
@@ -394,8 +406,9 @@ const PhoneCertificate = ({route}) => {
     } catch (error) {
       setErrorModal({
         visible: true,
-        message: error?.response?.data?.message || '인증에 실패했습니다.',
-        buttonText: '다시 인증하기',
+        message:
+          error?.response?.data?.message || t('auth.authenticationFailed'),
+        buttonText: t('common.authenticateAgain'),
       });
     } finally {
       setLoading(false);
@@ -417,16 +430,18 @@ const PhoneCertificate = ({route}) => {
               <View style={styles.titleContainer}>
                 <MainLogo width={60} height={29} />
               </View>
-              <Text style={styles.titleText}>전화번호 인증</Text>
+              <Text style={styles.titleText}>
+                {t('common.phoneNumberVerification')}
+              </Text>
             </View>
 
             <View style={styles.inputGroup}>
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>전화번호</Text>
+                <Text style={styles.inputLabel}>{t('common.phoneNumber')}</Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="전화번호를 입력해주세요"
+                    placeholder={t('common.pleaseEnterYourPhoneNumber')}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={phoneNumber}
                     onChangeText={text => {
@@ -441,6 +456,7 @@ const PhoneCertificate = ({route}) => {
                     keyboardType="number-pad"
                     maxLength={11}
                   />
+
                   <TouchableOpacity
                     onPress={() => sendVerificationCode()}
                     disabled={!isPhoneNumberValid || hasRequestedCode}>
@@ -451,18 +467,22 @@ const PhoneCertificate = ({route}) => {
                           ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
-                      인증요청
+                      {t('common.authenticationRequest')}
                     </Text>
                   </TouchableOpacity>
                 </View>
               </View>
 
               <View style={styles.inputContainer}>
-                <Text style={styles.inputLabel}>인증번호</Text>
+                <Text style={styles.inputLabel}>
+                  {t('common.certificationNumber')}
+                </Text>
                 <View style={styles.inputBox}>
                   <TextInput
                     style={styles.textInput}
-                    placeholder="인증번호를 입력해주세요"
+                    placeholder={t(
+                      'common.pleaseEnterYourAuthenticationNumber',
+                    )}
                     placeholderTextColor={COLORS.grayscale_400}
                     value={code}
                     onChangeText={text => {
@@ -473,6 +493,7 @@ const PhoneCertificate = ({route}) => {
                     maxLength={6}
                     editable={isCodeSent}
                   />
+
                   <Text
                     style={[
                       styles.inputButton,
@@ -492,7 +513,7 @@ const PhoneCertificate = ({route}) => {
                           ? {color: COLORS.primary_orange}
                           : '',
                       ]}>
-                      인증번호 재전송
+                      {t('common.resendAuthenticationNumber')}
                     </Text>
                   </TouchableOpacity>
                 </View>
@@ -506,19 +527,19 @@ const PhoneCertificate = ({route}) => {
                 <ButtonScarletLogo disabled={true} />
               ) : isCodeVerified ? (
                 <ButtonWhite
-                  title="인증 성공!"
+                  title={t('common.authenticationSuccessful')}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : isCodeValid ? (
                 <ButtonWhite
-                  title="인증하기"
+                  title={t('common.verify')}
                   onPress={verifyCode}
                   backgroundColor={mainColor}
                   textColor={COLORS.grayscale_0}
                 />
               ) : (
-                <ButtonWhite title="인증하기" disabled={true} />
+                <ButtonWhite title={t('common.verify')} disabled={true} />
               )}
             </View>
           </View>

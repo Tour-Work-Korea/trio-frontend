@@ -10,6 +10,9 @@ const normalizeMyProfilePayload = draft => ({
 const userMyApi = {
   // 유저 프로필 정보 조회
   getMyProfile: () => api.get('/user/my'),
+  getPreferredLanguage: () => api.get('/user/my/language'),
+  updatePreferredLanguage: language =>
+    api.patch('/user/my/language', {language}),
 
   // 유저 좋아요 누른 게하 리스트
   getMyFavoriteGuesthouses: () => api.get('/user/my/guesthouse'),
@@ -39,6 +42,20 @@ const userMyApi = {
   // 리뷰 삭제
   deleteReview: reviewId => api.delete(`/user/reviews/${reviewId}`),
 
+  // 내 콘텐츠 리뷰 및 작성 가능한 예약 조회
+  getMyPartyReviews: () => api.get('/user/party-reviews'),
+
+  // 콘텐츠 리뷰 작성
+  createPartyReview: (partyId, data) =>
+    api.post(`/user/parties/${partyId}/reviews`, data),
+
+  // 콘텐츠 리뷰 수정
+  updatePartyReview: (reviewId, data) =>
+    api.patch(`/user/party-reviews/${reviewId}`, data),
+
+  // 콘텐츠 리뷰 삭제
+  deletePartyReview: reviewId => api.delete(`/user/party-reviews/${reviewId}`),
+
   //유저 프로필 정보 수정
   updateMyProfile: draft =>
     api.put('/user/my', normalizeMyProfilePayload(draft)),
@@ -67,8 +84,7 @@ const userMyApi = {
   getAvailableCoupons: () => api.get('/coupons/available'),
 
   // 쿠폰 템플릿 발급
-  issueCouponByTemplate: templateId =>
-    api.post(`/coupons/${templateId}/issue`),
+  issueCouponByTemplate: templateId => api.post(`/coupons/${templateId}/issue`),
 
   // 쿠폰 코드 발급
   issueCouponByCode: couponCode =>
@@ -78,7 +94,7 @@ const userMyApi = {
   getMyPartyReservations: () => api.get('/order/reservation/party'),
 
   // 파티 예약 상세 조회
-  getMyPartyReservationDetail: (partyReservationId) =>
+  getMyPartyReservationDetail: partyReservationId =>
     api.get(`/order/reservation/party/${partyReservationId}`),
 };
 

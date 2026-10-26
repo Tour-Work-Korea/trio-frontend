@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
@@ -9,7 +10,6 @@ import {
 import {useNavigation, useRoute} from '@react-navigation/native';
 import dayjs from 'dayjs';
 import 'dayjs/locale/ko';
-dayjs.locale('ko');
 
 import styles from './MeetCancelConfirm.styles';
 import {FONTS} from '@constants/fonts';
@@ -30,6 +30,7 @@ import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 
 const MeetCancelConfirm = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const cancelContext = route?.params?.cancelContext ?? null;
@@ -39,8 +40,13 @@ const MeetCancelConfirm = () => {
   const [checked, setChecked] = useState(false);
   const [reasonOpen, setReasonOpen] = useState(false);
   const [selectedReason, setSelectedReason] = useState('');
-  const reasons = ['단순변심', '예약착오', '가격차이', '기타'];
-  const nowText = dayjs().format('YYYY. MM. DD (dd) HH:mm');
+  const reasons = [
+    t('common.simpleChangeOfMind'),
+    t('common.reservationError'),
+    t('common.priceDifference'),
+    t('common.etc'),
+  ];
+  const nowText = dayjs().format('YYYY. MM. DD (ddd) HH:mm');
   const [termsOpen, setTermsOpen] = useState(false);
   const [cancelSubmitting, setCancelSubmitting] = useState(false);
 
@@ -78,12 +84,14 @@ const MeetCancelConfirm = () => {
       typeof reservationDetail?.totalAmount === 'number'
         ? reservationDetail.totalAmount
         : typeof reservationDetail?.amount === 'number'
-          ? reservationDetail.amount
-          : typeof cancelContext?.paidAmount === 'number'
-            ? cancelContext.paidAmount
-            : 0;
+        ? reservationDetail.amount
+        : typeof cancelContext?.paidAmount === 'number'
+        ? cancelContext.paidAmount
+        : 0;
     const cancelFee =
-      typeof cancelContext?.cancelFee === 'number' ? cancelContext.cancelFee : 0;
+      typeof cancelContext?.cancelFee === 'number'
+        ? cancelContext.cancelFee
+        : 0;
     const computedRefundAmount = paidAmount - cancelFee;
     const refundAmount =
       typeof cancelContext?.refundAmount === 'number'
@@ -91,15 +99,16 @@ const MeetCancelConfirm = () => {
         : computedRefundAmount;
     const refundMethod =
       cancelContext?.refundMethod ||
-      (paymentLabel ? `${paymentLabel} 환불` : '');
+      (paymentLabel
+        ? t('common.valueRefund', {paymentLabel: paymentLabel})
+        : '');
 
     const startDateTime =
       reservationDetail?.startDateTime ?? cancelContext?.startDateTime ?? null;
     const endDateTime =
       reservationDetail?.endDateTime ?? cancelContext?.endDateTime ?? null;
-    const startFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      startDateTime,
-    );
+    const startFormatted =
+      formatLocalDateTimeToDotAndTimeWithDay(startDateTime);
     const endFormatted = formatLocalDateTimeToDotAndTimeWithDay(endDateTime);
     const locationText =
       trimJejuPrefix(reservationDetail?.partyLocation ?? '') ||
@@ -111,7 +120,8 @@ const MeetCancelConfirm = () => {
     return {
       partyTitle:
         reservationDetail?.partyTitle ?? cancelContext?.partyTitle ?? '',
-      partyImage: reservationDetail?.partyImage ?? cancelContext?.partyImage ?? null,
+      partyImage:
+        reservationDetail?.partyImage ?? cancelContext?.partyImage ?? null,
       guesthouseName:
         reservationDetail?.guesthouse ?? cancelContext?.guesthouseName ?? '',
       location: locationText,
@@ -120,8 +130,7 @@ const MeetCancelConfirm = () => {
       startDate: startFormatted.date,
       startTime: startFormatted.time,
       endTime: endFormatted.time,
-      originalAmount:
-        paidAmount + couponDiscountAmount + pointDiscountAmount,
+      originalAmount: paidAmount + couponDiscountAmount + pointDiscountAmount,
       paidAmount,
       couponDiscountAmount,
       pointDiscountAmount,
@@ -129,12 +138,13 @@ const MeetCancelConfirm = () => {
       refundAmount,
       refundMethod,
     };
-  }, [reservationDetail, cancelContext]);
+  }, [reservationDetail, cancelContext, t]);
   const refundAmount = viewData.refundAmount;
-  const formatPrice = n => `${Number(n || 0).toLocaleString('ko-KR')}원`;
+  const formatPrice = n =>
+    t('common.valueWon', {value1: Number(n || 0).toLocaleString('ko-KR')});
   const formatPoint = n => `${Number(n || 0).toLocaleString('ko-KR')}P`;
   const startDateTimeText = viewData.startDateTime
-    ? `${dayjs(viewData.startDateTime).format('YY.MM.DD (dd) HH:mm')}${
+    ? `${dayjs(viewData.startDateTime).format('YY.MM.DD (ddd) HH:mm')}${
         viewData.endDateTime && viewData.endTime ? ` ~ ${viewData.endTime}` : ''
       }`
     : '-';
@@ -149,8 +159,7 @@ const MeetCancelConfirm = () => {
         selectedReason,
       );
       const cancelDetail = res?.data ?? null;
-      const nextReservationId =
-        cancelDetail?.reservationId ?? reservationId;
+      const nextReservationId = cancelDetail?.reservationId ?? reservationId;
       const reservationItem = {
         ...cancelDetail,
         partyTitle: viewData.partyTitle,
@@ -161,9 +170,13 @@ const MeetCancelConfirm = () => {
         startTime: viewData.startTime,
         location: viewData.location,
         partyLocation:
-          reservationDetail?.partyLocation ?? cancelContext?.partyLocation ?? null,
+          reservationDetail?.partyLocation ??
+          cancelContext?.partyLocation ??
+          null,
         meetingPlace:
-          reservationDetail?.meetingPlace ?? cancelContext?.meetingPlace ?? null,
+          reservationDetail?.meetingPlace ??
+          cancelContext?.meetingPlace ??
+          null,
       };
       navigation.replace('MeetCancelSuccess', {
         reservationId: nextReservationId,
@@ -175,7 +188,7 @@ const MeetCancelConfirm = () => {
       log.error('Cancel reservation failed', error);
       Toast.show({
         type: 'error',
-        text1: serverMessage || '예약 취소에 실패했습니다.',
+        text1: serverMessage || t('common.cancellationOfReservationFailed'),
         position: 'top',
         visibilityTime: 3000,
       });
@@ -187,211 +200,217 @@ const MeetCancelConfirm = () => {
   return (
     <View style={styles.container}>
       {detailLoading ? (
-        <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+        <View
+          style={[
+            styles.container,
+            {justifyContent: 'center', alignItems: 'center'},
+          ]}>
           <ActivityIndicator />
-          <Text style={[FONTS.fs_14_medium, {marginTop: 10, color: COLORS.grayscale_500}]}>
-            불러오는 중...
+          <Text
+            style={[
+              FONTS.fs_14_medium,
+              {marginTop: 10, color: COLORS.grayscale_500},
+            ]}>
+            {t('common.loading_c21bd6')}
           </Text>
         </View>
       ) : (
         <>
           <ScrollView contentContainerStyle={styles.scroll}>
-            <Header title='신청취소'/>
+            <Header title={t('common.cancelApplication')} />
             <View style={styles.body}>
-          {/* 안내 배너 */}
-          {/* <View style={styles.noticeBox}>
-            <Text style={[FONTS.fs_14_semibold, styles.noticeText]}>
-              상세 내역을 확인하고 예약을 취소해주세요!
-            </Text>
-          </View> */}
+              {/* 안내 배너 */}
+              {/* <View style={styles.noticeBox}>
+                  <Text style={[FONTS.fs_14_semibold, styles.noticeText]}>
+                    상세 내역을 확인하고 예약을 취소해주세요!
+                  </Text>
+                 </View> */}
 
-          {/* 현재 날짜 및 시간 */}
-          <Text style={[FONTS.fs_12_medium, styles.todayText]}>
-            {nowText} 기준
-          </Text>
-
-          {/* 예약 카드 */}
-          <View style={styles.card}>
-            {viewData.partyImage ? (
-              <AppImage
-                uri={viewData.partyImage}
-                style={styles.thumbnail}
-              />
-            ) : null}
-
-            <View style={styles.cardInfo}>
-              <Text style={[FONTS.fs_16_semibold]}>
-                {viewData.partyTitle}
+              {/* 현재 날짜 및 시간 */}
+              <Text style={[FONTS.fs_12_medium, styles.todayText]}>
+                {nowText}
+                {t('common.standard')}
               </Text>
-              <Text style={[FONTS.fs_14_medium, styles.timeText]}>{startDateTimeText}</Text>
-              {/* <Text>
-                숙박객 어쩌구 글씨
-              </Text> */}
-            </View>
-          </View>
 
-          <View style={styles.devide}/>
+              {/* 예약 카드 */}
+              <View style={styles.card}>
+                {viewData.partyImage ? (
+                  <AppImage
+                    uri={viewData.partyImage}
+                    style={styles.thumbnail}
+                  />
+                ) : null}
 
-          {/* 환불 정보 */}
-          {/* <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, {marginBottom: 12}]}>환불 예상 정보</Text>
-
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>실 결제 금액</Text>
-              <View style={styles.valueInline}>
-                <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                  {formatPrice(viewData.paidAmount)}
-                </Text>
-                <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
-                  {formatPrice(viewData.originalAmount)}
-                </Text>
+                <View style={styles.cardInfo}>
+                  <Text style={[FONTS.fs_16_semibold]}>
+                    {viewData.partyTitle}
+                  </Text>
+                  <Text style={[FONTS.fs_14_medium, styles.timeText]}>
+                    {startDateTimeText}
+                  </Text>
+                  {/* <Text>
+                      숙박객 어쩌구 글씨
+                     </Text> */}
+                </View>
               </View>
-            </View>
 
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                {formatPrice(viewData.couponDiscountAmount)}
-              </Text>
-            </View>
+              <View style={styles.devide} />
 
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
-              <Text style={[FONTS.fs_14_semibold, styles.value]}>
-                {formatPoint(viewData.pointDiscountAmount)}
-              </Text>
-            </View>
-
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>예상 취소 수수료</Text>
-              <Text style={[FONTS.fs_14_medium, styles.value]}>
-                {formatPrice(viewData.cancelFee)}
-              </Text>
-            </View>
-          </View>
-
-          <View style={styles.devide}/> */}
-
-          {/* <View style={styles.section}>
-            <View style={styles.row}>
-              <Text style={[FONTS.fs_14_medium, styles.label]}>환불 방법</Text>
-              <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
-                {viewData.refundMethod}
-              </Text>
-            </View>
-
-            <View style={styles.row}>
-              <Text style={styles.label}>최종 환불 금액</Text>
-              <Text style={styles.refundAmount}>
-                {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
-              </Text>
-            </View>
-          </View> */}
-
-          {/* 취소 사유 */}
-          <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, {marginTop: 12}]}>취소 사유</Text>
-
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.dropdown}
-              onPress={() => setReasonOpen(!reasonOpen)}
-            >
-              <Text
-                style={[
-                  FONTS.fs_14_medium,
-                  {color: selectedReason ? COLORS.grayscale_900 : COLORS.grayscale_400},
-                ]}
-              >
-                {selectedReason || '취소 사유를 선택해 주세요'}
-              </Text>
-              {reasonOpen ? (
-                <ChevronUp width={24} height={24} />
-              ) : (
-                <ChevronDown width={24} height={24} />
-              )}
-            </TouchableOpacity>
-
-            {reasonOpen && (
-              <View style={styles.dropdownList}>
-                {reasons.map((r, index) => (
-                  <React.Fragment key={r}>
-                    <TouchableOpacity
-                      activeOpacity={1}
-                      style={styles.dropdownItem}
-                      onPress={() => {
-                        setSelectedReason(r);
-                        setReasonOpen(false);
-                      }}
-                    >
-                      <Text
-                        style={[
-                          FONTS.fs_14_medium,
-                          selectedReason === r && FONTS.fs_14_semibold,
-                          {
-                            color:
-                              selectedReason === r
-                                ? COLORS.primary_orange
-                                : COLORS.grayscale_900,
-                          },
-                        ]}
-                      >
-                        {r}
+              {/* 환불 정보 */}
+              {/* <View style={styles.section}>
+                  <Text style={[FONTS.fs_16_semibold, {marginBottom: 12}]}>환불 예상 정보</Text>
+                   <View style={styles.row}>
+                    <Text style={[FONTS.fs_14_medium, styles.label]}>실 결제 금액</Text>
+                    <View style={styles.valueInline}>
+                      <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                        {formatPrice(viewData.paidAmount)}
                       </Text>
-                    </TouchableOpacity>
+                      <Text style={[FONTS.fs_14_regular, styles.valueStrike]}>
+                        {formatPrice(viewData.originalAmount)}
+                      </Text>
+                    </View>
+                  </View>
+                   <View style={styles.row}>
+                    <Text style={[FONTS.fs_14_medium, styles.label]}>쿠폰 할인</Text>
+                    <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                      {formatPrice(viewData.couponDiscountAmount)}
+                    </Text>
+                  </View>
+                   <View style={styles.row}>
+                    <Text style={[FONTS.fs_14_medium, styles.label]}>포인트 적용</Text>
+                    <Text style={[FONTS.fs_14_semibold, styles.value]}>
+                      {formatPoint(viewData.pointDiscountAmount)}
+                    </Text>
+                  </View>
+                   <View style={styles.row}>
+                    <Text style={[FONTS.fs_14_medium, styles.label]}>예상 취소 수수료</Text>
+                    <Text style={[FONTS.fs_14_medium, styles.value]}>
+                      {formatPrice(viewData.cancelFee)}
+                    </Text>
+                  </View>
+                 </View>
+                 <View style={styles.devide}/> */}
 
-                    {index < reasons.length - 1 && (
-                      <View style={styles.dropdownDivide} />
-                    )}
-                  </React.Fragment>
-                ))}
-              </View>
-            )}
+              {/* <View style={styles.section}>
+                  <View style={styles.row}>
+                    <Text style={[FONTS.fs_14_medium, styles.label]}>환불 방법</Text>
+                    <Text style={[FONTS.fs_14_medium, styles.refundMethod]}>
+                      {viewData.refundMethod}
+                    </Text>
+                  </View>
+                   <View style={styles.row}>
+                    <Text style={styles.label}>최종 환불 금액</Text>
+                    <Text style={styles.refundAmount}>
+                      {Number(refundAmount || 0).toLocaleString('ko-KR')}<Text style={{color: COLORS.grayscale_900}}>원</Text>
+                    </Text>
+                  </View>
+                 </View> */}
 
-          </View>
+              {/* 취소 사유 */}
+              <View style={styles.section}>
+                <Text style={[FONTS.fs_16_semibold, {marginTop: 12}]}>
+                  {t('common.reasonForCancellation')}
+                </Text>
 
-          {/* 약관 동의 */}
-          {/* <View style={styles.agreeRow}>
-            <TouchableOpacity
-              activeOpacity={1}
-              style={styles.agreeBox}
-              onPress={() => setChecked(!checked)}
-            >
-              <View
-                style={[
-                  styles.checkBox,
-                  {
-                    borderColor: checked
-                      ? COLORS.primary_orange
-                      : COLORS.grayscale_300,
-                  },
-                ]}
-              >
-                {checked ? (
-                  <CheckOrange width={20} height={20} />
-                ) : (
-                  <CheckGray width={20} height={20} />
+                <TouchableOpacity
+                  activeOpacity={1}
+                  style={styles.dropdown}
+                  onPress={() => setReasonOpen(!reasonOpen)}>
+                  <Text
+                    style={[
+                      FONTS.fs_14_medium,
+                      {
+                        color: selectedReason
+                          ? COLORS.grayscale_900
+                          : COLORS.grayscale_400,
+                      },
+                    ]}>
+                    {selectedReason ||
+                      t('common.pleaseSelectAReasonForCancellation')}
+                  </Text>
+                  {reasonOpen ? (
+                    <ChevronUp width={24} height={24} />
+                  ) : (
+                    <ChevronDown width={24} height={24} />
+                  )}
+                </TouchableOpacity>
+
+                {reasonOpen && (
+                  <View style={styles.dropdownList}>
+                    {reasons.map((r, index) => (
+                      <React.Fragment key={r}>
+                        <TouchableOpacity
+                          activeOpacity={1}
+                          style={styles.dropdownItem}
+                          onPress={() => {
+                            setSelectedReason(r);
+                            setReasonOpen(false);
+                          }}>
+                          <Text
+                            style={[
+                              FONTS.fs_14_medium,
+                              selectedReason === r && FONTS.fs_14_semibold,
+                              {
+                                color:
+                                  selectedReason === r
+                                    ? COLORS.primary_orange
+                                    : COLORS.grayscale_900,
+                              },
+                            ]}>
+                            {r}
+                          </Text>
+                        </TouchableOpacity>
+
+                        {index < reasons.length - 1 && (
+                          <View style={styles.dropdownDivide} />
+                        )}
+                      </React.Fragment>
+                    ))}
+                  </View>
                 )}
               </View>
-              <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
-                <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 콘텐츠 취소 / 환불
-                규정에 동의합니다.
-              </Text>
-            </TouchableOpacity>
-            <TouchableOpacity
-              activeOpacity={1} onPress={() => setTermsOpen(true)}>
-              <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
-            </TouchableOpacity>
-          </View> */}
-          
-            </View> 
+
+              {/* 약관 동의 */}
+              {/* <View style={styles.agreeRow}>
+                  <TouchableOpacity
+                    activeOpacity={1}
+                    style={styles.agreeBox}
+                    onPress={() => setChecked(!checked)}
+                  >
+                    <View
+                      style={[
+                        styles.checkBox,
+                        {
+                          borderColor: checked
+                            ? COLORS.primary_orange
+                            : COLORS.grayscale_300,
+                        },
+                      ]}
+                    >
+                      {checked ? (
+                        <CheckOrange width={20} height={20} />
+                      ) : (
+                        <CheckGray width={20} height={20} />
+                      )}
+                    </View>
+                    <Text style={[styles.agreeText, FONTS.fs_14_regular]}>
+                      <Text style={[styles.required, FONTS.fs_14_semibold]}>[필수]</Text> 콘텐츠 취소 / 환불
+                      규정에 동의합니다.
+                    </Text>
+                  </TouchableOpacity>
+                  <TouchableOpacity
+                    activeOpacity={1} onPress={() => setTermsOpen(true)}>
+                    <Text style={[styles.required, FONTS.fs_12_medium]}>보기</Text>
+                  </TouchableOpacity>
+                 </View> */}
+            </View>
           </ScrollView>
 
           <TermsModal
             visible={termsOpen}
             onClose={() => setTermsOpen(false)}
-            title="콘텐츠 취소 / 환불 규정"
-            content="약관 내용은 준비 중입니다."
+            title={t('meet.activityCancellationAndRefundPolicy')}
+            content={t('meet.termsAndConditionsAreBeingPrepared')}
             onAgree={() => setTermsOpen(false)}
           />
 
@@ -405,9 +424,10 @@ const MeetCancelConfirm = () => {
               },
             ]}
             disabled={!selectedReason || cancelSubmitting}
-            onPress={handleCancelConfirm}
-          >
-            <Text style={[styles.submitText, FONTS.fs_14_medium]}>취소 요청하기</Text>
+            onPress={handleCancelConfirm}>
+            <Text style={[styles.submitText, FONTS.fs_14_medium]}>
+              {t('common.requestCancellation')}
+            </Text>
           </TouchableOpacity>
         </>
       )}

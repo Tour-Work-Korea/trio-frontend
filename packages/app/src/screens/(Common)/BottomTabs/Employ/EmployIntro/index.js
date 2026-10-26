@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useState} from 'react';
 import {
   View,
@@ -23,6 +24,7 @@ import {COLORS} from '@constants/colors';
 const PAGE_SIZE = 10;
 
 const EmployIntro = () => {
+  const {t} = useTranslation();
   const [searchText, setSearchText] = useState('');
   const [recruitList, setRecruitList] = useState([]);
 
@@ -80,8 +82,10 @@ const EmployIntro = () => {
         console.warn('공고 조회 실패', error);
         setErrorModal({
           visible: true,
-          message: '공고를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '확인',
+          message: t(
+            'employ.theAnnouncementCouldNotBeLoadedPleaseTryAgainLater',
+          ),
+          buttonText: t('common.confirm'),
         });
       } finally {
         if (isLoadMore) {
@@ -91,7 +95,7 @@ const EmployIntro = () => {
         }
       }
     },
-    [userRole],
+    [userRole, t],
   );
 
   useFocusEffect(
@@ -112,15 +116,15 @@ const EmployIntro = () => {
   if (isInitialLoading && page === 0) {
     return (
       <View style={styles.container}>
-        <Header title="채용공고" />
-        <Loading title="채용 정보를 가져오는 중입니다..." />
+        <Header title={t('common.recruitmentNotice')} />
+        <Loading title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }
 
   return (
     <View style={styles.container}>
-      <Header title="채용공고" />
+      <Header title={t('common.recruitmentNotice')} />
       <View style={styles.scrollContent}>
         {/* 검색창 */}
         <TouchableOpacity
@@ -129,7 +133,7 @@ const EmployIntro = () => {
             <SearchIcon width={24} height={24} style={styles.searchIcon} />
             <TextInput
               style={styles.searchInput}
-              placeholder="일할 게스트하우스를 찾아보세요"
+              placeholder={t('common.findAGuesthouseToWorkIn')}
               value={searchText}
               onChangeText={setSearchText}
               editable={false}
@@ -140,15 +144,15 @@ const EmployIntro = () => {
         <View style={styles.employContainer}>
           <View style={[styles.titleSection]}>
             <Text style={styles.titleText}>
-              <Text style={{color: COLORS.primary_orange}}>Work+Stay</Text>를 한
-              번에
+              <Text style={{color: COLORS.primary_orange}}>Work+Stay</Text>
+              {t('common.atOnce')}
             </Text>
             <TouchableOpacity
               style={styles.seeMoreButton}
               onPress={() => {
                 navigation.navigate('EmploySearchList');
               }}>
-              <Text style={styles.seeMoreText}>더보기</Text>
+              <Text style={styles.seeMoreText}>{t('common.seeMore')}</Text>
               <ChevronRightIcon width={24} height={24} />
             </TouchableOpacity>
           </View>

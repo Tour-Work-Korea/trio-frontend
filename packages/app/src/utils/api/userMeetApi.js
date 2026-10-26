@@ -19,6 +19,12 @@ const userMeetApi = {
   // 콘텐츠 상세 조회
   getPartyDetail: partyId => api.get(`/user/parties/${partyId}`),
 
+  // 콘텐츠 템플릿 리뷰 조회
+  getPartyReviews: ({templateId, page = 0, size = 10, sort = 'id'}) =>
+    api.get(`/parties/templates/${templateId}/reviews`, {
+      params: {page, size, sort},
+    }),
+
   // 콘텐츠 참가 정보 조회 (요금 계산 포함)
   joinParty: partyId => api.get(`/user/parties/join/${partyId}`),
 

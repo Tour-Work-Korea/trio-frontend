@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {StyleSheet, View} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -13,9 +14,10 @@ const Avatar = ({
   imageStyle,
   IconComponent = EmptyImage,
 }) => {
+  const {t} = useTranslation();
   const fallbackIconSize = iconSize ?? Math.round(size * 0.4);
   const imageUri =
-    typeof uri === 'string' && uri.trim() && uri !== '사진을 추가해주세요'
+    typeof uri === 'string' && uri.trim() && uri !== t('common.pleaseAddAPhoto')
       ? uri
       : null;
 

@@ -210,21 +210,23 @@ const styles = StyleSheet.create({
 
   // 하단탭
   tabContainer: {
-    flexDirection: 'row',
-    justifyContent: 'space-around',
-    alignItems: 'center',
     marginTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
     backgroundColor: COLORS.grayscale_0,
     paddingTop: 20,
   },
+  tabContainerContent: {
+    flexDirection: 'row',
+    alignItems: 'center',
+  },
   tabContainerAdvance: {
     marginTop: 4,
   },
   tabButton: {
     paddingBottom: 10,
-    flex: 1,
+    flexGrow: 0,
+    flexShrink: 0,
     alignItems: 'center',
   },
   tabButtonActive: {
@@ -234,6 +236,7 @@ const styles = StyleSheet.create({
   },
   tabText: {
     color: COLORS.grayscale_800,
+    textAlign: 'center',
   },
   tabTextActive: {
     color: COLORS.primary_blue,
@@ -310,6 +313,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     lineHeight: 22,
+  },
+  meetingPlaceLink: {
+    color: COLORS.primary_blue,
+    textDecorationLine: 'underline',
   },
   // 상세 안내 밑부분
   detailInfoContainer: {

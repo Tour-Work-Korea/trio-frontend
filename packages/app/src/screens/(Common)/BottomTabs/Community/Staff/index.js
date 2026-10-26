@@ -1,4 +1,5 @@
-import React, {memo, useCallback, useRef, useState} from 'react';
+import {useTranslation} from 'react-i18next';
+import React, {memo, useCallback, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -16,12 +17,15 @@ import Loading from '@components/Loading';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import styles from './Staff.styles';
 import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
 import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
+import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
+import StaffRegionTabs from './StaffRegionTabs';
+import {useStaffRegionStore, withRecruitRegion} from './regions';
 
 const PAGE_SIZE = 8;
 const staffListBannerAdUnitId = __DEV__
@@ -45,9 +49,14 @@ const sortRecruitsByRecruiting = recruits =>
   });
 
 const Staff = ({isActive}) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const hasUserScrolledRef = useRef(false);
   const isFetchingRef = useRef(false);
+  const requestKeyRef = useRef(null);
+  const region = useStaffRegionStore(state => state.region);
+  const setRegion = useStaffRegionStore(state => state.setRegion);
+  const regions = useGuesthouseRegionStore(state => state.regions);
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
@@ -61,11 +70,19 @@ const Staff = ({isActive}) => {
 
   const tryFetchRecruitList = useCallback(
     async (pageToFetch = 0, isLoadMore = false) => {
-      if (isFetchingRef.current) {
+      const requestKey = `${region}:${pageToFetch}:${
+        isLoadMore ? 'append' : 'reset'
+      }`;
+
+      if (
+        requestKeyRef.current === requestKey ||
+        (isFetchingRef.current && isLoadMore)
+      ) {
         return;
       }
 
       isFetchingRef.current = true;
+      requestKeyRef.current = requestKey;
 
       try {
         if (isLoadMore) {
@@ -74,16 +91,25 @@ const Staff = ({isActive}) => {
           setIsInitialLoading(true);
         }
 
-        const res = await userEmployApi.getRecruits({
-          page: pageToFetch,
-          size: PAGE_SIZE,
-        });
+        const res = await userEmployApi.getRecruits(
+          withRecruitRegion(
+            {
+              page: pageToFetch,
+              size: PAGE_SIZE,
+            },
+            region,
+          ),
+        );
 
         const content = Array.isArray(res.data?.content)
           ? res.data.content
           : [];
         const last = res.data?.last ?? true;
         const number = Number(res.data?.number ?? pageToFetch);
+
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
 
         setRecruitList(prev =>
           sortRecruitsByRecruiting(
@@ -93,15 +119,24 @@ const Staff = ({isActive}) => {
         setPage(number);
         setHasNext(!last);
       } catch (error) {
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
         setHasNext(false);
         console.warn('fetchRecruitList 실패:', error);
         setErrorModal({
           visible: true,
-          message: '채용 정보를 불러오지 못했어요. 잠시 후 다시 시도해 주세요.',
-          buttonText: '다시 시도',
+          message: t(
+            'common.jobInformationCouldNotBeLoadedPleaseTryAgainLater',
+          ),
+          buttonText: t('community.tryAgain'),
         });
       } finally {
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
         isFetchingRef.current = false;
+        requestKeyRef.current = null;
 
         if (isLoadMore) {
           setIsMoreLoading(false);
@@ -110,7 +145,7 @@ const Staff = ({isActive}) => {
         }
       }
     },
-    [],
+    [region, t],
   );
 
   useFocusEffect(
@@ -143,6 +178,13 @@ const Staff = ({isActive}) => {
     hasUserScrolledRef.current = true;
   }, []);
 
+  const selectedRegionName = useMemo(
+    () =>
+      regions.find(item => item.code === region)?.displayName ??
+      (region === 'ALL' ? t('common.all') : region),
+    [region, regions, t],
+  );
+
   const handleRetry = useCallback(() => {
     setErrorModal(prev => ({...prev, visible: false}));
     setRecruitList([]);
@@ -151,9 +193,12 @@ const Staff = ({isActive}) => {
     tryFetchRecruitList(0, false);
   }, [tryFetchRecruitList]);
 
-  const handleJobPress = useCallback(id => {
-    navigation.navigate('CommunityStaffDetail', {id});
-  }, [navigation]);
+  const handleJobPress = useCallback(
+    id => {
+      navigation.navigate('CommunityStaffDetail', {id});
+    },
+    [navigation],
+  );
 
   const handleToggleFavorite = useCallback(item => {
     toggleFavorite({
@@ -186,153 +231,157 @@ const Staff = ({isActive}) => {
     );
   }, []);
 
-  const renderRecruit = useCallback(({item}) => {
-    const isClosed = item.isRecruiting === false;
-    const imageUrl =
-      item.profileSummary?.profileImageUrl ||
-      item.thumbnailImage ||
-      item.recruitImage;
-    const address = trimJejuPrefix(item.address ?? item.recruitAddress);
-    const deadline = parseSlashDateToYearMonth(item.deadline);
-    const workDuration = item.workDuration ?? item.workDate ?? item.workPeriod;
+  const renderRecruit = useCallback(
+    ({item}) => {
+      const isClosed = item.isRecruiting === false;
+      const imageUrl =
+        item.profileSummary?.profileImageUrl ||
+        item.thumbnailImage ||
+        item.recruitImage;
+      const regionName = formatServiceRegion(item.profileSummary?.regionType);
+      const deadline = parseSlashDateToYearMonth(item.deadline);
+      const workDuration =
+        item.workDuration ?? item.workDate ?? item.workPeriod;
 
-    return (
-      <TouchableOpacity
-        activeOpacity={0.8}
-        style={[styles.recruitItem, isClosed && styles.recruitItemClosed]}
-        onPress={() => handleJobPress(item.recruitId)}>
-        <View style={styles.headerRow}>
-          <View style={styles.headerInfoRow}>
-            {imageUrl ? (
-              <AppImage
-                uri={imageUrl}
-                style={[styles.avatar, isClosed && styles.avatarClosed]}
-              />
-            ) : (
-              <View style={[styles.avatar, isClosed && styles.avatarClosed]} />
-            )}
-            <Text
-              style={[
-                FONTS.fs_14_medium,
-                styles.guesthouseName,
-                isClosed && styles.closedPrimaryText,
-              ]}
-              numberOfLines={1}>
-              {item.guesthouseName}
-            </Text>
-            {!!deadline && (
+      return (
+        <TouchableOpacity
+          activeOpacity={0.8}
+          style={[styles.recruitItem, isClosed && styles.recruitItemClosed]}
+          onPress={() => handleJobPress(item.recruitId)}>
+          <View style={styles.headerRow}>
+            <View style={styles.headerInfoRow}>
+              {imageUrl ? (
+                <AppImage
+                  uri={imageUrl}
+                  style={[styles.avatar, isClosed && styles.avatarClosed]}
+                />
+              ) : (
+                <View
+                  style={[styles.avatar, isClosed && styles.avatarClosed]}
+                />
+              )}
               <Text
                 style={[
-                  FONTS.fs_14_regular,
-                  styles.deadline,
-                  isClosed && styles.closedSecondaryText,
-                ]}>
-                ~{deadline}
+                  FONTS.fs_14_medium,
+                  styles.guesthouseName,
+                  isClosed && styles.closedPrimaryText,
+                ]}
+                numberOfLines={1}>
+                {item.guesthouseName}
               </Text>
-            )}
-            {isClosed ? (
-              <View style={styles.closedBadge}>
-                <Text style={[FONTS.fs_12_medium, styles.closedBadgeText]}>
-                  마감
+              {!!deadline && (
+                <Text
+                  style={[
+                    FONTS.fs_14_regular,
+                    styles.deadline,
+                    isClosed && styles.closedSecondaryText,
+                  ]}>
+                  ~{deadline}
                 </Text>
-              </View>
-            ) : null}
+              )}
+              {isClosed ? (
+                <View style={styles.closedBadge}>
+                  <Text style={[FONTS.fs_12_medium, styles.closedBadgeText]}>
+                    {t('common.deadline')}
+                  </Text>
+                </View>
+              ) : null}
+            </View>
+            <TouchableOpacity
+              activeOpacity={0.8}
+              style={styles.actionItem}
+              onPress={event => {
+                event.stopPropagation();
+                handleToggleFavorite(item);
+              }}>
+              {item.isLiked ? (
+                <FilledHeartIcon width={18} height={18} />
+              ) : (
+                <EmptyHeartIcon width={18} height={18} />
+              )}
+            </TouchableOpacity>
           </View>
-          <TouchableOpacity
-            activeOpacity={0.8}
-            style={styles.actionItem}
-            onPress={event => {
-              event.stopPropagation();
-              handleToggleFavorite(item);
-            }}>
-            {item.isLiked ? (
-              <FilledHeartIcon width={18} height={18} />
-            ) : (
-              <EmptyHeartIcon width={18} height={18} />
-            )}
-          </TouchableOpacity>
-        </View>
 
-        <Text
-          style={[
-            FONTS.fs_14_medium,
-            styles.recruitTitle,
-            isClosed && styles.closedPrimaryText,
-          ]}
-          numberOfLines={1}>
-          {item.recruitTitle}
-        </Text>
-
-        <View style={styles.metaRow}>
           <Text
             style={[
-              FONTS.fs_12_regular,
-              styles.address,
-              isClosed && styles.closedSecondaryText,
+              FONTS.fs_14_medium,
+              styles.recruitTitle,
+              isClosed && styles.closedPrimaryText,
             ]}
             numberOfLines={1}>
-            {address}
+            {item.recruitTitle}
           </Text>
-          {!!workDuration && (
+
+          <View style={styles.metaRow}>
             <Text
               style={[
                 FONTS.fs_12_regular,
-                styles.workPeriod,
+                styles.address,
                 isClosed && styles.closedSecondaryText,
-              ]}>
-              {workDuration}
+              ]}
+              numberOfLines={1}>
+              {regionName}
             </Text>
-          )}
-        </View>
-
-        {isClosed && item.hashtags?.length ? (
-          <View style={styles.tagRow}>
-            {item.hashtags?.slice(0, 3).map((tag, index) => {
-              const tagLabel = tag?.hashtag ?? tag;
-
-              return (
-                <View
-                  key={`${tagLabel}-${index}`}
-                  style={[styles.tag, styles.tagClosed]}>
-                  <Text
-                    style={[
-                      FONTS.fs_12_medium,
-                      styles.tagText,
-                      styles.tagTextClosed,
-                    ]}>
-                    {tagLabel}
-                  </Text>
-                </View>
-              );
-            })}
-          </View>
-        ) : !isClosed ? (
-          renderTags(item.hashtags)
-        ) : (
-          null
-        )}
-
-        {/* <View style={styles.actionRow}>
-          <View style={styles.actionItem}>
-            {item.isLiked ? (
-              <FilledHeartIcon width={18} height={18} />
-            ) : (
-              <EmptyHeartIcon width={18} height={18} />
+            {!!workDuration && (
+              <Text
+                style={[
+                  FONTS.fs_12_regular,
+                  styles.workPeriod,
+                  isClosed && styles.closedSecondaryText,
+                ]}>
+                {workDuration}
+              </Text>
             )}
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.likeCount ?? 66}
-            </Text>
           </View>
-          <View style={styles.actionItem}>
-            <CommentIcon width={18} height={18} />
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.commentCount ?? 38}
-            </Text>
-          </View>
-        </View> */}
-      </TouchableOpacity>
-    );
-  }, [handleJobPress, handleToggleFavorite, renderTags]);
+
+          {isClosed && item.hashtags?.length ? (
+            <View style={styles.tagRow}>
+              {item.hashtags?.slice(0, 3).map((tag, index) => {
+                const tagLabel = tag?.hashtag ?? tag;
+
+                return (
+                  <View
+                    key={`${tagLabel}-${index}`}
+                    style={[styles.tag, styles.tagClosed]}>
+                    <Text
+                      style={[
+                        FONTS.fs_12_medium,
+                        styles.tagText,
+                        styles.tagTextClosed,
+                      ]}>
+                      {tagLabel}
+                    </Text>
+                  </View>
+                );
+              })}
+            </View>
+          ) : !isClosed ? (
+            renderTags(item.hashtags)
+          ) : null}
+
+          {/* <View style={styles.actionRow}>
+            <View style={styles.actionItem}>
+              {item.isLiked ? (
+                <FilledHeartIcon width={18} height={18} />
+              ) : (
+                <EmptyHeartIcon width={18} height={18} />
+              )}
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.likeCount ?? 66}
+              </Text>
+            </View>
+            <View style={styles.actionItem}>
+              <CommentIcon width={18} height={18} />
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.commentCount ?? 38}
+              </Text>
+            </View>
+           </View> */}
+        </TouchableOpacity>
+      );
+    },
+    [handleJobPress, handleToggleFavorite, renderTags, t],
+  );
 
   const renderListFooter = useCallback(() => {
     const shouldShowAd =
@@ -365,27 +414,45 @@ const Staff = ({isActive}) => {
 
   const keyExtractor = useCallback(item => item.recruitId.toString(), []);
 
-  if (isInitialLoading && page === 0) {
-    return (
-      <View style={styles.loadingContainer}>
-        <Loading title="채용 정보를 가져오는 중입니다..." />
-      </View>
-    );
-  }
-
   return (
     <View style={styles.container}>
-      <FlatList
-        data={recruitList}
-        keyExtractor={keyExtractor}
-        renderItem={renderRecruit}
-        showsVerticalScrollIndicator={false}
-        onEndReached={handleEndReached}
-        onEndReachedThreshold={0.4}
-        onScrollBeginDrag={handleScrollBeginDrag}
-        contentContainerStyle={styles.listContent}
-        ListFooterComponent={renderListFooter}
-      />
+      <View style={styles.regionSection}>
+        <StaffRegionTabs value={region} onChange={setRegion} />
+      </View>
+
+      {isInitialLoading && page === 0 ? (
+        <View style={styles.loadingContainer}>
+          <Loading title={t('common.retrievingJobOpenings')} />
+        </View>
+      ) : (
+        <FlatList
+          data={recruitList}
+          keyExtractor={keyExtractor}
+          renderItem={renderRecruit}
+          showsVerticalScrollIndicator={false}
+          onEndReached={handleEndReached}
+          onEndReachedThreshold={0.4}
+          onScrollBeginDrag={handleScrollBeginDrag}
+          contentContainerStyle={[
+            styles.listContent,
+            recruitList.length === 0 && styles.emptyListContent,
+          ]}
+          ListEmptyComponent={
+            <View style={styles.emptyContainer}>
+              <Text style={[FONTS.fs_16_medium, styles.emptyTitle]}>
+                {t(
+                  'community.thereAreNoStaffRecruitmentAnnouncementsInYourArea',
+                  {region: selectedRegionName},
+                )}
+              </Text>
+              <Text style={[FONTS.fs_14_regular, styles.emptyDescription]}>
+                {t('community.pleaseAlsoCheckAnnouncementsInOtherRegions')}
+              </Text>
+            </View>
+          }
+          ListFooterComponent={renderListFooter}
+        />
+      )}
 
       <AlertModal
         visible={errorModal.visible}

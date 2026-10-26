@@ -1,0 +1,918 @@
+/* Club display type reuses the existing local font asset without changing global fonts. */
+@font-face {
+  font-family: 'Koda-Display';
+  src: url('../../../../../../packages/app/src/assets/fonts/Pretendard-ExtraBold.otf')
+    format('opentype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+/* Editorial club layout. Scoped to the standalone koda hub. */
+html:has(.le-page--hub) {
+  /* The shared metadata hook sets an inline canvas color for detail pages. */
+  background-color: #fff !important;
+}
+.le-page--hub {
+  --le-bg: #fff;
+  --le-panel: #f6f6f4;
+  --le-text: #20211f;
+  --le-muted: #595c54;
+  --le-accent: #e7cb54;
+  --le-line: #e5e5e1;
+  padding-bottom: 0;
+  box-shadow: none;
+}
+.le-page--hub :where(a, button, summary, [tabindex]):focus-visible {
+  outline-color: #706124;
+}
+.le-page--hub .le-header {
+  min-height: 60px;
+  background: #fffffff5;
+  border-bottom: 0;
+}
+.le-page--hub .le-koda-logo {
+  width: 88px;
+}
+.le-page--hub .le-languages button {
+  min-height: 40px;
+  padding-inline: 10px;
+  border-radius: 0;
+  font-size: 10px;
+}
+.le-page--hub .le-languages button[aria-pressed='true'] {
+  background: transparent;
+  text-decoration: underline;
+  text-underline-offset: 5px;
+  color: var(--le-text);
+}
+.le-page--hub .le-visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+.le-page--hub .le-hub-nav {
+  position: sticky;
+  top: 60px;
+  z-index: 19;
+  display: flex;
+  justify-content: center;
+  gap: 28px;
+  padding-inline: 22px;
+  background: #fffffff5;
+  border-bottom: 1px solid var(--le-line);
+  backdrop-filter: blur(16px);
+}
+.le-page--hub .le-hub-nav a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-hub-nav a[aria-current='page'] {
+  text-decoration: underline;
+  text-underline-offset: 6px;
+}
+.le-page--hub section[id] {
+  scroll-margin-top: 36px;
+}
+.le-page--hub .le-club-hero {
+  padding: 22px 22px 36px;
+}
+.le-page--hub .le-hero-meta,
+.le-page--hub .le-section-index {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  font: 9px/1.5 'Pretendard-Medium', sans-serif;
+  letter-spacing: 0.8px;
+}
+.le-page--hub .le-hero-meta {
+  color: var(--le-muted);
+}
+.le-page--hub .le-hero-composition {
+  padding: 26px 0 20px;
+  text-align: center;
+}
+.le-page--hub .le-hero-display {
+  font: 800 38px/0.98 'Koda-Display', 'Pretendard-Bold', sans-serif;
+  letter-spacing: -1.5px;
+  text-transform: uppercase;
+}
+.le-page--hub .le-hero-display > span {
+  display: block;
+}
+.le-page--hub .le-hero-display--ending {
+  font-size: 31px;
+  letter-spacing: -1.2px;
+}
+.le-page--hub .le-photo-booth {
+  position: relative;
+  width: 266px;
+  max-width: 100%;
+  margin: 22px auto 25px;
+  padding-top: 17px;
+}
+.le-page--hub .le-photo-slot {
+  position: absolute;
+  inset: 0 0 auto;
+  height: 37px;
+  border: 1px solid #898a84;
+  border-radius: 16px;
+  background: linear-gradient(
+    180deg,
+    #f4f4f0 0%,
+    #b7b8b2 20%,
+    #deded9 48%,
+    #999b95 100%
+  );
+  box-shadow: inset 0 1px 1px #fff, inset 0 -2px 2px #66696255,
+    0 2px 3px #20211f12;
+}
+.le-page--hub .le-photo-slot::before {
+  content: '';
+  position: absolute;
+  inset: 9px 12px;
+  border-radius: 7px;
+  background: #181a17;
+  box-shadow: 0 1px 1px #ffffffdd, 0 -2px 3px #30332bbb;
+}
+.le-page--hub .le-print-window {
+  position: relative;
+  width: 100%;
+  padding-bottom: 6px;
+  overflow: hidden;
+}
+.le-page--hub .le-print-window::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 30px;
+  right: 30px;
+  height: 14px;
+  background: linear-gradient(#15171388, transparent);
+  pointer-events: none;
+}
+.le-page--hub .le-photo-print {
+  width: calc(100% - 60px);
+  margin: 0 auto;
+  padding: 7px 7px 9px;
+  background: #faf9f5;
+  border: 1px solid #deddd6;
+  box-shadow: 1px 3px 4px #24251f24;
+  animation: le-photo-print-out 900ms cubic-bezier(0.2, 0.65, 0.25, 1) both;
+}
+.le-page--hub .le-print-photos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+}
+.le-page--hub .le-print-photos img {
+  width: 100%;
+  height: 88px;
+  object-fit: cover;
+}
+.le-page--hub .le-print-photos img:first-child {
+  object-position: center 30%;
+}
+.le-page--hub .le-photo-print figcaption {
+  padding-top: 9px;
+  text-align: left;
+}
+.le-page--hub .le-photo-print figcaption > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+}
+.le-page--hub .le-photo-print strong {
+  font: 800 16px/0.92 'Koda-Display', 'Pretendard-Bold', sans-serif;
+  letter-spacing: -0.7px;
+}
+.le-page--hub .le-photo-print figcaption span {
+  font-size: 8px;
+  line-height: 1.3;
+  color: #6b6d66;
+  text-align: right;
+}
+.le-page--hub .le-photo-print figcaption p {
+  font-size: 8px;
+  line-height: 1.4;
+  margin-top: 6px;
+  color: #6b6d66;
+}
+@keyframes le-photo-print-out {
+  from {
+    transform: translateY(-20px);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .le-page--hub .le-photo-print {
+    animation: none;
+  }
+}
+.le-page--hub .le-hero-description {
+  text-align: center;
+  margin-top: 0;
+  padding-top: 12px;
+}
+.le-page--hub .le-club-hero h1 {
+  font-size: 18px;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+  white-space: pre-line;
+}
+.le-page--hub .le-hero-description > p {
+  margin-top: 12px;
+  color: var(--le-muted);
+  font-size: 13px;
+  line-height: 1.8;
+  word-break: keep-all;
+}
+.le-page--hub .le-hero-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  margin-top: 22px;
+  font-size: 13px;
+  border-bottom: 1px solid var(--le-text);
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-hero-link > span {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--le-accent);
+  font-size: 19px;
+}
+.le-page--hub .le-hub-section {
+  padding: 40px 22px;
+}
+.le-page--hub .le-hub-section-heading {
+  margin-bottom: 28px;
+}
+.le-page--hub .le-section-index {
+  border-top: 1px solid var(--le-line);
+  padding-top: 12px;
+  margin-bottom: 20px;
+}
+.le-page--hub .le-section-index > span:first-child {
+  color: var(--le-muted);
+}
+.le-page--hub .le-hub-section-heading .le-editorial-title {
+  font: 800 25px/1.1 'Koda-Display', 'Pretendard-Bold', sans-serif;
+  letter-spacing: -1px;
+  text-transform: uppercase;
+  margin: 0 0 12px;
+  color: var(--le-text);
+}
+.le-page--hub .le-hub-section-heading h2 {
+  font-size: 16px;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+  white-space: pre-line;
+  text-wrap: balance;
+}
+.le-page--hub .le-hub-section-heading > p:last-child:not(.le-editorial-title) {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--le-muted);
+  margin-top: 8px;
+}
+.le-page--hub .le-calendar-section {
+  background: var(--le-bg);
+}
+.le-page--hub .le-calendar-sheet {
+  padding: 0;
+}
+.le-page--hub .le-calendar-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding-block: 8px 28px;
+}
+.le-page--hub .le-calendar-toolbar h3 {
+  min-width: 0;
+  margin: 0;
+  text-align: center;
+}
+.le-page--hub .le-calendar-month {
+  display: block;
+  font: bold clamp(25px, 7.5vw, 32px) / 1.1 Georgia, 'Times New Roman', serif;
+  letter-spacing: -1.4px;
+  text-transform: uppercase;
+  color: var(--le-text);
+}
+.le-page--hub .le-calendar-toolbar button {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  flex-shrink: 0;
+  border: 0;
+  background: transparent;
+  color: #71675d;
+  font-size: 19px;
+}
+.le-page--hub .le-calendar-table {
+  width: 100%;
+  table-layout: fixed;
+  border-collapse: collapse;
+}
+.le-page--hub .le-calendar-table th {
+  font-size: 11px;
+  font-weight: normal;
+  color: var(--le-muted);
+  padding: 0 4px 10px;
+  text-align: left;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-calendar-table td {
+  padding: 0;
+  text-align: left;
+  vertical-align: top;
+  height: 72px;
+  border-top: 1px solid #d8d5ce;
+  border-right: 1px solid #d8d5ce;
+}
+.le-page--hub .le-calendar-table td:last-child {
+  border-right: 0;
+}
+.le-page--hub .le-calendar-table td > span,
+.le-page--hub .le-calendar-table td > button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  position: relative;
+  height: 72px;
+  width: 100%;
+  padding: 5px 4px;
+  border: 0;
+  border-radius: 0;
+  font-size: 12px;
+  line-height: 1.3;
+  color: var(--le-muted);
+  background: transparent;
+}
+.le-page--hub .le-calendar-table td > button {
+  color: var(--le-text);
+  font-family: 'Pretendard-Bold', sans-serif;
+}
+.le-page--hub .le-calendar-table tr:has(td > button) td {
+  height: 104px;
+}
+.le-page--hub .le-calendar-table tr:has(td > button) td > span,
+.le-page--hub .le-calendar-table tr:has(td > button) td > button {
+  height: auto;
+  min-height: 104px;
+  padding-bottom: 12px;
+}
+.le-page--hub .le-calendar-table td img {
+  width: 100%;
+  height: auto;
+  flex-shrink: 0;
+  object-fit: contain;
+  margin-top: 6px;
+  border: 2px solid #fff;
+  border-bottom-width: 5px;
+  box-shadow: 0 1px 3px #302c2426;
+  transform: rotate(-5deg);
+}
+.le-page--hub .le-calendar-table tr:nth-child(even) td img {
+  transform: rotate(4deg);
+}
+.le-page--hub .le-calendar-day {
+  position: relative;
+  display: grid;
+  place-items: center;
+  min-width: 17px;
+  height: 17px;
+}
+.le-page--hub .le-calendar-table [aria-current='date'] {
+  color: var(--le-text);
+}
+.le-page--hub .le-calendar-table [aria-current='date'] .le-calendar-day {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.le-page--hub .le-calendar-table button[aria-pressed='true'] {
+  background: #e7cb541c;
+}
+.le-page--hub .le-calendar-table [aria-pressed='true'] .le-calendar-day::after {
+  content: '';
+  position: absolute;
+  inset: -2px -3px;
+  border: 1px solid #9a8235;
+  border-radius: 48% 54% 46% 52%;
+  transform: rotate(-12deg);
+}
+.le-page--hub .le-calendar-table i {
+  position: absolute;
+  top: 7px;
+  right: 5px;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: var(--le-text);
+}
+.le-page--hub .le-calendar-key {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 12px;
+  color: var(--le-muted);
+}
+.le-page--hub .le-calendar-key > span {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.le-page--hub .le-calendar-key i {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #8d772b;
+}
+.le-page--hub .le-calendar-key button {
+  border: 0;
+  background: transparent;
+  min-height: 44px;
+  color: var(--le-text);
+  font-size: 12px;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-calendar-selection {
+  margin-top: 12px;
+}
+.le-page--hub .le-selected-event {
+  padding: 20px 0 0;
+  border-top: 1px solid var(--le-line);
+}
+.le-page--hub .le-selected-event + .le-selected-event {
+  margin-top: 24px;
+}
+.le-page--hub .le-selected-top {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+.le-page--hub .le-selected-top img {
+  width: 100px;
+  flex: 0 0 100px;
+  height: auto;
+}
+.le-page--hub .le-selected-top > div {
+  min-width: 0;
+}
+.le-page--hub .le-event-status {
+  display: inline-block;
+  font-size: 11px;
+  border-bottom: 1px solid #988243;
+  padding-bottom: 3px;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-event-status--past {
+  color: var(--le-muted);
+  border-color: var(--le-line);
+}
+.le-page--hub .le-selected-top h3 {
+  font-family: 'Pretendard-SemiBold', sans-serif;
+  font-size: 18px;
+  font-weight: normal;
+  line-height: 1.4;
+  white-space: pre-line;
+  margin: 9px 0 7px;
+  overflow-wrap: anywhere;
+}
+.le-page--hub .le-selected-top p {
+  font-size: 13px;
+  color: var(--le-muted);
+}
+.le-page--hub .le-selected-top strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 15px;
+}
+.le-page--hub .le-selected-schedule {
+  display: grid;
+  gap: 3px;
+  border-top: 1px solid var(--le-line);
+  padding-top: 12px;
+  margin-top: 16px;
+  font-size: 13px;
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-selected-schedule span {
+  color: var(--le-muted);
+}
+.le-page--hub .le-primary-link {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-height: 48px;
+  padding: 11px 15px;
+  border-radius: 0;
+  background: var(--le-accent);
+  color: var(--le-text);
+  font-family: 'Pretendard-SemiBold', sans-serif;
+  font-size: 14px;
+  margin-top: 18px;
+}
+.le-page--hub .le-primary-link span {
+  font-size: 19px;
+  line-height: 1;
+}
+.le-page--hub .le-calendar-empty {
+  padding: 25px 0 10px;
+  border-top: 1px solid var(--le-line);
+}
+.le-page--hub .le-calendar-empty h3 {
+  font-size: 14px;
+  margin: 8px 0;
+}
+.le-page--hub .le-calendar-empty p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--le-muted);
+}
+.le-page--hub .le-gathering-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  border-top: 1px solid var(--le-line);
+}
+.le-page--hub .le-gathering-card {
+  display: grid;
+  grid-template-columns: 100px minmax(0, 1fr);
+  gap: 18px;
+  align-items: stretch;
+  min-width: 0;
+  border-bottom: 1px solid var(--le-line);
+  padding-block: 24px;
+}
+.le-page--hub .le-gathering-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+.le-page--hub .le-gathering-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 4px 10px;
+}
+.le-page--hub .le-gathering-card > img {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 4 / 5;
+  align-self: start;
+  object-fit: contain;
+  background: var(--le-panel);
+}
+.le-page--hub .le-gathering-placeholder {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 4 / 5;
+  background: #e7dfb9;
+  font: italic 25px Georgia, serif;
+}
+.le-page--hub .le-gathering-status {
+  display: block;
+  font-size: 11px;
+  color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-gathering-card h3 {
+  font-family: 'Pretendard-SemiBold', sans-serif;
+  font-size: 16px;
+  font-weight: normal;
+  line-height: 1.5;
+  margin: 10px 0 5px;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.le-page--hub .le-gathering-card time {
+  font-size: 12px;
+  color: var(--le-muted);
+  font-family: 'Pretendard-Medium', sans-serif;
+}
+.le-page--hub .le-gathering-venue {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--le-muted);
+}
+.le-page--hub .le-gathering-price {
+  display: flex;
+  justify-content: space-between;
+  gap: 4px;
+  align-items: center;
+  font-size: 14px;
+  margin-top: auto;
+  padding-top: 12px;
+  font-family: 'Pretendard-SemiBold', sans-serif;
+}
+.le-page--hub .le-gathering-price > span {
+  font-size: 18px;
+}
+.le-page--hub .le-club-about {
+  background: var(--le-bg);
+}
+.le-page--hub .le-about-description {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #60635b;
+  max-width: 310px;
+  margin-left: 0;
+  word-break: keep-all;
+  overflow-wrap: anywhere;
+}
+.le-page--hub .le-about-steps {
+  list-style: none;
+  margin: 24px 0 0;
+  padding: 0;
+}
+.le-page--hub .le-name-story {
+  margin-top: 24px;
+  padding-left: 14px;
+  border-left: 2px solid var(--le-accent);
+}
+.le-page--hub .le-name-story h3 {
+  margin: 0 0 8px;
+  font: 15px/1.5 'Pretendard-SemiBold', sans-serif;
+}
+.le-page--hub .le-name-story p {
+  font-size: 13px;
+  line-height: 1.8;
+  color: var(--le-muted);
+  word-break: keep-all;
+}
+.le-page--hub .le-club-partners {
+  margin-top: 28px;
+}
+.le-page--hub .le-partners-label {
+  font: 14px/1.5 'Pretendard-SemiBold', sans-serif;
+  margin-bottom: 12px;
+}
+.le-page--hub .le-partner-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  border-block: 1px solid var(--le-line);
+}
+.le-page--hub .le-partner-grid a {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 16px 16px 16px 0;
+}
+.le-page--hub .le-partner-grid a + a {
+  padding: 16px 0 16px 16px;
+  border-left: 1px solid var(--le-line);
+}
+.le-page--hub .le-partner-grid strong {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+}
+.le-page--hub .le-partner-grid a > span {
+  font-size: 10px;
+  line-height: 1.8;
+  color: var(--le-muted);
+  word-break: keep-all;
+}
+.le-page--hub .le-partner-grid small {
+  margin-top: auto;
+  padding-top: 4px;
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.le-page--hub .le-about-steps li {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 18px 0;
+  border-top: 1px solid var(--le-line);
+}
+.le-page--hub .le-about-steps li > span:first-child {
+  font-size: 9px;
+  color: var(--le-muted);
+}
+.le-page--hub .le-about-steps h3 {
+  font: 19px/1.3 'Pretendard-SemiBold', sans-serif;
+  letter-spacing: -0.6px;
+  margin: 0 0 7px;
+}
+.le-page--hub .le-about-steps p {
+  color: #60635b;
+  font-size: 11px;
+}
+.le-page--hub .le-about-star {
+  margin-left: auto;
+  font-size: 21px;
+}
+.le-page--hub .le-gallery-hint {
+  color: var(--le-muted);
+  font-size: 10px !important;
+}
+.le-page--hub .le-gallery {
+  gap: 12px;
+  scrollbar-color: #b4b5ae #f6f6f4;
+}
+.le-page--hub .le-gallery figure {
+  flex-basis: 78%;
+}
+.le-page--hub .le-gallery img,
+.le-page--hub .le-gallery video {
+  height: 260px;
+  border-radius: 0;
+}
+.le-page--hub .le-gallery img {
+  object-position: center 30%;
+}
+.le-page--hub .le-gallery figcaption {
+  text-align: left;
+  font-size: 10px;
+  border-top: 1px solid var(--le-line);
+  padding-top: 8px;
+}
+.le-page--hub .le-club-closing {
+  margin: 0 22px 34px;
+  border-top: 1px solid var(--le-line);
+  padding-top: 32px;
+}
+.le-page--hub .le-closing-note {
+  font: 800 27px/1.05 'Koda-Display', 'Pretendard-Bold', sans-serif;
+  letter-spacing: -1.1px;
+  text-transform: uppercase;
+}
+.le-page--hub .le-closing-note em {
+  font-style: normal;
+  font-weight: inherit;
+}
+.le-page--hub .le-club-closing h2 {
+  font-size: 13px;
+  line-height: 1.5;
+  margin-top: 18px;
+}
+.le-page--hub .le-club-closing .le-primary-link {
+  background: var(--le-text);
+  color: #f5f4f0;
+}
+.le-page--hub .le-club-closing .le-primary-link > span {
+  color: var(--le-accent);
+}
+.le-page--hub .le-club-footer {
+  padding: 20px 22px 28px;
+  border-top: 1px solid var(--le-line);
+}
+.le-page--home .le-community {
+  margin: 44px 22px 38px;
+}
+.le-page--home .le-community-eyebrow {
+  font-size: 9px;
+  letter-spacing: 1.4px;
+  color: var(--le-muted);
+  margin-bottom: 10px;
+}
+.le-page--home .le-community h2 {
+  font-size: 21px;
+  letter-spacing: -0.6px;
+  line-height: 1.3;
+}
+.le-page--home .le-community-links {
+  display: grid;
+  gap: 4px;
+  margin-top: 18px;
+}
+.le-page--home .le-community-links a {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding-block: 10px;
+}
+.le-page--home .le-community-links strong {
+  font-size: 14px;
+  font-weight: 600;
+}
+.le-page--home .le-community-handle {
+  font-size: 11px;
+  font-weight: 400;
+  color: var(--le-muted);
+  margin-left: 6px;
+}
+.le-page--home .le-community-links small {
+  display: block;
+  margin-top: 5px;
+  color: var(--le-muted);
+  font-size: 12px;
+  line-height: 1.5;
+}
+.le-page--home .le-community-links a > span:last-child {
+  font-size: 22px;
+}
+.le-page--home .le-community-links a:hover strong {
+  text-decoration: underline;
+  text-underline-offset: 4px;
+}
+.le-page--hub .le-club-footer > div {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.le-page--hub .le-club-footer a {
+  display: grid;
+  place-items: center;
+  min-height: 44px;
+  font-size: 12px;
+}
+.le-page--hub .le-club-footer p,
+.le-page--hub .le-club-footer small {
+  display: block;
+  color: var(--le-muted);
+  font-size: 9px;
+}
+.le-page--hub .le-club-footer small {
+  margin-top: 8px;
+}
+/* Let the home sections breathe without repeating horizontal rules. */
+.le-page--home .le-section-index,
+.le-page--home .le-selected-event,
+.le-page--home .le-selected-schedule,
+.le-page--home .le-calendar-empty,
+.le-page--home .le-gallery figcaption,
+.le-page--home .le-club-closing {
+  border: 0;
+}
+.le-page--home .le-section-index {
+  padding-top: 0;
+  margin-bottom: 16px;
+}
+.le-page--home .le-selected-schedule {
+  padding-top: 0;
+}
+.le-page--home .le-club-closing {
+  padding-top: 24px;
+}
+@media (max-width: 350px) {
+  .le-page--hub .le-club-hero,
+  .le-page--hub .le-hub-section,
+  .le-page--hub .le-hub-nav {
+    padding-inline: 18px;
+  }
+  .le-page--hub .le-hero-display {
+    font-size: 34px;
+    letter-spacing: -1.3px;
+  }
+  .le-page--hub .le-hero-display--ending {
+    font-size: 28px;
+    letter-spacing: -1.1px;
+  }
+  .le-page--hub .le-photo-booth {
+    width: 248px;
+  }
+  .le-page--hub .le-print-photos img {
+    height: 80px;
+  }
+  .le-page--hub .le-gathering-card {
+    grid-template-columns: 88px minmax(0, 1fr);
+    gap: 14px;
+  }
+  .le-page--hub .le-gathering-card h3 {
+    font-size: 14px;
+  }
+  .le-page--hub .le-club-hero h1 {
+    font-size: 17px;
+  }
+  .le-page--hub .le-hero-description > p {
+    font-size: 13px;
+  }
+  .le-page--hub .le-selected-top {
+    gap: 14px;
+  }
+  .le-page--hub .le-selected-top img {
+    width: 78px;
+    flex-basis: 78px;
+  }
+  .le-page--hub .le-selected-top h3 {
+    font-size: 16px;
+  }
+  .le-page--hub .le-hub-section-heading .le-editorial-title {
+    font-size: 23px;
+  }
+  .le-page--hub .le-closing-note {
+    font-size: 24px;
+  }
+}

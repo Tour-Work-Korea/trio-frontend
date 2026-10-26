@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -33,7 +35,7 @@ const formatRelativeTime = dateTime => {
   const diffMinutes = Math.floor(diffMs / 60000);
 
   if (diffMinutes < 1) {
-    return '방금';
+    return i18n.t('common.justNow');
   }
 
   if (diffMinutes < 60) {
@@ -57,6 +59,7 @@ const formatRelativeTime = dateTime => {
 };
 
 const MyCommunityCommentList = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const listRef = useRef(null);
   const commentsLengthRef = useRef(0);
@@ -88,8 +91,11 @@ const MyCommunityCommentList = () => {
           page: pageToFetch,
           size: PAGE_SIZE,
         });
-        const {content = [], last = true, number = pageToFetch} =
-          response.data ?? {};
+        const {
+          content = [],
+          last = true,
+          number = pageToFetch,
+        } = response.data ?? {};
 
         setComments(prev =>
           pageToFetch === 0 ? content : [...prev, ...content],
@@ -215,7 +221,10 @@ const MyCommunityCommentList = () => {
     const isRecruitComment = item.sourceType === SOURCE_TYPE_RECRUIT;
     const post = item.postSummary;
     const recruit = item.recruitSummary;
-    const commentTypeText = item.commentType === 'REPLY' ? '내 답글' : '내 댓글';
+    const commentTypeText =
+      item.commentType === 'REPLY'
+        ? t('community.myReply')
+        : t('community.myComment');
     const targetName = isRecruitComment
       ? recruit?.guesthouseName
       : item.targetAuthorNickname;
@@ -229,7 +238,7 @@ const MyCommunityCommentList = () => {
           <View style={styles.postSummary}>
             <View style={styles.recruitHeader}>
               <Text style={[FONTS.fs_14_medium, styles.recruitBadge]}>
-                스탭 공고
+                {t('community.staffNotice')}
               </Text>
               <Text
                 style={[FONTS.fs_14_regular, styles.postTime]}
@@ -259,6 +268,7 @@ const MyCommunityCommentList = () => {
                 iconSize={16}
                 style={styles.avatar}
               />
+
               <Text style={[FONTS.fs_16_medium, styles.nickname]}>
                 {post?.author?.nickname}
               </Text>
@@ -306,7 +316,8 @@ const MyCommunityCommentList = () => {
             <Text
               style={[FONTS.fs_14_regular, styles.targetText]}
               numberOfLines={1}>
-              {targetName}_님에게 남김
+              {targetName}
+              {t('community.leftFor')}
             </Text>
           </View>
           <Text
@@ -322,11 +333,16 @@ const MyCommunityCommentList = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="내가 쓴 댓글" onPress={() => navigation.goBack()} />
+      <Header
+        title={t('common.commentIWrote')}
+        onPress={() => navigation.goBack()}
+      />
       <FlatList
         ref={listRef}
         data={comments}
-        keyExtractor={item => `${item.sourceType ?? 'COMMUNITY'}-${item.commentId}`}
+        keyExtractor={item =>
+          `${item.sourceType ?? 'COMMUNITY'}-${item.commentId}`
+        }
         renderItem={renderCommentItem}
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.listContent}
@@ -334,10 +350,10 @@ const MyCommunityCommentList = () => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title="내가 쓴 댓글을 불러오는 중입니다..." />
+            <Loading title={t('community.loadingMyComments')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
-              아직 작성한 댓글이 없어요.
+              {t('community.thereAreNoCommentsWrittenYet')}
             </Text>
           )
         }

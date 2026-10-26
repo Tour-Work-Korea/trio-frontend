@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   View,
@@ -8,66 +9,83 @@ import {
   Platform,
 } from 'react-native';
 import Modal from '@components/modals/AdaptiveModal';
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
 import useAmenityStore from '@stores/amenityStore';
 
 import XBtn from '@assets/images/x_gray.svg';
 
 const CATEGORY_TITLES = {
-  PUBLIC: '숙소 공용시설',
-  PUBLIC_FACILITY: '숙소 공용시설',
-  COMMON: '숙소 공용시설',
-  COMMON_FACILITY: '숙소 공용시설',
-  ROOM: '객실 내 시설',
-  ROOM_FACILITY: '객실 내 시설',
-  PRIVATE: '객실 내 시설',
-  SERVICE: '기타시설 및 서비스',
-  ETC: '기타시설 및 서비스',
+  PUBLIC: 'common.accommodationCommonFacilities',
+  PUBLIC_FACILITY: 'common.accommodationCommonFacilities',
+  COMMON: 'common.accommodationCommonFacilities',
+  COMMON_FACILITY: 'common.accommodationCommonFacilities',
+  ROOM: 'common.inRoomFacilities',
+  ROOM_FACILITY: 'common.inRoomFacilities',
+  PRIVATE: 'common.inRoomFacilities',
+  SERVICE: 'common.otherFacilitiesAndServices',
+  ETC: 'common.otherFacilitiesAndServices',
 };
 
-const getCategoryTitle = category => {
-  if (!category) return '기타시설 및 서비스';
+const getCategoryTitle = (category, t) => {
+  if (!category) return t('common.otherFacilitiesAndServices');
 
-  return CATEGORY_TITLES[category] ?? (
-    category.includes('ROOM')
-      ? '객실 내 시설'
+  return (
+    (CATEGORY_TITLES[category] ? t(CATEGORY_TITLES[category]) : null) ??
+    (category.includes('ROOM')
+      ? t('common.inRoomFacilities')
       : category.includes('SERVICE')
-        ? '기타시설 및 서비스'
-        : '숙소 공용시설'
+      ? t('common.otherFacilitiesAndServices')
+      : t('common.accommodationCommonFacilities'))
   );
 };
 
-const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
+const ServiceInfoModal = ({visible, onClose, selectedAmenities = []}) => {
+  const {t} = useTranslation();
   const amenities = useAmenityStore(state => state.amenities);
   const selectedNames = selectedAmenities
-    .map((amenity) => {
+    .map(amenity => {
       if (typeof amenity === 'string') return amenity;
-      return amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? null;
+      return (
+        amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? null
+      );
     })
     .filter(Boolean);
 
-  const amenitySource = amenities.length > 0
-    ? amenities
-    : selectedAmenities.map((amenity, index) => ({
-        id: typeof amenity === 'object' ? amenity?.id ?? index : index,
-        name:
-          typeof amenity === 'string'
-            ? amenity
-            : amenity?.name ?? amenity?.amenityName ?? amenity?.amenityType ?? '',
-        amenityName:
-          typeof amenity === 'string'
-            ? amenity
-            : amenity?.amenityName ?? amenity?.name ?? amenity?.amenityType ?? '',
-        amenityType:
-          typeof amenity === 'string'
-            ? amenity
-            : amenity?.amenityType ?? amenity?.amenityName ?? amenity?.name ?? '',
-        category: typeof amenity === 'object' ? amenity?.category ?? 'SERVICE' : 'SERVICE',
-      }));
+  const amenitySource =
+    amenities.length > 0
+      ? amenities
+      : selectedAmenities.map((amenity, index) => ({
+          id: typeof amenity === 'object' ? amenity?.id ?? index : index,
+          name:
+            typeof amenity === 'string'
+              ? amenity
+              : amenity?.name ??
+                amenity?.amenityName ??
+                amenity?.amenityType ??
+                '',
+          amenityName:
+            typeof amenity === 'string'
+              ? amenity
+              : amenity?.amenityName ??
+                amenity?.name ??
+                amenity?.amenityType ??
+                '',
+          amenityType:
+            typeof amenity === 'string'
+              ? amenity
+              : amenity?.amenityType ??
+                amenity?.amenityName ??
+                amenity?.name ??
+                '',
+          category:
+            typeof amenity === 'object'
+              ? amenity?.category ?? 'SERVICE'
+              : 'SERVICE',
+        }));
 
   const groupedAmenities = amenitySource.reduce((acc, amenity) => {
-    const categoryTitle = getCategoryTitle(amenity.category);
+    const categoryTitle = getCategoryTitle(amenity.category, t);
 
     if (!acc[categoryTitle]) {
       acc[categoryTitle] = [];
@@ -81,7 +99,7 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
     <View key={title} style={styles.section}>
       <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>{title}</Text>
       <View style={styles.tagWrapper}>
-        {items.map((item) => {
+        {items.map(item => {
           const itemKey = String(item.id ?? item.name);
           const isSelected =
             selectedNames.includes(item.amenityType) ||
@@ -93,7 +111,7 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
                 style={[
                   FONTS.fs_14_medium,
                   styles.tagText,
-                  isSelected && { color: COLORS.primary_orange },
+                  isSelected && {color: COLORS.primary_orange},
                   isSelected && FONTS.fs_14_semibold,
                 ]}>
                 {item.name}
@@ -112,14 +130,17 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
         style={styles.backdrop}
         onPress={onClose}
       />
+
       <View style={styles.modalContainer}>
         <View style={styles.header}>
           <Text style={[FONTS.fs_20_semibold, styles.title]}>
-            편의시설 및 서비스
+            {t('guesthouse.amenitiesAndServices')}
           </Text>
           <TouchableOpacity
-            activeOpacity={1} style={styles.XButton} onPress={onClose}>
-            <XBtn width={24} height={24}/>
+            activeOpacity={1}
+            style={styles.XButton}
+            onPress={onClose}>
+            <XBtn width={24} height={24} />
           </TouchableOpacity>
         </View>
         <ScrollView
@@ -127,7 +148,7 @@ const ServiceInfoModal = ({ visible, onClose, selectedAmenities = [] }) => {
           contentContainerStyle={styles.scrollContent}
           showsVerticalScrollIndicator={false}>
           {Object.entries(groupedAmenities).map(([title, items]) =>
-            renderSection(title, items)
+            renderSection(title, items),
           )}
         </ScrollView>
       </View>
@@ -190,17 +211,14 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginBottom: 16,
   },
-  title: {
-  },
-  XButton: {
-  },
+  title: {},
+  XButton: {},
 
   // 각 섹션
   section: {
     marginBottom: 24,
   },
-  sectionTitle: {
-  },
+  sectionTitle: {},
   tagWrapper: {
     marginTop: 12,
     backgroundColor: COLORS.grayscale_100,

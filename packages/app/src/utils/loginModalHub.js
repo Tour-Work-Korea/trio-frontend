@@ -4,7 +4,7 @@ const defaultModalState = {
   visible: false,
   title: '',
   message: '',
-  buttonText: '확인',
+  buttonText: null,
   buttonText2: null,
   onPress: null,
   onPress2: null,

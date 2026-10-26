@@ -1,32 +1,65 @@
-import React, { useEffect, useState , useCallback } from 'react';
-import { View, Text, FlatList, TouchableOpacity, StyleSheet } from 'react-native';
-import { useNavigation, useFocusEffect } from '@react-navigation/native';
+import {useTranslation} from 'react-i18next';
+import React, {useState, useCallback, useRef} from 'react';
+import {
+  AppState,
+  View,
+  Text,
+  FlatList,
+  TouchableOpacity,
+  StyleSheet,
+} from 'react-native';
+import {useNavigation, useFocusEffect} from '@react-navigation/native';
 
-import { FONTS } from '@constants/fonts';
-import { COLORS } from '@constants/colors';
-import { formatLocalDateTimeToDotAndTimeWithDay } from '@utils/formatDate';
+import {FONTS} from '@constants/fonts';
+import {COLORS} from '@constants/colors';
+import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
 import EmptyState from '@components/EmptyState';
 import Loading from '@components/Loading';
 import userMyApi from '@utils/api/userMyApi';
 import AppImage from '@components/AppImage';
+import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
+import {mergeReviewableItemsWithReservations} from '@utils/reviewEligibility';
+
+const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
 
 const UserGuesthouseReviewWrite = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const [reservations, setReservations] = useState([]);
   const [loading, setLoading] = useState(false);
+  const hasLoaded = useRef(false);
+  const isFetching = useRef(false);
 
   const toLocalDateTime = (date, time) =>
     date ? `${date}T${time ?? '00:00:00'}` : '';
 
   const fetchReservationList = async () => {
+    if (isFetching.current) return;
+
     try {
-      setLoading(true);
-      const res = await userMyApi.getMyReservations();
-      setReservations(res.data);
+      isFetching.current = true;
+      if (!hasLoaded.current) setLoading(true);
+
+      const [reviewsResponse, reservationsResponse] = await Promise.all([
+        userMyApi.getMyReviews(),
+        userMyApi.getMyReservations(),
+      ]);
+      const reservationItems = Array.isArray(reservationsResponse.data)
+        ? reservationsResponse.data
+        : [];
+
+      setReservations(
+        mergeReviewableItemsWithReservations(
+          reviewsResponse.data,
+          reservationItems,
+        ),
+      );
     } catch (error) {
-      console.log('예약 목록 불러오기 실패');
+      console.log('작성 가능한 리뷰 목록 불러오기 실패:', error);
     } finally {
+      isFetching.current = false;
+      hasLoaded.current = true;
       setLoading(false);
     }
   };
@@ -34,20 +67,30 @@ const UserGuesthouseReviewWrite = () => {
   useFocusEffect(
     useCallback(() => {
       fetchReservationList();
-    }, [])
+      const intervalId = setInterval(
+        fetchReservationList,
+        REVIEW_ELIGIBILITY_REFRESH_INTERVAL,
+      );
+      const appStateSubscription = AppState.addEventListener(
+        'change',
+        nextState => {
+          if (nextState === 'active') fetchReservationList();
+        },
+      );
+
+      return () => {
+        clearInterval(intervalId);
+        appStateSubscription.remove();
+      };
+    }, []),
   );
 
-  // COMPLETED 상태, 리뷰 안 쓴것만
-  const completedReservations = reservations.filter(
-    (item) => item.reservationStatus === 'COMPLETED' && !item.reviewed
-  );
-
-  const renderItem = ({ item, index }) => {
+  const renderItem = ({item, index}) => {
     const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+      toLocalDateTime(item.checkIn, item.guesthouseCheckIn),
     );
     const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-      toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+      toLocalDateTime(item.checkOut, item.guesthouseCheckOut),
     );
 
     return (
@@ -59,33 +102,46 @@ const UserGuesthouseReviewWrite = () => {
               style={styles.image}
               resizeMode="cover"
             />
+
             <View style={styles.infoContent}>
-              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>{item.guesthouseName}</Text>
+              <Text style={[FONTS.fs_16_semibold, styles.nameText]}>
+                {item.guesthouseName}
+              </Text>
               <Text
                 style={[FONTS.fs_14_medium, styles.roomText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
+                ellipsizeMode="tail">
                 {item.roomName}
               </Text>
               <Text
                 style={[FONTS.fs_12_medium, styles.adressText]}
                 numberOfLines={1}
-                ellipsizeMode="tail"
-              >
-                {item.guesthouseAddress}
+                ellipsizeMode="tail">
+                {trimJejuPrefix(item.guesthouseAddress)}
               </Text>
             </View>
           </View>
           <View style={styles.dateContent}>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkInFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkInFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkInFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkInFormatted.time}{' '}
+              </Text>
             </View>
             <Text style={[FONTS.fs_14_medium, styles.devideText]}>~</Text>
             <View style={styles.dateContainer}>
-              <Text style={[FONTS.fs_14_semibold, styles.dateText]}> {checkOutFormatted.date} </Text>
-              <Text style={[FONTS.fs_12_medium, styles.timeText]}> {checkOutFormatted.time} </Text>
+              <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
+                {' '}
+                {checkOutFormatted.date}{' '}
+              </Text>
+              <Text style={[FONTS.fs_12_medium, styles.timeText]}>
+                {' '}
+                {checkOutFormatted.time}{' '}
+              </Text>
             </View>
           </View>
         </View>
@@ -94,12 +150,12 @@ const UserGuesthouseReviewWrite = () => {
           activeOpacity={1}
           style={styles.reviewButton}
           onPress={() => {
-            if (!item.reviewed) {
+            if (item.isReviewed === false) {
               const checkInFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                toLocalDateTime(item.checkIn, item.guesthouseCheckIn)
+                toLocalDateTime(item.checkIn, item.guesthouseCheckIn),
               );
               const checkOutFormatted = formatLocalDateTimeToDotAndTimeWithDay(
-                toLocalDateTime(item.checkOut, item.guesthouseCheckOut)
+                toLocalDateTime(item.checkOut, item.guesthouseCheckOut),
               );
 
               navigation.navigate('UserGuesthouseReviewForm', {
@@ -107,14 +163,15 @@ const UserGuesthouseReviewWrite = () => {
                 reservationId: item.reservationId,
                 guesthouseName: item.guesthouseName,
                 roomName: item.roomName,
-                guesthouseAddress: item.guesthouseAddress,
+                guesthouseAddress: trimJejuPrefix(item.guesthouseAddress),
                 checkInFormatted: checkInFormatted,
                 checkOutFormatted: checkOutFormatted,
               });
             }
-          }}
-        >
-          <Text style={[FONTS.fs_16_semibold, styles.reviewText]}>리뷰 작성하기</Text>
+          }}>
+          <Text style={[FONTS.fs_16_semibold, styles.reviewText]}>
+            {t('common.writeAReview')}
+          </Text>
         </TouchableOpacity>
 
         {index !== reservations.length - 1 && <View style={styles.devide} />}
@@ -125,25 +182,27 @@ const UserGuesthouseReviewWrite = () => {
   return (
     <>
       {loading ? (
-          <Loading title="리뷰 목록을 불러오고 있어요." />
-        ) : (
+        <Loading title={t('common.loadingTheReviewList')} />
+      ) : (
         <FlatList
-          data={completedReservations}
+          data={reservations}
           keyExtractor={item => item.reservationId.toString()}
           renderItem={renderItem}
           contentContainerStyle={{
             flexGrow: 1,
-            justifyContent: completedReservations.length === 0 ? 'center' : 'flex-start',
+            justifyContent: reservations.length === 0 ? 'center' : 'flex-start',
             paddingVertical: 24,
           }}
           ListEmptyComponent={
             <EmptyState
               icon={NoReview}
-              iconSize={{ width: 100, height: 60 }}
-              title="아직 작성할 리뷰가 없어요"
-              description="게스트하우스를 예약하러 가볼까요?"
-              buttonText="게스트하우스 찾아보기"
-              onPressButton={() => navigation.navigate('MainTabs', { screen: '게하' })}
+              iconSize={{width: 100, height: 60}}
+              title={t('common.thereAreNoReviewsToWriteYet')}
+              description={t('common.shallWeGoMakeAReservationForAGuesthouse')}
+              buttonText={t('common.findAGuesthouse')}
+              onPressButton={() =>
+                navigation.navigate('MainTabs', {screen: '게하'})
+              }
             />
           }
         />
@@ -165,8 +224,7 @@ const styles = StyleSheet.create({
   },
 
   // 리스트
-  card: {
-  },
+  card: {},
   // 게하 정보
   guesthouseInfo: {
     flexDirection: 'row',
@@ -183,9 +241,7 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     gap: 4,
   },
-  nameText: {
-
-  },
+  nameText: {},
   roomText: {
     color: COLORS.grayscale_800,
     flexShrink: 1,

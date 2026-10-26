@@ -8,6 +8,7 @@ import userMeetApi from '@utils/api/userMeetApi';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import postApi from './api/postApi';
 import communityApi from './api/communityApi';
+import i18n from '../i18n';
 
 /**
  * 통합 즐겨찾기 토글
@@ -75,9 +76,9 @@ export const toggleFavorite = async ({
     }
 
     showErrorModal({
-      message: '좋아요 기능은\n 로그인 후 사용해주세요',
-      buttonText: '로그인하기',
-      buttonText2: '취소',
+      message: i18n.t('common.loginToUseFavorites'),
+      buttonText: i18n.t('common.logIn'),
+      buttonText2: i18n.t('common.cancel'),
       onPress: () => {
         if (navigationRef.isReady?.()) {
           navigationRef.navigate('Login');
@@ -152,11 +153,7 @@ export const toggleFavorite = async ({
       'toggleFavorite error',
       error?.response?.data || error?.message,
     );
-    const serverMessage =
-      error?.response?.data?.message ||
-      error?.response?.data?.error ||
-      error?.message;
-    Alert.alert(serverMessage || '좋아요 처리 중 오류가 발생했습니다.');
+    Alert.alert(i18n.t('common.favoriteUpdateFailed'));
     return false;
   }
 };

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
@@ -8,25 +9,29 @@ import {
   Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import dayjs from 'dayjs';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import {formatLocalDateTimeToDotAndTime} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import HomeIcon from '@assets/images/home_white_filled.svg';
 import ChevroRight from '@assets/images/chevron_right_blue.svg';
 
-const recruitTabs = ['모집조건', '근무조건', '근무 정보'];
+const recruitTabs = [
+  'employ.recruitmentConditions',
+  'employ.workingConditions',
+  'employ.workInformation',
+];
 const recruitTabItems = recruitTabs.map(tab => ({key: tab}));
 
 export default function RecruitTapSection({recruit}) {
+  const {t, i18n} = useTranslation();
+  const isEnglish = i18n.resolvedLanguage === 'en';
   const navigation = useNavigation();
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [selectedImageId, setSelectedImageId] = useState(0);
@@ -123,7 +128,7 @@ export default function RecruitTapSection({recruit}) {
     }
 
     navigation.navigate('GuesthouseLocationMap', {
-      guesthouseName: recruit?.guesthouseName || '근무지 위치',
+      guesthouseName: recruit?.guesthouseName || t('employ.workLocation'),
       guesthouseAddress: recruit?.location,
       latitude: mapCoordinate.latitude,
       longitude: mapCoordinate.longitude,
@@ -183,75 +188,182 @@ export default function RecruitTapSection({recruit}) {
 
   const renderTabContent = tabName => {
     switch (tabName) {
-      case '모집조건':
+      case 'employ.recruitmentConditions':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>모집기간</Text>
-              <Text style={styles.infoValue}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.recruitmentPeriod')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {formatLocalDateTimeToDotAndTime(recruit.recruitStart).date}~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.recruitEnd).date}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>모집인원</Text>
-              <Text style={styles.infoValue}>
-                여 {recruit.recruitNumberFemale}명, 남{' '}
-                {recruit.recruitNumberMale}명, 성별무관{' '}
-                {recruit.recruitNumberNoGender}명
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.numberOfPeopleRecruited')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {t('employ.recruitmentGenderCounts', {
+                  female: recruit.recruitNumberFemale,
+                  male: recruit.recruitNumberMale,
+                  anyGender: recruit.recruitNumberNoGender,
+                })}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>나이</Text>
-              <Text style={styles.infoValue}>
-                {recruit.recruitMinAge} ~ {recruit.recruitMaxAge}세
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.age')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {t('employ.ageRange', {
+                  min: recruit.recruitMinAge,
+                  max: recruit.recruitMaxAge,
+                })}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>입도날짜</Text>
-              <Text style={styles.infoValue}>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.entryDate')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
                 {formatLocalDateTimeToDotAndTime(recruit.entryStartDate).date} ~{' '}
                 {formatLocalDateTimeToDotAndTime(recruit.entryEndDate).date}
               </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>우대조건</Text>
-              <Text style={styles.infoValue}>{recruit.recruitCondition}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.preferentialConditions')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.recruitCondition}
+              </Text>
             </View>
           </View>
         );
-      case '근무조건':
+
+      case 'employ.workingConditions':
         return (
           <View style={styles.tabContent}>
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>근무형태</Text>
-              <Text style={styles.infoValue}>{recruit.workType}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.workType')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workType}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>주요업무</Text>
-              <Text style={styles.infoValue}>{recruit.workPart}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.mainTasks')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workPart}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>근무기간</Text>
-              <Text style={styles.infoValue}>{recruit.workDuration}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('common.workingPeriod')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.workDuration}
+              </Text>
             </View>
 
-            <View style={styles.infoRow}>
-              <Text style={styles.infoLabel}>복지</Text>
-              <Text style={styles.infoValue}>{recruit.welfare}</Text>
+            <View style={[styles.infoRow, isEnglish && styles.infoRowEnglish]}>
+              <Text
+                style={[
+                  styles.infoLabel,
+                  isEnglish && styles.infoLabelEnglish,
+                ]}>
+                {t('employ.welfare')}
+              </Text>
+              <Text
+                style={[
+                  styles.infoValue,
+                  isEnglish && styles.infoValueEnglish,
+                ]}>
+                {recruit.welfare}
+              </Text>
             </View>
           </View>
         );
-      case '근무 정보':
+
+      case 'employ.workInformation':
         return (
           <View style={styles.tabContent}>
-            <Text style={styles.sectionTitle}>근무 사진</Text>
+            <Text style={styles.sectionTitle}>{t('employ.workingPhoto')}</Text>
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
@@ -285,7 +397,7 @@ export default function RecruitTapSection({recruit}) {
               ))}
             </ScrollView>
 
-            <Text style={styles.sectionTitle}>근무지 위치</Text>
+            <Text style={styles.sectionTitle}>{t('employ.workLocation')}</Text>
             {renderWorkLocationMap()}
             <View style={styles.guesthouseLinkCard}>
               <View style={styles.guesthouseLinkTopRow}>
@@ -308,7 +420,9 @@ export default function RecruitTapSection({recruit}) {
                       recruit?.profileSummary?.guesthouseId
                     )
                   }>
-                  <Text style={styles.guesthouseLinkAction}>게하 보러가기</Text>
+                  <Text style={styles.guesthouseLinkAction}>
+                    {t('common.goSeeGuesthouse')}
+                  </Text>
                   <ChevroRight width={14} height={14} />
                 </TouchableOpacity>
               </View>
@@ -321,6 +435,7 @@ export default function RecruitTapSection({recruit}) {
             </View>
           </View>
         );
+
       default:
         return null;
     }
@@ -344,7 +459,7 @@ export default function RecruitTapSection({recruit}) {
       <View style={styles.tabContainer}>
         {recruitTabs.map((tabName, tabIndex) => (
           <TouchableOpacity
-            key={tabName}
+            key={t(tabName)}
             activeOpacity={1}
             style={[styles.tab, isActive(tabName) && styles.activeTab]}
             onPress={() => onTabPress(tabIndex)}>
@@ -353,7 +468,7 @@ export default function RecruitTapSection({recruit}) {
                 styles.tabText,
                 isActive(tabName) && styles.activeTabText,
               ]}>
-              {tabName}
+              {t(tabName)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -381,7 +496,7 @@ export default function RecruitTapSection({recruit}) {
           {...webSwipeHandlers}>
           {recruitTabs.map(tabName => (
             <View
-              key={tabName}
+              key={t(tabName)}
               style={[styles.page, pageWidth > 0 && {width: pageWidth}]}>
               <View onLayout={handleTabContentLayout(tabName)}>
                 {renderedTabs.has(tabName) ? renderTabContent(tabName) : null}
@@ -460,6 +575,9 @@ const styles = StyleSheet.create({
     color: COLORS.grayscale_400,
     width: 60,
   },
+  infoRowEnglish: {flexDirection: 'column', gap: 4},
+  infoLabelEnglish: {width: '100%'},
+  infoValueEnglish: {flex: 0, width: '100%'},
   infoValue: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_800,

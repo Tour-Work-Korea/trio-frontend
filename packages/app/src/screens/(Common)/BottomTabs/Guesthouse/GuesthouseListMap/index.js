@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -14,13 +16,11 @@ import {
   View,
 } from 'react-native';
 import Geolocation from '@react-native-community/geolocation';
-import {
-  NaverMapMarkerOverlay,
-  NaverMapView,
-} from '@mj-studio/react-native-naver-map';
+import {NaverMapMarkerOverlay} from '@mj-studio/react-native-naver-map';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
+import NaverMapView from '@components/LocalizedNaverMapView';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {
@@ -73,39 +73,46 @@ const WEB_INITIAL_FIT_PADDING = {
   top: 12,
 };
 const WEB_INITIAL_REGION_SCALE = 0.6;
+const NATIVE_ALL_REGION_VERTICAL_OFFSET = 0.08;
 const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
   if (!region) {
     return null;
   }
 
-  const nextRegion = Platform.OS === 'web' && !fitFullBounds
-    ? {
-      ...region,
-      latitudeDelta: region.latitudeDelta * WEB_INITIAL_REGION_SCALE,
-      longitudeDelta: region.longitudeDelta * WEB_INITIAL_REGION_SCALE,
-    }
-    : region;
+  const nextRegion =
+    Platform.OS === 'web' && !fitFullBounds
+      ? {
+          ...region,
+          latitudeDelta: region.latitudeDelta * WEB_INITIAL_REGION_SCALE,
+          longitudeDelta: region.longitudeDelta * WEB_INITIAL_REGION_SCALE,
+        }
+      : region;
 
   return {
-    latitude: nextRegion.latitude - nextRegion.latitudeDelta / 2,
+    latitude:
+      nextRegion.latitude -
+      nextRegion.latitudeDelta / 2 -
+      (Platform.OS !== 'web' && fitFullBounds
+        ? nextRegion.latitudeDelta * NATIVE_ALL_REGION_VERTICAL_OFFSET
+        : 0),
     longitude: nextRegion.longitude - nextRegion.longitudeDelta / 2,
     latitudeDelta: nextRegion.latitudeDelta,
     longitudeDelta: nextRegion.longitudeDelta,
     ...(Platform.OS === 'web'
       ? {
-        fitBoundsPadding: WEB_INITIAL_FIT_PADDING,
-      }
+          fitBoundsPadding: WEB_INITIAL_FIT_PADDING,
+        }
       : {}),
   };
 };
 
 const getBoundsFromRegion = region => {
   if (
-    !region
-    || !Number.isFinite(region.latitude)
-    || !Number.isFinite(region.longitude)
-    || !Number.isFinite(region.latitudeDelta)
-    || !Number.isFinite(region.longitudeDelta)
+    !region ||
+    !Number.isFinite(region.latitude) ||
+    !Number.isFinite(region.longitude) ||
+    !Number.isFinite(region.latitudeDelta) ||
+    !Number.isFinite(region.longitudeDelta)
   ) {
     return null;
   }
@@ -130,7 +137,9 @@ const getMapFetchKey = ({
   filterParams,
 }) => {
   const normalizedFilters = Object.entries(filterParams ?? {})
-    .filter(([, value]) => value !== undefined && value !== null && value !== '')
+    .filter(
+      ([, value]) => value !== undefined && value !== null && value !== '',
+    )
     .map(([key, value]) => [
       key,
       Array.isArray(value) ? [...value].sort().join(',') : String(value),
@@ -228,11 +237,11 @@ const getGuesthouseListFallbackItems = data => {
 const getGuesthouseImageUrls = item => {
   const imageUrls = Array.isArray(item?.guesthouseImages)
     ? [...item.guesthouseImages]
-      .sort((a, b) =>
-        a?.isThumbnail === b?.isThumbnail ? 0 : a?.isThumbnail ? -1 : 1,
-      )
-      .map(image => image?.guesthouseImageUrl)
-      .filter(Boolean)
+        .sort((a, b) =>
+          a?.isThumbnail === b?.isThumbnail ? 0 : a?.isThumbnail ? -1 : 1,
+        )
+        .map(image => image?.guesthouseImageUrl)
+        .filter(Boolean)
     : [];
 
   if (imageUrls.length > 0) {
@@ -242,7 +251,8 @@ const getGuesthouseImageUrls = item => {
   return item?.thumbnailImgUrl ? [item.thumbnailImgUrl] : [];
 };
 
-const getGuesthouseThumbnailUrl = item => getGuesthouseImageUrls(item)[0] ?? null;
+const getGuesthouseThumbnailUrl = item =>
+  getGuesthouseImageUrls(item)[0] ?? null;
 
 const getRegionFromGuesthouses = guesthouses => {
   const validItems = guesthouses.filter(
@@ -300,19 +310,23 @@ const shouldSuggestResearch = (nextBounds, prevBounds) => {
   const prevLngSpan = Math.abs(prevBounds.neLng - prevBounds.swLng);
 
   return (
-    Math.abs(nextCenter.lat - prevCenter.lat) > RESEARCH_CENTER_DELTA_THRESHOLD
-    || Math.abs(nextCenter.lng - prevCenter.lng) > RESEARCH_CENTER_DELTA_THRESHOLD
-    || Math.abs(nextLatSpan - prevLatSpan) > RESEARCH_SPAN_DELTA_THRESHOLD
-    || Math.abs(nextLngSpan - prevLngSpan) > RESEARCH_SPAN_DELTA_THRESHOLD
+    Math.abs(nextCenter.lat - prevCenter.lat) >
+      RESEARCH_CENTER_DELTA_THRESHOLD ||
+    Math.abs(nextCenter.lng - prevCenter.lng) >
+      RESEARCH_CENTER_DELTA_THRESHOLD ||
+    Math.abs(nextLatSpan - prevLatSpan) > RESEARCH_SPAN_DELTA_THRESHOLD ||
+    Math.abs(nextLngSpan - prevLngSpan) > RESEARCH_SPAN_DELTA_THRESHOLD
   );
 };
 
 const getPriceLabel = item => {
   if (item?.isReserved || item?.minPrice == null) {
-    return '예약마감';
+    return i18n.t('common.reservationDeadline');
   }
 
-  return `${Number(item.minPrice).toLocaleString()}원`;
+  return i18n.t('common.valueWon', {
+    value1: Number(item.minPrice).toLocaleString(),
+  });
 };
 
 const getClusterKey = items =>
@@ -323,12 +337,12 @@ const getClusterKey = items =>
 
 const getMapPointFromCoordinate = (coordinate, region, mapSize) => {
   if (
-    !coordinate
-    || !region
-    || !mapSize?.width
-    || !mapSize?.height
-    || !Number.isFinite(region.latitudeDelta)
-    || !Number.isFinite(region.longitudeDelta)
+    !coordinate ||
+    !region ||
+    !mapSize?.width ||
+    !mapSize?.height ||
+    !Number.isFinite(region.latitudeDelta) ||
+    !Number.isFinite(region.longitudeDelta)
   ) {
     return null;
   }
@@ -338,13 +352,13 @@ const getMapPointFromCoordinate = (coordinate, region, mapSize) => {
 
   return {
     x:
-      ((coordinate.longitude - (region.longitude - longitudeDelta / 2))
-        / longitudeDelta)
-      * mapSize.width,
+      ((coordinate.longitude - (region.longitude - longitudeDelta / 2)) /
+        longitudeDelta) *
+      mapSize.width,
     y:
-      (((region.latitude + latitudeDelta / 2) - coordinate.latitude)
-        / latitudeDelta)
-      * mapSize.height,
+      ((region.latitude + latitudeDelta / 2 - coordinate.latitude) /
+        latitudeDelta) *
+      mapSize.height,
   };
 };
 
@@ -364,11 +378,11 @@ const groupGuesthouses = (guesthouses, region, mapSize) => {
   const map = new Map();
 
   if (
-    !region
-    || !mapSize?.width
-    || !mapSize?.height
-    || !Number.isFinite(region.latitudeDelta)
-    || !Number.isFinite(region.longitudeDelta)
+    !region ||
+    !mapSize?.width ||
+    !mapSize?.height ||
+    !Number.isFinite(region.latitudeDelta) ||
+    !Number.isFinite(region.longitudeDelta)
   ) {
     guesthouses.forEach(item => {
       if (!Number.isFinite(item.lat) || !Number.isFinite(item.lng)) {
@@ -421,11 +435,11 @@ const groupGuesthouses = (guesthouses, region, mapSize) => {
 
   const projectPoint = item => ({
     x:
-      ((item.lng - (region.longitude - longitudeDelta / 2)) / longitudeDelta)
-      * mapSize.width,
+      ((item.lng - (region.longitude - longitudeDelta / 2)) / longitudeDelta) *
+      mapSize.width,
     y:
-      (((region.latitude + latitudeDelta / 2) - item.lat) / latitudeDelta)
-      * mapSize.height,
+      ((region.latitude + latitudeDelta / 2 - item.lat) / latitudeDelta) *
+      mapSize.height,
   });
 
   const visibleItems = guesthouses.filter(
@@ -465,9 +479,9 @@ const groupGuesthouses = (guesthouses, region, mapSize) => {
 
     const count = matchedCluster.items.length;
     matchedCluster.screenX =
-      ((matchedCluster.screenX * (count - 1)) + point.x) / count;
+      (matchedCluster.screenX * (count - 1) + point.x) / count;
     matchedCluster.screenY =
-      ((matchedCluster.screenY * (count - 1)) + point.y) / count;
+      (matchedCluster.screenY * (count - 1) + point.y) / count;
   });
 
   return clusters.map(group => {
@@ -520,19 +534,17 @@ const requestLocationPermission = async () => {
     };
   }
 
-  const granted = await PermissionsAndroid.requestMultiple(
-    [
-      PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-      PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
-    ],
-  );
+  const granted = await PermissionsAndroid.requestMultiple([
+    PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+    PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION,
+  ]);
 
   const fineGranted =
-    granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION]
-    === PermissionsAndroid.RESULTS.GRANTED;
+    granted[PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION] ===
+    PermissionsAndroid.RESULTS.GRANTED;
   const coarseGranted =
-    granted[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION]
-    === PermissionsAndroid.RESULTS.GRANTED;
+    granted[PermissionsAndroid.PERMISSIONS.ACCESS_COARSE_LOCATION] ===
+    PermissionsAndroid.RESULTS.GRANTED;
 
   return {
     granted: fineGranted || coarseGranted,
@@ -542,11 +554,15 @@ const requestLocationPermission = async () => {
 
 const showLocationPermissionAlert = () => {
   Alert.alert(
-    '위치 권한이 필요해요',
-    '현재 위치를 사용하려면 설정에서 위치 접근 권한을 허용해주세요.',
+    i18n.t('common.locationPermissionIsRequired'),
+    i18n.t('common.toUseYourCurrentLocationPleaseAllowLocationAccessIn'),
+
     [
-      {text: '취소', style: 'cancel'},
-      {text: '설정 열기', onPress: () => Linking.openSettings()},
+      {text: i18n.t('common.cancel'), style: 'cancel'},
+      {
+        text: i18n.t('common.openSettings'),
+        onPress: () => Linking.openSettings(),
+      },
     ],
   );
 };
@@ -593,6 +609,7 @@ const GuesthouseListMap = ({
   resetKey,
   onPressListToggle,
 }) => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const lastCenteredGuesthouseIdRef = useRef(null);
   const mapRequestRef = useRef(0);
@@ -613,9 +630,9 @@ const GuesthouseListMap = ({
   );
   const presetBounds = useMemo(
     () =>
-      regionBoundsProp
-        ?? route?.params?.regionBounds
-        ?? getGuesthouseMapBoundsByRegionIds(regionIds),
+      regionBoundsProp ??
+      route?.params?.regionBounds ??
+      getGuesthouseMapBoundsByRegionIds(regionIds),
     [regionBoundsProp, route?.params?.regionBounds, regionIds],
   );
   const presetRegion = useMemo(
@@ -646,17 +663,20 @@ const GuesthouseListMap = ({
   const [selectedGuesthouseId, setSelectedGuesthouseId] = useState(null);
   const [pendingBounds, setPendingBounds] = useState(null);
   const [lastFetchedBounds, setLastFetchedBounds] = useState(null);
-  const [hasFetchedMapGuesthouses, setHasFetchedMapGuesthouses] = useState(false);
+  const [hasFetchedMapGuesthouses, setHasFetchedMapGuesthouses] =
+    useState(false);
   const [shouldRenderMarkers, setShouldRenderMarkers] = useState(false);
   const [showResearchButton, setShowResearchButton] = useState(false);
   const [currentRegion, setCurrentRegion] = useState(initialRegion);
   const [mapSize, setMapSize] = useState({width: 0, height: 0});
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
-  const [isCurrentLocationLoading, setIsCurrentLocationLoading] = useState(false);
+  const [isCurrentLocationLoading, setIsCurrentLocationLoading] =
+    useState(false);
   const [currentLocation, setCurrentLocation] = useState(null);
-  const canRenderMarkers = Platform.OS === 'web'
-    ? mapReady && mapGuesthouses.length > 0
-    : shouldRenderMarkers;
+  const canRenderMarkers =
+    Platform.OS === 'web'
+      ? mapReady && mapGuesthouses.length > 0
+      : shouldRenderMarkers;
 
   const clusters = useMemo(
     () => groupGuesthouses(mapGuesthouses, currentRegion, mapSize),
@@ -679,9 +699,7 @@ const GuesthouseListMap = ({
       item => item.key === selectedClusterKey,
     );
 
-    return activeCluster
-      ? [...normalClusters, activeCluster]
-      : clusters;
+    return activeCluster ? [...normalClusters, activeCluster] : clusters;
   }, [clusters, selectedClusterKey]);
   const selectedItem = useMemo(() => {
     if (!selectedCluster) {
@@ -691,9 +709,9 @@ const GuesthouseListMap = ({
     return (
       selectedCluster.items.find(
         item => String(item.id) === String(selectedGuesthouseId),
-      )
-      ?? selectedCluster.primaryItem
-      ?? null
+      ) ??
+      selectedCluster.primaryItem ??
+      null
     );
   }, [selectedCluster, selectedGuesthouseId]);
   const selectedGlobalIndex = useMemo(() => {
@@ -892,116 +910,124 @@ const GuesthouseListMap = ({
     return getBoundsFromRegion(currentRegionRef.current);
   }, []);
 
-  const fetchMapGuesthouses = useCallback(async bounds => {
-    if (!checkIn || !checkOut || !bounds) {
-      return;
-    }
+  const fetchMapGuesthouses = useCallback(
+    async bounds => {
+      if (!checkIn || !checkOut || !bounds) {
+        return;
+      }
 
-    const fetchKey = getMapFetchKey({
-      bounds,
-      checkIn,
-      checkOut,
-      guestCount,
-      sortBy,
-      filterParams: {...filterParams, region: serviceRegion},
-    });
+      const fetchKey = getMapFetchKey({
+        bounds,
+        checkIn,
+        checkOut,
+        guestCount,
+        sortBy,
+        filterParams: {...filterParams, region: serviceRegion},
+      });
 
-    if (
-      activeFetchKeyRef.current === fetchKey ||
-      lastFetchKeyRef.current === fetchKey
-    ) {
-      return;
-    }
+      if (
+        activeFetchKeyRef.current === fetchKey ||
+        lastFetchKeyRef.current === fetchKey
+      ) {
+        return;
+      }
 
-    const requestId = ++mapRequestRef.current;
-    const cachedGuesthouses = getCachedMapFetchResult(fetchKey);
-    if (cachedGuesthouses) {
-      activeFetchKeyRef.current = null;
-      setLoading(false);
-      setMapGuesthouses(cachedGuesthouses);
-      setLastFetchedBounds(bounds);
-      setHasFetchedMapGuesthouses(true);
-      setShouldRenderMarkers(true);
-      setPendingBounds(null);
-      setShowResearchButton(false);
-      lastFetchKeyRef.current = fetchKey;
-      return;
-    }
+      const requestId = ++mapRequestRef.current;
+      const cachedGuesthouses = getCachedMapFetchResult(fetchKey);
+      if (cachedGuesthouses) {
+        activeFetchKeyRef.current = null;
+        setLoading(false);
+        setMapGuesthouses(cachedGuesthouses);
+        setLastFetchedBounds(bounds);
+        setHasFetchedMapGuesthouses(true);
+        setShouldRenderMarkers(true);
+        setPendingBounds(null);
+        setShowResearchButton(false);
+        lastFetchKeyRef.current = fetchKey;
+        return;
+      }
 
-    activeFetchKeyRef.current = fetchKey;
-    setLoading(true);
+      activeFetchKeyRef.current = fetchKey;
+      setLoading(true);
 
-    try {
-      let fetchPromise = activeMapFetchPromises.get(fetchKey);
+      try {
+        let fetchPromise = activeMapFetchPromises.get(fetchKey);
 
-      if (!fetchPromise) {
-        fetchPromise = (async () => {
-          const response = await regionGuesthouseApi.getGuesthouseMap({
-            checkIn,
-            checkOut,
-            guestCount,
-            sortBy,
-            ...filterParams,
-            region: serviceRegion,
-            ...bounds,
-          });
-
-          const responseData = response?.data;
-          let nextGuesthouses = normalizeGuesthouses(
-            getGuesthouseResponseItems(responseData),
-          );
-
-          if (
-            Platform.OS === 'web'
-            && nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
-          ) {
-            const fallbackResponse = await regionGuesthouseApi.getGuesthouseList({
+        if (!fetchPromise) {
+          fetchPromise = (async () => {
+            const response = await regionGuesthouseApi.getGuesthouseMap({
               checkIn,
               checkOut,
               guestCount,
-              page: 0,
-              size: 100,
               sortBy,
               ...filterParams,
               region: serviceRegion,
               ...bounds,
             });
 
-            nextGuesthouses = normalizeGuesthouses(
-              getGuesthouseListFallbackItems(fallbackResponse?.data),
+            const responseData = response?.data;
+            let nextGuesthouses = normalizeGuesthouses(
+              getGuesthouseResponseItems(responseData),
             );
-          }
 
-          return nextGuesthouses;
-        })();
+            if (
+              Platform.OS === 'web' &&
+              nextGuesthouses.filter(hasValidGuesthouseCoordinate).length === 0
+            ) {
+              const fallbackResponse =
+                await regionGuesthouseApi.getGuesthouseList({
+                  checkIn,
+                  checkOut,
+                  guestCount,
+                  page: 0,
+                  size: 100,
+                  sortBy,
+                  ...filterParams,
+                  region: serviceRegion,
+                  ...bounds,
+                });
 
-        activeMapFetchPromises.set(fetchKey, fetchPromise);
+              nextGuesthouses = normalizeGuesthouses(
+                getGuesthouseListFallbackItems(fallbackResponse?.data),
+              );
+            }
+
+            return nextGuesthouses;
+          })();
+
+          activeMapFetchPromises.set(fetchKey, fetchPromise);
+        }
+
+        const nextGuesthouses = await fetchPromise;
+
+        completedMapFetchResults.set(fetchKey, {
+          completedAt: Date.now(),
+          guesthouses: nextGuesthouses,
+        });
+
+        if (requestId !== mapRequestRef.current) {
+          return;
+        }
+        setMapGuesthouses(nextGuesthouses);
+        setLastFetchedBounds(bounds);
+        setHasFetchedMapGuesthouses(true);
+        setPendingBounds(null);
+        setShowResearchButton(false);
+        lastFetchKeyRef.current = fetchKey;
+      } catch (error) {
+        console.warn('지도 게스트하우스 조회 실패', error);
+      } finally {
+        activeMapFetchPromises.delete(fetchKey);
+        if (activeFetchKeyRef.current === fetchKey) {
+          activeFetchKeyRef.current = null;
+        }
+        if (requestId === mapRequestRef.current) {
+          setLoading(false);
+        }
       }
-
-      const nextGuesthouses = await fetchPromise;
-
-      completedMapFetchResults.set(fetchKey, {
-        completedAt: Date.now(),
-        guesthouses: nextGuesthouses,
-      });
-
-      if (requestId !== mapRequestRef.current) {return;}
-      setMapGuesthouses(nextGuesthouses);
-      setLastFetchedBounds(bounds);
-      setHasFetchedMapGuesthouses(true);
-      setPendingBounds(null);
-      setShowResearchButton(false);
-      lastFetchKeyRef.current = fetchKey;
-    } catch (error) {
-      console.warn('지도 게스트하우스 조회 실패', error);
-    } finally {
-      activeMapFetchPromises.delete(fetchKey);
-      if (activeFetchKeyRef.current === fetchKey) {
-        activeFetchKeyRef.current = null;
-      }
-      if (requestId === mapRequestRef.current) {setLoading(false);}
-    }
-  }, [checkIn, checkOut, filterParams, guestCount, serviceRegion, sortBy]);
+    },
+    [checkIn, checkOut, filterParams, guestCount, serviceRegion, sortBy],
+  );
 
   useEffect(() => {
     if (!mapReady || !hasFetchedMapGuesthouses) {
@@ -1049,61 +1075,84 @@ const GuesthouseListMap = ({
   ]);
 
   useEffect(() => {
-    if (!mapReady || !cameraInitializedRef.current || awaitingRegionCameraRef.current) {return;}
+    if (
+      !mapReady ||
+      !cameraInitializedRef.current ||
+      awaitingRegionCameraRef.current
+    ) {
+      return;
+    }
     getCurrentBounds().then(bounds => {
       onBoundsChange?.(bounds);
       fetchMapGuesthouses(bounds);
     });
   }, [mapReady, fetchMapGuesthouses, getCurrentBounds, onBoundsChange]);
 
-  useEffect(() => () => { mapRequestRef.current += 1; }, []);
+  useEffect(
+    () => () => {
+      mapRequestRef.current += 1;
+    },
+    [],
+  );
 
-  const handleRegionChangeComplete = useCallback(async region => {
-    setCurrentRegion(region);
+  const handleRegionChangeComplete = useCallback(
+    async region => {
+      setCurrentRegion(region);
 
-    const bounds = getBoundsFromRegion(region);
+      const bounds = getBoundsFromRegion(region);
 
-    if (!bounds || !lastFetchedBounds) {
-      return;
-    }
+      if (!bounds || !lastFetchedBounds) {
+        return;
+      }
 
-    if (shouldSuggestResearch(bounds, lastFetchedBounds)) {
-      setPendingBounds(bounds);
-      setShowResearchButton(true);
-      return;
-    }
+      if (shouldSuggestResearch(bounds, lastFetchedBounds)) {
+        setPendingBounds(bounds);
+        setShowResearchButton(true);
+        return;
+      }
 
-    setPendingBounds(null);
-    setShowResearchButton(false);
-  }, [lastFetchedBounds]);
+      setPendingBounds(null);
+      setShowResearchButton(false);
+    },
+    [lastFetchedBounds],
+  );
 
-  const handleCameraIdle = useCallback(params => {
-    const region = {
-      latitude: params.latitude,
-      longitude: params.longitude,
-      latitudeDelta:
-        params.region?.latitudeDelta ?? currentRegion.latitudeDelta,
-      longitudeDelta:
-        params.region?.longitudeDelta ?? currentRegion.longitudeDelta,
-    };
+  const handleCameraIdle = useCallback(
+    params => {
+      const region = {
+        latitude: params.latitude,
+        longitude: params.longitude,
+        latitudeDelta:
+          params.region?.latitudeDelta ?? currentRegion.latitudeDelta,
+        longitudeDelta:
+          params.region?.longitudeDelta ?? currentRegion.longitudeDelta,
+      };
 
-    currentRegionRef.current = region;
-    const bounds = getBoundsFromRegion(region);
-    onBoundsChange?.(bounds);
-    const shouldFetch = !cameraInitializedRef.current || awaitingRegionCameraRef.current;
-    cameraInitializedRef.current = true;
-    awaitingRegionCameraRef.current = false;
-    handleRegionChangeComplete(region);
-    if (shouldFetch) {fetchMapGuesthouses(bounds);}
-  }, [currentRegion, handleRegionChangeComplete, fetchMapGuesthouses, onBoundsChange]);
+      currentRegionRef.current = region;
+      const bounds = getBoundsFromRegion(region);
+      onBoundsChange?.(bounds);
+      const shouldFetch =
+        !cameraInitializedRef.current || awaitingRegionCameraRef.current;
+      cameraInitializedRef.current = true;
+      awaitingRegionCameraRef.current = false;
+      handleRegionChangeComplete(region);
+      if (shouldFetch) {
+        fetchMapGuesthouses(bounds);
+      }
+    },
+    [
+      currentRegion,
+      handleRegionChangeComplete,
+      fetchMapGuesthouses,
+      onBoundsChange,
+    ],
+  );
 
   const handleMapLayout = useCallback(event => {
     const {width, height} = event.nativeEvent.layout;
 
     setMapSize(prev =>
-      prev.width === width && prev.height === height
-        ? prev
-        : {width, height},
+      prev.width === width && prev.height === height ? prev : {width, height},
     );
   }, []);
 
@@ -1125,10 +1174,10 @@ const GuesthouseListMap = ({
       const granted =
         typeof permission === 'boolean' ? permission : permission.granted;
       const enableHighAccuracy =
-        Platform.OS === 'ios'
-          && (typeof permission === 'boolean'
-            ? permission
-            : permission.enableHighAccuracy);
+        Platform.OS === 'ios' &&
+        (typeof permission === 'boolean'
+          ? permission
+          : permission.enableHighAccuracy);
 
       if (!granted) {
         showLocationPermissionAlert();
@@ -1139,10 +1188,10 @@ const GuesthouseListMap = ({
         Platform.OS === 'android'
           ? await getAndroidCurrentPosition()
           : await getCurrentPositionAsync({
-            enableHighAccuracy,
-            timeout: 10000,
-            maximumAge: 30000,
-          });
+              enableHighAccuracy,
+              timeout: 10000,
+              maximumAge: 30000,
+            });
       const nextRegion = {
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
@@ -1167,12 +1216,12 @@ const GuesthouseListMap = ({
         return;
       }
 
-      Alert.alert('현재 위치를 가져오지 못했어요');
+      Alert.alert(t('common.failedToRetrieveCurrentLocation'));
     } finally {
       currentLocationRequestRef.current = false;
       setIsCurrentLocationLoading(false);
     }
-  }, [handleClearSelection]);
+  }, [handleClearSelection, t]);
 
   const handlePressMarker = useCallback(cluster => {
     setSelectedClusterKey(cluster.key);
@@ -1184,19 +1233,22 @@ const GuesthouseListMap = ({
     setSelectedGuesthouseId(item.id);
   }, []);
 
-  const handleSelectGuesthouseFromGlobalList = useCallback(guesthouse => {
-    if (!guesthouse) {
-      return;
-    }
+  const handleSelectGuesthouseFromGlobalList = useCallback(
+    guesthouse => {
+      if (!guesthouse) {
+        return;
+      }
 
-    setSelectedGuesthouseId(guesthouse.id);
+      setSelectedGuesthouseId(guesthouse.id);
 
-    const nextCluster = clusters.find(cluster =>
-      cluster.items.some(item => String(item.id) === String(guesthouse.id)),
-    );
+      const nextCluster = clusters.find(cluster =>
+        cluster.items.some(item => String(item.id) === String(guesthouse.id)),
+      );
 
-    setSelectedClusterKey(nextCluster?.key ?? null);
-  }, [clusters]);
+      setSelectedClusterKey(nextCluster?.key ?? null);
+    },
+    [clusters],
+  );
 
   const handleSwipePrevCard = useCallback(() => {
     if (mapGuesthouses.length <= 1 || selectedGlobalIndex < 0) {
@@ -1209,7 +1261,11 @@ const GuesthouseListMap = ({
         : selectedGlobalIndex - 1;
 
     handleSelectGuesthouseFromGlobalList(mapGuesthouses[nextIndex]);
-  }, [handleSelectGuesthouseFromGlobalList, mapGuesthouses, selectedGlobalIndex]);
+  }, [
+    handleSelectGuesthouseFromGlobalList,
+    mapGuesthouses,
+    selectedGlobalIndex,
+  ]);
 
   const handleSwipeNextCard = useCallback(() => {
     if (mapGuesthouses.length <= 1 || selectedGlobalIndex < 0) {
@@ -1222,72 +1278,92 @@ const GuesthouseListMap = ({
         : selectedGlobalIndex + 1;
 
     handleSelectGuesthouseFromGlobalList(mapGuesthouses[nextIndex]);
-  }, [handleSelectGuesthouseFromGlobalList, mapGuesthouses, selectedGlobalIndex]);
+  }, [
+    handleSelectGuesthouseFromGlobalList,
+    mapGuesthouses,
+    selectedGlobalIndex,
+  ]);
 
-  const scrollToImageIndex = useCallback(index => {
-    if (selectedImageUrls.length <= 1) {
-      return;
-    }
+  const scrollToImageIndex = useCallback(
+    index => {
+      if (selectedImageUrls.length <= 1) {
+        return;
+      }
 
-    const maxIndex = selectedImageUrls.length - 1;
-    const nextIndex = index < 0 ? maxIndex : index > maxIndex ? 0 : index;
+      const maxIndex = selectedImageUrls.length - 1;
+      const nextIndex = index < 0 ? maxIndex : index > maxIndex ? 0 : index;
 
-    setSelectedImageIndex(nextIndex);
-    imageScrollRef.current?.scrollTo?.({
-      x: nextIndex * DETAIL_IMAGE_SCROLL_STEP,
-      animated: true,
-    });
-  }, [selectedImageUrls.length]);
+      setSelectedImageIndex(nextIndex);
+      imageScrollRef.current?.scrollTo?.({
+        x: nextIndex * DETAIL_IMAGE_SCROLL_STEP,
+        animated: true,
+      });
+    },
+    [selectedImageUrls.length],
+  );
 
-  const handlePressPrevImage = useCallback(event => {
-    event?.stopPropagation?.();
-    scrollToImageIndex(selectedImageIndex - 1);
-  }, [scrollToImageIndex, selectedImageIndex]);
+  const handlePressPrevImage = useCallback(
+    event => {
+      event?.stopPropagation?.();
+      scrollToImageIndex(selectedImageIndex - 1);
+    },
+    [scrollToImageIndex, selectedImageIndex],
+  );
 
-  const handlePressNextImage = useCallback(event => {
-    event?.stopPropagation?.();
-    scrollToImageIndex(selectedImageIndex + 1);
-  }, [scrollToImageIndex, selectedImageIndex]);
+  const handlePressNextImage = useCallback(
+    event => {
+      event?.stopPropagation?.();
+      scrollToImageIndex(selectedImageIndex + 1);
+    },
+    [scrollToImageIndex, selectedImageIndex],
+  );
 
-  const handleImageScrollEnd = useCallback(event => {
-    if (selectedImageUrls.length <= 1) {
-      return;
-    }
+  const handleImageScrollEnd = useCallback(
+    event => {
+      if (selectedImageUrls.length <= 1) {
+        return;
+      }
 
-    const offsetX = event.nativeEvent.contentOffset.x;
-    const maxIndex = selectedImageUrls.length - 1;
-    const nextIndex = Math.min(
-      Math.max(Math.round(offsetX / DETAIL_IMAGE_SCROLL_STEP), 0),
-      maxIndex,
-    );
+      const offsetX = event.nativeEvent.contentOffset.x;
+      const maxIndex = selectedImageUrls.length - 1;
+      const nextIndex = Math.min(
+        Math.max(Math.round(offsetX / DETAIL_IMAGE_SCROLL_STEP), 0),
+        maxIndex,
+      );
 
-    setSelectedImageIndex(nextIndex);
-  }, [selectedImageUrls.length]);
+      setSelectedImageIndex(nextIndex);
+    },
+    [selectedImageUrls.length],
+  );
 
-  const centerToGuesthouse = useCallback(guesthouse => {
-    if (
-      !mapRef.current
-      || !guesthouse
-      || !Number.isFinite(guesthouse.lat)
-      || !Number.isFinite(guesthouse.lng)
-    ) {
-      return;
-    }
+  const centerToGuesthouse = useCallback(
+    guesthouse => {
+      if (
+        !mapRef.current ||
+        !guesthouse ||
+        !Number.isFinite(guesthouse.lat) ||
+        !Number.isFinite(guesthouse.lng)
+      ) {
+        return;
+      }
 
-    const nextRegion = {
-      latitude: guesthouse.lat,
-      longitude: guesthouse.lng,
-      latitudeDelta: currentRegion?.latitudeDelta ?? DEFAULT_REGION.latitudeDelta,
-      longitudeDelta:
-        currentRegion?.longitudeDelta ?? DEFAULT_REGION.longitudeDelta,
-    };
+      const nextRegion = {
+        latitude: guesthouse.lat,
+        longitude: guesthouse.lng,
+        latitudeDelta:
+          currentRegion?.latitudeDelta ?? DEFAULT_REGION.latitudeDelta,
+        longitudeDelta:
+          currentRegion?.longitudeDelta ?? DEFAULT_REGION.longitudeDelta,
+      };
 
-    setCurrentRegion(nextRegion);
-    mapRef.current.animateRegionTo({
-      ...centerRegionToNaverRegion(nextRegion),
-      duration: GUESTHOUSE_FOCUS_ANIMATION_MS,
-    });
-  }, [currentRegion]);
+      setCurrentRegion(nextRegion);
+      mapRef.current.animateRegionTo({
+        ...centerRegionToNaverRegion(nextRegion),
+        duration: GUESTHOUSE_FOCUS_ANIMATION_MS,
+      });
+    },
+    [currentRegion],
+  );
 
   useEffect(() => {
     if (selectedGlobalIndex < 0 || mapGuesthouses.length <= 1) {
@@ -1298,8 +1374,8 @@ const GuesthouseListMap = ({
     const preloadUrls = preloadOffsets
       .map(offset => {
         const nextIndex =
-          (selectedGlobalIndex + offset + mapGuesthouses.length)
-          % mapGuesthouses.length;
+          (selectedGlobalIndex + offset + mapGuesthouses.length) %
+          mapGuesthouses.length;
         return getGuesthouseThumbnailUrl(mapGuesthouses[nextIndex]);
       })
       .filter(Boolean);
@@ -1326,13 +1402,13 @@ const GuesthouseListMap = ({
       PanResponder.create({
         onStartShouldSetPanResponder: () => false,
         onMoveShouldSetPanResponder: (_, gestureState) =>
-          Math.abs(gestureState.dx)
-            > (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12)
-          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+          Math.abs(gestureState.dx) >
+            (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12) &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
         onMoveShouldSetPanResponderCapture: (_, gestureState) =>
-          Math.abs(gestureState.dx)
-            > (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12)
-          && Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
+          Math.abs(gestureState.dx) >
+            (Platform.OS === 'web' ? WEB_CARD_DRAG_THRESHOLD_PX : 12) &&
+          Math.abs(gestureState.dx) > Math.abs(gestureState.dy),
         onPanResponderRelease: (_, gestureState) => {
           if (Platform.OS === 'web') {
             cardPressSuppressUntilRef.current =
@@ -1358,8 +1434,8 @@ const GuesthouseListMap = ({
     }
 
     if (
-      Platform.OS === 'web'
-      && Date.now() < cardPressSuppressUntilRef.current
+      Platform.OS === 'web' &&
+      Date.now() < cardPressSuppressUntilRef.current
     ) {
       return;
     }
@@ -1376,10 +1452,10 @@ const GuesthouseListMap = ({
             prev.map(item =>
               String(item.id ?? item.guesthouseId) === String(id)
                 ? {
-                  ...item,
-                  isLiked: nextIsLiked,
-                  isFavorite: nextIsLiked,
-                }
+                    ...item,
+                    isLiked: nextIsLiked,
+                    isFavorite: nextIsLiked,
+                  }
                 : item,
             ),
           );
@@ -1390,7 +1466,15 @@ const GuesthouseListMap = ({
         regionBounds: presetBounds,
       },
     });
-  }, [navigation, presetBounds, resetKey, selectedItem, checkIn, checkOut, guestCount]);
+  }, [
+    navigation,
+    presetBounds,
+    resetKey,
+    selectedItem,
+    checkIn,
+    checkOut,
+    guestCount,
+  ]);
 
   const handleToggleFavorite = useCallback(() => {
     if (!selectedItem) {
@@ -1409,7 +1493,10 @@ const GuesthouseListMap = ({
     <View style={styles.container}>
       {!embedded && (
         <View style={styles.headerContainer}>
-          <Header title="게스트하우스 지도" showBackButton={false} />
+          <Header
+            title={t('guesthouse.guesthouseMap')}
+            showBackButton={false}
+          />
         </View>
       )}
 
@@ -1417,7 +1504,10 @@ const GuesthouseListMap = ({
         <NaverMapView
           ref={mapRef}
           style={styles.map}
-          initialRegion={centerRegionToNaverRegion(initialRegion)}
+          initialRegion={centerRegionToNaverRegion(
+            cameraTargetRegion,
+            serviceRegion === 'ALL' && Boolean(selectedServiceRegion),
+          )}
           onLayout={handleMapLayout}
           onInitialized={() => setMapReady(true)}
           onCameraChanged={params => {
@@ -1426,57 +1516,62 @@ const GuesthouseListMap = ({
             }
           }}
           onCameraIdle={handleCameraIdle}>
-          {canRenderMarkers && orderedClusters.map(cluster => {
-            const isSelected = cluster.key === selectedCluster?.key;
-            const isSoldOutCluster = isClusterReserved(cluster);
+          {canRenderMarkers &&
+            orderedClusters.map(cluster => {
+              const isSelected = cluster.key === selectedCluster?.key;
+              const isSoldOutCluster = isClusterReserved(cluster);
 
-            return (
-              <NaverMapMarkerOverlay
-                key={cluster.key}
-                latitude={cluster.coordinate.latitude}
-                longitude={cluster.coordinate.longitude}
-                anchor={MARKER_ANCHOR}
-                width={52}
-                height={52}
-                zIndex={isSelected ? 999 : 1}
-                onTap={() => handlePressMarker(cluster)}>
-                <View
-                  collapsable={false}
-                  style={styles.markerWrap}
-                  pointerEvents="box-none">
-                  <TouchableOpacity
-                    activeOpacity={1}
-                    style={styles.markerContainer}
-                    onPress={() => handlePressMarker(cluster)}>
-                    {isSelected ? (
-                      <View
-                        style={[
-                          styles.selectedMarkerDot,
-                          isSoldOutCluster && styles.selectedMarkerDotReserved,
-                        ]}
-                      />
-                    ) : (
-                      <View
-                        style={[
-                          styles.homeMarker,
-                          isSoldOutCluster && styles.homeMarkerReserved,
-                        ]}>
-                        <HomeIcon width={18} height={18} />
-                      </View>
-                    )}
-                    {!isSelected && cluster.count > 1 && (
-                      <View style={styles.markerCountBadge}>
-                        <Text
-                          style={[FONTS.fs_12_medium, styles.markerCountText]}>
-                          {cluster.count}
-                        </Text>
-                      </View>
-                    )}
-                  </TouchableOpacity>
-                </View>
-              </NaverMapMarkerOverlay>
-            );
-          })}
+              return (
+                <NaverMapMarkerOverlay
+                  key={cluster.key}
+                  latitude={cluster.coordinate.latitude}
+                  longitude={cluster.coordinate.longitude}
+                  anchor={MARKER_ANCHOR}
+                  width={52}
+                  height={52}
+                  zIndex={isSelected ? 999 : 1}
+                  onTap={() => handlePressMarker(cluster)}>
+                  <View
+                    collapsable={false}
+                    style={styles.markerWrap}
+                    pointerEvents="box-none">
+                    <TouchableOpacity
+                      activeOpacity={1}
+                      style={styles.markerContainer}
+                      onPress={() => handlePressMarker(cluster)}>
+                      {isSelected ? (
+                        <View
+                          style={[
+                            styles.selectedMarkerDot,
+                            isSoldOutCluster &&
+                              styles.selectedMarkerDotReserved,
+                          ]}
+                        />
+                      ) : (
+                        <View
+                          style={[
+                            styles.homeMarker,
+                            isSoldOutCluster && styles.homeMarkerReserved,
+                          ]}>
+                          <HomeIcon width={18} height={18} />
+                        </View>
+                      )}
+                      {!isSelected && cluster.count > 1 && (
+                        <View style={styles.markerCountBadge}>
+                          <Text
+                            style={[
+                              FONTS.fs_12_medium,
+                              styles.markerCountText,
+                            ]}>
+                            {cluster.count}
+                          </Text>
+                        </View>
+                      )}
+                    </TouchableOpacity>
+                  </View>
+                </NaverMapMarkerOverlay>
+              );
+            })}
         </NaverMapView>
 
         {currentLocationMarkerPosition && (
@@ -1492,6 +1587,7 @@ const GuesthouseListMap = ({
                 currentLocationPulseStyle,
               ]}
             />
+
             <View style={styles.currentLocationMarkerOuter}>
               <View style={styles.currentLocationMarkerInner} />
             </View>
@@ -1505,8 +1601,8 @@ const GuesthouseListMap = ({
             <View
               style={[
                 styles.markerBubble,
-                isClusterReserved(selectedCluster)
-                  && styles.markerBubbleReserved,
+                isClusterReserved(selectedCluster) &&
+                  styles.markerBubbleReserved,
               ]}>
               {selectedCluster.count > 1 ? (
                 <View style={styles.clusterList}>
@@ -1550,8 +1646,8 @@ const GuesthouseListMap = ({
                   <View
                     style={[
                       styles.homeMarker,
-                      isGuesthouseReserved(selectedCluster.primaryItem)
-                        && styles.homeMarkerReserved,
+                      isGuesthouseReserved(selectedCluster.primaryItem) &&
+                        styles.homeMarkerReserved,
                     ]}>
                     <HomeIcon width={18} height={18} />
                   </View>
@@ -1565,8 +1661,8 @@ const GuesthouseListMap = ({
                       style={[
                         FONTS.fs_12_medium,
                         styles.singleMarkerPrice,
-                        isGuesthouseReserved(selectedCluster.primaryItem)
-                          && styles.reservedPriceText,
+                        isGuesthouseReserved(selectedCluster.primaryItem) &&
+                          styles.reservedPriceText,
                       ]}>
                       {getPriceLabel(selectedCluster.primaryItem)}
                     </Text>
@@ -1576,8 +1672,8 @@ const GuesthouseListMap = ({
               <View
                 style={[
                   styles.markerBubbleTail,
-                  isClusterReserved(selectedCluster)
-                    && styles.markerBubbleTailReserved,
+                  isClusterReserved(selectedCluster) &&
+                    styles.markerBubbleTailReserved,
                 ]}
               />
             </View>
@@ -1591,7 +1687,7 @@ const GuesthouseListMap = ({
               style={styles.researchButton}
               onPress={() => fetchMapGuesthouses(pendingBounds)}>
               <Text style={[FONTS.fs_12_medium, styles.researchButtonText]}>
-                이 지역 다시 검색
+                {t('guesthouse.searchThisAreaAgain')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1604,8 +1700,8 @@ const GuesthouseListMap = ({
               disabled={isCurrentLocationLoading}
               style={[
                 styles.currentLocationButton,
-                isCurrentLocationLoading
-                  && styles.currentLocationButtonDisabled,
+                isCurrentLocationLoading &&
+                  styles.currentLocationButtonDisabled,
               ]}
               onPress={moveToCurrentLocation}>
               <TargetIcon width={20} height={20} />
@@ -1616,7 +1712,7 @@ const GuesthouseListMap = ({
               onPress={onPressListToggle}>
               <ListIcon width={20} height={20} />
               <Text style={[FONTS.fs_14_medium, styles.listToggleButtonText]}>
-                목록
+                {t('guesthouse.list')}
               </Text>
             </TouchableOpacity>
           </View>
@@ -1631,7 +1727,7 @@ const GuesthouseListMap = ({
         {!loading && hasFetchedMapGuesthouses && clusters.length === 0 && (
           <View style={styles.emptyCard}>
             <Text style={[FONTS.fs_14_medium, styles.emptyTitle]}>
-              이 지도 영역에는 조건에 맞는 숙소가 없어요
+              {t('guesthouse.thereAreNoAccommodationsInThisMapAreaThatFit')}
             </Text>
           </View>
         )}
@@ -1644,8 +1740,8 @@ const GuesthouseListMap = ({
                 disabled={isCurrentLocationLoading}
                 style={[
                   styles.currentLocationButton,
-                  isCurrentLocationLoading
-                    && styles.currentLocationButtonDisabled,
+                  isCurrentLocationLoading &&
+                    styles.currentLocationButtonDisabled,
                 ]}
                 onPress={moveToCurrentLocation}>
                 <TargetIcon width={20} height={20} />
@@ -1656,7 +1752,7 @@ const GuesthouseListMap = ({
                 onPress={onPressListToggle}>
                 <ListIcon width={20} height={20} />
                 <Text style={[FONTS.fs_14_medium, styles.listToggleButtonText]}>
-                  목록
+                  {t('guesthouse.list')}
                 </Text>
               </TouchableOpacity>
             </View>
@@ -1687,8 +1783,8 @@ const GuesthouseListMap = ({
                   );
 
                   if (
-                    dx > WEB_CARD_DRAG_THRESHOLD_PX
-                    || dy > WEB_CARD_DRAG_THRESHOLD_PX
+                    dx > WEB_CARD_DRAG_THRESHOLD_PX ||
+                    dy > WEB_CARD_DRAG_THRESHOLD_PX
                   ) {
                     cardPressSuppressUntilRef.current =
                       Date.now() + WEB_CARD_PRESS_SUPPRESSION_MS;
@@ -1738,22 +1834,29 @@ const GuesthouseListMap = ({
                       style={[
                         FONTS.fs_18_semibold,
                         styles.detailPrice,
-                        (selectedItem.isReserved || selectedItem.minPrice == null)
-                          && styles.reservedPriceText,
+                        (selectedItem.isReserved ||
+                          selectedItem.minPrice == null) &&
+                          styles.reservedPriceText,
                       ]}>
                       {selectedItem.isReserved || selectedItem.minPrice == null
-                        ? '예약마감'
-                        : `${selectedItem.minPrice.toLocaleString()}원 ~`}
+                        ? t('common.reservationDeadline')
+                        : t('guesthouse.valueWon', {
+                            value1: selectedItem.minPrice.toLocaleString(),
+                          })}
                     </Text>
                   </View>
                 </View>
 
                 <View style={styles.tagRow}>
-                  {(selectedItem.hashtags ?? []).slice(0, 3).map((tag, index) => (
-                    <View key={`${tag}-${index}`} style={styles.tagChip}>
-                      <Text style={[FONTS.fs_12_medium, styles.tagText]}>{tag}</Text>
-                    </View>
-                  ))}
+                  {(selectedItem.hashtags ?? [])
+                    .slice(0, 3)
+                    .map((tag, index) => (
+                      <View key={`${tag}-${index}`} style={styles.tagChip}>
+                        <Text style={[FONTS.fs_12_medium, styles.tagText]}>
+                          {tag}
+                        </Text>
+                      </View>
+                    ))}
                 </View>
 
                 {selectedImageUrls.length > 1 && (

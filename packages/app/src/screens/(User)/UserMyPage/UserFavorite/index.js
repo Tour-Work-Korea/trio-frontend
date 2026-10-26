@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React from 'react';
 import {
   ScrollView,
@@ -19,12 +20,13 @@ import {FONTS} from '@constants/fonts';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 
 const TAB_ITEMS = [
-  {key: 'guesthouse', label: '게하'},
-  {key: 'meet', label: '콘텐츠'},
-  {key: 'recruit', label: '스탭'},
+  {key: 'guesthouse', labelKey: 'common.guesthouse'},
+  {key: 'meet', labelKey: 'common.activity'},
+  {key: 'recruit', labelKey: 'common.staff'},
 ];
 
 const UserFavorite = () => {
+  const {t} = useTranslation();
   const {
     pagerRef,
     isActive,
@@ -43,7 +45,7 @@ const UserFavorite = () => {
 
   return (
     <View style={styles.container}>
-      <Header title="찜" />
+      <Header title={t('common.steamed')} />
 
       <View style={styles.tabBar}>
         {TAB_ITEMS.map((tab, index) => {
@@ -61,7 +63,7 @@ const UserFavorite = () => {
                   styles.tabLabel,
                   active && styles.tabLabelActive,
                 ]}>
-                {tab.label}
+                {t(tab.labelKey)}
               </Text>
             </TouchableOpacity>
           );

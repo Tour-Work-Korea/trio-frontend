@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect} from 'react';
 import {View, Text, SafeAreaView, StyleSheet} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -8,6 +9,7 @@ import {COLORS} from '@constants/colors';
 import CancelIcon from '@assets/images/cancel_reservation.svg';
 
 const MeetCancelSuccess = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const reservationId = route?.params?.reservationId ?? null;
@@ -28,13 +30,13 @@ const MeetCancelSuccess = () => {
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.center}>
-        <CancelIcon/>
+        <CancelIcon />
 
         <Text style={[FONTS.fs_20_semibold, styles.title]}>
-          취소가 완료되었어요
+          {t('common.cancellationHasBeenCompleted')}
         </Text>
         <Text style={[FONTS.fs_16_medium, styles.desc]}>
-          새로운 콘텐츠에 참여하고 싶을 때 다시 찾아주세요
+          {t('meet.pleaseComeBackWhenYouWantToParticipateInNew')}
         </Text>
       </View>
     </SafeAreaView>

@@ -1,27 +1,29 @@
-// authFlow.js
+import i18n from '@trio/app/src/i18n'; // authFlow.js
 import EncryptedStorage from 'react-native-encrypted-storage';
-import { Platform } from 'react-native';
+import {Platform} from 'react-native';
 import authApi from '@utils/api/authApi';
 import useUserStore from '@stores/userStore';
 import userMyApi from '@utils/api/userMyApi';
-import { log, mask } from '@utils/logger';
-import { reset } from '@utils/navigationService';
+import {log, mask} from '@utils/logger';
+import {reset} from '@utils/navigationService';
 import {
   getProfile as kakaoGetProfile,
   login as kakaoLogin,
 } from '@react-native-seoul/kakao-login';
 import {signInWithGoogle} from '@utils/auth/googleSignIn';
-import { syncFcmToken, getDeviceId } from '@utils/fcmService';
+import {syncFcmToken, getDeviceId} from '@utils/fcmService';
 import notificationApi from '@utils/api/notificationApi';
-import { WEB_SESSION_ACCESS_TOKEN } from '@utils/auth/webSession';
+import {WEB_SESSION_ACCESS_TOKEN} from '@utils/auth/webSession';
 import {
   mergeSocialProfiles,
   normalizeSocialProfile,
 } from '@utils/auth/socialProfile';
+import {synchronizeLanguageForAuthenticatedAccount} from '@utils/languageSync';
 
 const REFRESH_KEY = 'refresh-token';
 
 const shouldContinueSocialSignUp = data =>
+  data?.status === 'NEW_USER_SIGNUP_REQUIRED' ||
   data?.status === 'SOCIAL_ACCOUNT_NOT_LINKED' ||
   (data?.status == null && data?.isNewUser);
 
@@ -35,7 +37,7 @@ const getKakaoProfileFallback = async () => {
   }
 };
 
-const clearAuthSession = async ({ silent = false } = {}) => {
+const clearAuthSession = async ({silent = false} = {}) => {
   try {
     await EncryptedStorage.removeItem(REFRESH_KEY);
   } catch (storageErr) {
@@ -45,11 +47,11 @@ const clearAuthSession = async ({ silent = false } = {}) => {
   useUserStore.getState().clearUser();
 
   if (!silent) {
-    reset([{ name: 'Login', params: { reason: 'refresh_failed' } }]);
+    reset([{name: 'Login', params: {reason: 'refresh_failed'}}]);
   }
 };
 
-export const tryKakaoLoginNative = async (userRole) => {
+export const tryKakaoLoginNative = async userRole => {
   log.info('tryKakaoLoginNative: role=', userRole);
   try {
     // 1. 카카오 네이티브 SDK 실행 (앱 유무 파악 및 앱/웹 자동 전환)
@@ -96,7 +98,7 @@ export const tryKakaoLoginNative = async (userRole) => {
   }
 };
 
-export const tryGoogleLoginNative = async (userRole) => {
+export const tryGoogleLoginNative = async userRole => {
   log.info('tryGoogleLoginNative: role=', userRole);
   try {
     const googleResult = await signInWithGoogle();
@@ -151,7 +153,7 @@ export const tryAutoLogin = async ({loadProfile = true} = {}) => {
   log.info('🚪 tryAutoLogin: start');
   try {
     if (Platform.OS === 'web') {
-      const ok = await tryRefresh({ silent: true });
+      const ok = await tryRefresh({silent: true});
       log.info('🚪 tryAutoLogin: web refresh result =', ok);
       return ok;
     }
@@ -162,10 +164,10 @@ export const tryAutoLogin = async ({loadProfile = true} = {}) => {
       return false;
     }
 
-    const ok = await tryRefresh({ silent: true });
+    const ok = await tryRefresh({silent: true});
     log.info('🚪 tryAutoLogin: refresh result =', ok);
     if (ok && loadProfile) {
-      const { userRole } = useUserStore.getState();
+      const {userRole} = useUserStore.getState();
       log.info('👤 tryAutoLogin: userRole =', userRole);
       if (userRole) {
         await updateProfile(userRole);
@@ -192,9 +194,9 @@ export const storeLoginTokens = async ({
     userRole,
   );
 
-  const { setTokens, setUserRole } = useUserStore.getState();
+  const {setTokens, setUserRole} = useUserStore.getState();
   if (accessToken) {
-    setTokens({ accessToken });
+    setTokens({accessToken});
   }
   if (userRole) {
     setUserRole(userRole);
@@ -212,22 +214,18 @@ export const storeLoginTokens = async ({
 };
 
 const storeLoginInfo = async (res, userRole) => {
-  const { accessToken, refreshToken } = res.data || {};
+  const {accessToken, refreshToken} = res.data || {};
 
-  await storeLoginTokens({ accessToken, refreshToken, userRole });
+  await storeLoginTokens({accessToken, refreshToken, userRole});
 };
 
 export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
-  const {
-    setTokens,
-    setUserRole,
-    setUserProfile,
-  } = useUserStore.getState();
+  const {setTokens, setUserRole, setUserProfile} = useUserStore.getState();
   const role = data.role || fallbackRole || 'USER';
   const accessToken =
     data.accessToken || data.token || data.jwt || WEB_SESSION_ACCESS_TOKEN;
 
-  setTokens({ accessToken });
+  setTokens({accessToken});
   setUserRole(role);
   setUserProfile?.({
     userId: data.userId ?? null,
@@ -241,6 +239,15 @@ export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
     gender: data.gender ?? 'F',
     birthDate: data.birthDate ?? null,
     age: calculateAge(data.birthDate),
+    userOriginType: data.userOriginType ?? null,
+    nationalityCountryCode: data.nationalityCountryCode ?? null,
+    preferredLanguage: data.preferredLanguage ?? null,
+    emailVerified: data.emailVerified ?? false,
+    phoneVerified: data.phoneVerified ?? false,
+    passportVerified: data.passportVerified ?? false,
+    identityVerificationType: data.identityVerificationType ?? null,
+    globalUserStatus: data.globalUserStatus ?? null,
+    paymentProfileStatus: data.paymentProfileStatus ?? null,
   });
 
   await updateProfile(role);
@@ -298,7 +305,7 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
       };
     }
     await storeLoginInfo(res, userRole);
-    return { success: true, isNewUser: false, provider: 'KAKAO' };
+    return {success: true, isNewUser: false, provider: 'KAKAO'};
   } catch (err) {
     log.warn('❌ tryKakaoLogin failed:', err?.message);
     useUserStore.getState().clearUser();
@@ -306,11 +313,11 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
     const check = await EncryptedStorage.getItem(REFRESH_KEY);
     log.info('🧹 removed refresh?', !check);
 
-    return { success: false };
+    return {success: false};
   }
 };
 
-export const tryRefresh = async ({ silent = false } = {}) => {
+export const tryRefresh = async ({silent = false} = {}) => {
   log.info('🔄 tryRefresh: start');
   try {
     if (Platform.OS === 'web') {
@@ -322,7 +329,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');
-      await clearAuthSession({ silent });
+      await clearAuthSession({silent});
       return false;
     }
     const res = await authApi.refreshToken(storedRefresh);
@@ -330,7 +337,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     const accessToken = res.data.accessToken;
     const refreshTokenUpdated = res.data.refreshToken;
 
-    useUserStore.getState().setTokens({ accessToken });
+    useUserStore.getState().setTokens({accessToken});
     log.info('🔄 tryRefresh: new accessToken=', mask(accessToken));
 
     if (refreshTokenUpdated) {
@@ -340,7 +347,7 @@ export const tryRefresh = async ({ silent = false } = {}) => {
     return true;
   } catch (error) {
     log.warn('❌ tryRefresh failed:', error?.response?.status, error?.message);
-    await clearAuthSession({ silent });
+    await clearAuthSession({silent});
     return false;
   }
 };
@@ -370,7 +377,7 @@ export const refreshUserProfile = async role => updateProfile(role);
 
 const updateProfile = async role => {
   log.info('👤 updateProfile: role=', role);
-  const { setUserProfile } = useUserStore.getState();
+  const {setUserProfile} = useUserStore.getState();
 
   try {
     if (role === 'USER') {
@@ -386,6 +393,15 @@ const updateProfile = async role => {
         instagramId,
         gender,
         birthDate,
+        userOriginType,
+        nationalityCountryCode,
+        preferredLanguage,
+        emailVerified,
+        phoneVerified,
+        passportVerified,
+        identityVerificationType,
+        globalUserStatus,
+        paymentProfileStatus,
       } = res.data;
 
       setUserProfile({
@@ -393,7 +409,9 @@ const updateProfile = async role => {
         name: name ?? '',
         nickname: nickname ?? '',
         photoUrl:
-          photoUrl && photoUrl !== '사진을 추가해주세요' ? photoUrl : null,
+          photoUrl && photoUrl !== i18n.t('common.pleaseAddAPhoto')
+            ? photoUrl
+            : null,
         phone: phone ?? '',
         email: email ?? '',
         mbti: mbti ?? '',
@@ -401,7 +419,17 @@ const updateProfile = async role => {
         gender: gender ?? 'F',
         birthDate: birthDate ?? null,
         age: calculateAge(birthDate),
+        userOriginType: userOriginType ?? null,
+        nationalityCountryCode: nationalityCountryCode ?? null,
+        preferredLanguage: preferredLanguage ?? null,
+        emailVerified: emailVerified ?? false,
+        phoneVerified: phoneVerified ?? false,
+        passportVerified: passportVerified ?? false,
+        identityVerificationType: identityVerificationType ?? null,
+        globalUserStatus: globalUserStatus ?? null,
+        paymentProfileStatus: paymentProfileStatus ?? null,
       });
+      await synchronizeLanguageForAuthenticatedAccount();
       log.info('👤 USER profile loaded');
     }
   } catch (error) {

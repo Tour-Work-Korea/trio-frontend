@@ -1,6 +1,17 @@
+import {useTranslation} from 'react-i18next';
 import React, {useState, useCallback, useRef} from 'react';
-import {View, Text, TouchableOpacity, BackHandler, ScrollView} from 'react-native';
-import {useFocusEffect, useNavigation, useRoute} from '@react-navigation/native';
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  BackHandler,
+  ScrollView,
+} from 'react-native';
+import {
+  useFocusEffect,
+  useNavigation,
+  useRoute,
+} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import styles from './UserMeetReservationCheck.styles';
@@ -14,11 +25,12 @@ import Loading from '@components/Loading';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 const TABS = [
-  {key: 'upcoming', label: '다가오는 콘텐츠'},
-  {key: 'past', label: '지난 콘텐츠'},
+  {key: 'upcoming', labelKey: 'meet.upcomingActivity'},
+  {key: 'past', labelKey: 'meet.pastActivity'},
 ];
 
 const UserMeetReservationCheck = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
   const fromPaymentSuccess = route.params?.fromPaymentSuccess;
@@ -118,6 +130,7 @@ const UserMeetReservationCheck = () => {
             onRefresh={fetchReservationList}
           />
         );
+
       case 'past':
         return <UserPastReservations data={filteredReservations.past} />;
       default:
@@ -128,7 +141,7 @@ const UserMeetReservationCheck = () => {
   return (
     <View style={styles.container}>
       <Header
-        title="콘텐츠 신청내역"
+        title={t('meet.activityApplicationDetails')}
         onPress={fromPaymentSuccess ? handleBackPress : null}
       />
 
@@ -146,7 +159,7 @@ const UserMeetReservationCheck = () => {
                 isActive(tab.key) && styles.activeTabText,
                 isActive(tab.key) && FONTS.fs_14_semibold,
               ]}>
-              {tab.label}
+              {t(tab.labelKey)}
             </Text>
           </TouchableOpacity>
         ))}
@@ -155,7 +168,7 @@ const UserMeetReservationCheck = () => {
       {/* 탭 내용 */}
       <View style={styles.tabContentContainer}>
         {loading ? (
-          <Loading title="예약 목록을 불러오고 있어요." />
+          <Loading title={t('common.loadingTheReservationList')} />
         ) : (
           <ScrollView
             ref={pagerRef}

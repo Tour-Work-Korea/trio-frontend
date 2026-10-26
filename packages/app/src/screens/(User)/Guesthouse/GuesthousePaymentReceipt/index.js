@@ -1,3 +1,5 @@
+import i18n from '@trio/app/src/i18n';
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useMemo, useState} from 'react';
 import {
   View,
@@ -13,7 +15,10 @@ import Clipboard from '@react-native-clipboard/clipboard';
 import {useRoute, useNavigation, StackActions} from '@react-navigation/native';
 import Toast from 'react-native-toast-message';
 import AlertModal from '@components/modals/AlertModal';
-import {getRefundPolicyModalContent, REFUND_POLICY_RESULT} from '@utils/refundPolicy';
+import {
+  getRefundPolicyModalContent,
+  REFUND_POLICY_RESULT,
+} from '@utils/refundPolicy';
 import {normalizeRefundPolicies} from '@utils/refundPolicyAgreement';
 
 import styles from './GuesthousePaymentReceipt.styles';
@@ -32,11 +37,9 @@ import RouteIcon from '@assets/images/route_fill_black.svg';
 import PhoneIcon from '@assets/images/phone_fill_black.svg';
 import MapIcon from '@assets/images/map_fill_black.svg';
 
-dayjs.locale('ko');
-
 const formatPrice = n => {
   if (typeof n !== 'number') return '';
-  return `${n.toLocaleString()}원`;
+  return i18n.t('common.valueWon', {value1: n.toLocaleString()});
 };
 
 const formatPoint = n => {
@@ -54,13 +57,13 @@ const formatTime = timeStr => {
 const formatDateWithDay = dateStr => {
   if (!dateStr) return '';
   const date = dayjs(dateStr);
-  return date.isValid() ? date.format('YYYY. MM. DD (dd)') : dateStr;
+  return date.isValid() ? date.format('YYYY. MM. DD (ddd)') : dateStr;
 };
 
 const formatPaidAt = paidAt => {
   if (!paidAt) return '';
   const date = dayjs(paidAt);
-  return date.isValid() ? date.format('YYYY.MM.DD (dd) HH:mm') : paidAt;
+  return date.isValid() ? date.format('YYYY.MM.DD (ddd) HH:mm') : paidAt;
 };
 
 const firstNonEmpty = (...values) =>
@@ -92,14 +95,19 @@ const buildPurchaseSubtitle = ctx => {
   if (!ctx) return '';
   const isDormitory = ctx.roomType === 'DORMITORY';
   const genderMap = {
-    MIXED: '혼숙',
-    FEMALE_ONLY: '여성전용',
-    MALE_ONLY: '남성전용',
+    MIXED: i18n.t('common.mixedDormitory'),
+    FEMALE_ONLY: i18n.t('common.womenOnly'),
+    MALE_ONLY: i18n.t('common.menOnly'),
   };
 
   if (isDormitory) {
     const parts = [];
-    if (ctx.roomCapacity) parts.push(`${ctx.roomCapacity}인 도미토리`);
+    if (ctx.roomCapacity)
+      parts.push(
+        i18n.t('guesthouse.dormitoryWithValue', {
+          ctx_roomCapacity: ctx.roomCapacity,
+        }),
+      );
     const genderText = genderMap[ctx.dormitoryGenderType];
     if (genderText && ctx.dormitoryGenderType !== 'MIXED') {
       parts.push(genderText);
@@ -110,11 +118,18 @@ const buildPurchaseSubtitle = ctx => {
   const parts = [];
   if (ctx.roomCapacity) {
     const maxText = ctx.roomMaxCapacity
-      ? ` (최대 ${ctx.roomMaxCapacity}인)`
+      ? i18n.t('guesthouse.upToValue', {
+          ctx_roomMaxCapacity: ctx.roomMaxCapacity,
+        })
       : '';
-    parts.push(`${ctx.roomCapacity}인 기준${maxText}`);
+    parts.push(
+      i18n.t('guesthouse.criteriaThatAreValueValue', {
+        ctx_roomCapacity: ctx.roomCapacity,
+        maxText: maxText,
+      }),
+    );
   }
-  if (ctx.femaleOnly) parts.push('여성전용');
+  if (ctx.femaleOnly) parts.push(i18n.t('common.womenOnly'));
   return parts.length ? `[${parts.join(', ')}]` : '';
 };
 
@@ -123,22 +138,33 @@ const buildPurchaseTitle = ctx => {
   if (!ctx.checkIn || !ctx.checkOut) return ctx.roomName;
 
   const nights = getCalendarNightCount(ctx.checkIn, ctx.checkOut);
-  return nights > 0 ? `${ctx.roomName} / ${nights}박` : ctx.roomName;
+  return nights > 0
+    ? i18n.t('guesthouse.valueValueNights_a9bc95', {
+        ctx_roomName: ctx.roomName,
+        nights: nights,
+      })
+    : ctx.roomName;
 };
 
 const buildPaymentUnitSuffix = ctx =>
-  ctx?.roomType === 'DORMITORY' ? ' (1베드 당)' : '';
+  ctx?.roomType === 'DORMITORY' ? i18n.t('guesthouse.per1Bed') : '';
 
 const buildPaymentTotalSuffix = (ctx, nights) => {
   if (!ctx) return '';
   if (ctx.roomType === 'DORMITORY') {
     const bedCount = ctx.guestCount ?? '';
-    const nightsText = nights > 0 ? `${nights}박` : '';
+    const nightsText =
+      nights > 0 ? i18n.t('guesthouse.valueNights', {nights: nights}) : '';
     if (!bedCount && !nightsText) return '';
-    return ` (베드 ${bedCount || '?'}개 X ${nightsText || '?'})`;
+    return i18n.t('guesthouse.valueBedsValue', {
+      value1: bedCount || '?',
+      value2: nightsText || '?',
+    });
   }
 
-  return nights > 0 ? ` (${nights}박)` : '';
+  return nights > 0
+    ? i18n.t('guesthouse.valueNights_c13798', {nights: nights})
+    : '';
 };
 
 const getPaymentPaidAt = (dto, fallback) => {
@@ -160,7 +186,10 @@ const getPaymentPaidAt = (dto, fallback) => {
 const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
   if (!dto) return null;
 
-  const fallbackAddress = [fallback?.guesthouseAddress, fallback?.guesthouseAddressDetail]
+  const fallbackAddress = [
+    fallback?.guesthouseAddress,
+    fallback?.guesthouseAddressDetail,
+  ]
     .filter(Boolean)
     .join(' ');
 
@@ -186,7 +215,7 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
           fallback?.checkInTime ??
           dto.checkIn ??
           stayOverride?.checkIn ??
-          fallback?.checkIn
+          fallback?.checkIn,
       ),
       checkOut: getStayDateLabel(
         dto.checkOut,
@@ -200,7 +229,7 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
           fallback?.checkOutTime ??
           dto.checkOut ??
           stayOverride?.checkOut ??
-          fallback?.checkOut
+          fallback?.checkOut,
       ),
       expectedCheckInTime: formatTime(
         dto.expectedCheckInTime ?? fallback?.expectedCheckInTime,
@@ -213,12 +242,11 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
     },
 
     reservation: {
-      number:
-        dto.reservationCode
-          ? String(dto.reservationCode)
-          : reservationCode
-            ? String(reservationCode)
-            : '',
+      number: dto.reservationCode
+        ? String(dto.reservationCode)
+        : reservationCode
+        ? String(reservationCode)
+        : '',
       name: dto.userName ?? fallback?.userName ?? '',
       phone: dto.phoneNum ?? fallback?.userPhone ?? '',
       status: dto.reservationStatus ?? fallback?.reservationStatus ?? '',
@@ -227,25 +255,26 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
         dto.isActualGuestDifferent ?? fallback?.isActualGuestDifferent,
       ),
       actualGuestName: dto.actualGuestName ?? fallback?.actualGuestName ?? '',
-      actualGuestPhone: dto.actualGuestPhone ?? fallback?.actualGuestPhone ?? '',
+      actualGuestPhone:
+        dto.actualGuestPhone ?? fallback?.actualGuestPhone ?? '',
       request: dto.request ?? fallback?.request ?? '',
     },
 
     payment: {
       paidAt: getPaymentPaidAt(dto, fallback),
 
-      unitPriceLabel: '객실 가격',
-      totalLabel: '총 가격',
-      couponDiscountLabel: '쿠폰 할인',
-      pointDiscountLabel: '포인트 적용',
-      finalLabel: '총 결제 금액',
+      unitPriceLabel: i18n.t('guesthouse.roomPrice'),
+      totalLabel: i18n.t('common.totalPrice'),
+      couponDiscountLabel: i18n.t('common.couponDiscount'),
+      pointDiscountLabel: i18n.t('common.applyPoints'),
+      finalLabel: i18n.t('common.totalPaymentAmount'),
 
       unitPrice:
         typeof dto.amount === 'number'
           ? dto.amount
           : typeof fallback?.roomPrice === 'number'
-            ? fallback.roomPrice
-            : 0,
+          ? fallback.roomPrice
+          : 0,
       totalPrice:
         typeof dto.totalAmount === 'number'
           ? dto.totalAmount +
@@ -256,45 +285,54 @@ const mapDtoToViewData = (dto, fallback, reservationCode, stayOverride) => {
               ? dto.pointDiscountAmount
               : 0)
           : typeof dto.amount === 'number'
-            ? dto.amount
-            : typeof fallback?.totalPrice === 'number'
-              ? fallback.totalPrice
-              : 0,
+          ? dto.amount
+          : typeof fallback?.totalPrice === 'number'
+          ? fallback.totalPrice
+          : 0,
       couponDiscountAmount:
         typeof dto.couponDiscountAmount === 'number'
           ? dto.couponDiscountAmount
           : typeof fallback?.couponDiscountAmount === 'number'
-            ? fallback.couponDiscountAmount
-            : 0,
+          ? fallback.couponDiscountAmount
+          : 0,
       pointDiscountAmount:
         typeof dto.pointDiscountAmount === 'number'
           ? dto.pointDiscountAmount
           : typeof fallback?.pointDiscountAmount === 'number'
-            ? fallback.pointDiscountAmount
-            : 0,
+          ? fallback.pointDiscountAmount
+          : 0,
       finalPrice:
         typeof dto.totalAmount === 'number'
           ? dto.totalAmount
           : typeof fallback?.totalPrice === 'number'
-            ? fallback.totalPrice
-            : 0,
+          ? fallback.totalPrice
+          : 0,
 
       method: (dto.paymentType && PAYMENT_TYPE_LABEL[dto.paymentType]) ?? '',
     },
 
     cancelPolicy: {
       notice:
-        dto.reservationStatus === 'PENDING' || dto.approvalStatus === 'WAITING_HOST'
-          ? '사장님이 확인하기 전까지는 100% 환불 및 취소가 가능합니다.'
-          : '예약 후 10분 이내에는 무료 취소가 가능합니다. \n단, 체크인 당일에는 환불이 불가합니다.',
+        dto.reservationStatus === 'PENDING' ||
+        dto.approvalStatus === 'WAITING_HOST'
+          ? i18n.t(
+              'guesthouse.100RefundsAndCancellationsArePossibleUntilConfirmedByThe',
+            )
+          : i18n.t(
+              'guesthouse.freeCancellationIsPossibleWithin10MinutesOfBookingHowever',
+            ),
+
       refundPolicies: normalizeRefundPolicies(
-        dto.refundPolicy?.policies ?? dto.refundPolicies ?? fallback?.refundPolicies,
+        dto.refundPolicy?.policies ??
+          dto.refundPolicies ??
+          fallback?.refundPolicies,
       ),
     },
   };
 };
 
 const GuesthousePaymentReceipt = () => {
+  const {t} = useTranslation();
   const route = useRoute();
   const navigation = useNavigation();
   const receiptContext = route?.params?.receiptContext ?? null;
@@ -305,7 +343,8 @@ const GuesthousePaymentReceipt = () => {
   const checkInTime = route?.params?.checkInTime ?? null;
   const checkOutTime = route?.params?.checkOutTime ?? null;
   const isFromDeeplink = route?.params?.isFromDeeplink ?? false;
-  const isFromPaymentFlow = route?.params?.isFromPaymentFlow ?? Boolean(receiptContext);
+  const isFromPaymentFlow =
+    route?.params?.isFromPaymentFlow ?? Boolean(receiptContext);
 
   const [dto, setDto] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -314,7 +353,7 @@ const GuesthousePaymentReceipt = () => {
     title: '',
     message: '',
     highlightText: '',
-    buttonText: '확인',
+    buttonText: t('common.confirm'),
     buttonText2: null,
   });
 
@@ -387,8 +426,8 @@ const GuesthousePaymentReceipt = () => {
         cancelFee: 0,
         refundAmount: data.payment.finalPrice,
         refundMethod: data.payment.method
-          ? `${data.payment.method} 환불`
-          : '환불',
+          ? t('refund.method', {method: data.payment.method})
+          : t('refund.refund'),
         freeCancelUntil,
         refundPolicies: data.cancelPolicy.refundPolicies,
       },
@@ -441,7 +480,9 @@ const GuesthousePaymentReceipt = () => {
           reservationPaymentApi.getReservationPaymentDetail(reservationId),
           isFromPaymentFlow
             ? Promise.resolve(null)
-            : reservationPaymentApi.getRoomReservationDetail(reservationId).catch(() => null),
+            : reservationPaymentApi
+                .getRoomReservationDetail(reservationId)
+                .catch(() => null),
         ]);
         setDto({...roomDetail?.data, ...paymentDetail?.data});
       } catch (e) {
@@ -466,15 +507,15 @@ const GuesthousePaymentReceipt = () => {
     };
 
     fetchDetail();
-  }, [isFromDeeplink, isFromPaymentFlow, navigation, reservationId]);
+  }, [isFromDeeplink, isFromPaymentFlow, navigation, reservationId, t]);
 
   // 복사
-  const handleCopy = (text) => {
+  const handleCopy = text => {
     Clipboard.setString(text ?? '');
 
     Toast.show({
       type: 'success',
-      text1: '복사되었어요!',
+      text1: t('common.copied'),
       position: 'top',
       visibilityTime: 2000,
     });
@@ -483,12 +524,13 @@ const GuesthousePaymentReceipt = () => {
   // 숙소 문의
   const handleCall = async () => {
     const digits = String(data?.guesthouse?.phone || '').replace(/[^\d]/g, '');
-    if (!digits) return Toast.show({
-      type: 'error',
-      text1: '통화할 수 있는 번호가 없어요',
-      position: 'top',
-      visibilityTime: 2500,
-    });
+    if (!digits)
+      return Toast.show({
+        type: 'error',
+        text1: t('guesthouse.thereIsNoNumberICanCall'),
+        position: 'top',
+        visibilityTime: 2500,
+      });
 
     try {
       const url = `tel:${digits}`;
@@ -496,7 +538,7 @@ const GuesthousePaymentReceipt = () => {
       if (!supported) {
         return Toast.show({
           type: 'error',
-          text1: '전화앱을 열 수 없어요',
+          text1: t('guesthouse.iCanTOpenThePhoneApp'),
           position: 'top',
           visibilityTime: 2500,
         });
@@ -505,7 +547,7 @@ const GuesthousePaymentReceipt = () => {
     } catch (e) {
       Toast.show({
         type: 'error',
-        text1: '전화앱을 열 수 없어요',
+        text1: t('guesthouse.iCanTOpenThePhoneApp'),
         position: 'top',
         visibilityTime: 2500,
       });
@@ -541,7 +583,7 @@ const GuesthousePaymentReceipt = () => {
       if (!opened) {
         Toast.show({
           type: 'error',
-          text1: '길찾기를 열 수 있는 위치 정보가 없어요',
+          text1: t('guesthouse.thereIsNoLocationInformationToOpenDirections'),
           position: 'top',
           visibilityTime: 2500,
         });
@@ -549,7 +591,7 @@ const GuesthousePaymentReceipt = () => {
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: '길찾기를 열 수 없어요',
+        text1: t('guesthouse.iCanTOpenDirections'),
         position: 'top',
         visibilityTime: 2500,
       });
@@ -565,11 +607,11 @@ const GuesthousePaymentReceipt = () => {
       await reservationPaymentApi.cancelReservation(
         reservationId,
         'GUESTHOUSE',
-        '사용자 요청 취소',
+        t('guesthouse.cancelUserRequest'),
       );
       Toast.show({
         type: 'success',
-        text1: '취소 되었어요!',
+        text1: t('common.itSBeenCanceled'),
         position: 'top',
         visibilityTime: 2000,
       });
@@ -590,7 +632,7 @@ const GuesthousePaymentReceipt = () => {
     } catch (error) {
       Toast.show({
         type: 'error',
-        text1: '예약 취소에 실패했습니다.',
+        text1: t('common.cancellationOfReservationFailed'),
         position: 'top',
         visibilityTime: 2000,
       });
@@ -600,10 +642,18 @@ const GuesthousePaymentReceipt = () => {
   // 로딩
   if (loading) {
     return (
-      <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+      <View
+        style={[
+          styles.container,
+          {justifyContent: 'center', alignItems: 'center'},
+        ]}>
         <ActivityIndicator />
-        <Text style={[FONTS.fs_14_medium, {marginTop: 10, color: COLORS.grayscale_500}]}>
-          불러오는 중...
+        <Text
+          style={[
+            FONTS.fs_14_medium,
+            {marginTop: 10, color: COLORS.grayscale_500},
+          ]}>
+          {t('common.loading_c21bd6')}
         </Text>
       </View>
     );
@@ -612,9 +662,13 @@ const GuesthousePaymentReceipt = () => {
   // 데이터 없음
   if (!data) {
     return (
-      <View style={[styles.container, {justifyContent: 'center', alignItems: 'center'}]}>
+      <View
+        style={[
+          styles.container,
+          {justifyContent: 'center', alignItems: 'center'},
+        ]}>
         <Text style={[FONTS.fs_14_medium, {color: COLORS.grayscale_600}]}>
-          예약 정보를 찾을 수 없어요.
+          {t('guesthouse.iCanTFindMyReservationInformation')}
         </Text>
       </View>
     );
@@ -626,18 +680,19 @@ const GuesthousePaymentReceipt = () => {
         <TouchableOpacity
           activeOpacity={1}
           style={styles.xBtn}
-          onPress={handleClose}
-        >
-          <XBtn width={24} height={24}/>
+          onPress={handleClose}>
+          <XBtn width={24} height={24} />
         </TouchableOpacity>
         {/* 타이틀 */}
         <View style={styles.title}>
           <Text style={[FONTS.fs_20_bold]}>
-            {isPendingReservation ? '승인 대기 중' : '예약내역'}
+            {isPendingReservation
+              ? t('common.waitingForApproval')
+              : t('common.reservationDetails')}
           </Text>
           {isPendingReservation ? (
             <Text style={[FONTS.fs_12_medium, styles.pendingNotice]}>
-              사장님이 예약을 확인 중이에요. 확정되면 바로 알려드릴게요!
+              {t('guesthouse.theOwnerIsConfirmingYourReservationILlLetYou')}
             </Text>
           ) : null}
           <Text style={[FONTS.fs_18_semibold, styles.guesthouseName]}>
@@ -651,34 +706,52 @@ const GuesthousePaymentReceipt = () => {
         {/* 액션 버튼 4개 */}
         <View style={styles.actionRow}>
           <TouchableOpacity
-            activeOpacity={1} style={styles.actionBtn} onPress={handleCall}>
-            <PhoneIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_12_medium, styles.actionText]}>숙소문의</Text>
+            activeOpacity={1}
+            style={styles.actionBtn}
+            onPress={handleCall}>
+            <PhoneIcon width={20} height={20} />
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>
+              {t('guesthouse.accommodationInquiry')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={1} style={styles.actionBtn} onPress={handleCopyAddress}>
-            <CopyIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_12_medium, styles.actionText]}>주소복사</Text>
+            activeOpacity={1}
+            style={styles.actionBtn}
+            onPress={handleCopyAddress}>
+            <CopyIcon width={20} height={20} />
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>
+              {t('guesthouse.copyAddress')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={1} style={styles.actionBtn} onPress={handleOpenMap}>
-            <MapIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_12_medium, styles.actionText]}>지도보기</Text>
+            activeOpacity={1}
+            style={styles.actionBtn}
+            onPress={handleOpenMap}>
+            <MapIcon width={20} height={20} />
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>
+              {t('guesthouse.viewMap')}
+            </Text>
           </TouchableOpacity>
 
           <TouchableOpacity
-            activeOpacity={1} style={styles.actionBtn} onPress={handleFindWay}>
-            <RouteIcon width={20} height={20}/>
-            <Text style={[FONTS.fs_12_medium, styles.actionText]}>길찾기</Text>
+            activeOpacity={1}
+            style={styles.actionBtn}
+            onPress={handleFindWay}>
+            <RouteIcon width={20} height={20} />
+            <Text style={[FONTS.fs_12_medium, styles.actionText]}>
+              {t('guesthouse.directions')}
+            </Text>
           </TouchableOpacity>
         </View>
 
         {/* 체크인/아웃 */}
         <View style={styles.dateBoxContainer}>
           <View style={styles.dateBoxCheckIn}>
-            <Text style={[FONTS.fs_12_medium, styles.dateLabel]}>체크인</Text>
+            <Text style={[FONTS.fs_12_medium, styles.dateLabel]}>
+              {t('common.checkIn')}
+            </Text>
             <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
               {data.stay.checkIn}
             </Text>
@@ -688,11 +761,16 @@ const GuesthousePaymentReceipt = () => {
           </View>
 
           <View style={styles.nightsBox}>
-            <Text style={[FONTS.fs_12_medium]}>{nights}박</Text>
+            <Text style={[FONTS.fs_12_medium]}>
+              {nights}
+              {t('common.nights')}
+            </Text>
           </View>
 
           <View style={styles.dateBoxCheckOut}>
-            <Text style={[FONTS.fs_12_medium, styles.dateLabel]}>체크아웃</Text>
+            <Text style={[FONTS.fs_12_medium, styles.dateLabel]}>
+              {t('common.checkOut')}
+            </Text>
             <Text style={[FONTS.fs_14_semibold, styles.dateText]}>
               {data.stay.checkOut}
             </Text>
@@ -706,13 +784,11 @@ const GuesthousePaymentReceipt = () => {
         <View style={styles.purchaseWrap}>
           <View style={styles.purchaseLeft}>
             <Text style={[FONTS.fs_16_semibold, styles.purchaseTitle]}>
-              구매 정보
+              {t('guesthouse.purchaseInformation')}
             </Text>
           </View>
           <View style={styles.purchaseRight}>
-            <Text style={[FONTS.fs_14_medium]}>
-              {data.purchase.title}
-            </Text>
+            <Text style={[FONTS.fs_14_medium]}>{data.purchase.title}</Text>
             <Text style={[FONTS.fs_14_regular, styles.purchaseSub]}>
               {data.purchase.subTitle}
             </Text>
@@ -722,12 +798,14 @@ const GuesthousePaymentReceipt = () => {
         {/* 예약 정보 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-            예약 정보
+            {t('common.reservationInformation')}
           </Text>
 
           <View style={styles.row}>
             <View style={styles.rowLeft}>
-              <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>예약번호</Text>
+              <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+                {t('guesthouse.reservationNumber')}
+              </Text>
             </View>
 
             <View style={{flexDirection: 'row', alignItems: 'center', gap: 10}}>
@@ -737,23 +815,32 @@ const GuesthousePaymentReceipt = () => {
               <TouchableOpacity
                 activeOpacity={1}
                 style={styles.copyBtn}
-                onPress={() => handleCopy(data.reservation.number, '예약번호 복사했어')}>
+                onPress={() =>
+                  handleCopy(
+                    data.reservation.number,
+                    t('guesthouse.iCopiedTheReservationNumber'),
+                  )
+                }>
                 <Text style={[FONTS.fs_12_medium, styles.copyBtnText]}>
-                  예약번호 복사
+                  {t('guesthouse.copyReservationNumber')}
                 </Text>
               </TouchableOpacity>
             </View>
           </View>
 
           <View style={styles.row}>
-            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>이름</Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+              {t('common.name')}
+            </Text>
             <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
               {data.reservation.name}
             </Text>
           </View>
 
           <View style={styles.row}>
-            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>전화번호</Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+              {t('common.phoneNumber')}
+            </Text>
             <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
               {data.reservation.phone}
             </Text>
@@ -762,7 +849,7 @@ const GuesthousePaymentReceipt = () => {
           {data.stay.expectedCheckInTime ? (
             <View style={styles.row}>
               <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
-                예상 체크인 시간
+                {t('common.expectedCheckInTime')}
               </Text>
               <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
                 {data.stay.expectedCheckInTime}
@@ -773,11 +860,11 @@ const GuesthousePaymentReceipt = () => {
           {data.reservation.isActualGuestDifferent ? (
             <View style={styles.actualGuestBox}>
               <Text style={[FONTS.fs_14_semibold, styles.actualGuestTitle]}>
-                실제 방문자 정보
+                {t('guesthouse.realVisitorInformation')}
               </Text>
               <View style={styles.row}>
                 <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
-                  이름
+                  {t('common.name')}
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
                   {data.reservation.actualGuestName}
@@ -785,7 +872,7 @@ const GuesthousePaymentReceipt = () => {
               </View>
               <View style={styles.row}>
                 <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
-                  전화번호
+                  {t('common.phoneNumber')}
                 </Text>
                 <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
                   {data.reservation.actualGuestPhone}
@@ -797,7 +884,7 @@ const GuesthousePaymentReceipt = () => {
           {data.reservation.request ? (
             <View style={styles.requestBox}>
               <Text style={[FONTS.fs_14_semibold, styles.requestTitle]}>
-                요청 사항
+                {t('common.request')}
               </Text>
               <Text style={[FONTS.fs_14_regular, styles.requestText]}>
                 {data.reservation.request}
@@ -806,17 +893,18 @@ const GuesthousePaymentReceipt = () => {
           ) : null}
         </View>
 
-        <View style={[styles.divider, {marginTop: 16}]}/>
+        <View style={[styles.divider, {marginTop: 16}]} />
 
         {/* 결제 정보 */}
         <View style={styles.section}>
           <Text style={[FONTS.fs_16_semibold, styles.sectionTitle]}>
-            결제 정보
+            {t('common.paymentInformation')}
           </Text>
 
           <View style={styles.row}>
             <Text style={[FONTS.fs_12_medium, {color: COLORS.grayscale_400}]}>
-              결제일시 : {formatPaidAt(data.payment.paidAt)}
+              {t('guesthouse.paymentDate')}
+              {formatPaidAt(data.payment.paidAt)}
             </Text>
           </View>
 
@@ -858,31 +946,42 @@ const GuesthousePaymentReceipt = () => {
             </Text>
           </View>
 
-          <View style={styles.divider}/>
+          <View style={styles.divider} />
 
           <View style={styles.row}>
             <Text style={[FONTS.fs_16_semibold]}>
               {data.payment.finalLabel}
             </Text>
-            <Text style={[FONTS.fs_16_semibold, styles.rowValue, styles.finalPrice]}>
+            <Text
+              style={[
+                FONTS.fs_16_semibold,
+                styles.rowValue,
+                styles.finalPrice,
+              ]}>
               {formatPrice(data.payment.finalPrice)}
             </Text>
           </View>
 
           <View style={styles.row}>
-            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>결제 수단</Text>
+            <Text style={[FONTS.fs_14_medium, styles.rowLabel]}>
+              {t('common.paymentMethod')}
+            </Text>
             <Text style={[FONTS.fs_14_medium, styles.rowValue]}>
               {data.payment.method}
             </Text>
           </View>
-
         </View>
 
         {/* 예약취소 */}
         {isFromPaymentFlow && (
           <View style={styles.section}>
-            <Text style={[FONTS.fs_16_semibold, styles.sectionTitle, {marginTop: 32}]}>
-              예약취소
+            <Text
+              style={[
+                FONTS.fs_16_semibold,
+                styles.sectionTitle,
+                {marginTop: 32},
+              ]}>
+              {t('common.cancelReservation_fb9a3e')}
             </Text>
 
             <Text style={[FONTS.fs_12_medium, styles.cancelNotice]}>
@@ -915,7 +1014,7 @@ const GuesthousePaymentReceipt = () => {
                     title: title || '',
                     message: message || description || '',
                     highlightText: highlightText || '',
-                    buttonText: buttonText || '확인',
+                    buttonText: buttonText || t('common.confirm'),
                     buttonText2: buttonText2 || null,
                   });
                   setRefundModalOpen(true);
@@ -926,7 +1025,7 @@ const GuesthousePaymentReceipt = () => {
               }}
               backgroundColor={COLORS.secondary_red}
               textColor={COLORS.semantic_red}
-              title='예약취소'
+              title={t('common.cancelReservation_fb9a3e')}
             />
           </View>
         )}

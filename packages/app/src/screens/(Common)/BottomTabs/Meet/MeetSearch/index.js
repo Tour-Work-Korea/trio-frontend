@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {
   View,
@@ -15,7 +16,7 @@ import {COLORS} from '@constants/colors';
 import styles from './MeetSearch.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import EmptyState from '@components/EmptyState';
-import {trimJejuPrefix} from '@utils/formatAddress';
+import {formatServiceRegion} from '@utils/formatServiceRegion';
 import AppImage, {prefetchImageUrls} from '@components/AppImage';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -23,6 +24,9 @@ import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
 import ChevronLeft from '@assets/images/chevron_left_gray.svg';
 import SearchEmpty from '@assets/images/search_empty.svg';
+import RegionChips from '@screens/(Common)/BottomTabs/Guesthouse/regions/RegionChips';
+import {useMeetRegionStore} from '../regions/store';
+import {withPartyRegion} from '../regions/params';
 
 const mapApiToUI = it => {
   const price = it.isGuest ? it.amount : it.nonGuestAmount ?? it.amount;
@@ -30,7 +34,7 @@ const mapApiToUI = it => {
     id: it.partyId,
     placeName: it.guesthouseName,
     title: it.partyTitle,
-    address: it.location,
+    regionName: formatServiceRegion(it.regionType),
     thumbnailUri: it.partyImageUrl,
     startAt: it.partyStartDateTime,
     joined: it.numOfAttendance,
@@ -41,10 +45,14 @@ const mapApiToUI = it => {
 };
 
 const MeetSearch = () => {
+  const {t} = useTranslation();
   const navigation = useNavigation();
+  const region = useMeetRegionStore(state => state.region);
+  const setRegion = useMeetRegionStore(state => state.setRegion);
 
   // 검색/목록/paging 상태
   const [keyword, setKeyword] = useState('');
+  const [submittedKeyword, setSubmittedKeyword] = useState('');
   const [items, setItems] = useState([]);
   const [page, setPage] = useState(0);
   const size = 10;
@@ -54,7 +62,6 @@ const MeetSearch = () => {
   const isFetchingRef = useRef(false);
   const hasUserScrolledRef = useRef(false);
   const requestKeyRef = useRef(null);
-  const didInitialLoadRef = useRef(false);
 
   // 좋아요 토글
   const [favorites, setFavorites] = useState({});
@@ -72,17 +79,24 @@ const MeetSearch = () => {
     const d = dayjs(isoStr);
     const isToday = d.format('YYYY-MM-DD') === todayKey;
     const label =
-      (isToday ? '오늘, ' : `${d.date()}일, `) +
-      `${d.hour() < 12 ? '오전' : '오후'} ${d.format('h:mm')}`;
+      (isToday ? t('meet.today') : t('meet.valueDays', {value1: d.date()})) +
+      `${
+        d.hour() < 12 ? t('common.morning') : t('common.afternoon')
+      } ${d.format('h:mm')}`;
     return {isToday, label};
   };
 
   // 콘텐츠 데이터 로더
   const fetchPage = useCallback(
     async (nextPage, reset = false) => {
-      const requestKey = `${keyword ?? ''}:${nextPage}:${reset ? 'reset' : 'append'}`;
+      const requestKey = `${region}:${submittedKeyword}:${nextPage}:${
+        reset ? 'reset' : 'append'
+      }`;
 
-      if (isFetchingRef.current || requestKeyRef.current === requestKey) {
+      if (
+        requestKeyRef.current === requestKey ||
+        (isFetchingRef.current && !reset)
+      ) {
         return;
       }
 
@@ -90,16 +104,25 @@ const MeetSearch = () => {
       requestKeyRef.current = requestKey;
       setIsFetching(true);
       try {
-        const params = {
-          searchKeyword: keyword ?? '',
-          sort: 'RECOMMEND',
-          page: nextPage,
-          size,
-        };
+        const params = withPartyRegion(
+          {
+            searchKeyword: submittedKeyword,
+            sortBy: 'RECOMMEND',
+            page: nextPage,
+            size,
+          },
+          region,
+        );
         const {data} = await userMeetApi.searchParties(params);
         const content = Array.isArray(data?.content) ? data.content : [];
         const mapped = content.map(mapApiToUI);
-        prefetchImageUrls(mapped.map(item => item.thumbnailUri), {limit: 8});
+        if (requestKeyRef.current !== requestKey) {
+          return;
+        }
+        prefetchImageUrls(
+          mapped.map(item => item.thumbnailUri),
+          {limit: 8},
+        );
 
         setItems(prev => (reset ? mapped : [...prev, ...mapped]));
         setPage(nextPage);
@@ -108,34 +131,39 @@ const MeetSearch = () => {
         );
       } catch (e) {
         console.log('searchParties error', e);
-        // 실패 시 다음 페이지 요청 막기 위해 hasNext는 일단 false
-        setHasNext(false);
+        if (requestKeyRef.current === requestKey) {
+          setHasNext(false);
+        }
       } finally {
-        isFetchingRef.current = false;
-        requestKeyRef.current = null;
-        setIsFetching(false);
-        setRefreshing(false);
+        if (requestKeyRef.current === requestKey) {
+          isFetchingRef.current = false;
+          requestKeyRef.current = null;
+          setIsFetching(false);
+          setRefreshing(false);
+        }
       }
     },
-    [keyword],
+    [region, submittedKeyword],
   );
 
-  // 최초 로드
+  // 최초 진입, 검색어 적용, 지역 변경 시 첫 페이지부터 다시 조회한다.
   useEffect(() => {
-    if (didInitialLoadRef.current) {
-      return;
-    }
-
-    didInitialLoadRef.current = true;
+    hasUserScrolledRef.current = false;
+    setHasNext(true);
     fetchPage(0, true);
-  }, [fetchPage]); // 첫 마운트
+  }, [fetchPage]);
 
   // 검색 실행
   const submitSearch = () => {
     hasUserScrolledRef.current = false;
     setRefreshing(true);
     setHasNext(true);
-    fetchPage(0, true);
+    const nextKeyword = keyword.trim();
+    if (nextKeyword === submittedKeyword) {
+      fetchPage(0, true);
+      return;
+    }
+    setSubmittedKeyword(nextKeyword);
   };
 
   // 당겨서 새로고침
@@ -179,7 +207,8 @@ const MeetSearch = () => {
                 {item.placeName}
               </Text>
               <TouchableOpacity
-                activeOpacity={1} onPress={() => toggleFavorite(item.id)}>
+                activeOpacity={1}
+                onPress={() => toggleFavorite(item.id)}>
                 {isFav ? (
                   <HeartFilled width={20} height={20} />
                 ) : (
@@ -194,18 +223,20 @@ const MeetSearch = () => {
                 {item.title}
               </Text>
               <Text style={[FONTS.fs_12_medium, styles.countText]}>
-                {item.joined}/{item.capacity}명
+                {item.joined}/{item.capacity}
+                {t('common.peopleUnit')}
               </Text>
             </View>
             <Text style={[FONTS.fs_18_semibold, styles.priceText]}>
-              {item.price.toLocaleString()}원
+              {item.price.toLocaleString()}
+              {t('common.won')}
             </Text>
           </View>
         </View>
 
         <View style={styles.itemBottomWrap}>
           <Text style={[FONTS.fs_12_medium, styles.addressText]}>
-            {trimJejuPrefix(item.address)}
+            {item.regionName}
           </Text>
           <Text
             style={[
@@ -230,14 +261,16 @@ const MeetSearch = () => {
           onPress={() => navigation.goBack()}>
           <ChevronLeft width={24} height={24} />
         </TouchableOpacity>
-        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>콘텐츠</Text>
+        <Text style={[FONTS.fs_20_semibold, styles.headerTitle]}>
+          {t('common.activity')}
+        </Text>
       </View>
 
       {/* 검색창 */}
       <View style={styles.searchBox}>
         <SearchIcon width={24} height={24} />
         <TextInput
-          placeholder="찾는 콘텐츠가 있으신가요?"
+          placeholder={t('meet.isThereActivityYouAreLookingFor')}
           style={[FONTS.fs_14_regular, styles.input]}
           placeholderTextColor={COLORS.grayscale_600}
           value={keyword}
@@ -247,10 +280,12 @@ const MeetSearch = () => {
         />
       </View>
 
+      <RegionChips value={region} onChange={setRegion} />
+
       {/* 콘텐츠 리스트 */}
       <View style={styles.meetListContainer}>
         <Text style={[FONTS.fs_14_medium, styles.sectionTitle]}>
-          콘텐츠 중인 게스트하우스
+          {t('meet.guestHouseInActivity')}
         </Text>
 
         <FlatList
@@ -276,8 +311,8 @@ const MeetSearch = () => {
                 <EmptyState
                   icon={SearchEmpty}
                   iconSize={{width: 120, height: 120}}
-                  title="조건에 맞는 콘텐츠가 없어요"
-                  description="마음에 드는 콘텐츠를 찾으러 가볼까요?"
+                  title={t('meet.thereIsNoActivityThatMeetsTheConditions')}
+                  description={t('meet.shallWeGoFindYourFavoriteActivity')}
                 />
               </View>
             ) : null

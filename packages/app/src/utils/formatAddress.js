@@ -1,4 +1,9 @@
-const HIDDEN_ADDRESS_DETAILS = ['임시 상세주소'];
+import ko from '../locales/ko.json';
+import en from '../locales/en.json';
+const HIDDEN_ADDRESS_DETAILS = [
+  ko['common.temporaryDetailedAddress'],
+  en['common.temporaryDetailedAddress'],
+];
 
 const removeHiddenAddressDetails = value =>
   HIDDEN_ADDRESS_DETAILS.reduce(

@@ -1,3 +1,4 @@
+import {useTranslation} from 'react-i18next';
 import React, {useEffect} from 'react';
 import {ScrollView, StyleSheet, Text, TouchableOpacity} from 'react-native';
 import {COLORS} from '@constants/colors';
@@ -7,6 +8,7 @@ import {useGuesthouseRegionStore} from './store';
 const SYMBOLS = {JEJU: '🌴 ', BUSAN: '🌊 '};
 
 export default function RegionChips({value, onChange, inset = true}) {
+  const {t} = useTranslation();
   const regions = useGuesthouseRegionStore(state => state.regions);
   const loadRegions = useGuesthouseRegionStore(state => state.loadRegions);
   useEffect(() => {
@@ -49,11 +51,13 @@ export default function RegionChips({value, onChange, inset = true}) {
           disabled
           accessibilityRole="button"
           accessibilityState={{disabled: true}}
-          accessibilityLabel="목포, 오픈 예정"
+          accessibilityLabel={t('guesthouse.mokpoScheduledToOpen')}
           style={[styles.chip, styles.disabled]}>
-          <Text style={[FONTS.fs_14_medium, styles.disabledText]}>⚓ 목포</Text>
+          <Text style={[FONTS.fs_14_medium, styles.disabledText]}>
+            {t('guesthouse.mokpo')}
+          </Text>
           <Text style={[FONTS.fs_10_regular, styles.comingSoon]}>
-            오픈 예정
+            {t('guesthouse.scheduledToOpen')}
           </Text>
         </TouchableOpacity>
       )}

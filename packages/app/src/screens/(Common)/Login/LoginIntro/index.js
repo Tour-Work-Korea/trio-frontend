@@ -1,4 +1,4 @@
-import {Platform, Text, View} from 'react-native';
+import {Platform, Text, TouchableOpacity, View} from 'react-native';
 import {
   useNavigation,
   CommonActions,
@@ -11,13 +11,15 @@ import AlertModal from '@components/modals/AlertModal';
 
 import styles from './LoginIntro.styles';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
-// import NaverLogo from '@assets/images/naver_logo.svg';
-// import GoogleLogo from '@assets/images/google_logo.svg';
+import NaverLogo from '@assets/images/naver_logo.svg';
+import GoogleLogo from '@assets/images/google_logo.svg';
 import MailGray from '@assets/images/mail_fill_gray.svg';
 import LogoIcon from '@assets/images/logo_orange.svg';
 import {COLORS} from '@constants/colors';
+import {useTranslation} from 'react-i18next';
+import useLocaleStore from '@stores/localeStore';
 
-import {tryKakaoLoginNative} from '@utils/auth/login';
+import {tryGoogleLoginNative, tryKakaoLoginNative} from '@utils/auth/login';
 import {
   getLastLoginProvider,
   LOGIN_PROVIDERS,
@@ -26,6 +28,8 @@ import {
 
 const LoginIntro = () => {
   const navigation = useNavigation();
+  const {t} = useTranslation();
+  const language = useLocaleStore(state => state.language);
 
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -59,7 +63,7 @@ const LoginIntro = () => {
     <View style={styles.loginButtonWrapper}>
       {lastLoginProvider === provider ? (
         <View style={styles.recentBadge}>
-          <Text style={styles.recentBadgeText}>최근 로그인</Text>
+          <Text style={styles.recentBadgeText}>{t('auth.lastLogin')}</Text>
           <View style={styles.recentBadgeTail} />
         </View>
       ) : null}
@@ -102,52 +106,60 @@ const LoginIntro = () => {
       if (!result.message?.toLowerCase().includes('cancel')) {
         setErrorModal({
           visible: true,
-          message: '카카오 로그인 중 오류가 발생했습니다.\n다시 시도해주세요.',
+          message: t('auth.anErrorOccurredWhileLoggingIntoKakaoPleaseTryAgain'),
         });
       }
     }
   };
 
-  // const handleGoogleLoginClick = async () => {
-  //   if (Platform.OS === 'web') {
-  //     return;
-  //   }
-  //
-  //   const result = await tryGoogleLoginNative('USER');
-  //
-  //   if (result.success) {
-  //     if (result.isNewUser) {
-  //       navigation.navigate('PhoneCertificate', {
-  //         user: 'USER',
-  //         agreements: [],
-  //         isSocial: true,
-  //         provider: result.provider,
-  //         socialSignupToken: result.socialSignupToken,
-  //         socialProfile: result.socialProfile,
-  //       });
-  //     } else {
-  //       await storeLastLoginProvider(LOGIN_PROVIDERS.GOOGLE);
-  //       navigation.dispatch(
-  //         CommonActions.reset({
-  //           index: 0,
-  //           routes: [{name: 'MainTabs'}],
-  //         }),
-  //       );
-  //     }
-  //     return;
-  //   }
-  //
-  //   if (!result.cancelled) {
-  //     setErrorModal({
-  //       visible: true,
-  //       message: '구글 로그인 중 오류가 발생했습니다.\n다시 시도해주세요.',
-  //     });
-  //   }
-  // };
+  const handleGoogleLoginClick = async () => {
+    if (Platform.OS === 'web') {
+      return;
+    }
+
+    const result = await tryGoogleLoginNative('USER');
+
+    if (result.success) {
+      if (result.isNewUser) {
+        navigation.navigate('SocialOriginSelect', {
+          user: 'USER',
+          agreements: [],
+          isSocial: true,
+          provider: result.provider,
+          socialSignupToken: result.socialSignupToken,
+          socialProfile: result.socialProfile,
+        });
+      } else {
+        await storeLastLoginProvider(LOGIN_PROVIDERS.GOOGLE);
+        navigation.dispatch(
+          CommonActions.reset({
+            index: 0,
+            routes: [{name: 'MainTabs'}],
+          }),
+        );
+      }
+      return;
+    }
+
+    if (!result.cancelled) {
+      setErrorModal({
+        visible: true,
+        message: t('auth.anErrorOccurredWhileLoggingInToGooglePleaseTry'),
+      });
+    }
+  };
 
   return (
     <View style={styles.signin}>
       <View style={styles.view}>
+        <TouchableOpacity
+          accessibilityLabel={t('language.title')}
+          style={styles.languageButton}
+          onPress={() => navigation.navigate('Language')}>
+          <Text style={styles.languageButtonText}>
+            {language === 'ko' ? '한국어' : 'English'}
+          </Text>
+        </TouchableOpacity>
         <View style={styles.logoParent}>
           <LogoIcon width={120} height={120} />
         </View>
@@ -156,17 +168,17 @@ const LoginIntro = () => {
             {renderLoginButton(
               LOGIN_PROVIDERS.KAKAO,
               <ButtonWhite
-                title="카카오로 시작하기"
+                title={t('auth.startWithKakao')}
                 onPress={handleKakaoLoginClick}
                 Icon={KakaoLogo}
                 backgroundColor="#fee500"
               />,
             )}
-            {/* {Platform.OS !== 'web'
+            {Platform.OS !== 'web'
               ? renderLoginButton(
                   LOGIN_PROVIDERS.NAVER,
                   <ButtonWhite
-                    title="네이버로 시작하기"
+                    title={t('auth.startWithNaver')}
                     onPress={() =>
                       navigation.navigate('SocialLogin', {provider: 'NAVER'})
                     }
@@ -175,12 +187,12 @@ const LoginIntro = () => {
                     textColor={COLORS.grayscale_0}
                   />,
                 )
-              : null} */}
-            {/* {Platform.OS !== 'web'
+              : null}
+            {Platform.OS !== 'web'
               ? renderLoginButton(
                   LOGIN_PROVIDERS.GOOGLE,
                   <ButtonWhite
-                    title="구글로 시작하기"
+                    title={t('auth.getStartedWithGoogle')}
                     onPress={handleGoogleLoginClick}
                     Icon={GoogleLogo}
                     backgroundColor={COLORS.grayscale_0}
@@ -189,11 +201,11 @@ const LoginIntro = () => {
                     borderColor="#747775"
                   />,
                 )
-              : null} */}
+              : null}
             {renderLoginButton(
               LOGIN_PROVIDERS.EMAIL,
               <ButtonWhite
-                title="이메일로 시작하기"
+                title={t('common.getStartedWithEmail')}
                 onPress={() =>
                   navigation.navigate('LoginByEmail', {userRole: 'USER'})
                 }
@@ -208,7 +220,7 @@ const LoginIntro = () => {
         <AlertModal
           visible={errorModal.visible}
           title={errorModal.message}
-          buttonText={'확인'}
+          buttonText={t('common.confirm')}
           onPress={() => setErrorModal(prev => ({...prev, visible: false}))}
         />
       </View>
