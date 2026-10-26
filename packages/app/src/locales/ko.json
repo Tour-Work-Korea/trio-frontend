@@ -962,6 +962,8 @@
   "meet.adultValue": "성인 {{adultCount}}",
   "meet.adultValueChildValue": "성인 {{adultCount}}, 아동 {{childCount}}",
   "meet.afterTheBossConfirmed": "사장님이 확인 후",
+  "meet.applicationAcceptedNotice": "사장님이 확인 후 <highlight>최종 확정 알림</highlight>을\n보내드릴 예정입니다",
+  "meet.meetingPlaceWithValue": "만나는 장소 : {{place}}",
   "meet.alcoholProvided": "주류 제공",
   "meet.anErrorOccurredWhileCreatingTheReservation": "예약 생성 중 오류가 발생했어요.",
   "meet.anyoneCanParticipate": "누구나 참여",

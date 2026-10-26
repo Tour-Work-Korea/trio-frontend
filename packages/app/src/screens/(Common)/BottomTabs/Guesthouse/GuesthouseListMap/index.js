@@ -73,6 +73,7 @@ const WEB_INITIAL_FIT_PADDING = {
   top: 12,
 };
 const WEB_INITIAL_REGION_SCALE = 0.6;
+const NATIVE_ALL_REGION_VERTICAL_OFFSET = 0.08;
 const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
   if (!region) {
     return null;
@@ -88,7 +89,12 @@ const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
       : region;
 
   return {
-    latitude: nextRegion.latitude - nextRegion.latitudeDelta / 2,
+    latitude:
+      nextRegion.latitude -
+      nextRegion.latitudeDelta / 2 -
+      (Platform.OS !== 'web' && fitFullBounds
+        ? nextRegion.latitudeDelta * NATIVE_ALL_REGION_VERTICAL_OFFSET
+        : 0),
     longitude: nextRegion.longitude - nextRegion.longitudeDelta / 2,
     latitudeDelta: nextRegion.latitudeDelta,
     longitudeDelta: nextRegion.longitudeDelta,
@@ -1498,7 +1504,10 @@ const GuesthouseListMap = ({
         <NaverMapView
           ref={mapRef}
           style={styles.map}
-          initialRegion={centerRegionToNaverRegion(initialRegion)}
+          initialRegion={centerRegionToNaverRegion(
+            cameraTargetRegion,
+            serviceRegion === 'ALL' && Boolean(selectedServiceRegion),
+          )}
           onLayout={handleMapLayout}
           onInitialized={() => setMapReady(true)}
           onCameraChanged={params => {
