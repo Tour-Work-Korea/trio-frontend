@@ -32,6 +32,7 @@ const GuesthouseReview = ({
   guesthouseId,
   averageRating = 0,
   totalCount = 0,
+  loadMoreSignal = 0,
 }) => {
   const {t} = useTranslation();
   const loadingRef = useRef(false);
