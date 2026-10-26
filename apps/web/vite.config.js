@@ -191,5 +191,12 @@ export default defineConfig(({mode}) => {
       },
     },
   },
+  build: {
+    commonjsOptions: {
+      // Calendar internals mix ES exports with require('xdate') / require('lodash/...').
+      // Convert those calls too so loading the shared app cannot crash in browsers.
+      transformMixedEsModules: true,
+    },
+  },
   };
 });
