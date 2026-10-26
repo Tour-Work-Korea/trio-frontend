@@ -32,6 +32,7 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {trimJejuPrefix} from '@utils/formatAddress';
+import {openWebLink} from '@utils/openWebLink';
 import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
 import {
   partyDetailDeeplink,
@@ -69,9 +70,40 @@ const CONTENT_TYPE_LABEL = {
 const TABS = [
   {key: 'intro', labelKey: 'meet.activityIntroduction'},
   {key: 'detail', labelKey: 'meet.detailedInformation'},
-  {key: 'review', labelKey: 'common.review'},
   {key: 'way', labelKey: 'meet.directions'},
+  {key: 'review', labelKey: 'common.review'},
 ];
+
+const URL_SPLIT_REGEX = /(https?:\/\/[^\s]+|www\.[^\s]+)/gi;
+const URL_TEXT_REGEX = /^(https?:\/\/[^\s]+|www\.[^\s]+)$/i;
+const TRAILING_URL_PUNCTUATION_REGEX = /[.,!?;:)\]}]+$/;
+
+const renderMeetingPlaceWithLinks = text =>
+  text.split(URL_SPLIT_REGEX).map((part, index) => {
+    if (!URL_TEXT_REGEX.test(part)) {
+      return part;
+    }
+
+    const trailingPunctuation = part.match(TRAILING_URL_PUNCTUATION_REGEX)?.[0];
+    const linkText = trailingPunctuation
+      ? part.slice(0, -trailingPunctuation.length)
+      : part;
+    const url = /^https?:\/\//i.test(linkText)
+      ? linkText
+      : `https://${linkText}`;
+
+    return (
+      <React.Fragment key={`${index}-${linkText}`}>
+        <Text
+          style={styles.meetingPlaceLink}
+          accessibilityRole="link"
+          onPress={() => openWebLink(url)}>
+          {linkText}
+        </Text>
+        {trailingPunctuation ?? ''}
+      </React.Fragment>
+    );
+  });
 
 const {width: SCREEN_W} = Dimensions.get('window');
 const IMAGE_H = 280;
@@ -1121,8 +1153,9 @@ const MeetDetail = () => {
             </Text>
             {!!displayLocation && (
               <Text style={[FONTS.fs_16_regular, styles.infoText]}>
-                {t('meet.meetingPlace')}
-                {displayLocation}
+                {renderMeetingPlaceWithLinks(
+                  t('meet.meetingPlaceWithValue', {place: displayLocation}),
+                )}
               </Text>
             )}
             {renderLocationMap()}

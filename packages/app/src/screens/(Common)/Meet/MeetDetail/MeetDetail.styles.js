@@ -314,6 +314,10 @@ const styles = StyleSheet.create({
   infoText: {
     lineHeight: 22,
   },
+  meetingPlaceLink: {
+    color: COLORS.primary_blue,
+    textDecorationLine: 'underline',
+  },
   // 상세 안내 밑부분
   detailInfoContainer: {
     backgroundColor: COLORS.grayscale_100,
