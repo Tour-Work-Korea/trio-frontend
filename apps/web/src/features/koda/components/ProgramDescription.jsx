@@ -7,6 +7,7 @@ const inline = text =>
       return (
         <a
           key={index}
+          className="le-inline-link"
           href={part.href}
           target="_blank"
           rel="noopener noreferrer">
@@ -16,6 +17,10 @@ const inline = text =>
     if (part.bold) return <strong key={index}>{inline(part.text)}</strong>;
     return part.text;
   });
+
+export function InlineText({text}) {
+  return inline(text);
+}
 
 export default function ProgramDescription({text}) {
   return (

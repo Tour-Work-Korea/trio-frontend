@@ -229,17 +229,21 @@
   color: var(--le-text);
 }
 
-.le-page--detail .le-program-description a {
+.le-page--detail a.le-inline-link {
+  display: inline;
+  min-height: auto;
+  font-size: inherit;
+  font-family: inherit;
   color: var(--le-text);
   text-decoration: underline;
   text-underline-offset: 3px;
   text-decoration-thickness: 1px;
   overflow-wrap: anywhere;
 }
-.le-page--detail .le-program-description a:hover {
+.le-page--detail a.le-inline-link:hover {
   text-decoration-thickness: 2px;
 }
-.le-page--detail .le-program-description a:focus-visible {
+.le-page--detail a.le-inline-link:focus-visible {
   outline: 2px solid var(--le-accent);
   outline-offset: 3px;
 }
