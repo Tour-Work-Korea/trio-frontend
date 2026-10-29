@@ -8,7 +8,7 @@ import styles from './UserFavoriteGuesthouse.styles';
 import Header from '@components/Header';
 import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import EmptyState from '@components/EmptyState';
 import ButtonScarlet from '@components/ButtonScarlet';
 import AppImage from '@components/AppImage';
@@ -125,7 +125,7 @@ const UserFavoriteGuesthouse = ({hideHeader = false}) => {
     <View style={styles.container}>
       {!hideHeader && <Header title={t('guesthouse.favoriteGuesthouse')} />}
       {loading ? (
-        <Loading title={t('guesthouse.loadingGuesthouse_aa316d')} />
+        <ScreenSkeleton layout={styles} title={t('guesthouse.loadingGuesthouse_aa316d')} />
       ) : guesthouses.length === 0 ? (
         <View style={styles.emptyContainer}>
           <EmptyState

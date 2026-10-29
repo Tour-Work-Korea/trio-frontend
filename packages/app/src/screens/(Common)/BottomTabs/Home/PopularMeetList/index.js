@@ -1,3 +1,4 @@
+import ScreenSkeleton from './LoadingSkeleton';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
@@ -6,7 +7,6 @@ import {
   ScrollView,
   TouchableOpacity,
   Dimensions,
-  ActivityIndicator,
   Platform,
 } from 'react-native';
 import {useNavigation} from '@react-navigation/native';
@@ -22,7 +22,8 @@ import styles from './PopularMeetList.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {toggleFavorite} from '@utils/toggleFavorite';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 import HeaderImg from '@assets/images/meet_popular_header.svg';
 import LeftChevron from '@assets/images/chevron_left_white.svg';
@@ -263,9 +264,7 @@ const PopularMeetList = () => {
   return (
     <View style={styles.container}>
       {initialLoading ? (
-        <View style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-          <ActivityIndicator size="large" color={COLORS.grayscale_400} />
-        </View>
+        <ScreenSkeleton layout={styles} />
       ) : (
         <ScrollView
           ref={scrollViewRef}

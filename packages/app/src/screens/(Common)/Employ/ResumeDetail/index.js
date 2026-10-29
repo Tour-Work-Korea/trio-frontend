@@ -18,7 +18,7 @@ import AlertModal from '@components/modals/AlertModal';
 import EmployExperienceModal from '@components/modals/Employ/EmployExperienceModal';
 import EmploySelfIntroModal from '@components/modals/Employ/EmploySelfIntroModal';
 import EmployTagModal from '@components/modals/Employ/EmployTagModal';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import Header from '@components/Header';
 import EmptyState from '@components/EmptyState';
 import AppImage from '@components/AppImage';
@@ -346,7 +346,7 @@ const ResumeDetail = ({route}) => {
               )}
             </>
           ) : (
-            <Loading title={t('employ.loadingYourResume')} />
+            <ScreenSkeleton layout={styles} title={t('employ.loadingYourResume')} />
           )}
         </ScrollView>
       )}

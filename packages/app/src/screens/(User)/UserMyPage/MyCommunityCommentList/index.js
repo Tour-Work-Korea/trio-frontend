@@ -13,7 +13,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import Avatar from '@components/Avatar';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -350,7 +350,7 @@ const MyCommunityCommentList = () => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title={t('community.loadingMyComments')} />
+            <ScreenSkeleton layout={styles} title={t('community.loadingMyComments')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
               {t('community.thereAreNoCommentsWrittenYet')}

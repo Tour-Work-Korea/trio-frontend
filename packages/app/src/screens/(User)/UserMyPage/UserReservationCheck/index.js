@@ -16,7 +16,7 @@ import useSwipeTabs from '@hooks/useSwipeTabs';
 import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
 import UserCancelledReservations from './UserCancelledReservations';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import {getReviewableReservationIds} from '@utils/reviewEligibility';
 
 const REVIEW_ELIGIBILITY_REFRESH_INTERVAL = 60 * 1000;
@@ -193,7 +193,7 @@ const UserReservationCheck = () => {
       {/* 탭 내용 */}
       <View style={styles.tabContentContainer}>
         {loading ? (
-          <Loading title={t('common.loadingTheReservationList')} />
+          <ScreenSkeleton layout={styles} cancelled={isActive('cancelled')} title={t('common.loadingTheReservationList')} />
         ) : (
           <ScrollView
             ref={pagerRef}

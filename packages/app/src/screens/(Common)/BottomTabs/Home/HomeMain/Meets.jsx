@@ -24,7 +24,7 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 import AdaptiveText from '@components/AdaptiveText';
 
 const APP_FRAME_WIDTH = Math.min(Dimensions.get('window').width, 430);

@@ -9,7 +9,7 @@ import styles from './UserFavoriteMeet.styles';
 import Header from '@components/Header';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import EmptyState from '@components/EmptyState';
 import userMeetApi from '@utils/api/userMeetApi';
 import AppImage from '@components/AppImage';
@@ -158,10 +158,7 @@ const UserFavoriteMeet = ({hideHeader = false}) => {
 
       <View style={styles.body}>
         {loading ? (
-          <View
-            style={{flex: 1, justifyContent: 'center', alignItems: 'center'}}>
-            <Loading title={t('meet.loadingHistory')} />
-          </View>
+          <ScreenSkeleton layout={styles} title={t('meet.loadingHistory')} />
         ) : (
           <FlatList
             data={data}

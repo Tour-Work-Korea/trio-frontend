@@ -11,7 +11,7 @@ import { useNavigation } from '@react-navigation/native';
 import styles from './Home.styles';
 import { COLORS } from '@trio/app/src/constants/colors';
 import { FONTS } from '@trio/app/src/constants/fonts';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const { width } = Dimensions.get('window');
 const BANNER_HORIZONTAL_PADDING = 36;

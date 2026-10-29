@@ -1,3 +1,4 @@
+import ScreenSkeleton from './LoadingSkeleton';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useRef, useState} from 'react';
 import {
@@ -23,7 +24,7 @@ import LeftChevron from '@assets/images/chevron_left_white.svg';
 import {RecruitList} from '@components/Employ/RecruitList';
 import AlertModal from '@components/modals/AlertModal';
 import userEmployApi from '@utils/api/userEmployApi';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const PopularEmployList = () => {
   const {t} = useTranslation();
@@ -232,17 +233,19 @@ const PopularEmployList = () => {
         </Text>
 
         {/* 추천 공고 리스트 */}
-        <RecruitList
-          data={recruits}
-          // 처음에만 로딩 보여주고 싶으면 아래처럼도 가능:
-          // loading={recruits.length === 0 && isRecruitsLoading}
-          loading={false}
-          onEndReached={() => {}}
-          onJobPress={moveToDetail}
-          setRecruitList={setRecruits}
-          scrollEnabled={false} // 부모 ScrollView가 스크롤 담당
-          showErrorModal={setErrorModal}
-        />
+        {isRecruitsLoading && recruits.length === 0 ? (
+          <ScreenSkeleton layout={styles} />
+        ) : (
+          <RecruitList
+            data={recruits}
+            loading={false}
+            onEndReached={() => {}}
+            onJobPress={moveToDetail}
+            setRecruitList={setRecruits}
+            scrollEnabled={false}
+            showErrorModal={setErrorModal}
+          />
+        )}
 
         {/* 아래에서 추가 페이지 로딩 중일 때 스피너 */}
         {isRecruitsLoading && recruits.length > 0 && !isRecruitsLast && (

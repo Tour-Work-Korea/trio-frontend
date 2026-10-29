@@ -19,7 +19,7 @@ import Avatar from '@components/Avatar';
 import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './CommunityPostList.skeleton';
 import communityApi from '@utils/api/communityApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {COLORS} from '@constants/colors';
@@ -563,7 +563,7 @@ const CommunityPostList = ({
         }
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title={t('community.loadingCommunityPosts')} />
+            <ScreenSkeleton layout={styles} title={t('community.loadingCommunityPosts')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
               {t('community.thereAreNoRegisteredPostsYet')}

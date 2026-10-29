@@ -6,7 +6,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import EmptyState from '@components/EmptyState';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './UserPartyReviewWrite.skeleton';
 import userMyApi from '@utils/api/userMyApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 
@@ -38,7 +38,7 @@ const UserPartyReviewWrite = () => {
   );
 
   if (loading) {
-    return <Loading title={t('common.loadingTheReviewList')} />;
+    return <ScreenSkeleton layout={styles} title={t('common.loadingTheReviewList')} />;
   }
 
   return (

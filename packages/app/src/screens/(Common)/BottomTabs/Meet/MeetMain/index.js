@@ -1,3 +1,4 @@
+import ScreenSkeleton from './LoadingSkeleton';
 import {useTranslation} from 'react-i18next';
 import React, {useMemo, useRef, useState, useCallback} from 'react';
 import {
@@ -6,7 +7,6 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  ActivityIndicator,
 } from 'react-native';
 import dayjs from 'dayjs';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -612,15 +612,15 @@ const MeetMain = () => {
             </View>
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              {loading ? (
-                <ActivityIndicator />
-              ) : dateEvents.length === 0 ? (
+            loading ? (
+              <ScreenSkeleton layout={styles} />
+            ) : dateEvents.length === 0 ? (
+              <View style={styles.emptyWrap}>
                 <Text style={[FONTS.fs_16_regular, styles.emptyText]}>
                   {t('meet.thereIsNoActivityToDisplay')}
                 </Text>
-              ) : null}
-            </View>
+              </View>
+            ) : null
           }
         />
       </View>

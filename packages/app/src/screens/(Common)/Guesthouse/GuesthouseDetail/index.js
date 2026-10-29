@@ -26,7 +26,7 @@ import {
   guesthouseDetailShareUrl,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -331,7 +331,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 로딩처리
   if (!detail) {
-    return <Loading title={t('guesthouse.loadingGuesthouse')} />;
+    return <ScreenSkeleton layout={styles} title={t('guesthouse.loadingGuesthouse')} />;
   }
 
   //  공유 링크

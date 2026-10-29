@@ -6,7 +6,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import dayjs from 'dayjs';
 
 import EmptyState from '@components/EmptyState';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import {FONTS} from '@constants/fonts';
 import userMyApi from '@utils/api/userMyApi';
 import {
@@ -71,7 +71,7 @@ const MyCouponOwnList = () => {
   );
 
   if (loading) {
-    return <Loading title={t('common.loadingCoupons')} />;
+    return <ScreenSkeleton layout={styles} title={t('common.loadingCoupons')} />;
   }
 
   if (!coupons.length) {

@@ -14,7 +14,7 @@ import Toast from 'react-native-toast-message';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import EmptyState from '@components/EmptyState';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import userMyApi from '@utils/api/userMyApi';
 import {
   formatLocalDateTimeToDotAndTimeWithDay,
@@ -175,7 +175,7 @@ const UserGuesthouseReviewList = () => {
   };
 
   if (loading) {
-    return <Loading title={t('common.loadingReviews')} />;
+    return <ScreenSkeleton layout={styles} title={t('common.loadingReviews')} />;
   }
   if (!reviews || reviews.length === 0) {
     return (

@@ -1,3 +1,4 @@
+import ScreenSkeleton from './LoadingSkeleton';
 import {useTranslation} from 'react-i18next';
 import React, {useEffect, useRef, useState, useCallback} from 'react';
 import {
@@ -315,7 +316,7 @@ const MeetSearch = () => {
                   description={t('meet.shallWeGoFindYourFavoriteActivity')}
                 />
               </View>
-            ) : null
+            ) : <ScreenSkeleton layout={styles} />
           }
           ListFooterComponent={
             isFetching && items.length > 0 ? (

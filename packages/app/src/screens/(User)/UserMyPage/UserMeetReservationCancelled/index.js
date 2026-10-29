@@ -4,7 +4,7 @@ import {View, Text, FlatList, TouchableOpacity} from 'react-native';
 import {useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import styles from './UserMeetReservationCancelled.styles';
 import {FONTS} from '@constants/fonts';
@@ -113,7 +113,7 @@ const UserMeetReservationCancelled = () => {
       <Header title={t('meet.canceledRejectedActivity')} />
       <View style={styles.content}>
         {loading ? (
-          <Loading title={t('common.loadingTheReservationList')} />
+          <ScreenSkeleton layout={styles} title={t('common.loadingTheReservationList')} />
         ) : (
           <>
             <FlatList

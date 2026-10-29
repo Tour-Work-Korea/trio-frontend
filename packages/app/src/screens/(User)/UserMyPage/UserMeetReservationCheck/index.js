@@ -21,7 +21,7 @@ import useSwipeTabs from '@hooks/useSwipeTabs';
 
 import UserUpcomingReservations from './UserUpcomingReservations';
 import UserPastReservations from './UserPastReservations';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 
 const TABS = [
@@ -168,7 +168,7 @@ const UserMeetReservationCheck = () => {
       {/* 탭 내용 */}
       <View style={styles.tabContentContainer}>
         {loading ? (
-          <Loading title={t('common.loadingTheReservationList')} />
+          <ScreenSkeleton layout={styles} past={isActive('past')} title={t('common.loadingTheReservationList')} />
         ) : (
           <ScrollView
             ref={pagerRef}

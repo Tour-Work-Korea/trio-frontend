@@ -22,7 +22,7 @@ import ImageResizer from 'react-native-image-resizer';
 import Avatar from '@components/Avatar';
 import NaverMapView from '@components/LocalizedNaverMapView';
 import Header from '@components/Header';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
@@ -1647,7 +1647,7 @@ const CommunityDetail = ({route}) => {
       />
 
       {isLoading ? (
-        <Loading title={t('community.loadingPosts')} />
+        <ScreenSkeleton layout={styles} title={t('community.loadingPosts')} />
       ) : (
         <TouchableWithoutFeedback
           onPress={handleDismissCommentInput}

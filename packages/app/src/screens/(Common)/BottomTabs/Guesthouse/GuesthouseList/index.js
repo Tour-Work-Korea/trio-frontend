@@ -38,7 +38,7 @@ import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
 import AppImage from '@components/AppImage';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import EmptyState from '@components/EmptyState';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
@@ -868,7 +868,7 @@ const GuesthouseList = () => {
           key={`guesthouse-list-view-${viewModeVersion}`}
           style={styles.guesthouseListContainer}>
           {isInitialLoading ? (
-            <Loading title={t('guesthouse.loadingAccommodations')} />
+            <ScreenSkeleton layout={styles} title={t('guesthouse.loadingAccommodations')} />
           ) : filteredGuesthouses.length === 0 ? (
             <EmptyState
               icon={SearchEmpty}
