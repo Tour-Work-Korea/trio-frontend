@@ -37,8 +37,8 @@ import {useGuesthouseRegionStore} from '../regions/store';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import GuesthouseFilterModal from '@components/modals/Guesthouse/GuesthouseFilterModal';
 import {COLORS} from '@constants/colors';
-import AppImage from '@components/AppImage';
-import Loading from '@components/Loading';
+import AppImage from '@screens/_components/ContentImage';
+import ScreenSkeleton from './LoadingSkeleton';
 import EmptyState from '@components/EmptyState';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
@@ -868,7 +868,7 @@ const GuesthouseList = () => {
           key={`guesthouse-list-view-${viewModeVersion}`}
           style={styles.guesthouseListContainer}>
           {isInitialLoading ? (
-            <Loading title={t('guesthouse.loadingAccommodations')} />
+            <ScreenSkeleton layout={styles} title={t('guesthouse.loadingAccommodations')} />
           ) : filteredGuesthouses.length === 0 ? (
             <EmptyState
               icon={SearchEmpty}
@@ -877,6 +877,7 @@ const GuesthouseList = () => {
             />
           ) : (
             <FlatList
+              {...(Platform.OS === 'ios' ? {initialNumToRender: 4, maxToRenderPerBatch: 4, windowSize: 7} : {})}
               key={`guesthouse-list-flatlist-${viewModeVersion}`}
               data={filteredGuesthouses}
               style={styles.list}

@@ -22,7 +22,7 @@ import ImageResizer from 'react-native-image-resizer';
 import Avatar from '@components/Avatar';
 import NaverMapView from '@components/LocalizedNaverMapView';
 import Header from '@components/Header';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AlertModal from '@components/modals/AlertModal';
 import ImageModal from '@components/modals/ImageModal';
 import AppImage from '@components/AppImage';
@@ -131,7 +131,16 @@ const isCommentEdited = item => {
   );
 };
 
-const CommunityDetail = ({route}) => {
+const CommentDismissWrapper =
+  Platform.OS === 'web' ? React.Fragment : TouchableWithoutFeedback;
+
+const CommunityDetail = ({
+  route,
+  headerTitle,
+  contentOverride,
+  afterPostContent,
+  hidePostLocation = false,
+}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const {
@@ -1642,16 +1651,17 @@ const CommunityDetail = ({route}) => {
   return (
     <KeyboardAvoidingView style={styles.container} behavior={undefined}>
       <Header
-        title={post?.categoryDisplayName || ''}
+        title={headerTitle ?? post?.categoryDisplayName ?? ''}
         onPress={handlePressBack}
       />
 
       {isLoading ? (
-        <Loading title={t('community.loadingPosts')} />
+        <ScreenSkeleton layout={styles} title={t('community.loadingPosts')} />
       ) : (
-        <TouchableWithoutFeedback
-          onPress={handleDismissCommentInput}
-          accessible={false}>
+        <CommentDismissWrapper
+          {...(Platform.OS === 'web'
+            ? {}
+            : {onPress: handleDismissCommentInput, accessible: false})}>
           <ScrollView
             ref={scrollViewRef}
             showsVerticalScrollIndicator={false}
@@ -1678,13 +1688,14 @@ const CommunityDetail = ({route}) => {
             </View>
 
             <Text style={[FONTS.fs_16_medium, styles.postTitle]}>
-              {post?.title}
+              {contentOverride?.title ?? post?.title}
             </Text>
             <Text style={[FONTS.fs_16_regular, styles.postContent]}>
-              {post?.content}
+              {contentOverride?.content ?? post?.content}
             </Text>
 
-            {renderPostLocation(post?.location)}
+            {afterPostContent}
+            {!hidePostLocation && renderPostLocation(post?.location)}
             {renderPostImages(post.images)}
             {renderActionRow(post, {likeable: true})}
 
@@ -1712,7 +1723,7 @@ const CommunityDetail = ({route}) => {
               />
             ) : null}
           </ScrollView>
-        </TouchableWithoutFeedback>
+        </CommentDismissWrapper>
       )}
 
       <View

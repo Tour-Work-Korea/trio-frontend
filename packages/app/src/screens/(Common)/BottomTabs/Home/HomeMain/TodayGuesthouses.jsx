@@ -18,9 +18,10 @@ import {toggleFavorite} from '@utils/toggleFavorite';
 
 import HeartEmpty from '@assets/images/heart_empty.svg';
 import HeartFilled from '@assets/images/heart_filled.svg';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './TodayGuesthouses.skeleton';
 import Avatar from '@components/Avatar';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const PAGE_SIZE = 6;
 
@@ -198,7 +199,7 @@ export default function TodayGuesthouses() {
 
   const ListFooter = useMemo(() => {
     if (loading) {
-      return <Loading title={t('common.loading')} />;
+      return <ScreenSkeleton layout={styles} title={t('common.loading')} />;
     }
   }, [loading, t]);
 

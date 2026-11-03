@@ -10,7 +10,7 @@ import RecruitDescriptionSection from './RecruitDescriptionSection';
 import RecruitHeaderSection from './RecruitHeaderSection';
 import RecruitProfileSection from './RecruitProfileSection';
 import RecruitTapSection from './RecruitTapSection';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import ButtonScarlet from '@components/ButtonScarlet';
 import useUserStore from '@stores/userStore';
 import AlertModal from '@components/modals/AlertModal';
@@ -61,7 +61,7 @@ const EmployDetail = ({route}) => {
   };
 
   if (!recruit) {
-    return <Loading title={t('employ.loadingJobPostings')} />;
+    return <ScreenSkeleton layout={styles} title={t('employ.loadingJobPostings')} />;
   }
 
   return (

@@ -204,8 +204,8 @@ export default function DatePicker({
             <Text
               style={[
                 styles.dayText,
-                !c.inMonth && styles.dayTextOut,
-                c.isSelected && styles.dayTextSelected,
+                c.disabled && styles.dayTextOut,
+                c.isSelected && !c.disabled && styles.dayTextSelected,
               ]}>
               {c.label}
             </Text>
@@ -265,6 +265,12 @@ const styles = StyleSheet.create({
   dayText: {
     ...FONTS.fs_14_medium,
     color: COLORS.grayscale_900,
+    width: 24,
+    height: 24,
+    lineHeight: 24,
+    textAlign: 'center',
+    textAlignVertical: 'center',
+    includeFontPadding: false,
   },
   dayTextOut: {
     color: COLORS.grayscale_300,
@@ -272,11 +278,6 @@ const styles = StyleSheet.create({
   dayTextSelected: {
     color: COLORS.grayscale_0,
     backgroundColor: COLORS.primary_orange,
-    borderRadius: 100,
-    width: 24,
-    height: 24,
-    justifyContent: 'center',
-    alignItems: 'center',
-    textAlign: 'center',
+    borderRadius: 12,
   },
 });

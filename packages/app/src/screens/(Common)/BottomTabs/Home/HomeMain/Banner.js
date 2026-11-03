@@ -1,17 +1,19 @@
 import React, { memo, useCallback, useEffect, useRef, useState } from 'react';
 import {
   View,
+  AppState,
+  Platform,
   Text,
   Dimensions,
   TouchableOpacity,
   Linking,
   ScrollView,
 } from 'react-native';
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import styles from './Home.styles';
 import { COLORS } from '@trio/app/src/constants/colors';
 import { FONTS } from '@trio/app/src/constants/fonts';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const { width } = Dimensions.get('window');
 const BANNER_HORIZONTAL_PADDING = 36;
@@ -33,6 +35,18 @@ const getBannerImageUrl = item => {
 
 function Banner({ banners = [] }) {
   const navigation = useNavigation();
+  const isFocused = useIsFocused();
+  const [appState, setAppState] = useState(AppState.currentState);
+  const canAutoSlide = Platform.OS !== 'ios' ||
+    (isFocused && appState === 'active');
+
+  useEffect(() => {
+    if (Platform.OS !== 'ios') {
+      return undefined;
+    }
+    const subscription = AppState.addEventListener('change', setAppState);
+    return () => subscription.remove();
+  }, []);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [layoutWidth, setLayoutWidth] = useState(width);
   const scrollRef = useRef(null);
@@ -191,11 +205,25 @@ function Banner({ banners = [] }) {
     scrollToBannerIndex(currentIndex, false);
   }, [currentIndex, pageWidth, scrollToBannerIndex]);
 
+  const wasAutoSlideEnabledRef = useRef(canAutoSlide);
   useEffect(() => {
-    if (banners.length <= 1) {
+    if (canAutoSlide && !wasAutoSlideEnabledRef.current) {
+      scrollToBannerIndex(currentIndex, false);
+    }
+    if (Platform.OS === 'ios' && !canAutoSlide) {
+      clearTimeout(loopResetTimeoutRef.current);
+      clearTimeout(scrollEndTimeoutRef.current);
+      loopResetTimeoutRef.current = null;
+      scrollEndTimeoutRef.current = null;
+      isDraggingRef.current = false;
+    }
+    wasAutoSlideEnabledRef.current = canAutoSlide;
+  }, [canAutoSlide, currentIndex, scrollToBannerIndex]);
+
+  useEffect(() => {
+    if (banners.length <= 1 || !canAutoSlide) {
       return;
     }
-
     const timer = setInterval(() => {
       if (isDraggingRef.current) {
         return;
@@ -225,6 +253,7 @@ function Banner({ banners = [] }) {
     return () => clearInterval(timer);
   }, [
     banners.length,
+    canAutoSlide,
     currentIndex,
     isLoopEnabled,
     scrollToBannerIndex,

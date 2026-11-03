@@ -11,7 +11,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import Header from '@components/Header';
 import styles from './MeetCancelledReceipt.styles';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
@@ -135,7 +135,7 @@ export default function MeetCancelledReceipt() {
       />
 
       {loading ? (
-        <Loading title={t('meet.retrievingApplicationInformation')} />
+        <ScreenSkeleton layout={styles} title={t('meet.retrievingApplicationInformation')} />
       ) : (
         <>
           <View style={styles.body}>

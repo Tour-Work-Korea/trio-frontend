@@ -86,6 +86,24 @@ import {
   EmployMap,
 } from '@screens';
 
+import {
+  CompanionDetail,
+  CompanionWrite,
+  MyCompanions,
+  CompanionManage,
+  CompanionChatAccess,
+} from '../features/companion/screens';
+import {
+  CompanionInbox,
+  CompanionChat,
+  CompanionChatInfo,
+  CompanionChatNotice,
+  CompanionChatSearch,
+  CompanionChatPlace,
+  CompanionChatShared,
+  CompanionChatReport,
+} from '../features/companion/chatScreens';
+
 const Stack = createNativeStackNavigator();
 
 const RootNavigation = () => {
@@ -267,6 +285,37 @@ const RootNavigation = () => {
         <Stack.Screen name="MeetPayment" component={MeetPayment} />
 
         <Stack.Screen name="GuesthousePost" component={GuesthousePost} />
+        <Stack.Screen name="CompanionDetail" component={CompanionDetail} />
+        <Stack.Screen name="CompanionWrite" component={CompanionWrite} />
+        <Stack.Screen name="MyCompanions" component={MyCompanions} />
+        <Stack.Screen name="CompanionManage" component={CompanionManage} />
+        <Stack.Screen
+          name="CompanionChatAccess"
+          component={CompanionChatAccess}
+        />
+        <Stack.Screen name="CompanionInbox" component={CompanionInbox} />
+        <Stack.Screen name="CompanionChat" component={CompanionChat} />
+        <Stack.Screen name="CompanionChatInfo" component={CompanionChatInfo} />
+        <Stack.Screen
+          name="CompanionChatNotice"
+          component={CompanionChatNotice}
+        />
+        <Stack.Screen
+          name="CompanionChatSearch"
+          component={CompanionChatSearch}
+        />
+        <Stack.Screen
+          name="CompanionChatPlace"
+          component={CompanionChatPlace}
+        />
+        <Stack.Screen
+          name="CompanionChatShared"
+          component={CompanionChatShared}
+        />
+        <Stack.Screen
+          name="CompanionChatReport"
+          component={CompanionChatReport}
+        />
         <Stack.Screen name="CommunityDetail" component={CommunityDetail} />
         <Stack.Screen name="CommunityWrite" component={CommunityWrite} />
         <Stack.Screen

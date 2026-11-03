@@ -16,7 +16,7 @@ import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import AppImage from '@components/AppImage';
 import EmptyState from '@components/EmptyState';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './UserPartyReviewList.skeleton';
 import userMyApi from '@utils/api/userMyApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 
@@ -88,7 +88,7 @@ const UserPartyReviewList = () => {
   );
 
   if (loading) {
-    return <Loading title={t('common.loadingReviews')} />;
+    return <ScreenSkeleton layout={styles} title={t('common.loadingReviews')} />;
   }
 
   if (items.length === 0) {

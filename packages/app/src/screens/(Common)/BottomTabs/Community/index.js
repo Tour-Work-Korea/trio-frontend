@@ -21,6 +21,8 @@ import useSwipeTabs from '@hooks/useSwipeTabs';
 import styles from './Community.styles';
 import Staff from './Staff';
 import CommunityPostList from './CommunityPostList';
+import {ChatEntry, CompanionList} from '../../../../features/companion/screens';
+import {companionEnabled} from '../../../../features/companion/api';
 import ChevronDown from '@assets/images/chevron_down_gray.svg';
 import ChevronUp from '@assets/images/chevron_up_gray.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
@@ -89,6 +91,9 @@ const isStaffCategory = category =>
   category?.id === 'STAFF' ||
   category?.displayName === i18n.t('common.staff');
 
+const isCompanionCategory = category =>
+  category?.code === 'COMPANION' || category?.id === 'COMPANION';
+
 const withRequiredCategories = categories => {
   const normalizedCategories = [
     allCategory,
@@ -99,12 +104,19 @@ const withRequiredCategories = categories => {
     normalizedCategories.find(isStaffCategory) ??
     defaultCategories.find(isStaffCategory);
 
+  const companionCategory =
+    normalizedCategories.find(isCompanionCategory) ??
+    defaultCategories.find(isCompanionCategory);
+
   return [
     allCategory,
     staffCategory,
+    companionCategory,
     ...normalizedCategories.filter(
       category =>
-        category.code !== allCategory.code && !isStaffCategory(category),
+        category.code !== allCategory.code &&
+        !isStaffCategory(category) &&
+        !isCompanionCategory(category),
     ),
   ];
 };
@@ -405,7 +417,11 @@ const Community = () => {
       return;
     }
 
-    navigation.navigate('CommunityWrite');
+    navigation.navigate(
+      companionEnabled && activeCategory?.code === 'COMPANION'
+        ? 'CompanionWrite'
+        : 'CommunityWrite',
+    );
   };
 
   const renderHeader = useCallback(
@@ -414,6 +430,11 @@ const Community = () => {
         <Text style={[FONTS.fs_20_semibold, styles.title]}>
           {t('common.community')}
         </Text>
+        {companionEnabled && (
+          <View style={{position: 'absolute', right: 14, top: 12}}>
+            <ChatEntry navigation={navigation} />
+          </View>
+        )}
 
         <View style={styles.filterRow}>
           <View style={styles.sortWrapper}>
@@ -468,6 +489,7 @@ const Community = () => {
 
     [
       activeIndex,
+      navigation,
       categoryTabs,
       handleToggleSortMenu,
       onTabPress,
@@ -488,7 +510,12 @@ const Community = () => {
 
       return (
         <View key={category.key} style={pageStyle}>
-          {category.contentType === 'RECRUIT' ? (
+          {companionEnabled && category.code === 'COMPANION' ? (
+            <CompanionList
+              isActive={isActive(category.key)}
+              selectedSort={selectedSort}
+            />
+          ) : category.contentType === 'RECRUIT' ? (
             <Staff isActive={isActive(category.key)} />
           ) : (
             <CommunityPostList

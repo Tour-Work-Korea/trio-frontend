@@ -26,7 +26,7 @@ import {
   guesthouseDetailShareUrl,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -36,7 +36,8 @@ import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
@@ -333,7 +334,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 로딩처리
   if (!detail) {
-    return <Loading title={t('guesthouse.loadingGuesthouse')} />;
+    return <ScreenSkeleton layout={styles} title={t('guesthouse.loadingGuesthouse')} />;
   }
 
   //  공유 링크

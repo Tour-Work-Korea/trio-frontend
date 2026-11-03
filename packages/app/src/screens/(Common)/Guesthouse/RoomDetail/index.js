@@ -20,7 +20,7 @@ import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import ButtonScarlet from '@components/ButtonScarlet';
 import ImageModal from '@components/modals/ImageModal';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 import useUserStore from '@stores/userStore';
 
 import LeftArrow from '@assets/images/chevron_left_white.svg';

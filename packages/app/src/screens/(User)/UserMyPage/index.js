@@ -1,3 +1,5 @@
+import {companionEnabled} from '../../../features/companion/api';
+import CompanionIcon from '@assets/images/companion_orange.svg';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
 import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
@@ -444,6 +446,13 @@ const UserMyPage = () => {
                 {t('common.community')}
               </Text>
               <View style={styles.menuContainer}>
+                {companionEnabled && (
+                  <MenuItem
+                    IconComponent={CompanionIcon}
+                    label={t('companion.my')}
+                    onPress={() => navigation.navigate('MyCompanions')}
+                  />
+                )}
                 <MenuItem
                   IconComponent={FavoritePostIcon}
                   label={t('common.whatIWrote')}
