@@ -18,7 +18,7 @@ import useUserStore from '@stores/userStore';
 import {showErrorModal} from '@utils/loginModalHub';
 import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 import ImageModal from '@components/modals/ImageModal';
 
 import RightArrow from '@assets/images/chevron_right_blue.svg';

@@ -25,7 +25,7 @@ import {COLORS} from '@constants/colors';
 import styles from './MeetDetail.styles';
 import NaverMapView from '@components/LocalizedNaverMapView';
 import Avatar from '@components/Avatar';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 import AdaptiveText from '@components/AdaptiveText';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';

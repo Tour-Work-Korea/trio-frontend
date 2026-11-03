@@ -18,7 +18,8 @@ import styles from './MeetSearch.styles';
 import userMeetApi from '@utils/api/userMeetApi';
 import EmptyState from '@components/EmptyState';
 import {formatServiceRegion} from '@utils/formatServiceRegion';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import HeartEmpty from '@assets/images/heart_empty.svg';

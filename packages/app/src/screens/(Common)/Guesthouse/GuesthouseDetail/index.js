@@ -36,7 +36,8 @@ import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
