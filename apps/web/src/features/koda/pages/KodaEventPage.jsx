@@ -10,7 +10,7 @@ import {
   useInitialFragmentNavigation,
 } from '../hooks';
 import MeetupReviews from '../components/MeetupReviews';
-import ProgramDescription from '../components/ProgramDescription';
+import ProgramDescription, {InlineText} from '../components/ProgramDescription';
 import {useClubAuth} from '../auth/ClubAuth';
 import {eventRepository} from '../services/liveEventRepository';
 import {bookingLabel, bookingState} from '../services/liveEventModel';
@@ -135,7 +135,9 @@ export default function KodaEventPage({
             {event.edition && <p className="le-eyebrow">{event.edition}</p>}
             <h1>{title}</h1>
             {event.intro[language] && (
-              <p className="le-lede">{event.intro[language]}</p>
+              <p className="le-lede">
+                <InlineText text={event.intro[language]} />
+              </p>
             )}
             {reviews.length > 0 && (
               <a className="le-review-jump" href="#reviews">
@@ -161,9 +163,11 @@ export default function KodaEventPage({
               <div>
                 <dt>{labels.venue}</dt>
                 <dd>
-                  {event.venue[language]}
+                  <InlineText text={event.venue[language]} />
                   {event.address[language] && (
-                    <small>{event.address[language]}</small>
+                    <small>
+                      <InlineText text={event.address[language]} />
+                    </small>
                   )}
                   {event.mapUrl && (
                     <a
@@ -180,7 +184,9 @@ export default function KodaEventPage({
                 <dd>
                   <strong>{event.price[language]}</strong>
                   {event.priceNote[language] && (
-                    <small>{event.priceNote[language]}</small>
+                    <small>
+                      <InlineText text={event.priceNote[language]} />
+                    </small>
                   )}
                 </dd>
               </div>
@@ -202,7 +208,9 @@ export default function KodaEventPage({
                       <span aria-hidden="true">
                         {String(index + 1).padStart(2, '0')}
                       </span>
-                      <p>{step[language]}</p>
+                      <p>
+                        <InlineText text={step[language]} />
+                      </p>
                     </li>
                   ))}
                 </ol>
@@ -274,7 +282,9 @@ export default function KodaEventPage({
                 </div>
               ))}
               {event.about.map((paragraph, index) => (
-                <p key={index}>{paragraph[language]}</p>
+                <p key={index}>
+                  <InlineText text={paragraph[language]} />
+                </p>
               ))}
             </EventSection>
           )}
@@ -288,7 +298,9 @@ export default function KodaEventPage({
               {event.faqs.map((faq, index) => (
                 <details className="le-faq" key={index}>
                   <summary>{faq.question[language]}</summary>
-                  <p>{faq.answer[language]}</p>
+                  <p>
+                    <InlineText text={faq.answer[language]} />
+                  </p>
                 </details>
               ))}
             </EventSection>

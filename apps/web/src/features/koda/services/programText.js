@@ -54,7 +54,28 @@ function placeLink(value) {
   }
 }
 
-export function programInline(text) {
+function trimUrlPunctuation(value) {
+  let url = value;
+  let previous;
+  do {
+    previous = url;
+    url = url.replace(/[.,!?;:。！，？；：]+$/, '');
+    for (const [open, close] of [
+      ['(', ')'],
+      ['[', ']'],
+      ['{', '}'],
+    ]) {
+      while (
+        url.endsWith(close) &&
+        url.split(close).length > url.split(open).length
+      )
+        url = url.slice(0, -1);
+    }
+  } while (url !== previous);
+  return url;
+}
+
+export function programInline(text = '') {
   const parts = [];
   const appendText = value => {
     if (!value) return;
@@ -62,18 +83,26 @@ export function programInline(text) {
     if (last && !last.bold && !last.href) last.text += value;
     else parts.push({text: value, bold: false});
   };
-  // Parentheses inside common map URLs are supported one level deep.
+  // Consume image/invalid Markdown and HTML as text before matching bare URLs.
+  // Parentheses inside common Markdown map URLs are supported one level deep.
   const tokens =
-    /\*\*([^*\n]+)\*\*|(?<!!)\[([^\]\n]+)\]\(((?:[^()\s]|\([^()\s]*\))*)\)/g;
+    /\*\*([^*\n]+)\*\*|!?\[([^\]\n]+)\]\(((?:[^()\s]|\([^()\s]*\))*)\)|!?\[[^\]\n]+\]\([^\s]*|<[^>\n]*>|https?:\/\/[^\s<>"'`]+/gi;
   let offset = 0;
   for (const match of text.matchAll(tokens)) {
     appendText(text.slice(offset, match.index));
     if (match[1]) parts.push({text: match[1], bold: true});
-    else {
+    else if (match[2] && !match[0].startsWith('!')) {
       const href = placeLink(match[3]);
       if (href) parts.push({text: match[2], bold: false, href});
       else appendText(match[0]);
-    }
+    } else if (/^https?:\/\//i.test(match[0])) {
+      const label = trimUrlPunctuation(match[0]);
+      const href = placeLink(label);
+      if (href) {
+        parts.push({text: label, bold: false, href});
+        appendText(match[0].slice(label.length));
+      } else appendText(match[0]);
+    } else appendText(match[0]);
     offset = match.index + match[0].length;
   }
   appendText(text.slice(offset));

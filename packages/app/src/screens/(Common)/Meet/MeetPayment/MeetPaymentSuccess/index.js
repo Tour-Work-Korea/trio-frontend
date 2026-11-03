@@ -1,4 +1,4 @@
-import {useTranslation} from 'react-i18next';
+import {Trans, useTranslation} from 'react-i18next';
 import React from 'react';
 import {View, Text, StyleSheet} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
@@ -63,13 +63,12 @@ const MeetPaymentSuccess = () => {
         {t('meet.applicationAccepted')}
       </Text>
       <Text style={[FONTS.fs_16_medium, styles.text]}>
-        {t('meet.afterTheBossConfirmed')}
-        <Text style={{color: COLORS.semantic_red}}>
-          {t('meet.finalConfirmationNotification')}
-        </Text>
-        {t('meet.to')}
-        {'\n'}
-        {t('meet.iMPlanningToSendItToYou')}
+        <Trans
+          i18nKey="meet.applicationAcceptedNotice"
+          components={{
+            highlight: <Text style={{color: COLORS.semantic_red}} />,
+          }}
+        />
       </Text>
 
       <View style={styles.bottomRow}>

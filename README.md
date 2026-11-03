@@ -4,6 +4,26 @@ This is a new [**React Native**](https://reactnative.dev) project, bootstrapped 
 
 > **Note**: Make sure you have completed the [Set Up Your Environment](https://reactnative.dev/docs/set-up-your-environment) guide before proceeding.
 
+## Node.js version
+
+Use Node.js **22.23.4 or a newer 22.x patch**. Version 22.23.4 includes the
+[CVE-2026-111497 security fix](https://nodejs.org/en/blog/vulnerability/october-2026-security-releases).
+The web, Android, and iOS CI builds all read the pinned version from `.nvmrc`.
+
+With nvm installed, select the project version before installing dependencies:
+
+```sh
+nvm install
+nvm use
+node --version
+npm ci
+```
+
+For local Xcode builds, also check `apps/mobile/ios/.xcode.env.local` if it exists:
+its `NODE_BINARY` must point to the updated Node executable, not an older Homebrew
+or nvm installation. Changing `.nvmrc` does not update that local override or the
+machine's default Node automatically.
+
 ## Step 1: Start Metro
 
 First, you will need to run **Metro**, the JavaScript build tool for React Native.

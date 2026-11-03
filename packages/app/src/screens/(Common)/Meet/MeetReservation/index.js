@@ -22,7 +22,7 @@ import ButtonScarlet from '@components/ButtonScarlet';
 import TermsModal from '@components/modals/TermsModal';
 import AlertModal from '@components/modals/AlertModal';
 import userMeetApi from '@utils/api/userMeetApi';
-import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import api from '@utils/api/axiosInstance';
 import {AGREEMENT_CONTENT} from '@data/agreeContents';
 import useKeyboardAwareScrollView from '@hooks/useKeyboardAwareScrollView';
 import AppImage from '@components/AppImage';
@@ -530,8 +530,8 @@ const MeetReservation = () => {
           : {name: null, windowRef: null};
       paymentWindowRef = preparedPaymentWindow.windowRef;
       const reservationPartyId = selectedDateOption?.partyId ?? partyId;
-      const {data} = await reservationPaymentApi.createPartyReservation(
-        reservationPartyId,
+      const {data} = await api.post(
+        `/payments/toss/reservation/party/${reservationPartyId}`,
         {
           amount,
           request: requestText,
@@ -542,6 +542,7 @@ const MeetReservation = () => {
               }
             : {}),
         },
+        {timeout: 30000},
       );
 
       const reservationId =
@@ -595,14 +596,44 @@ const MeetReservation = () => {
               .replace(/[.!。]+$/, '')
               .trim(),
         );
-      setReservationError({
-        isDuplicate,
-        message: normalizedMessage ? message : null,
-      });
+      if (isDuplicate) {
+        setReservationError({isDuplicate: true});
+      } else {
+        Toast.show({
+          type: 'error',
+          text1:
+            normalizedMessage
+              ? message
+              : t('meet.anErrorOccurredWhileCreatingTheReservation'),
+          position: 'top',
+          visibilityTime: 4000,
+        });
+      }
     } finally {
       isSubmittingRef.current = false;
       setIsSubmitting(false);
     }
+  };
+
+  const handleConfirmReservationError = () => {
+    const isDuplicate = reservationError?.isDuplicate;
+    setReservationError(null);
+
+    if (!isDuplicate) {
+      return;
+    }
+
+    const navigationState = navigation.getState();
+    const previousRoute = navigationState.routes[navigationState.index - 1];
+
+    if (previousRoute?.name === 'MeetDetail') {
+      navigation.goBack();
+      return;
+    }
+
+    navigation.replace('MeetDetail', {
+      partyId: selectedDateOption?.partyId ?? partyId,
+    });
   };
 
   const handleBackPress = () => {
@@ -987,15 +1018,10 @@ const MeetReservation = () => {
         onAgree={handleAgreeModal}
       />
       <AlertModal
-        visible={Boolean(reservationError)}
-        title={
-          reservationError?.isDuplicate
-            ? t('meet.alreadyApplied')
-            : reservationError?.message ||
-              t('meet.anErrorOccurredWhileCreatingTheReservation')
-        }
+        visible={Boolean(reservationError?.isDuplicate)}
+        title={t('meet.alreadyApplied')}
         buttonText={t('common.confirm')}
-        onPress={() => setReservationError(null)}
+        onPress={handleConfirmReservationError}
         onRequestClose={() => setReservationError(null)}
       />
     </View>

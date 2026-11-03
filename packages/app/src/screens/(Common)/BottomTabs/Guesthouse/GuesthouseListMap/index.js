@@ -3,6 +3,7 @@ import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
+  FlatList,
   Alert,
   Animated,
   InteractionManager,
@@ -31,7 +32,8 @@ import {regionGuesthouseApi} from '../regions/api';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {navigateWebGuesthouseDetailFromMap} from '@web/navigation';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import BaseAppImage, {prefetchImageUrls} from '@components/AppImage';
+import ContentImage from '@screens/_components/ContentImage';
 
 import HomeIcon from '@assets/images/home_white_filled.svg';
 import TargetIcon from '@assets/images/target_black.svg';
@@ -49,6 +51,10 @@ if (Platform.OS === 'android') {
   });
 }
 
+const AppImage = Platform.OS === 'ios' ? ContentImage : BaseAppImage;
+
+const ClusterListSeparator = () => <View style={styles.clusterListSeparator} />;
+
 const DEFAULT_REGION = {
   latitude: 33.4996,
   longitude: 126.5312,
@@ -64,6 +70,8 @@ const DETAIL_IMAGE_SCROLL_STEP = 116;
 const WEB_CARD_PRESS_SUPPRESSION_MS = 500;
 const WEB_CARD_DRAG_THRESHOLD_PX = 2;
 const MAP_FETCH_CACHE_TTL_MS = 60 * 1000;
+const IOS_MAP_CACHE_LIMIT = 12;
+const IOS_CLUSTER_LIST_MAX_HEIGHT = 180;
 const activeMapFetchPromises = new Map();
 const completedMapFetchResults = new Map();
 const WEB_INITIAL_FIT_PADDING = {
@@ -73,6 +81,7 @@ const WEB_INITIAL_FIT_PADDING = {
   top: 12,
 };
 const WEB_INITIAL_REGION_SCALE = 0.6;
+const NATIVE_ALL_REGION_VERTICAL_OFFSET = 0.08;
 const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
   if (!region) {
     return null;
@@ -88,7 +97,12 @@ const centerRegionToNaverRegion = (region, fitFullBounds = false) => {
       : region;
 
   return {
-    latitude: nextRegion.latitude - nextRegion.latitudeDelta / 2,
+    latitude:
+      nextRegion.latitude -
+      nextRegion.latitudeDelta / 2 -
+      (Platform.OS !== 'web' && fitFullBounds
+        ? nextRegion.latitudeDelta * NATIVE_ALL_REGION_VERTICAL_OFFSET
+        : 0),
     longitude: nextRegion.longitude - nextRegion.longitudeDelta / 2,
     latitudeDelta: nextRegion.latitudeDelta,
     longitudeDelta: nextRegion.longitudeDelta,
@@ -156,6 +170,14 @@ const getMapFetchKey = ({
 };
 
 const getCachedMapFetchResult = fetchKey => {
+  if (Platform.OS === 'ios') {
+    const now = Date.now();
+    for (const [key, value] of completedMapFetchResults) {
+      if (now - value.completedAt >= MAP_FETCH_CACHE_TTL_MS) {
+        completedMapFetchResults.delete(key);
+      }
+    }
+  }
   const cached = completedMapFetchResults.get(fetchKey);
 
   if (!cached) {
@@ -163,11 +185,30 @@ const getCachedMapFetchResult = fetchKey => {
   }
 
   if (Date.now() - cached.completedAt < MAP_FETCH_CACHE_TTL_MS) {
+    if (Platform.OS === 'ios') {
+      completedMapFetchResults.delete(fetchKey);
+      completedMapFetchResults.set(fetchKey, cached);
+    }
     return cached.guesthouses;
   }
 
   completedMapFetchResults.delete(fetchKey);
   return null;
+};
+
+const storeMapFetchResult = (fetchKey, guesthouses) => {
+  completedMapFetchResults.delete(fetchKey);
+  completedMapFetchResults.set(fetchKey, {
+    completedAt: Date.now(),
+    guesthouses,
+  });
+  if (Platform.OS === 'ios') {
+    while (completedMapFetchResults.size > IOS_MAP_CACHE_LIMIT) {
+      completedMapFetchResults.delete(
+        completedMapFetchResults.keys().next().value,
+      );
+    }
+  }
 };
 
 const normalizeGuesthouses = guesthouses =>
@@ -365,7 +406,10 @@ const getMarkerBubbleHeight = cluster => {
     return 74;
   }
 
-  return cluster.items.length * 28 + 24;
+  const height = cluster.items.length * 28 + 24;
+  return Platform.OS === 'ios'
+    ? Math.min(height, IOS_CLUSTER_LIST_MAX_HEIGHT + 20)
+    : height;
 };
 
 const groupGuesthouses = (guesthouses, region, mapSize) => {
@@ -737,8 +781,20 @@ const GuesthouseListMap = ({
     }
 
     return {
-      left: point.x - MARKER_BUBBLE_WIDTH / 2,
-      top: point.y - getMarkerBubbleHeight(selectedCluster) - 12,
+      left:
+        Platform.OS === 'ios'
+          ? Math.max(
+              0,
+              Math.min(
+                point.x - MARKER_BUBBLE_WIDTH / 2,
+                mapSize.width - MARKER_BUBBLE_WIDTH,
+              ),
+            )
+          : point.x - MARKER_BUBBLE_WIDTH / 2,
+      top:
+        Platform.OS === 'ios'
+          ? Math.max(8, point.y - getMarkerBubbleHeight(selectedCluster) - 12)
+          : point.y - getMarkerBubbleHeight(selectedCluster) - 12,
     };
   }, [currentRegion, mapSize, selectedCluster]);
   const currentLocationMarkerPosition = useMemo(() => {
@@ -994,10 +1050,7 @@ const GuesthouseListMap = ({
 
         const nextGuesthouses = await fetchPromise;
 
-        completedMapFetchResults.set(fetchKey, {
-          completedAt: Date.now(),
-          guesthouses: nextGuesthouses,
-        });
+        storeMapFetchResult(fetchKey, nextGuesthouses);
 
         if (requestId !== mapRequestRef.current) {
           return;
@@ -1072,7 +1125,8 @@ const GuesthouseListMap = ({
     if (
       !mapReady ||
       !cameraInitializedRef.current ||
-      awaitingRegionCameraRef.current
+      awaitingRegionCameraRef.current ||
+      (Platform.OS === 'ios' && serviceRegionBounds)
     ) {
       return;
     }
@@ -1080,7 +1134,13 @@ const GuesthouseListMap = ({
       onBoundsChange?.(bounds);
       fetchMapGuesthouses(bounds);
     });
-  }, [mapReady, fetchMapGuesthouses, getCurrentBounds, onBoundsChange]);
+  }, [
+    mapReady,
+    fetchMapGuesthouses,
+    getCurrentBounds,
+    onBoundsChange,
+    serviceRegionBounds,
+  ]);
 
   useEffect(
     () => () => {
@@ -1125,8 +1185,11 @@ const GuesthouseListMap = ({
       currentRegionRef.current = region;
       const bounds = getBoundsFromRegion(region);
       onBoundsChange?.(bounds);
+      // With explicit region bounds the region effect owns the first request.
+      // iOS emits intermediate camera-idle events during initial positioning.
       const shouldFetch =
-        !cameraInitializedRef.current || awaitingRegionCameraRef.current;
+        (!cameraInitializedRef.current || awaitingRegionCameraRef.current) &&
+        !(Platform.OS === 'ios' && serviceRegionBounds);
       cameraInitializedRef.current = true;
       awaitingRegionCameraRef.current = false;
       handleRegionChangeComplete(region);
@@ -1139,6 +1202,7 @@ const GuesthouseListMap = ({
       handleRegionChangeComplete,
       fetchMapGuesthouses,
       onBoundsChange,
+      serviceRegionBounds,
     ],
   );
 
@@ -1483,6 +1547,39 @@ const GuesthouseListMap = ({
     });
   }, [selectedItem]);
 
+  const renderClusterListItem = item => {
+    const isReserved = isGuesthouseReserved(item);
+
+    return (
+      <TouchableOpacity
+        activeOpacity={1}
+        key={String(item.id)}
+        style={styles.clusterListItem}
+        onPress={() => handlePressClusterListItem(selectedCluster, item)}>
+        <View
+          style={[
+            styles.clusterListIcon,
+            isReserved && styles.clusterListIconReserved,
+          ]}>
+          <HomeIcon width={10} height={10} />
+        </View>
+        <Text
+          numberOfLines={1}
+          style={[FONTS.fs_12_medium, styles.clusterListName]}>
+          {item.name}
+        </Text>
+        <Text
+          style={[
+            FONTS.fs_12_medium,
+            styles.clusterListPrice,
+            isReserved && styles.reservedPriceText,
+          ]}>
+          {getPriceLabel(item)}
+        </Text>
+      </TouchableOpacity>
+    );
+  };
+
   return (
     <View style={styles.container}>
       {!embedded && (
@@ -1498,7 +1595,10 @@ const GuesthouseListMap = ({
         <NaverMapView
           ref={mapRef}
           style={styles.map}
-          initialRegion={centerRegionToNaverRegion(initialRegion)}
+          initialRegion={centerRegionToNaverRegion(
+            cameraTargetRegion,
+            serviceRegion === 'ALL' && Boolean(selectedServiceRegion),
+          )}
           onLayout={handleMapLayout}
           onInitialized={() => setMapReady(true)}
           onCameraChanged={params => {
@@ -1596,42 +1696,28 @@ const GuesthouseListMap = ({
                   styles.markerBubbleReserved,
               ]}>
               {selectedCluster.count > 1 ? (
-                <View style={styles.clusterList}>
-                  {selectedCluster.items.map(item => {
-                    const isReserved = isGuesthouseReserved(item);
-
-                    return (
-                      <TouchableOpacity
-                        activeOpacity={1}
-                        key={String(item.id)}
-                        style={styles.clusterListItem}
-                        onPress={() =>
-                          handlePressClusterListItem(selectedCluster, item)
-                        }>
-                        <View
-                          style={[
-                            styles.clusterListIcon,
-                            isReserved && styles.clusterListIconReserved,
-                          ]}>
-                          <HomeIcon width={10} height={10} />
-                        </View>
-                        <Text
-                          numberOfLines={1}
-                          style={[FONTS.fs_12_medium, styles.clusterListName]}>
-                          {item.name}
-                        </Text>
-                        <Text
-                          style={[
-                            FONTS.fs_12_medium,
-                            styles.clusterListPrice,
-                            isReserved && styles.reservedPriceText,
-                          ]}>
-                          {getPriceLabel(item)}
-                        </Text>
-                      </TouchableOpacity>
-                    );
-                  })}
-                </View>
+                Platform.OS === 'ios' && selectedCluster.items.length > 6 ? (
+                  <FlatList
+                    key={selectedCluster.key}
+                    data={selectedCluster.items}
+                    keyExtractor={item => String(item.id)}
+                    renderItem={({item}) => renderClusterListItem(item)}
+                    style={[
+                      styles.iosClusterList,
+                      {height: IOS_CLUSTER_LIST_MAX_HEIGHT},
+                    ]}
+                    contentContainerStyle={styles.iosClusterListContent}
+                    ItemSeparatorComponent={ClusterListSeparator}
+                    initialNumToRender={6}
+                    maxToRenderPerBatch={6}
+                    windowSize={3}
+                    nestedScrollEnabled
+                  />
+                ) : (
+                  <View style={styles.clusterList}>
+                    {selectedCluster.items.map(renderClusterListItem)}
+                  </View>
+                )
               ) : (
                 <View style={styles.singleMarkerContent}>
                   <View

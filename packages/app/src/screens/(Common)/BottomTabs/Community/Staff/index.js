@@ -13,7 +13,7 @@ import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import AlertModal from '@components/modals/AlertModal';
 import AppImage from '@components/AppImage';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
@@ -422,7 +422,7 @@ const Staff = ({isActive}) => {
 
       {isInitialLoading && page === 0 ? (
         <View style={styles.loadingContainer}>
-          <Loading title={t('common.retrievingJobOpenings')} />
+          <ScreenSkeleton layout={styles} title={t('common.retrievingJobOpenings')} />
         </View>
       ) : (
         <FlatList

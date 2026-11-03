@@ -15,7 +15,7 @@ import {COLORS} from '@constants/colors';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import NoReview from '@assets/images/wa_orange_noreview.svg';
 import EmptyState from '@components/EmptyState';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import userMyApi from '@utils/api/userMyApi';
 import AppImage from '@components/AppImage';
 import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
@@ -182,7 +182,7 @@ const UserGuesthouseReviewWrite = () => {
   return (
     <>
       {loading ? (
-        <Loading title={t('common.loadingTheReviewList')} />
+        <ScreenSkeleton layout={styles} title={t('common.loadingTheReviewList')} />
       ) : (
         <FlatList
           data={reservations}

@@ -14,7 +14,7 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
 import Header from '@components/Header';
 import Avatar from '@components/Avatar';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
@@ -362,7 +362,7 @@ const MyCommunityPostList = () => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isInitialLoading ? (
-            <Loading title={t('community.loadingWhatIWrote')} />
+            <ScreenSkeleton layout={styles} title={t('community.loadingWhatIWrote')} />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
               {t('community.iHavenTWrittenAnythingYet')}

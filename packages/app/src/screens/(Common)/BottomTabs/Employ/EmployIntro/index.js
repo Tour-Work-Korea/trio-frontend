@@ -13,7 +13,7 @@ import {RecruitList} from '@components/Employ/RecruitList';
 import useUserStore from '@stores/userStore';
 import {toggleFavorite} from '@utils/toggleFavorite';
 import userEmployApi from '@utils/api/userEmployApi';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import styles from './EmployIntro.styles';
@@ -117,7 +117,7 @@ const EmployIntro = () => {
     return (
       <View style={styles.container}>
         <Header title={t('common.recruitmentNotice')} />
-        <Loading title={t('common.retrievingJobOpenings')} />
+        <ScreenSkeleton layout={styles} title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }

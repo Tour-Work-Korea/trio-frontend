@@ -69,6 +69,17 @@ const styles = StyleSheet.create({
   markerBubbleTailReserved: {
     borderColor: COLORS.grayscale_400,
   },
+  iosClusterList: {
+    width: 200,
+    flexGrow: 0,
+  },
+  iosClusterListContent: {
+    minWidth: 200,
+    maxWidth: 200,
+  },
+  clusterListSeparator: {
+    height: 12,
+  },
   clusterList: {
     minWidth: 200,
     maxWidth: 200,

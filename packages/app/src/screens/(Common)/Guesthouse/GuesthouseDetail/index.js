@@ -26,7 +26,7 @@ import {
   guesthouseDetailShareUrl,
   copyDeeplinkToClipboard,
 } from '@utils/deeplinkGenerator';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -36,7 +36,8 @@ import {addRecentGuesthouse} from '@utils/recentGuesthouses';
 import ButtonWhite from '@components/ButtonWhite';
 import {navigateWebBackToMap, replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 import RoomList from './RoomList';
 import ServiceInfoContent from './ServiceInfoContent';
@@ -112,6 +113,8 @@ const formatTodayPartyTime = startDateTime => {
 const GuesthouseDetail = ({route}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
+  const isNearReviewBottomRef = useRef(false);
+  const [reviewLoadMoreSignal, setReviewLoadMoreSignal] = useState(0);
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
   const [detail, setDetail] = useState(null);
@@ -331,7 +334,7 @@ const GuesthouseDetail = ({route}) => {
 
   // 로딩처리
   if (!detail) {
-    return <Loading title={t('guesthouse.loadingGuesthouse')} />;
+    return <ScreenSkeleton layout={styles} title={t('guesthouse.loadingGuesthouse')} />;
   }
 
   //  공유 링크
@@ -561,14 +564,38 @@ const GuesthouseDetail = ({route}) => {
           guesthouseId={id}
           averageRating={detail.averageRating}
           totalCount={detail.reviewCount}
+          loadMoreSignal={reviewLoadMoreSignal}
         />
       </View>
     );
   };
 
+  const handleDetailScroll = event => {
+    if (!isActive('review')) {
+      isNearReviewBottomRef.current = false;
+      return;
+    }
+
+    const {contentOffset, contentSize, layoutMeasurement} = event.nativeEvent;
+    const distanceFromBottom =
+      contentSize.height - (contentOffset.y + layoutMeasurement.height);
+
+    const isNearBottom = distanceFromBottom < layoutMeasurement.height * 0.5;
+
+    if (isNearBottom && !isNearReviewBottomRef.current) {
+      isNearReviewBottomRef.current = true;
+      setReviewLoadMoreSignal(signal => signal + 1);
+    } else if (!isNearBottom) {
+      isNearReviewBottomRef.current = false;
+    }
+  };
+
   return (
     <View style={{flex: 1}}>
-      <ScrollView style={styles.container}>
+      <ScrollView
+        style={styles.container}
+        onScroll={handleDetailScroll}
+        scrollEventThrottle={16}>
         <View>
           {/* 대표 이미지 */}
           {hasImages ? (

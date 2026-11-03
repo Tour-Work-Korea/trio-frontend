@@ -12,7 +12,7 @@ import {
   getHomeHorizontalScrollProps,
   shouldIgnoreHomeHorizontalPress,
 } from './webScroll';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const RecentGuesthouseSeparator = () => (
   <View style={styles.recentGuesthouseGap} />

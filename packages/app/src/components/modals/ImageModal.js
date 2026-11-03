@@ -16,7 +16,8 @@ import {
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import XIcon from '@assets/images/x_gray.svg';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 
 const {width: FALLBACK_SCREEN_WIDTH} = Dimensions.get('window');
 const SWIPE_CLOSE_DISTANCE = Platform.select({
@@ -785,8 +786,6 @@ const ImageModal = ({
       return;
     }
 
-    prefetchImageUrls(imageUrlsKey.split('\u0001'), {limit: 6});
-
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({
         index: initialIndex,
@@ -794,6 +793,19 @@ const ImageModal = ({
       });
     });
   }, [imageUrlsKey, initialIndex, visible]);
+
+  useEffect(() => {
+    if (!visible || !imageUrlsKey) {
+      return;
+    }
+    const urls = imageUrlsKey.split('\u0001');
+    // The active image loads through its view. Warm only its nearest neighbours,
+    // including when opening a photo beyond the first six or swiping onward.
+    const neighbours = [1, -1, 2, -2]
+      .map(offset => urls[activeSourceIndex + offset])
+      .filter(Boolean);
+    prefetchImageUrls(neighbours, {limit: 4, priority: true});
+  }, [activeSourceIndex, imageUrlsKey, visible]);
 
   const updateActiveImageAspectRatio = (imageUrl, index, event) => {
     const {width, height} = event.nativeEvent?.source ?? {};
@@ -1031,6 +1043,9 @@ const ImageModal = ({
           ref={listRef}
           data={imageList}
           horizontal
+          initialNumToRender={1}
+          maxToRenderPerBatch={2}
+          windowSize={3}
           pagingEnabled
           bounces={false}
           showsHorizontalScrollIndicator={false}

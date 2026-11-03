@@ -11,7 +11,7 @@ import {PAYMENT_TYPE_LABEL} from '@constants/payment';
 import Header from '@components/Header';
 import styles from './MeetPaymentReceipt.styles';
 import ButtonWhite from '@components/ButtonWhite';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import {formatLocalDateTimeToDotAndTimeWithDay} from '@utils/formatDate';
 import {trimJejuPrefix} from '@utils/formatAddress';
@@ -222,7 +222,7 @@ export default function MeetPaymentReceipt() {
         <Header title={headerTitle} />
 
         {loading ? (
-          <Loading title={t('meet.retrievingReservationInformation')} />
+          <ScreenSkeleton layout={styles} title={t('meet.retrievingReservationInformation')} />
         ) : (
           <View style={styles.body}>
             {/* 콘텐츠 제목, 사진 */}

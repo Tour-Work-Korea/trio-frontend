@@ -17,7 +17,7 @@ import EmploySortModal from '@components/modals/Employ/EmploySortModal';
 import useUserStore from '@stores/userStore';
 import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 
 import styles from './EmploySearchResult.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -196,7 +196,7 @@ const EmploySearchResult = ({route}) => {
     return (
       <View style={styles.container}>
         <Header title={t('common.recruitmentNotice')} />
-        <Loading title={t('common.retrievingJobOpenings')} />
+        <ScreenSkeleton layout={styles} title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }

@@ -8,7 +8,7 @@ import useUserStore from '@stores/userStore';
 import AlertModal from '@components/modals/AlertModal';
 import Header from '@components/Header';
 import userEmployApi from '@utils/api/userEmployApi';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import styles from './EmploySearchList.styles';
 import SearchIcon from '@assets/images/search_gray.svg';
 import {COLORS} from '@constants/colors';
@@ -107,7 +107,7 @@ const EmploySearchList = () => {
     return (
       <View style={styles.container}>
         <Header title={t('common.recruitmentNotice')} />
-        <Loading title={t('common.retrievingJobOpenings')} />
+        <ScreenSkeleton layout={styles} title={t('common.retrievingJobOpenings')} />
       </View>
     );
   }

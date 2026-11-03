@@ -31,6 +31,7 @@ import {getRecentGuesthouses} from '@utils/recentGuesthouses';
 import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
+import ScreenSkeleton from './LoadingSkeleton';
 import {prefetchImageUrls} from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 import notificationApi from '@utils/api/notificationApi';
@@ -634,14 +635,22 @@ const HomeMain = () => {
           </View>
 
           {/* 배너 */}
-          {!isBannerLoading && (
+          {isBannerLoading ? (
+            <View style={styles.boxContainer}>
+              <ScreenSkeleton layout={styles} section="banner" />
+            </View>
+          ) : (
             <View style={styles.boxContainer}>
               <Banner banners={bannerList} />
             </View>
           )}
 
           {/* 임시 */}
-          {!isGHLoading && (
+          {isGHLoading ? (
+            <View style={styles.boxContainer}>
+              <ScreenSkeleton layout={styles} section="guesthouses" />
+            </View>
+          ) : (
             <View
               onLayout={e => {
                 stayYRef.current = e.nativeEvent.layout.y;
@@ -700,7 +709,11 @@ const HomeMain = () => {
                </View> */}
 
           {/* 임시 */}
-          {!isMeetLoading && (
+          {isMeetLoading ? (
+            <View style={styles.boxContainer}>
+              <ScreenSkeleton layout={styles} section="meets" />
+            </View>
+          ) : (
             <View
               onLayout={e => {
                 meetYRef.current = e.nativeEvent.layout.y;

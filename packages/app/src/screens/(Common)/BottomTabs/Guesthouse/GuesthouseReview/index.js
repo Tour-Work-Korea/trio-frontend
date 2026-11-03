@@ -1,13 +1,6 @@
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
-import {
-  View,
-  Text,
-  ActivityIndicator,
-  TouchableOpacity,
-  ScrollView,
-  Platform,
-} from 'react-native';
+import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
 
 import styles from './GuesthouseReview.styles';
 import {FONTS} from '@constants/fonts';
@@ -18,7 +11,8 @@ import NoReviewIcon from '@assets/images/wa_orange_noreview.svg';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import ImageModal from '@components/modals/ImageModal';
 import Avatar from '@components/Avatar';
-import AppImage from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
+import ReviewLoadingSkeleton from './LoadingSkeleton';
 
 const PAGE_SIZE = 10;
 const SORT = 'id';
@@ -32,11 +26,14 @@ const GuesthouseReview = ({
   guesthouseId,
   averageRating = 0,
   totalCount = 0,
+  loadMoreSignal = 0,
 }) => {
   const {t} = useTranslation();
-  const loadingRef = useRef(false);
+  const requestStateRef = useRef(null);
+  const reviewSourceIdRef = useRef(guesthouseId);
+  const lastLoadMoreSignalRef = useRef(loadMoreSignal);
   const [reviews, setReviews] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
@@ -70,42 +67,99 @@ const GuesthouseReview = ({
     });
   }, []);
 
-  // 첫 로드 or 새로고침
   const fetchReviews = useCallback(async () => {
-    if (loadingRef.current) {
+    const requestState = requestStateRef.current;
+    if (
+      !requestState ||
+      requestState.guesthouseId !== guesthouseId ||
+      requestState.loading ||
+      !requestState.hasMore
+    ) {
       return;
     }
 
-    loadingRef.current = true;
+    requestState.loading = true;
     setLoading(true);
-
     try {
-      const res = await userGuesthouseApi.getGuesthouseReviews({
-        guesthouseId,
-        page: 0,
-        size: Math.max(PAGE_SIZE, Number(totalCount) || 0),
-        sort: SORT,
-      });
+      // A page can contain only staff reviews. Continue until a public guest
+      // review is found or the server reports the final page.
+      while (requestState.hasMore) {
+        const response = await userGuesthouseApi.getGuesthouseReviews({
+          guesthouseId,
+          page: requestState.nextPage,
+          size: PAGE_SIZE,
+          sort: SORT,
+        });
+        if (requestStateRef.current !== requestState) {
+          return;
+        }
 
-      const newReviews = (res.data.content || []).filter(
-        r => r.isJobReview === false,
-      );
-      setReviews(newReviews);
-    } catch (e) {
-      setReviews([]);
+        const page = response.data;
+        const content = Array.isArray(page?.content) ? page.content : [];
+        const nextReviews = content.filter(
+          review => review.isJobReview === false,
+        );
+        requestState.nextPage += 1;
+        requestState.hasMore = page?.last === false && content.length > 0;
+        if (nextReviews.length > 0) {
+          const replaceReviews = requestState.replaceReviews;
+          requestState.replaceReviews = false;
+          setReviews(previous => {
+            if (replaceReviews) {
+              return nextReviews;
+            }
+            const ids = new Set(previous.map(review => review.id));
+            return [
+              ...previous,
+              ...nextReviews.filter(review => !ids.has(review.id)),
+            ];
+          });
+          break;
+        }
+        if (!requestState.hasMore && requestState.replaceReviews) {
+          setReviews([]);
+        }
+      }
+    } catch (error) {
+      // Keep the current cards and retry this page on the next scroll signal.
     } finally {
-      loadingRef.current = false;
-      setLoading(false);
+      if (requestStateRef.current === requestState) {
+        requestState.loading = false;
+        setLoading(false);
+      }
     }
-  }, [guesthouseId, totalCount]);
+  }, [guesthouseId]);
 
-  // guesthouseId, 컴포넌트 mount 될 때마다 state 초기화 & 첫 fetch
   useEffect(() => {
-    loadingRef.current = false;
-    setReviews([]);
-    setLoading(false);
+    const requestState = {
+      guesthouseId,
+      nextPage: 0,
+      hasMore: true,
+      loading: false,
+      replaceReviews: true,
+    };
+    requestStateRef.current = requestState;
+    if (reviewSourceIdRef.current !== guesthouseId) {
+      setReviews([]);
+      reviewSourceIdRef.current = guesthouseId;
+    }
     fetchReviews();
-  }, [fetchReviews]);
+    return () => {
+      if (requestStateRef.current === requestState) {
+        requestStateRef.current = null;
+      }
+    };
+  }, [fetchReviews, guesthouseId, totalCount]);
+
+  useEffect(() => {
+    if (lastLoadMoreSignalRef.current === loadMoreSignal) {
+      return;
+    }
+    lastLoadMoreSignalRef.current = loadMoreSignal;
+    if (loadMoreSignal > 0) {
+      fetchReviews();
+    }
+  }, [fetchReviews, loadMoreSignal]);
 
   // 이미지 모달
   const openImageModal = useCallback(
@@ -226,7 +280,12 @@ const GuesthouseReview = ({
           {renderItem({item, index})}
         </React.Fragment>
       ))}
-      {loading && <ActivityIndicator />}
+      {loading && (
+        <ReviewLoadingSkeleton
+          title={t('common.loadingReviews')}
+          count={reviews.length > 0 ? 1 : 2}
+        />
+      )}
       {!loading && reviews.length === 0 && (
         <View style={styles.emptyReviewContainer}>
           <NoReviewIcon />

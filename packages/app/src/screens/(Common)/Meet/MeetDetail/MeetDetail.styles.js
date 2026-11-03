@@ -210,6 +210,13 @@ const styles = StyleSheet.create({
 
   // 하단탭
   tabContainer: {
+    ...Platform.select({
+      web: {
+        // A horizontal ScrollView grows by default, creating a tall empty tab bar.
+        flexGrow: 0,
+        flexShrink: 0,
+      },
+    }),
     marginTop: 12,
     borderBottomWidth: 1,
     borderBottomColor: COLORS.grayscale_200,
@@ -313,6 +320,10 @@ const styles = StyleSheet.create({
   },
   infoText: {
     lineHeight: 22,
+  },
+  meetingPlaceLink: {
+    color: COLORS.primary_blue,
+    textDecorationLine: 'underline',
   },
   // 상세 안내 밑부분
   detailInfoContainer: {

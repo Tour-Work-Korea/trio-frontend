@@ -18,7 +18,7 @@ import {useNavigation} from '@react-navigation/native';
 
 import Avatar from '@components/Avatar';
 import Header from '@components/Header';
-import Loading from '@components/Loading';
+import ScreenSkeleton from './LoadingSkeleton';
 import AlertModal from '@components/modals/AlertModal';
 import AppImage from '@components/AppImage';
 import RecruitTapSection from '@screens/(Common)/Employ/EmployDetail/RecruitTapSection';
@@ -908,7 +908,7 @@ const CommunityStaffDetail = ({route}) => {
 
       {isLoading ? (
         <View style={styles.loadingContainer}>
-          <Loading title={t('community.loadingStaffAnnouncements')} />
+          <ScreenSkeleton layout={styles} title={t('community.loadingStaffAnnouncements')} />
         </View>
       ) : (
         <TouchableWithoutFeedback

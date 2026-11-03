@@ -10,6 +10,8 @@ on:
       - 'packages/app/**'
       - 'package.json'
       - 'package-lock.json'
+      - '.nvmrc'
+      - 'scripts/verify-web-bundle.mjs'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -72,7 +74,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 18
+          node-version-file: '.nvmrc'
           cache: npm
 
       - name: Install dependencies
@@ -102,7 +104,7 @@ jobs:
         run: KODA_DEPLOY_TARGET="$DEPLOY_ENV" npm exec --workspace @trio/web -- vite build --config vite.koda.config.js --outDir dist
 
       - name: Verify build output
-        run: ls -al apps/web/dist
+        run: node scripts/verify-web-bundle.mjs apps/web/dist
 
       - name: Upload build files to S3
         run: aws s3 sync apps/web/dist/ "s3://${S3_BUCKET}/${S3_PREFIX}/" --delete

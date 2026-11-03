@@ -1,3 +1,4 @@
+import ScreenSkeleton from './LoadingSkeleton';
 import {useTranslation} from 'react-i18next';
 import React, {useMemo, useRef, useState, useCallback} from 'react';
 import {
@@ -6,7 +7,8 @@ import {
   TouchableOpacity,
   FlatList,
   ScrollView,
-  ActivityIndicator,
+  Platform,
+  RefreshControl,
 } from 'react-native';
 import dayjs from 'dayjs';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
@@ -17,7 +19,8 @@ import MeetFilterModal from '@components/modals/Meet/MeetFilterModal';
 import MeetSortModal from '@components/modals/Meet/MeetSortModal';
 import userMeetApi from '@utils/api/userMeetApi';
 import {toggleFavorite} from '@utils/toggleFavorite';
-import AppImage, {prefetchImageUrls} from '@components/AppImage';
+import {prefetchImageUrls} from '@components/AppImage';
+import AppImage from '@screens/_components/ContentImage';
 import {formatServiceRegion} from '@utils/formatServiceRegion';
 import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
 
@@ -106,6 +109,8 @@ const MeetMain = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const inFlightKeyRef = useRef(null);
+  const requestIdRef = useRef(0);
+  const lastSuccessfulRequestRef = useRef(null);
   const region = useMeetRegionStore(state => state.region);
   const setRegion = useMeetRegionStore(state => state.setRegion);
 
@@ -139,74 +144,105 @@ const MeetMain = () => {
 
   const [meets, setMeets] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
 
   const requestKey = useMemo(
     () => JSON.stringify({sortOption, scaleId, stayId, filters, region}),
     [sortOption, scaleId, stayId, filters, region],
   );
 
-  const fetchRecent = useCallback(async () => {
-    if (inFlightKeyRef.current === requestKey) {
-      return;
-    }
-
-    try {
-      inFlightKeyRef.current = requestKey;
-      setLoading(true);
-
-      const params = withPartyRegion({sortBy: sortOption}, region);
-      if (scaleId) {
-        params.isBigParty = isBigById[scaleId];
-      }
-      if (stayId) {
-        params.isGuest = isGuestById[stayId];
-      }
-      if (filters.contentTypes?.length) {
-        params.contentTypes = filters.contentTypes;
-      }
-      if (filters.isGuest !== null && filters.isGuest !== undefined) {
-        params.isGuest = filters.isGuest;
-      }
-      if (filters.attendeeRange) {
-        params.attendeeRange = filters.attendeeRange;
-      }
-      if (filters.priceRange) {
-        params.priceRange = filters.priceRange;
-      }
-      if (filters.minPrice !== undefined) {
-        params.minPrice = filters.minPrice;
-      }
-      if (filters.maxPrice !== undefined) {
-        params.maxPrice = filters.maxPrice;
-      }
-
-      const {data} = await userMeetApi.getRecentParties(params);
-      const list = Array.isArray(data) ? data : [];
+  const fetchRecent = useCallback(
+    async (force = false) => {
       if (inFlightKeyRef.current === requestKey) {
-        setMeets(list);
-        prefetchImageUrls(
-          list.map(item => item.partyImageUrl),
-          {limit: 8},
-        );
+        return;
       }
-    } catch (e) {
-      console.warn('getRecentParties error', e?.response?.data || e?.message);
-    } finally {
-      if (inFlightKeyRef.current === requestKey) {
+
+      const cached = lastSuccessfulRequestRef.current;
+      if (
+        Platform.OS === 'ios' &&
+        !force &&
+        cached?.key === requestKey &&
+        Date.now() - cached.completedAt < 30 * 1000
+      ) {
+        // A different region may still be loading when returning to this cache.
+        requestIdRef.current += 1;
         inFlightKeyRef.current = null;
+        setMeets(cached.items);
         setLoading(false);
+        setRefreshing(false);
+        return;
       }
-    }
-  }, [
-    requestKey,
-    sortOption,
-    scaleId,
-    stayId,
-    filters,
-    region,
-    isBigById,
-    isGuestById,
-  ]);
+
+      const requestId = ++requestIdRef.current;
+      try {
+        inFlightKeyRef.current = requestKey;
+        setLoading(true);
+        setRefreshing(force);
+        if (Platform.OS === 'ios' && cached?.key !== requestKey) {
+          setMeets([]);
+        }
+
+        const params = withPartyRegion({sortBy: sortOption}, region);
+        if (scaleId) {
+          params.isBigParty = isBigById[scaleId];
+        }
+        if (stayId) {
+          params.isGuest = isGuestById[stayId];
+        }
+        if (filters.contentTypes?.length) {
+          params.contentTypes = filters.contentTypes;
+        }
+        if (filters.isGuest !== null && filters.isGuest !== undefined) {
+          params.isGuest = filters.isGuest;
+        }
+        if (filters.attendeeRange) {
+          params.attendeeRange = filters.attendeeRange;
+        }
+        if (filters.priceRange) {
+          params.priceRange = filters.priceRange;
+        }
+        if (filters.minPrice !== undefined) {
+          params.minPrice = filters.minPrice;
+        }
+        if (filters.maxPrice !== undefined) {
+          params.maxPrice = filters.maxPrice;
+        }
+
+        const {data} = await userMeetApi.getRecentParties(params);
+        const list = Array.isArray(data) ? data : [];
+        if (requestId === requestIdRef.current) {
+          lastSuccessfulRequestRef.current = {
+            key: requestKey,
+            completedAt: Date.now(),
+            items: list,
+          };
+          setMeets(list);
+          prefetchImageUrls(
+            list.map(item => item.partyImageUrl),
+            {limit: 8},
+          );
+        }
+      } catch (e) {
+        console.warn('getRecentParties error', e?.response?.data || e?.message);
+      } finally {
+        if (requestId === requestIdRef.current) {
+          inFlightKeyRef.current = null;
+          setLoading(false);
+          setRefreshing(false);
+        }
+      }
+    },
+    [
+      requestKey,
+      sortOption,
+      scaleId,
+      stayId,
+      filters,
+      region,
+      isBigById,
+      isGuestById,
+    ],
+  );
 
   useFocusEffect(
     useCallback(() => {
@@ -535,6 +571,19 @@ const MeetMain = () => {
       <View style={styles.body}>
         <FlatList
           data={groupedGuesthouses}
+          {...(Platform.OS === 'ios'
+            ? {
+                initialNumToRender: 4,
+                maxToRenderPerBatch: 4,
+                windowSize: 7,
+                refreshControl: (
+                  <RefreshControl
+                    refreshing={refreshing}
+                    onRefresh={() => fetchRecent(true)}
+                  />
+                ),
+              }
+            : {})}
           keyExtractor={(item, index) =>
             item.guesthouseId
               ? String(item.guesthouseId)
@@ -612,15 +661,15 @@ const MeetMain = () => {
             </View>
           }
           ListEmptyComponent={
-            <View style={styles.emptyWrap}>
-              {loading ? (
-                <ActivityIndicator />
-              ) : dateEvents.length === 0 ? (
+            loading ? (
+              <ScreenSkeleton layout={styles} />
+            ) : dateEvents.length === 0 ? (
+              <View style={styles.emptyWrap}>
                 <Text style={[FONTS.fs_16_regular, styles.emptyText]}>
                   {t('meet.thereIsNoActivityToDisplay')}
                 </Text>
-              ) : null}
-            </View>
+              </View>
+            ) : null
           }
         />
       </View>

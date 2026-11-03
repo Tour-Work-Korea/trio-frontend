@@ -962,6 +962,8 @@
   "meet.adultValue": "Adult {{adultCount}}",
   "meet.adultValueChildValue": "Adult {{adultCount}}, Child {{childCount}}",
   "meet.afterTheBossConfirmed": "After host confirmation",
+  "meet.applicationAcceptedNotice": "After the host reviews your application,\nwe’ll send you a <highlight>final confirmation notification</highlight>.",
+  "meet.meetingPlaceWithValue": "Meeting place: {{place}}",
   "meet.alcoholProvided": "Alcohol provided",
   "meet.anErrorOccurredWhileCreatingTheReservation": "An error occurred while creating the reservation.",
   "meet.anyoneCanParticipate": "Anyone can participate",
