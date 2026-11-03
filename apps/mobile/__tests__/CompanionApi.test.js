@@ -17,7 +17,11 @@ jest.mock('@utils/api/axiosInstance', () => ({
   post: jest.fn(),
   patch: jest.fn(),
 }));
-jest.mock('@utils/auth/login', () => ({tryRefresh: jest.fn()}));
+jest.mock('@utils/auth/login', () => ({
+  tryRefresh: jest.fn(),
+  getSessionGeneration: () => 0,
+  subscribeSessionReset: jest.fn(() => () => {}),
+}));
 jest.mock('@stores/userStore', () => ({
   getState: () => ({accessToken: 'test-jwt'}),
 }));
@@ -212,7 +216,7 @@ test('a feed page abandoned during navigation does not hydrate more detail reque
   }
 });
 
-test('native WebSocket uses the documented room path and bearer header', () => {
+test('native WebSocket uses the documented room path and bearer header', async () => {
   const previousSocket = global.WebSocket;
   const previousPlatform = Platform.OS;
   const onMessage = jest.fn();
@@ -220,7 +224,7 @@ test('native WebSocket uses the documented room path and bearer header', () => {
   global.WebSocket = jest.fn(() => socket);
   Platform.OS = 'ios';
   try {
-    chatApi.connect(17, onMessage, jest.fn(), jest.fn());
+    await chatApi.connect(17, onMessage, jest.fn(), jest.fn());
     expect(global.WebSocket).toHaveBeenCalledWith(
       'wss://chat-dev.ddakji.kr/ws/chat/rooms/17',
       null,

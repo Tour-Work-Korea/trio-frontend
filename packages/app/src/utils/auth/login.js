@@ -1,4 +1,6 @@
 import i18n from '@trio/app/src/i18n'; // authFlow.js
+import axios from 'axios';
+import {API_BASE_URL} from '@env';
 import EncryptedStorage from 'react-native-encrypted-storage';
 import {Platform} from 'react-native';
 import authApi from '@utils/api/authApi';
@@ -21,6 +23,41 @@ import {
 import {synchronizeLanguageForAuthenticatedAccount} from '@utils/languageSync';
 
 const REFRESH_KEY = 'refresh-token';
+
+// Shared by the main session and chat; no credentials are persisted here.
+let sessionGeneration = 0;
+let webRefreshPromise = null;
+let webLogoutPromise = null;
+const sessionListeners = new Set();
+export const getSessionGeneration = () => sessionGeneration;
+export const subscribeSessionReset = listener => {
+  sessionListeners.add(listener);
+  return () => sessionListeners.delete(listener);
+};
+const resetSessionGeneration = () => {
+  sessionGeneration += 1;
+  sessionListeners.forEach(listener => listener());
+};
+useUserStore.subscribe((state, previous) => {
+  if (
+    (previous.accessToken && !state.accessToken) ||
+    (previous.userRole && state.userRole !== previous.userRole) ||
+    (previous.userProfile?.userId != null &&
+      state.userProfile?.userId !== previous.userProfile.userId)
+  ) {
+    resetSessionGeneration();
+  }
+});
+const webSessionRequest = path =>
+  axios.post(
+    `${(API_BASE_URL || '').replace(/\/$/, '')}/user/auth/${path}`,
+    undefined,
+    {
+      withCredentials: true,
+      timeout: 12000,
+      headers: {'Cache-Control': 'no-store'},
+    },
+  );
 
 const shouldContinueSocialSignUp = data =>
   data?.status === 'NEW_USER_SIGNUP_REQUIRED' ||
@@ -155,6 +192,9 @@ export const tryAutoLogin = async ({loadProfile = true} = {}) => {
     if (Platform.OS === 'web') {
       const ok = await tryRefresh({silent: true});
       log.info('🚪 tryAutoLogin: web refresh result =', ok);
+      if (ok && loadProfile) {
+        await updateProfile(useUserStore.getState().userRole);
+      }
       return ok;
     }
 
@@ -219,7 +259,14 @@ const storeLoginInfo = async (res, userRole) => {
   await storeLoginTokens({accessToken, refreshToken, userRole});
 };
 
-export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
+export const storeWebSessionInfo = async (
+  data = {},
+  fallbackRole = 'USER',
+  {refresh = false} = {},
+) => {
+  if (!refresh) {
+    resetSessionGeneration();
+  }
   const {setTokens, setUserRole, setUserProfile} = useUserStore.getState();
   const role = data.role || fallbackRole || 'USER';
   const accessToken =
@@ -254,6 +301,11 @@ export const storeWebSessionInfo = async (data = {}, fallbackRole = 'USER') => {
 };
 
 export const tryLogin = async (email, password, userRole) => {
+  if (Platform.OS === 'web') {
+    await webLogoutPromise;
+    await webRefreshPromise?.catch(() => {});
+    resetSessionGeneration();
+  }
   log.info('🔓 tryLogin: role=', userRole);
   try {
     const res = await authApi.login(email, password, userRole);
@@ -317,15 +369,59 @@ export const tryKakaoLogin = async (accessCode, userRole) => {
   }
 };
 
-export const tryRefresh = async ({silent = false} = {}) => {
+export const tryRefresh = ({silent = false} = {}) => {
+  if (Platform.OS !== 'web') {
+    return refreshNative({silent});
+  }
+  if (webLogoutPromise) {
+    return Promise.resolve(false);
+  }
+  if (webRefreshPromise) {
+    return webRefreshPromise;
+  }
+  const generation = sessionGeneration;
+  const pending = (async () => {
+    try {
+      const res = await webSessionRequest('refresh');
+      if (generation !== sessionGeneration) {
+        return false;
+      }
+      // Keep this promise limited to the cookie rotation. Profile requests may
+      // themselves need refresh and must not wait on their own promise.
+      const {setTokens, setUserRole} = useUserStore.getState();
+      setTokens({accessToken: WEB_SESSION_ACCESS_TOKEN});
+      setUserRole(res.data?.role || 'USER');
+      return true;
+    } catch (error) {
+      if (generation !== sessionGeneration) {
+        return false;
+      }
+      if (error.response?.status === 401) {
+        await clearAuthSession({silent});
+        return false;
+      }
+      // A network/server failure does not establish that login has expired.
+      const unavailable = new Error('SESSION_REFRESH_UNAVAILABLE');
+      if (error.response) {
+        unavailable.response = {status: error.response.status};
+      }
+      throw unavailable;
+    }
+  })();
+  webRefreshPromise = pending;
+  pending
+    .finally(() => {
+      if (webRefreshPromise === pending) {
+        webRefreshPromise = null;
+      }
+    })
+    .catch(() => {});
+  return pending;
+};
+
+const refreshNative = async ({silent = false} = {}) => {
   log.info('🔄 tryRefresh: start');
   try {
-    if (Platform.OS === 'web') {
-      const res = await authApi.refreshToken();
-      await storeWebSessionInfo(res.data);
-      return true;
-    }
-
     const storedRefresh = await EncryptedStorage.getItem(REFRESH_KEY);
     if (!storedRefresh) {
       log.warn('🔄 tryRefresh: no refresh token');
@@ -353,6 +449,41 @@ export const tryRefresh = async ({silent = false} = {}) => {
 };
 
 export const tryLogout = async () => {
+  if (Platform.OS === 'web') {
+    if (webLogoutPromise) {
+      return webLogoutPromise;
+    }
+    resetSessionGeneration();
+    const refresh = webRefreshPromise;
+    useUserStore.getState().clearUser();
+    const pending = (async () => {
+      // Wait for the last Set-Cookie before revoking the server session.
+      await refresh?.catch(() => {});
+      try {
+        try {
+          await webSessionRequest('logout');
+        } catch (error) {
+          if (error.response?.status !== 401) {
+            throw error;
+          }
+          await webSessionRequest('refresh');
+          await webSessionRequest('logout');
+        }
+      } catch {
+        throw new Error('SESSION_LOGOUT_UNAVAILABLE');
+      } finally {
+        useUserStore.getState().clearUser();
+      }
+    })();
+    webLogoutPromise = pending;
+    try {
+      return await pending;
+    } finally {
+      if (webLogoutPromise === pending) {
+        webLogoutPromise = null;
+      }
+    }
+  }
   log.info('🚪 tryLogout');
   try {
     try {
@@ -376,12 +507,16 @@ export const tryLogout = async () => {
 export const refreshUserProfile = async role => updateProfile(role);
 
 const updateProfile = async role => {
+  const generation = sessionGeneration;
   log.info('👤 updateProfile: role=', role);
   const {setUserProfile} = useUserStore.getState();
 
   try {
     if (role === 'USER') {
       const res = await userMyApi.getMyProfile();
+      if (generation !== sessionGeneration) {
+        return;
+      }
       const {
         userId,
         name,

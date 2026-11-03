@@ -5,8 +5,14 @@ import {API_BASE_URL} from '@env';
 import api from '@utils/api/axiosInstance';
 import communityApi from '@utils/api/communityApi';
 import useUserStore from '@stores/userStore';
-import {isWebSessionToken} from '@utils/auth/webSession';
 import {tryRefresh} from '@utils/auth/login';
+import {
+  ensureChatToken,
+  invalidateChatToken,
+  chatError,
+  chatGeneration,
+  subscribeChatReset,
+} from './chatAuth';
 
 export const companionEnabled =
   Config.COMPANION_ENABLED === 'true' ||
@@ -32,7 +38,7 @@ export const companionApi = {
   publish: (id, images, key) => post(`/${id}/publish`, {images}, key),
   update: (id, body) => api.patch(`${base}/${id}`, body),
   inquire: (id, key) => post(`/${id}/inquiries`, undefined, key),
-  access: id => api.get(`${base}/${id}/chat-access`),
+  access: id => getChatAccess(id),
   apply: (id, key) => post(`/${id}/applications`, undefined, key),
   withdraw: (id, generation, key) =>
     post(
@@ -51,37 +57,107 @@ export const companionApi = {
   close: (id, key) => post(`/${id}/close`, undefined, key),
 };
 
+async function getChatAccess(id) {
+  if (Platform.OS !== 'web') {
+    return api.get(`${base}/${id}/chat-access`);
+  }
+  const generation = chatGeneration();
+  const request = () =>
+    axios.get(
+      `${(API_BASE_URL || '').replace(/\/$/, '')}${base}/${id}/chat-access`,
+      {
+        withCredentials: true,
+        timeout: 12000,
+        headers: {'Cache-Control': 'no-store'},
+      },
+    );
+  try {
+    let response;
+    try {
+      response = await request();
+    } catch (error) {
+      if (generation !== chatGeneration()) {
+        throw new Error('CHAT_SESSION_CHANGED');
+      }
+      if (error.response?.status !== 401) {
+        throw error;
+      }
+      if (!(await tryRefresh({silent: true}))) {
+        throw new Error('CHAT_AUTH_REQUIRED');
+      }
+      if (generation !== chatGeneration()) {
+        throw new Error('CHAT_SESSION_CHANGED');
+      }
+      response = await request();
+    }
+    if (generation !== chatGeneration()) {
+      throw new Error('CHAT_SESSION_CHANGED');
+    }
+    return response;
+  } catch (error) {
+    throw error.response ? chatError(error) : error;
+  }
+}
+
 // Only the documented dev hostname is a fallback. Production must be configured.
 export const chatBase =
   Config.CHAT_BASE_URL ||
   (/^https:\/\/dev\.ddakji\.kr(?:\/|$)/.test(API_BASE_URL || '')
     ? 'https://chat-dev.ddakji.kr'
     : '');
-const chat = axios.create({baseURL: chatBase, timeout: 12000});
-const chatToken = () => {
-  const token = useUserStore.getState().accessToken;
-  // A web BFF session marker is not a JWT and must never be sent to the chat server.
-  if (!token || isWebSessionToken(token)) {
-    throw new Error('CHAT_AUTH_REQUIRED');
-  }
-  return token;
-};
-chat.interceptors.request.use(config => {
+const chat = axios.create({
+  baseURL: chatBase,
+  timeout: 12000,
+  withCredentials: false,
+});
+chat.interceptors.request.use(async config => {
   if (!chatBase) {
     throw new Error('CHAT_NOT_CONFIGURED');
   }
-  config.headers.Authorization = `Bearer ${chatToken()}`;
+  const generation = config._chatGeneration ?? chatGeneration();
+  const token = await ensureChatToken();
+  if (generation !== chatGeneration()) {
+    throw new Error('CHAT_SESSION_CHANGED');
+  }
+  config._chatGeneration = generation;
+  config._chatToken = token.accessToken;
+  config._chatExpiresAt = token.expiresAt;
+  config.headers.Authorization = `Bearer ${token.accessToken}`;
+  config.headers['Cache-Control'] = 'no-store';
+  // fetch credentials=omit also suppresses ambient cookies for same-origin deployments.
+  if (Platform.OS === 'web') {
+    config.adapter = 'fetch';
+    config.fetchOptions = {credentials: 'omit', cache: 'no-store'};
+  }
   return config;
 });
 chat.interceptors.response.use(
-  response => response,
-  async error => {
-    if (error.response?.status === 401 && !error.config?._retry) {
-      if (await tryRefresh({silent: true})) {
-        return chat({...error.config, _retry: true});
-      }
+  response => {
+    if (response.config._chatGeneration !== chatGeneration()) {
+      throw new Error('CHAT_SESSION_CHANGED');
     }
-    throw error;
+    return response;
+  },
+  async error => {
+    const config = error.config;
+    const retryable = config && (config.method === 'get' || config._chatTicket);
+    if (
+      error.response?.status === 401 &&
+      retryable &&
+      !config._retry &&
+      config._chatGeneration === chatGeneration()
+    ) {
+      if (Platform.OS === 'web') {
+        invalidateChatToken(config._chatToken);
+      } else if (!(await tryRefresh({silent: true}))) {
+        throw new Error('CHAT_AUTH_REQUIRED');
+      }
+      return chat({...config, _retry: true});
+    }
+    if (!error.response && !config) {
+      throw error;
+    }
+    throw chatError(error);
   },
 );
 const rooms = '/api/v1/chat/rooms';
@@ -123,30 +199,70 @@ export const chatApi = {
     }
     return chat.get(path);
   },
-  connect: (id, onMessage, onClose, onOpen) => {
+  connect: async (id, onMessage, onClose, onOpen, isCurrent = () => true) => {
     if (!chatBase) {
       throw new Error('CHAT_NOT_CONFIGURED');
     }
+    const generation = chatGeneration();
+    const current = () => isCurrent() && generation === chatGeneration();
     const endpoint = `${chatBase
       .replace(/^http/, 'ws')
       .replace(/\/$/, '')}/ws/chat/rooms/${id}`;
-    const token = chatToken();
-    const socket =
-      Platform.OS === 'web'
-        ? new WebSocket(`${endpoint}?access_token=${encodeURIComponent(token)}`)
-        : new WebSocket(endpoint, null, {
-            headers: {Authorization: `Bearer ${token}`},
-          });
-    socket.onmessage = event => {
+    let ws;
+    if (Platform.OS === 'web') {
+      const response = await chat.post(`${rooms}/${id}/ws-ticket`, undefined, {
+        _chatTicket: true,
+      });
+      if (!current()) {
+        return null;
+      }
+      const {ticket, expiresAt} = response.data || {};
+      if (
+        !ticket ||
+        !Number.isFinite(Date.parse(expiresAt)) ||
+        Date.parse(expiresAt) <= Date.now()
+      ) {
+        throw new Error('CHAT_TICKET_EXPIRED');
+      }
+      // A ticket is consumed by exactly this attempt; never log this URL.
+      ws = new WebSocket(`${endpoint}?ticket=${encodeURIComponent(ticket)}`);
+      ws.chatExpiresAt = Date.parse(response.config._chatExpiresAt);
+    } else {
+      const token = await ensureChatToken();
+      if (!current()) {
+        return null;
+      }
+      ws = new WebSocket(endpoint, null, {
+        headers: {Authorization: `Bearer ${token.accessToken}`},
+      });
+    }
+    const unsubscribe = subscribeChatReset(() => ws.close(1000));
+    ws.onmessage = event => {
+      if (!current()) {
+        return;
+      }
+      let frame;
       try {
-        onMessage(JSON.parse(event.data));
+        frame = JSON.parse(event.data);
       } catch {
-        /* Ignore invalid frames. */
+        return;
+      }
+      onMessage(frame);
+    };
+    ws.onclose = event => {
+      unsubscribe();
+      if (current()) {
+        onClose?.(event);
       }
     };
-    socket.onclose = onClose;
-    socket.onopen = onOpen;
-    return socket;
+    ws.onopen = event => {
+      if (!current()) {
+        ws.close(1000);
+        return;
+      }
+      onOpen?.(event);
+    };
+    return ws;
   },
 };
 export async function uploadBinary(url, uri, method = 'PUT', headers = {}) {

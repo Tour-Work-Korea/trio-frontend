@@ -15,6 +15,7 @@ import {
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
+import {chatGeneration} from './chatAuth';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import Modal from '@components/modals/AdaptiveModal';
@@ -1344,6 +1345,7 @@ export function MyCompanions({navigation}) {
             <View style={s.empty}>
               <Title>{t('companion.myEmpty')}</Title>
               <Action
+                style={{width: '100%', maxWidth: 360}}
                 label={t('companion.find')}
                 onPress={() => goCompanions(navigation)}
               />
@@ -1716,10 +1718,34 @@ export function CompanionManage({navigation, route}) {
 export function CompanionChatAccess({navigation, route}) {
   const {t} = useTranslation();
   const id = route.params?.companionId;
+  const focused = useIsFocused();
+  const token = useUserStore(value => value.accessToken);
+  const userId = useUserStore(value => value.userProfile?.userId);
+  const [active, setActive] = useState(AppState.currentState === 'active');
+  useEffect(() => {
+    const update = state => setActive(state === 'active' &&
+      (Platform.OS !== 'web' || !document.hidden));
+    const subscription = AppState.addEventListener('change', update);
+    const visibility = () => update('active');
+    if (Platform.OS === 'web') {
+      document.addEventListener('visibilitychange', visibility);
+      visibility();
+    }
+    return () => {
+      subscription.remove();
+      if (Platform.OS === 'web') {
+        document.removeEventListener('visibilitychange', visibility);
+      }
+    };
+  }, []);
   const [state, setState] = useState('PENDING');
   const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState(null);
   useEffect(() => {
+    if (!focused || !active || !token) {
+      return;
+    }
+    const generation = chatGeneration();
     let stopped = false;
     let timer;
     let count = 0;
@@ -1729,7 +1755,7 @@ export function CompanionChatAccess({navigation, route}) {
           companionApi.detail(id),
           companionApi.access(id),
         ]);
-        if (stopped) {
+        if (stopped || generation !== chatGeneration()) {
           return;
         }
         const roomId = roomForAccess(access.data, detail.data);
@@ -1748,7 +1774,7 @@ export function CompanionChatAccess({navigation, route}) {
           setState('TIMEOUT');
         }
       } catch (cause) {
-        if (!stopped) {
+        if (!stopped && generation === chatGeneration()) {
           setError(cause);
         }
       }
@@ -1758,7 +1784,7 @@ export function CompanionChatAccess({navigation, route}) {
       stopped = true;
       clearTimeout(timer);
     };
-  }, [id, attempt, navigation]);
+  }, [id, attempt, navigation, focused, active, token, userId]);
   return (
     <Screen title={t('companion.chat')}>
       <View style={s.empty}>
