@@ -32,9 +32,10 @@ import {postSchedule} from './communityPost';
 import useUserStore from '@stores/userStore';
 import {COLORS as C} from '@constants/colors';
 import {formatNumber, formatDate} from '@utils/localeFormat';
-import writeStyles from '../../screens/(Common)/Community/CommunityWrite/CommunityWrite.styles';
+// 다른 커뮤니티 글쓰기 재개 시 카테고리 선택 UI와 함께 복원합니다.
+// import writeStyles from '../../screens/(Common)/Community/CommunityWrite/CommunityWrite.styles';
 import {FONTS} from '@constants/fonts';
-import UpIcon from '@assets/images/chevron_up_gray.svg';
+// import UpIcon from '@assets/images/chevron_up_gray.svg';
 import DownIcon from '@assets/images/chevron_down_gray.svg';
 import PlaceOrangeIcon from '@assets/images/map_pin_fill_orange.svg';
 import ChatIcon from '@assets/images/chat_bubbles_black.svg';
@@ -435,9 +436,11 @@ export function CompanionWrite({navigation, route}) {
     () => (draft[dateField] ? kstDate(draft[dateField]) : calendarMinDate),
     [dateField, draft.startDate, draft.endDate, calendarMinDate],
   );
+  const {i18n} = useTranslation();
+  // 당분간 동행 글쓰기만 제공하므로 카테고리 조회와 선택 상태를 보관합니다.
+  /*
   const [categoryOpen, setCategoryOpen] = useState(false);
   const [categories, setCategories] = useState([]);
-  const {i18n} = useTranslation();
   useEffect(() => {
     let active = true;
     communityApi
@@ -458,6 +461,7 @@ export function CompanionWrite({navigation, route}) {
       active = false;
     };
   }, [showError]);
+  */
   const firstStepValid = !validateDraft(
     {...draft, description: '0123456789'},
     new Date(),
@@ -717,6 +721,7 @@ export function CompanionWrite({navigation, route}) {
                 gap: 14,
                 flexGrow: 1,
               }}>
+              {/* 당분간 동행 글쓰기만 제공하므로 카테고리 선택을 숨깁니다.
               <View style={[writeStyles.categoryWrapper, {marginBottom: 16}]}>
                 <TouchableOpacity
                   style={writeStyles.categoryButton}
@@ -758,6 +763,7 @@ export function CompanionWrite({navigation, route}) {
                   </View>
                 )}
               </View>
+              */}
               <View style={s.between}>
                 <Txt style={s.orange}>
                   {t(

@@ -33,10 +33,6 @@ export default function ScreenSkeleton({title, layout}) {
             <View style={layout.tagRow}>
               <Chips />
             </View>
-            <View style={layout.actionRow}>
-              <Line width={46} />
-              <Line width={46} />
-            </View>
           </View>
         )}
       </Repeat>

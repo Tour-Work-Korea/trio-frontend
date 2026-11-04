@@ -107,6 +107,9 @@ const CommunityWrite = ({route}) => {
     selectedLocation: selectedLocationParam,
   } = route?.params ?? {};
   const isEditMode = mode === 'edit' && Boolean(editingPost?.postId);
+  useEffect(() => {
+    if (!isEditMode) navigation.replace('CompanionWrite');
+  }, [isEditMode, navigation]);
   const titleInputRef = useRef(null);
   const bodyInputRef = useRef(null);
   const scrollViewRef = useRef(null);
