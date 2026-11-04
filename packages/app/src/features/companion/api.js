@@ -14,9 +14,7 @@ import {
   subscribeChatReset,
 } from './chatAuth';
 
-export const companionEnabled =
-  Config.COMPANION_ENABLED === 'true' ||
-  (__DEV__ && Config.COMPANION_ENABLED !== 'false');
+export const companionEnabled = true;
 const base = '/user/companions';
 const optionalAuth = () =>
   useUserStore.getState().accessToken ? {} : {withAuth: false};
