@@ -19,9 +19,11 @@ import AppImage from '@components/AppImage';
 import {FONTS} from '@constants/fonts';
 import {COLORS} from '@constants/colors';
 import communityApi from '@utils/api/communityApi';
+import {companionApi} from '@trio/app/src/features/companion/api';
 import styles from './MyCommunityPostList.styles';
 import HeartIcon from '@assets/images/heart_black.svg';
 import CommentIcon from '@assets/images/chat_black.svg';
+import CompanionPostActions from '@trio/app/src/features/companion/CompanionPostActions';
 
 const PAGE_SIZE = 10;
 
@@ -171,6 +173,26 @@ const MyCommunityPostList = () => {
     try {
       setEditingPostId(postId);
       const response = await communityApi.getPostDetail(postId);
+      if (response.data?.categoryCode === 'COMPANION') {
+        let companion;
+        let pageToFetch = 0;
+        while (!companion) {
+          const {data} = await companionApi.mine({
+            role: 'ORGANIZER',
+            page: pageToFetch,
+            size: 20,
+          });
+          companion = data.content?.find(
+            item => String(item.postId) === String(postId),
+          );
+          if (companion || data.last !== false || !data.content?.length) {break;}
+          pageToFetch += 1;
+        }
+        if (!companion) {throw new Error('Companion for post not found');}
+        const {data} = await companionApi.detail(companion.companionId);
+        navigation.navigate('CompanionWrite', {companion: data});
+        return;
+      }
 
       navigation.navigate('CommunityWrite', {
         mode: 'edit',
@@ -296,20 +318,24 @@ const MyCommunityPostList = () => {
       {renderPostImages(item.images)}
 
       <View style={styles.postActions}>
-        <View style={styles.postStats}>
-          <View style={styles.actionItem}>
-            <HeartIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.likeCount}
-            </Text>
+        {item.categoryCode === 'COMPANION' ? (
+          <CompanionPostActions item={{...item, post: item}} />
+        ) : (
+          <View style={styles.postStats}>
+            <View style={styles.actionItem}>
+              <HeartIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.likeCount}
+              </Text>
+            </View>
+            <View style={styles.actionItem}>
+              <CommentIcon width={20} height={20} />
+              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
+                {item.commentCount}
+              </Text>
+            </View>
           </View>
-          <View style={styles.actionItem}>
-            <CommentIcon width={20} height={20} />
-            <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-              {item.commentCount}
-            </Text>
-          </View>
-        </View>
+        )}
 
         <View style={styles.manageActions}>
           <TouchableOpacity
@@ -362,7 +388,10 @@ const MyCommunityPostList = () => {
         onEndReachedThreshold={0.5}
         ListEmptyComponent={
           isInitialLoading ? (
-            <ScreenSkeleton layout={styles} title={t('community.loadingWhatIWrote')} />
+            <ScreenSkeleton
+              layout={styles}
+              title={t('community.loadingWhatIWrote')}
+            />
           ) : (
             <Text style={[FONTS.fs_14_regular, styles.emptyText]}>
               {t('community.iHavenTWrittenAnythingYet')}

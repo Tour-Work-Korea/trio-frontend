@@ -1,6 +1,7 @@
 import {StyleSheet} from 'react-native';
 
 import {COLORS} from '@constants/colors';
+import {FONTS} from '@constants/fonts';
 
 const styles = StyleSheet.create({
   container: {
@@ -75,6 +76,7 @@ const styles = StyleSheet.create({
     marginRight: 8,
   },
   deadline: {
+    fontSize: 12,
     color: COLORS.grayscale_400,
   },
   closedBadge: {
@@ -105,10 +107,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   address: {
+    ...FONTS.fs_14_regular,
+    fontSize: 12,
     flex: 1,
     color: COLORS.grayscale_500,
   },
   workPeriod: {
+    ...FONTS.fs_14_regular,
+    fontSize: 12,
     color: COLORS.grayscale_500,
   },
   tagRow: {

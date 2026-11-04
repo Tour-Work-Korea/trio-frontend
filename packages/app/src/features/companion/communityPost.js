@@ -12,6 +12,7 @@ import DetailCalendarIcon from '@assets/images/calendar_400gray.svg';
 import LocationIcon from '@assets/images/map_pin_fill_gray.svg';
 import PeopleIcon from '@assets/images/people_gray.svg';
 import {countText, kstDate} from './model';
+import CompanionPostActions from './CompanionPostActions';
 import communityStyles from '../../screens/(Common)/BottomTabs/Community/Community.styles';
 
 export const postSchedule = (item, t) => {
@@ -127,6 +128,9 @@ export function CompanionPost({item, onPress}) {
             {locationText(item, t)}
           </AdaptiveText>
         </View>
+      </View>
+      <View style={{marginTop: 12, alignItems: 'flex-end'}}>
+        <CompanionPostActions item={item} />
       </View>
     </TouchableOpacity>
   );

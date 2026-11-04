@@ -12,17 +12,15 @@ import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import {BannerAd, BannerAdSize, TestIds} from 'react-native-google-mobile-ads';
 
 import AlertModal from '@components/modals/AlertModal';
-import AppImage from '@components/AppImage';
+import {FeedProfile} from '../CompanionFeed';
+import {trimJejuPrefix} from '@utils/formatAddress';
 import ScreenSkeleton from './LoadingSkeleton';
 import userEmployApi from '@utils/api/userEmployApi';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {formatServiceRegion} from '@utils/formatServiceRegion';
 import {parseSlashDateToYearMonth} from '@utils/formatDate';
-import {toggleFavorite} from '@utils/toggleFavorite';
 import styles from './Staff.styles';
-import FilledHeartIcon from '@assets/images/Fill_Heart.svg';
-import EmptyHeartIcon from '@assets/images/Empty_Heart.svg';
 import {useGuesthouseRegionStore} from '@screens/(Common)/BottomTabs/Guesthouse/regions/store';
 import StaffRegionTabs from './StaffRegionTabs';
 import {useStaffRegionStore, withRecruitRegion} from './regions';
@@ -48,19 +46,27 @@ const sortRecruitsByRecruiting = recruits =>
     return aClosed ? 1 : -1;
   });
 
-const Staff = ({isActive}) => {
+const Staff = ({
+  isActive,
+  hideRegionTabs = false,
+  listHeader = null,
+  selectedSort = 'LATEST',
+  selectedRegion,
+}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const hasUserScrolledRef = useRef(false);
   const isFetchingRef = useRef(false);
   const requestKeyRef = useRef(null);
-  const region = useStaffRegionStore(state => state.region);
+  const storedRegion = useStaffRegionStore(state => state.region);
+  const region = selectedRegion ?? storedRegion;
+  const loadedRegionRef = useRef(null);
   const setRegion = useStaffRegionStore(state => state.setRegion);
   const regions = useGuesthouseRegionStore(state => state.regions);
   const [recruitList, setRecruitList] = useState([]);
   const [page, setPage] = useState(0);
   const [hasNext, setHasNext] = useState(true);
-  const [isInitialLoading, setIsInitialLoading] = useState(false);
+  const [isInitialLoading, setIsInitialLoading] = useState(true);
   const [isMoreLoading, setIsMoreLoading] = useState(false);
   const [errorModal, setErrorModal] = useState({
     visible: false,
@@ -101,11 +107,23 @@ const Staff = ({isActive}) => {
           ),
         );
 
-        const content = Array.isArray(res.data?.content)
-          ? res.data.content
-          : [];
-        const last = res.data?.last ?? true;
-        const number = Number(res.data?.number ?? pageToFetch);
+        let content = Array.isArray(res.data?.content) ? res.data.content : [];
+        let last = res.data?.last ?? true;
+        let number = Number(res.data?.number ?? pageToFetch);
+        // The existing API client requests LATEST. Read all pages before
+        // reversing registration order so older posts are not omitted.
+        while (selectedSort === 'OLDEST' && !isLoadMore && !last) {
+          if (requestKeyRef.current !== requestKey) {return;}
+          const next = await userEmployApi.getRecruits(
+            withRecruitRegion({page: number + 1, size: PAGE_SIZE}, region),
+          );
+          const nextContent = Array.isArray(next.data?.content)
+            ? next.data.content
+            : [];
+          content = [...content, ...nextContent];
+          number += 1;
+          last = (next.data?.last ?? true) || nextContent.length === 0;
+        }
 
         if (requestKeyRef.current !== requestKey) {
           return;
@@ -145,7 +163,7 @@ const Staff = ({isActive}) => {
         }
       }
     },
-    [region, t],
+    [region, selectedSort, t],
   );
 
   useFocusEffect(
@@ -153,12 +171,15 @@ const Staff = ({isActive}) => {
       if (!isActive) {
         return;
       }
+      // Returning from a list/detail screen must keep loaded pages and scroll.
+      const filterKey = `${region}:${selectedSort}`;
+      if (loadedRegionRef.current === filterKey) {return;}
+      loadedRegionRef.current = filterKey;
       hasUserScrolledRef.current = false;
-      setRecruitList([]);
       setHasNext(true);
       setPage(0);
       tryFetchRecruitList(0, false);
-    }, [tryFetchRecruitList, isActive]),
+    }, [tryFetchRecruitList, isActive, region, selectedSort]),
   );
 
   const handleEndReached = useCallback(() => {
@@ -200,15 +221,6 @@ const Staff = ({isActive}) => {
     [navigation],
   );
 
-  const handleToggleFavorite = useCallback(item => {
-    toggleFavorite({
-      type: 'recruit',
-      id: item.recruitId,
-      isLiked: item.isLiked,
-      setList: setRecruitList,
-    });
-  }, []);
-
   const renderTags = useCallback(hashtags => {
     if (!hashtags?.length) {
       return null;
@@ -238,7 +250,11 @@ const Staff = ({isActive}) => {
         item.profileSummary?.profileImageUrl ||
         item.thumbnailImage ||
         item.recruitImage;
-      const regionName = formatServiceRegion(item.profileSummary?.regionType);
+      const regionName = trimJejuPrefix(
+        item.address ||
+          item.profileSummary?.address ||
+          formatServiceRegion(item.profileSummary?.regionType),
+      );
       const deadline = parseSlashDateToYearMonth(item.deadline);
       const workDuration =
         item.workDuration ?? item.workDate ?? item.workPeriod;
@@ -250,16 +266,9 @@ const Staff = ({isActive}) => {
           onPress={() => handleJobPress(item.recruitId)}>
           <View style={styles.headerRow}>
             <View style={styles.headerInfoRow}>
-              {imageUrl ? (
-                <AppImage
-                  uri={imageUrl}
-                  style={[styles.avatar, isClosed && styles.avatarClosed]}
-                />
-              ) : (
-                <View
-                  style={[styles.avatar, isClosed && styles.avatarClosed]}
-                />
-              )}
+              <View style={{marginRight: 8, opacity: isClosed ? 0.45 : 1}}>
+                <FeedProfile uri={imageUrl} />
+              </View>
               <Text
                 style={[
                   FONTS.fs_14_medium,
@@ -287,19 +296,6 @@ const Staff = ({isActive}) => {
                 </View>
               ) : null}
             </View>
-            <TouchableOpacity
-              activeOpacity={0.8}
-              style={styles.actionItem}
-              onPress={event => {
-                event.stopPropagation();
-                handleToggleFavorite(item);
-              }}>
-              {item.isLiked ? (
-                <FilledHeartIcon width={18} height={18} />
-              ) : (
-                <EmptyHeartIcon width={18} height={18} />
-              )}
-            </TouchableOpacity>
           </View>
 
           <Text
@@ -358,29 +354,10 @@ const Staff = ({isActive}) => {
           ) : !isClosed ? (
             renderTags(item.hashtags)
           ) : null}
-
-          {/* <View style={styles.actionRow}>
-            <View style={styles.actionItem}>
-              {item.isLiked ? (
-                <FilledHeartIcon width={18} height={18} />
-              ) : (
-                <EmptyHeartIcon width={18} height={18} />
-              )}
-              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-                {item.likeCount ?? 66}
-              </Text>
-            </View>
-            <View style={styles.actionItem}>
-              <CommentIcon width={18} height={18} />
-              <Text style={[FONTS.fs_14_regular, styles.actionText]}>
-                {item.commentCount ?? 38}
-              </Text>
-            </View>
-           </View> */}
         </TouchableOpacity>
       );
     },
-    [handleJobPress, handleToggleFavorite, renderTags, t],
+    [handleJobPress, renderTags, t],
   );
 
   const renderListFooter = useCallback(() => {
@@ -416,28 +393,36 @@ const Staff = ({isActive}) => {
 
   return (
     <View style={styles.container}>
-      <View style={styles.regionSection}>
-        <StaffRegionTabs value={region} onChange={setRegion} />
-      </View>
-
-      {isInitialLoading && page === 0 ? (
-        <View style={styles.loadingContainer}>
-          <ScreenSkeleton layout={styles} title={t('common.retrievingJobOpenings')} />
+      {!hideRegionTabs && (
+        <View style={styles.regionSection}>
+          <StaffRegionTabs value={region} onChange={setRegion} />
         </View>
-      ) : (
-        <FlatList
-          data={recruitList}
-          keyExtractor={keyExtractor}
-          renderItem={renderRecruit}
-          showsVerticalScrollIndicator={false}
-          onEndReached={handleEndReached}
-          onEndReachedThreshold={0.4}
-          onScrollBeginDrag={handleScrollBeginDrag}
-          contentContainerStyle={[
-            styles.listContent,
-            recruitList.length === 0 && styles.emptyListContent,
-          ]}
-          ListEmptyComponent={
+      )}
+
+      <FlatList
+        data={
+          selectedSort === 'OLDEST'
+            ? sortRecruitsByRecruiting([...recruitList].reverse())
+            : recruitList
+        }
+        ListHeaderComponent={listHeader}
+        keyExtractor={keyExtractor}
+        renderItem={renderRecruit}
+        showsVerticalScrollIndicator={false}
+        onEndReached={handleEndReached}
+        onEndReachedThreshold={0.4}
+        onScrollBeginDrag={handleScrollBeginDrag}
+        contentContainerStyle={[
+          styles.listContent,
+          recruitList.length === 0 && styles.emptyListContent,
+        ]}
+        ListEmptyComponent={
+          isInitialLoading ? (
+            <ScreenSkeleton
+              layout={styles}
+              title={t('common.retrievingJobOpenings')}
+            />
+          ) : (
             <View style={styles.emptyContainer}>
               <Text style={[FONTS.fs_16_medium, styles.emptyTitle]}>
                 {t(
@@ -449,10 +434,10 @@ const Staff = ({isActive}) => {
                 {t('community.pleaseAlsoCheckAnnouncementsInOtherRegions')}
               </Text>
             </View>
-          }
-          ListFooterComponent={renderListFooter}
-        />
-      )}
+          )
+        }
+        ListFooterComponent={renderListFooter}
+      />
 
       <AlertModal
         visible={errorModal.visible}
