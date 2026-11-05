@@ -1,5 +1,5 @@
 import {useTranslation} from 'react-i18next';
-import React, {useState, useCallback, useEffect, useMemo} from 'react';
+import React, {useState, useCallback, useEffect, useMemo, useRef} from 'react';
 import {
   View,
   Text,
@@ -44,16 +44,24 @@ const normalizeRegisterProfileData = data => ({
   preferredLanguage: data?.preferredLanguage || '',
 });
 
-const UserRegisterProfile = () => {
+const UserRegisterProfile = ({
+  route: routeOverride,
+  navigation: navigationOverride,
+  onRegistered,
+} = {}) => {
   const {t} = useTranslation();
-  const route = useRoute();
+  const defaultRoute = useRoute();
+  const route = routeOverride || defaultRoute;
   const {prevData} = route.params;
   const normalizedPrevData = useMemo(
     () => normalizeRegisterProfileData(prevData),
     [prevData],
   );
-  const navigation = useNavigation();
+  const defaultNavigation = useNavigation();
+  const navigation = navigationOverride || defaultNavigation;
   const [formData, setFormData] = useState(normalizedPrevData);
+  const submitting = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const isSocialSignUp = !!formData?.isSocial;
   const isForeignSignUp = isSocialSignUp && !!formData?.isForeign;
   const [formValid, setFormValid] = useState(() =>
@@ -236,6 +244,11 @@ const UserRegisterProfile = () => {
   };
 
   const handleSubmit = async () => {
+    if (submitting.current) {
+      return;
+    }
+    submitting.current = true;
+    setIsSubmitting(true);
     try {
       if (isSocialSignUp) {
         const payload = {
@@ -259,6 +272,10 @@ const UserRegisterProfile = () => {
         const res = isForeignSignUp
           ? await authApi.completeForeignSocialSignUp(payload)
           : await authApi.completeSocialSignUp(payload);
+        if (onRegistered) {
+          await onRegistered(res.data);
+          return;
+        }
         const {accessToken, refreshToken} = res.data || {};
 
         if (!accessToken || !refreshToken) {
@@ -303,7 +320,7 @@ const UserRegisterProfile = () => {
        * - phoneNum을 /auth/user/signup으로 전달
        */
       await authApi.userSignUp(payload);
-      afterSuccessRegister();
+      await afterSuccessRegister();
     } catch (error) {
       setErrorModal({
         visible: true,
@@ -314,6 +331,9 @@ const UserRegisterProfile = () => {
         buttonText: t('common.confirm'),
         onPress: '',
       });
+    } finally {
+      submitting.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -740,7 +760,7 @@ const UserRegisterProfile = () => {
             <ButtonScarlet
               title={t('auth.signUp')}
               onPress={handleSubmit}
-              disabled={!isFormValid()}
+              disabled={isSubmitting || !isFormValid()}
             />
           </View>
         </ScrollView>

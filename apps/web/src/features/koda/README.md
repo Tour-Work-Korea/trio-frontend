@@ -105,9 +105,32 @@ src/features/koda/
 ## 인증·마이페이지·복귀
 
 KODA 로그인 모달은 기존 이메일 로그인 API와 사용자 저장소를 사용합니다. 카카오는 기존 웹
-소셜 로그인/OAuth 화면을 재사용합니다. Google 버튼은 제공하지 않습니다.
-이메일 가입은 `/koda/join/`에서 기존 약관·이메일/SMS OTP·닉네임 확인·가입 API를 사용합니다.
-해외 이메일 가입을 위한 별도 API는 추가하지 않았습니다.
+소셜 로그인/OAuth 화면을 재사용합니다. Google은 KODA에서 시작한 경로에만 전용 어댑터를
+연결하고, 신규 회원은 기존 `SocialOriginSelect`에서 내국인·외국인을 직접 선택합니다.
+내국인은 기존 `RegisterAgree` → `PhoneCertificate` → 필요한 경우 `UserRegisterProfile`을
+재사용하며 한국 휴대폰 SMS 인증을 거칩니다. 외국인은 기존 `ForeignRegisterProfile`과
+외국인 Google 가입 API를 재사용해 한국 번호 없이 이름·닉네임·생년월일·성별·국적·선호 언어·약관을 받습니다.
+표시 언어로 회원 유형이나 인증 생략 여부를 결정하지 않습니다.
+이메일 가입은 `/koda/join/`에서 기존 이메일/SMS OTP 가입을 유지하며, 한국 번호가 없는
+외국인을 위한 Google 가입 링크를 제공합니다. 해외 이메일 가입 API는 추가하지 않았습니다.
+KODA 로그인 모달은 영어 설정에서 Google·카카오만 표시하고 이메일 로그인·가입 진입 링크를
+숨깁니다. 한국어 설정과 기존 앱의 로그인 화면은 그대로 유지합니다.
+
+Google 신규 가입 응답은 앱용 토큰만 제공하므로, 가입 성공 후 원 Google credential로
+`/user/auth/social-login`을 다시 호출해 웹 세션 쿠키를 발급받습니다. 기존 Google 회원은
+첫 요청으로 로그인합니다. 가입 성공 후 로그인 실패는 별도로 표시하고 재가입을 요청하지 않습니다.
+Google credential과 가입 토큰, 내국인 가입 단계의 개인정보는 현재 화면 메모리에만 보관합니다.
+KODA의 단계 이동은 공통 웹 내비게이터를 사용하지 않아 토큰·휴대폰 번호를 URL에 넣지 않습니다. 가입 도중 새로고침하면
+Google 인증부터 다시 시작합니다. 약관은 같은 화면의 모달에서 열어 입력과 인증 상태를 유지합니다.
+
+KODA 빌드는 기존 배포 환경의 공개 `GOOGLE_CLIENT_ID`를 사용합니다. 해당 값은 Google OAuth의
+웹 클라이언트 ID여야 하며, Google Cloud의 승인된 JavaScript 원본에 개발/운영 웹 origin을
+등록하고 백엔드의 Google audience 허용목록과 일치시켜야 합니다. OAuth 콘솔 설정은 이 저장소에서
+변경하지 않습니다. 로컬 개발은 `http://localhost:5173`을 사용합니다.
+일반 웹의 Google 버튼은 계속 비활성화되어 있고, 앱의 기존 Google 인증 경로도 유지합니다.
+공유 외국인 폼의 입력 key 오류 수정은 앱에도 적용됩니다.
+공유 회원 유형 선택·내국인 가입 화면의 선택적 콜백/내비게이션 옵션은 KODA에서만 전달하며,
+옵션이 없는 기존 앱에서는 원래 화면 이동과 토큰 저장 처리를 유지합니다.
 
 `ClubMyPage.jsx`는 기존 프로필 API와 `reservationPaymentApi.getPartyReservationList()`를 재사용합니다.
 예약의 실제 partyId로 PLATFORM 소속을 확인하고 다가오는/지난 모임을 표시합니다.
@@ -151,4 +174,4 @@ API_BASE_URL=https://dev.ddakji.kr/api/v1 WEB_BASE_URL=https://dev.ddakji.kr KOD
 공통 재사용 번들의 500kB 초과 경고는 남아 있습니다. 실제 예약 제출·결제·환불·OTP 가입·카카오 OAuth
 전체 흐름은 이번 경로 변경 검증에서 실행하지 않았습니다.
 API 상세 메타데이터는 브라우저에서 갱신하므로 JS를 실행하지 않는 공유 크롤러에는 기본 HTML 정보가 보일 수 있습니다.
-KODA 전용 취소/환불 UI, 후기 등록, Google 로그인, WhatsApp은 아직 제공하지 않습니다.
+KODA 전용 취소/환불 UI, 후기 등록, WhatsApp은 아직 제공하지 않습니다.

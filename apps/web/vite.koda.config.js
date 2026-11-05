@@ -1,6 +1,6 @@
 import path from 'node:path';
 import {fileURLToPath} from 'node:url';
-import {defineConfig, mergeConfig} from 'vite';
+import {defineConfig, loadEnv, mergeConfig} from 'vite';
 import webConfig from './vite.config.js';
 import {hostedBookingEnabled} from './src/features/koda/hosting/hostedBuild.js';
 
@@ -11,6 +11,10 @@ const webRoot = path.dirname(fileURLToPath(import.meta.url));
 export default defineConfig(environment => {
   const baseConfig = webConfig(environment);
   const clientEnv = JSON.parse(baseConfig.define['globalThis.__TRIO_ENV__']);
+  // The existing deployment already supplies the public Google web client ID.
+  clientEnv.GOOGLE_CLIENT_ID = loadEnv(
+    environment.mode, path.resolve(webRoot, '../..'), '',
+  ).GOOGLE_CLIENT_ID || '';
   // Keep the shared .env and normal web configuration unchanged. Both KODA
   // and its reused login routes must use the same backend in this dev server.
   if (environment.mode === 'development') {
@@ -30,6 +34,18 @@ export default defineConfig(environment => {
       }),
     },
     plugins: [
+      {
+        name: 'koda-google-auth-entry',
+        enforce: 'pre',
+        resolveId(source, importer) {
+          if (
+            importer?.split('?')[0] === path.resolve(webRoot, '../../packages/app/src/screens/index.js') &&
+            source === './(Common)/Login/SocialLogin'
+          ) {
+            return path.join(webRoot, 'src/features/koda/components/KodaSocialLogin.jsx');
+          }
+        },
+      },
       {
         name: 'koda-legacy-addresses',
         enforce: 'post',

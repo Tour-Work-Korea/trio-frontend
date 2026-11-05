@@ -26,7 +26,7 @@ import CalendarGray from '@assets/images/calendar_gray.svg';
 import PersonGray from '@assets/images/person20_gray.svg';
 import styles from './ForeignRegisterProfile.styles';
 
-const ForeignRegisterProfile = ({route}) => {
+const ForeignRegisterProfile = ({route, onRegistered, onViewAgreement}) => {
   const {t} = useTranslation();
   const LANGUAGE_OPTIONS = [
     ['KO', t('language.korean')],
@@ -88,7 +88,7 @@ const ForeignRegisterProfile = ({route}) => {
   const updateForm = (key, value) => setForm(prev => ({...prev, [key]: value}));
 
   const handleNicknameChange = value => {
-    updateForm(t('auth.nickname'), value);
+    updateForm('nickname', value);
     setNicknameChecked(false);
     setNicknameMessage('');
   };
@@ -99,7 +99,7 @@ const ForeignRegisterProfile = ({route}) => {
       .slice(0, 8)
       .replace(/^(\d{4})(\d)/, '$1-$2')
       .replace(/^(\d{4}-\d{2})(\d)/, '$1-$2');
-    updateForm(t('auth.birthday'), formatted);
+    updateForm('birthday', formatted);
   };
 
   const checkNickname = async () => {
@@ -162,6 +162,10 @@ const ForeignRegisterProfile = ({route}) => {
         })),
       };
       const response = await authApi.completeForeignSocialSignUp(payload);
+      if (onRegistered) {
+        await onRegistered(response.data);
+        return;
+      }
       const {accessToken, refreshToken} = response.data || {};
 
       if (!accessToken || !refreshToken) {
@@ -227,9 +231,7 @@ const ForeignRegisterProfile = ({route}) => {
               <TextInput
                 style={styles.input}
                 value={form.name}
-                onChangeText={value =>
-                  updateForm(t('common.name_9aa18e'), value)
-                }
+                onChangeText={value => updateForm('name', value)}
                 placeholder={t('auth.enterYourFullName')}
                 placeholderTextColor={COLORS.grayscale_400}
                 maxLength={30}
@@ -299,7 +301,7 @@ const ForeignRegisterProfile = ({route}) => {
                     styles.choice,
                     form.gender === value && styles.choiceSelected,
                   ]}
-                  onPress={() => updateForm(t('auth.gender_77737f'), value)}>
+                  onPress={() => updateForm('gender', value)}>
                   <Text
                     style={[
                       styles.choiceText,
@@ -326,8 +328,7 @@ const ForeignRegisterProfile = ({route}) => {
                 value={form.nationalityCountryCode}
                 onChangeText={value =>
                   updateForm(
-                    t('auth.nationalitycountrycode'),
-
+                    'nationalityCountryCode',
                     value
                       .replace(/[^a-zA-Z]/g, '')
                       .toUpperCase()
@@ -336,7 +337,7 @@ const ForeignRegisterProfile = ({route}) => {
                 }
                 placeholder={t('auth.eGUsJpFr')}
                 placeholderTextColor={COLORS.grayscale_400}
-                autoCapitalize={t('auth.characters')}
+                autoCapitalize="characters"
                 maxLength={2}
               />
             ),
@@ -351,9 +352,7 @@ const ForeignRegisterProfile = ({route}) => {
                     styles.languageChoice,
                     form.preferredLanguage === value && styles.choiceSelected,
                   ]}
-                  onPress={() =>
-                    updateForm(t('auth.preferredlanguage'), value)
-                  }>
+                  onPress={() => updateForm('preferredLanguage', value)}>
                   <Text
                     style={[
                       styles.choiceText,
@@ -400,9 +399,13 @@ const ForeignRegisterProfile = ({route}) => {
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('AgreeDetail', {id: item.id, who: 'USER'})
-                }>
+                onPress={() => {
+                  if (onViewAgreement) {
+                    onViewAgreement(item.id);
+                  } else {
+                    navigation.navigate('AgreeDetail', {id: item.id, who: 'USER'});
+                  }
+                }}>
                 <Text style={styles.viewText}>{t('auth.view')}</Text>
               </TouchableOpacity>
             </View>

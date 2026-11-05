@@ -293,6 +293,32 @@
   background: #fff;
   border: 1px solid #d9d9d3;
 }
+.le-auth-dialog .le-auth-provider-note {
+  margin-top: 6px;
+  color: #565950;
+  font-size: 12px;
+  line-height: 1.5;
+  text-align: center;
+}
+.le-google-signup {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+.le-google-signup-intro {
+  flex-shrink: 0;
+  padding: 12px 20px;
+  background: #f8f8f5;
+  color: #565950;
+  font: 13px/1.5 'Pretendard-Regular', sans-serif;
+}
+.le-google-signup-intro p {
+  margin: 0 0 6px;
+}
+.le-google-signup-intro a {
+  color: inherit;
+}
 .le-auth-dialog .le-auth-recent {
   position: absolute;
   right: 12px;

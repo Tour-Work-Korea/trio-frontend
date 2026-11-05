@@ -6,6 +6,7 @@ import EventHeader from '../components/EventHeader';
 import SignupTerms, {signupAgreements} from '../components/SignupTerms';
 import SignupVerification from '../components/SignupVerification';
 import SignupProfile from '../components/SignupProfile';
+import {socialAuthHref} from '../auth/authReturn';
 import {
   canSubmitSignup,
   signupPayload,
@@ -174,6 +175,12 @@ export default function ClubSignup() {
                   : 'One account. A little closer.'}
               </p>
             </div>
+            <p className="le-signup-note">
+              {ko ? '한국 휴대폰 번호가 없나요? ' : 'No Korean phone number? '}
+              <a href={socialAuthHref(destination, 'GOOGLE')}>
+                {ko ? 'Google로 외국인 가입하기' : 'Join with Google as an international member'}
+              </a>
+            </p>
             <ol
               className="le-signup-steps"
               aria-label={ko ? '가입 단계' : 'Signup steps'}>

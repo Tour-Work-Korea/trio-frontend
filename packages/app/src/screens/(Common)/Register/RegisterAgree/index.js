@@ -12,7 +12,7 @@ import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './Agree.styles';
 import {COLORS} from '@constants/colors';
 
-const RegisterAgree = ({route}) => {
+const RegisterAgree = ({route, navigation: navigationOverride}) => {
   const {t} = useTranslation();
   const {
     user,
@@ -27,7 +27,8 @@ const RegisterAgree = ({route}) => {
   const [agreements, setAgreements] = useState(userRegisterAgrees);
   const [isAllAgreed, setIsAllAgreed] = useState(false);
   const [isRequiredAgreed, setIsRequiredAgreed] = useState(false);
-  const navigation = useNavigation();
+  const defaultNavigation = useNavigation();
+  const navigation = navigationOverride || defaultNavigation;
 
   const MainLogo = LogoOrange;
   const mainColor = COLORS.primary_orange;

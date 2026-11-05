@@ -1,11 +1,12 @@
 import React, {useEffect, useRef, useState} from 'react';
 import useLocaleStore from '@stores/localeStore';
 import KodaLogo from './KodaLogo';
-import {authHref, kakaoAuthHref} from '../auth/authReturn';
+import {authHref, kakaoAuthHref, socialAuthHref} from '../auth/authReturn';
 import {clubSignupHref, signupDestination} from '../auth/signupModel';
 import {useTranslation} from 'react-i18next';
 import {getLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
+import GoogleLogo from '@assets/images/google_logo.svg';
 import '../styles/koda-auth.css';
 
 export default function ClubLoginModal({onClose, onSuccess, ready}) {
@@ -13,6 +14,7 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
   const ko = language === 'ko';
   const {t} = useTranslation();
   const [step, setStep] = useState('intro');
+  const showEmailForm = ko && step === 'email';
   const [lastProvider, setLastProvider] = useState(null);
   const emailInput = useRef(null);
   const emailButton = useRef(null);
@@ -62,17 +64,17 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
       alive.current = false;
       modal?.close();
       document.body.style.overflow = previousOverflow;
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+      if (opener instanceof window.HTMLElement && opener.isConnected) opener.focus();
     };
   }, []);
 
   useEffect(() => {
-    if (step === 'email') emailInput.current?.focus();
-  }, [step]);
+    if (showEmailForm) emailInput.current?.focus();
+  }, [showEmailForm]);
 
   const submit = async event => {
     event.preventDefault();
-    if (submitting.current || !ready) return;
+    if (!ko || submitting.current || !ready) return;
     submitting.current = true;
     setBusy(true);
     setError('');
@@ -121,7 +123,7 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
           onClick={onClose}>
           ×
         </button>
-        {step === 'email' && (
+        {showEmailForm && (
           <button
             type="button"
             className="le-auth-back"
@@ -134,17 +136,33 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
             ←
           </button>
         )}
-        <div className={`le-auth-brand le-auth-brand--${step}`}>
+        <div className={`le-auth-brand le-auth-brand--${showEmailForm ? 'email' : 'intro'}`}>
           <KodaLogo />
         </div>
-        {step === 'email' && <h2>{t('auth.pleaseLogInWithYourEmail')}</h2>}
+        {showEmailForm && <h2>{t('auth.pleaseLogInWithYourEmail')}</h2>}
         <p id="koda-login-description">
           {ko
             ? '사용하던 계정으로 간편하게 시작하세요.'
-            : 'Continue with your preferred account.'}
+            : 'Log in or sign up'}
         </p>
-        {step === 'intro' ? (
+        {!showEmailForm ? (
           <div className="le-auth-providers">
+            <div className="le-auth-provider-wrap">
+              {lastProvider === 'GOOGLE' && (
+                <span className="le-auth-recent">{t('auth.lastLogin')}</span>
+              )}
+              <a
+                className="le-auth-provider le-auth-provider--google"
+                href={socialAuthHref(returnTo, 'GOOGLE')}>
+                <GoogleLogo width={20} height={20} />
+                <span>{ko ? 'Google로 시작하기' : 'Continue with Google'}</span>
+              </a>
+              {!ko && (
+                <p className="le-auth-provider-note">
+                  International signup: no Korean phone number required
+                </p>
+              )}
+            </div>
             <div className="le-auth-provider-wrap">
               {lastProvider === 'KAKAO' && (
                 <span className="le-auth-recent">{t('auth.lastLogin')}</span>
@@ -153,8 +171,13 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
                 className="le-auth-provider le-auth-provider--kakao"
                 href={kakaoAuthHref(returnTo)}>
                 <KakaoLogo width={20} height={20} />
-                <span>{t('auth.startWithKakao')}</span>
+                <span>{ko ? t('auth.startWithKakao') : 'Continue with Kakao'}</span>
               </a>
+              {!ko && (
+                <p className="le-auth-provider-note">
+                  Korean phone number required to sign up
+                </p>
+              )}
             </div>
           </div>
         ) : (
@@ -238,7 +261,7 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
             </div>
           </form>
         )}
-        {step === 'intro' && (
+        {ko && !showEmailForm && (
           <div className="le-auth-email-links">
             <button
               ref={emailButton}

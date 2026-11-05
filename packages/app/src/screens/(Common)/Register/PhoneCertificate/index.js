@@ -40,7 +40,7 @@ import styles from '../../Login/Login.styles';
  * - SMS 인증 USER + SIGN_UP 완료
  * - UserRegisterProfile에서 /auth/user/signup 호출
  */
-const PhoneCertificate = ({route}) => {
+const PhoneCertificate = ({route, navigation: navigationOverride, onRegistered}) => {
   const {t} = useTranslation();
   const PROVIDER_LABELS = {
     KAKAO: t('common.cacao'),
@@ -67,7 +67,8 @@ const PhoneCertificate = ({route}) => {
     socialProfile = {},
   } = route.params || {};
   const userRole = user || 'USER';
-  const navigation = useNavigation();
+  const defaultNavigation = useNavigation();
+  const navigation = navigationOverride || defaultNavigation;
   const providerLabel = PROVIDER_LABELS[provider] || t('common.social');
 
   const [smsPurpose, setSmsPurpose] = useState('SIGN_UP');
@@ -133,7 +134,7 @@ const PhoneCertificate = ({route}) => {
     userRole,
   ]);
 
-  const isSocialProfileCompletionError = error => {
+  const isSocialProfileCompletionError = useCallback(error => {
     const data = error?.response?.data;
     const errorCode = data?.code || data?.errorCode || data?.status || '';
     const message = data?.message || error?.message || '';
@@ -143,7 +144,7 @@ const PhoneCertificate = ({route}) => {
       errorCode.includes('REQUIRED') ||
       message.includes(t('auth.required'))
     );
-  };
+  }, [t]);
 
   const completeSocialSignUp = useCallback(async () => {
     try {
@@ -161,6 +162,11 @@ const PhoneCertificate = ({route}) => {
       });
 
       const data = res.data || {};
+
+      if (onRegistered) {
+        await onRegistered(data);
+        return;
+      }
 
       if (Platform.OS === 'web') {
         await storeWebSessionInfo(data.session || data, userRole);
@@ -216,9 +222,11 @@ const PhoneCertificate = ({route}) => {
   }, [
     agreements,
     navigation,
+    onRegistered,
     phoneNumber,
     provider,
     providerLabel,
+    isSocialProfileCompletionError,
     moveToSocialProfileFallback,
     socialProfileBirthday,
     socialProfileGender,

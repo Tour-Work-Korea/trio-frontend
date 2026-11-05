@@ -8,7 +8,7 @@ import LogoOrange from '@assets/images/logo_orange.svg';
 import CheckOrange from '@assets/images/check20_orange.svg';
 import styles from './SocialOriginSelect.styles';
 
-const SocialOriginSelect = ({route}) => {
+const SocialOriginSelect = ({route, onSelectOrigin}) => {
   const {t} = useTranslation();
   const OPTIONS = [
     {
@@ -32,6 +32,13 @@ const SocialOriginSelect = ({route}) => {
   const params = route.params || {};
 
   const handleNext = () => {
+    if (originType !== 'DOMESTIC' && originType !== 'FOREIGN') {
+      return;
+    }
+    if (onSelectOrigin) {
+      onSelectOrigin(originType);
+      return;
+    }
     if (originType === 'FOREIGN') {
       navigation.navigate('ForeignRegisterProfile', {
         ...params,
