@@ -35,7 +35,10 @@ import ScreenSkeleton from './LoadingSkeleton';
 import {prefetchImageUrls} from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 import notificationApi from '@utils/api/notificationApi';
-import {isUserNotification} from '@utils/notifications';
+import {
+  isUserNotification,
+  subscribeForegroundNotification,
+} from '@utils/notifications';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -275,9 +278,15 @@ const HomeMain = () => {
       };
 
       fetchUnreadCount();
+      const unsubscribe = subscribeForegroundNotification(message => {
+        if (isUserNotification(message?.data)) {
+          fetchUnreadCount();
+        }
+      });
 
       return () => {
         isActive = false;
+        unsubscribe();
       };
     }, [accessToken]),
   );
@@ -670,28 +679,28 @@ const HomeMain = () => {
 
           {/* 제주 한달살기 공고 배너 시작: 필요 없을 때 이 블록과 관련 스타일을 삭제해주세요. */}
           {!isEnglish && (
-          <View style={styles.boxContainer}>
-            <View style={styles.staffNoticeBanner}>
-              <View style={styles.staffNoticeBannerLeft}>
-                <JejuAirplane width={14} height={14} />
-                <Text
-                  style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}
-                  numberOfLines={1}
-                  adjustsFontSizeToFit
-                  minimumFontScale={0.75}>
-                  {t('home.jejuLongStayQuestion')}
-                </Text>
+            <View style={styles.boxContainer}>
+              <View style={styles.staffNoticeBanner}>
+                <View style={styles.staffNoticeBannerLeft}>
+                  <JejuAirplane width={14} height={14} />
+                  <Text
+                    style={[FONTS.fs_14_semibold, styles.staffNoticeTitle]}
+                    numberOfLines={1}
+                    adjustsFontSizeToFit
+                    minimumFontScale={0.75}>
+                    {t('home.jejuLongStayQuestion')}
+                  </Text>
+                </View>
+                <TouchableOpacity
+                  activeOpacity={0.85}
+                  style={styles.staffNoticeButton}
+                  onPress={handlePressStaffNoticeBanner}>
+                  <Text style={styles.staffNoticeButtonText}>
+                    {t('common.clickHereToSeeTheStaffRecruitmentAnnouncement')}
+                  </Text>
+                </TouchableOpacity>
               </View>
-              <TouchableOpacity
-                activeOpacity={0.85}
-                style={styles.staffNoticeButton}
-                onPress={handlePressStaffNoticeBanner}>
-                <Text style={styles.staffNoticeButtonText}>
-                  {t('common.clickHereToSeeTheStaffRecruitmentAnnouncement')}
-                </Text>
-              </TouchableOpacity>
             </View>
-          </View>
           )}
           {/* 제주 한달살기 공고 배너 끝 */}
 

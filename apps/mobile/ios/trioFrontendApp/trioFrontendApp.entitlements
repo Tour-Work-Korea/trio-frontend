@@ -6,6 +6,10 @@
 	<string>59P3UT5738.com.haneul.workaway</string>
 	<key>aps-environment</key>
 	<string>development</string>
+	<key>com.apple.developer.associated-domains</key>
+	<array>
+		<string>applinks:ddakji.kr</string>
+	</array>
 	<key>keychain-access-groups</key>
 	<array>
 		<string>59P3UT5738.com.haneul.workaway</string>

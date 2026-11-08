@@ -1,3 +1,11 @@
+import {
+  RecoveryScreen as Screen,
+  RecoveryBody as ResourceBody,
+  useCompanionBack,
+  useCompanionNavigation,
+  replaceCompanionScreen,
+  RecoveryForm as GroupForm,
+} from './recovery';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
 import {
   AppState,
@@ -6,12 +14,13 @@ import {
   Linking,
   KeyboardAvoidingView,
   Platform,
+  PermissionsAndroid,
   ScrollView,
   TextInput,
   TouchableOpacity,
   View,
 } from 'react-native';
-import {useIsFocused} from '@react-navigation/native';
+import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
@@ -22,9 +31,9 @@ import useUserStore from '@stores/userStore';
 import naverPlaceApi from '@utils/api/naverPlaceApi';
 import {normalizePlaceSearchResult} from '@utils/communityLocation';
 import {trimJejuPrefix} from '@trio/app/src/utils/formatAddress';
+import {formatNumber} from '@utils/localeFormat';
 import {COLORS as C} from '@constants/colors';
 import {
-  GroupForm,
   GroupDialog,
   GroupOption,
   parseNotice,
@@ -36,6 +45,7 @@ import {ChatReentryPrompt} from './chatReentryUi';
 import {OrganizerRequestCard} from './organizerChatUi';
 import {InboxRoom} from './inboxUi';
 import ChatSkeleton from './chatSkeleton';
+import CompanionPlaceMap from './CompanionPlaceMap';
 import {
   SkeletonPulse,
   SkeletonBlock,
@@ -48,9 +58,11 @@ import {
 } from './participantChatUi';
 import ChatBlueIcon from '@assets/images/chat_bubbles_blue.svg';
 import SearchIcon from '@assets/images/search_black.svg';
+import SearchUpIcon from '@assets/images/chevron_up_black.svg';
+import SearchDownIcon from '@assets/images/chevron_down_black.svg';
 import MenuIcon from '@assets/images/bullet_list_black.svg';
 import PlusIcon from '@assets/images/plus_black.svg';
-import PhotoIcon from '@assets/images/Photo.svg';
+import PhotoIcon from '@assets/images/add_image_black.svg';
 import CameraIcon from '@assets/images/camera_black.svg';
 import PinIcon from '@assets/images/map_pin_black.svg';
 import RadioOn from '@assets/images/radio_button_enabled.svg';
@@ -60,6 +72,9 @@ import ReportIcon from '@assets/images/flag_report_black.svg';
 import ExitIcon from '@assets/images/exit_chat_black.svg';
 import NoticePinIcon from '@assets/images/pin_notice_black.svg';
 import {chatApi, companionApi, newIntentKey, uploadBinary} from './api';
+import {getChatProfile, peekChatProfile} from './chatProfileCache';
+import {isCompanionNotification} from './notificationRouting';
+import {subscribeForegroundNotification} from '@utils/notifications';
 import {
   chatGeneration,
   invalidateChatToken,
@@ -71,6 +86,7 @@ import {
   displayDate,
   displayTime,
   hasAction,
+  kstDate,
   mergeMessages,
   parsePayload,
   roomForAccess,
@@ -81,8 +97,6 @@ import {
   Field,
   LoginGate,
   Person,
-  ResourceBody,
-  Screen,
   Title,
   Txt,
   styles as s,
@@ -118,7 +132,9 @@ function useChatResource(loader, deps = []) {
   return {...result, data, error: data ? null : result.error};
 }
 
-export function CompanionInbox({navigation, route}) {
+export function CompanionInbox({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
+  const back = useCompanionBack();
   const {t} = useTranslation();
   const feedback = useFeedback();
   const [role, setRole] = useState('');
@@ -132,36 +148,132 @@ export function CompanionInbox({navigation, route}) {
     }
   }, [route?.params?.ended, feedback, t]);
   const token = useUserStore(state => state.accessToken);
+  const userId = useUserStore(state => state.userProfile?.userId);
+  const myEmail = useUserStore(state => state.userProfile?.email);
+  const focused = useIsFocused();
+  const [roomMetadata, setRoomMetadata] = useState({});
+  const metadataCache = useRef({});
+  useEffect(() => {
+    metadataCache.current = {};
+    setRoomMetadata({});
+    return subscribeChatReset(() => {
+      metadataCache.current = {};
+      setRoomMetadata({});
+    });
+  }, [token, userId]);
   const resource = useChatResource(
-    async isCurrent => {
-      if (!token) {
-        return [];
-      }
-      const rooms = (await chatApi.list()).data;
-      const result = [...rooms];
-      let cursor = 0;
-      await Promise.all(
-        Array.from({length: Math.min(4, rooms.length)}, async () => {
-          while (cursor < rooms.length && isCurrent()) {
-            const index = cursor++;
-            try {
-              const detail = (await chatApi.detail(rooms[index].roomId)).data;
-              result[index] = {
-                ...rooms[index],
-                myMemberRole: detail.myMemberRole,
-                activeMemberCount: detail.activeMemberCount,
-              };
-            } catch {
-              // Keep the room visible if supplementary role/count data is unavailable.
-            }
-          }
-        }),
-      );
-      return result;
-    },
-    [token],
+    async () => (token ? (await chatApi.list()).data : []),
+    [token, userId],
   );
-  const rooms = resource.data || [];
+  const reloadRooms = resource.reload;
+  useEffect(() => {
+    if (!focused || !token) {
+      return;
+    }
+    let timer;
+    const unsubscribe = subscribeForegroundNotification(message => {
+      if (!isCompanionNotification(message?.data)) {
+        return;
+      }
+      clearTimeout(timer);
+      timer = setTimeout(reloadRooms, 150);
+    });
+    const subscription = AppState.addEventListener('change', state => {
+      if (state === 'active') {
+        reloadRooms();
+      }
+    });
+    return () => {
+      clearTimeout(timer);
+      unsubscribe();
+      subscription.remove();
+    };
+  }, [focused, token, reloadRooms]);
+  useEffect(() => {
+    if (!focused || !token || !resource.data) {
+      return;
+    }
+    let disposed = false;
+    const generation = chatGeneration();
+    const cache = metadataCache.current;
+    const current = () =>
+      !disposed &&
+      generation === chatGeneration() &&
+      cache === metadataCache.current;
+    const pending = resource.data.filter(
+      room => !cache[room.roomId] || Date.now() - cache[room.roomId].at > 30000,
+    );
+    let cursor = 0;
+    Promise.all(
+      Array.from({length: Math.min(3, pending.length)}, async () => {
+        while (cursor < pending.length && current()) {
+          const room = pending[cursor++];
+          const [detail, members] = await Promise.allSettled([
+            chatApi.detail(room.roomId),
+            chatApi.members(room.roomId),
+          ]);
+          if (!current()) {
+            return;
+          }
+          const metadata = {...cache[room.roomId]?.data};
+          if (detail.status === 'fulfilled') {
+            metadata.myMemberRole = detail.value.data.myMemberRole;
+            metadata.activeMemberCount = detail.value.data.activeMemberCount;
+          }
+          // Publish role/count immediately; photos must never delay room navigation.
+          setRoomMetadata(previous => ({...previous, [room.roomId]: metadata}));
+          if (members.status === 'fulfilled') {
+            const candidates = members.value.data.filter(
+              member =>
+                member.membershipStatus === 'ACTIVE' &&
+                (userId == null || String(member.userId) !== String(userId)),
+            );
+            const avatarProfiles = [];
+            for (const member of candidates) {
+              if (!current()) {
+                return;
+              }
+              try {
+                const profile = await getChatProfile(member.userId);
+                const isMe =
+                  userId != null
+                    ? String(member.userId) === String(userId)
+                    : !!myEmail && profile.email === myEmail;
+                if (!isMe) {
+                  avatarProfiles.push(profile);
+                }
+              } catch {}
+              if (
+                avatarProfiles.length >=
+                (room.roomType === 'COMPANION_GROUP' ? 2 : 1)
+              ) {
+                break;
+              }
+            }
+            metadata.avatarProfiles = avatarProfiles;
+          }
+          if (metadata.avatarProfiles === undefined) {
+            metadata.avatarProfiles = [];
+          }
+          if (current()) {
+            cache[room.roomId] = {at: Date.now(), data: metadata};
+            setRoomMetadata(previous => ({
+              ...previous,
+              [room.roomId]: metadata,
+            }));
+          }
+        }
+      }),
+    );
+    return () => {
+      disposed = true;
+    };
+  }, [resource.data, focused, token, userId, myEmail]);
+  const rooms = (resource.data || []).map(room => ({
+    ...room,
+    ...roomMetadata[room.roomId],
+    avatarsLoading: roomMetadata[room.roomId]?.avatarProfiles === undefined,
+  }));
   const filtered = rooms.filter(
     room =>
       (!role ||
@@ -190,7 +302,7 @@ export function CompanionInbox({navigation, route}) {
         }}>
         <TouchableOpacity
           accessibilityLabel={t('companion.chat.back')}
-          onPress={() => navigation.goBack()}>
+          onPress={back}>
           <BackIcon width={24} height={24} />
         </TouchableOpacity>
         <Title style={s.grow}>{t('companion.inbox')}</Title>
@@ -399,13 +511,27 @@ function PrivateImage({message, roomId, compact = false}) {
 }
 function MessageContent({message, roomId}) {
   const {t} = useTranslation();
+  const navigation = useNavigation();
   const payload = parsePayload(message);
   if (message.contentKind === 'IMAGE') {
+    if (message.pending && message.localImageUri) {
+      return (
+        <AppImage
+          uri={message.localImageUri}
+          style={{width: 200, maxWidth: '100%', height: 160, borderRadius: 8}}
+        />
+      );
+    }
     return <PrivateImage message={message} roomId={roomId} />;
   }
   if (message.contentKind === 'LOCATION') {
     return (
       <View style={{gap: 6}}>
+        <CompanionPlaceMap
+          compact
+          latitude={payload.latitude}
+          longitude={payload.longitude}
+        />
         <PinIcon width={20} height={20} />
         <Txt>{payload.name || message.content}</Txt>
         {payload.address && (
@@ -414,7 +540,16 @@ function MessageContent({message, roomId}) {
         <TouchableOpacity
           accessibilityRole="button"
           onPress={() =>
-            Linking.openURL(
+            payload.latitude != null && payload.longitude != null &&
+            Number.isFinite(Number(payload.latitude)) && Number.isFinite(Number(payload.longitude)) &&
+            Math.abs(Number(payload.latitude)) <= 90 && Math.abs(Number(payload.longitude)) <= 180
+              ? navigation.navigate('CommunityLocationMap', {
+                  placeName: payload.name || message.content,
+                  address: payload.address,
+                  latitude: Number(payload.latitude),
+                  longitude: Number(payload.longitude),
+                })
+              : Linking.openURL(
               `https://map.naver.com/p/search/${encodeURIComponent(
                 payload.name || message.content || '',
               )}`,
@@ -430,33 +565,183 @@ function MessageContent({message, roomId}) {
   return <Txt>{message.content}</Txt>;
 }
 
-export function CompanionChat({navigation, route}) {
+export function CompanionChat({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
+  const back = useCompanionBack();
   const {t} = useTranslation();
   const keyboardFrame = useRef(null);
   const [keyboardOffset, setKeyboardOffset] = useState(0);
   const [keyboardVisible, setKeyboardVisible] = useState(false);
   const {roomId, companionId, participant, mayRejoin} = route.params || {};
   const feedback = useFeedback({horizontalButtons: true});
+  const acceptFeedback = useFeedback();
   const task = useTask(feedback, () => resource.reload());
   const focused = useIsFocused();
   const userId = useUserStore(state => state.userProfile?.userId);
+  const myEmail = useUserStore(state => state.userProfile?.email);
   const [messages, setMessages] = useState([]);
+  const [senderProfiles, setSenderProfiles] = useState({});
+  const profileCache = useRef({});
   const [cursor, setCursor] = useState(null);
   const [hasNext, setHasNext] = useState(false);
   const [content, setContent] = useState('');
   const [connection, setConnection] = useState('CONNECTING');
   const [attachment, setAttachment] = useState(false);
+  const [photoBusy, setPhotoBusy] = useState(false);
+  const [photoFrame, setPhotoFrame] = useState(null);
+  const photoPicking = useRef(false);
+  const pendingPhotoPicker = useRef(null);
+  const photoOperation = useRef(0);
+  useEffect(
+    () => () => {
+      photoOperation.current += 1;
+      pendingPhotoPicker.current = null;
+    },
+    [],
+  );
   const [retry, setRetry] = useState(0);
   const latestMessages = useRef(messages);
   latestMessages.current = messages;
   const [historyLoading, setHistoryLoading] = useState(true);
-  const readBy = useRef({});
   const anchorY = useRef(null);
-  const anchorMessageId = route.params?.anchorMessageId;
+  const [searchOpen, setSearchOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchIndex, setSearchIndex] = useState(-1);
+  const [searchBusy, setSearchBusy] = useState(false);
+  const [searchSubmitted, setSearchSubmitted] = useState(false);
+  const [searchMore, setSearchMore] = useState(false);
+  const searchVersion = useRef(0);
+  useEffect(
+    () => () => {
+      searchVersion.current += 1;
+    },
+    [],
+  );
+  const messagePositions = useRef({});
+  const searchActive = useRef(false);
+  searchActive.current = searchOpen;
+  const anchorMessageId = searchOpen
+    ? searchResults[searchIndex]?.messageId
+    : route.params?.anchorMessageId;
+  const clearSearch = () => {
+    searchVersion.current += 1;
+    setSearchQuery('');
+    setSearchResults([]);
+    setSearchIndex(-1);
+    setSearchBusy(false);
+    setSearchSubmitted(false);
+    setSearchMore(false);
+  };
+  const runSearch = async (older = false) => {
+    const query = searchQuery.trim();
+    if (!query || searchBusy) {
+      return;
+    }
+    const version = ++searchVersion.current;
+    const generation = chatGeneration();
+    setSearchBusy(true);
+    if (!older) {
+      setSearchResults([]);
+      setSearchIndex(-1);
+    }
+    try {
+      const found = (
+        await chatApi.search(
+          roomId,
+          query,
+          older
+            ? searchResults[searchResults.length - 1]?.messageId
+            : undefined,
+        )
+      ).data;
+      if (
+        version !== searchVersion.current ||
+        generation !== chatGeneration()
+      ) {
+        return;
+      }
+      const additional = older
+        ? found.filter(
+            item =>
+              !searchResults.some(
+                existing =>
+                  String(existing.messageId) === String(item.messageId),
+              ),
+          )
+        : found;
+      setSearchResults(previous =>
+        older ? [...previous, ...additional] : found,
+      );
+      setSearchIndex(
+        older
+          ? searchResults.length - (additional.length ? 0 : 1)
+          : found.length
+          ? 0
+          : -1,
+      );
+      setSearchMore(found.length === 20 && additional.length > 0);
+      setSearchSubmitted(true);
+    } catch (error) {
+      if (
+        version === searchVersion.current &&
+        generation === chatGeneration()
+      ) {
+        feedback.error(error);
+      }
+    } finally {
+      if (version === searchVersion.current) {
+        setSearchBusy(false);
+      }
+    }
+  };
   const [currentParticipant, setCurrentParticipant] = useState(participant);
   const socket = useRef(null);
   const heartbeat = useRef(null);
   const scroll = useRef(null);
+  const pendingSendScroll = useRef(null);
+  const nearLatest = useRef(true);
+  const pendingIncomingScroll = useRef(false);
+  const scrollAfterSend = useCallback(
+    (layoutComplete = false) => {
+      if (
+        pendingSendScroll.current &&
+        messages.some(
+          message => message.clientMessageId === pendingSendScroll.current,
+        ) &&
+        scroll.current
+      ) {
+        scroll.current.scrollToEnd({animated: true});
+        if (layoutComplete) {
+          pendingSendScroll.current = null;
+        }
+      }
+    },
+    [messages],
+  );
+  useEffect(() => {
+    const frame = requestAnimationFrame(() => scrollAfterSend());
+    return () => cancelAnimationFrame(frame);
+  }, [scrollAfterSend]);
+  const initiallyScrolled = useRef(false);
+  const scrollToLatestInitially = useCallback(() => {
+    if (
+      initiallyScrolled.current ||
+      historyLoading ||
+      !messages.length ||
+      !scroll.current
+    ) {
+      return;
+    }
+    initiallyScrolled.current = true;
+    if (!anchorMessageId && !searchOpen) {
+      scroll.current.scrollToEnd({animated: false});
+    }
+  }, [historyLoading, messages.length, anchorMessageId, searchOpen]);
+  useEffect(() => {
+    const frame = requestAnimationFrame(scrollToLatestInitially);
+    return () => cancelAnimationFrame(frame);
+  }, [scrollToLatestInitially]);
   const ending = useRef(false);
   useEffect(() => {
     if (Platform.OS !== 'ios') {
@@ -465,8 +750,10 @@ export function CompanionChat({navigation, route}) {
     const show = Keyboard.addListener('keyboardWillShow', () =>
       setKeyboardVisible(true),
     );
-    const shown = Keyboard.addListener('keyboardDidShow', () =>
-      scroll.current?.scrollToEnd({animated: true}),
+    const shown = Keyboard.addListener(
+      'keyboardDidShow',
+      () =>
+        !searchActive.current && scroll.current?.scrollToEnd({animated: true}),
     );
     const hide = Keyboard.addListener('keyboardWillHide', () =>
       setKeyboardVisible(false),
@@ -479,34 +766,108 @@ export function CompanionChat({navigation, route}) {
   }, []);
 
   useEffect(() => {
+    photoOperation.current += 1;
+    pendingPhotoPicker.current = null;
+    photoPicking.current = false;
+    setPhotoBusy(false);
+    setPhotoFrame(null);
+    clearSearch();
+    setSearchOpen(false);
+    messagePositions.current = {};
+    initiallyScrolled.current = false;
+    pendingSendScroll.current = null;
+    nearLatest.current = true;
+    pendingIncomingScroll.current = false;
     setMessages([]);
     latestMessages.current = [];
+    profileCache.current = {};
+    setSenderProfiles({});
     setCursor(null);
     setHasNext(false);
-    readBy.current = {};
     setContent('');
     setHistoryLoading(true);
   }, [roomId, userId]);
   useEffect(
     () =>
       subscribeChatReset(() => {
+        photoOperation.current += 1;
+        pendingPhotoPicker.current = null;
+        photoPicking.current = false;
+        setPhotoBusy(false);
+        setPhotoFrame(null);
+        clearSearch();
+        setSearchOpen(false);
+        initiallyScrolled.current = false;
+        pendingSendScroll.current = null;
         setMessages([]);
+        profileCache.current = {};
+        setSenderProfiles({});
         setContent('');
         setCursor(null);
         setHasNext(false);
-        readBy.current = {};
         socket.current?.close(1000);
         clearInterval(heartbeat.current);
         setConnection('DISCONNECTED');
       }),
     [],
   );
+  const senderIdsKey = JSON.stringify(
+    [
+      ...new Set(
+        messages
+          .map(message => message.senderUserId)
+          .filter(id => id != null && String(id) !== String(userId))
+          .map(String),
+      ),
+    ].sort(),
+  );
+  useEffect(() => {
+    if (!focused) {
+      return;
+    }
+    let disposed = false;
+    const generation = chatGeneration();
+    const cache = profileCache.current;
+    const ids = JSON.parse(senderIdsKey).filter(id => !(id in cache));
+    let next = 0;
+    const current = () =>
+      !disposed &&
+      generation === chatGeneration() &&
+      cache === profileCache.current;
+    Promise.all(
+      Array.from({length: Math.min(4, ids.length)}, async () => {
+        while (next < ids.length && current()) {
+          const id = ids[next++];
+          let profile = null;
+          try {
+            profile = await getChatProfile(id);
+          } catch {}
+          if (current()) {
+            cache[id] = profile;
+            setSenderProfiles({...cache});
+          }
+        }
+      }),
+    );
+    return () => {
+      disposed = true;
+    };
+  }, [senderIdsKey, roomId, userId, focused]);
   const resource = useChatResource(
     async isCurrent => {
-      const detail = await companionApi.detail(companionId);
+      const [detail, roomResult] = await Promise.all([
+        companionApi.detail(companionId),
+        chatApi.detail(roomId).then(
+          value => ({value}),
+          error => ({error}),
+        ),
+      ]);
       let room;
       try {
-        room = await chatApi.detail(roomId);
+        if (roomResult.error) {
+          throw roomResult.error;
+        }
+        room = roomResult.value;
       } catch (error) {
         if (
           mayRejoin &&
@@ -530,7 +891,7 @@ export function CompanionChat({navigation, route}) {
         detail.data.status === 'CANCELLED' ||
         detail.data.myParticipationStatus === 'REMOVED'
       ) {
-        navigation.replace('CompanionInbox');
+        replaceCompanionScreen(navigation, 'CompanionInbox');
         return null;
       }
       if (
@@ -538,9 +899,11 @@ export function CompanionChat({navigation, route}) {
         detail.data.status !== 'OPEN'
       ) {
         const confirmed =
+          room.data.myMemberRole === 'OWNER' ||
           String(detail.data.organizerId) === String(userId) ||
           detail.data.myParticipationStatus === 'ACCEPTED';
-        navigation.replace(
+        replaceCompanionScreen(
+          navigation,
           confirmed && detail.data.confirmedCount > 0
             ? 'CompanionChatAccess'
             : 'CompanionInbox',
@@ -577,6 +940,24 @@ export function CompanionChat({navigation, route}) {
   const detail = resource.data?.detail;
   const isGroup = room?.roomType === 'COMPANION_GROUP';
   const own = room?.myMemberRole === 'OWNER';
+  const directPeerId = !isGroup
+    ? own ? room?.inquirerUserId : detail?.organizerId
+    : null;
+  useEffect(() => {
+    if (!focused || directPeerId == null) {
+      return;
+    }
+    let disposed = false;
+    const generation = chatGeneration();
+    const cache = profileCache.current;
+    getChatProfile(directPeerId).then(profile => {
+      if (!disposed && generation === chatGeneration() && cache === profileCache.current) {
+        cache[String(directPeerId)] = profile;
+        setSenderProfiles({...cache});
+      }
+    }).catch(() => {});
+    return () => { disposed = true; };
+  }, [directPeerId, roomId, focused]);
   const left =
     room?.myMembershipStatus === 'LEFT' || room?.membershipStatus === 'LEFT';
   const reloadResource = resource.reload;
@@ -593,17 +974,22 @@ export function CompanionChat({navigation, route}) {
       ]);
       const next = roomForAccess(access.data, current.data);
       if (next && String(next) !== String(roomId)) {
-        navigation.replace('CompanionChat', {roomId: next, companionId});
+        replaceCompanionScreen(navigation, 'CompanionChat', {
+          roomId: next,
+          companionId,
+        });
         return;
       }
       if (
         current.data.status === 'CLOSED' &&
-        (String(current.data.organizerId) === String(userId) ||
+        (own || String(current.data.organizerId) === String(userId) ||
           current.data.myParticipationStatus === 'ACCEPTED') &&
         current.data.confirmedCount > 0 &&
         !isGroup
       ) {
-        navigation.replace('CompanionChatAccess', {companionId});
+        replaceCompanionScreen(navigation, 'CompanionChatAccess', {
+          companionId,
+        });
         return;
       }
       if (
@@ -611,7 +997,7 @@ export function CompanionChat({navigation, route}) {
         (!isGroup && current.data.status !== 'OPEN') ||
         current.data.myParticipationStatus === 'REMOVED'
       ) {
-        navigation.replace('CompanionInbox', {
+        replaceCompanionScreen(navigation, 'CompanionInbox', {
           ended: current.data.status === 'CLOSED',
         });
         return;
@@ -619,7 +1005,7 @@ export function CompanionChat({navigation, route}) {
       reloadResource();
     } catch (error) {
       if ([403, 404].includes(error.response?.status)) {
-        navigation.replace('CompanionInbox');
+        replaceCompanionScreen(navigation, 'CompanionInbox');
       } else {
         showError(error);
       }
@@ -630,6 +1016,7 @@ export function CompanionChat({navigation, route}) {
     companionId,
     showError,
     isGroup,
+    own,
     navigation,
     reloadResource,
     roomId,
@@ -642,7 +1029,11 @@ export function CompanionChat({navigation, route}) {
     let disposed = false;
     let checking = false;
     const timer = setInterval(async () => {
-      if (checking || disposed) {
+      if (
+        checking ||
+        disposed ||
+        (AppState.currentState && AppState.currentState !== 'active')
+      ) {
         return;
       }
       checking = true;
@@ -719,6 +1110,19 @@ export function CompanionChat({navigation, route}) {
         const history = (await chatApi.messages(roomId, nextCursor)).data;
         if (!current()) {
           return;
+        }
+        if (
+          first &&
+          known.size &&
+          nearLatest.current &&
+          !searchActive.current &&
+          history.messages.some(
+            message =>
+              message.messageId != null &&
+              !known.has(String(message.messageId)),
+          )
+        ) {
+          pendingIncomingScroll.current = true;
         }
         setMessages(previous => mergeMessages(previous, history.messages));
         if (first && !known.size) {
@@ -802,6 +1206,31 @@ export function CompanionChat({navigation, route}) {
       }, delay);
     };
     setConnection('CONNECTING');
+    // ACK and read events contain no authoritative unread counts. Refresh only
+    // the latest slice, coalescing bursts and preserving older loaded messages.
+    let refreshingCounts = false;
+    let countsDirty = false;
+    const refreshReadCounts = async () => {
+      countsDirty = true;
+      if (refreshingCounts) {
+        return;
+      }
+      refreshingCounts = true;
+      try {
+        while (countsDirty && active()) {
+          countsDirty = false;
+          const {data} = await chatApi.messages(roomId);
+          if (!active()) {
+            return;
+          }
+          setMessages(previous => mergeMessages(previous, data.messages));
+        }
+      } catch {
+        // Reconnection history sync also restores read counts after failures.
+      } finally {
+        refreshingCounts = false;
+      }
+    };
     const markRead = lastReadMessageId =>
       chatApi.read(roomId, lastReadMessageId).catch(() => {});
     const connect = async () => {
@@ -812,7 +1241,6 @@ export function CompanionChat({navigation, route}) {
       const version = ++connectionVersion;
       setConnection('CONNECTING');
       try {
-        await syncHistory();
         if (!active() || version !== connectionVersion) {
           return;
         }
@@ -824,8 +1252,13 @@ export function CompanionChat({navigation, route}) {
             }
             const payload = event.payload || {};
             if (event.type === 'MESSAGE') {
+              pendingIncomingScroll.current =
+                nearLatest.current && !searchActive.current;
               setMessages(previous => mergeMessages(previous, [payload]));
               markRead(payload.messageId);
+              if (isGroup && payload.unreadMemberCount == null) {
+                refreshReadCounts();
+              }
             } else if (
               event.type === 'ACK' &&
               payload.messageId &&
@@ -836,36 +1269,15 @@ export function CompanionChat({navigation, route}) {
                   {...payload, mine: true, sentAt: payload.acceptedAt},
                 ]),
               );
+              refreshReadCounts();
             } else if (event.type === 'ROOM_READ_UPDATED') {
-              const previousRead = readBy.current[payload.userId];
-              readBy.current[payload.userId] = payload.lastReadMessageId;
-              if (previousRead != null) {
-                setMessages(previous =>
-                  previous.map(message =>
-                    Number(message.messageId) > Number(previousRead) &&
-                    Number(message.messageId) <=
-                      Number(payload.lastReadMessageId)
-                      ? {
-                          ...message,
-                          unreadMemberCount: Math.max(
-                            0,
-                            (message.unreadMemberCount || 0) - 1,
-                          ),
-                        }
-                      : message,
-                  ),
-                );
-              } else {
-                chatApi
-                  .messages(roomId)
-                  .then(({data}) => {
-                    if (current()) {
-                      setMessages(previous =>
-                        mergeMessages(previous, data.messages),
-                      );
-                    }
-                  })
-                  .catch(() => {});
+              const isMyRead =
+                userId != null
+                  ? String(payload.userId) === String(userId)
+                  : !!myEmail &&
+                    peekChatProfile(payload.userId)?.email === myEmail;
+              if (!isMyRead) {
+                refreshReadCounts();
               }
             } else if (event.type === 'ROOM_NOTICE_UPDATED') {
               resource.reload();
@@ -1028,6 +1440,11 @@ export function CompanionChat({navigation, route}) {
     if (!anchorMessageId || !room?.roomId || !focused) {
       return;
     }
+    const position = messagePositions.current[String(anchorMessageId)];
+    if (position != null) {
+      scroll.current?.scrollTo({y: Math.max(0, position - 16), animated: true});
+      return;
+    }
     let stopped = false;
     const generation = chatGeneration();
     async function locate() {
@@ -1076,6 +1493,10 @@ export function CompanionChat({navigation, route}) {
       return false;
     }
     socket.current.send(JSON.stringify(frame));
+    if (frame.type === 'SEND_MESSAGE') {
+      pendingSendScroll.current = frame.clientMessageId;
+      nearLatest.current = true;
+    }
     return true;
   };
   const send = () => {
@@ -1102,21 +1523,65 @@ export function CompanionChat({navigation, route}) {
         ]),
       );
       setContent('');
-      scroll.current?.scrollToEnd({animated: true});
     }
   };
+  // Native pickers can suspend the app and close the room socket. Keep the
+  // uploaded frame until the room reconnects, retaining its id for safe retries.
+  useEffect(() => {
+    if (!photoFrame || !focused || connection !== 'CONNECTED') {
+      return;
+    }
+    if (sendFrame(photoFrame)) {
+      setPhotoFrame(null);
+    } else {
+      setRetry(value => value + 1);
+    }
+    // sendFrame reads the current socket; only retry on frame/connection changes.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [photoFrame, connection, focused]);
   const sendPhoto = async camera => {
-    setAttachment(false);
+    const operation = ++photoOperation.current;
+    const generation = chatGeneration();
+    const current = () =>
+      operation === photoOperation.current && generation === chatGeneration();
+    setPhotoBusy(true);
     try {
+      if (camera && Platform.OS === 'android') {
+        const permission = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.CAMERA,
+        );
+        if (!current()) {
+          return;
+        }
+        if (permission !== PermissionsAndroid.RESULTS.GRANTED) {
+          feedback.inform(t('companion.chatPhoto.cameraPermission'));
+          return;
+        }
+      }
       const result = await (camera ? launchCamera : launchImageLibrary)({
         mediaType: 'photo',
         selectionLimit: 1,
+        ...(camera ? {saveToPhotos: false} : {}),
       });
+      if (!current()) {
+        return;
+      }
+      if (result.errorCode) {
+        feedback.inform(
+          t(
+            result.errorCode === 'permission'
+              ? 'companion.chatPhoto.cameraPermission'
+              : 'companion.chatPhoto.pickerFailed',
+          ),
+        );
+        return;
+      }
       if (result.didCancel) {
         return;
       }
-      if (!result.assets?.[0]) {
-        throw new Error('IMAGE_PICK_FAILED');
+      if (!result.assets?.[0]?.uri) {
+        feedback.inform(t('companion.chatPhoto.pickerFailed'));
+        return;
       }
       const resized = await ImageResizer.createResizedImage(
         result.assets[0].uri,
@@ -1125,6 +1590,9 @@ export function CompanionChat({navigation, route}) {
         'JPEG',
         90,
       );
+      if (!current()) {
+        return;
+      }
       const asset = {
         uri: resized.uri,
         fileName: `chat-${newIntentKey()}.jpg`,
@@ -1136,16 +1604,20 @@ export function CompanionChat({navigation, route}) {
         return;
       }
       const signed = (await chatApi.image(roomId, asset)).data;
+      if (!current()) {
+        return;
+      }
       if (asset.fileSize > signed.maxSizeBytes) {
         feedback.inform(t('companion.chatImageLimit'));
         return;
       }
-      await uploadBinary(
-        signed.uploadUrl,
-        asset.uri,
-        signed.method,
-        signed.uploadHeaders,
-      );
+      await uploadBinary(signed.uploadUrl, asset.uri, signed.method, {
+        'Content-Type': signed.contentType || asset.type,
+        ...signed.uploadHeaders,
+      });
+      if (!current()) {
+        return;
+      }
       const frame = {
         type: 'SEND_MESSAGE',
         clientMessageId: newIntentKey(),
@@ -1158,22 +1630,44 @@ export function CompanionChat({navigation, route}) {
           sizeBytes: asset.fileSize,
         },
       };
-      if (sendFrame(frame)) {
-        setMessages(previous =>
-          mergeMessages(previous, [
-            {
-              ...frame,
-              senderUserId: userId == null ? undefined : String(userId),
-              mine: true,
-              sentAt: new Date().toISOString(),
-              pending: true,
-              frame,
-            },
-          ]),
-        );
-      }
+      setMessages(previous =>
+        mergeMessages(previous, [
+          {
+            ...frame,
+            senderUserId: userId == null ? undefined : String(userId),
+            mine: true,
+            sentAt: new Date().toISOString(),
+            pending: true,
+            localImageUri: asset.uri,
+            frame,
+          },
+        ]),
+      );
+      setPhotoFrame(frame);
     } catch (error) {
-      feedback.error(error);
+      if (current()) {
+        feedback.error(error);
+      }
+    } finally {
+      if (current()) {
+        photoPicking.current = false;
+        setPhotoBusy(false);
+      }
+    }
+  };
+  const openPhotoPicker = camera => {
+    if (photoPicking.current || photoFrame) {
+      return;
+    }
+    photoPicking.current = true;
+    Keyboard.dismiss();
+    if (Platform.OS === 'ios') {
+      // Present only after the native attachment modal has finished dismissing.
+      pendingPhotoPicker.current = camera;
+      setAttachment(false);
+    } else {
+      setAttachment(false);
+      sendPhoto(camera);
     }
   };
   const apply = () =>
@@ -1204,7 +1698,7 @@ export function CompanionChat({navigation, route}) {
         },
       );
     if (accept && detail.confirmedCount + 1 >= detail.capacity) {
-      feedback.confirm(
+      acceptFeedback.confirm(
         t('companion.acceptLastTitle'),
         t('companion.closeBody'),
         t('companion.acceptAndGroup'),
@@ -1272,51 +1766,98 @@ export function CompanionChat({navigation, route}) {
             paddingVertical: 12,
             gap: 10,
           }}>
-          <TouchableOpacity
-            accessibilityLabel={t('companion.chat.back')}
-            onPress={() => navigation.goBack()}
-            style={{padding: 4}}>
-            <BackIcon width={24} height={24} />
-          </TouchableOpacity>
-          <View style={s.grow}>
-            <Txt numberOfLines={1} style={{fontWeight: '600'}}>
-              {(!isGroup && own && currentParticipant?.userName) ||
-                room?.title ||
-                t('companion.chat')}
-            </Txt>
-            {isGroup && (
-              <Txt style={s.small}>
-                {countText(
-                  t,
-                  'companion.chat.groupMembers',
-                  room?.activeMemberCount || 0,
+          {searchOpen ? (
+            <>
+              <View
+                style={[
+                  s.row,
+                  s.grow,
+                  {
+                    backgroundColor: C.grayscale_100,
+                    borderRadius: 12,
+                    paddingHorizontal: 12,
+                  },
+                ]}>
+                <SearchIcon width={20} height={20} />
+                <TextInput
+                  autoFocus
+                  style={[
+                    s.grow,
+                    {minHeight: 44, color: C.grayscale_800, paddingVertical: 8},
+                  ]}
+                  accessibilityLabel={t('companion.chatSearch.placeholder')}
+                  placeholder={t('companion.chatSearch.placeholder')}
+                  placeholderTextColor={C.grayscale_400}
+                  value={searchQuery}
+                  onChangeText={value => {
+                    clearSearch();
+                    setSearchQuery(value);
+                  }}
+                  returnKeyType="search"
+                  onSubmitEditing={() => runSearch()}
+                />
+              </View>
+              <TouchableOpacity
+                onPress={() => {
+                  clearSearch();
+                  setSearchOpen(false);
+                  Keyboard.dismiss();
+                }}
+                style={{paddingVertical: 12}}>
+                <Txt>{t('common.cancel')}</Txt>
+              </TouchableOpacity>
+            </>
+          ) : (
+            <>
+              <TouchableOpacity
+                accessibilityLabel={t('companion.chat.back')}
+                onPress={back}
+                style={{padding: 4}}>
+                <BackIcon width={24} height={24} />
+              </TouchableOpacity>
+              <View style={s.grow}>
+                <Txt numberOfLines={1} style={{fontWeight: '600'}}>
+                  {(!isGroup && own && currentParticipant?.userName) ||
+                    (!isGroup && senderProfiles[String(directPeerId)]?.displayName) ||
+                    room?.title ||
+                    t('companion.chat')}
+                </Txt>
+                {isGroup && (
+                  <Txt style={s.small}>
+                    {countText(
+                      t,
+                      'companion.chat.groupMembers',
+                      room?.activeMemberCount || 0,
+                    )}
+                  </Txt>
                 )}
-              </Txt>
-            )}
-          </View>
-          {isGroup && (
-            <TouchableOpacity
-              accessibilityLabel={t('companion.search')}
-              onPress={() =>
-                navigation.navigate('CompanionChatSearch', {
-                  roomId,
-                  companionId,
-                })
-              }>
-              <SearchIcon width={22} height={22} />
-            </TouchableOpacity>
+              </View>
+              {isGroup && (
+                <TouchableOpacity
+                  accessibilityLabel={t('companion.search')}
+                  onPress={() => {
+                    setAttachment(false);
+                    setSearchOpen(true);
+                  }}>
+                  <SearchIcon width={22} height={22} />
+                </TouchableOpacity>
+              )}
+              <TouchableOpacity
+                accessibilityLabel={t('companion.roomInfo')}
+                onPress={() =>
+                  navigation.navigate('CompanionChatInfo', {
+                    roomId,
+                    companionId,
+                  })
+                }>
+                {isGroup ? (
+                  <MenuIcon width={24} height={24} />
+                ) : (
+                  <MoreIcon width={24} height={24} />
+                )}
+              </TouchableOpacity>
+            </>
           )}
-          <TouchableOpacity
-            accessibilityLabel={t('companion.roomInfo')}
-            onPress={() =>
-              navigation.navigate('CompanionChatInfo', {roomId, companionId})
-            }>
-            {isGroup ? (
-              <MenuIcon width={24} height={24} />
-            ) : (
-              <MoreIcon width={24} height={24} />
-            )}
-          </TouchableOpacity>
         </View>
         {resource.loading && !resource.data ? (
           <ChatSkeleton />
@@ -1351,6 +1892,43 @@ export function CompanionChat({navigation, route}) {
             <View style={{flex: 1}}>
               <ScrollView
                 ref={scroll}
+                onContentSizeChange={() => {
+                  scrollToLatestInitially();
+                  scrollAfterSend(true);
+                  if (
+                    pendingIncomingScroll.current &&
+                    !searchOpen &&
+                    !anchorMessageId
+                  ) {
+                    scroll.current?.scrollToEnd({animated: true});
+                    pendingIncomingScroll.current = false;
+                  }
+                }}
+                onScroll={event => {
+                  const {contentOffset, contentSize, layoutMeasurement} =
+                    event.nativeEvent;
+                  nearLatest.current =
+                    contentSize.height -
+                      contentOffset.y -
+                      layoutMeasurement.height <
+                    80;
+                }}
+                scrollEventThrottle={100}
+                onScrollBeginDrag={() => {
+                  pendingSendScroll.current = null;
+                  pendingIncomingScroll.current = false;
+                }}
+                onLayout={() => {
+                  scrollToLatestInitially();
+                  const position =
+                    messagePositions.current[String(anchorMessageId)];
+                  if (searchOpen && position != null) {
+                    scroll.current?.scrollTo({
+                      y: Math.max(0, position - 16),
+                      animated: true,
+                    });
+                  }
+                }}
                 contentContainerStyle={{
                   paddingHorizontal: 20,
                   paddingTop: 8,
@@ -1407,20 +1985,56 @@ export function CompanionChat({navigation, route}) {
                     />
                   )}
                 {messages.map((message, index) => {
+                  const senderProfile =
+                    senderProfiles[String(message.senderUserId)] ??
+                    peekChatProfile(message.senderUserId);
                   const mine =
                     userId != null && message.senderUserId != null
                       ? String(message.senderUserId) === String(userId)
-                      : message.mine === true;
+                      : message.mine === true ||
+                        (!!myEmail && senderProfile?.email === myEmail);
                   const previous = messages[index - 1];
+                  const sameMinuteAndSender = other => {
+                    if (
+                      !other ||
+                      !message.sentAt ||
+                      !other.sentAt ||
+                      message.messageType === 'SYSTEM' ||
+                      other.messageType === 'SYSTEM'
+                    ) {
+                      return false;
+                    }
+                    const sender =
+                      message.senderUserId ?? (message.mine ? userId : null);
+                    const otherSender =
+                      other.senderUserId ?? (other.mine ? userId : null);
+                    const minute = Math.floor(+kstDate(message.sentAt) / 60000);
+                    const otherMinute = Math.floor(
+                      +kstDate(other.sentAt) / 60000,
+                    );
+                    return (
+                      sender != null &&
+                      otherSender != null &&
+                      String(sender) === String(otherSender) &&
+                      Number.isFinite(minute) &&
+                      minute === otherMinute
+                    );
+                  };
+                  const showTime = !sameMinuteAndSender(messages[index + 1]);
+                  const continuesGroup = sameMinuteAndSender(previous);
                   const day = displayDate(message.sentAt);
                   const unread = message.unreadMemberCount || 0;
+                  const isSearchTarget =
+                    anchorMessageId != null &&
+                    message.messageId != null &&
+                    String(message.messageId) === String(anchorMessageId);
                   return (
                     <View
                       key={message.messageId || message.clientMessageId}
                       onLayout={event => {
-                        if (
-                          String(message.messageId) === String(anchorMessageId)
-                        ) {
+                        messagePositions.current[String(message.messageId)] =
+                          event.nativeEvent.layout.y;
+                        if (isSearchTarget) {
                           anchorY.current = event.nativeEvent.layout.y;
                           scroll.current?.scrollTo({
                             y: anchorY.current,
@@ -1429,9 +2043,8 @@ export function CompanionChat({navigation, route}) {
                         }
                       }}
                       style={[
-                        {gap: 8},
-                        String(message.messageId) === String(anchorMessageId) &&
-                          s.info,
+                        {gap: 8, marginTop: continuesGroup ? -8 : 0},
+                        isSearchTarget && s.info,
                       ]}>
                       {(!previous || displayDate(previous.sentAt) !== day) && (
                         <Txt style={[s.small, {textAlign: 'center'}]}>
@@ -1450,25 +2063,86 @@ export function CompanionChat({navigation, route}) {
                           alignItems: 'flex-end',
                           gap: 8,
                         }}>
-                        {!mine && <Avatar size={28} />}
-                        {mine && !isGroup && (
-                          <Txt style={[s.small, {fontSize: 10}]}>
-                            {displayTime(message.sentAt)}
-                          </Txt>
+                        {!mine &&
+                          (continuesGroup ? (
+                            <View style={{width: 28}} />
+                          ) : message.senderUserId != null &&
+                            senderProfiles[String(message.senderUserId)] ===
+                              undefined ? (
+                            <SkeletonPulse
+                              decorative
+                              style={{alignSelf: 'flex-start'}}>
+                              <SkeletonBlock
+                                style={{
+                                  width: 28,
+                                  height: 28,
+                                  borderRadius: 14,
+                                }}
+                              />
+                            </SkeletonPulse>
+                          ) : (
+                            <Avatar
+                              size={28}
+                              uri={
+                                senderProfiles[String(message.senderUserId)]
+                                  ?.profileImageUrl
+                              }
+                              style={{alignSelf: 'flex-start'}}
+                            />
+                          ))}
+                        {mine && (unread > 0 || showTime) && (
+                          <View
+                            style={{
+                              alignItems: 'flex-end',
+                              gap: 2,
+                              paddingBottom: 2,
+                              flexShrink: 1,
+                            }}>
+                            {unread > 0 && (
+                              <Txt
+                                accessibilityLabel={countText(
+                                  t,
+                                  'companion.unread',
+                                  unread,
+                                )}
+                                style={{
+                                  fontSize: 11,
+                                  lineHeight: 14,
+                                  color: C.primary_orange,
+                                }}>
+                                {formatNumber(unread)}
+                              </Txt>
+                            )}
+                            {showTime && (
+                              <Txt
+                                style={{
+                                  fontSize: 10,
+                                  lineHeight: 14,
+                                  color: C.grayscale_500,
+                                }}>
+                                {displayTime(message.sentAt)}
+                              </Txt>
+                            )}
+                          </View>
                         )}
                         <View style={{maxWidth: '78%', gap: 4}}>
-                          {!mine && isGroup && (
+                          {!mine && isGroup && !continuesGroup && (
                             <Txt style={s.small}>
                               {String(message.senderUserId) ===
                               String(detail?.organizerId)
                                 ? t('companion.group.organizerSender', {
                                     name:
+                                      senderProfiles[
+                                        String(message.senderUserId)
+                                      ]?.displayName ||
                                       message.senderName ||
                                       t('companion.memberId', {
                                         id: message.senderUserId,
                                       }),
                                   })
-                                : message.senderName ||
+                                : senderProfiles[String(message.senderUserId)]
+                                    ?.displayName ||
+                                  message.senderName ||
                                   t('companion.memberId', {
                                     id: message.senderUserId,
                                   })}
@@ -1485,22 +2159,6 @@ export function CompanionChat({navigation, route}) {
                             }}>
                             <MessageContent message={message} roomId={roomId} />
                           </View>
-                          {isGroup && (
-                            <View
-                              style={[
-                                s.row,
-                                mine && {justifyContent: 'flex-end'},
-                              ]}>
-                              {mine && unread > 0 && (
-                                <Txt style={[s.small, s.orange]}>
-                                  {countText(t, 'companion.unread', unread)}
-                                </Txt>
-                              )}
-                              <Txt style={[s.small, mine && s.orange]}>
-                                {displayTime(message.sentAt)}
-                              </Txt>
-                            </View>
-                          )}
                           {message.pending && (
                             <TouchableOpacity
                               onPress={() =>
@@ -1512,10 +2170,40 @@ export function CompanionChat({navigation, route}) {
                             </TouchableOpacity>
                           )}
                         </View>
-                        {!mine && !isGroup && (
-                          <Txt style={[s.small, {fontSize: 10}]}>
-                            {displayTime(message.sentAt)}
-                          </Txt>
+                        {!mine && (showTime || (isGroup && unread > 0)) && (
+                          <View
+                            style={{
+                              alignItems: 'flex-start',
+                              gap: 2,
+                              paddingBottom: 2,
+                              flexShrink: 1,
+                            }}>
+                            {isGroup && unread > 0 && (
+                              <Txt
+                                accessibilityLabel={countText(
+                                  t,
+                                  'companion.unread',
+                                  unread,
+                                )}
+                                style={{
+                                  fontSize: 11,
+                                  lineHeight: 14,
+                                  color: C.primary_orange,
+                                }}>
+                                {formatNumber(unread)}
+                              </Txt>
+                            )}
+                            {showTime && (
+                              <Txt
+                                style={{
+                                  fontSize: 10,
+                                  lineHeight: 14,
+                                  color: C.grayscale_500,
+                                }}>
+                                {displayTime(message.sentAt)}
+                              </Txt>
+                            )}
+                          </View>
                         )}
                       </View>
                     </View>
@@ -1628,69 +2316,175 @@ export function CompanionChat({navigation, route}) {
                     )}
                   </View>
                 )}
-              <View
-                style={[
-                  s.row,
-                  {
-                    paddingHorizontal: 16,
-                    paddingTop: 10,
-                    paddingBottom:
-                      Platform.OS === 'ios' ? (keyboardVisible ? 10 : 30) : 12,
-                    borderTopWidth: 1,
-                    borderColor: C.grayscale_100,
-                  },
-                ]}>
-                <TouchableOpacity
-                  accessibilityLabel={t('companion.attach')}
-                  style={s.iconButton}
-                  disabled={connection !== 'CONNECTED'}
-                  onPress={() => setAttachment(true)}>
-                  <PlusIcon width={24} height={24} />
-                </TouchableOpacity>
-                <TextInput
-                  accessibilityLabel={t('companion.messagePlaceholder')}
-                  placeholder={t('companion.messagePlaceholder')}
-                  value={content}
-                  onChangeText={setContent}
-                  style={[
-                    s.grow,
-                    {
-                      borderWidth: 1,
-                      borderColor: C.grayscale_200,
-                      borderRadius: 24,
-                      backgroundColor: C.grayscale_0,
-                      paddingHorizontal: 14,
-                      paddingVertical: 10,
-                      minHeight: 40,
-                      maxHeight: 100,
-                      color: C.grayscale_800,
-                    },
-                  ]}
-                  placeholderTextColor={C.grayscale_400}
-                  onFocus={() => scroll.current?.scrollToEnd({animated: true})}
-                  multiline
-                  maxLength={2000}
-                  editable={connection === 'CONNECTED'}
-                />
-                <TouchableOpacity
+              {photoBusy && (
+                <SkeletonPulse
+                  title={t('companion.chatPhoto.uploading')}
                   style={{
-                    padding: 4,
-                    borderRadius: 12,
-                    backgroundColor: 'transparent',
-                    opacity:
-                      connection === 'CONNECTED' && content.trim() ? 1 : 0.4,
-                  }}
-                  accessibilityLabel={t('companion.send')}
-                  onPress={send}
-                  disabled={connection !== 'CONNECTED' || !content.trim()}>
-                  <Txt style={[s.small, s.orange]}>{t('companion.send')}</Txt>
-                </TouchableOpacity>
-              </View>
+                    paddingHorizontal: 20,
+                    paddingVertical: 10,
+                    alignItems: 'flex-end',
+                  }}>
+                  <SkeletonBlock
+                    style={{width: 200, height: 160, borderRadius: 8}}
+                  />
+                </SkeletonPulse>
+              )}
+              {searchOpen ? (
+                <View
+                  style={[
+                    s.row,
+                    {
+                      paddingHorizontal: 20,
+                      paddingTop: 12,
+                      paddingBottom:
+                        Platform.OS === 'ios'
+                          ? keyboardVisible
+                            ? 12
+                            : 30
+                          : 12,
+                      borderTopWidth: 1,
+                      borderColor: C.grayscale_100,
+                    },
+                  ]}>
+                  <View style={s.grow}>
+                    {searchBusy ? (
+                      <SkeletonPulse>
+                        <SkeletonBlock
+                          style={{width: 120, height: 16, borderRadius: 4}}
+                        />
+                      </SkeletonPulse>
+                    ) : (
+                      <Txt style={s.small}>
+                        {searchSubmitted
+                          ? searchResults.length
+                            ? t('companion.chatSearch.position', {
+                                current: searchIndex + 1,
+                                count: searchResults.length,
+                              })
+                            : t('companion.noResults')
+                          : t('companion.chatSearch.hint')}
+                      </Txt>
+                    )}
+                  </View>
+                  {[
+                    [
+                      SearchUpIcon,
+                      'companion.chatSearch.older',
+                      searchBusy ||
+                        !searchResults.length ||
+                        (searchIndex === searchResults.length - 1 &&
+                          !searchMore),
+                      () => {
+                        if (searchIndex < searchResults.length - 1) {
+                          setSearchIndex(value => value + 1);
+                        } else {
+                          runSearch(true);
+                        }
+                      },
+                    ],
+                    [
+                      SearchDownIcon,
+                      'companion.chatSearch.newer',
+                      searchBusy || searchIndex <= 0,
+                      () => setSearchIndex(value => value - 1),
+                    ],
+                  ].map(([Icon, label, disabled, onPress]) => (
+                    <TouchableOpacity
+                      key={label}
+                      accessibilityLabel={t(label)}
+                      accessibilityState={{disabled}}
+                      disabled={disabled}
+                      onPress={onPress}
+                      style={{
+                        padding: 10,
+                        borderRadius: 24,
+                        backgroundColor: C.grayscale_100,
+                        opacity: disabled ? 0.35 : 1,
+                      }}>
+                      <Icon width={24} height={24} />
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              ) : (
+                <View
+                  style={[
+                    s.row,
+                    {
+                      paddingHorizontal: 16,
+                      paddingTop: 10,
+                      paddingBottom:
+                        Platform.OS === 'ios'
+                          ? keyboardVisible
+                            ? 10
+                            : 30
+                          : 12,
+                      borderTopWidth: 1,
+                      borderColor: C.grayscale_100,
+                    },
+                  ]}>
+                  <TouchableOpacity
+                    accessibilityLabel={t('companion.attach')}
+                    style={s.iconButton}
+                    disabled={
+                      connection !== 'CONNECTED' || photoBusy || !!photoFrame
+                    }
+                    onPress={() => setAttachment(true)}>
+                    <PlusIcon width={24} height={24} />
+                  </TouchableOpacity>
+                  <TextInput
+                    accessibilityLabel={t('companion.messagePlaceholder')}
+                    placeholder={t('companion.messagePlaceholder')}
+                    value={content}
+                    onChangeText={setContent}
+                    style={[
+                      s.grow,
+                      {
+                        borderWidth: 1,
+                        borderColor: C.grayscale_200,
+                        borderRadius: 24,
+                        backgroundColor: C.grayscale_0,
+                        paddingHorizontal: 14,
+                        paddingVertical: 10,
+                        minHeight: 40,
+                        maxHeight: 100,
+                        color: C.grayscale_800,
+                      },
+                    ]}
+                    placeholderTextColor={C.grayscale_400}
+                    onFocus={() =>
+                      scroll.current?.scrollToEnd({animated: true})
+                    }
+                    multiline
+                    maxLength={2000}
+                    editable={connection === 'CONNECTED'}
+                  />
+                  <TouchableOpacity
+                    style={{
+                      padding: 4,
+                      borderRadius: 12,
+                      backgroundColor: 'transparent',
+                      opacity:
+                        connection === 'CONNECTED' && content.trim() ? 1 : 0.4,
+                    }}
+                    accessibilityLabel={t('companion.send')}
+                    onPress={send}
+                    disabled={connection !== 'CONNECTED' || !content.trim()}>
+                    <Txt style={[s.small, s.orange]}>{t('companion.send')}</Txt>
+                  </TouchableOpacity>
+                </View>
+              )}
             </View>
           </ResourceBody>
         )}
         <Modal
           visible={attachment}
+          onDismiss={() => {
+            const camera = pendingPhotoPicker.current;
+            pendingPhotoPicker.current = null;
+            if (camera !== null) {
+              sendPhoto(camera);
+            }
+          }}
           transparent
           onRequestClose={() => setAttachment(false)}>
           <View
@@ -1712,8 +2506,8 @@ export function CompanionChat({navigation, route}) {
               <Title>{t('companion.attachTitle')}</Title>
               <View style={s.between}>
                 {[
-                  [PhotoIcon, 'companion.photo', () => sendPhoto(false)],
-                  [CameraIcon, 'companion.camera', () => sendPhoto(true)],
+                  [PhotoIcon, 'companion.photo', () => openPhotoPicker(false)],
+                  [CameraIcon, 'companion.camera', () => openPhotoPicker(true)],
                   [
                     PinIcon,
                     'companion.place',
@@ -1728,10 +2522,38 @@ export function CompanionChat({navigation, route}) {
                 ].map(([Icon, label, onPress]) => (
                   <TouchableOpacity
                     key={label}
-                    style={[s.soft, s.grow, {alignItems: 'center'}]}
+                    accessibilityRole="button"
+                    accessibilityLabel={t(label)}
+                    style={[
+                      s.soft,
+                      s.grow,
+                      {
+                        flexBasis: 0,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        paddingHorizontal: 8,
+                        paddingVertical: 16,
+                        gap: 8,
+                      },
+                    ]}
                     onPress={onPress}>
-                    <Icon width={24} height={24} />
-                    <Txt>{t(label)}</Txt>
+                    <View
+                      style={{
+                        width: 24,
+                        height: 24,
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}>
+                      <Icon width={24} height={Icon === CameraIcon ? 20 : 24} />
+                    </View>
+                    <Txt
+                      style={{
+                        textAlign: 'center',
+                        width: '100%',
+                        minHeight: 22,
+                      }}>
+                      {t(label)}
+                    </Txt>
                   </TouchableOpacity>
                 ))}
               </View>
@@ -1745,6 +2567,7 @@ export function CompanionChat({navigation, route}) {
           </View>
         </Modal>
         {feedback.modal}
+        {acceptFeedback.modal}
       </KeyboardAvoidingView>
     </View>
   );
@@ -1752,13 +2575,15 @@ export function CompanionChat({navigation, route}) {
 
 function ChatNotificationIcon({width, height}) {
   return (
-    <View style={{width, height, alignItems: 'center', justifyContent: 'center'}}>
+    <View
+      style={{width, height, alignItems: 'center', justifyContent: 'center'}}>
       <BellIcon width={18} height={18} />
     </View>
   );
 }
 
-export function CompanionChatInfo({navigation, route}) {
+export function CompanionChatInfo({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
   const myId = useUserStore(state => state.userProfile?.userId);
@@ -1782,7 +2607,7 @@ export function CompanionChatInfo({navigation, route}) {
         while (cursor < visible.length) {
           const index = cursor++;
           try {
-            const {data} = await chatApi.profile(visible[index].userId);
+            const data = await getChatProfile(visible[index].userId);
             enriched[index] = {
               ...visible[index],
               displayName: data.displayName,
@@ -1949,7 +2774,8 @@ export function CompanionChatInfo({navigation, route}) {
   );
 }
 
-export function CompanionChatNotice({navigation, route}) {
+export function CompanionChatNotice({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
   const feedback = useFeedback();
@@ -1997,8 +2823,13 @@ export function CompanionChatNotice({navigation, route}) {
                         await resource.reload();
                       },
                     )
-                : () =>
-                    navigation.navigate('CompanionChat', {roomId, companionId})
+                : () => {
+                    if (Platform.OS !== 'web' && navigation.popTo) {
+                      navigation.popTo('CompanionChat', {roomId, companionId});
+                    } else {
+                      replaceCompanionScreen(navigation, 'CompanionChat', {roomId, companionId});
+                    }
+                  }
             }
           />
         }>
@@ -2081,7 +2912,8 @@ export function CompanionChatNotice({navigation, route}) {
   );
 }
 
-export function CompanionChatSearch({navigation, route}) {
+export function CompanionChatSearch({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
   const [query, setQuery] = useState('');
@@ -2191,7 +3023,8 @@ export function CompanionChatSearch({navigation, route}) {
   );
 }
 
-export function CompanionChatPlace({navigation, route}) {
+export function CompanionChatPlace({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const {roomId, companionId} = route.params || {};
   const feedback = useFeedback();
@@ -2327,7 +3160,13 @@ export function CompanionChatPlace({navigation, route}) {
             .catch(finish);
         });
       },
-      () => navigation.navigate('CompanionChat', {roomId, companionId}),
+      () => {
+        if (Platform.OS !== 'web' && navigation.popTo) {
+          navigation.popTo('CompanionChat', {roomId, companionId});
+        } else {
+          replaceCompanionScreen(navigation, 'CompanionChat', {roomId, companionId});
+        }
+      },
     );
   return (
     <GroupForm
@@ -2362,7 +3201,34 @@ export function CompanionChatPlace({navigation, route}) {
           onSubmitEditing={search}
         />
       </View>
+      {selected && (
+        <Txt style={s.small}>{t('companion.group.selectedPlace')}</Txt>
+      )}
+      {selected && (
+        <View style={s.soft}>
+          <CompanionPlaceMap
+            key={`${selected.latitude}:${selected.longitude}`}
+            latitude={selected.latitude}
+            longitude={selected.longitude}
+          />
+          <PinIcon width={24} height={24} />
+          <Title>{selected.placeName}</Title>
+          <Txt style={s.small}>
+            {trimJejuPrefix(selected.roadAddress || selected.address)}
+          </Txt>
+        </View>
+      )}
       <Txt>{t('companion.group.searchResults')}</Txt>
+      {task.busy && !results.length && !selected && (
+        <SkeletonPulse title={t('companion.loading')} style={{gap: 16}}>
+          {[0, 1, 2].map(index => (
+            <View key={index} style={[s.soft, {gap: 12}]}>
+              <SkeletonBlock style={{width: '65%', height: 20, borderRadius: 4}} />
+              <SkeletonBlock style={{width: '90%', height: 16, borderRadius: 4}} />
+            </View>
+          ))}
+        </SkeletonPulse>
+      )}
       {results.map((place, index) => (
         <TouchableOpacity
           key={index}
@@ -2375,18 +3241,7 @@ export function CompanionChatPlace({navigation, route}) {
           {selected === place && <CheckIcon width={20} height={20} />}
         </TouchableOpacity>
       ))}
-      {selected && (
-        <Txt style={s.small}>{t('companion.group.selectedPlace')}</Txt>
-      )}
-      {selected && (
-        <View style={s.soft}>
-          <PinIcon width={24} height={24} />
-          <Title>{selected.placeName}</Title>
-          <Txt style={s.small}>
-            {trimJejuPrefix(selected.roadAddress || selected.address)}
-          </Txt>
-        </View>
-      )}
+
 
       {feedback.modal}
     </GroupForm>
@@ -2443,7 +3298,9 @@ export function CompanionChatShared({route}) {
   );
 }
 
-export function CompanionChatReport({navigation, route}) {
+export function CompanionChatReport({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
+  const back = useCompanionBack();
   const {t} = useTranslation();
   const roomId = route.params?.roomId;
   const companionId = route.params?.companionId;
@@ -2480,7 +3337,7 @@ export function CompanionChatReport({navigation, route}) {
     const results = await Promise.all(
       others.map(async member => {
         try {
-          const {data: profile} = await chatApi.profile(member.userId);
+          const profile = await getChatProfile(member.userId);
           if (myEmail && profile.email === myEmail) return null;
           return {...member, displayName: profile.displayName};
         } catch {
@@ -2594,7 +3451,7 @@ export function CompanionChatReport({navigation, route}) {
         title={t('companion.group.reportDone')}
         onClose={() => {
           setDone(false);
-          navigation.goBack();
+          back();
         }}>
         <CheckIcon width={24} height={24} />
         <Txt style={s.small}>{t('companion.group.reportDoneBody')}</Txt>
@@ -2602,7 +3459,7 @@ export function CompanionChatReport({navigation, route}) {
           label={t('common.confirm')}
           onPress={() => {
             setDone(false);
-            navigation.goBack();
+            back();
           }}
         />
       </GroupDialog>

@@ -1,0 +1,12 @@
+[
+  {
+    "relation": ["delegate_permission/common.handle_all_urls"],
+    "target": {
+      "namespace": "android_app",
+      "package_name": "com.triofrontendapp",
+      "sha256_cert_fingerprints": [
+        "1F:AE:9D:FD:93:6E:91:81:07:F3:D1:03:9E:B6:DA:A1:F8:DF:3F:E9:CD:81:D3:1D:5F:75:41:9C:8D:EF:A7:D0"
+      ]
+    }
+  }
+]

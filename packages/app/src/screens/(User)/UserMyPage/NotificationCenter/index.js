@@ -1,17 +1,21 @@
 import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
-import React, {useCallback, useMemo, useState} from 'react';
-import {ActivityIndicator, Text, TouchableOpacity, View} from 'react-native';
+import React, {useCallback, useMemo, useRef, useState} from 'react';
+import {Text, TouchableOpacity, View} from 'react-native';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 
-import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
 import notificationApi from '@utils/api/notificationApi';
-import {isUserNotification, openNotificationTarget} from '@utils/notifications';
+import {
+  isUserNotification,
+  openNotificationTarget,
+  subscribeForegroundNotification,
+} from '@utils/notifications';
+import {isCompanionNotification} from '../../../../features/companion/notificationRouting';
 import SettingIcon from '@assets/images/settings_gray.svg';
 
-import NotificationList from './NotificationList';
+import NotificationList, {NotificationListSkeleton} from './NotificationList';
 import styles from './NotificationCenter.styles';
 
 const FILTER_CHIPS = [
@@ -19,6 +23,7 @@ const FILTER_CHIPS = [
   {key: 'roomReservation', labelKey: 'common.accommodation_fe9320'},
   {key: 'partyReservation', labelKey: 'common.activity'},
   {key: 'community', labelKey: 'common.community'},
+  {key: 'companion', labelKey: 'companion.title'},
 ];
 
 const extractItems = data =>
@@ -58,6 +63,9 @@ const formatDate = value => {
 };
 
 const normalizeType = type => {
+  if (isCompanionNotification({type})) {
+    return 'companion';
+  }
   const rawType = String(type || '').toUpperCase();
 
   if (rawType === 'ALL_NOTICE' || rawType === 'ALL_EVENT') {
@@ -135,13 +143,18 @@ const NotificationCenter = () => {
   const navigation = useNavigation();
   const [selectedFilter, setSelectedFilter] = useState(FILTER_CHIPS[0].key);
   const [notifications, setNotifications] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const requestVersion = useRef(0);
   const [markingAllRead, setMarkingAllRead] = useState(false);
 
   const fetchNotifications = useCallback(async () => {
+    const version = ++requestVersion.current;
     try {
       setLoading(true);
       const {data} = await notificationApi.getMyNotifications(0, 100);
+      if (version !== requestVersion.current) {
+        return;
+      }
       const items = extractItems(data);
       setNotifications(
         items.filter(isUserNotification).map(mapNotificationItem),
@@ -151,15 +164,25 @@ const NotificationCenter = () => {
         '[NotificationCenter] failed to fetch notifications:',
         error?.message,
       );
-      setNotifications([]);
     } finally {
-      setLoading(false);
+      if (version === requestVersion.current) {
+        setLoading(false);
+      }
     }
   }, []);
 
   useFocusEffect(
     useCallback(() => {
       fetchNotifications();
+      const unsubscribe = subscribeForegroundNotification(message => {
+        if (isUserNotification(message?.data)) {
+          fetchNotifications();
+        }
+      });
+      return () => {
+        requestVersion.current += 1;
+        unsubscribe();
+      };
     }, [fetchNotifications]),
   );
 
@@ -205,13 +228,15 @@ const NotificationCenter = () => {
       }
     }
 
-    setNotifications(prev =>
-      prev.map(notification =>
-        notification.notificationId === item.notificationId
-          ? {...notification, isRead: true}
-          : notification,
-      ),
-    );
+    if (notificationDetail) {
+      setNotifications(prev =>
+        prev.map(notification =>
+          notification.notificationId === item.notificationId
+            ? {...notification, isRead: true}
+            : notification,
+        ),
+      );
+    }
 
     await openNotificationTarget(
       {
@@ -219,6 +244,7 @@ const NotificationCenter = () => {
         ...(notificationDetail ?? {}),
       },
       navigation,
+      {detailRead: !!notificationDetail},
     );
   };
 
@@ -236,7 +262,7 @@ const NotificationCenter = () => {
         }
       />
 
-      <View style={styles.chipRow}>
+      <View style={[styles.chipRow, {flexWrap: 'wrap', rowGap: 8}]}>
         {FILTER_CHIPS.map(chip => {
           const isSelected = chip.key === selectedFilter;
 
@@ -272,10 +298,8 @@ const NotificationCenter = () => {
         </TouchableOpacity>
       </View>
 
-      {loading ? (
-        <View style={styles.loadingWrap}>
-          <ActivityIndicator size="small" color={COLORS.grayscale_500} />
-        </View>
+      {loading && !notifications.length ? (
+        <NotificationListSkeleton />
       ) : (
         <NotificationList
           items={filteredNotifications}

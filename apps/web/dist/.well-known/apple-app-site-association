@@ -1,0 +1,21 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appID": "59P3UT5738.com.haneul.workaway",
+        "paths": [
+          "NOT /guesthouses/search",
+          "NOT /guesthouses/reviews",
+          "NOT /guesthouses/popular",
+          "NOT /guesthouses/recent",
+          "NOT /guesthouses/*/*",
+          "NOT /contents/popular",
+          "NOT /contents/*/*",
+          "/guesthouses/*",
+          "/contents/*"
+        ]
+      }
+    ]
+  }
+}

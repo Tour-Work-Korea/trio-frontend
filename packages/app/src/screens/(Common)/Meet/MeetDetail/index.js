@@ -1,3 +1,9 @@
+import {getSharedDetailUrl} from '@screens/_components/sharedDetailLink';
+import {API_BASE_URL} from '@env';
+import ButtonWhite from '@components/ButtonWhite';
+import EmptyState from '@components/EmptyState';
+import DetailSkeleton from './LoadingSkeleton';
+import SharedDetailAppPrompt from '@screens/_components/SharedDetailAppPrompt';
 import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -8,7 +14,6 @@ import {
   TouchableOpacity,
   ScrollView,
   Pressable,
-  ActivityIndicator,
   Dimensions,
   Platform,
 } from 'react-native';
@@ -34,11 +39,7 @@ import {showErrorModal} from '@utils/loginModalHub';
 import {trimJejuPrefix} from '@utils/formatAddress';
 import {openWebLink} from '@utils/openWebLink';
 import {getPartyGuesthouseId} from '@utils/partyGuesthouse';
-import {
-  partyDetailDeeplink,
-  partyDetailShareUrl,
-  copyDeeplinkToClipboard,
-} from '@utils/deeplinkGenerator';
+import {partyDetailDeeplink} from '@utils/deeplinkGenerator';
 import {openAppOrStoreFromWeb} from '@utils/webOpenApp';
 import useSwipeTabs from '@hooks/useSwipeTabs';
 import ImageModal from '@components/modals/ImageModal';
@@ -252,8 +253,10 @@ const MeetDetail = () => {
   }, [navigation]);
 
   const [detail, setDetail] = useState(null);
+  const [loadedPartyId, setLoadedPartyId] = useState(null);
+  const [detailLoadFailed, setDetailLoadFailed] = useState(false);
   const [liked, setLiked] = useState(false);
-  const [loading, setLoading] = useState(true);
+  const [detailRetry, setDetailRetry] = useState(0);
   const [imageModalVisible, setImageModalVisible] = useState(false);
   const [imageIndex, setImageIndex] = useState(0);
   const [imageSourceRect, setImageSourceRect] = useState(null);
@@ -382,20 +385,20 @@ const MeetDetail = () => {
     let mounted = true;
     const fetchDetail = async () => {
       try {
-        setLoading(true);
+        setDetailLoadFailed(false);
         const {data} = await userMeetApi.getPartyDetail(partyId);
         if (!mounted) {
           return;
         }
 
         setDetail(data);
+        setLoadedPartyId(String(partyId));
         setLiked(!!data?.isLiked);
       } catch (e) {
-        console.warn('getPartyDetail error', e?.response?.data || e?.message);
-      } finally {
         if (mounted) {
-          setLoading(false);
+          setDetailLoadFailed(true);
         }
+        console.warn('getPartyDetail error', e?.response?.data || e?.message);
       }
     };
     if (partyId != null) {
@@ -405,7 +408,7 @@ const MeetDetail = () => {
     return () => {
       mounted = false;
     };
-  }, [partyId]);
+  }, [partyId, detailRetry]);
 
   const {
     guesthouseAddress,
@@ -730,20 +733,37 @@ const MeetDetail = () => {
   };
 
   //  공유 링크
-  const handleCopyLink = () => {
-    const shareUrl =
-      Platform.OS === 'web'
-        ? partyDetailShareUrl(partyId)
-        : partyDetailDeeplink(partyId);
-
-    copyDeeplinkToClipboard(shareUrl);
-
-    Toast.show({
-      type: 'success',
-      text1: t('common.copied'),
-      position: 'top',
-      visibilityTime: 2000,
+  const handleCopyLink = async () => {
+    const shareUrl = getSharedDetailUrl(WEB_ROUTES.MEET_DETAIL(partyId), {
+      apiBaseUrl: API_BASE_URL,
+      webOrigin: Platform.OS === 'web' ? window.location.origin : undefined,
     });
+
+    try {
+      if (Platform.OS === 'web') {
+        // The web clipboard stub silently skips copying when unavailable.
+        if (!window.navigator?.clipboard?.writeText) {
+          throw new Error('Clipboard unavailable');
+        }
+        await window.navigator.clipboard.writeText(shareUrl);
+      } else {
+        await Clipboard.setString(shareUrl);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: t('common.copied'),
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: t('common.anErrorOccurredPleaseTryAgain'),
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const handleCopyGuesthousePhone = useCallback(() => {
@@ -1261,16 +1281,36 @@ const MeetDetail = () => {
     );
   };
 
-  if (loading && !detail) {
+  const hasCurrentDetail = detail && loadedPartyId === String(partyId);
+
+  if (!hasCurrentDetail && !detailLoadFailed) {
+    return <DetailSkeleton />;
+  }
+
+  if (!hasCurrentDetail) {
     return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator />
+      <View style={styles.rootContainer}>
+        <EmptyState
+          title={t('meet.detailLoadFailed')}
+          description={t('share.detailLoadFailedDescription')}
+          buttonText={t('common.retry')}
+          onPressButton={() => setDetailRetry(value => value + 1)}
+        />
+        <ButtonWhite
+          title={t('common.home')}
+          onPress={() => navigation.navigate('MainTabs', {screen: '홈'})}
+        />
       </View>
     );
   }
 
   return (
     <View style={styles.rootContainer}>
+      <SharedDetailAppPrompt
+        key={String(partyId)}
+        deepLinkUrl={partyDetailDeeplink(partyId)}
+        directEntry={Boolean(route.params?.webBackToHome)}
+      />
       <ScrollView
         style={styles.container}
         showsVerticalScrollIndicator={false}

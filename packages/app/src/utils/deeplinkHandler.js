@@ -3,6 +3,8 @@ import {useCallback, useEffect, useRef} from 'react';
 import {Linking} from 'react-native';
 import {navigate, reset, navigationRef} from './navigationService';
 import useUserStore from '@stores/userStore';
+import {openNotificationTarget} from './notifications';
+import {companionLinkTarget} from '../features/companion/notificationRouting';
 import {showErrorModal} from '@utils/loginModalHub';
 
 const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
@@ -53,6 +55,19 @@ const parseQueryParams = query => {
 
 const parseDeeplink = url => {
   const normalized = String(url || '').trim();
+  // Only claim public detail URLs from the associated production domain.
+  // Keep custom-scheme reservation and notification links unchanged.
+  if (/^https?:\/\//i.test(normalized)) {
+    const match = normalized.match(
+      /^https:\/\/ddakji\.kr\/(guesthouses|contents)\/([0-9]+)\/?(?:[?#].*)?$/i,
+    );
+    return {
+      parts: match
+        ? [match[1].toLowerCase() === 'guesthouses' ? 'guesthouse' : 'party', match[2]]
+        : [],
+      searchParams: {},
+    };
+  }
   const withoutScheme = normalized.replace(/^[a-zA-Z][a-zA-Z0-9+.-]*:\/\//, '');
   const [pathPart = '', queryPart = ''] = withoutScheme.split('?');
   const rawPath = pathPart.replace(/^\/+|\/+$/g, '');
@@ -176,6 +191,11 @@ const DeeplinkHandler = ({enabled = true}) => {
           return;
         }
 
+        const companionTarget = companionLinkTarget(url);
+        if (companionTarget) {
+          await openNotificationTarget({...companionTarget, deeplink: url});
+          return;
+        }
         const {parts, searchParams} = parseDeeplink(url);
         const currentUser = useUserStore.getState();
 
@@ -200,7 +220,10 @@ const DeeplinkHandler = ({enabled = true}) => {
           tomorrow.setDate(today.getDate() + 1);
 
           const formatDate = date => {
-            return date.toISOString().split('T')[0];
+            const year = date.getFullYear();
+            const month = String(date.getMonth() + 1).padStart(2, '0');
+            const day = String(date.getDate()).padStart(2, '0');
+            return `${year}-${month}-${day}`;
           };
 
           const checkIn = formatDate(today);

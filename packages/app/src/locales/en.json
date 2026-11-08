@@ -1764,5 +1764,19 @@
   "community.feed.daysShort": "{{value}}d",
   "companion.card.like": "Like",
   "companion.card.unlike": "Unlike",
-  "companion.card.writeComment": "Write a comment"
+  "companion.card.writeComment": "Write a comment",
+  "companion.chatSearch.placeholder": "Search messages",
+  "companion.chatSearch.position": "{{current}} / {{count}}",
+  "companion.chatSearch.hint": "Enter a search term.",
+  "companion.chatSearch.older": "Older search result",
+  "companion.chatSearch.newer": "Newer search result",
+  "companion.chatPhoto.cameraPermission": "Allow camera access in Settings to take a photo.",
+  "companion.chatPhoto.pickerFailed": "Could not load the photo. Please try again.",
+  "companion.chatPhoto.uploading": "Preparing your photo.",
+  "share.openDetailTitle": "How would you like to view this?",
+  "share.viewInApp": "Open in app",
+  "share.continueOnWeb": "Continue on web",
+  "guesthouse.detailLoadFailed": "Could not load this stay",
+  "meet.detailLoadFailed": "Could not load this activity",
+  "share.detailLoadFailedDescription": "It may have been removed or be temporarily unavailable. Please try again."
 }

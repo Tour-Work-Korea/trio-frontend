@@ -109,6 +109,15 @@ jobs:
       - name: Upload build files to S3
         run: aws s3 sync apps/web/dist/ "s3://${S3_BUCKET}/${S3_PREFIX}/" --delete
 
+      - name: Publish app association files as JSON
+        run: |
+          for FILE in apple-app-site-association assetlinks.json; do
+            aws s3 cp "apps/web/dist/.well-known/${FILE}" \
+              "s3://${S3_BUCKET}/${S3_PREFIX}/.well-known/${FILE}" \
+              --content-type application/json \
+              --cache-control "public, max-age=300"
+          done
+
       - name: Invalidate CloudFront cache
         run: |
           if [ "${DEPLOY_ENV}" = "dev" ]; then

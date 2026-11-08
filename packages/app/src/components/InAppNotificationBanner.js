@@ -7,6 +7,11 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {
+  isCompanionNotification,
+  companionNotificationValue,
+} from '../features/companion/notificationRouting';
+import {navigationRef} from '@utils/navigationService';
+import {
   openNotificationTarget,
   subscribeForegroundNotification,
 } from '@utils/notifications';
@@ -14,6 +19,9 @@ import {
 const AUTO_HIDE_MS = 3200;
 
 const normalizeType = data => {
+  if (isCompanionNotification(data)) {
+    return 'companion';
+  }
   const rawType = String(data?.type || data?.targetType || '').toUpperCase();
 
   if (rawType.includes('NOTICE')) {
@@ -45,7 +53,9 @@ const mapRemoteMessage = remoteMessage => {
   const data = remoteMessage?.data ?? {};
   const type = normalizeType(data);
   const title =
-    remoteMessage?.notification?.title || i18n.t('common.newNotifications');
+    remoteMessage?.notification?.title ||
+    data.title ||
+    i18n.t('common.newNotifications');
   const body =
     remoteMessage?.notification?.body ||
     data.body ||
@@ -75,17 +85,20 @@ const BannerBadge = ({type, status}) => {
   const isNotice = type === 'notice';
   const isCancelled = status === 'cancelled';
 
-  const label = isNotice
-    ? t('notification.notice')
-    : type === 'community'
-    ? t('common.community')
-    : type === 'partyReservation'
-    ? isCancelled
+  const label =
+    type === 'companion'
+      ? t('companion.title')
+      : isNotice
+      ? t('notification.notice')
+      : type === 'community'
+      ? t('common.community')
+      : type === 'partyReservation'
+      ? isCancelled
+        ? t('common.cancel')
+        : t('common.accompany')
+      : isCancelled
       ? t('common.cancel')
-      : t('common.accompany')
-    : isCancelled
-    ? t('common.cancel')
-    : t('common.reservation');
+      : t('common.reservation');
 
   const badgeStyle = isNotice
     ? styles.noticeBadge
@@ -133,6 +146,16 @@ export default function InAppNotificationBanner() {
 
   useEffect(() => {
     const unsubscribe = subscribeForegroundNotification(remoteMessage => {
+      const currentRoute = navigationRef.getCurrentRoute();
+      if (
+        companionNotificationValue(remoteMessage?.data, 'type') ===
+          'COMPANION_CHAT_MESSAGE' &&
+        currentRoute?.name === 'CompanionChat' &&
+        String(currentRoute.params?.roomId) ===
+          String(companionNotificationValue(remoteMessage.data, 'roomId'))
+      ) {
+        return;
+      }
       clearHideTimer();
       setMessage({
         remoteMessage,

@@ -1,3 +1,6 @@
+import {getSharedDetailUrl} from '@screens/_components/sharedDetailLink';
+import {API_BASE_URL} from '@env';
+import SharedDetailAppPrompt from '@screens/_components/SharedDetailAppPrompt';
 import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -21,12 +24,9 @@ import {COLORS} from '@constants/colors';
 import ImageModal from '@components/modals/ImageModal';
 import userGuesthouseApi from '@utils/api/userGuesthouseApi';
 import GuesthouseReview from '@screens/(Common)/BottomTabs/Guesthouse/GuesthouseReview';
-import {
-  guesthouseDetailDeeplink,
-  guesthouseDetailShareUrl,
-  copyDeeplinkToClipboard,
-} from '@utils/deeplinkGenerator';
+import {guesthouseDetailDeeplink} from '@utils/deeplinkGenerator';
 import ScreenSkeleton from './LoadingSkeleton';
+import EmptyState from '@components/EmptyState';
 import {genderOptions} from '@constants/guesthouseOptions';
 import DateGuestModal from '@components/modals/Guesthouse/DateGuestModal';
 import {toggleFavorite} from '@utils/toggleFavorite';
@@ -118,6 +118,9 @@ const GuesthouseDetail = ({route}) => {
   const {id, checkIn, checkOut, guestCount, isFromDeeplink, onLikeChange} =
     route.params;
   const [detail, setDetail] = useState(null);
+  const [loadedGuesthouseId, setLoadedGuesthouseId] = useState(null);
+  const [detailLoadFailed, setDetailLoadFailed] = useState(false);
+  const [detailRetry, setDetailRetry] = useState(0);
   const {
     pagerRef,
     isActive,
@@ -246,6 +249,8 @@ const GuesthouseDetail = ({route}) => {
 
   // 게하 상세 정보 불러오기
   useEffect(() => {
+    let mounted = true;
+    setDetailLoadFailed(false);
     const fetchDetail = async () => {
       try {
         const response = await userGuesthouseApi.getGuesthouseDetail({
@@ -254,6 +259,9 @@ const GuesthouseDetail = ({route}) => {
           checkOut,
           guestCount,
         });
+        if (!mounted) {
+          return;
+        }
         const data = response.data;
         setDetail({
           ...data,
@@ -262,16 +270,23 @@ const GuesthouseDetail = ({route}) => {
               ? data.isLiked
               : !!data.isFavorite,
         });
+        setLoadedGuesthouseId(String(id));
         prefetchGuesthouseImages(data.guesthouseImages);
         addRecentGuesthouse({...data, guesthouseId: id}).catch(error => {
           console.warn('최근 본 게하 저장 실패', error);
         });
       } catch (e) {
+        if (mounted) {
+          setDetailLoadFailed(true);
+        }
         console.warn('게스트하우스 상세 조회 실패', e);
       }
     };
     fetchDetail();
-  }, [checkIn, checkOut, guestCount, id]);
+    return () => {
+      mounted = false;
+    };
+  }, [checkIn, checkOut, guestCount, id, detailRetry]);
 
   const fetchDetailWith = async (ci, co, totalGuests) => {
     try {
@@ -333,25 +348,61 @@ const GuesthouseDetail = ({route}) => {
   };
 
   // 로딩처리
-  if (!detail) {
+  const hasCurrentDetail = detail && loadedGuesthouseId === String(id);
+
+  if (!hasCurrentDetail && detailLoadFailed) {
+    return (
+      <View style={{flex: 1}}>
+        <EmptyState
+          title={t('guesthouse.detailLoadFailed')}
+          description={t('share.detailLoadFailedDescription')}
+          buttonText={t('common.retry')}
+          onPressButton={() => setDetailRetry(value => value + 1)}
+        />
+        <ButtonWhite
+          title={t('common.home')}
+          onPress={() => navigation.navigate('MainTabs', {screen: '홈'})}
+        />
+      </View>
+    );
+  }
+
+  if (!hasCurrentDetail) {
     return <ScreenSkeleton layout={styles} title={t('guesthouse.loadingGuesthouse')} />;
   }
 
   //  공유 링크
-  const handleCopyLink = () => {
-    const shareUrl =
-      Platform.OS === 'web'
-        ? guesthouseDetailShareUrl(id)
-        : guesthouseDetailDeeplink(id);
-
-    copyDeeplinkToClipboard(shareUrl);
-
-    Toast.show({
-      type: 'success',
-      text1: t('common.copied'),
-      position: 'top',
-      visibilityTime: 2000,
+  const handleCopyLink = async () => {
+    const shareUrl = getSharedDetailUrl(WEB_ROUTES.GUESTHOUSE_DETAIL(id), {
+      apiBaseUrl: API_BASE_URL,
+      webOrigin: Platform.OS === 'web' ? window.location.origin : undefined,
     });
+
+    try {
+      if (Platform.OS === 'web') {
+        // The web clipboard stub silently skips copying when unavailable.
+        if (!window.navigator?.clipboard?.writeText) {
+          throw new Error('Clipboard unavailable');
+        }
+        await window.navigator.clipboard.writeText(shareUrl);
+      } else {
+        await Clipboard.setString(shareUrl);
+      }
+
+      Toast.show({
+        type: 'success',
+        text1: t('common.copied'),
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    } catch {
+      Toast.show({
+        type: 'error',
+        text1: t('common.anErrorOccurredPleaseTryAgain'),
+        position: 'top',
+        visibilityTime: 2000,
+      });
+    }
   };
 
   const handlePressAddress = () => {
@@ -592,6 +643,11 @@ const GuesthouseDetail = ({route}) => {
 
   return (
     <View style={{flex: 1}}>
+      <SharedDetailAppPrompt
+        key={String(id)}
+        deepLinkUrl={guesthouseDetailDeeplink(id)}
+        directEntry={Boolean(route.params?.webBackToHome)}
+      />
       <ScrollView
         style={styles.container}
         onScroll={handleDetailScroll}
