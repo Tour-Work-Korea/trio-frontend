@@ -95,11 +95,20 @@
         </intent-filter>
 
         <!-- 인앱 딥링크 -->
-        <intent-filter android:autoVerify="true">
+        <intent-filter>
             <action android:name="android.intent.action.VIEW" />
             <category android:name="android.intent.category.DEFAULT" />
             <category android:name="android.intent.category.BROWSABLE" />
             <data android:scheme="ddakji" />
+        </intent-filter>
+
+        <!-- Verified public detail links. Keep authentication/payment URLs on web. -->
+        <intent-filter android:autoVerify="true">
+            <action android:name="android.intent.action.VIEW" />
+            <category android:name="android.intent.category.DEFAULT" />
+            <category android:name="android.intent.category.BROWSABLE" />
+            <data android:scheme="https" android:host="ddakji.kr" android:pathPrefix="/guesthouses/" />
+            <data android:scheme="https" android:host="ddakji.kr" android:pathPrefix="/contents/" />
         </intent-filter>
       </activity>
 

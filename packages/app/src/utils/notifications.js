@@ -6,6 +6,12 @@ import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 import communityApi from '@utils/api/communityApi';
 import notificationApi from '@utils/api/notificationApi';
 import Toast from 'react-native-toast-message';
+import {chatGeneration} from '../features/companion/chatAuth';
+import {
+  companionLinkTarget,
+  isCompanionNotification,
+  resolveCompanionNotification,
+} from '../features/companion/notificationRouting';
 
 const foregroundListeners = new Set();
 
@@ -50,7 +56,9 @@ export const publishForegroundNotification = remoteMessage => {
 
 export const isUserNotification = notification => {
   const type = String(notification?.type || '').toUpperCase();
-  return USER_NOTIFICATION_TYPES.has(type);
+  return (
+    USER_NOTIFICATION_TYPES.has(type) || isCompanionNotification(notification)
+  );
 };
 
 const getQueryParam = (searchParams, keys) => {
@@ -291,7 +299,35 @@ const openDeeplinkTarget = (url, navigation) => {
   return false;
 };
 
-export const openNotificationTarget = async (notification, navigation) => {
+export const openNotificationTarget = async (
+  notification,
+  navigation,
+  {detailRead = false} = {},
+) => {
+  const chatLink = companionLinkTarget(
+    notification?.deeplink ||
+      notification?.deepLink ||
+      notification?.link ||
+      notification?.url,
+  );
+  if (isCompanionNotification(notification) || chatLink) {
+    if (!isLoggedInUser()) {
+      showLoginRequiredModal(undefined, navigation);
+      return;
+    }
+    const account = chatGeneration();
+    const detail = !detailRead
+      ? await fetchNotificationDetail(notification)
+      : notification;
+    if (account !== chatGeneration() || !isLoggedInUser()) {
+      return;
+    }
+    const target = await resolveCompanionNotification({...chatLink, ...detail});
+    if (account === chatGeneration() && isLoggedInUser()) {
+      navigateTo(navigation, target.name, target.params);
+    }
+    return;
+  }
   const initialType = String(
     getNestedFirstValue(notification, ['type', 'targetType']) || '',
   ).toUpperCase();

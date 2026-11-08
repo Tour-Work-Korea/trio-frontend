@@ -1,9 +1,20 @@
-import {companionEnabled} from '../../../features/companion/api';
+import {chatApi, companionEnabled} from '../../../features/companion/api';
 import CompanionIcon from '@assets/images/companion_orange.svg';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useState} from 'react';
-import {View, Text, TouchableOpacity, ScrollView, Platform} from 'react-native';
-import {useFocusEffect, useNavigation} from '@react-navigation/native';
+import {
+  AppState,
+  View,
+  Text,
+  TouchableOpacity,
+  ScrollView,
+  Platform,
+} from 'react-native';
+import {
+  useFocusEffect,
+  useIsFocused,
+  useNavigation,
+} from '@react-navigation/native';
 
 import ReservationCheckIcon from '@assets/images/user-reservation-check-icon.svg';
 import GuesthouseReviewIcon from '@assets/images/user-guesthouse-review-icon.svg';
@@ -14,6 +25,8 @@ import FavoriteMeetIcon from '@assets/images/user-favorite-meet-icon.svg';
 import RightArrow from '@assets/images/chevron_right_gray.svg';
 import SettingIcon from '@assets/images/settings_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
+import ChatIcon from '@assets/images/chat_bubbles_gray400.svg';
+import {SkeletonPulse, SkeletonBlock} from '../../_components/ContentSkeleton';
 import CommentIcon from '@assets/images/comment_black.svg';
 import CouponIcon from '@assets/images/coupon_black.svg';
 import PointIcon from '@assets/images/point_black.svg';
@@ -27,7 +40,11 @@ import userMyApi from '@utils/api/userMyApi';
 import notificationApi from '@utils/api/notificationApi';
 import userEmployApi from '@utils/api/userEmployApi';
 import userMeetApi from '@utils/api/userMeetApi';
-import {isUserNotification} from '@utils/notifications';
+import {
+  isUserNotification,
+  subscribeForegroundNotification,
+} from '@utils/notifications';
+import {isCompanionNotification} from '../../../features/companion/notificationRouting';
 import {formatNumber} from '@utils/localeFormat';
 
 const extractNotificationItems = data =>
@@ -48,6 +65,78 @@ const UserMyPage = () => {
   const [pointBalance, setPointBalance] = useState(0);
   const [unreadCount, setUnreadCount] = useState(0);
   const [favoriteCount, setFavoriteCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(null);
+  const focused = useIsFocused();
+  const token = useUserStore(state => state.accessToken);
+
+  useEffect(() => {
+    setChatUnreadCount(token ? null : 0);
+  }, [token]);
+
+  useEffect(() => {
+    if (!companionEnabled || !focused || !token) {
+      return;
+    }
+    let disposed = false;
+    let busy = false;
+    let appState = AppState.currentState;
+    const refresh = async () => {
+      if (disposed || busy || (appState && appState !== 'active')) {
+        return;
+      }
+      busy = true;
+      try {
+        const {data} = await chatApi.list();
+        if (!disposed) {
+          setChatUnreadCount(
+            (Array.isArray(data) ? data : []).reduce((total, room) => {
+              const count = Number(room.unreadCount);
+              return total + (Number.isFinite(count) ? Math.max(0, count) : 0);
+            }, 0),
+          );
+        }
+      } catch {
+        if (!disposed) {
+          setChatUnreadCount(previous => previous ?? 0);
+        }
+      } finally {
+        busy = false;
+      }
+    };
+    refresh();
+    const unsubscribeNotification = subscribeForegroundNotification(
+      async message => {
+        if (isCompanionNotification(message?.data)) {
+          refresh();
+        }
+        if (isUserNotification(message?.data)) {
+          try {
+            const {data} = await notificationApi.getMyNotifications(0, 100);
+            if (!disposed) {
+              setUnreadCount(
+                extractNotificationItems(data).filter(
+                  item => isUserNotification(item) && !item?.isRead,
+                ).length,
+              );
+            }
+          } catch {}
+        }
+      },
+    );
+    const timer = setInterval(refresh, 30000);
+    const subscription = AppState.addEventListener('change', nextState => {
+      appState = nextState;
+      if (nextState === 'active') {
+        refresh();
+      }
+    });
+    return () => {
+      disposed = true;
+      unsubscribeNotification();
+      clearInterval(timer);
+      subscription.remove();
+    };
+  }, [focused, token]);
 
   // 저장된 유저 프로필 호출
   const user = useUserStore(state => state.userProfile);
@@ -208,6 +297,45 @@ const UserMyPage = () => {
         <Text style={[FONTS.fs_20_semibold]}>{t('myPage.myPage')}</Text>
 
         <View style={styles.topBarRightIcons}>
+          {companionEnabled && (
+            <TouchableOpacity
+              style={styles.topBarIconButton}
+              accessibilityRole="button"
+              accessibilityLabel={
+                chatUnreadCount > 0
+                  ? t('companion.inbox.unreadLabel', {
+                      value: formatNumber(chatUnreadCount),
+                    })
+                  : t('companion.inbox')
+              }
+              onPress={() => navigation.navigate('CompanionInbox')}>
+              <ChatIcon width={24} height={24} />
+              {chatUnreadCount === null && token ? (
+                <SkeletonPulse
+                  decorative
+                  style={{position: 'absolute', top: -8, right: -10}}>
+                  <SkeletonBlock
+                    style={{width: 18, height: 18, borderRadius: 100}}
+                  />
+                </SkeletonPulse>
+              ) : chatUnreadCount > 0 ? (
+                <View
+                  pointerEvents="none"
+                  style={[
+                    styles.unreadBadge,
+                    {width: undefined, minWidth: 18, paddingHorizontal: 3},
+                  ]}>
+                  <Text style={styles.unreadBadgeText}>
+                    {chatUnreadCount > 99
+                      ? t('companion.inbox.countOverflow', {
+                          value: formatNumber(99),
+                        })
+                      : formatNumber(chatUnreadCount)}
+                  </Text>
+                </View>
+              ) : null}
+            </TouchableOpacity>
+          )}
           <TouchableOpacity
             activeOpacity={1}
             style={styles.topBarIconButton}

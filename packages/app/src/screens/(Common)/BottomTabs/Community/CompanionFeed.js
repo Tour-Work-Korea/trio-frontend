@@ -11,6 +11,7 @@ import {useTranslation} from 'react-i18next';
 import {useFocusEffect, useNavigation} from '@react-navigation/native';
 import AdaptiveText from '@components/AdaptiveText';
 import AppImage from '@components/AppImage';
+import Avatar from '@components/Avatar';
 import {COLORS as C} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
 import {
@@ -56,22 +57,31 @@ const locationLabel = (item, t) => {
 };
 
 export const FeedProfile = React.memo(function FeedProfile({uri}) {
-  // Track completion by URL instead of resetting loading in an effect: cached
-  // images can finish before that effect and otherwise get covered indefinitely.
+  const {t} = useTranslation();
+  const imageUri =
+    typeof uri === 'string' && uri.trim() && uri !== t('common.pleaseAddAPhoto')
+      ? uri
+      : null;
+  // Track completion by URL so cached images cannot leave the skeleton visible.
   const [settledUri, setSettledUri] = useState(null);
-  const loading = Boolean(uri) && settledUri !== uri;
+  const [failedUri, setFailedUri] = useState(null);
+  const loading = Boolean(imageUri) && settledUri !== imageUri;
+  if (!imageUri || failedUri === imageUri) {
+    return <Avatar size={30} iconSize={16} style={s.avatar} />;
+  }
   return (
     <View style={s.avatar}>
-      {!!uri && (
-        <AppImage
-          key={uri}
-          uri={uri}
-          style={[s.image, loading && {opacity: 0}]}
-          onLoad={() => setSettledUri(uri)}
-          onLoadEnd={() => setSettledUri(uri)}
-          onError={() => setSettledUri(uri)}
-        />
-      )}
+      <AppImage
+        key={imageUri}
+        uri={imageUri}
+        style={[s.image, loading && {opacity: 0}]}
+        onLoad={() => setSettledUri(imageUri)}
+        onLoadEnd={() => setSettledUri(imageUri)}
+        onError={() => {
+          setSettledUri(imageUri);
+          setFailedUri(imageUri);
+        }}
+      />
       {loading && (
         <SkeletonPulse decorative style={s.cover}>
           <SkeletonBlock style={{width: 30, height: 30, borderRadius: 15}} />

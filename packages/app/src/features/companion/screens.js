@@ -1,3 +1,10 @@
+import {
+  RecoveryScreen as Screen,
+  RecoveryBody as ResourceBody,
+  useCompanionBack,
+  useCompanionNavigation,
+  replaceCompanionScreen,
+} from './recovery';
 import React, {useEffect, useMemo, useRef, useState} from 'react';
 import {
   ActivityIndicator,
@@ -11,11 +18,14 @@ import {
   ScrollView,
   TextInput,
   TouchableOpacity,
+  TouchableWithoutFeedback,
   View,
 } from 'react-native';
 import {useTranslation} from 'react-i18next';
 import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {chatGeneration} from './chatAuth';
+import {isCompanionNotification} from './notificationRouting';
+import {subscribeForegroundNotification} from '@utils/notifications';
 import {launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
 import Modal from '@components/modals/AdaptiveModal';
@@ -28,6 +38,7 @@ import communityStyles from '../../screens/(Common)/BottomTabs/Community/Communi
 import {CompanionPost, CompanionPostInfo} from './communityPost';
 import {loadCompanionFeedPage} from './communityFeed';
 import {MyCompanionCard} from './myCompanionUi';
+import ChatSkeleton from './chatSkeleton';
 import {postSchedule} from './communityPost';
 import useUserStore from '@stores/userStore';
 import {COLORS as C} from '@constants/colors';
@@ -69,8 +80,6 @@ import {
   LoginGate,
   Meta,
   Person,
-  ResourceBody,
-  Screen,
   Status,
   Title,
   Txt,
@@ -85,7 +94,8 @@ const goCompanions = navigation =>
     screen: '커뮤니티',
     params: {tab: 'COMPANION'},
   });
-export function ChatEntry({navigation, label}) {
+export function ChatEntry({navigation: screenNavigation, label}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const focused = useIsFocused();
   const token = useUserStore(state => state.accessToken);
@@ -120,6 +130,11 @@ export function ChatEntry({navigation, label}) {
       }
     };
     refresh();
+    const unsubscribeNotification = subscribeForegroundNotification(message => {
+      if (isCompanionNotification(message?.data)) {
+        refresh();
+      }
+    });
     const timer = setInterval(refresh, 30000);
     const subscription = AppState.addEventListener('change', nextState => {
       appState = nextState;
@@ -129,6 +144,7 @@ export function ChatEntry({navigation, label}) {
     });
     return () => {
       disposed = true;
+      unsubscribeNotification();
       clearInterval(timer);
       subscription.remove();
     };
@@ -160,7 +176,7 @@ export function ChatEntry({navigation, label}) {
 }
 export function CompanionList({isActive = true, selectedSort = 'LATEST'}) {
   const {t} = useTranslation();
-  const navigation = useNavigation();
+  const navigation = useCompanionNavigation(useNavigation());
   const [page, setPage] = useState(0);
   const [items, setItems] = useState([]);
   const advancing = useRef(false);
@@ -260,7 +276,8 @@ export function CompanionList({isActive = true, selectedSort = 'LATEST'}) {
   );
 }
 
-export function CompanionDetail({navigation, route}) {
+export function CompanionDetail({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const id = route.params?.companionId;
   const feedback = useFeedback();
@@ -282,7 +299,7 @@ export function CompanionDetail({navigation, route}) {
     }
     task.run(`inquire:${id}`, key => companionApi.inquire(id, key), openChat);
   };
-  if (!item || resource.error) {
+  if (!item) {
     return (
       <Screen title={t('companion.title')}>
         <ResourceBody resource={resource} />
@@ -377,7 +394,9 @@ function CompanionWriteField({label, style, ...props}) {
     </View>
   );
 }
-export function CompanionWrite({navigation, route}) {
+export function CompanionWrite({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
+  const leave = useCompanionBack({hardware: false});
   const {t} = useTranslation();
   const keyboardContainer = useRef(null);
   const formScroll = useRef(null);
@@ -432,9 +451,10 @@ export function CompanionWrite({navigation, route}) {
     }
     return kstDate(dateKey(new Date()));
   }, [dateField, draft.startDate]);
+  const calendarDate = draft[dateField];
   const calendarValue = useMemo(
-    () => (draft[dateField] ? kstDate(draft[dateField]) : calendarMinDate),
-    [dateField, draft.startDate, draft.endDate, calendarMinDate],
+    () => (calendarDate ? kstDate(calendarDate) : calendarMinDate),
+    [calendarDate, calendarMinDate],
   );
   const {i18n} = useTranslation();
   // 당분간 동행 글쓰기만 제공하므로 카테고리 조회와 선택 상태를 보관합니다.
@@ -660,10 +680,10 @@ export function CompanionWrite({navigation, route}) {
         t('companion.discardTitle'),
         t('companion.discardBody'),
         t('companion.discard'),
-        () => navigation.goBack(),
+        leave,
       );
     } else {
-      navigation.goBack();
+      leave();
     }
   };
   return (
@@ -678,50 +698,58 @@ export function CompanionWrite({navigation, route}) {
           );
         }
       }}>
-      <KeyboardAvoidingView
-        style={{flex: 1}}
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={keyboardOffset}>
-        <Screen
-          title={t(editing ? 'companion.edit' : 'companion.writeHeader')}
-          onBack={back}
-          footer={
-            <Action
-              style={{
-                marginTop: -1,
-                marginBottom: Platform.OS === 'ios' ? 20 : 0,
-              }}
-              label={t(
-                step === 1
-                  ? 'common.next'
-                  : editing
-                  ? 'companion.save'
-                  : 'companion.publish',
-              )}
-              disabled={
-                !(step === 1 ? firstStepValid : completeValid) ||
-                task.busy ||
-                !editReady ||
-                !companionEnabled ||
-                !useUserStore.getState().accessToken
-              }
-              onPress={step === 1 ? next : () => submit()}
-            />
-          }>
-          <LoginGate navigation={navigation}>
-            <ScrollView
-              ref={formScroll}
-              style={{flex: 1}}
-              keyboardDismissMode="interactive"
-              keyboardShouldPersistTaps="handled"
-              contentContainerStyle={{
-                paddingHorizontal: 20,
-                paddingTop: 8,
-                paddingBottom: 24,
-                gap: 14,
-                flexGrow: 1,
-              }}>
-              {/* 당분간 동행 글쓰기만 제공하므로 카테고리 선택을 숨깁니다.
+      <TouchableWithoutFeedback onPress={Keyboard.dismiss} accessible={false}>
+        <KeyboardAvoidingView
+          style={{flex: 1}}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          keyboardVerticalOffset={keyboardOffset}>
+          <Screen
+            title={t(editing ? 'companion.edit' : 'companion.writeHeader')}
+            onBack={back}
+            footer={
+              <Action
+                style={{
+                  marginTop: -1,
+                  marginBottom: Platform.OS === 'ios' ? 20 : 0,
+                }}
+                label={t(
+                  step === 1
+                    ? 'common.next'
+                    : editing
+                    ? 'companion.save'
+                    : 'companion.publish',
+                )}
+                disabled={
+                  !(step === 1 ? firstStepValid : completeValid) ||
+                  task.busy ||
+                  !editReady ||
+                  !companionEnabled ||
+                  !useUserStore.getState().accessToken
+                }
+                onPress={() => {
+                  Keyboard.dismiss();
+                  if (step === 1) {
+                    next();
+                  } else {
+                    submit();
+                  }
+                }}
+              />
+            }>
+            <LoginGate navigation={navigation}>
+              <ScrollView
+                ref={formScroll}
+                style={{flex: 1}}
+                keyboardDismissMode="interactive"
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={{
+                  paddingHorizontal: 20,
+                  paddingTop: 8,
+                  paddingBottom: 24,
+                  gap: 14,
+                  flexGrow: 1,
+                }}>
+                {/* 당분간 동행 글쓰기만 제공하므로 카테고리 선택을 숨깁니다.
               <View style={[writeStyles.categoryWrapper, {marginBottom: 16}]}>
                 <TouchableOpacity
                   style={writeStyles.categoryButton}
@@ -764,391 +792,406 @@ export function CompanionWrite({navigation, route}) {
                 )}
               </View>
               */}
-              <View style={s.between}>
-                <Txt style={s.orange}>
-                  {t(
-                    step === 1
-                      ? 'companion.stepSchedule'
-                      : 'companion.stepIntro',
-                  )}
-                </Txt>
-                <Txt style={s.small}>{t('companion.stepValue', {step})}</Txt>
-              </View>
-              <View
-                style={{
-                  height: 3,
-                  borderRadius: 3,
-                  overflow: 'hidden',
-                  backgroundColor: C.grayscale_200,
-                }}>
+                <View style={s.between}>
+                  <Txt style={s.orange}>
+                    {t(
+                      step === 1
+                        ? 'companion.stepSchedule'
+                        : 'companion.stepIntro',
+                    )}
+                  </Txt>
+                  <Txt style={s.small}>{t('companion.stepValue', {step})}</Txt>
+                </View>
                 <View
                   style={{
                     height: 3,
-                    width: step === 1 ? '50%' : '100%',
-                    backgroundColor: C.primary_orange,
-                  }}
-                />
-              </View>
-              {step === 1 ? (
-                <>
-                  <CompanionWriteField
-                    onFocus={focusInput}
-                    style={{
-                      borderRadius: 24,
-                      minHeight: 48,
-                      paddingVertical: 10,
-                    }}
-                    label={t('companion.titleLabel')}
-                    value={draft.title}
-                    onChangeText={value => set('title', value)}
-                    maxLength={120}
-                    editable={!task.busy && !transaction.current}
-                    placeholder={t('companion.titlePlaceholder')}
-                  />
-                  <Txt>{t('companion.activityLabel')}</Txt>
+                    borderRadius: 3,
+                    overflow: 'hidden',
+                    backgroundColor: C.grayscale_200,
+                  }}>
                   <View
-                    style={{flexDirection: 'row', flexWrap: 'wrap', gap: 8}}>
-                    {ACTIVITIES.map(activity => (
+                    style={{
+                      height: 3,
+                      width: step === 1 ? '50%' : '100%',
+                      backgroundColor: C.primary_orange,
+                    }}
+                  />
+                </View>
+                {step === 1 ? (
+                  <>
+                    <CompanionWriteField
+                      onFocus={focusInput}
+                      style={{
+                        borderRadius: 24,
+                        minHeight: 48,
+                        paddingVertical: 10,
+                      }}
+                      label={t('companion.titleLabel')}
+                      value={draft.title}
+                      onChangeText={value => set('title', value)}
+                      maxLength={120}
+                      editable={!task.busy && !transaction.current}
+                      placeholder={t('companion.titlePlaceholder')}
+                    />
+                    <Txt>{t('companion.activityLabel')}</Txt>
+                    <View
+                      style={{flexDirection: 'row', flexWrap: 'wrap', gap: 8}}>
+                      {ACTIVITIES.map(activity => (
+                        <TouchableOpacity
+                          key={activity}
+                          accessibilityRole="button"
+                          accessibilityState={{
+                            selected: draft.activityType === activity,
+                          }}
+                          disabled={
+                            !!editing?.confirmedCount ||
+                            task.busy ||
+                            !!transaction.current
+                          }
+                          onPress={() => {
+                            Keyboard.dismiss();
+                            set('activityType', activity);
+                          }}
+                          style={{
+                            borderRadius: 100,
+                            paddingHorizontal: 12,
+                            paddingVertical: 10,
+                            backgroundColor:
+                              draft.activityType === activity
+                                ? C.primary_orange
+                                : C.grayscale_100,
+                          }}>
+                          <Txt
+                            style={{
+                              ...FONTS.fs_14_regular,
+                              color:
+                                draft.activityType === activity
+                                  ? C.grayscale_0
+                                  : C.grayscale_900,
+                            }}>
+                            {t(`companion.activity.${activity}`)}
+                          </Txt>
+                        </TouchableOpacity>
+                      ))}
+                    </View>
+                    <Txt>{t('companion.regionLabel')}</Txt>
+                    <View style={{position: 'relative', zIndex: 1}}>
                       <TouchableOpacity
-                        key={activity}
                         accessibilityRole="button"
-                        accessibilityState={{
-                          selected: draft.activityType === activity,
-                        }}
+                        accessibilityLabel={t('companion.regionLabel')}
                         disabled={
                           !!editing?.confirmedCount ||
                           task.busy ||
                           !!transaction.current
                         }
-                        onPress={() => set('activityType', activity)}
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          setRegionOpen(value => !value);
+                        }}
                         style={{
-                          borderRadius: 100,
-                          paddingHorizontal: 12,
-                          paddingVertical: 10,
-                          backgroundColor:
-                            draft.activityType === activity
-                              ? C.primary_orange
-                              : C.grayscale_100,
-                        }}>
-                        <Txt
-                          style={{
-                            ...FONTS.fs_14_regular,
-                            color:
-                              draft.activityType === activity
-                                ? C.grayscale_0
-                                : C.grayscale_900,
-                          }}>
-                          {t(`companion.activity.${activity}`)}
-                        </Txt>
-                      </TouchableOpacity>
-                    ))}
-                  </View>
-                  <Txt>{t('companion.regionLabel')}</Txt>
-                  <View style={{position: 'relative', zIndex: 1}}>
-                    <TouchableOpacity
-                      accessibilityRole="button"
-                      accessibilityLabel={t('companion.regionLabel')}
-                      disabled={
-                        !!editing?.confirmedCount ||
-                        task.busy ||
-                        !!transaction.current
-                      }
-                      onPress={() => setRegionOpen(value => !value)}
-                      style={{
-                        borderWidth: 1,
-                        borderColor: C.grayscale_200,
-                        borderRadius: 24,
-                        minHeight: 48,
-                        paddingHorizontal: 14,
-                        flexDirection: 'row',
-                        alignItems: 'center',
-                        gap: 8,
-                      }}>
-                      <Txt style={s.grow}>
-                        {draft.regionCode
-                          ? t(`companion.region.${draft.regionCode}`)
-                          : t('companion.regionSelect')}
-                      </Txt>
-                      <DownIcon width={20} height={20} />
-                    </TouchableOpacity>
-                    {regionOpen && (
-                      <View
-                        style={{
-                          position: 'absolute',
-                          top: 52,
-                          left: 0,
-                          right: 0,
-                          backgroundColor: C.grayscale_0,
                           borderWidth: 1,
                           borderColor: C.grayscale_200,
-                          borderRadius: 16,
-                          paddingVertical: 8,
-                          elevation: 4,
+                          borderRadius: 24,
+                          minHeight: 48,
+                          paddingHorizontal: 14,
+                          flexDirection: 'row',
+                          alignItems: 'center',
+                          gap: 8,
                         }}>
-                        {REGIONS.map(region => (
-                          <TouchableOpacity
-                            key={region}
-                            accessibilityRole="button"
-                            accessibilityState={{
-                              selected: draft.regionCode === region,
-                            }}
-                            onPress={() => {
-                              set('regionCode', region);
-                              setRegionOpen(false);
-                            }}
-                            style={{
-                              paddingHorizontal: 14,
-                              paddingVertical: 12,
-                            }}>
-                            <Txt
-                              style={draft.regionCode === region && s.orange}>
-                              {t(`companion.region.${region}`)}
-                            </Txt>
-                          </TouchableOpacity>
-                        ))}
-                      </View>
-                    )}
-                  </View>
-                  <View style={{position: 'relative'}}>
-                    <CompanionWriteField
-                      onFocus={focusInput}
-                      label={t('companion.placeLabel')}
-                      placeholder={t('companion.placePlaceholder')}
-                      value={draft.meetingPlace}
-                      maxLength={255}
-                      style={{
-                        borderRadius: 24,
-                        minHeight: 48,
-                        paddingVertical: 12,
-                        paddingRight: 40,
-                      }}
-                      editable={!task.busy && !transaction.current}
-                      onChangeText={value => set('meetingPlace', value)}
-                    />
-                    <View
-                      pointerEvents="none"
-                      style={{position: 'absolute', right: 14, bottom: 12}}>
-                      <PlaceOrangeIcon width={20} height={20} />
-                    </View>
-                  </View>
-                  <Txt>{t('companion.dateLabel')}</Txt>
-                  <View style={s.row}>
-                    {['startDate', 'endDate'].map(key => (
-                      <View style={s.grow} key={key}>
-                        <TouchableOpacity
-                          accessibilityRole="button"
-                          accessibilityLabel={t(`companion.${key}`)}
-                          style={{
-                            borderWidth: 1,
-                            borderColor: C.grayscale_200,
-                            borderRadius: 24,
-                            minHeight: 48,
-                            justifyContent: 'center',
-                            paddingHorizontal: 14,
-                          }}
-                          disabled={
-                            !!editing || task.busy || !!transaction.current
-                          }
-                          onPress={() => {
-                            Keyboard.dismiss();
-                            setDateField(key);
-                          }}>
-                          <Txt>
-                            {draft[key]
-                              ? i18n.resolvedLanguage?.startsWith('ko')
-                                ? draft[key].replace(/-/g, '. ')
-                                : formatDate(kstDate(draft[key]), {
-                                    timeZone: 'Asia/Seoul',
-                                    year: 'numeric',
-                                    month: '2-digit',
-                                    day: '2-digit',
-                                  })
-                              : t(`companion.${key}`)}
-                          </Txt>
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                  </View>
-                  {!!editing && (
-                    <Txt style={s.small}>{t('companion.dateLocked')}</Txt>
-                  )}
-                  <Txt>{t('companion.capacityLabel')}</Txt>
-                  <View style={s.between}>
-                    <TouchableOpacity
-                      disabled={
-                        draft.capacity <=
-                          Math.max(1, editing?.confirmedCount || 0) ||
-                        task.busy ||
-                        !!transaction.current
-                      }
-                      onPress={() => set('capacity', draft.capacity - 1)}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderWidth: 1,
-                        borderColor: C.grayscale_200,
-                        borderRadius: 8,
-                      }}
-                      accessibilityLabel={t('companion.decrease')}>
-                      <MinusIcon width={24} height={24} />
-                    </TouchableOpacity>
-                    <Title>
-                      {countText(t, 'companion.people', draft.capacity)}
-                    </Title>
-                    <TouchableOpacity
-                      disabled={
-                        draft.capacity >= 100 ||
-                        task.busy ||
-                        !!transaction.current
-                      }
-                      onPress={() => set('capacity', draft.capacity + 1)}
-                      style={{
-                        width: 44,
-                        height: 44,
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderWidth: 1,
-                        borderColor: C.grayscale_200,
-                        borderRadius: 8,
-                      }}
-                      accessibilityLabel={t('companion.increase')}>
-                      <PlusIcon width={24} height={24} />
-                    </TouchableOpacity>
-                  </View>
-                  {!!editing?.confirmedCount && (
-                    <Txt style={s.small}>{t('companion.acceptedEditRule')}</Txt>
-                  )}
-                </>
-              ) : (
-                <>
-                  <CompanionWriteField
-                    onFocus={focusInput}
-                    style={{height: 180, minHeight: 180, borderRadius: 24}}
-                    label={t('companion.descriptionLabel')}
-                    placeholder={t('companion.descriptionPlaceholder')}
-                    value={draft.description}
-                    onChangeText={value => set('description', value)}
-                    maxLength={1000}
-                    multiline
-                    editable={!task.busy && !transaction.current}
-                  />
-                  <Txt style={s.small}>{t('companion.descriptionHelp')}</Txt>
-                  <Txt>{t('companion.photosLabel')}</Txt>
-                  <View style={s.wrap}>
-                    {images.map((image, index) => (
-                      <View key={image.uri} style={{width: 84, height: 84}}>
-                        <AppImage
-                          uri={image.uri}
-                          style={{width: 84, height: 84, borderRadius: 8}}
-                        />
-                        <TouchableOpacity
-                          accessibilityLabel={t('companion.removePhoto', {
-                            index: index + 1,
-                          })}
-                          disabled={task.busy || !!transaction.current}
-                          onPress={() =>
-                            setImages(previous =>
-                              previous.filter(
-                                (_, position) => position !== index,
-                              ),
-                            )
-                          }
+                        <Txt style={s.grow}>
+                          {draft.regionCode
+                            ? t(`companion.region.${draft.regionCode}`)
+                            : t('companion.regionSelect')}
+                        </Txt>
+                        <DownIcon width={20} height={20} />
+                      </TouchableOpacity>
+                      {regionOpen && (
+                        <View
                           style={{
                             position: 'absolute',
+                            top: 52,
+                            left: 0,
                             right: 0,
-                            top: 0,
                             backgroundColor: C.grayscale_0,
-                            borderRadius: 12,
+                            borderWidth: 1,
+                            borderColor: C.grayscale_200,
+                            borderRadius: 16,
+                            paddingVertical: 8,
+                            elevation: 4,
                           }}>
-                          <CloseIcon width={24} height={24} />
-                        </TouchableOpacity>
-                      </View>
-                    ))}
-                    {images.length < 5 && (
-                      <TouchableOpacity
+                          {REGIONS.map(region => (
+                            <TouchableOpacity
+                              key={region}
+                              accessibilityRole="button"
+                              accessibilityState={{
+                                selected: draft.regionCode === region,
+                              }}
+                              onPress={() => {
+                                set('regionCode', region);
+                                setRegionOpen(false);
+                              }}
+                              style={{
+                                paddingHorizontal: 14,
+                                paddingVertical: 12,
+                              }}>
+                              <Txt
+                                style={draft.regionCode === region && s.orange}>
+                                {t(`companion.region.${region}`)}
+                              </Txt>
+                            </TouchableOpacity>
+                          ))}
+                        </View>
+                      )}
+                    </View>
+                    <View style={{position: 'relative'}}>
+                      <CompanionWriteField
+                        onFocus={focusInput}
+                        label={t('companion.placeLabel')}
+                        placeholder={t('companion.placePlaceholder')}
+                        value={draft.meetingPlace}
+                        maxLength={255}
                         style={{
-                          width: 70,
-                          height: 70,
-                          borderWidth: 1,
-                          borderColor: C.grayscale_200,
-                          borderRadius: 12,
-                          backgroundColor: C.grayscale_100,
+                          borderRadius: 24,
+                          minHeight: 48,
+                          paddingVertical: 12,
+                          paddingRight: 40,
+                        }}
+                        editable={!task.busy && !transaction.current}
+                        onChangeText={value => set('meetingPlace', value)}
+                      />
+                      <View
+                        pointerEvents="none"
+                        style={{position: 'absolute', right: 14, bottom: 12}}>
+                        <PlaceOrangeIcon width={20} height={20} />
+                      </View>
+                    </View>
+                    <Txt>{t('companion.dateLabel')}</Txt>
+                    <View style={s.row}>
+                      {['startDate', 'endDate'].map(key => (
+                        <View style={s.grow} key={key}>
+                          <TouchableOpacity
+                            accessibilityRole="button"
+                            accessibilityLabel={t(`companion.${key}`)}
+                            style={{
+                              borderWidth: 1,
+                              borderColor: C.grayscale_200,
+                              borderRadius: 24,
+                              minHeight: 48,
+                              justifyContent: 'center',
+                              paddingHorizontal: 14,
+                            }}
+                            disabled={
+                              !!editing || task.busy || !!transaction.current
+                            }
+                            onPress={() => {
+                              Keyboard.dismiss();
+                              setDateField(key);
+                            }}>
+                            <Txt>
+                              {draft[key]
+                                ? i18n.resolvedLanguage?.startsWith('ko')
+                                  ? draft[key].replace(/-/g, '. ')
+                                  : formatDate(kstDate(draft[key]), {
+                                      timeZone: 'Asia/Seoul',
+                                      year: 'numeric',
+                                      month: '2-digit',
+                                      day: '2-digit',
+                                    })
+                                : t(`companion.${key}`)}
+                            </Txt>
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                    </View>
+                    {!!editing && (
+                      <Txt style={s.small}>{t('companion.dateLocked')}</Txt>
+                    )}
+                    <Txt>{t('companion.capacityLabel')}</Txt>
+                    <View style={s.between}>
+                      <TouchableOpacity
+                        disabled={
+                          draft.capacity <=
+                            Math.max(1, editing?.confirmedCount || 0) ||
+                          task.busy ||
+                          !!transaction.current
+                        }
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          set('capacity', draft.capacity - 1);
+                        }}
+                        style={{
+                          width: 44,
+                          height: 44,
                           alignItems: 'center',
                           justifyContent: 'center',
-                          gap: 4,
+                          borderWidth: 1,
+                          borderColor: C.grayscale_200,
+                          borderRadius: 8,
                         }}
-                        onPress={addImages}
-                        disabled={task.busy || !!transaction.current}
-                        accessibilityLabel={t('companion.addPhoto')}>
-                        <PlusIcon width={24} height={24} />
-                        <Txt style={s.small}>
-                          {t('companion.photoCount', {count: images.length})}
-                        </Txt>
+                        accessibilityLabel={t('companion.decrease')}>
+                        <MinusIcon width={24} height={24} />
                       </TouchableOpacity>
+                      <Title>
+                        {countText(t, 'companion.people', draft.capacity)}
+                      </Title>
+                      <TouchableOpacity
+                        disabled={
+                          draft.capacity >= 100 ||
+                          task.busy ||
+                          !!transaction.current
+                        }
+                        onPress={() => {
+                          Keyboard.dismiss();
+                          set('capacity', draft.capacity + 1);
+                        }}
+                        style={{
+                          width: 44,
+                          height: 44,
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          borderWidth: 1,
+                          borderColor: C.grayscale_200,
+                          borderRadius: 8,
+                        }}
+                        accessibilityLabel={t('companion.increase')}>
+                        <PlusIcon width={24} height={24} />
+                      </TouchableOpacity>
+                    </View>
+                    {!!editing?.confirmedCount && (
+                      <Txt style={s.small}>
+                        {t('companion.acceptedEditRule')}
+                      </Txt>
                     )}
-                  </View>
-                  <Txt style={s.small}>{t('companion.photosHelp')}</Txt>
-                  {transaction.current && (
-                    <Txt style={s.small}>{t('companion.publishRetry')}</Txt>
-                  )}
-                </>
-              )}
-            </ScrollView>
-          </LoginGate>
-          <Modal
-            visible={!!dateField}
-            transparent
-            onRequestClose={() => setDateField(null)}>
-            <View
-              style={{
-                flex: 1,
-                justifyContent: 'center',
-                padding: 20,
-                backgroundColor: C.modal_background,
-              }}>
-              <TouchableOpacity
-                accessibilityRole="button"
-                accessibilityLabel={t('common.close')}
-                onPress={() => setDateField(null)}
+                  </>
+                ) : (
+                  <>
+                    <CompanionWriteField
+                      onFocus={focusInput}
+                      style={{height: 180, minHeight: 180, borderRadius: 24}}
+                      label={t('companion.descriptionLabel')}
+                      placeholder={t('companion.descriptionPlaceholder')}
+                      value={draft.description}
+                      onChangeText={value => set('description', value)}
+                      maxLength={1000}
+                      multiline
+                      editable={!task.busy && !transaction.current}
+                    />
+                    <Txt style={s.small}>{t('companion.descriptionHelp')}</Txt>
+                    <Txt>{t('companion.photosLabel')}</Txt>
+                    <View style={s.wrap}>
+                      {images.map((image, index) => (
+                        <View key={image.uri} style={{width: 84, height: 84}}>
+                          <AppImage
+                            uri={image.uri}
+                            style={{width: 84, height: 84, borderRadius: 8}}
+                          />
+                          <TouchableOpacity
+                            accessibilityLabel={t('companion.removePhoto', {
+                              index: index + 1,
+                            })}
+                            disabled={task.busy || !!transaction.current}
+                            onPress={() =>
+                              setImages(previous =>
+                                previous.filter(
+                                  (_, position) => position !== index,
+                                ),
+                              )
+                            }
+                            style={{
+                              position: 'absolute',
+                              right: 0,
+                              top: 0,
+                              backgroundColor: C.grayscale_0,
+                              borderRadius: 12,
+                            }}>
+                            <CloseIcon width={24} height={24} />
+                          </TouchableOpacity>
+                        </View>
+                      ))}
+                      {images.length < 5 && (
+                        <TouchableOpacity
+                          style={{
+                            width: 70,
+                            height: 70,
+                            borderWidth: 1,
+                            borderColor: C.grayscale_200,
+                            borderRadius: 12,
+                            backgroundColor: C.grayscale_100,
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: 4,
+                          }}
+                          onPress={addImages}
+                          disabled={task.busy || !!transaction.current}
+                          accessibilityLabel={t('companion.addPhoto')}>
+                          <PlusIcon width={24} height={24} />
+                          <Txt style={s.small}>
+                            {t('companion.photoCount', {count: images.length})}
+                          </Txt>
+                        </TouchableOpacity>
+                      )}
+                    </View>
+                    <Txt style={s.small}>{t('companion.photosHelp')}</Txt>
+                    {transaction.current && (
+                      <Txt style={s.small}>{t('companion.publishRetry')}</Txt>
+                    )}
+                  </>
+                )}
+              </ScrollView>
+            </LoginGate>
+            <Modal
+              visible={!!dateField}
+              transparent
+              onRequestClose={() => setDateField(null)}>
+              <View
                 style={{
-                  alignSelf: 'flex-end',
-                  width: 44,
-                  height: 44,
-                  borderRadius: 22,
-                  backgroundColor: C.grayscale_0,
-                  alignItems: 'center',
+                  flex: 1,
                   justifyContent: 'center',
-                  marginBottom: 8,
+                  padding: 20,
+                  backgroundColor: C.modal_background,
                 }}>
-                <CloseIcon width={24} height={24} />
-              </TouchableOpacity>
-              {!!dateField && (
-                <DatePicker
-                  key={dateField}
-                  label={t(`companion.${dateField}`)}
-                  value={calendarValue}
-                  minDate={calendarMinDate}
-                  onChange={date => {
-                    const value = dateKey(date);
-                    setDraft(previous => ({
-                      ...previous,
-                      [dateField]: value,
-                      ...(dateField === 'startDate' &&
-                      (!previous.endDate || previous.endDate < value)
-                        ? {endDate: value}
-                        : {}),
-                    }));
-                    setDateField(null);
-                  }}
-                />
-              )}
-            </View>
-          </Modal>
-          {feedback.modal}
-        </Screen>
-      </KeyboardAvoidingView>
+                <TouchableOpacity
+                  accessibilityRole="button"
+                  accessibilityLabel={t('common.close')}
+                  onPress={() => setDateField(null)}
+                  style={{
+                    alignSelf: 'flex-end',
+                    width: 44,
+                    height: 44,
+                    borderRadius: 22,
+                    backgroundColor: C.grayscale_0,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 8,
+                  }}>
+                  <CloseIcon width={24} height={24} />
+                </TouchableOpacity>
+                {!!dateField && (
+                  <DatePicker
+                    key={dateField}
+                    label={t(`companion.${dateField}`)}
+                    value={calendarValue}
+                    minDate={calendarMinDate}
+                    onChange={date => {
+                      const value = dateKey(date);
+                      setDraft(previous => ({
+                        ...previous,
+                        [dateField]: value,
+                        ...(dateField === 'startDate' &&
+                        (!previous.endDate || previous.endDate < value)
+                          ? {endDate: value}
+                          : {}),
+                      }));
+                      setDateField(null);
+                    }}
+                  />
+                )}
+              </View>
+            </Modal>
+            {feedback.modal}
+          </Screen>
+        </KeyboardAvoidingView>
+      </TouchableWithoutFeedback>
     </View>
   );
 }
@@ -1173,7 +1216,8 @@ async function loadMyManagement(id) {
   };
 }
 
-export function MyCompanions({navigation}) {
+export function MyCompanions({navigation: screenNavigation}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const [role, setRole] = useState('ORGANIZER');
   const [page, setPage] = useState(0);
@@ -1233,7 +1277,7 @@ export function MyCompanions({navigation}) {
   return (
     <Screen title={t('companion.my')}>
       <LoginGate navigation={navigation}>
-        <View style={[s.wrap, {paddingHorizontal: 20}]}>
+        <View style={[s.wrap, {paddingHorizontal: 20, paddingBottom: 8}]}>
           {['ORGANIZER', 'PARTICIPANT'].map(value => (
             <Chip
               key={value}
@@ -1371,7 +1415,8 @@ export function MyCompanions({navigation}) {
   );
 }
 
-export function CompanionManage({navigation, route}) {
+export function CompanionManage({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const id = route.params?.companionId;
   const inquiryMode = route.params?.mode === 'inquiries';
@@ -1721,7 +1766,8 @@ export function CompanionManage({navigation, route}) {
   );
 }
 
-export function CompanionChatAccess({navigation, route}) {
+export function CompanionChatAccess({navigation: screenNavigation, route}) {
+  const navigation = useCompanionNavigation(screenNavigation);
   const {t} = useTranslation();
   const id = route.params?.companionId;
   const focused = useIsFocused();
@@ -1729,8 +1775,10 @@ export function CompanionChatAccess({navigation, route}) {
   const userId = useUserStore(value => value.userProfile?.userId);
   const [active, setActive] = useState(AppState.currentState === 'active');
   useEffect(() => {
-    const update = state => setActive(state === 'active' &&
-      (Platform.OS !== 'web' || !document.hidden));
+    const update = state =>
+      setActive(
+        state === 'active' && (Platform.OS !== 'web' || !document.hidden),
+      );
     const subscription = AppState.addEventListener('change', update);
     const visibility = () => update('active');
     if (Platform.OS === 'web') {
@@ -1745,6 +1793,7 @@ export function CompanionChatAccess({navigation, route}) {
     };
   }, []);
   const [state, setState] = useState('PENDING');
+  const [checkingAccess, setCheckingAccess] = useState(true);
   const [attempt, setAttempt] = useState(0);
   const [error, setError] = useState(null);
   useEffect(() => {
@@ -1766,7 +1815,7 @@ export function CompanionChatAccess({navigation, route}) {
         }
         const roomId = roomForAccess(access.data, detail.data);
         if (roomId) {
-          navigation.replace('CompanionChat', {
+          replaceCompanionScreen(navigation, 'CompanionChat', {
             roomId,
             companionId: id,
             mayRejoin: detail.data.status === 'CLOSED',
@@ -1774,6 +1823,7 @@ export function CompanionChatAccess({navigation, route}) {
           return;
         }
         setState(access.data.status);
+        setCheckingAccess(false);
         if (access.data.status === 'PENDING' && count++ < 8) {
           timer = setTimeout(check, Math.min(1000 * 1.5 ** count, 8000));
         } else if (access.data.status === 'PENDING') {
@@ -1782,6 +1832,7 @@ export function CompanionChatAccess({navigation, route}) {
       } catch (cause) {
         if (!stopped && generation === chatGeneration()) {
           setError(cause);
+          setCheckingAccess(false);
         }
       }
     }
@@ -1791,6 +1842,13 @@ export function CompanionChatAccess({navigation, route}) {
       clearTimeout(timer);
     };
   }, [id, attempt, navigation, focused, active, token, userId]);
+  if (checkingAccess && !error) {
+    return (
+      <Screen title={t('companion.chat')}>
+        <ChatSkeleton />
+      </Screen>
+    );
+  }
   return (
     <Screen title={t('companion.chat')}>
       <View style={s.empty}>
@@ -1804,6 +1862,7 @@ export function CompanionChatAccess({navigation, route}) {
           label={t('companion.retry')}
           onPress={() => {
             setError(null);
+            setCheckingAccess(true);
             setState('PENDING');
             setAttempt(value => value + 1);
           }}
@@ -1812,7 +1871,7 @@ export function CompanionChatAccess({navigation, route}) {
           secondary
           style={{width: '100%', maxWidth: 360}}
           label={t('companion.inbox')}
-          onPress={() => navigation.replace('CompanionInbox')}
+          onPress={() => replaceCompanionScreen(navigation, 'CompanionInbox')}
         />
       </View>
     </Screen>

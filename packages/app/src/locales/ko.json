@@ -1764,5 +1764,19 @@
   "community.feed.daysShort": "{{value}}d",
   "companion.card.like": "좋아요",
   "companion.card.unlike": "좋아요 취소",
-  "companion.card.writeComment": "댓글 작성"
+  "companion.card.writeComment": "댓글 작성",
+  "companion.chatSearch.placeholder": "대화내용 검색",
+  "companion.chatSearch.position": "{{current}} / {{count}}",
+  "companion.chatSearch.hint": "검색어를 입력해 주세요.",
+  "companion.chatSearch.older": "이전 검색 결과",
+  "companion.chatSearch.newer": "다음 검색 결과",
+  "companion.chatPhoto.cameraPermission": "사진을 촬영하려면 설정에서 카메라 접근을 허용해 주세요.",
+  "companion.chatPhoto.pickerFailed": "사진을 가져오지 못했어요. 다시 시도해 주세요.",
+  "companion.chatPhoto.uploading": "사진을 준비하고 있어요.",
+  "share.openDetailTitle": "어디에서 볼까요?",
+  "share.viewInApp": "앱으로 보기",
+  "share.continueOnWeb": "웹으로 계속 보기",
+  "guesthouse.detailLoadFailed": "숙소 정보를 불러오지 못했어요",
+  "meet.detailLoadFailed": "콘텐츠 정보를 불러오지 못했어요",
+  "share.detailLoadFailedDescription": "삭제되었거나 일시적으로 확인할 수 없어요. 다시 시도해 주세요."
 }

@@ -5,6 +5,7 @@ import React, {useEffect, useMemo, useState} from 'react';
 import {View, Text, TouchableOpacity, StyleSheet} from 'react-native';
 import LeftChevron from '@assets/images/chevron_left_gray.svg';
 import RightChevron from '@assets/images/chevron_right_gray.svg';
+import {formatDate, getLocaleTag} from '@utils/localeFormat';
 
 const DOW_KEYS = [
   'common.work',
@@ -36,8 +37,11 @@ export default function DatePicker({
   const {t} = useTranslation();
   const dayNames = DOW_KEYS.map(key => t(key));
   const dayHeaders = [...dayNames.slice(1), dayNames[0]];
+  const korean = getLocaleTag() === 'ko-KR';
   const formatSelected = d =>
-    `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}(${dayNames[d.getDay()]})`;
+    korean
+      ? `${pad2(d.getMonth() + 1)}.${pad2(d.getDate())}(${dayNames[d.getDay()]})`
+      : formatDate(d, {month: 'short', day: 'numeric', weekday: 'short'});
   const resolvedLabel = label ?? t('common.date');
   const [current, setCurrent] = useState(value ?? new Date()); // 현재 달
   const [selected, setSelected] = useState(value ?? null);
@@ -52,6 +56,7 @@ export default function DatePicker({
   const today = useMemo(() => new Date(), []);
   const year = current.getFullYear();
   const month = current.getMonth(); // 0~11
+  const monthLabel = formatDate(current, {year: 'numeric', month: 'long'});
 
   const startOfMonth = new Date(year, month, 1);
   const endOfMonth = new Date(year, month + 1, 0);
@@ -171,10 +176,7 @@ export default function DatePicker({
           <LeftChevron width={24} />
         </TouchableOpacity>
         <Text style={[styles.monthTitle, theme.monthTitle]}>
-          {year}
-          {t('common.year')}
-          {month + 1}
-          {t('common.month')}
+          {korean ? monthLabel.replace(/\s/g, '') : monthLabel}
         </Text>
         <TouchableOpacity
           onPress={goNext}

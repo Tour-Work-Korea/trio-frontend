@@ -2,6 +2,10 @@ import React from 'react';
 import {TouchableOpacity, View} from 'react-native';
 import {useTranslation} from 'react-i18next';
 import Avatar from '@components/Avatar';
+import {
+  SkeletonPulse,
+  SkeletonBlock,
+} from '../../screens/_components/ContentSkeleton';
 import {COLORS as C} from '@constants/colors';
 import {formatDate, formatNumber} from '@utils/localeFormat';
 import {dateKey, displayTime, kstDate} from './model';
@@ -37,29 +41,59 @@ export function InboxRoom({room, onPress}) {
         paddingVertical: 20,
       }}>
       <View style={{width: 52, height: 52, justifyContent: 'center'}}>
-        <Avatar
-          size={group ? 36 : 48}
-          style={
-            group && {
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              backgroundColor: C.secondary_blue,
-            }
-          }
-        />
-        {group && (
-          <Avatar
-            size={34}
-            style={{
-              position: 'absolute',
-              right: 0,
-              bottom: 0,
-              backgroundColor: C.secondary_orange,
-              borderWidth: 2,
-              borderColor: C.grayscale_0,
-            }}
-          />
+        {room.avatarsLoading ? (
+          <SkeletonPulse decorative style={{width: 52, height: 52}}>
+            <SkeletonBlock
+              style={{
+                width: group ? 36 : 48,
+                height: group ? 36 : 48,
+                borderRadius: 24,
+              }}
+            />
+            {group && (
+              <SkeletonBlock
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 0,
+                  width: 34,
+                  height: 34,
+                  borderRadius: 17,
+                  borderWidth: 2,
+                  borderColor: C.grayscale_0,
+                }}
+              />
+            )}
+          </SkeletonPulse>
+        ) : (
+          <>
+            <Avatar
+              uri={room.avatarProfiles?.[0]?.profileImageUrl}
+              size={group ? 36 : 48}
+              style={
+                group && {
+                  position: 'absolute',
+                  top: 0,
+                  left: 0,
+                  backgroundColor: C.secondary_blue,
+                }
+              }
+            />
+            {group && (
+              <Avatar
+                uri={room.avatarProfiles?.[1]?.profileImageUrl}
+                size={34}
+                style={{
+                  position: 'absolute',
+                  right: 0,
+                  bottom: 0,
+                  backgroundColor: C.secondary_orange,
+                  borderWidth: 2,
+                  borderColor: C.grayscale_0,
+                }}
+              />
+            )}
+          </>
         )}
       </View>
       <View style={{flex: 1, minWidth: 0, gap: 6}}>

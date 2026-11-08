@@ -140,18 +140,45 @@ const getBridgeHtml = ({deepLinkUrl, storeUrl}) => {
       (function () {
         var deepLinkUrl = ${deepLinkJson};
         var storeUrl = ${storeUrlJson};
-        var openedAt = Date.now();
-
-        setTimeout(function () {
-          if (document.visibilityState === 'hidden') {
+        var appOpened = false;
+        var fallbackTimer;
+        function stopFallback() {
+          appOpened = true;
+          clearTimeout(fallbackTimer);
+          document.removeEventListener('visibilitychange', onVisibilityChange);
+          window.removeEventListener('pagehide', stopFallback);
+          window.removeEventListener('blur', pauseFallback);
+          window.removeEventListener('focus', scheduleFallback);
+        }
+        function onVisibilityChange() {
+          if (document.visibilityState === 'hidden') stopFallback();
+        }
+        function pauseFallback() {
+          clearTimeout(fallbackTimer);
+        }
+        function scheduleFallback() {
+          pauseFallback();
+          if (appOpened) {
             return;
           }
-
-          if (Date.now() - openedAt >= ${FALLBACK_DELAY_MS - 100}) {
-            window.location.replace(storeUrl);
-          }
-        }, ${FALLBACK_DELAY_MS});
-
+          var scheduledAt = Date.now();
+          fallbackTimer = setTimeout(function () {
+            // Safari can suspend timers while its native open-app dialog is up.
+            // Give visibility events time to arrive after the dialog is dismissed.
+            if (Date.now() - scheduledAt > ${FALLBACK_DELAY_MS} + 300) {
+              scheduleFallback();
+              return;
+            }
+            if (!appOpened && document.visibilityState !== 'hidden') {
+              window.location.replace(storeUrl);
+            }
+          }, ${FALLBACK_DELAY_MS});
+        }
+        document.addEventListener('visibilitychange', onVisibilityChange);
+        window.addEventListener('pagehide', stopFallback);
+        window.addEventListener('blur', pauseFallback);
+        window.addEventListener('focus', scheduleFallback);
+        scheduleFallback();
         window.location.href = deepLinkUrl;
       })();
     </script>
@@ -159,21 +186,57 @@ const getBridgeHtml = ({deepLinkUrl, storeUrl}) => {
 </html>`;
 };
 
-export const openAppOrStoreFromWeb = deepLinkUrl => {
+export const openAppOrStoreFromWeb = (deepLinkUrl, {sameWindow = false} = {}) => {
   if (Platform.OS !== 'web' || !deepLinkUrl) {
     return false;
   }
 
   const storeUrl = getStoreUrlForWebDevice() || IOS_STORE_URL;
-  const targetWindow = window.open('', '_blank');
+  const targetWindow = sameWindow ? null : window.open('', '_blank');
 
   if (!targetWindow) {
-    window.location.href = deepLinkUrl;
-    window.setTimeout(() => {
-      if (document.visibilityState !== 'hidden') {
-        window.location.href = storeUrl;
+    let appOpened = false;
+    let fallbackTimer;
+    const cleanup = () => {
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', stopFallback);
+      window.removeEventListener('blur', pauseFallback);
+      window.removeEventListener('focus', scheduleFallback);
+    };
+    const stopFallback = () => {
+      appOpened = true;
+      window.clearTimeout(fallbackTimer);
+      cleanup();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        stopFallback();
       }
-    }, FALLBACK_DELAY_MS);
+    };
+    const pauseFallback = () => window.clearTimeout(fallbackTimer);
+    const scheduleFallback = () => {
+      pauseFallback();
+      if (appOpened) {
+        return;
+      }
+      const scheduledAt = Date.now();
+      fallbackTimer = window.setTimeout(() => {
+        if (Date.now() - scheduledAt > FALLBACK_DELAY_MS + 300) {
+          scheduleFallback();
+          return;
+        }
+        cleanup();
+        if (!appOpened && document.visibilityState !== 'hidden') {
+          window.location.href = storeUrl;
+        }
+      }, FALLBACK_DELAY_MS);
+    };
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', stopFallback);
+    window.addEventListener('blur', pauseFallback);
+    window.addEventListener('focus', scheduleFallback);
+    scheduleFallback();
+    window.location.href = deepLinkUrl;
     return true;
   }
 

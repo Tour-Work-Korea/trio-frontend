@@ -127,6 +127,7 @@ function AppContent() {
     };
 
     const handleNotificationTap = async remoteMessage => {
+      await bootstrapped;
       await waitForNavReady();
       await openNotificationTarget(remoteMessage.data || {});
     };
@@ -148,7 +149,7 @@ function AppContent() {
       }
     };
 
-    bootstrap().catch(error => {
+    const bootstrapped = bootstrap().catch(error => {
       recordStartupError('app bootstrap', error);
     });
 

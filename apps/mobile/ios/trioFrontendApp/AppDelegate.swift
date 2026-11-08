@@ -48,6 +48,19 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     // React Native에게 딥링크 전달
     return RCTLinkingManager.application(app, open: url, options: options)
   }
+
+  // Forward Universal Links for both running and newly launched app flows.
+  func application(
+    _ application: UIApplication,
+    continue userActivity: NSUserActivity,
+    restorationHandler: @escaping ([UIUserActivityRestoring]?) -> Void
+  ) -> Bool {
+    return RCTLinkingManager.application(
+      application,
+      continue: userActivity,
+      restorationHandler: restorationHandler
+    )
+  }
 }
 
 class ReactNativeDelegate: RCTDefaultReactNativeFactoryDelegate {

@@ -7,31 +7,94 @@ import {FONTS} from '@constants/fonts';
 import GuesthouseCancelledIcon from '@assets/images/noti_guesthouse_cancelled.svg';
 import GuesthouseConfirmedIcon from '@assets/images/noti_guesthouse_confirmed.svg';
 import CommentIcon from '@assets/images/noti_comment.svg';
+import ChatIcon from '@assets/images/chat_bubbles_blue.svg';
+import ApplicationIcon from '@assets/images/person_orange.svg';
+import AcceptedIcon from '@assets/images/chat_bubbles_orange.svg';
+import CancelledIcon from '@assets/images/person20_gray.svg';
+import NoticeIcon from '@assets/images/notice_bubble_orange.svg';
+import SystemIcon from '@assets/images/chat_bubbles_gray400.svg';
+import {
+  SkeletonPulse,
+  SkeletonBlock,
+} from '../../../_components/ContentSkeleton';
 import PartyCancelledIcon from '@assets/images/noti_party_cancelled.svg';
 import PartyConfirmedIcon from '@assets/images/noti_party_confirmed.svg';
 
 import styles from './NotificationCenter.styles';
 
+const companionIcons = {
+  COMPANION_APPLICATION_NEW: ApplicationIcon,
+  COMPANION_APPLICATION_ACCEPTED: AcceptedIcon,
+  COMPANION_APPLICATION_REJECTED: SystemIcon,
+  COMPANION_CLOSED: SystemIcon,
+  COMPANION_APPLICATION_CANCELLED: CancelledIcon,
+  COMPANION_GROUP_READY: ChatIcon,
+  COMPANION_CHAT_MESSAGE: ChatIcon,
+  COMPANION_CHAT_NOTICE: NoticeIcon,
+  COMPANION_CHAT_SYSTEM: SystemIcon,
+};
+
 const renderLeadingIcon = item => {
   const isCancelled = item.status === 'cancelled';
   const isParty = item.type === 'partyReservation';
   const isCommunity = item.type === 'community';
-  const Icon = isCommunity
-    ? CommentIcon
-    : isParty
-    ? isCancelled
-      ? PartyCancelledIcon
-      : PartyConfirmedIcon
-    : isCancelled
-    ? GuesthouseCancelledIcon
-    : GuesthouseConfirmedIcon;
+  const Icon =
+    item.type === 'companion'
+      ? companionIcons[item.rawItem?.type] || ChatIcon
+      : isCommunity
+      ? CommentIcon
+      : isParty
+      ? isCancelled
+        ? PartyCancelledIcon
+        : PartyConfirmedIcon
+      : isCancelled
+      ? GuesthouseCancelledIcon
+      : GuesthouseConfirmedIcon;
 
   return (
     <View style={styles.iconWrap}>
-      <Icon width={24} height={24} />
+      <Icon
+        width={Icon === NoticeIcon ? 29 : 24}
+        height={Icon === NoticeIcon ? 29 : 24}
+      />
     </View>
   );
 };
+
+export function NotificationListSkeleton() {
+  const {t} = useTranslation();
+  return (
+    <SkeletonPulse title={t('companion.loading')} style={styles.listContainer}>
+      {[0, 1, 2, 3].map(index => (
+        <View key={index} style={styles.notificationItem}>
+          <SkeletonBlock
+            style={{
+              width: 24,
+              height: 24,
+              borderRadius: 6,
+              marginRight: 16,
+              marginTop: 2,
+            }}
+          />
+          <View style={[styles.notificationContent, {gap: 8}]}>
+            <SkeletonBlock
+              style={{width: '75%', height: 22, borderRadius: 4}}
+            />
+            <SkeletonBlock
+              style={{width: '95%', height: 16, borderRadius: 4}}
+            />
+            <SkeletonBlock
+              style={{width: '65%', height: 16, borderRadius: 4}}
+            />
+            <SkeletonBlock
+              style={{width: 72, height: 12, borderRadius: 4, marginTop: 6}}
+            />
+          </View>
+        </View>
+      ))}
+    </SkeletonPulse>
+  );
+}
 
 const NotificationList = ({items = [], onPressItem}) => {
   const {t} = useTranslation();

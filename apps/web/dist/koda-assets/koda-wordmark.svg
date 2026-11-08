@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="132" height="50" viewBox="0 0 264 100" role="img" aria-labelledby="title">
+  <title id="title">KODA CLUB · Language Exchange</title>
+  <g fill="#20211f">
+    <path d="M4 0h15v35c9 0 14-5 20-12l5-6h18L45 38c-2 2-4 4-7 5 8 3 11 9 15 13 4 5 8 6 15 6v13c-14 0-22-5-28-14-6-9-11-13-21-13v27H4Z" transform="translate(0 -6)"/>
+    <path fill-rule="evenodd" d="M91 16c19 0 32 11 32 27s-13 27-32 27S59 59 59 43s13-27 32-27Zm0 13c-10 0-17 6-17 14s7 14 17 14 17-6 17-14-7-14-17-14Z"/>
+    <path fill-rule="evenodd" d="M168 0h15v69h-14v-6c-5 5-12 7-20 7-17 0-29-11-29-27s12-27 29-27c8 0 14 2 19 6V0Zm-16 29c-10 0-17 6-17 14s7 14 17 14 17-6 17-14-7-14-17-14Z"/>
+    <path fill-rule="evenodd" d="M218 16c8 0 15 3 20 8v-7h15v52h-15v-6c-5 5-12 7-20 7-17 0-29-11-29-27s12-27 29-27Zm3 13c-10 0-17 6-17 14s7 14 17 14 17-6 17-14-7-14-17-14Z"/>
+    <path d="M177 48c5 8 10 10 20 9l1 12c-12 2-22-1-29-8Z"/>
+  </g>
+  <text x="129" y="96" text-anchor="middle" fill="#20211f" font-family="Arial, sans-serif" font-size="19" font-weight="500" letter-spacing="1.4">LANGUAGE EXCHANGE</text>
+</svg>
