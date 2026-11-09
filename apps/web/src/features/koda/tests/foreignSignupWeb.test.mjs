@@ -25,16 +25,19 @@ test('nationality options have unique ISO values with localized visible country 
   assert.equal(en.find(item => item.code === 'US').name, 'United States');
   assert.equal(countryOptions('ko').find(item => item.code === 'KR').name, '대한민국');
 });
-test('English profile inputs retain edits and submit selected ISO nationality through the existing signup contract', async () => {
+for (const scenario of ['automatic', 'missing-credential', 'login-failed']) {
+test(`English signup preserves fields and continues without another registration: ${scenario}`, async () => {
   const temp = await mkdtemp(path.join(os.tmpdir(), 'koda-foreign-signup-'));
   const previousAct = globalThis.IS_REACT_ACT_ENVIRONMENT;
   globalThis.IS_REACT_ACT_ENVIRONMENT = true;
-  globalThis.__foreignSignupTest = {payload: null, nickname: null};
+  const previousWindow = globalThis.window;
+  globalThis.__foreignSignupTest = {payload: null, nickname: null, scenario, signups: 0, logins: 0};
+  globalThis.window = {sessionStorage: {getItem: () => JSON.stringify({target:'/koda/event/?id=party-3982&lang=en',createdAt:Date.now()})}, location: {replace: target => {globalThis.__foreignSignupTest.returnedTo = target;}}};
   let tree;
   try {
     const outfile = path.join(temp, 'screen.cjs');
     await build({
-      entryPoints: [new URL('../components/ForeignRegisterProfileWeb.jsx', import.meta.url).pathname],
+      stdin: {contents: `export {default} from ${JSON.stringify(new URL('../components/ForeignRegisterProfileWeb.jsx', import.meta.url).pathname)}; export {signupCredential} from ${JSON.stringify(new URL('../auth/signupCredential.js', import.meta.url).pathname)};`,resolveDir:process.cwd(),loader:'js'},
       outfile, bundle: true, platform: 'node', format: 'cjs', logLevel: 'silent',
       plugins: [{name: 'screen-boundaries', setup(builder) {
         builder.onResolve({filter: /^react$/}, () => ({path: require.resolve('react'), external: true}));
@@ -45,11 +48,11 @@ test('English profile inputs retain edits and submit selected ISO nationality th
           let contents;
           if (name === 'react-native') contents = `export const Keyboard={dismiss(){}}; export const ScrollView='ScrollView',Text='Text',TextInput='TextInput',TouchableOpacity='TouchableOpacity',View='View';`;
           else if (name === 'react-i18next') contents = `export const useTranslation=()=>({t:key=>'English:'+key,i18n:{language:'en'}});`;
-          else if (name === '@react-navigation/native') contents = `export const useNavigation=()=>({replace(){},navigate(){}});`;
+          else if (name === '@react-navigation/native') contents = `export const useNavigation=()=>({replace:(...args)=>{globalThis.__foreignSignupTest.navigation=args},navigate(){}});`;
           else if (name === '@data/agree') contents = `export const userRegisterAgrees=[{id:'TERMS_OF_SERVICE',isRequired:true,isAgree:false},{id:'MARKETING_NOTIFICATION',isRequired:false,isAgree:false}];`;
-          else if (name === '@utils/api/authApi') contents = `export default {checkNickname:async name=>{globalThis.__foreignSignupTest.nickname=name;return {data:'Available'}},completeForeignSocialSignUp:async payload=>{globalThis.__foreignSignupTest.payload=payload;return {data:{accessToken:'test',refreshToken:'test'}}}};`;
-          else if (name === '@utils/auth/login') contents = `export const storeLoginTokens=async()=>{};`;
-          else if (name === '@utils/auth/lastLoginProvider') contents = `export const storeLastLoginProvider=async()=>{};`;
+          else if (name === '@utils/api/authApi') contents = `export default {checkNickname:async name=>{globalThis.__foreignSignupTest.nickname=name;return {data:'Available'}},completeForeignSocialSignUp:async payload=>{globalThis.__foreignSignupTest.payload=payload;globalThis.__foreignSignupTest.signups++;return {data:{accessToken:'native-test',refreshToken:'native-test'}}},loginGoogle:async credential=>{const state=globalThis.__foreignSignupTest;state.logins++;state.credential=credential;if(state.scenario==='login-failed')throw new Error('login unavailable');return {data:{isNewUser:false,status:'LINKED',session:{role:'USER',email:'signup@example.test'}}}}};`;
+          else if (name === '@utils/auth/login') contents = `export const storeWebSessionInfo=async data=>{globalThis.__foreignSignupTest.session=data};`;
+          else if (name === '@utils/auth/lastLoginProvider') contents = `export const storeLastLoginProvider=async()=>{throw new Error('optional preference unavailable')};`;
           else if (name === '@constants/colors') contents = `export const COLORS={};`;
           else if (name.includes('ForeignRegisterProfile.styles')) contents = `export default {};`;
           else if (name === '@components/ButtonScarlet') contents = `export default 'ButtonScarlet';`;
@@ -58,7 +61,8 @@ test('English profile inputs retain edits and submit selected ISO nationality th
         });
       }}],
     });
-    const Screen = require(outfile).default;
+    const {default: Screen, signupCredential} = require(outfile);
+    if (scenario !== 'missing-credential') signupCredential.remember('test-signup', 'google-test-credential');
     await act(async () => {tree = Renderer.create(React.createElement(Screen, {route:{params:{provider:'GOOGLE',socialSignupToken:'test-signup'}}}));});
     const inputs = () => tree.root.findAllByType('TextInput');
     await act(async () => {
@@ -80,14 +84,38 @@ test('English profile inputs retain edits and submit selected ISO nationality th
     await press('auth.agreeToAll');
     const submit = tree.root.findByType('ButtonScarlet');
     assert.equal(submit.props.disabled, false);
-    await act(async () => {await submit.props.onPress();});
+    const register = submit.props.onPress;
+    await act(async () => {await register();});
     const payload=globalThis.__foreignSignupTest.payload;
     assert.deepEqual([payload.name,payload.nickname,payload.birthday,payload.gender,payload.nationalityCountryCode,payload.preferredLanguage], ['Haneul','Sky123','1995-05-20','F','US','EN']);
     assert.equal(payload.socialSignupToken, 'test-signup');
+    const state=globalThis.__foreignSignupTest;
+    assert.equal(payload.credential, undefined);
+    assert.equal(state.signups, 1);
+    assert.equal(state.logins, scenario === 'missing-credential' ? 0 : 1);
+    if (scenario === 'automatic') {
+      assert.equal(state.session.role, 'USER');
+      assert.equal(state.session.accessToken, undefined);
+      assert.equal(state.returnedTo, '/koda/event/?id=party-3982&lang=en');
+    } else {
+      assert.equal(state.session, undefined);
+      assert.equal(tree.root.findAllByType('TextInput').length, 0);
+      const next=tree.root.findByType('ButtonScarlet');
+      assert.equal(next.props.title, 'Continue with Google');
+      await act(async()=>next.props.onPress());
+      assert.deepEqual(state.navigation, ['SocialLogin',{provider:'GOOGLE',koda:true}]);
+    }
+    await act(async()=>register());
+    assert.equal(state.signups, 1, 'successful account creation is never repeated');
+    assert.equal(signupCredential.take('test-signup'), null);
+
   } finally {
     if (tree) await act(async()=>tree.unmount());
     globalThis.IS_REACT_ACT_ENVIRONMENT = previousAct;
+    globalThis.window = previousWindow;
     delete globalThis.__foreignSignupTest;
     await rm(temp,{recursive:true,force:true});
   }
 });
+
+}
