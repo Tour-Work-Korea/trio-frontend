@@ -26,6 +26,8 @@ test('shared auth, fallback, reservation dependencies, configs and mixed changes
     'apps/web/src/features/koda/auth/reservationBack.js',
     'apps/web/src/features/koda/services/liveEventModel.js',
     'apps/web/src/features/koda/components/KodaReservationHeader.jsx',
+    'apps/web/src/features/koda/components/ForeignRegisterProfileWeb.jsx',
+    'apps/web/src/features/koda/data/countryOptions.js',
     'apps/web/src/features/koda/hosting/hostedEntry.jsx',
     'apps/web/src/features/koda/styles/koda-hosted.css',
   ])
