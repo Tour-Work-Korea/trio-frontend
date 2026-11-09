@@ -8,6 +8,7 @@ export const eventCatalog = {
   reviews,
   events: [itaewon, chickenChat, halloween],
   gallery: [
+    ...halloween.gallery,
     {
       src: '/koda-assets/media/hongdae-chicken-chat.jpg',
       caption: {

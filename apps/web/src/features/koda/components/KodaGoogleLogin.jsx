@@ -1,3 +1,4 @@
+/* global globalThis */
 import React, {useEffect, useRef, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import useLocaleStore from '@stores/localeStore';
@@ -111,8 +112,7 @@ export default function KodaGoogleLogin() {
               } catch {
                 /* Optional preference. */
               }
-              if (active)
-                navigation.reset({index: 0, routes: [{name: 'MainTabs'}]});
+              if (active) window.location.replace(destination);
             } catch {
               if (active)
                 setError(
@@ -149,7 +149,7 @@ export default function KodaGoogleLogin() {
     return () => {
       active = false;
     };
-  }, [attempt, ko, navigation]);
+  }, [attempt, ko, navigation, destination]);
 
   return (
     <main className="le-google-page">

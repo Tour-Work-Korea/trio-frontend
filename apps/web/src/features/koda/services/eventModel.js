@@ -1,3 +1,6 @@
+import {englishAdmissionPrices} from '../data/englishAdmissionPrices.js';
+import {englishEventCopy} from '../data/englishEventCopy.js';
+
 // The API contract is provisional. Keep server DTO adaptation here, outside UI.
 const languages = ['ko', 'en'];
 const timeZone = 'Asia/Seoul';
@@ -102,7 +105,7 @@ function schedule(startsAt, endsAt) {
   return {date, time};
 }
 
-function priceLabel(pricing) {
+function priceLabel(pricing, eventId) {
   if (!pricing) return localized({ko: '추후 안내', en: 'To be announced'});
   if (
     !Number.isFinite(pricing.amount) ||
@@ -114,22 +117,67 @@ function priceLabel(pricing) {
     );
   }
   // Optional display-only legacy copy. Never use it to construct a payment.
-  if (pricing.displayLabel) return localized(pricing.displayLabel);
-  return Object.fromEntries(
-    languages.map(language => [
-      language,
-      language === 'ko' && pricing.currency === 'KRW'
-        ? `${new Intl.NumberFormat('ko').format(pricing.amount)}원`
-        : new Intl.NumberFormat(language, {
-            style: 'currency',
-            currency: pricing.currency,
-          }).format(pricing.amount),
-    ]),
+  const labels = pricing.displayLabel
+    ? localized(pricing.displayLabel)
+    : Object.fromEntries(
+        languages.map(language => [
+          language,
+          language === 'ko' && pricing.currency === 'KRW'
+            ? `${new Intl.NumberFormat('ko').format(pricing.amount)}원`
+            : new Intl.NumberFormat(language, {
+                style: 'currency',
+                currency: pricing.currency,
+              }).format(pricing.amount),
+        ]),
+      );
+  const englishPrice = englishAdmissionPrices[eventId];
+  if (englishPrice && pricing.currency === 'KRW') {
+    const matchingRate = [englishPrice.earlyBird, englishPrice].find(
+      rate => rate && rate.krwAmount === pricing.amount,
+    );
+    labels.en =
+      matchingRate
+        ? `$${matchingRate.usdAmount} USD`
+        : 'USD price to be confirmed';
+  }
+  return labels;
+}
+
+function paypalDiscounts(record) {
+  const rates = englishAdmissionPrices[record.id];
+  if (
+    record.pricing?.currency !== 'KRW' ||
+    record.pricing.amount !== rates?.krwAmount
+  )
+    return [];
+  return (rates.discounts || []).filter(rate =>
+    record.pricing.options?.some(
+      option => option.id === rate.optionId && option.amount === rate.krwAmount,
+    ),
   );
 }
 
 export function toEventViewModel(record) {
-  const title = localized(record?.title);
+  const rates = englishAdmissionPrices[record?.id];
+  const earlyBird = record?.pricing?.currency === 'KRW' &&
+    rates?.earlyBird && record.pricing.amount === rates.earlyBird.krwAmount
+    ? {startsAt: rates.earlyBird.startsAt, endsAt: rates.earlyBird.endsAt, regularPrice: {ko: `${new Intl.NumberFormat('ko').format(rates.krwAmount)}원`, en: `$${rates.usdAmount} USD`}}
+    : null;
+  const translations = englishEventCopy[record?.id];
+  const localize = value => {
+    const result = localized(value);
+    const translation = translations?.[result.ko] ||
+      (earlyBird && translations?.[result.ko.replace('- 참가비: 15,000원', '- 참가비: 20,000원')]);
+    if (translation && (typeof value === 'string' || !value?.en)) {
+      result.en = translation.replace(
+        '{admissionPrice}',
+        priceLabel(record.pricing, record.id).en,
+      ).replace('Standard admission:', 'Admission:');
+      if (earlyBird) result.ko = result.ko.replace('- 참가비: 20,000원', '- 참가비: 15,000원');
+    }
+    return result;
+  };
+  const title = localize(record?.title);
   if (
     !record ||
     typeof record.id !== 'string' ||
@@ -152,34 +200,40 @@ export function toEventViewModel(record) {
     path: eventHref(record.id),
     title,
     intro: localized(record.intro),
-    organizer: localized(record.organizer),
+    organizer: localize(record.organizer),
     edition: typeof record.edition === 'string' ? record.edition : '',
     startsAt: record.startsAt,
     endsAt: record.endsAt,
     ...schedule(record.startsAt, record.endsAt),
-    cover,
+    cover: cover ? {...cover, alt: localize(record.cover.alt)} : null,
     poster: cover?.url || '',
     posterAlt: cover?.alt.ko || title.ko,
-    venue: localized(record.location?.name, '—'),
+    venue: record.location?.name
+      ? localize(record.location.name)
+      : localized('—'),
     address: localized(record.location?.address),
     mapUrl: optionalUrl(record.location?.mapUrl),
-    price: priceLabel(record.pricing),
+    price: priceLabel(record.pricing, record.id),
+    earlyBird,
+    paypalDiscounts: paypalDiscounts(record),
     priceNote: localized(record.pricing?.note),
-    about: textList(record.about),
+    about: (Array.isArray(record.about) ? record.about : [])
+      .map(localize)
+      .filter(value => value.ko || value.en),
     introduction: (Array.isArray(record.introduction)
       ? record.introduction
       : []
     )
       .map(item => ({
-        title: localized(item.title),
-        description: localized(item.description),
+        title: localize(item.title),
+        description: localize(item.description),
         images: normalizeGallery(item.images),
       }))
       .filter(
         item => item.title.ko || item.description.ko || item.images.length,
       ),
     program: textList(record.program?.steps),
-    programDescription: localized(record.program?.description),
+    programDescription: localize(record.program?.description),
     programImage,
     faqs: (Array.isArray(record.faqs) ? record.faqs : [])
       .map(faq => ({
