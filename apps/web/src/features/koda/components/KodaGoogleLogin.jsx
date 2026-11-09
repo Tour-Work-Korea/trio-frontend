@@ -9,6 +9,7 @@ import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import KodaLogo from './KodaLogo';
 import {readAuthReturn} from '../auth/authReturn';
 import {googleAuthOutcome} from '../auth/googleAuthModel';
+import {signupCredential} from '../auth/signupCredential.js';
 import '../styles/koda-auth.css';
 
 let scriptPromise;
@@ -96,6 +97,7 @@ export default function KodaGoogleLogin() {
               if (!active) return;
               const data = result.data;
               if (googleAuthOutcome(data) === 'signup') {
+                signupCredential.remember(data.socialSignupToken, response.credential);
                 navigation.replace('SocialOriginSelect', {
                   user: 'USER',
                   agreements: [],
@@ -106,6 +108,7 @@ export default function KodaGoogleLogin() {
                 });
                 return;
               }
+              signupCredential.clear();
               await storeWebSessionInfo(data.session || data, 'USER');
               try {
                 await storeLastLoginProvider('GOOGLE');

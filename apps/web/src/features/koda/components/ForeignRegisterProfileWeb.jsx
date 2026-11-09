@@ -1,5 +1,5 @@
 import {useTranslation} from 'react-i18next';
-import React, {useMemo, useState} from 'react';
+import React, {useMemo, useRef, useState} from 'react';
 import {
   Keyboard,
   ScrollView,
@@ -14,7 +14,10 @@ import AlertModal from '@components/modals/AlertModal';
 import ButtonScarlet from '@components/ButtonScarlet';
 import {userRegisterAgrees} from '@data/agree';
 import authApi from '@utils/api/authApi';
-import {storeLoginTokens} from '@utils/auth/login';
+import {storeWebSessionInfo} from '@utils/auth/login';
+import {signupCredential} from '../auth/signupCredential.js';
+import {googleAuthOutcome} from '../auth/googleAuthModel.js';
+import {readAuthReturn} from '../auth/authReturn.js';
 import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import {validateRegisterProfile} from '@utils/validation/registerValidation';
 import {COLORS} from '@constants/colors';
@@ -73,6 +76,9 @@ const ForeignRegisterProfile = ({route}) => {
   const [nicknameDuplicated, setNicknameDuplicated] = useState(true);
   const [nicknameMessage, setNicknameMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+  const [signupStage, setSignupStage] = useState('form');
+  const submissionInFlight = useRef(false);
+  const accountCreated = useRef(false);
   const [errorMessage, setErrorMessage] = useState('');
 
   const nicknameValidation = useMemo(
@@ -143,10 +149,11 @@ const ForeignRegisterProfile = ({route}) => {
   };
 
   const handleSubmit = async () => {
-    if (!formValid || submitting) {
+    if (!formValid || submitting || submissionInFlight.current || accountCreated.current) {
       return;
     }
 
+    submissionInFlight.current = true;
     try {
       setSubmitting(true);
       if (!nicknameChecked || nicknameDuplicated) {
@@ -171,28 +178,47 @@ const ForeignRegisterProfile = ({route}) => {
           agreed: item.isAgree,
         })),
       };
-      const response = await authApi.completeForeignSocialSignUp(payload);
-      const {accessToken, refreshToken} = response.data || {};
-
-      if (!accessToken || !refreshToken) {
-        throw new Error(t('auth.theSignUpTokenResponseIsEmpty'));
+      await authApi.completeForeignSocialSignUp(payload);
+      accountCreated.current = true;
+      setSignupStage('signing-in');
+      // The existing signup API returns native tokens, not a browser cookie session.
+      // Reuse the verified Google credential with the existing web login endpoint.
+      const credential = signupCredential.take(socialSignupToken);
+      if (!credential || provider !== 'GOOGLE') {
+        setSignupStage('needs-login');
+        return;
       }
-
-      await storeLoginTokens({accessToken, refreshToken, userRole: 'USER'});
-      await storeLastLoginProvider(provider);
-      navigation.replace('ForeignSignupComplete', {
-        name: payload.name,
-        nickname: payload.nickname,
-        nationalityCountryCode: payload.nationalityCountryCode,
-        preferredLanguage: payload.preferredLanguage,
-      });
+      const login = await authApi.loginGoogle(credential);
+      if (googleAuthOutcome(login.data) !== 'login') {
+        setSignupStage('needs-login');
+        return;
+      }
+      await storeWebSessionInfo(login.data.session || login.data, 'USER');
+      try {
+        await storeLastLoginProvider(provider);
+      } catch {
+        // Preference storage is optional after successful authentication.
+      }
+      let destination;
+      try { destination = readAuthReturn(window.sessionStorage)?.target; } catch { /* Optional. */ }
+      if (destination) {
+        window.location.replace(destination);
+      } else {
+        navigation.replace('ForeignSignupComplete', {
+          name: payload.name,
+          nickname: payload.nickname,
+          nationalityCountryCode: payload.nationalityCountryCode,
+          preferredLanguage: payload.preferredLanguage,
+        });
+      }
     } catch (error) {
-      setErrorMessage(
-        error?.response?.data?.message ||
-          error?.message ||
-          t('auth.registrationFailedPleaseTryAgain'),
-      );
+      if (accountCreated.current) {
+        setSignupStage('needs-login');
+      } else {
+        setErrorMessage(error?.response?.data?.message || error?.message || t('auth.registrationFailedPleaseTryAgain'));
+      }
     } finally {
+      submissionInFlight.current = false;
       setSubmitting(false);
     }
   };
@@ -206,6 +232,30 @@ const ForeignRegisterProfile = ({route}) => {
       </View>
     </View>
   );
+
+  if (signupStage !== 'form') {
+    return (
+      <View style={styles.screen}>
+        <ScrollView contentContainerStyle={styles.content}>
+          <LogoOrange width={60} height={29} />
+          <View style={styles.heading}>
+            <Text style={styles.title}>{ko ? '가입이 완료됐어요!' : 'You’re registered!'}</Text>
+            <Text style={styles.subtitle} accessibilityLiveRegion="polite">
+              {signupStage === 'signing-in'
+                ? (ko ? '로그인을 연결하고 있어요. 잠시만 기다려 주세요.' : 'Signing you in. Just a moment…')
+                : (ko ? '가입 정보는 저장됐어요. Google로 계속하면 모임 신청을 이어갈 수 있어요.' : 'Your details are saved. Continue with Google to finish signing in and join the meetup.')}
+            </Text>
+          </View>
+          {signupStage === 'needs-login' && (
+            <ButtonScarlet
+              title={ko ? 'Google로 계속하기' : 'Continue with Google'}
+              onPress={() => navigation.replace('SocialLogin', {provider: 'GOOGLE', koda: true})}
+            />
+          )}
+        </ScrollView>
+      </View>
+    );
+  }
 
   return (
     <View style={styles.screen}>
