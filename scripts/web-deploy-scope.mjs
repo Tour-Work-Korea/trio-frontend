@@ -10,6 +10,8 @@ const sharedKoda = [
   'components/KodaReservationHeader.jsx',
   'components/KodaSocialLogin.jsx',
   'components/KodaGoogleLogin.jsx',
+  'components/ForeignRegisterProfileWeb.jsx',
+  'data/countryOptions.js',
   'components/KodaLogo.jsx',
   'styles/koda-auth.css',
   'styles/koda-brand.css',
