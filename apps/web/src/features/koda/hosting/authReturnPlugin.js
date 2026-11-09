@@ -10,6 +10,12 @@ export function kodaAuthReturnPlugin(webRoot) {
     resolveId(source, importer) {
       if (
         importer?.split('?')[0] === path.join(appSrc, 'screens/index.js') &&
+        source === './(Common)/Register/SocialOriginSelect'
+      ) {
+        return path.join(webRoot, 'src/features/koda/components/SocialOriginSelectWeb.jsx');
+      }
+      if (
+        importer?.split('?')[0] === path.join(appSrc, 'screens/index.js') &&
         source === './(Common)/Register/ForeignRegisterProfile'
       ) {
         return path.join(webRoot, 'src/features/koda/components/ForeignRegisterProfileWeb.jsx');

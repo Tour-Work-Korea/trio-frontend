@@ -11,6 +11,7 @@ const sharedKoda = [
   'components/KodaSocialLogin.jsx',
   'components/KodaGoogleLogin.jsx',
   'components/ForeignRegisterProfileWeb.jsx',
+  'components/SocialOriginSelectWeb.jsx',
   'data/countryOptions.js',
   'components/KodaLogo.jsx',
   'styles/koda-auth.css',
