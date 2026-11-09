@@ -3,6 +3,7 @@ import useLocaleStore from '@stores/localeStore';
 import {copy} from '../data/copy';
 import {eventHref} from '../services/eventModel';
 import EventHeader from '../components/EventHeader';
+import RegistrationChoice from '../components/RegistrationChoice';
 import {EventSection, MeetupGallery} from '../components/EventSections';
 import {
   useEventClock,
@@ -13,9 +14,11 @@ import MeetupReviews from '../components/MeetupReviews';
 import ProgramDescription, {InlineText} from '../components/ProgramDescription';
 import {useClubAuth} from '../auth/ClubAuth';
 import {eventRepository} from '../services/liveEventRepository';
-import {bookingLabel, bookingState} from '../services/liveEventModel';
+import {bookingState} from '../services/liveEventModel';
 import {reservationHref} from '../auth/bookingReturn';
+import {paypalCheckoutUrl, internationalRegistrationUrl, registrationLabel} from '../services/paypalCheckout';
 import '../styles/koda.css';
+import AdmissionPrice, {earlyBirdActive} from '../components/AdmissionPrice';
 import '../styles/koda-detail.css';
 
 export default function KodaEventPage({
@@ -28,15 +31,30 @@ export default function KodaEventPage({
   const labels = copy[language];
   const [notice, setNotice] = useState('');
   const [bookingBusy, setBookingBusy] = useState(false);
+  const [registrationOpen, setRegistrationOpen] = useState(false);
   const [bookingError, setBookingError] = useState('');
   const bookingLock = useRef(false);
+  const bookingBar = useRef(null);
+  const [bookingHeight, setBookingHeight] = useState(114);
   const {ready, authenticated, openLogin} = useClubAuth();
   const now = useEventClock();
   const ended = now >= Date.parse(event.endsAt);
   const availability = bookingState(event, now);
   const canApply = event.bookingEnabled && availability === 'open';
+  const paypalUrl = paypalCheckoutUrl(event, undefined, now);
   const title = event.title[language];
   useInitialFragmentNavigation();
+
+  useEffect(() => {
+    const element = bookingBar.current;
+    if (!element) return undefined;
+    const measure = () =>
+      setBookingHeight(element.getBoundingClientRect().height);
+    measure();
+    const observer = new window.ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
 
   useEventMetadata({
     title,
@@ -67,9 +85,12 @@ export default function KodaEventPage({
     }
   };
 
-  const apply = async () => {
-    if (!ready || !canApply || bookingLock.current) return;
+  const apply = async (paymentMethod = 'card') => {
+    const usingPayPal = paymentMethod === 'paypal';
+    if (bookingLock.current || (usingPayPal ? !paypalUrl : !canApply)) return;
+    if (!ready) return;
     if (!authenticated) {
+      setRegistrationOpen(false);
       openLogin();
       return;
     }
@@ -78,13 +99,32 @@ export default function KodaEventPage({
     setBookingError('');
     try {
       // Recheck this exact meetup before the shared form fetches its quote.
-      const target = await eventRepository.getBookingTarget(event.id);
-      if (!target || bookingState(target) !== 'open') {
+      const target = usingPayPal
+        ? (await eventRepository.getEventDetails(event.id))?.event
+        : await eventRepository.getBookingTarget(event.id);
+      if (
+        !target ||
+        target.id !== event.id ||
+        bookingState(target) !== 'open'
+      ) {
         setBookingError(
           language === 'ko'
             ? '이 모임은 현재 신청할 수 없어요. 모임 목록에서 일정을 다시 확인해 주세요.'
             : 'This meetup is no longer available for registration. Please check the meetup list.',
         );
+        return;
+      }
+      if (usingPayPal) {
+        const checkoutUrl = internationalRegistrationUrl(target);
+        if (!checkoutUrl) {
+          setBookingError(
+            language === 'ko'
+              ? '외국인 신청 폼을 준비 중이에요. 잠시 후 다시 확인해 주세요.'
+              : 'International registration is being prepared. Please check back soon.',
+          );
+          return;
+        }
+        window.location.assign(checkoutUrl);
         return;
       }
       window.location.assign(
@@ -108,7 +148,9 @@ export default function KodaEventPage({
   };
 
   return (
-    <div className="le-page le-page--detail">
+    <div
+      className="le-page le-page--detail"
+      style={{'--le-booking-height': `${bookingHeight}px`}}>
       <a className="le-skip" href="#event-content">
         {labels.skip}
       </a>
@@ -131,6 +173,9 @@ export default function KodaEventPage({
           <div className="le-intro">
             <div className="le-badges">
               <span>{ended ? labels.ended : labels.upcoming}</span>
+              {earlyBirdActive(event.earlyBird, now) && (
+                <span className="le-early-bird-badge">{language === 'ko' ? '얼리버드 · 11.14까지' : 'EARLY BIRD · UNTIL NOV 14'}</span>
+              )}
             </div>
             {event.edition && <p className="le-eyebrow">{event.edition}</p>}
             <h1>{title}</h1>
@@ -182,7 +227,18 @@ export default function KodaEventPage({
               <div>
                 <dt>{labels.price}</dt>
                 <dd>
-                  <strong>{event.price[language]}</strong>
+                  <AdmissionPrice event={event} language={language} />
+                  {earlyBirdActive(event.earlyBird, now) && (
+                    <small className="le-early-bird-note">
+                      {language === 'ko'
+                        ? '11월 14일 23:59(KST)까지'
+                        : 'Until Nov 14, 11:59 PM KST'}
+                      <br />
+                      {language === 'ko'
+                        ? '다른 할인과 중복 적용 불가'
+                        : 'Cannot be combined with other discounts'}
+                    </small>
+                  )}
                   {event.priceNote[language] && (
                     <small>
                       <InlineText text={event.priceNote[language]} />
@@ -351,9 +407,12 @@ export default function KodaEventPage({
           </footer>
         </div>
       </main>
-      <aside className="le-booking" aria-label={labels.admission}>
+      <aside
+        ref={bookingBar}
+        className="le-booking"
+        aria-label={labels.admission}>
         <p>
-          {canApply
+          {canApply || paypalUrl
             ? language === 'ko'
               ? '참가 정보와 요금을 확인하고 신청해 주세요.'
               : 'Review your details and price to register.'
@@ -369,20 +428,41 @@ export default function KodaEventPage({
         <button
           className="le-registration-button"
           type="button"
-          aria-busy={bookingBusy}
-          disabled={!ready || bookingBusy || !canApply}
-          onClick={apply}>
-          {bookingBusy
-            ? language === 'ko'
-              ? '확인 중…'
-              : 'Checking…'
-            : canApply
+          aria-haspopup="dialog"
+          disabled={bookingBusy || !(canApply || paypalUrl) || !ready}
+          onClick={() => {
+            setBookingError('');
+            if (!authenticated) {
+              openLogin();
+            } else if (paypalUrl) {
+              setRegistrationOpen(true);
+            } else {
+              apply();
+            }
+          }}>
+          {canApply || paypalUrl
             ? language === 'ko'
               ? '신청하기'
               : 'Register'
-            : bookingLabel(event, language, now)}
+            : registrationLabel(event, language, now)}
         </button>
       </aside>
+      {registrationOpen && (
+        <RegistrationChoice
+          language={language}
+          prices={event.price}
+          earlyBird={earlyBirdActive(event.earlyBird, now)}
+          paypalDiscounts={event.paypalDiscounts}
+          canApply={canApply && ready}
+          paypalAvailable={
+            ready && authenticated && Boolean(internationalRegistrationUrl(event, undefined, now))
+          }
+          busy={bookingBusy}
+          error={bookingError}
+          onApply={apply}
+          onClose={() => setRegistrationOpen(false)}
+        />
+      )}
       <div className="le-toast" role="status" aria-live="polite">
         {notice}
       </div>
