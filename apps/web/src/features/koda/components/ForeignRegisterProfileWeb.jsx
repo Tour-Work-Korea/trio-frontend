@@ -120,17 +120,15 @@ const ForeignRegisterProfile = ({route}) => {
 
   const checkNickname = async () => {
     try {
-      const response = await authApi.checkNickname(form.nickname);
+      await authApi.checkNickname(form.nickname);
       setNicknameChecked(true);
       setNicknameDuplicated(false);
-      setNicknameMessage(response?.data || t('auth.thisNicknameIsAvailable'));
+      setNicknameMessage(t('auth.thisNicknameIsAvailable'));
       return true;
-    } catch (error) {
+    } catch {
       setNicknameChecked(true);
       setNicknameDuplicated(true);
-      setNicknameMessage(
-        error?.response?.data?.message || t('auth.thisNicknameIsAlreadyInUse'),
-      );
+      setNicknameMessage(t('auth.thisNicknameIsAlreadyInUse'));
       return false;
     }
   };
