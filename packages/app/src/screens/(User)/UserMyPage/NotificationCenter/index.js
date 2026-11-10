@@ -8,7 +8,6 @@ import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
 import notificationApi from '@utils/api/notificationApi';
 import {
-  isUserNotification,
   openNotificationTarget,
   subscribeForegroundNotification,
 } from '@utils/notifications';
@@ -17,6 +16,7 @@ import SettingIcon from '@assets/images/settings_gray.svg';
 
 import NotificationList, {NotificationListSkeleton} from './NotificationList';
 import styles from './NotificationCenter.styles';
+import {isNotificationCenterItem} from './notificationVisibility';
 
 const FILTER_CHIPS = [
   {key: 'all', labelKey: 'common.all'},
@@ -157,7 +157,7 @@ const NotificationCenter = () => {
       }
       const items = extractItems(data);
       setNotifications(
-        items.filter(isUserNotification).map(mapNotificationItem),
+        items.filter(isNotificationCenterItem).map(mapNotificationItem),
       );
     } catch (error) {
       console.warn(
@@ -175,7 +175,7 @@ const NotificationCenter = () => {
     useCallback(() => {
       fetchNotifications();
       const unsubscribe = subscribeForegroundNotification(message => {
-        if (isUserNotification(message?.data)) {
+        if (isNotificationCenterItem(message?.data)) {
           fetchNotifications();
         }
       });

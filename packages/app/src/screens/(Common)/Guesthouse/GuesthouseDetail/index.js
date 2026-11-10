@@ -3,7 +3,7 @@ import {API_BASE_URL} from '@env';
 import SharedDetailAppPrompt from '@screens/_components/SharedDetailAppPrompt';
 import i18n from '@trio/app/src/i18n';
 import {useTranslation} from 'react-i18next';
-import React, {useCallback, useEffect, useRef, useState} from 'react';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
 import {
   View,
   Text,
@@ -140,9 +140,11 @@ const GuesthouseDetail = ({route}) => {
   // 이미지 모달
   const [imageModalVisible, setImageModalVisible] = useState(false);
 
-  const rawImages = detail?.guesthouseImages ?? [];
-  // 썸네일을 맨 앞으로 정렬한 이미지 리스트
-  const sortedImages = getSortedGuesthouseImages(rawImages);
+  // Keep carousel data stable when unrelated detail state changes.
+  const sortedImages = useMemo(
+    () => getSortedGuesthouseImages(detail?.guesthouseImages ?? []),
+    [detail?.guesthouseImages],
+  );
   const hasImages = sortedImages.length > 0;
   const thumbnailImage = hasImages ? sortedImages[0].guesthouseImageUrl : null;
   const modalImages = sortedImages;

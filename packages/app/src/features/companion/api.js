@@ -165,8 +165,8 @@ export const chatApi = {
   list: role =>
     chat.get(rooms, {params: {context: 'COMPANION', ...(role ? {role} : {})}}),
   detail: id => chat.get(`${rooms}/${id}`),
-  messages: (id, cursorMessageId) =>
-    chat.get(`${rooms}/${id}/messages`, {params: {cursorMessageId, size: 50}}),
+  messages: (id, cursorMessageId, size = 50) =>
+    chat.get(`${rooms}/${id}/messages`, {params: {cursorMessageId, size}}),
   search: (id, q, cursorMessageId) =>
     chat.get(`${rooms}/${id}/messages/search`, {
       params: {q, cursorMessageId, size: 20},

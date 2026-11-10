@@ -25,9 +25,9 @@ import styles from './NotificationCenter.styles';
 const companionIcons = {
   COMPANION_APPLICATION_NEW: ApplicationIcon,
   COMPANION_APPLICATION_ACCEPTED: AcceptedIcon,
-  COMPANION_APPLICATION_REJECTED: SystemIcon,
+  COMPANION_APPLICATION_REJECTED: CancelledIcon,
   COMPANION_CLOSED: SystemIcon,
-  COMPANION_APPLICATION_CANCELLED: CancelledIcon,
+  COMPANION_CANCELLED: CancelledIcon,
   COMPANION_GROUP_READY: ChatIcon,
   COMPANION_CHAT_MESSAGE: ChatIcon,
   COMPANION_CHAT_NOTICE: NoticeIcon,
@@ -40,7 +40,8 @@ const renderLeadingIcon = item => {
   const isCommunity = item.type === 'community';
   const Icon =
     item.type === 'companion'
-      ? companionIcons[item.rawItem?.type] || ChatIcon
+      ? companionIcons[String(item.rawItem?.type || '').toUpperCase()] ||
+        SystemIcon
       : isCommunity
       ? CommentIcon
       : isParty

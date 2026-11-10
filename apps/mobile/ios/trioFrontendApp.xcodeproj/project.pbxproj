@@ -7,6 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C04100000000000000000003 /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = C04100000000000000000004 /* InfoPlist.strings */; };
+		C04100000000000000000007 /* Photos.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = C04100000000000000000008 /* Photos.framework */; };
+		C04100000000000000000001 /* ChatPhotoSaver.mm in Sources */ = {isa = PBXBuildFile; fileRef = C04100000000000000000002 /* ChatPhotoSaver.mm */; };
 		06F83187AC454DC09B87DCC4 /* Pretendard-Bold.otf in Resources */ = {isa = PBXBuildFile; fileRef = 9F8CA4E04F374010A7DDADB1 /* Pretendard-Bold.otf */; };
 		13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 13B07FB51A68108700A75B9A /* Images.xcassets */; };
 		1EA459A23BF044E682CC4593 /* Pretendard-Regular.otf in Resources */ = {isa = PBXBuildFile; fileRef = E8E9EDDE80254DA99B933E9C /* Pretendard-Regular.otf */; };
@@ -25,6 +28,10 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		C04100000000000000000005 /* ko */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = ko; path = trioFrontendApp/ko.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C04100000000000000000006 /* en */ = {isa = PBXFileReference; lastKnownFileType = text.plist.strings; name = en; path = trioFrontendApp/en.lproj/InfoPlist.strings; sourceTree = "<group>"; };
+		C04100000000000000000008 /* Photos.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = Photos.framework; path = System/Library/Frameworks/Photos.framework; sourceTree = SDKROOT; };
+		C04100000000000000000002 /* ChatPhotoSaver.mm */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.cpp.objcpp; path = trioFrontendApp/ChatPhotoSaver.mm; sourceTree = "<group>"; };
 		04EF9D6A608667F7231A076D /* libPods-trioFrontendApp.a */ = {isa = PBXFileReference; explicitFileType = archive.ar; includeInIndex = 0; path = "libPods-trioFrontendApp.a"; sourceTree = BUILT_PRODUCTS_DIR; };
 		093DFCB74FCC4F79B228C79B /* Pretendard-Light.otf */ = {isa = PBXFileReference; explicitFileType = undefined; fileEncoding = 9; includeInIndex = 0; lastKnownFileType = unknown; name = "Pretendard-Light.otf"; path = "../../../packages/app/src/assets/fonts/Pretendard-Light.otf"; sourceTree = "<group>"; };
 		13B07F961A680F5B00A75B9A /* trioFrontendApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = trioFrontendApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -56,10 +63,20 @@
 			buildActionMask = 2147483647;
 			files = (
 				F7E2927FCB3C9DF64E3C5604 /* libPods-trioFrontendApp.a in Frameworks */,
+				C04100000000000000000007 /* Photos.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXVariantGroup section */
+		C04100000000000000000004 /* InfoPlist.strings */ = {
+			isa = PBXVariantGroup;
+			children = (C04100000000000000000005 /* ko */, C04100000000000000000006 /* en */);
+			name = InfoPlist.strings;
+			sourceTree = "<group>";
+		};
+/* End PBXVariantGroup section */
 
 /* Begin PBXGroup section */
 		13B07FAE1A68108700A75B9A /* trioFrontendApp */ = {
@@ -68,7 +85,9 @@
 				70EB64D32F9895D9005FA378 /* trioFrontendApp.entitlements */,
 				13B07FB51A68108700A75B9A /* Images.xcassets */,
 				761780EC2CA45674006654EE /* AppDelegate.swift */,
+				C04100000000000000000002 /* ChatPhotoSaver.mm */,
 				13B07FB61A68108700A75B9A /* Info.plist */,
+				C04100000000000000000004 /* InfoPlist.strings */,
 				81AB9BB72411601600AC10FF /* LaunchScreen.storyboard */,
 				13B07FB81A68108700A75B9A /* PrivacyInfo.xcprivacy */,
 			);
@@ -78,6 +97,7 @@
 		2D16E6871FA4F8E400B85C8A /* Frameworks */ = {
 			isa = PBXGroup;
 			children = (
+				C04100000000000000000008 /* Photos.framework */,
 				ED297162215061F000B7C4FE /* JavaScriptCore.framework */,
 				04EF9D6A608667F7231A076D /* libPods-trioFrontendApp.a */,
 			);
@@ -212,6 +232,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				70EB64D22F98959D005FA378 /* GoogleService-Info.plist in Resources */,
+				C04100000000000000000003 /* InfoPlist.strings in Resources */,
 				81AB9BB82411601600AC10FF /* LaunchScreen.storyboard in Resources */,
 				13B07FBF1A68108700A75B9A /* Images.xcassets in Resources */,
 				EC82855719E0C1FF8278898F /* PrivacyInfo.xcprivacy in Resources */,
@@ -350,6 +371,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				761780ED2CA45674006654EE /* AppDelegate.swift in Sources */,
+				C04100000000000000000001 /* ChatPhotoSaver.mm in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

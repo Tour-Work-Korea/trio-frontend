@@ -13,6 +13,7 @@ export default function CompanionPlaceMap({
   latitude,
   longitude,
   compact = false,
+  interactive = false,
 }) {
   const {t} = useTranslation();
   const [ready, setReady] = useState(Platform.OS === 'web');
@@ -29,7 +30,7 @@ export default function CompanionPlaceMap({
   const coordinate = {latitude: Number(latitude), longitude: Number(longitude)};
   return (
     <View
-      pointerEvents="none"
+      pointerEvents={interactive ? 'auto' : 'none'}
       style={{
         height: compact ? 130 : 200,
         width: compact ? 220 : '100%',
@@ -40,6 +41,9 @@ export default function CompanionPlaceMap({
       <NaverMapView
         style={StyleSheet.absoluteFill}
         initialCamera={{...coordinate, zoom: 16}}
+        isScrollGesturesEnabled={interactive}
+        isZoomGesturesEnabled={interactive}
+        isShowZoomControls={interactive}
         onInitialized={() => setReady(true)}>
         <NaverMapMarkerOverlay
           {...coordinate}

@@ -334,17 +334,22 @@ export function useFeedback({horizontalButtons = false} = {}) {
         DRAFT_PENDING: 'companion.draftPending',
       }[code];
       const status = errorValue?.response?.status;
+      const serverMessage = errorValue?.response?.data?.message;
+      const hasServerMessage =
+        typeof serverMessage === 'string' && serverMessage.trim().length > 0;
       setDialog({
-        title: t(
-          localKey ||
-            (status === 409
-              ? 'companion.conflict'
-              : status === 403
-              ? 'companion.forbidden'
-              : status === 404
-              ? 'companion.notFound'
-              : 'companion.error'),
-        ),
+        title: hasServerMessage
+          ? serverMessage
+          : t(
+              localKey ||
+                (status === 409
+                  ? 'companion.conflict'
+                  : status === 403
+                  ? 'companion.forbidden'
+                  : status === 404
+                  ? 'companion.notFound'
+                  : 'companion.error'),
+            ),
         buttonText: t('common.confirm'),
       });
     },

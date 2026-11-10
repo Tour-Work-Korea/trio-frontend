@@ -412,7 +412,7 @@
   "common.region": "지역",
   "common.register": "등록",
   "common.replyingTo": "_님에게 답글 남기는 중",
-  "common.representativesLeeHaNeulJeongJaeWon": "대표자 : 이하늘, 정재원",
+  "common.representativesLeeHaNeulJeongJaeWon": "대표자 : 이하늘",
   "common.request": "요청 사항",
   "common.requestCancellation": "취소 요청하기",
   "common.requestOptional": "요청 사항 (선택)",
@@ -1778,5 +1778,17 @@
   "share.continueOnWeb": "웹으로 계속 보기",
   "guesthouse.detailLoadFailed": "숙소 정보를 불러오지 못했어요",
   "meet.detailLoadFailed": "콘텐츠 정보를 불러오지 못했어요",
-  "share.detailLoadFailedDescription": "삭제되었거나 일시적으로 확인할 수 없어요. 다시 시도해 주세요."
+  "share.detailLoadFailedDescription": "삭제되었거나 일시적으로 확인할 수 없어요. 다시 시도해 주세요.",
+  "companion.collapseNotice": "공지 접기",
+  "companion.expandNotice": "공지 펼치기",
+  "companion.viewPhoto": "사진 크게 보기",
+  "companion.savePhoto": "사진 저장",
+  "companion.photoSaving": "저장 중…",
+  "companion.photoSaved": "사진을 기기에 저장했어요.",
+  "companion.photoDownloadStarted": "사진 다운로드를 시작했어요.",
+  "companion.photoPermissionRequired": "사진을 저장하려면 설정에서 저장 권한을 허용해 주세요.",
+  "companion.photoSaveFailed": "사진을 저장하지 못했어요. 다시 시도해 주세요.",
+  "companion.photoAddPermissionDescription": "채팅 사진을 기기에 저장하기 위해 사진 추가 권한이 필요합니다.",
+  "companion.collapseParticipation": "참여 요청 접기",
+  "companion.expandParticipation": "참여 요청 펼치기"
 }
