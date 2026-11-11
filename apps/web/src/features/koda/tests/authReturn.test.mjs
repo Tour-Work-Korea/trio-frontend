@@ -7,6 +7,7 @@ import {
   kakaoAuthHref,
   safeKodaReturn,
   readAuthReturn,
+  rememberAuthReturn,
   startAuthReturnBridge,
 } from '../auth/authReturn.js';
 
@@ -84,9 +85,7 @@ test('return destinations reject external, disguised, unrelated and auth URLs', 
     assert.equal(safeKodaReturn(path), null, path);
   }
   assert.equal(
-    safeKodaReturn(
-      '/koda/?lang=ko&token=secret&code=secret#meetups',
-    ),
+    safeKodaReturn('/koda/?lang=ko&token=secret&code=secret#meetups'),
     '/koda/?lang=ko#meetups',
   );
 });
@@ -95,6 +94,31 @@ test('ordinary app visitors do not start a return watcher', () => {
   const flow = journey('/login');
   assert.equal(flow.active(), false);
   assert.equal(flow.result(), undefined);
+});
+
+test('KODA stores the destination before OAuth starts and survives a missing return query', () => {
+  const saved = storage();
+  const target = '/koda/event/?id=party-3982&lang=en#program';
+  assert.equal(rememberAuthReturn(saved, target, 1000), true);
+  const callback = journey('/auth/kakao/callback', '?code=not-stored', saved);
+  callback.location.pathname = '/';
+  callback.tick();
+  assert.equal(callback.result(), target);
+  assert.equal(saved.getItem(AUTH_RETURN_KEY), null);
+  assert.equal(rememberAuthReturn(saved, 'https://evil.test/', 1000), false);
+  assert.equal(saved.getItem(AUTH_RETURN_KEY), null);
+  assert.equal(
+    rememberAuthReturn(
+      {
+        setItem: () => {
+          throw Error('blocked');
+        },
+      },
+      target,
+      1000,
+    ),
+    false,
+  );
 });
 
 test('email login, signup steps and password recovery preserve one journey until MainTabs', () => {

@@ -65,7 +65,7 @@ const now = Date.parse('2026-10-23T12:00:00+09:00');
 const event = (overrides = {}, summary = listing) =>
   toEventViewModel(adaptLiveEvent({...detail, ...overrides}, summary, binding));
 
-test('automatic booking is enabled only for the dev API, without a hardcoded server ID', () => {
+test('local booking supports both Ddakji APIs but rejects unknown APIs and explicit disablement', () => {
   assert.deepEqual(
     automaticBookingConfig('development', 'https://dev.ddakji.kr/api/v1'),
     {enabled: true},
@@ -77,6 +77,18 @@ test('automatic booking is enabled only for the dev API, without a hardcoded ser
     );
   assert.deepEqual(
     automaticBookingConfig('development', 'https://api.ddakji.kr/api/v1'),
+    {enabled: true},
+  );
+  assert.equal(
+    automaticBookingConfig(
+      'development',
+      'https://api.ddakji.kr/api/v1',
+      false,
+    ),
+    null,
+  );
+  assert.equal(
+    automaticBookingConfig('development', 'https://unknown.example/api/v1'),
     null,
   );
   assert.deepEqual(automaticBookingConfig('development', ''), null);
@@ -145,12 +157,7 @@ test('closed, full, hidden, ended and unconnected events cannot open reservation
 
 test('reservation entry uses actual party ID, leaves price quoting to the shared form', () => {
   const url = new URL(
-    reservationHref(
-      event(),
-      'en',
-      now,
-      '/koda/event/?id=halloween&lang=en',
-    ),
+    reservationHref(event(), 'en', now, '/koda/event/?id=halloween&lang=en'),
     'https://local.example',
   );
   assert.equal(url.pathname, '/contents-reservation');
@@ -159,14 +166,8 @@ test('reservation entry uses actual party ID, leaves price quoting to the shared
   assert.equal(params.amount, 29959);
   assert.equal(params.scheduleType, 'DATE_EVENT');
   assert.equal(params.selectedPriceOptionId, undefined);
-  assert.equal(
-    params.kodaBack,
-    '/koda/event/?id=halloween&lang=en',
-  );
-  assert.equal(
-    url.searchParams.get('kodaBooking'),
-    '/koda/my/?lang=en',
-  );
+  assert.equal(params.kodaBack, '/koda/event/?id=halloween&lang=en');
+  assert.equal(url.searchParams.get('kodaBooking'), '/koda/my/?lang=en');
   assert.throws(() =>
     reservationHref({...event(), bookingPartyId: 999}, 'ko', now),
   );
