@@ -1,3 +1,4 @@
+/* global globalThis */
 import React, {useEffect, useRef, useState} from 'react';
 import {useNavigation} from '@react-navigation/native';
 import useLocaleStore from '@stores/localeStore';
@@ -8,6 +9,7 @@ import {storeLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import KodaLogo from './KodaLogo';
 import {readAuthReturn} from '../auth/authReturn';
 import {googleAuthOutcome} from '../auth/googleAuthModel';
+import {signupCredential} from '../auth/signupCredential.js';
 import '../styles/koda-auth.css';
 
 let scriptPromise;
@@ -95,6 +97,7 @@ export default function KodaGoogleLogin() {
               if (!active) return;
               const data = result.data;
               if (googleAuthOutcome(data) === 'signup') {
+                signupCredential.remember(data.socialSignupToken, response.credential);
                 navigation.replace('SocialOriginSelect', {
                   user: 'USER',
                   agreements: [],
@@ -105,14 +108,14 @@ export default function KodaGoogleLogin() {
                 });
                 return;
               }
+              signupCredential.clear();
               await storeWebSessionInfo(data.session || data, 'USER');
               try {
                 await storeLastLoginProvider('GOOGLE');
               } catch {
                 /* Optional preference. */
               }
-              if (active)
-                navigation.reset({index: 0, routes: [{name: 'MainTabs'}]});
+              if (active) window.location.replace(destination);
             } catch {
               if (active)
                 setError(
@@ -149,7 +152,7 @@ export default function KodaGoogleLogin() {
     return () => {
       active = false;
     };
-  }, [attempt, ko, navigation]);
+  }, [attempt, ko, navigation, destination]);
 
   return (
     <main className="le-google-page">

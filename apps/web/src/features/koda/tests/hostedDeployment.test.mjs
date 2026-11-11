@@ -49,5 +49,7 @@ test('unknown or mixed deployment API settings fail before deployment', () => {
     ['dev', 'http://dev.ddakji.kr/api/v1'], ['dev', 'https://dev.ddakji.kr/other'],
     ['dev', 'https://user:secret@dev.ddakji.kr/api/v1'],
     ['dev', 'https://dev.ddakji.kr/api/v1?token=x'],
+    ['prod', 'https://unknown.example/api/v1'],
+    ['prod', 'https://api.ddakji.kr:444/api/v1'],
   ]) assert.throws(() => hostedBookingEnabled(target, api));
 });

@@ -19,7 +19,14 @@ if (route?.redirect) {
     canonical.href = window.location.href;
     document.head.append(canonical);
   }
-  import('../main.jsx');
+  if (import.meta.env.DEV) {
+    import('../main.jsx');
+  } else {
+    const runtime = document.createElement('script');
+    runtime.type = 'module';
+    runtime.src = '/koda/entry.js';
+    document.head.append(runtime);
+  }
 } else {
   import('../../../main.jsx');
 }

@@ -1,11 +1,17 @@
 import React, {useEffect, useRef, useState} from 'react';
 import useLocaleStore from '@stores/localeStore';
 import KodaLogo from './KodaLogo';
-import {authHref, kakaoAuthHref} from '../auth/authReturn';
+import {
+  authHref,
+  kakaoAuthHref,
+  socialAuthHref,
+  rememberAuthReturn,
+} from '../auth/authReturn';
 import {clubSignupHref, signupDestination} from '../auth/signupModel';
 import {useTranslation} from 'react-i18next';
 import {getLastLoginProvider} from '@utils/auth/lastLoginProvider';
 import KakaoLogo from '@assets/images/kakao_logo.svg';
+import GoogleLogo from '@assets/images/google_logo.svg';
 import '../styles/koda-auth.css';
 
 export default function ClubLoginModal({onClose, onSuccess, ready}) {
@@ -24,12 +30,17 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
   const [showPassword, setShowPassword] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState('');
-  const returnTo = window.location.pathname.startsWith(
-    '/koda/join',
-  )
+  const returnTo = window.location.pathname.startsWith('/koda/join')
     ? signupDestination(window.location.search, language)
     : `${window.location.pathname}${window.location.search}${window.location.hash}`;
   const recovery = new URL(authHref(returnTo), window.location.origin);
+  const rememberDestination = () => {
+    try {
+      rememberAuthReturn(window.sessionStorage, returnTo);
+    } catch {
+      // The link also carries the return path when storage is unavailable.
+    }
+  };
   recovery.pathname = '/find';
   const recoveryHref = find => {
     recovery.searchParams.set(
@@ -62,7 +73,7 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
       alive.current = false;
       modal?.close();
       document.body.style.overflow = previousOverflow;
-      if (opener instanceof HTMLElement && opener.isConnected) opener.focus();
+      if (opener instanceof window.HTMLElement && opener.isConnected) opener.focus();
     };
   }, []);
 
@@ -151,9 +162,22 @@ export default function ClubLoginModal({onClose, onSuccess, ready}) {
               )}
               <a
                 className="le-auth-provider le-auth-provider--kakao"
+                onClick={rememberDestination}
                 href={kakaoAuthHref(returnTo)}>
                 <KakaoLogo width={20} height={20} />
                 <span>{t('auth.startWithKakao')}</span>
+              </a>
+            </div>
+            <div className="le-auth-provider-wrap">
+              {lastProvider === 'GOOGLE' && (
+                <span className="le-auth-recent">{t('auth.lastLogin')}</span>
+              )}
+              <a
+                className="le-auth-provider le-auth-provider--google"
+                href={socialAuthHref(returnTo, 'GOOGLE')}
+                onClick={rememberDestination}>
+                <GoogleLogo width={20} height={20} />
+                <span>{ko ? 'Google로 시작하기' : 'Continue with Google'}</span>
               </a>
             </div>
           </div>

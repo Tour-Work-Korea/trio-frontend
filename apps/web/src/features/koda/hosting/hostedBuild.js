@@ -13,7 +13,7 @@ export function hostedBookingEnabled(target, apiBaseUrl) {
     url.protocol !== 'https:' || url.username || url.password || url.search || url.hash ||
     url.pathname.replace(/\/$/, '') !== '/api/v1'
   ) throw new Error('Deployment API_BASE_URL must be an HTTPS /api/v1 URL.');
-  const isDevApi = url.origin === 'https://dev.ddakji.kr';
-  if ((target === 'dev') !== isDevApi) throw new Error('Deployment branch and API environment do not match.');
+  const expectedOrigin = target === 'dev' ? 'https://dev.ddakji.kr' : 'https://api.ddakji.kr';
+  if (url.origin !== expectedOrigin) throw new Error('Deployment branch and API environment do not match.');
   return true;
 }

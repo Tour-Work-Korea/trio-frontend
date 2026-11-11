@@ -304,6 +304,14 @@ body {
   color: var(--le-muted);
   padding: 0 16px 20px 0;
 }
+.le-admission-price { display: inline-flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+.le-early-bird-badge, .le-badges .le-early-bird-badge { display: inline-block; padding: 5px 9px; border-radius: 6px; background: #f6dc85; color: #30240a; font-size: 12px; font-weight: 800; line-height: 1.25; letter-spacing: .03em; vertical-align: middle; }
+.le-early-bird-note { color: #665018; line-height: 1.6; }
+.le-admission-price del { color: var(--le-muted); font-size: 14px; font-weight: 400; }
+.le-list-admission { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-top: auto; padding-top: 20px; }
+.le-page--listing .le-list-card .le-admission-price strong { margin: 0; padding: 0; }
+.le-registration-fee > .le-early-bird-badge { margin-right: 8px; }
+
 .le-gallery-hint {
   font-size: 13px !important;
   margin-bottom: 16px !important;

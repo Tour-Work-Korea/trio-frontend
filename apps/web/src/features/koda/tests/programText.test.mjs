@@ -65,6 +65,9 @@ test('API descriptions do not become an artificial single step; editorial steps 
 });
 
 test('place links work for multiple venues, query strings and parentheses without changing surrounding text', () => {
+  assert.deepEqual(programInline('https://example.com'), [
+    {text: 'https://example.com', bold: false, href: 'https://example.com/'},
+  ]);
   const parts = programInline(
     '장소: [HEX 위치 보기](https://map.naver.com/p/search/HEX?c=15,0,0,0,dh)\n[다른 장소](https://example.com/place_(Seoul))',
   );
@@ -103,7 +106,6 @@ test('unsafe or incomplete links and image markup remain ordinary text', () => {
   for (const source of [
     '[장소](https://example.com',
     '![사진](https://example.com/a.png)',
-    'https://example.com',
   ])
     assert.deepEqual(programInline(source), [{text: source, bold: false}]);
 });
