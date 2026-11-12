@@ -1,0 +1,210 @@
+.nm-account-dialog {
+  width: calc(100% - 32px);
+  max-width: 358px;
+  max-height: calc(100dvh - 32px);
+  margin: auto;
+  padding: 0;
+  border: 1px solid #252525;
+  border-radius: 24px;
+  background: #fff;
+  color: #151515;
+  font-family: NmKorean, NmDisplay, sans-serif;
+  overflow-y: auto;
+}
+.nm-account-dialog::backdrop {
+  background: #0008;
+}
+.nm-account-content {
+  padding: 32px 22px 24px;
+  position: relative;
+}
+.nm-account-close {
+  position: absolute;
+  right: 8px;
+  top: 6px;
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  font-size: 26px;
+  cursor: pointer;
+}
+.nm-account-eyebrow {
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.nm-account-content h2 {
+  margin: 16px 0 12px;
+  font-size: 24px;
+  line-height: 1.35;
+}
+.nm-account-content p {
+  font-size: 13px;
+  line-height: 1.7;
+  color: #626262;
+  margin: 12px 0;
+}
+.nm-account-social {
+  display: grid;
+  gap: 8px;
+  margin: 24px 0;
+}
+.nm-account-social a,
+.nm-account-secondary {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  border: 1px solid #dededb;
+  border-radius: 24px;
+  text-decoration: none;
+  font-size: 14px;
+  color: #151515;
+}
+.nm-account-social a:first-child {
+  background: #fee500;
+  border-color: #fee500;
+}
+.nm-account-content label {
+  display: block;
+  font-size: 12px;
+  margin: 12px 0 6px;
+}
+.nm-account-content input {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  min-height: 46px;
+  padding: 10px 12px;
+  border: 1px solid #aaa;
+  border-radius: 10px;
+  font: inherit;
+  font-size: 16px;
+  background: #fff;
+  color: #151515;
+}
+.nm-account-primary {
+  display: flex;
+  width: 100%;
+  box-sizing: border-box;
+  align-items: center;
+  justify-content: center;
+  min-height: 46px;
+  padding: 12px 16px;
+  border: 1px solid #252525;
+  border-radius: 28px;
+  background: #c0f5dc;
+  color: #151515;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+.nm-account-primary:disabled {
+  opacity: 0.5;
+  cursor: wait;
+}
+.nm-account-content form .nm-account-primary {
+  margin-top: 18px;
+}
+.nm-account-links,
+.nm-store-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: center;
+  margin-top: 12px;
+}
+.nm-account-links a,
+.nm-store-links a {
+  display: inline-flex;
+  min-height: 44px;
+  align-items: center;
+  font-size: 12px;
+  color: #343434;
+}
+.nm-account-content small {
+  display: block;
+  text-align: center;
+  font-size: 11px;
+  color: #626262;
+  margin-top: 12px;
+}
+.nm-account-content .nm-account-error {
+  color: #a82929;
+}
+.nm-account-error button {
+  min-height: 44px;
+  color: inherit;
+  background: transparent;
+  border: 0;
+  text-decoration: underline;
+  cursor: pointer;
+}
+.nm-app-download {
+  text-align: center;
+  font-family: NmKorean, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.nm-app-download img {
+  display: block;
+  margin: 0 auto 20px;
+}
+.nm-app-download h2 {
+  margin: 0;
+  font-size: 20px;
+  font-weight: 600;
+  line-height: 1.5;
+  letter-spacing: -0.5px;
+}
+.nm-app-download p,
+html[data-trips] .nm-app-download p {
+  margin: 18px 0 26px;
+  color: #626262;
+  font-size: 14px;
+  line-height: 1.9;
+}
+.nm-app-download .nm-account-primary,
+html[data-trips] .nm-app-download .nm-account-primary {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 44px;
+  margin: 0 auto;
+  padding: 10px 24px;
+  font-size: 13px;
+  line-height: 1.6;
+}
+.nm-success {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 390px;
+  margin: 0 auto;
+  padding: 32px 24px calc(32px + env(safe-area-inset-bottom));
+  background: #fff;
+  color: #151515;
+  font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+  overflow-y: auto;
+}
+.nm-success h1 {
+  font-size: 24px;
+  line-height: 1.4;
+}
+.nm-success > p {
+  font-size: 14px;
+  line-height: 1.8;
+  color: #626262;
+}
+.nm-success .nm-app-download {
+  border-top: 1px solid #dededb;
+  margin-top: 32px;
+  padding-top: 28px;
+}
+.nm-success .nm-success-back {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: center;
+  margin-top: 16px;
+  color: #343434;
+  font-size: 13px;
+}
