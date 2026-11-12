@@ -1,0 +1,114 @@
+.nm-index-shell {
+  --nm-paper: #fff;
+  --nm-ink: #151515;
+  --nm-muted: #626262;
+  --nm-line: #dededb;
+  --ti-mint: #c0f5dc;
+  background: #fff;
+  color: #151515;
+  font-family: NmKorean, NmSans, -apple-system, BlinkMacSystemFont, sans-serif;
+}
+.nm-index-shell .nm-footer {
+  padding: 28px 20px 35px;
+  background: #fff;
+  border-top: 1px solid #242424;
+  color: #151515;
+}
+.nm-index-shell .nm-footer-title {
+  font-size: 20px;
+}
+.nm-index-shell .nm-footer-title + p {
+  color: #626262;
+}
+.nm-program-index {
+  padding-top: 0;
+  padding-bottom: 0;
+  background: #fff;
+  color: #151515;
+  font-size: 16px;
+  line-height: 1.7;
+}
+.nm-program-index .ti-cover {
+  margin: 0;
+}
+.nm-program-index .ti-cover-poster {
+  display: block;
+  margin: 0 12px;
+  border: 1px solid #252525;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.nm-program-index .ti-cover-poster img {
+  width: 100%;
+  height: auto;
+}
+.nm-program-index .ti-cover-copy {
+  padding: 23px 20px 30px;
+  text-align: center;
+}
+.nm-program-index .ti-cover-copy > p {
+  margin: 0 0 15px;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: -0.2px;
+  color: #424242;
+}
+.nm-program-index .ti-mint-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  min-width: 175px;
+  min-height: 44px;
+  padding: 7px 18px;
+  border: 1px solid #252525;
+  border-radius: 40px;
+  background: var(--ti-mint);
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.nm-program-index .ti-mint-link > span {
+  font-size: 25px;
+  line-height: 1;
+}
+.nm-program-index .ti-mint-link:hover {
+  background: #a8edcc;
+}
+
+@media (max-width: 359px) {
+  .nm-program-index .ti-cover-poster {
+    margin-inline: 9px;
+  }
+  .nm-program-index .ti-cover-copy {
+    padding-inline: 16px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .nm-program-index {
+    scroll-behavior: auto;
+  }
+}
+
+.nm-program-index .ti-calendar-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 44px;
+  margin-top: 10px;
+  font-size: 13px;
+  color: #626262;
+}
+.ti-list-heading {
+  padding: 16px 20px 28px;
+  text-align: center;
+}
+.ti-list-heading h1 {
+  font: 600 29px/1.2 NmDisplay, sans-serif;
+  letter-spacing: -0.8px;
+}
+.ti-list-heading p {
+  margin-top: 10px;
+  font-size: 13px;
+  color: #626262;
+}

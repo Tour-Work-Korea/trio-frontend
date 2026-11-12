@@ -6,6 +6,8 @@ on:
       - develop    # TestFlight (DEV)
       - main    # App Store (PROD)
     paths-ignore:
+      - 'apps/trips/**'
+      - '.github/workflows/deploy-trips.yml'
       - 'apps/web/**'
       - 'scripts/verify-web-bundle.mjs'
       - 'scripts/web-deploy-scope.mjs'
