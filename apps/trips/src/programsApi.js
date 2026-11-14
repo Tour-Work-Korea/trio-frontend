@@ -130,16 +130,16 @@ export function eventCards(events, programs) {
       item => item.partyId === event.partyId,
     );
     const category = eventCategory(event);
+    const partyInfo = programs.find(
+      item => item.optionalParty?.partyId === event.partyId,
+    )?.optionalParty;
+    const displayDate = partyInfo?.confirmedDate ?? event.date;
     const weekday = ['일', '월', '화', '수', '목', '금', '토'][
-      new Date(`${event.date}T00:00:00Z`).getUTCDay()
+      new Date(`${displayDate}T00:00:00Z`).getUTCDay()
     ];
-    const date = `${event.date.slice(5).replace('-', '.')} ${weekday}요일`;
+    const date = `${displayDate.slice(5).replace('-', '.')} ${weekday}요일`;
     const sameTripDate = trip?.startDate.slice(0, 10) === event.date;
-    const sameClassDate = classTrip?.days.some(
-      day =>
-        day.isoDate === event.date &&
-        day.events.some(item => item.classId === event.partyId),
-    );
+    const sameClassDate = classInfo?.isoDate === event.date;
     const closed =
       event.isApplyOpen === false ||
       ['CLOSED', 'FULL', 'PARTY_END', 'CANCELLED', 'CANCELED'].includes(
@@ -149,28 +149,32 @@ export function eventCards(events, programs) {
       id: event.partyId,
       category,
       eyebrow: categoryLabels[category],
-      title: event.partyTitle,
+      title: trip?.title ?? event.partyTitle,
       caption: trip?.collaboration ?? classInfo?.title ?? '리그라운드 제주',
-      image: event.image,
-      alt: event.partyTitle,
-      contain: category === 'trip' || classInfo?.imageFit === 'contain',
+      image: trip?.hero ?? event.image,
+      alt: trip?.heroAlt ?? event.partyTitle,
+      contain: trip ? !trip.heroIsPhoto : classInfo?.imageFit === 'contain',
       date: sameTripDate ? `${trip.year}. ${trip.datesShort}` : date,
       // Keep the user-confirmed text schedule where API time fields conflict.
-      time: sameClassDate
-        ? classInfo.time
-        : trip
-        ? trip.stay.name
-        : event.startTime
-        ? `${event.startTime}${event.endTime ? `–${event.endTime}` : ''}`
-        : '상세 시간은 신청 페이지에서 확인',
+      time:
+        partyInfo?.confirmedTime ??
+        (sameClassDate
+          ? classInfo.time
+          : trip
+          ? trip.stay.name
+          : event.startTime
+          ? `${event.startTime}${event.endTime ? `–${event.endTime}` : ''}`
+          : '상세 시간은 신청 페이지에서 확인'),
       href: trip
         ? `/trips/${trip.slug}/`
         : classInfo
-        ? `/trips/${classTrip.slug}/#class-${event.partyId}`
+        ? classInfo.url
         : `https://ddakji.kr/contents/${event.partyId}`,
       price: event.amount === 0 ? '무료' : formatPrice(event.amount),
       note: closed
         ? '모집 상태는 상세 안내에서 확인해주세요.'
+        : trip
+        ? '2박 3일 · 1인 기준'
         : '옵션별 참가비는 상세 안내에서 확인해주세요.',
       status: closed ? '모집 마감' : '',
     };

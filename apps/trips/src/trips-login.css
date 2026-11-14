@@ -1,0 +1,122 @@
+.nm-login-shell {
+  width: 100%;
+  max-width: 390px;
+  min-height: 100svh;
+  margin: 0 auto;
+  background: #fff;
+  color: #171918;
+}
+.nm-login-header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  padding: 24px;
+  border-bottom: 1px solid #e8ece9;
+}
+.nm-login-header .nm-wordmark {
+  font-size: 28px;
+}
+.nm-login-back {
+  position: absolute;
+  left: 20px;
+  width: 44px;
+  height: 44px;
+  display: grid;
+  place-items: center;
+  text-decoration: none;
+  color: inherit;
+  font-size: 24px;
+  border: 1px solid #cbd8d0;
+  border-radius: 50%;
+}
+.nm-login-content {
+  padding: 64px 24px 32px;
+}
+.nm-login-label {
+  font-size: 12px;
+  color: #65746a;
+  margin: 0 0 18px;
+}
+.nm-login-content h1 {
+  font-size: 28px;
+  line-height: 1.4;
+  letter-spacing: -1.1px;
+  margin: 0 0 12px;
+}
+.nm-login-intro {
+  font-size: 15px;
+  color: #626963;
+  margin: 0 0 40px;
+  line-height: 1.65;
+}
+.nm-login-kakao {
+  width: 100%;
+  min-height: 50px;
+  padding: 13px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 0;
+  border-radius: 28px;
+  background: #fee500;
+  color: #191919;
+  font-family: inherit;
+  font-size: 15px;
+  line-height: 1.5;
+  font-weight: 600;
+  cursor: pointer;
+}
+.nm-login-kakao svg {
+  width: 19px;
+  height: 19px;
+  flex-shrink: 0;
+}
+.nm-login-kakao:disabled {
+  opacity: 0.65;
+  cursor: wait;
+}
+.nm-login-membership {
+  margin: 22px 0 32px;
+  font-size: 13px;
+  line-height: 1.8;
+  text-align: center;
+  color: #737873;
+}
+.nm-login-return {
+  display: block;
+  width: fit-content;
+  margin: 0 auto;
+  padding: 12px;
+  color: #525a54;
+  font-size: 13px;
+  text-underline-offset: 4px;
+}
+.nm-login-status {
+  padding: 20px;
+  border-radius: 16px;
+  background: #eef9f3;
+  font-size: 14px;
+  line-height: 1.6;
+}
+.nm-login-error {
+  color: #a6322e;
+  font-size: 14px;
+  line-height: 1.7;
+  margin-bottom: 18px;
+}
+.nm-login-error button {
+  color: inherit;
+  background: none;
+  border: 0;
+  padding: 8px 0;
+  text-decoration: underline;
+  cursor: pointer;
+  font: inherit;
+}
+.nm-login-shell a:focus-visible,
+.nm-login-shell button:focus-visible {
+  outline: 2px solid #177650;
+  outline-offset: 4px;
+}

@@ -1,0 +1,54 @@
+.te-extras {
+  padding: 30px 20px 34px;
+  border-top: 1px solid #252525;
+  background: #f6faf7;
+  color: #151515;
+}
+.te-kicker {
+  display: block;
+  margin-bottom: 7px;
+  color: #41624f;
+  font-size: 11px;
+  font-weight: 600;
+}
+.te-extras h2 {
+  margin: 0;
+  font-size: 21px;
+  line-height: 1.4;
+  letter-spacing: -0.5px;
+}
+.te-extras > p {
+  margin: 8px 0 19px;
+  font-size: 12px;
+  line-height: 1.7;
+  color: #626262;
+}
+.te-extras-list {
+  border-top: 1px solid #d3ded7;
+}
+.te-extras-list > a {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  min-height: 64px;
+  padding: 12px 0;
+  border-bottom: 1px solid #d3ded7;
+}
+.te-extras-list strong {
+  display: block;
+  font-size: 13px;
+  line-height: 1.5;
+  font-weight: 600;
+  word-break: keep-all;
+}
+.te-extras-list small {
+  display: block;
+  margin-top: 4px;
+  color: #626262;
+  font-size: 11px;
+}
+.te-extras-list > a > span:last-child {
+  flex-shrink: 0;
+  font-size: 20px;
+}

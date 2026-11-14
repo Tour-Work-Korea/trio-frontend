@@ -12,8 +12,8 @@ export default function TripsPrograms({programs = trips}) {
       </a>
       <TripsHeader programs />
       <div className="ti-list-heading">
-        <h1 lang="en">Programs</h1>
-        <p>트립부터 클래스, 파티까지.</p>
+        <h1>프로그램</h1>
+        <p>제주 워케이션 · 클래스와 파티는 별도 선택</p>
       </div>
       <TripProgramsGrid programs={programs} id="program-list" />
     </main>

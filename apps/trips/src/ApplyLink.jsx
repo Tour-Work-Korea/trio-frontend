@@ -1,7 +1,11 @@
 import React from 'react';
-import {applicationUrl} from './applicationUrl.js';
-
-// Authentication, signup and checkout continue on the existing production site.
+import {loginHref} from './authModel.js';
 export function ApplyLink({id, children, className}) {
-  return <a className={className} href={applicationUrl(id)}>{children}</a>;
+  const back =
+    window.location.pathname + window.location.search + window.location.hash;
+  return (
+    <a className={className} href={loginHref({id, back})}>
+      {children}
+    </a>
+  );
 }

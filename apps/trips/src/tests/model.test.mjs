@@ -35,7 +35,7 @@ test('program links select the requested final schedule and invalid days fall ba
   const days = trips[0].days;
   assert.equal(days[scheduleDayIndex(days, '?day=02')].isoDate, '2026-12-04');
   const saturday = days[scheduleDayIndex(days, '?day=03')];
-  assert.equal(saturday.events[0].title, '아침 바레 수업');
+  assert.equal(saturday.events[0].title, 'SOLV 바레');
   assert.equal(saturday.events[0].time, '08:00–09:00');
   for (const search of ['', '?day=99', '?day=-1', '?day=NaN']) {
     assert.equal(scheduleDayIndex(days, search), 0);
@@ -43,6 +43,28 @@ test('program links select the requested final schedule and invalid days fall ba
   assert.deepEqual(
     days.map(day => new Date(`${day.isoDate}T00:00:00Z`).getUTCDay()),
     [4, 5, 6],
+  );
+});
+
+test('the current single trip option resolves its live price', () => {
+  const trip = trips[0];
+  const sale = publicSale(
+    {
+      partyId: trip.partyId,
+      priceOptions: [
+        {
+          id: 1830,
+          optionName: '얼리버드 - 2박 3일 · 전체 프로그램',
+          amount: 159000,
+        },
+      ],
+    },
+    trip.partyId,
+  );
+  assert.equal(trip.priceOptions.length, 1);
+  assert.equal(
+    optionPrice(sale, trip.priceOptions[0].id, trip.priceOptions[0].amount),
+    159000,
   );
 });
 
