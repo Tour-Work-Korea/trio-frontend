@@ -53,7 +53,7 @@ test('the current single trip option resolves its live price', () => {
       partyId: trip.partyId,
       priceOptions: [
         {
-          id: 1830,
+          id: 1846,
           optionName: '얼리버드 - 2박 3일 · 전체 프로그램',
           amount: 159000,
         },
@@ -104,4 +104,13 @@ test('live price replaces editorial price, and removed options never advertise s
     optionPrice({options: [{id: 1754, amount: 0}]}, 1754, 159000),
     0,
   );
+});
+
+ test('single-option trips follow recreated live IDs without confusing class options', () => {
+  const sale = publicSale({partyId: 3861, priceOptions: [{id: 1846, amount: 159000}]}, 3861);
+  assert.equal(optionPrice(sale, 1830, 179000, true), 159000);
+  assert.equal(optionPrice(sale, 1830, 179000), null);
+  assert.equal(optionPrice({options: [{id: 2000, amount: 179000}]}, 1846, 159000, true), 179000);
+  assert.equal(optionPrice({options: []}, 1846, 159000, true), null);
+  assert.equal(optionPrice({options: [{id: 1, amount: 70000}, {id: 2, amount: 80000}]}, 1846, 159000, true), null);
 });

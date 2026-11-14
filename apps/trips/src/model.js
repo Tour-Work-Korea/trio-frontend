@@ -37,11 +37,15 @@ export function publicSale(data, expectedId) {
       })),
   };
 }
-export function optionPrice(sale, optionId, fallback) {
-  // A removed option must not retain its old advertised price after a live update.
-  return sale
-    ? sale.options.find(option => option.id === optionId)?.amount ?? null
-    : fallback;
+export function optionPrice(sale, optionId, fallback, singleOption = false) {
+  if (!sale) return fallback;
+  const exact = sale.options.find(option => option.id === optionId);
+  if (exact) return exact.amount;
+  // A single-option trip follows its sole live option even when admin recreates it.
+  // Multi-option classes must never substitute another option's price.
+  return singleOption && sale.options.length === 1
+    ? sale.options[0].amount
+    : null;
 }
 
 // A program schedule link opens the corresponding detail tab; invalid values use day one.
