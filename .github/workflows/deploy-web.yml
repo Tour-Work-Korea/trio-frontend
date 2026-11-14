@@ -7,6 +7,7 @@ on:
       - main
     paths:
       - 'apps/web/**'
+      - 'apps/trips/src/authModel.js'
       - 'packages/app/**'
       - 'package.json'
       - 'package-lock.json'
@@ -93,7 +94,7 @@ jobs:
         run: npm ci
 
       - name: Test KODA and deployment boundaries
-        run: node --test scripts/web-deploy-scope.test.mjs apps/web/src/features/koda/tests/*.test.mjs
+        run: node --test scripts/web-deploy-scope.test.mjs apps/web/src/features/koda/tests/*.test.mjs apps/trips/src/tests/*.test.mjs apps/web/src/features/tripsAuth/tests/*.test.mjs
 
       - name: Load web env from AWS SSM
         run: |

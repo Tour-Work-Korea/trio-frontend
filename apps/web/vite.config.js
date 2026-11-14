@@ -2,6 +2,7 @@ import path from 'path';
 import {readFileSync} from 'fs';
 import {defineConfig, loadEnv, transformWithEsbuild} from 'vite';
 import react from '@vitejs/plugin-react';
+import {tripsAuthReturnPlugin} from './src/features/tripsAuth/plugin.js';
 import {kodaAuthReturnPlugin} from './src/features/koda/hosting/authReturnPlugin.js';
 
 const workspaceRoot = path.resolve(__dirname, '../..');
@@ -32,6 +33,7 @@ export default defineConfig(({mode}) => {
   return {
   plugins: [
     kodaAuthReturnPlugin(__dirname),
+    tripsAuthReturnPlugin(__dirname),
     {
       name: 'trio-svg-component-loader',
       enforce: 'pre',
