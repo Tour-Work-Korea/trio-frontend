@@ -296,7 +296,7 @@ export const regroundJeju = {
   ],
   priceOptions: [
     {
-      id: 1830,
+      id: 1846,
       name: '2박 3일',
       dates: '12.03 목 — 12.05 토',
       description: '느린 사흘을 온전히 함께',

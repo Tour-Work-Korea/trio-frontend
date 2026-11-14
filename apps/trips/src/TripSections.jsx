@@ -158,7 +158,7 @@ export function Booking({trip, sale}) {
       </p>
       <div className="nm-price-grid">
         {trip.priceOptions.map(option => {
-          const price = optionPrice(sale, option.id, option.amount);
+          const price = optionPrice(sale, option.id, option.amount, trip.priceOptions.length === 1);
           const discount = Number.isFinite(price)
             ? Math.max(0, option.regularAmount - price)
             : 0;

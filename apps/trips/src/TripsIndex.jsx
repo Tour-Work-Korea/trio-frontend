@@ -20,6 +20,7 @@ export default function TripsIndex({programs = trips}) {
       sale,
       featuredTrip.priceOptions[0].id,
       featuredTrip.priceOptions[0].amount,
+      featuredTrip.priceOptions.length === 1,
     );
   const discount =
     Number.isFinite(price) && featuredTrip

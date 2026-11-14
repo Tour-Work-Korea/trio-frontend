@@ -228,6 +228,7 @@ function Detail({trip}) {
     sale,
     trip.priceOptions[0].id,
     trip.priceOptions[0].amount,
+    trip.priceOptions.length === 1,
   );
   const ended = Date.now() > new Date(trip.endDate).getTime();
   useEffect(() => {
