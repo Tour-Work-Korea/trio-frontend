@@ -3,6 +3,7 @@ import {useRoute} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import Header from '@components/Header';
 import {BOOKING_RETURN_KEY} from '../auth/bookingReturn';
+import {reservationBackTarget as tripsBackTarget} from '../../../../../trips/src/authModel.js';
 import {reservationBackTarget} from '../auth/reservationBack';
 
 // Only the opt-in KODA build resolves MeetReservation's Header to this adapter.
@@ -10,10 +11,12 @@ import {reservationBackTarget} from '../auth/reservationBack';
 export default function KodaReservationHeader(props) {
   const route = useRoute();
   const {t} = useTranslation();
-  const destination = reservationBackTarget(
-    route.params,
-    props.title === t('common.reservation'),
-  );
+  const destination =
+    tripsBackTarget(route.params, props.title === t('common.reservation')) ||
+    reservationBackTarget(
+      route.params,
+      props.title === t('common.reservation'),
+    );
   const onPress = destination
     ? () => {
         try {
