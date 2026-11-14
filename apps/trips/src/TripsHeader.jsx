@@ -1,19 +1,33 @@
-import React from 'react';
-import {trips} from './model.js';
+import React, {useEffect, useRef, useState} from 'react';
+import AccountMenu from './AccountMenu.jsx';
 
 export default function TripsHeader({detail = false, programs = false}) {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menu = useRef(null);
+  useEffect(() => {
+    const restore = event => {
+      if (event.persisted && menu.current) {
+        menu.current.open = false;
+        setMenuOpen(false);
+      }
+    };
+    window.addEventListener('pageshow', restore);
+    return () => window.removeEventListener('pageshow', restore);
+  }, []);
   return (
     <header className="nm-header">
       {detail ? (
         <a
           className="nm-header-side"
-          href="/trips/programs/"
-          aria-label="여행 목록으로 돌아가기">
-          <span aria-hidden="true">←</span> 목록
+          href="/trips/"
+          aria-label="워케이션 메인으로 돌아가기">
+          <span aria-hidden="true">←</span> 홈
         </a>
       ) : (
         <details
           className="nm-header-menu"
+          ref={menu}
+          onToggle={event => setMenuOpen(event.currentTarget.open)}
           onKeyDown={event => {
             if (event.key === 'Escape') {
               event.currentTarget.open = false;
@@ -36,16 +50,10 @@ export default function TripsHeader({detail = false, programs = false}) {
                 event.currentTarget.closest('details').open = false;
               }
             }}>
-            <a href="/trips/">
-              홈 <span aria-hidden="true">↗</span>
-            </a>
-            <a href={`/trips/${trips[0].slug}/#schedule`}>
+            <a href="/trips/#schedule">
               여행 일정 <span aria-hidden="true">↗</span>
             </a>
-            <a href="/trips/programs/">
-              프로그램 목록 <span aria-hidden="true">↗</span>
-            </a>
-            <a href="https://ddakji.kr/login">로그인·회원가입 <span aria-hidden="true">↗</span></a>
+            <AccountMenu open={menuOpen} />
           </nav>
         </details>
       )}
@@ -55,8 +63,8 @@ export default function TripsHeader({detail = false, programs = false}) {
       </a>
       <a
         className="nm-header-programs"
-        href={programs ? '/trips/' : '/trips/programs/'}>
-        {programs ? '홈' : '프로그램'} <span aria-hidden="true">↗</span>
+        href={programs ? '/trips/' : '#booking'}>
+        {programs ? '홈' : '신청 안내'} <span aria-hidden="true">↗</span>
       </a>
     </header>
   );

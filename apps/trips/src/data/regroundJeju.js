@@ -1,15 +1,15 @@
-// Editorial copy checked against the public Ddakji listings on 2026-11-11.
-// User confirmed 2026-11-11: page text schedule is final; poster timetable is older.
+// Workation copy and core schedule: user-supplied revision, 2026-11-15.
+// Keep booking IDs/routes stable. Workation cover supplied by user on 2026-11-15.
 export const regroundJeju = {
   slug: 'reground-jeju',
   issue: '01',
   region: 'JEJU',
   location: '제주 서귀포 · 덕수리',
   collaboration: '리그라운드 제주 × 게딱지',
-  title: '슬로우 도파민 트립',
-  titleEnglish: 'Slow Dopamine',
+  title: '제주 워케이션',
+  titleEnglish: 'Work & Rest',
   headline: ['이번엔,', '제주에서.'],
-  subtitle: '일하고, 쉬고, 취향을 찾는 2박 3일',
+  subtitle: '제주에서 일하고, 쉬고, 잘 노는 2박 3일',
   duration: '2박 3일',
   durationEnglish: '2 NIGHTS · 3 DAYS',
   year: '2026',
@@ -26,24 +26,71 @@ export const regroundJeju = {
   endDate: '2026-12-05T11:00:00+09:00',
   partyId: 3861,
   contentUrl: 'https://ddakji.kr/contents/3861',
-  hero: '/trips-assets/slow-dopamine-poster.jpg',
+  hero: '/trips-assets/workation-poster.png',
   heroAlt:
-    '리그라운드 제주 × 게딱지 슬로우 도파민 트립 원본 포스터. 2026년 12월 3일부터 5일까지, 일하고 쉬고 취향을 찾는 2박 3일',
-  introduction: [
-    '잘 쉬는 것도, 새로운 취향을 만나는 것도.',
-    '이번에는 조금 천천히 해볼까요?',
-  ],
+    '리그라운드 제주 × 게딱지 WORK & REST 워케이션 포스터. 2026년 12월 3일부터 5일까지, 제주에서 일하고 쉬고 잘 노는 2박 3일',
+  heroIsPhoto: false,
+  teamImage: '/trips-assets/workation-team.jpeg',
+  introduction: ['일할 땐 각자의 일에,', '함께할 땐 서로의 이야기에.'],
   description:
-    '아침에는 몸을 깨우고 송악산을 걸어요. 낮에는 각자의 일에 집중하거나 손으로 무언가를 만들고, 저녁에는 같은 식탁에 둘러앉아 하루를 나눠요. 제주 덕수리에서 보내는 우리의 느린 사흘.',
-  keywords: ['함께 머물기', '느리게 걷기', '새로운 취향'],
+    '하던 일도, 시작해보고 싶은 일도 가져오세요. 낮에는 내 작업에 집중하고, 저녁에는 공간 운영자·디자이너·기획자와 일과 삶의 이야기를 나눠요. 제주에서 잠시 환경을 바꾸고, 나의 다음을 생각하는 워케이션이에요.',
+  keywords: ['자율 업무', '일과 삶의 대화', '제주에서의 쉼'],
+  audience: [
+    {
+      title: '창업을 준비하고 있다면',
+      description: '먼저 자신의 일을 시작한 사람들의 경험이 궁금한 예비창업자',
+    },
+    {
+      title: '나만의 일을 찾고 있다면',
+      description: '아이디어나 개인 프로젝트를 꺼내보고 싶은 사람',
+    },
+    {
+      title: '퇴사 후의 다음이 고민이라면',
+      description: '잠시 일상을 벗어나 앞으로의 방향을 생각하고 싶은 사람',
+    },
+  ],
+  hosts: [
+    {
+      name: '하늘',
+      role: '게딱지 운영자',
+      topic: '여행자의 새로운 만남을 연결하는 일',
+    },
+    {
+      name: '선혜',
+      role: '리그라운드 공간 대표',
+      topic: '제주에서 파이를 굽고, 공간을 만들어온 이야기',
+    },
+    {
+      name: '윤영',
+      role: '디자이너',
+      topic: '이것저것 직접 만들며 이어가는 나만의 작업',
+    },
+    {
+      name: '기원',
+      role: '기획자',
+      topic: '질문을 통해 사람의 내면을 탐구하는 일',
+    },
+  ],
+  crew: '현장에서는 리그라운드 스태프 건한·승용이 함께해요.',
+  optionalParty: {
+    partyId: 4256,
+    title: '연말파티',
+    date: '12.05 토요일 · 17:00–',
+    // The confirmed December 5 party was registered as 4256; 4195 is an older December 6 listing.
+    confirmedDate: '2026-12-05',
+    confirmedTime: '17:00–',
+    hosts: '윤아 · 승민',
+    url: 'https://ddakji.kr/contents/4256',
+  },
   highlights: [
     {
       title: '함께 걷고, 몸을 깨워요',
       description: '모닝 웰니스와 송악산 컬러워크로 제주의 아침을 만나요.',
     },
     {
-      title: '일과 쉼은 나의 속도로',
-      description: '오후에는 각자의 일에 집중하거나 선택 클래스에 참여해요.',
+      title: '내 일에 집중하는 오후',
+      description:
+        '금요일 13:00–18:30은 자율 업무 시간. 하던 일이나 개인 프로젝트를 이어가요.',
     },
     {
       title: '같은 식탁에서 만나는 사람들',
@@ -87,8 +134,11 @@ export const regroundJeju = {
         },
         {
           time: '19:00–21:00',
-          title: '포틀럭 저녁식사 & 웰컴 리추얼',
-          description: '자기소개, 프로그램 안내, 질문을 나누는 시간.',
+          title: '포틀럭 저녁 & 질문 나누기',
+          description: '같은 식탁에 둘러앉아 서로를 알아가요.',
+          overview: true,
+          image: '/trips-assets/workation-potluck.png',
+          imageAlt: '리그라운드 제주에서 함께 식사하며 이야기 나누는 모습',
         },
         {
           time: '21:00–',
@@ -115,32 +165,31 @@ export const regroundJeju = {
         {
           time: '10:00–11:30',
           title: '송악산 컬러워크',
-          description: '함께 걸으며 제주의 풍경을 만나요.',
+          description: '걸으며 마음에 드는 색을 사진으로 담아요.',
+          overview: true,
         },
         {time: '11:30–13:00', title: '자유 점심'},
         {
           time: '13:00–18:30',
           title: '자율 업무 시간',
-          description: '각자의 작업에 집중하거나 선택 클래스에 참여해요.',
+          description: '워크스페이스에서 내 일이나 프로젝트를 해요.',
+          overview: true,
         },
         {
-          time: '13:00 / 15:00',
-          title: '박쥐란 판부작 클래스',
-          classId: 4133,
-          description: '환성농원과 함께하는 크리스마스 클래스.',
-          optional: true,
+          time: '18:30–19:30',
+          title: '함께하는 저녁 식사',
+          description: '제공되는 저녁을 다 같이 먹어요.',
+          overview: true,
         },
-        {time: '18:30–19:30', title: '저녁 식사'},
         {
           id: 'reground-night',
           time: '19:30–21:30',
-          title: '리그라운드 나잇',
-          description: '오늘의 경험과 이야기를 나누는 저녁.',
+          title: '리그라운드 나잇 · 이야기 나누기',
+          description: '호스트와 서로의 일과 고민을 나눠요.',
+          overview: true,
         },
       ],
-      notes: [
-        '클래스는 자율 업무 시간 중 선택 참여하며 별도 신청·결제가 필요합니다.',
-      ],
+      notes: [],
     },
     {
       day: '03',
@@ -151,31 +200,25 @@ export const regroundJeju = {
       description:
         '몸을 깨우고, 마음에 남은 것들을 기록해요. 체크아웃 후의 제주는 자유롭게.',
       events: [
-        {time: '08:00–09:00', title: '아침 바레 수업'},
+        {
+          time: '08:00–09:00',
+          title: 'SOLV 바레',
+          description: '발레 동작을 응용한 운동으로 몸을 깨워요.',
+          overview: true,
+          image: '/trips-assets/workation-barre.jpg',
+          imageAlt: '제주 바다 앞에서 함께 바레 운동을 하는 모습',
+        },
         {
           time: '09:00–10:30',
-          title: '아침 식사 & 기록',
-          description: '모닝페이지 또는 2027년 하고 싶은 일 100개 적기.',
+          title: '아침 식사 · 모닝페이지 / 새해 기록',
+          description: '떠오르는 생각과 새해의 바람을 적어요.',
+          overview: true,
         },
         {time: '11:00', title: '체크아웃 & 굿바이 키트'},
         {
-          time: '11:00–17:00',
+          time: '11:00 이후',
           title: '자유시간',
           description: '제주 여행, 개인 작업, 휴식.',
-        },
-        {
-          time: '시간 추후 안내',
-          title: '가죽 북어 클래스',
-          classId: 4134,
-          description: '새해의 바람을 담아 만드는 작은 작품.',
-          optional: true,
-        },
-        {
-          id: 'prism',
-          time: '17:00–',
-          title: 'PRISM : WHAT ARE WE?',
-          description: '체크아웃 이후 열리는 연말파티. 별도 신청.',
-          optional: true,
         },
       ],
       notes: [],
@@ -215,11 +258,13 @@ export const regroundJeju = {
       imageFit: 'contain',
       alt: '크리스마스 리스로 꾸민 박쥐란 판부작 예시',
       date: '12.04 금요일',
+      isoDate: '2026-12-04',
+      host: '환성농원',
       time: '13:00 / 15:00',
       regularPrice: 80000,
       tripPrice: 70000,
-      regularOptionId: 1729,
-      tripOptionId: 1731,
+      regularOptionId: 1835,
+      tripOptionId: 1837,
       notes: [
         '타임별 선착순 10명',
         '커피 또는 주스 1잔 포함',
@@ -235,6 +280,8 @@ export const regroundJeju = {
       image: '/trips-assets/leather-fish.jpg',
       alt: '시계 앞에 걸린 가죽 북어 작품',
       date: '12.05 토요일',
+      isoDate: '2026-12-05',
+      host: '핑거레스트 · 가죽/한지 공방',
       time: '상세 시간 추후 안내',
       regularPrice: 70000,
       tripPrice: 60000,
@@ -249,36 +296,20 @@ export const regroundJeju = {
   ],
   priceOptions: [
     {
-      id: 1754,
+      id: 1830,
       name: '2박 3일',
       dates: '12.03 목 — 12.05 토',
       description: '느린 사흘을 온전히 함께',
       amount: 159000,
       regularAmount: 179000,
-      label: '얼리버드 · 전체 프로그램',
-    },
-    {
-      id: 1755,
-      name: '1박 2일',
-      dates: '12.03 목 — 12.04 금',
-      description: '첫 만남부터 금요일까지',
-      amount: 119000,
-      regularAmount: 139000,
-      label: '얼리버드 · 목–금 참여',
-    },
-    {
-      id: 1756,
-      name: '1박 2일',
-      dates: '12.04 금 — 12.05 토',
-      description: '금요일부터 마지막 기록까지',
-      amount: 119000,
-      regularAmount: 139000,
-      label: '얼리버드 · 금–토 참여',
+      label: '얼리버드 · 2박 3일 워케이션',
     },
   ],
   inclusions: [
-    '선택한 옵션에 해당하는 숙박 및 트립 프로그램',
-    '참여 일정에 해당하는 웰컴키트·굿바이 키트',
+    '2박 숙박 · 아침 식사 · 2일차 저녁',
+    '모닝 웰니스 · SOLV 바레 · 송악산 컬러워크',
+    '질문 테이블 · 리그라운드 나잇 · 모닝페이지',
+    '워크스페이스 · 로컬 추천 지도 · 웰컴/굿바이 키트',
   ],
   exclusions: [
     '항공권, 개인 교통비 및 개인 여행 경비',

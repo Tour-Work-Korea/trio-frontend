@@ -52,22 +52,45 @@ function ProgramCard({item}) {
           <small>{item.note}</small>
         </div>
       </a>
-      {!item.status && <ApplyLink id={item.id} className="pg-apply">신청하기 ↗</ApplyLink>}
+      {!item.status && (
+        <ApplyLink id={item.id} className="pg-apply">
+          신청하기 ↗
+        </ApplyLink>
+      )}
     </article>
   );
 }
 
-export default function TripProgramsGrid({programs, id = 'trip-programs'}) {
-  const [filter, setFilter] = useState('trip');
+export default function TripProgramsGrid({
+  programs,
+  id = 'trip-programs',
+  optionalOnly = false,
+}) {
+  const shownFilters = optionalOnly
+    ? filters.filter(item => item.id !== 'trip')
+    : filters;
+  const [filter, setFilter] = useState(optionalOnly ? 'class' : 'trip');
   const {cards, status, retry} = usePrograms(programs);
   const visible = cards.filter(item => item.category === filter);
   return (
     <section
-      className="pg-programs"
+      className={`pg-programs${optionalOnly ? ' pg-programs-optional' : ''}`}
       id={id}
-      aria-label="트립, 클래스, 파티 프로그램">
+      aria-label={
+        optionalOnly ? '별도 선택 프로그램' : '트립, 클래스, 파티 프로그램'
+      }>
+      {optionalOnly && (
+        <div className="pg-optional-heading">
+          <h2>클래스와 연말파티는 선택이에요</h2>
+          <p>
+            워케이션 참가비에 포함되지 않아요.
+            <br />
+            참여하고 싶은 분만 별도로 신청·결제해주세요.
+          </p>
+        </div>
+      )}
       <div className="pg-filters" role="group" aria-label="프로그램 종류">
-        {filters.map(item => (
+        {shownFilters.map(item => (
           <button
             key={item.id}
             type="button"
@@ -101,11 +124,16 @@ export default function TripProgramsGrid({programs, id = 'trip-programs'}) {
       ) : status === 'loading' ? (
         <div className="pg-loading" aria-hidden="true" />
       ) : visible.length ? (
-        notes[filter] ? <p className="pg-program-note">{notes[filter]}</p> : null
+        notes[filter] ? (
+          <p className="pg-program-note">{notes[filter]}</p>
+        ) : null
       ) : (
         <p className="pg-empty">
-          아직 등록된 {filters.find(item => item.id === filter).label}{' '}
-          프로그램이 없어요.
+          {optionalOnly && filter === 'party'
+            ? '12.05 토요일 17:00 연말파티 · 신청 정보 준비 중'
+            : `아직 등록된 ${
+                filters.find(item => item.id === filter).label
+              } 프로그램이 없어요.`}
         </p>
       )}
     </section>

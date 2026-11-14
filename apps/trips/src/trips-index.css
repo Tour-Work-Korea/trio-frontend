@@ -14,6 +14,28 @@
   border-top: 1px solid #242424;
   color: #151515;
 }
+.nm-index-shell:not(.nm-programs-shell) .nm-footer {
+  padding-bottom: calc(120px + env(safe-area-inset-bottom));
+}
+.nm-index-booking-bar .nm-index-discount {
+  color: #c92f32;
+  font-size: 11px;
+  font-weight: 600;
+}
+.nm-index-booking-bar .nm-index-price-meta {
+  display: flex;
+  align-items: baseline;
+  gap: 7px;
+  white-space: nowrap;
+}
+.nm-index-price-meta del {
+  color: #777;
+}
+.nm-index-booking-bar .nm-index-bar-intro {
+  color: #151515;
+  font-size: 13px;
+  font-weight: 600;
+}
 .nm-index-shell .nm-footer-title {
   font-size: 20px;
 }
@@ -111,4 +133,83 @@
   margin-top: 10px;
   font-size: 13px;
   color: #626262;
+}
+.ti-trip-summary {
+  margin: 0 20px;
+  padding: 19px 0 0;
+}
+.ti-trip-summary h1 {
+  font-size: clamp(24px, 6.8vw, 28px);
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -1.7px;
+  margin: 0;
+}
+.ti-trip-summary h1::after {
+  display: block;
+  width: 42px;
+  height: 5px;
+  margin-top: 11px;
+  border-radius: 3px;
+  background: var(--ti-mint);
+  content: '';
+}
+.ti-place-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  min-height: 36px;
+  margin-top: 3px;
+  color: #315b45;
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.ti-places {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 20px 30px;
+}
+.ti-places figure {
+  min-width: 0;
+  margin: 0;
+}
+.ti-places img {
+  display: block;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 1 / 1;
+  object-fit: cover;
+  border-radius: 4px;
+}
+.ti-places figure:first-child img {
+  object-position: center 58%;
+}
+.ti-places figcaption {
+  padding-top: 7px;
+  color: #626262;
+  font-size: 12px;
+}
+.nm-program-index .nm-inclusions > div:first-child {
+  padding: 18px;
+  border: 1px solid #d3ded7;
+  border-radius: 16px;
+  background: #f6faf7;
+}
+.nm-program-index .nm-inclusions > div:first-child h3 {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 600;
+}
+.nm-program-index .nm-inclusions > div:first-child ul {
+  margin: 0;
+  padding-left: 17px;
+  color: #555e58;
+  font-size: 12px;
+  line-height: 1.75;
+}
+.nm-program-index .nm-inclusions > div:first-child li + li {
+  margin-top: 5px;
 }

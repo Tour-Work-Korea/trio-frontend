@@ -20,7 +20,7 @@ export async function verifyOutput(root) {
     }
   }
   await walk(root);
-  for (const html of ['trips/index.html', 'trips/programs/index.html', 'trips/reground-jeju/index.html']) {
+  for (const html of ['trips/index.html', 'trips/login/index.html', 'trips/programs/index.html', 'trips/reground-jeju/index.html']) {
     const text = await readFile(path.join(root, html), 'utf8');
     const scripts = [...text.matchAll(/<script[^>]+src="([^"]+)"/g)].map(match => match[1]);
     if (!scripts.length || scripts.some(src => !src.startsWith('/trips-assets/build/') || !files.includes(src.slice(1)))) {

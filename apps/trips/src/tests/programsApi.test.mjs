@@ -140,7 +140,7 @@ test('category overrides distinguish the three existing PROGRAM events; new titl
   );
 });
 
-test('cards use current API title/image/price, retain final editorial times, and never synthesize parties', () => {
+test('cards use workation branding for the curated trip, live class data and independent optional dates', () => {
   const events = [
     row(),
     row({partyId: 4133, eventDate: '2026-12-04', amount: 85000}),
@@ -153,12 +153,14 @@ test('cards use current API title/image/price, retain final editorial times, and
     ),
     [1, 2, 0],
   );
+  assert.equal(cards[0].title, '제주 워케이션');
+  assert.equal(cards[0].image, trips[0].hero);
   assert.equal(cards[1].price, '85,000원');
   assert.equal(cards[1].title, events[1].partyTitle);
   assert.equal(cards[1].image, events[1].image);
   assert.equal(cards[1].time, '13:00 / 15:00');
   assert.equal(cards[2].time, '상세 시간 추후 안내');
-  assert.equal(cards[2].href, '/trips/reground-jeju/#class-4134');
+  assert.equal(cards[2].href, 'https://ddakji.kr/contents/4134');
   assert.deepEqual(eventCards([], trips), []);
   const newParty = publicDateEvent(
     row({partyId: 9999, partyTitle: '새 파티', amount: 0}),
@@ -167,6 +169,29 @@ test('cards use current API title/image/price, retain final editorial times, and
   const [card] = eventCards([newParty], trips);
   assert.equal(card.href, 'https://ddakji.kr/contents/9999');
   assert.equal(card.price, '무료');
+});
+
+test('only the confirmed PRISM event overrides the API date and time', () => {
+  const events = [4256, 4195].map(partyId =>
+    publicDateEvent(
+      row({
+        partyId,
+        partyTitle: '연말파티 PRISM',
+        eventDate: '2026-12-06',
+        partyStartTime: '17:00:00',
+        partyEndTime: '23:45:00',
+        amount: 22000,
+      }),
+      97,
+    ),
+  );
+  const [confirmed, other] = eventCards(events, trips);
+  assert.equal(confirmed.date, '12.05 토요일');
+  assert.equal(confirmed.time, '17:00–');
+  assert.equal(confirmed.price, '22,000원');
+  assert.equal(confirmed.href, 'https://ddakji.kr/contents/4256');
+  assert.equal(other.date, '12.06 일요일');
+  assert.equal(other.time, '17:00–23:45');
 });
 
 test('local preview API accepts only public GET routes and never forwards user credentials', async () => {

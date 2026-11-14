@@ -5,6 +5,7 @@ export function tripRoute(pathname) {
   if (!/^\/trips(?:\/|$)/.test(pathname)) return null;
   const parts = pathname.replace(/\/+$/, '').split('/').filter(Boolean);
   if (parts.length === 1) return {page: 'index'};
+  if (parts.length === 2 && parts[1] === 'login') return {page: 'login'};
   if (parts.length === 2 && parts[1] === 'programs') return {page: 'programs'};
   const trip = parts.length === 2 && trips.find(item => item.slug === parts[1]);
   return trip ? {page: 'detail', trip} : {page: 'not-found'};

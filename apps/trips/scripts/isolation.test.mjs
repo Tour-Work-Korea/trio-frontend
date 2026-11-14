@@ -19,6 +19,7 @@ test('CloudFront travel router never changes existing app paths', () => {
   for (const [uri, target] of [
     ['/trips', '/trips/index.html'],
     ['/trips/', '/trips/index.html'],
+    ['/trips/login/', '/trips/index.html'],
     ['/trips/programs/', '/trips/programs/index.html'],
     ['/trips/reground-jeju', '/trips/reground-jeju/index.html'],
     ['/trips/unknown/', '/trips/index.html'],

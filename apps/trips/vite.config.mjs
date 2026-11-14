@@ -31,6 +31,7 @@ export default defineConfig({
     rollupOptions: {
       input: {
         trips: path.join(root, 'trips/index.html'),
+        login: path.join(root, 'trips/login/index.html'),
         programs: path.join(root, 'trips/programs/index.html'),
         reground: path.join(root, 'trips/reground-jeju/index.html'),
       },
