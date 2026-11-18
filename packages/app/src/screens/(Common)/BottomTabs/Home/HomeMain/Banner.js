@@ -37,11 +37,11 @@ function Banner({ banners = [] }) {
   const navigation = useNavigation();
   const isFocused = useIsFocused();
   const [appState, setAppState] = useState(AppState.currentState);
-  const canAutoSlide = Platform.OS !== 'ios' ||
+  const canAutoSlide = Platform.OS === 'web' ||
     (isFocused && appState === 'active');
 
   useEffect(() => {
-    if (Platform.OS !== 'ios') {
+    if (Platform.OS === 'web') {
       return undefined;
     }
     const subscription = AppState.addEventListener('change', setAppState);
@@ -210,7 +210,7 @@ function Banner({ banners = [] }) {
     if (canAutoSlide && !wasAutoSlideEnabledRef.current) {
       scrollToBannerIndex(currentIndex, false);
     }
-    if (Platform.OS === 'ios' && !canAutoSlide) {
+    if (Platform.OS !== 'web' && !canAutoSlide) {
       clearTimeout(loopResetTimeoutRef.current);
       clearTimeout(scrollEndTimeoutRef.current);
       loopResetTimeoutRef.current = null;

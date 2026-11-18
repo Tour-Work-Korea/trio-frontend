@@ -55,6 +55,7 @@ const ImageModal = ({
   sourceRect,
   sourceBorderRadius = 0,
   fallbackDismissMode = 'slide',
+  headerAction,
 }) => {
   const {width: screenWidth, height: screenHeight} = useWindowDimensions();
   const pageWidth = screenWidth || FALLBACK_SCREEN_WIDTH;
@@ -934,6 +935,7 @@ const ImageModal = ({
                   ? `${androidDisplayIndex}/${imageList.length}`
                   : ''}
               </Text>
+              {headerAction}
               <TouchableOpacity
                 activeOpacity={0.8}
                 style={styles.closeButton}
@@ -997,6 +999,7 @@ const ImageModal = ({
             ? `${currentIndex + 1}/${imageList.length}`
             : ''}
         </Text>
+        {headerAction}
         <TouchableOpacity
           activeOpacity={0.8}
           style={styles.closeButton}

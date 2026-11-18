@@ -35,10 +35,8 @@ import ScreenSkeleton from './LoadingSkeleton';
 import {prefetchImageUrls} from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 import notificationApi from '@utils/api/notificationApi';
-import {
-  isUserNotification,
-  subscribeForegroundNotification,
-} from '@utils/notifications';
+import {subscribeForegroundNotification} from '@utils/notifications';
+import {isNotificationCenterItem} from '../../../../(User)/UserMyPage/NotificationCenter/notificationVisibility';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
@@ -265,7 +263,7 @@ const HomeMain = () => {
           if (isActive) {
             setUnreadCount(
               extractNotificationItems(data).filter(
-                item => isUserNotification(item) && !item?.isRead,
+                item => isNotificationCenterItem(item) && !item?.isRead,
               ).length,
             );
           }
@@ -279,7 +277,7 @@ const HomeMain = () => {
 
       fetchUnreadCount();
       const unsubscribe = subscribeForegroundNotification(message => {
-        if (isUserNotification(message?.data)) {
+        if (isNotificationCenterItem(message?.data)) {
           fetchUnreadCount();
         }
       });

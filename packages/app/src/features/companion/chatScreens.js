@@ -24,7 +24,7 @@ import {useIsFocused, useNavigation} from '@react-navigation/native';
 import {useTranslation} from 'react-i18next';
 import {launchCamera, launchImageLibrary} from 'react-native-image-picker';
 import ImageResizer from 'react-native-image-resizer';
-import AppImage from '@components/AppImage';
+import ContentImage from '../../screens/_components/ContentImage';
 import Modal from '@components/modals/AdaptiveModal';
 import Avatar from '@components/Avatar';
 import useUserStore from '@stores/userStore';
@@ -45,7 +45,11 @@ import {ChatReentryPrompt} from './chatReentryUi';
 import {OrganizerRequestCard} from './organizerChatUi';
 import {InboxRoom} from './inboxUi';
 import ChatSkeleton from './chatSkeleton';
+import ChatNoticeBanner from './ChatNoticeBanner';
+import ChatParticipationBanner from './ChatParticipationBanner';
+import ChatPhoto from './ChatPhoto';
 import CompanionPlaceMap from './CompanionPlaceMap';
+import usePlaceInitialLocation from './usePlaceInitialLocation';
 import {
   SkeletonPulse,
   SkeletonBlock,
@@ -65,6 +69,7 @@ import PlusIcon from '@assets/images/plus_black.svg';
 import PhotoIcon from '@assets/images/add_image_black.svg';
 import CameraIcon from '@assets/images/camera_black.svg';
 import PinIcon from '@assets/images/map_pin_black.svg';
+import ClockIcon from './assets/clock_black.svg';
 import RadioOn from '@assets/images/radio_button_enabled.svg';
 import RadioOff from '@assets/images/radio_button_disabled.svg';
 import BellIcon from '@assets/images/bell_black.svg';
@@ -201,21 +206,35 @@ export function CompanionInbox({navigation: screenNavigation, route}) {
       generation === chatGeneration() &&
       cache === metadataCache.current;
     const pending = resource.data.filter(
-      room => !cache[room.roomId] || Date.now() - cache[room.roomId].at > 30000,
+      room => !cache[room.roomId] || Date.now() - cache[room.roomId].at > 30000 ||
+        String(cache[room.roomId].data.previewMessageId) !== String(room.lastMessageId),
     );
     let cursor = 0;
     Promise.all(
       Array.from({length: Math.min(3, pending.length)}, async () => {
         while (cursor < pending.length && current()) {
           const room = pending[cursor++];
-          const [detail, members] = await Promise.allSettled([
+          const [detail, members, latest] = await Promise.allSettled([
             chatApi.detail(room.roomId),
             chatApi.members(room.roomId),
+            room.lastMessageId != null &&
+            String(cache[room.roomId]?.data.previewMessageId) !== String(room.lastMessageId)
+              ? chatApi.messages(room.roomId, undefined, 1)
+              : Promise.resolve(null),
           ]);
           if (!current()) {
             return;
           }
           const metadata = {...cache[room.roomId]?.data};
+          if (latest.status === 'fulfilled' && latest.value) {
+            const message = latest.value.data.messages?.find(
+              item => String(item.messageId) === String(room.lastMessageId),
+            );
+            if (message) {
+              metadata.previewMessageId = message.messageId;
+              metadata.lastMessageContentKind = message.contentKind;
+            }
+          }
           if (detail.status === 'fulfilled') {
             metadata.myMemberRole = detail.value.data.myMemberRole;
             metadata.activeMemberCount = detail.value.data.activeMemberCount;
@@ -269,11 +288,19 @@ export function CompanionInbox({navigation: screenNavigation, route}) {
       disposed = true;
     };
   }, [resource.data, focused, token, userId, myEmail]);
-  const rooms = (resource.data || []).map(room => ({
-    ...room,
-    ...roomMetadata[room.roomId],
-    avatarsLoading: roomMetadata[room.roomId]?.avatarProfiles === undefined,
-  }));
+  const rooms = (resource.data || []).map(room => {
+    const metadata = roomMetadata[room.roomId];
+    const kind = String(metadata?.previewMessageId) === String(room.lastMessageId)
+      ? metadata?.lastMessageContentKind : null;
+    return {
+      ...room,
+      ...metadata,
+      lastMessagePreview: kind === 'LOCATION'
+        ? t('companion.place')
+        : kind === 'IMAGE' ? t('companion.photoMessage') : room.lastMessagePreview,
+      avatarsLoading: metadata?.avatarProfiles === undefined,
+    };
+  });
   const filtered = rooms.filter(
     room =>
       (!role ||
@@ -439,21 +466,33 @@ function PrivateImage({message, roomId, compact = false}) {
   const retries = useRef(0);
   const imageActive = useRef(false);
   const payload = parsePayload(message);
+  const resolveImageUri = useCallback(async () => {
+    // Official/general rooms may already supply a public CDN image URL.
+    if (/^https:\/\//i.test(payload.publicUrl || '')) {
+      return payload.publicUrl;
+    }
+    const generation = chatGeneration();
+    const response = await chatApi.download(roomId, payload.publicUrl);
+    if (!imageActive.current || generation !== chatGeneration()) {
+      throw new Error('CHAT_SESSION_CHANGED');
+    }
+    return response.data.downloadUrl;
+  }, [roomId, payload.publicUrl]);
   const load = useCallback(async () => {
     const generation = chatGeneration();
     try {
-      const response = await chatApi.download(roomId, payload.publicUrl);
+      const nextUri = await resolveImageUri();
       if (!imageActive.current || generation !== chatGeneration()) {
         return;
       }
-      setUri(response.data.downloadUrl);
+      setUri(nextUri);
       setFailed(false);
     } catch {
       if (imageActive.current && generation === chatGeneration()) {
         setFailed(true);
       }
     }
-  }, [roomId, payload.publicUrl]);
+  }, [resolveImageUri]);
   useEffect(() => {
     imageActive.current = true;
     setUri(null);
@@ -480,22 +519,26 @@ function PrivateImage({message, roomId, compact = false}) {
     );
   }
   return uri ? (
-    <AppImage
+    <ChatPhoto
       uri={uri}
-      style={{
-        width: compact ? 120 : 200,
-        maxWidth: '100%',
-        height: compact ? 80 : 160,
-        borderRadius: 8,
-      }}
-      onError={() => {
-        if (retries.current++ < 1) {
-          load();
-        } else {
-          setFailed(true);
-        }
-      }}
-    />
+      resolveUri={resolveImageUri}>
+      <ContentImage
+        uri={uri}
+        style={{
+          width: compact ? 120 : 200,
+          maxWidth: '100%',
+          height: compact ? 80 : 160,
+          borderRadius: 8,
+        }}
+        onError={() => {
+          if (retries.current++ < 1) {
+            load();
+          } else {
+            setFailed(true);
+          }
+        }}
+      />
+    </ChatPhoto>
   ) : (
     <SkeletonPulse title={t('companion.loading')}>
       <SkeletonBlock
@@ -516,10 +559,12 @@ function MessageContent({message, roomId}) {
   if (message.contentKind === 'IMAGE') {
     if (message.pending && message.localImageUri) {
       return (
-        <AppImage
-          uri={message.localImageUri}
-          style={{width: 200, maxWidth: '100%', height: 160, borderRadius: 8}}
-        />
+        <ChatPhoto uri={message.localImageUri}>
+          <ContentImage
+            uri={message.localImageUri}
+            style={{width: 200, maxWidth: '100%', height: 160, borderRadius: 8}}
+          />
+        </ChatPhoto>
       );
     }
     return <PrivateImage message={message} roomId={roomId} />;
@@ -579,6 +624,7 @@ export function CompanionChat({navigation: screenNavigation, route}) {
   const focused = useIsFocused();
   const userId = useUserStore(state => state.userProfile?.userId);
   const myEmail = useUserStore(state => state.userProfile?.email);
+  const [noticeHeight, setNoticeHeight] = useState(0);
   const [messages, setMessages] = useState([]);
   const [senderProfiles, setSenderProfiles] = useState({});
   const profileCache = useRef({});
@@ -1442,7 +1488,7 @@ export function CompanionChat({navigation: screenNavigation, route}) {
     }
     const position = messagePositions.current[String(anchorMessageId)];
     if (position != null) {
-      scroll.current?.scrollTo({y: Math.max(0, position - 16), animated: true});
+      scroll.current?.scrollTo({y: Math.max(0, position - 16 - (isGroup && room?.noticeContent ? noticeHeight || 62 : 0)), animated: true});
       return;
     }
     let stopped = false;
@@ -1478,7 +1524,7 @@ export function CompanionChat({navigation: screenNavigation, route}) {
     return () => {
       stopped = true;
     };
-  }, [anchorMessageId, room?.roomId, roomId, focused, showError]);
+  }, [anchorMessageId, room?.roomId, room?.noticeContent, roomId, isGroup, noticeHeight, focused, showError]);
   const sendFrame = frame => {
     if (
       socket.current?.readyState !== 1 ||
@@ -1863,33 +1909,60 @@ export function CompanionChat({navigation: screenNavigation, route}) {
           <ChatSkeleton />
         ) : (
           <ResourceBody resource={resource} scroll={false}>
-            {isGroup && !!room?.noticeContent && (
-              <TouchableOpacity
-                onPress={() =>
-                  navigation.navigate('CompanionChatNotice', {
-                    roomId,
-                    companionId,
-                  })
-                }
-                style={{
-                  marginHorizontal: 20,
-                  marginBottom: 8,
-                  paddingHorizontal: 12,
-                  paddingVertical: 10,
-                  backgroundColor: C.grayscale_100,
-                  borderRadius: 10,
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: 8,
-                }}>
-                <PinIcon width={16} height={16} />
-                <Txt numberOfLines={2} style={[s.small, s.grow]}>
-                  {room.noticeContent}
-                </Txt>
-              </TouchableOpacity>
-            )}
+
+
+            {detail &&
+              !isGroup &&
+              ((participantDirect &&
+                ['PENDING', 'ACCEPTED'].includes(detail.myParticipationStatus)) ||
+                (own &&
+                  ['PENDING', 'ACCEPTED'].includes(currentParticipant?.status))) && (
+                <ChatParticipationBanner
+                  roomId={roomId}
+                  accepted={own ? currentParticipant?.status === 'ACCEPTED' : detail.myParticipationStatus === 'ACCEPTED'}
+                  item={detail}
+                  own={own}
+                  busy={task.busy}
+                  onWithdraw={withdraw}
+                  onReject={() => decide(false)}
+                  onAccept={() => decide(true)}
+                  title={
+                    own
+                      ? currentParticipant.status === 'PENDING'
+                        ? t('companion.chat.organizerRequest', {
+                            name:
+                              currentParticipant.userName ||
+                              t('companion.memberId', { id: currentParticipant.userId }),
+                          })
+                        : t('companion.acceptedOrganizerTitle')
+                      : t(
+                          detail.myParticipationStatus === 'PENDING'
+                            ? 'companion.chat.requestSent'
+                            : 'companion.acceptedTitle'
+                        )
+                  }
+                />
+              )}
 
             <View style={{flex: 1}}>
+              {isGroup && !!room?.noticeContent && (
+                <View
+                  pointerEvents="box-none"
+                  onLayout={event => setNoticeHeight(event.nativeEvent.layout.height)}
+                  style={{position: 'absolute', top: 0, left: 0, right: 0, zIndex: 10}}>
+                  <ChatNoticeBanner
+                    key={roomId}
+                    roomId={roomId}
+                    content={room.noticeContent}
+                    onPress={() =>
+                      navigation.navigate('CompanionChatNotice', {
+                        roomId,
+                        companionId,
+                      })
+                    }
+                  />
+                </View>
+              )}
               <ScrollView
                 ref={scroll}
                 onContentSizeChange={() => {
@@ -1924,14 +1997,14 @@ export function CompanionChat({navigation: screenNavigation, route}) {
                     messagePositions.current[String(anchorMessageId)];
                   if (searchOpen && position != null) {
                     scroll.current?.scrollTo({
-                      y: Math.max(0, position - 16),
+                      y: Math.max(0, position - 16 - (isGroup && room?.noticeContent ? noticeHeight || 62 : 0)),
                       animated: true,
                     });
                   }
                 }}
                 contentContainerStyle={{
                   paddingHorizontal: 20,
-                  paddingTop: 8,
+                  paddingTop: isGroup && room?.noticeContent ? (noticeHeight || 62) + 8 : 8,
                   paddingBottom: 20,
                   gap: 16,
                   flexGrow: 1,
@@ -2037,7 +2110,7 @@ export function CompanionChat({navigation: screenNavigation, route}) {
                         if (isSearchTarget) {
                           anchorY.current = event.nativeEvent.layout.y;
                           scroll.current?.scrollTo({
-                            y: anchorY.current,
+                            y: Math.max(0, anchorY.current - (isGroup && room?.noticeContent ? noticeHeight || 62 : 0) - 16),
                             animated: true,
                           });
                         }
@@ -2210,14 +2283,6 @@ export function CompanionChat({navigation: screenNavigation, route}) {
                   );
                 })}
                 {participantDirect &&
-                  detail?.myParticipationStatus === 'PENDING' && (
-                    <ParticipantRequestCard
-                      item={detail}
-                      busy={task.busy}
-                      onWithdraw={withdraw}
-                    />
-                  )}
-                {participantDirect &&
                   ['INQUIRING', 'WITHDRAWN'].includes(
                     detail?.myParticipationStatus,
                   ) && (
@@ -2245,25 +2310,6 @@ export function CompanionChat({navigation: screenNavigation, route}) {
                       </Txt>
                     </View>
                   )}
-                {!isGroup &&
-                  own &&
-                  ['PENDING', 'ACCEPTED'].includes(
-                    currentParticipant?.status,
-                  ) && (
-                    <OrganizerRequestCard
-                      item={detail}
-                      person={currentParticipant}
-                      busy={task.busy}
-                      onReject={() => decide(false)}
-                      onAccept={() => decide(true)}
-                    />
-                  )}
-                {!isGroup && detail?.myParticipationStatus === 'ACCEPTED' && (
-                  <View style={s.info}>
-                    <Title>{t('companion.acceptedTitle')}</Title>
-                    <Txt>{t('companion.acceptedBody')}</Txt>
-                  </View>
-                )}
               </ScrollView>
               {connection !== 'CONNECTED' && (
                 <View style={[s.soft, {borderRadius: 0}]}>
@@ -2774,10 +2820,9 @@ export function CompanionChatInfo({navigation: screenNavigation, route}) {
   );
 }
 
-export function CompanionChatNotice({navigation: screenNavigation, route}) {
-  const navigation = useCompanionNavigation(screenNavigation);
+export function CompanionChatNotice({route}) {
   const {t} = useTranslation();
-  const {roomId, companionId} = route.params || {};
+  const {roomId} = route.params || {};
   const feedback = useFeedback();
   const task = useTask(feedback);
   const [editing, setEditing] = useState(false);
@@ -2805,33 +2850,22 @@ export function CompanionChatNotice({navigation: screenNavigation, route}) {
           editing ? 'companion.group.editNoticeTitle' : 'companion.notice',
         )}
         footer={
-          <Action
-            label={t(editing ? 'companion.saveNotice' : 'companion.goChat')}
-            disabled={
-              task.busy ||
-              (editing &&
-                (!draft.body.trim() || noticeContent(draft).length > 2000))
-            }
-            onPress={
-              editing
-                ? () =>
-                    task.run(
-                      `notice:${noticeContent(draft)}`,
-                      () => chatApi.notice(roomId, noticeContent(draft)),
-                      async () => {
-                        setEditing(false);
-                        await resource.reload();
-                      },
-                    )
-                : () => {
-                    if (Platform.OS !== 'web' && navigation.popTo) {
-                      navigation.popTo('CompanionChat', {roomId, companionId});
-                    } else {
-                      replaceCompanionScreen(navigation, 'CompanionChat', {roomId, companionId});
-                    }
-                  }
-            }
-          />
+          editing && (
+            <Action
+              label={t('companion.saveNotice')}
+              disabled={task.busy || !draft.body.trim() || noticeContent(draft).length > 2000}
+              onPress={() =>
+                task.run(
+                  `notice:${noticeContent(draft)}`,
+                  () => chatApi.notice(roomId, noticeContent(draft)),
+                  async () => {
+                    setEditing(false);
+                    await resource.reload();
+                  },
+                )
+              }
+            />
+          )
         }>
         {resource.loading && !resource.data ? (
           <Txt>{t('companion.loading')}</Txt>
@@ -2876,7 +2910,7 @@ export function CompanionChatNotice({navigation: screenNavigation, route}) {
               <View style={[s.soft, {padding: 16, gap: 16}]}>
                 {!!notice.time && (
                   <View style={s.row}>
-                    <PinIcon width={20} height={20} />
+                    <ClockIcon width={20} height={20} />
                     <Txt style={s.grow}>{notice.time}</Txt>
                   </View>
                 )}
@@ -3032,6 +3066,8 @@ export function CompanionChatPlace({navigation: screenNavigation, route}) {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState([]);
   const [selected, setSelected] = useState(null);
+  const initialLocation = usePlaceInitialLocation();
+  const mapLocation = selected ?? initialLocation;
   const placeFocused = useIsFocused();
   const placeActive = useRef(placeFocused);
   placeActive.current = placeFocused;
@@ -3094,7 +3130,7 @@ export function CompanionChatPlace({navigation: screenNavigation, route}) {
             type: 'SEND_MESSAGE',
             contentKind: 'LOCATION',
             clientMessageId: newIntentKey(),
-            content: name,
+            content: t('companion.place'),
             payload: {
               name,
               address: trimJejuPrefix(
@@ -3201,16 +3237,17 @@ export function CompanionChatPlace({navigation: screenNavigation, route}) {
           onSubmitEditing={search}
         />
       </View>
+      <CompanionPlaceMap
+        key={`${mapLocation.latitude}:${mapLocation.longitude}`}
+        interactive
+        latitude={mapLocation.latitude}
+        longitude={mapLocation.longitude}
+      />
       {selected && (
         <Txt style={s.small}>{t('companion.group.selectedPlace')}</Txt>
       )}
       {selected && (
         <View style={s.soft}>
-          <CompanionPlaceMap
-            key={`${selected.latitude}:${selected.longitude}`}
-            latitude={selected.latitude}
-            longitude={selected.longitude}
-          />
           <PinIcon width={24} height={24} />
           <Title>{selected.placeName}</Title>
           <Txt style={s.small}>
