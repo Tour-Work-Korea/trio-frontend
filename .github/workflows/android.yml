@@ -154,25 +154,30 @@ jobs:
       # --------------------------------
       # 6. 결과물 업로드
       # --------------------------------
+      - name: Verify release AAB metadata
+        run: |
+          curl --fail --location --silent --show-error https://github.com/google/bundletool/releases/download/1.18.3/bundletool-all-1.18.3.jar -o "$RUNNER_TEMP/bundletool.jar"
+          echo "a099cfa1543f55593bc2ed16a70a7c67fe54b1747bb7301f37fdfd6d91028e29  $RUNNER_TEMP/bundletool.jar" | sha256sum --check
+          python3 scripts/verify-android-release.py \
+            apps/mobile/android/app/build/outputs/bundle/release/app-release.aab \
+            --bundletool "$RUNNER_TEMP/bundletool.jar" \
+            --version-code "$CI_VERSION_CODE" \
+            --version-name "$CI_VERSION_NAME" \
+            --output apps/mobile/android/app/build/outputs/bundle/release/release-metadata.json
+
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: app-release-${{ env.ENV_NAME }}
+          if-no-files-found: error
           path: |
             apps/mobile/android/app/build/outputs/bundle/release/*.aab
+            apps/mobile/android/app/build/outputs/bundle/release/release-metadata.json
       
       #apk 파일 관련 부분 주석처리
       # apps/mobile/android/app/build/outputs/apk/release/*.apk
 
-      # Google Play 배포
-      - name: Deploy to Google Play (Internal Testing)
-        uses: r0adkll/upload-google-play@v1
-        with:
-          serviceAccountJsonPlainText: ${{ secrets.SERVICE_ACCOUNT_JSON }}
-          packageName: com.triofrontendapp
-          releaseFiles: apps/mobile/android/app/build/outputs/bundle/release/app-release.aab
-          tracks: internal
-          status: completed 
+      # Play Console 업로드·심사 제출·출시는 담당자가 아티팩트를 받아 수동 진행한다.
 
       - name: Notify Discord (Android)
         if: ${{ always() && !cancelled() }}

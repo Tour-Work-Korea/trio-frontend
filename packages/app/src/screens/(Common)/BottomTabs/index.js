@@ -39,7 +39,7 @@ const BottomTabs = () => {
       <Tab.Navigator
         initialRouteName="홈"
         backBehavior="initialRoute"
-        detachInactiveScreens={Platform.OS !== 'android'}
+        detachInactiveScreens
         safeAreaInsets={{bottom: bottomInset}}
         screenOptions={({route}) => ({
           tabBarIcon: ({focused}) => {

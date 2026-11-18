@@ -74,6 +74,19 @@ react {
     autolinkLibrariesWithApp()
 }
 
+// Metro resolves workspace code outside apps/mobile. Track it so incremental
+// release builds cannot reuse a bundle from older shared screens or assets.
+tasks.withType(com.facebook.react.tasks.BundleHermesCTask).configureEach {
+    inputs.files(fileTree("../../../../packages") {
+        exclude "**/node_modules/**", "**/build/**"
+    }).withPropertyName("workspacePackages").withPathSensitivity(PathSensitivity.RELATIVE)
+    inputs.files(fileTree("../../../../") {
+        include "package.json", "package-lock.json", "babel.config.js", ".env*"
+    }, fileTree("../../") {
+        include "package.json", "babel.config.js", "metro.config.js", ".env*"
+    }).withPropertyName("workspaceBundleConfiguration").withPathSensitivity(PathSensitivity.RELATIVE)
+}
+
 /**
  * Set this to true to Run Proguard on Release builds to minify the Java bytecode.
  */
@@ -106,6 +119,11 @@ android {
         // CI에서 주입된 버전값을 읽어 사용
         def envCodeStr = System.getenv("CI_VERSION_CODE")
         def envNameStr = System.getenv("CI_VERSION_NAME")
+
+        def isReleaseBuild = gradle.startParameter.taskNames.any { it.toLowerCase().contains('release') }
+        if (isReleaseBuild && (!envCodeStr?.matches('[1-9][0-9]*') || !envNameStr?.trim())) {
+            throw new GradleException("Release builds require a positive CI_VERSION_CODE and a non-empty CI_VERSION_NAME.")
+        }
 
         def ciVersionCode = envCodeStr ? Integer.parseInt(envCodeStr) : null
         def ciVersionName = envNameStr ?: null
@@ -141,7 +159,7 @@ android {
                     keyAlias System.getenv("KEY_ALIAS")
                     keyPassword System.getenv("KEY_PASSWORD")
                 } else {
-                    println "[WARN] KEYSTORE_PATH not set — skipping keystore injection"
+                    throw new GradleException("Release builds require KEYSTORE_PATH and the upload signing credentials.")
                 }
             } else {
                 println "[INFO] Not a release build — keystore will not be injected"

@@ -159,7 +159,7 @@ const MeetMain = () => {
 
       const cached = lastSuccessfulRequestRef.current;
       if (
-        Platform.OS === 'ios' &&
+        Platform.OS !== 'web' &&
         !force &&
         cached?.key === requestKey &&
         Date.now() - cached.completedAt < 30 * 1000
@@ -178,7 +178,7 @@ const MeetMain = () => {
         inFlightKeyRef.current = requestKey;
         setLoading(true);
         setRefreshing(force);
-        if (Platform.OS === 'ios' && cached?.key !== requestKey) {
+        if (Platform.OS !== 'web' && cached?.key !== requestKey) {
           setMeets([]);
         }
 
@@ -571,7 +571,7 @@ const MeetMain = () => {
       <View style={styles.body}>
         <FlatList
           data={groupedGuesthouses}
-          {...(Platform.OS === 'ios'
+          {...(Platform.OS !== 'web'
             ? {
                 initialNumToRender: 4,
                 maxToRenderPerBatch: 4,
