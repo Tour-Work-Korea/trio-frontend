@@ -1,12 +1,16 @@
-// Local preview keeps the dev guard; a validated deployment explicitly enables booking.
+// Local development may use either Ddakji API. Server availability and login
+// are still checked before entering checkout; releases use their explicit flag.
 export function automaticBookingConfig(mode, apiBaseUrl, releaseEnabled) {
   if (typeof releaseEnabled === 'boolean') {
-    return releaseEnabled && /^https:\/\/[^/?#]+\/api\/v1\/?$/.test(apiBaseUrl || '')
+    return releaseEnabled &&
+      /^https:\/\/[^/?#]+\/api\/v1\/?$/.test(apiBaseUrl || '')
       ? {enabled: true}
       : null;
   }
   return mode === 'development' &&
-    apiBaseUrl?.replace(/\/$/, '') === 'https://dev.ddakji.kr/api/v1'
+    ['https://dev.ddakji.kr/api/v1', 'https://api.ddakji.kr/api/v1'].includes(
+      apiBaseUrl?.replace(/\/$/, ''),
+    )
     ? {enabled: true}
     : null;
 }
@@ -69,7 +73,7 @@ export function adaptLiveEvent(detail, listing, binding) {
     endsAt,
     cover: cover ? {url: cover.imageUrl, alt: detail.partyTitle} : null,
     location: {name: detail.location, address: detail.meetingPlace},
-    pricing: {amount, currency: 'KRW'},
+    pricing: {amount, currency: 'KRW', options: detail.priceOptions},
     about: [...announcements, detail.extraInfo].filter(Boolean),
     introduction: (detail.events || []).map(item => ({
       title: item.eventName,

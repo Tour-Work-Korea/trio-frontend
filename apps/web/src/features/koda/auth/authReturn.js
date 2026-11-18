@@ -65,6 +65,18 @@ export function socialAuthHref(destination, provider) {
   return `/login/social?${query}#/SocialLogin?${route}`;
 }
 
+// Store the safe return path before navigation, independently of shell load order.
+export function rememberAuthReturn(storage, destination, now = Date.now()) {
+  const target = safeKodaReturn(destination);
+  if (!target) return false;
+  try {
+    storage.setItem(AUTH_RETURN_KEY, JSON.stringify({target, createdAt: now}));
+    return true;
+  } catch {
+    return false;
+  }
+}
+
 export function isAuthPath(pathname) {
   return (
     /^\/(login|register|find)(\/|$)/.test(pathname) ||

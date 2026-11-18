@@ -5,6 +5,16 @@ on:
     branches:
       - develop    # 내부 테스트/개발용 (DEV)
       - main       # 구글 플레이 출시용 (PROD)
+    paths-ignore:
+      - 'apps/web/**'
+      - 'scripts/verify-web-bundle.mjs'
+      - 'scripts/web-deploy-scope.mjs'
+      - 'scripts/web-deploy-scope.test.mjs'
+      - 'scripts/prepare-koda-web.mjs'
+      - '.github/workflows/deploy-web.yml'
+      # Workflow-only changes are validated/released through workflow_dispatch.
+      - '.github/workflows/android.yml'
+      - '.github/workflows/ios.yml'
   workflow_dispatch:
 
 permissions:

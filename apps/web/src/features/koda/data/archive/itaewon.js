@@ -32,6 +32,10 @@ export default {
   pricing: {
     amount: 10000,
     currency: 'KRW',
+    displayLabel: {
+      ko: '10,000원',
+      en: '$12 USD',
+    },
     note: {
       ko: '당시 참가비 · 음료 별도 주문',
       en: 'Entry fee at the time · Drinks ordered separately',

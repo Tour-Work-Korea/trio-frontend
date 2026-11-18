@@ -2,6 +2,7 @@ import path from 'path';
 import {readFileSync} from 'fs';
 import {defineConfig, loadEnv, transformWithEsbuild} from 'vite';
 import react from '@vitejs/plugin-react';
+import {kodaAuthReturnPlugin} from './src/features/koda/hosting/authReturnPlugin.js';
 
 const workspaceRoot = path.resolve(__dirname, '../..');
 const appRoot = path.resolve(workspaceRoot, 'packages/app');
@@ -12,6 +13,7 @@ const exposedEnvKeys = [
   'API_BASE_URL',
   'CHAT_BASE_URL',
   'COMPANION_ENABLED',
+  'GOOGLE_CLIENT_ID',
   'KAKAO_CLIENT_ID',
   'KAKAO_JS_KEY',
   'KAKAO_NATIVEAPP_KEY',
@@ -31,6 +33,7 @@ export default defineConfig(({mode}) => {
 
   return {
   plugins: [
+    kodaAuthReturnPlugin(__dirname),
     {
       name: 'trio-svg-component-loader',
       enforce: 'pre',

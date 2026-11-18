@@ -17,7 +17,7 @@ export function createBookingEventRepository(
   now = Date.now,
 ) {
   // Existing editorial links/photos/reviews remain available, without a booking
-  // binding to a different server event. The two pre-admin meetups are local archives.
+  // binding to a different server event. Completed editorial meetups are local archives.
   const editorial = createEventRepository(async () => ({
     ...catalog,
     events: catalog.events.map(event => ({...event, bookingEnabled: false})),
@@ -42,10 +42,10 @@ export function createBookingEventRepository(
         readPlatformEvent(api, listing),
       );
       const {events, gallery, reviews} = await editorial.listEvents();
-      // These completed meetups predate admin registration. Keep their original
+      // These completed meetups are maintained locally. Keep their original
       // content/reviews in the public archive, never as bookable server events.
       const archives = events.filter(event =>
-        ['itaewon', 'regular'].includes(event.id),
+        ['itaewon', 'regular', 'halloween'].includes(event.id),
       );
       return {
         events: [...records.filter(Boolean).map(view), ...archives],

@@ -1,6 +1,11 @@
 import React, {useState} from 'react';
+import AdmissionPrice from './AdmissionPrice';
 import {eventHref} from '../services/eventModel';
-import {bookingLabel, bookingState} from '../services/liveEventModel';
+import {bookingState} from '../services/liveEventModel';
+import {
+  registrationLabel as bookingLabel,
+  paypalCheckoutUrl,
+} from '../services/paypalCheckout';
 import {
   calendarMonth,
   eventDateKey,
@@ -188,7 +193,7 @@ export default function EventCalendar({events, language, now}) {
                   </span>
                   <h3>{event.title[language]}</h3>
                   <p>{event.venue[language]}</p>
-                  <strong>{event.price[language]}</strong>
+                  <AdmissionPrice event={event} language={language} />
                 </div>
               </div>
               <div className="le-selected-schedule">
@@ -198,7 +203,9 @@ export default function EventCalendar({events, language, now}) {
               <a
                 className="le-primary-link"
                 href={eventHref(event.id, language)}>
-                {event.bookingEnabled && bookingState(event, now) === 'open'
+                {(event.bookingEnabled ||
+                  paypalCheckoutUrl(event, undefined, now)) &&
+                bookingState(event, now) === 'open'
                   ? text.detail
                   : text.view}
                 <span aria-hidden="true">↗</span>

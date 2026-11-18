@@ -5,6 +5,16 @@ on:
     branches:
       - develop    # TestFlight (DEV)
       - main    # App Store (PROD)
+    paths-ignore:
+      - 'apps/web/**'
+      - 'scripts/verify-web-bundle.mjs'
+      - 'scripts/web-deploy-scope.mjs'
+      - 'scripts/web-deploy-scope.test.mjs'
+      - 'scripts/prepare-koda-web.mjs'
+      - '.github/workflows/deploy-web.yml'
+      # Workflow-only changes are validated/released through workflow_dispatch.
+      - '.github/workflows/android.yml'
+      - '.github/workflows/ios.yml'
   workflow_dispatch:
 
 # 👇 바로 여기에 추가

@@ -1,10 +1,11 @@
 import React, {useState} from 'react';
+import AdmissionPrice from '../components/AdmissionPrice';
 import useLocaleStore from '@stores/localeStore';
 import EventHeader from '../components/EventHeader';
 import ClubNavigation from '../components/ClubNavigation';
 import KodaLogo from '../components/KodaLogo';
 import {eventHref} from '../services/eventModel';
-import {bookingLabel} from '../services/liveEventModel';
+import {registrationLabel as bookingLabel} from '../services/paypalCheckout';
 import {useEventClock, useEventMetadata} from '../hooks';
 import {copy} from '../data/copy';
 import '../styles/koda.css';
@@ -140,9 +141,10 @@ export default function KodaGatheringsPage({events = []}) {
                   }).format(new Date(event.startsAt))}
                 </time>
                 <p>{event.venue[language]}</p>
-                <strong>
-                  {event.price[language]} <span aria-hidden="true">↗</span>
-                </strong>
+                <div className="le-list-admission">
+                  <AdmissionPrice event={event} language={language} />
+                  <span aria-hidden="true">↗</span>
+                </div>
               </a>
             ))}
           </div>

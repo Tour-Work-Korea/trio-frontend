@@ -2,14 +2,17 @@ import path from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {defineConfig, mergeConfig} from 'vite';
 import webConfig from './vite.config.js';
+import {kodaRuntimePlugin} from './src/features/koda/hosting/splitBuild.js';
 import {hostedBookingEnabled} from './src/features/koda/hosting/hostedBuild.js';
 
 const webRoot = path.dirname(fileURLToPath(import.meta.url));
 
 // Opt-in multipage build: reuse every existing alias, plugin and web entry.
-// The original web config and source entry stay unchanged on disk.
+// The shared application source entry stays unchanged on disk.
 export default defineConfig(environment => {
   const baseConfig = webConfig(environment);
+  const kodaOnly = process.env.KODA_BUILD_SCOPE === 'koda';
+  const runtimePath = path.join(webRoot, 'src/features/koda/main.jsx');
   const clientEnv = JSON.parse(baseConfig.define['globalThis.__TRIO_ENV__']);
   // Keep the shared .env and normal web configuration unchanged. Both KODA
   // and its reused login routes must use the same backend in this dev server.
@@ -23,6 +26,7 @@ export default defineConfig(environment => {
     : undefined;
   return mergeConfig(baseConfig, {
     root: webRoot,
+    ...(kodaOnly ? {publicDir: false} : {}),
     define: {
       'globalThis.__TRIO_ENV__': JSON.stringify(clientEnv),
       ...(bookingEnabled === undefined ? {} : {
@@ -30,6 +34,7 @@ export default defineConfig(environment => {
       }),
     },
     plugins: [
+      kodaRuntimePlugin(runtimePath),
       {
         name: 'koda-legacy-addresses',
         enforce: 'post',
@@ -67,7 +72,7 @@ export default defineConfig(environment => {
         },
       },
       {
-        name: 'koda-auth-return-bridge',
+        name: 'koda-hosted-entry',
         transformIndexHtml: {
           order: 'pre',
           handler(html, context) {
@@ -75,26 +80,18 @@ export default defineConfig(environment => {
               return html;
             const sourceEntry = 'src="/src/main.jsx"';
             if (!html.includes(sourceEntry)) throw new Error('The shared web HTML entry changed; review the KODA build adapter.');
-            return {
-              html: html.replace(sourceEntry, 'src="/src/features/koda/hosting/hostedEntry.jsx"'),
-              tags: [{
-                tag: 'script',
-                attrs: {
-                  type: 'module',
-                  src: '/src/features/koda/auth/authBridge.js',
-                },
-                injectTo: 'head',
-              }],
-            };
+            return html.replace(sourceEntry, 'src="/src/features/koda/hosting/hostedEntry.jsx"');
           },
         },
       },
     ],
     build: {
       outDir: 'dist-koda',
+      ...(kodaOnly ? {assetsDir: 'koda-assets/build'} : {}),
       rollupOptions: {
         input: {
-          app: path.join(webRoot, 'index.html'),
+          ...(kodaOnly ? {} : {app: path.join(webRoot, 'index.html')}),
+          'koda-runtime': runtimePath,
           clubJoin: path.join(webRoot, 'koda/join/index.html'),
           clubJoinRedirect: path.join(webRoot, 'koda/join.html'),
           clubMy: path.join(webRoot, 'koda/my/index.html'),

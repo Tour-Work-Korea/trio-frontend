@@ -70,7 +70,7 @@ test('multiple admin meetups supply list/calendar data while editorial URLs and 
   const result = await repository.listEvents();
   assert.deepEqual(
     result.events.map(e => e.id),
-    ['party-9001', 'party-9002', 'itaewon', 'regular'],
+    ['party-9001', 'party-9002', 'itaewon', 'regular', 'halloween'],
   );
   assert.ok(
     result.events.filter(e => e.bookingPartyId).every(e => e.bookingEnabled),
@@ -117,6 +117,42 @@ test('application keeps the selected ID and fresh server price; replacement neve
   );
 });
 
+test('approved USD admission is consistent in list/detail while domestic checkout retains server KRW', async () => {
+  const api = createApi();
+  api.replace(3982);
+  const read = api.getPartyDetail;
+  let amount = 20000;
+  api.getPartyDetail = async id => ({data: {...(await read(id)).data, amount}});
+  const repository = createBookingEventRepository(
+    eventCatalog,
+    config,
+    api,
+    now,
+  );
+  const listed = (await repository.listEvents()).events.find(
+    event => event.id === 'party-3982',
+  );
+  const detail = (await repository.getEventDetails('party-3982')).event;
+  assert.deepEqual(listed.price, {ko: '20,000원', en: '$17 USD'});
+  assert.deepEqual(detail.price, listed.price);
+  assert.equal(
+    (await repository.getBookingTarget('party-3982')).booking.params.amount,
+    20000,
+  );
+  for (const [id, usd, krw] of [
+    ['itaewon', '$12 USD', '10,000원'],
+    ['regular', '$15 USD', '20,000원'],
+    ['halloween', '$22 USD', '30,000원'],
+  ]) {
+    const event = (await repository.getEventDetails(id)).event;
+    assert.deepEqual(event.price, {ko: krw, en: usd});
+  }
+  amount = 25000;
+  const changed = (await repository.getEventDetails('party-3982')).event;
+  assert.equal(changed.price.en, 'USD price to be confirmed');
+  assert.equal(changed.booking.params.amount, 25000);
+});
+
 test('closed/full/hidden/removed/reclassified meetups cannot enter checkout', async () => {
   for (const change of [
     {isApplyOpen: false},
@@ -153,7 +189,7 @@ test('closed/full/hidden/removed/reclassified meetups cannot enter checkout', as
   assert.equal(await repository.getBookingTarget('party-9001'), null);
   assert.deepEqual(
     (await repository.listEvents()).events.map(e => e.id),
-    ['party-9002', 'itaewon', 'regular'],
+    ['party-9002', 'itaewon', 'regular', 'halloween'],
   );
 });
 
@@ -169,7 +205,7 @@ test('empty API keeps the explicit archives while failures remain visible', asyn
         now,
       ).listEvents()
     ).events.map(event => event.id),
-    ['itaewon', 'regular'],
+    ['itaewon', 'regular', 'halloween'],
   );
   const repository = createBookingEventRepository(
     eventCatalog,

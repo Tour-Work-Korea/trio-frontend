@@ -11,7 +11,7 @@ on:
       - 'package.json'
       - 'package-lock.json'
       - '.nvmrc'
-      - 'scripts/verify-web-bundle.mjs'
+      - 'scripts/*web*.mjs'
       - '.github/workflows/deploy-web.yml'
   workflow_dispatch:
 
@@ -21,7 +21,8 @@ permissions:
 
 concurrency:
   group: deploy-app-web-${{ github.ref_name }}
-  cancel-in-progress: true
+  # Finish uploads before another run reads the last successful deployment.
+  cancel-in-progress: false
 
 jobs:
   build-and-deploy:
@@ -34,6 +35,8 @@ jobs:
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Determine deployment target
         id: target
@@ -77,8 +80,20 @@ jobs:
           node-version-file: '.nvmrc'
           cache: npm
 
+      - name: Determine changed deployment scope
+        id: scope
+        run: |
+          aws s3 cp "s3://${S3_BUCKET}/${S3_PREFIX}/web-deployment.json" /tmp/web-deployment.json --only-show-errors || echo "No readable deployment state; using a full release."
+          SCOPE=$(node scripts/web-deploy-scope.mjs /tmp/web-deployment.json)
+          echo "value=$SCOPE" >> "$GITHUB_OUTPUT"
+          echo "Deployment scope: $SCOPE"
+          echo "### Deployment scope: $SCOPE" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Install dependencies
         run: npm ci
+
+      - name: Test KODA and deployment boundaries
+        run: node --test scripts/web-deploy-scope.test.mjs apps/web/src/features/koda/tests/*.test.mjs
 
       - name: Load web env from AWS SSM
         run: |
@@ -100,14 +115,42 @@ jobs:
           } > .env
           echo "Web environment file created from AWS SSM for ${DEPLOY_ENV}."
 
-      - name: Build web app
+      - name: Build shared web app
+        if: steps.scope.outputs.value == 'full'
         run: KODA_DEPLOY_TARGET="$DEPLOY_ENV" npm exec --workspace @trio/web -- vite build --config vite.koda.config.js --outDir dist
 
-      - name: Verify build output
-        run: node scripts/verify-web-bundle.mjs apps/web/dist
+      - name: Build isolated KODA web app
+        run: |
+          KODA_DEPLOY_TARGET="$DEPLOY_ENV" KODA_BUILD_SCOPE=koda npm exec --workspace @trio/web -- vite build --config vite.koda.config.js --outDir dist-koda
+          node scripts/prepare-koda-web.mjs apps/web/dist-koda
 
-      - name: Upload build files to S3
-        run: aws s3 sync apps/web/dist/ "s3://${S3_BUCKET}/${S3_PREFIX}/" --delete
+      - name: Verify KODA build output
+        run: node scripts/verify-web-bundle.mjs apps/web/dist-koda
+
+      - name: Assemble and verify full release
+        if: steps.scope.outputs.value == 'full'
+        run: |
+          cp -R apps/web/dist-koda/. apps/web/dist/
+          node scripts/verify-web-bundle.mjs apps/web/dist
+
+      - name: Upload immutable KODA assets first
+        run: |
+          aws s3 sync apps/web/dist-koda/koda-assets/build/ "s3://${S3_BUCKET}/${S3_PREFIX}/koda-assets/build/" --cache-control "public,max-age=31536000,immutable"
+
+      - name: Upload full web release
+        if: steps.scope.outputs.value == 'full'
+        run: |
+          aws s3 sync apps/web/dist/ "s3://${S3_BUCKET}/${S3_PREFIX}/" --delete --exclude "koda-assets/build/*" --exclude "koda/entry.js" --cache-control "no-cache"
+
+      - name: Upload only KODA pages and media
+        if: steps.scope.outputs.value == 'koda'
+        run: |
+          # Validated allowlist; never upload/delete root index.html or shared assets.
+          aws s3 sync apps/web/dist-koda/ "s3://${S3_BUCKET}/${S3_PREFIX}/" --exclude "koda-assets/build/*" --exclude "koda/entry.js" --cache-control "no-cache"
+
+      - name: Publish current KODA runtime
+        run: |
+          aws s3 cp apps/web/dist-koda/koda/entry.js "s3://${S3_BUCKET}/${S3_PREFIX}/koda/entry.js" --content-type "application/javascript" --cache-control "no-cache"
 
       - name: Publish app association files as JSON
         run: |
@@ -131,9 +174,20 @@ jobs:
             exit 1
           fi
 
+          if [ "${{ steps.scope.outputs.value }}" = "koda" ]; then
+            INVALIDATION_PATHS=("/koda*" "/language-exchange*")
+          else
+            INVALIDATION_PATHS=("/*")
+          fi
+
           aws cloudfront create-invalidation \
             --distribution-id "$DIST_ID" \
-            --paths "/*"
+            --paths "${INVALIDATION_PATHS[@]}"
+
+      - name: Record successful deployment
+        run: |
+          node -e 'require("fs").writeFileSync("/tmp/web-deployment-next.json", JSON.stringify({schema: 1, commit: process.env.GITHUB_SHA}))'
+          aws s3 cp /tmp/web-deployment-next.json "s3://${S3_BUCKET}/${S3_PREFIX}/web-deployment.json" --content-type "application/json" --cache-control "no-cache"
 
       - name: Notify Discord (Web)
         if: ${{ always() && !cancelled() }}
