@@ -106,7 +106,7 @@ import {
 
 const Stack = createNativeStackNavigator();
 
-const RootNavigation = () => {
+const RootNavigation = ({onReady} = {}) => {
   const fetchAmenities = useAmenityStore(state => state.fetchAmenities);
 
   useEffect(() => {
@@ -120,7 +120,7 @@ const RootNavigation = () => {
   }, [fetchAmenities]);
 
   return (
-    <NavigationContainer ref={navigationRef}>
+    <NavigationContainer ref={navigationRef} onReady={onReady}>
       <Stack.Navigator screenOptions={{headerShown: false}}>
         <Stack.Screen name="MainTabs" component={BottomTabs} />
         <Stack.Screen name="Login" component={Login} />

@@ -24,16 +24,19 @@ const USER_NOTIFICATION_TYPES = new Set([
   'GUESTHOUSE_RESERVATION_USER_REFUND',
   'GUESTHOUSE_CHECKIN_INFO',
   'GUESTHOUSE_TODAY_CHECKIN_USER',
+  'GUESTHOUSE_REVIEW_REMINDER',
   'PARTY_INVITATION',
   'PARTY_CHECKIN_INFO',
   'PARTY_RESERVATION_USER_CONFIRMED',
   'PARTY_RESERVATION_USER_CANCELLED',
   'PARTY_RESERVATION_REJECTED',
+  'PARTY_RESERVATION_EXPIRED',
   'PARTY_CANCELLED_BY_HOST',
   'REVIEW_COMMENT_NEW',
   'REVIEW_SUB_COMMENT_NEW',
   'COMMUNITY_COMMENT_NEW',
   'COMMUNITY_REPLY_NEW',
+  'RECRUIT_COMMENT_NEW',
 ]);
 
 export const subscribeForegroundNotification = listener => {
@@ -103,6 +106,34 @@ const getNestedFirstValue = (source, keys) => {
   return null;
 };
 
+// FCM data values may contain JSON-encoded payloads. Flatten only known
+// envelopes; never mistake a transport messageId for a notification ID.
+const normalizeNotification = (value, depth = 0) => {
+  if (depth > 5) {
+    return {};
+  }
+  if (typeof value === 'string') {
+    try {
+      return normalizeNotification(JSON.parse(value), depth + 1);
+    } catch {
+      return {};
+    }
+  }
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return {};
+  }
+  const result = {};
+  for (const key of ['data', 'payload', 'target', 'metadata', 'meta']) {
+    Object.assign(result, normalizeNotification(value[key], depth + 1));
+  }
+  for (const [key, field] of Object.entries(value)) {
+    if (field !== undefined && field !== null && field !== '') {
+      result[key] = field;
+    }
+  }
+  return result;
+};
+
 const getNotificationId = notification =>
   getNestedFirstValue(notification, ['notificationId', 'id']);
 
@@ -120,7 +151,7 @@ const fetchNotificationDetail = async notification => {
 
     return {
       ...notification,
-      ...(notificationDetail ?? {}),
+      ...normalizeNotification(notificationDetail),
     };
   } catch (error) {
     console.warn('fetchNotificationDetail 실패:', error);
@@ -156,6 +187,7 @@ const isReservationNotificationType = type =>
   type === 'PARTY_INVITATION' ||
   type === 'PARTY_CHECKIN_INFO' ||
   type === 'PARTY_RESERVATION_REJECTED' ||
+  type === 'PARTY_RESERVATION_EXPIRED' ||
   type === 'PARTY_CANCELLED_BY_HOST';
 
 const parseDeeplink = url => {
@@ -304,6 +336,16 @@ export const openNotificationTarget = async (
   navigation,
   {detailRead = false} = {},
 ) => {
+  const account = chatGeneration();
+  notification = normalizeNotification(notification);
+  // The notification center already resolves details before routing. Push taps
+  // must do the same before choosing a type, including ID-only payloads.
+  if (!detailRead) {
+    notification = await fetchNotificationDetail(notification);
+    if (account !== chatGeneration()) {
+      return;
+    }
+  }
   const chatLink = companionLinkTarget(
     notification?.deeplink ||
       notification?.deepLink ||
@@ -315,14 +357,10 @@ export const openNotificationTarget = async (
       showLoginRequiredModal(undefined, navigation);
       return;
     }
-    const account = chatGeneration();
-    const detail = !detailRead
-      ? await fetchNotificationDetail(notification)
-      : notification;
-    if (account !== chatGeneration() || !isLoggedInUser()) {
-      return;
-    }
-    const target = await resolveCompanionNotification({...chatLink, ...detail});
+    const target = await resolveCompanionNotification({
+      ...chatLink,
+      ...notification,
+    });
     if (account === chatGeneration() && isLoggedInUser()) {
       navigateTo(navigation, target.name, target.params);
     }
@@ -347,14 +385,12 @@ export const openNotificationTarget = async (
     return;
   }
 
-  let targetNotification = notification;
-  let type = initialType;
-  let reservationId = getNestedFirstValue(targetNotification, [
-    'reservationId',
-  ]);
-  let guesthouseId = getNestedFirstValue(targetNotification, ['guesthouseId']);
-  let partyId = getNestedFirstValue(targetNotification, ['partyId']);
-  let communityPostId = getNestedFirstValue(targetNotification, [
+  const targetNotification = notification;
+  const type = initialType;
+  const reservationId = getNestedFirstValue(targetNotification, ['reservationId']);
+  const guesthouseId = getNestedFirstValue(targetNotification, ['guesthouseId']);
+  const partyId = getNestedFirstValue(targetNotification, ['partyId']);
+  const communityPostId = getNestedFirstValue(targetNotification, [
     'postId',
     'communityPostId',
     'targetPostId',
@@ -366,7 +402,7 @@ export const openNotificationTarget = async (
     'communityCommentId',
     'replyId',
   ]);
-  let communityParentCommentId = getNestedFirstValue(targetNotification, [
+  const communityParentCommentId = getNestedFirstValue(targetNotification, [
     'parentId',
     'parentCommentId',
     'rootCommentId',
@@ -380,16 +416,6 @@ export const openNotificationTarget = async (
     if (!isLoggedInUser()) {
       showLoginRequiredModal(undefined, navigation);
       return;
-    }
-
-    if (!reservationId) {
-      targetNotification = await fetchNotificationDetail(targetNotification);
-      type = String(
-        getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
-      ).toUpperCase();
-      reservationId = getNestedFirstValue(targetNotification, [
-        'reservationId',
-      ]);
     }
 
     if (reservationId) {
@@ -409,6 +435,7 @@ export const openNotificationTarget = async (
   if (
     type.startsWith('PARTY_RESERVATION_USER_') ||
     type === 'PARTY_RESERVATION_REJECTED' ||
+    type === 'PARTY_RESERVATION_EXPIRED' ||
     type === 'PARTY_INVITATION' ||
     type === 'PARTY_CHECKIN_INFO' ||
     type === 'PARTY_CANCELLED_BY_HOST'
@@ -418,15 +445,11 @@ export const openNotificationTarget = async (
       return;
     }
 
-    if (!reservationId) {
-      targetNotification = await fetchNotificationDetail(targetNotification);
-      type = String(
-        getNestedFirstValue(targetNotification, ['type', 'targetType']) || type,
-      ).toUpperCase();
-      reservationId = getNestedFirstValue(targetNotification, [
-        'reservationId',
-      ]);
-      partyId = getNestedFirstValue(targetNotification, ['partyId']);
+    // Expiration is a separate API notification type; do not assume it has
+    // the same receipt data as a cancelled reservation.
+    if (type === 'PARTY_RESERVATION_EXPIRED') {
+      navigateTo(navigation, 'UserMeetReservationCheck');
+      return;
     }
 
     if (reservationId) {
@@ -467,7 +490,11 @@ export const openNotificationTarget = async (
     return;
   }
 
-  if (type === 'REVIEW_COMMENT_NEW' || type === 'REVIEW_SUB_COMMENT_NEW') {
+  if (
+    type === 'REVIEW_COMMENT_NEW' ||
+    type === 'REVIEW_SUB_COMMENT_NEW' ||
+    type === 'GUESTHOUSE_REVIEW_REMINDER'
+  ) {
     navigateTo(navigation, 'UserGuesthouseReview');
     return;
   }
@@ -477,27 +504,6 @@ export const openNotificationTarget = async (
       type === 'COMMUNITY_REPLY_NEW'
         ? 'MyCommunityCommentList'
         : 'MyCommunityPostList';
-
-    if (!communityPostId && !communityCommentId) {
-      targetNotification = await fetchNotificationDetail(targetNotification);
-      communityPostId = getNestedFirstValue(targetNotification, [
-        'postId',
-        'communityPostId',
-        'targetPostId',
-        'articleId',
-      ]);
-      communityCommentId = getNestedFirstValue(targetNotification, [
-        'targetCommentId',
-        'commentId',
-        'communityCommentId',
-        'replyId',
-      ]);
-      communityParentCommentId = getNestedFirstValue(targetNotification, [
-        'parentId',
-        'parentCommentId',
-        'rootCommentId',
-      ]);
-    }
 
     if (!communityCommentId && communityParentCommentId) {
       communityCommentId = communityParentCommentId;
@@ -549,6 +555,16 @@ export const openNotificationTarget = async (
     return;
   }
 
+  if (type === 'RECRUIT_COMMENT_NEW') {
+    const recruitId = getNestedFirstValue(targetNotification, ['recruitId']);
+    navigateTo(
+      navigation,
+      recruitId ? 'EmployDetail' : 'NotificationCenter',
+      recruitId ? {id: recruitId} : undefined,
+    );
+    return;
+  }
+
   if (partyId) {
     navigateTo(navigation, 'MeetDetail', {partyId});
     return;
@@ -556,5 +572,9 @@ export const openNotificationTarget = async (
 
   if (guesthouseId) {
     navigateTo(navigation, 'GuesthouseDetail', {id: guesthouseId});
+    return;
   }
+
+  // Notices or incomplete/unsupported payloads must not silently swallow taps.
+  navigateTo(navigation, 'NotificationCenter');
 };

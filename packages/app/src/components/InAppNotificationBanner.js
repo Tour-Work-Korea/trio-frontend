@@ -196,7 +196,9 @@ export default function InAppNotificationBanner() {
           const remoteMessage = message?.remoteMessage;
           hideBanner();
           requestAnimationFrame(() => {
-            openNotificationTarget(remoteMessage?.data || {});
+            openNotificationTarget(remoteMessage?.data || {}).catch(error => {
+              console.warn('foreground notification tap failed:', error);
+            });
           });
         }}>
         <BannerBadge type={content.type} status={content.status} />

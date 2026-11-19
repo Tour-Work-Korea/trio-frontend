@@ -17,7 +17,6 @@ import DeeplinkHandler from '@utils/deeplinkHandler';
 import {COLORS} from '@constants/colors';
 import {refreshUserProfile, tryAutoLogin} from '@utils/auth/login';
 import LottieView from 'lottie-react-native';
-import {navigationRef} from '@utils/navigationService';
 import messaging from '@react-native-firebase/messaging';
 import {syncFcmToken, setupTokenRefreshListener} from '@utils/fcmService';
 import {
@@ -69,17 +68,6 @@ function SplashOverlay({onFinish}) {
   );
 }
 
-const wait = ms => new Promise(resolve => setTimeout(resolve, ms));
-
-const waitForNavReady = async () => {
-  let tries = 0;
-
-  while (!navigationRef.isReady() && tries < 100) {
-    await wait(30);
-    tries++;
-  }
-};
-
 const recordStartupError = (label, error) => {
   if (__DEV__) {
     console.warn(`${label} failed:`, error?.message || error);
@@ -108,6 +96,14 @@ function AppContent() {
     minVersion: '',
   });
   const didInitialForceUpdateCheck = useRef(false);
+  const navigationReady = useRef(null);
+  if (!navigationReady.current) {
+    let resolve;
+    const promise = new Promise(onReady => {
+      resolve = onReady;
+    });
+    navigationReady.current = {promise, resolve};
+  }
   const insets = useSafeAreaInsets();
   const accessToken = useUserStore(state => state.accessToken);
   const userRole = useUserStore(state => state.userRole);
@@ -128,7 +124,7 @@ function AppContent() {
 
     const handleNotificationTap = async remoteMessage => {
       await bootstrapped;
-      await waitForNavReady();
+      await navigationReady.current.promise;
       await openNotificationTarget(remoteMessage.data || {});
     };
 
@@ -317,7 +313,7 @@ function AppContent() {
           barStyle="dark-content"
         />
 
-        <RootNavigation />
+        <RootNavigation onReady={navigationReady.current.resolve} />
         <DeeplinkHandler enabled={appLoaded && !forceUpdateState.visible} />
       </View>
 
