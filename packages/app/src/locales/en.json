@@ -1,4 +1,8 @@
 {
+  "payment.cardChannelTitle": "Payment method",
+  "payment.domesticCard": "Korean cards & local payment methods",
+  "payment.internationalCard": "International cards",
+  "payment.cardChannelKrwNotice": "You will be charged in Korean won (KRW).",
   "auth.2LetterCountryCodeEGUsJp": "2-letter country code (e.g. US, JP)",
   "auth.aboard": "Welcome!",
   "auth.agreements": "Terms and agreements",

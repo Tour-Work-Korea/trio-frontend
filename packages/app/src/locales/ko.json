@@ -1,4 +1,8 @@
 {
+  "payment.cardChannelTitle": "결제 수단",
+  "payment.domesticCard": "국내 카드·간편결제",
+  "payment.internationalCard": "해외 발급 카드",
+  "payment.cardChannelKrwNotice": "원화(KRW)로 결제됩니다.",
   "auth.2LetterCountryCodeEGUsJp": "국가 코드 2자리 (예: US, JP)",
   "auth.aboard": "환영합니다!",
   "auth.agreements": "계약",

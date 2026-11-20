@@ -1,3 +1,4 @@
+import PaymentChannelSelector from '../../PaymentChannelSelector';
 import {formatNumber} from '@utils/localeFormat';
 import {useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useRef, useState} from 'react';
@@ -120,6 +121,7 @@ const GuesthouseReservation = ({route}) => {
   } = route.params || {};
   const [agreeAll, setAgreeAll] = useState(false);
   const navigation = useNavigation();
+  const [paymentChannel, setPaymentChannel] = useState('DOMESTIC');
   const [agreements, setAgreements] = useState({
     terms: false,
     personalInfo: false,
@@ -451,8 +453,13 @@ const GuesthouseReservation = ({route}) => {
   };
 
   // 예약 호출
+  const isSubmittingRef = useRef(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+
   const handleReservation = async () => {
-    if (!isAllRequiredAgreed) return;
+    if (!isAllRequiredAgreed || isSubmittingRef.current) return;
+    isSubmittingRef.current = true;
+    setIsSubmitting(true);
 
     let paymentWindowRef = null;
 
@@ -521,7 +528,11 @@ const GuesthouseReservation = ({route}) => {
         body,
       );
 
-      const reservationId = res?.data;
+      const reservationId = typeof res?.data === 'number'
+        ? res.data : res?.data?.reservationId ?? res?.data?.id;
+      if (!reservationId) {
+        throw new Error(t('common.paymentCannotBeProcessed'));
+      }
 
       // 결제
       navigation.navigate('GuesthousePayment', {
@@ -533,6 +544,7 @@ const GuesthouseReservation = ({route}) => {
           selectedCoupon?.id,
         pointUsed: appliedPointAmount,
         paymentWindowName: preparedPaymentWindow.name,
+        paymentChannel,
         receiptContext: {
           guesthouseName,
           guesthouseId,
@@ -569,6 +581,9 @@ const GuesthouseReservation = ({route}) => {
         err?.response?.data?.message ||
           t('guesthouse.thereWasAProblemProcessingYourReservation'),
       );
+    } finally {
+      isSubmittingRef.current = false;
+      setIsSubmitting(false);
     }
   };
 
@@ -1033,6 +1048,8 @@ const GuesthouseReservation = ({route}) => {
 
         <View style={styles.devide} />
 
+        <PaymentChannelSelector value={paymentChannel} onChange={setPaymentChannel} disabled={isSubmitting} />
+
         {/* 요청사항 */}
         <View style={styles.section} ref={setInputRef('request')}>
           <Text style={[FONTS.fs_16_medium, styles.sectionTitle]}>
@@ -1191,7 +1208,7 @@ const GuesthouseReservation = ({route}) => {
               value1: finalPaymentAmount.toLocaleString(),
             })}
             onPress={handlePressPayment}
-            disabled={!isAllRequiredAgreed || isPointOverBalance}
+            disabled={isSubmitting || !isAllRequiredAgreed || isPointOverBalance}
           />
         </View>
       ) : null}
