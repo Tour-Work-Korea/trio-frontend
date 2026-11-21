@@ -12,6 +12,7 @@ import reservationPaymentApi from '@utils/api/reservationPaymentApi';
 const POLLING_INTERVAL_MS = 1500;
 
 const isCompletedPayment = (reservationType, data) => {
+  if (['CANCELLED', 'CANCELED'].includes(data?.reservationStatus)) return false;
   if (reservationType === 'PARTY') {
     return Boolean(
       data?.approvedAt || (data?.paymentType && data.paymentType !== 'UNKNOWN'),
@@ -28,7 +29,7 @@ const isCompletedPayment = (reservationType, data) => {
 export default function WebPaymentRedirect({route, reservationType}) {
   const {t} = useTranslation();
   const navigation = useNavigation();
-  const {reservationId, userCouponId, pointUsed, paymentWindowName} =
+  const {reservationId, userCouponId, pointUsed, paymentWindowName, paymentChannel = 'DOMESTIC'} =
     route.params || {};
   const successParams = useMemo(() => {
     const {
@@ -48,6 +49,7 @@ export default function WebPaymentRedirect({route, reservationType}) {
   const paymentQuery = new URLSearchParams({
     reservationId: String(reservationId || ''),
     reservationType,
+    paymentChannel,
   });
 
   if (userCouponId) {
@@ -113,7 +115,12 @@ export default function WebPaymentRedirect({route, reservationType}) {
           reservationType === 'PARTY'
             ? 'MeetPaymentSuccess'
             : 'GuesthousePaymentSuccess',
-          {reservationId, ...successParams},
+          {
+            ...successParams,
+            reservationId,
+            reservationStatus: response.data.reservationStatus,
+            approvalStatus: response.data.approvalStatus,
+          },
         );
       } catch {
         // 결제 승인 전에는 상세 조회가 실패할 수 있어 다음 주기에 다시 확인합니다.

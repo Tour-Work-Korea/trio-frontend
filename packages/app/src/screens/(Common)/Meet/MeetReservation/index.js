@@ -1,3 +1,7 @@
+import {formatCurrency, formatNumber} from '@utils/localeFormat';
+import SkeletonLayout, {Line} from '@screens/_components/SkeletonLayout';
+import {SkeletonPulse, SkeletonBlock} from '@screens/_components/ContentSkeleton';
+import PaymentChannelSelector from '../../PaymentChannelSelector';
 import i18n from '@trio/app/src/i18n';
 import {Trans, useTranslation} from 'react-i18next';
 import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
@@ -42,6 +46,7 @@ const TERM_DOCUMENT_MAP = {
 };
 
 const formatPhoneNumber = phone => {
+  if (String(phone || '').startsWith('FOREIGN-')) return '-';
   if (!phone || phone.length !== 11) {
     return phone;
   }
@@ -92,6 +97,7 @@ const MeetReservation = () => {
   const {t, i18n: translationI18n} = useTranslation();
   const isEnglish = (translationI18n.resolvedLanguage || translationI18n.language || '').startsWith('en');
   const navigation = useNavigation();
+  const [paymentChannel, setPaymentChannel] = useState('DOMESTIC');
   const route = useRoute();
   const {
     partyId,
@@ -118,6 +124,7 @@ const MeetReservation = () => {
   );
   const [guideAgreed, setGuideAgreed] = useState(false);
   const [reservationInfo, setReservationInfo] = useState(null);
+  const [loadedThumbnail, setLoadedThumbnail] = useState(null);
   const [selectedPriceOptionId, setSelectedPriceOptionId] = useState(null);
   const [isDateDropdownOpen, setIsDateDropdownOpen] = useState(false);
 
@@ -554,7 +561,9 @@ const MeetReservation = () => {
         throw new Error(t('meet.thereIsNoReservationId'));
       }
 
-      if (amount === 0) {
+      if (data?.requiresPayment === false ||
+          (data?.requiresPayment == null && amount === 0)) {
+        paymentWindowRef?.close();
         // 0원 결제인 경우 결제창(웹뷰) 및 requestPayment 호출을 거치지 않고 바로 성공 화면으로 이동
         navigation.replace('MeetPaymentSuccess', {
           reservationId,
@@ -576,6 +585,7 @@ const MeetReservation = () => {
           thumbnailUrl: routeThumbnailUrl,
           pointUsed: 0,
           paymentWindowName: preparedPaymentWindow.name,
+          paymentChannel,
         });
       }
     } catch (e) {
@@ -743,6 +753,27 @@ const MeetReservation = () => {
     return renderGuideStep();
   }
 
+  if (!reservationInfo) {
+    return (
+      <View style={styles.container}>
+        <Header title={t('common.reservation')} onPress={handleBackPress} />
+        <SkeletonLayout style={{padding: 20, gap: 20}}>
+          <View style={styles.eventInfoRow}>
+            {eventThumbnailSource ? <Line width={80} height={80} /> : null}
+            <View style={{flex: 1, gap: 12}}>
+              <Line width="85%" height={20} /><Line width="70%" />
+            </View>
+          </View>
+          <Line width="40%" /><Line width="100%" height={48} />
+          <Line width="40%" /><Line width="100%" height={48} />
+          <Line width="40%" /><Line width="100%" height={80} />
+          <Line width="100%" height={24} />
+          <Line width="40%" /><Line width="100%" height={112} style={{borderRadius: 12}} />
+        </SkeletonLayout>
+      </View>
+    );
+  }
+
   return (
     <View style={styles.container}>
       <Header title={t('common.reservation')} onPress={handleBackPress} />
@@ -761,11 +792,19 @@ const MeetReservation = () => {
         {/* 콘텐츠 정보 */}
         <View style={styles.eventInfoRow}>
           {eventThumbnailSource && (
-            <AppImage
-              source={eventThumbnailSource}
-              style={styles.eventThumbnail}
-              resizeMode="cover"
-            />
+            <View style={styles.eventThumbnail}>
+              <AppImage
+                source={eventThumbnailSource}
+                style={{width: '100%', height: '100%', borderRadius: 4}}
+                resizeMode="cover"
+                onLoadEnd={() => setLoadedThumbnail(routeThumbnailUrl)}
+              />
+              {loadedThumbnail !== routeThumbnailUrl ? (
+                <SkeletonPulse decorative style={{position: 'absolute', top: 0, left: 0, right: 0, bottom: 0}}>
+                  <SkeletonBlock style={{width: 80, height: 80, borderRadius: 4}} />
+                </SkeletonPulse>
+              ) : null}
+            </View>
           )}
           <View style={styles.eventTextRow}>
             <Text style={[FONTS.fs_18_medium]}>{title}</Text>
@@ -950,6 +989,24 @@ const MeetReservation = () => {
 
         <View style={styles.devide} />
 
+        <View style={styles.section}>
+          <View style={[styles.userInfo, {flexWrap: 'wrap', gap: 12}]}>
+            <Text style={[FONTS.fs_16_semibold, {flexShrink: 1}]}>
+              {t('common.totalPaymentAmount')}
+            </Text>
+            <Text style={[FONTS.fs_18_semibold, {flexShrink: 1, marginLeft: 'auto'}]}>
+              {formatCurrency(reservationAmount)}
+            </Text>
+          </View>
+        </View>
+
+        <PaymentChannelSelector
+          value={paymentChannel}
+          onChange={setPaymentChannel}
+          disabled={isSubmitting}
+          style={{marginTop: 24}}
+        />
+
         {/* 약관 동의 */}
         <View style={styles.agreeRowContainer}>
           <View style={styles.agreeRowConent}>
@@ -996,7 +1053,9 @@ const MeetReservation = () => {
       {!isKeyboardVisible ? (
         <View style={styles.fixedButton}>
           <ButtonScarlet
-            title={t('common.apply_15e2a7')}
+            title={reservationAmount > 0
+              ? t('guesthouse.payValueWon', {value1: formatNumber(reservationAmount)})
+              : t('common.apply_15e2a7')}
             disabled={
               isSubmitting ||
               !isAllRequiredAgreed ||

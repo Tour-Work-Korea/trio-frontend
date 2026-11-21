@@ -12,9 +12,10 @@ const GuesthousePaymentSuccess = () => {
   const {t} = useTranslation();
   const navigation = useNavigation();
   const route = useRoute();
-  const {reservationId, receiptContext} = route.params || {};
+  const {reservationId, receiptContext, reservationStatus, approvalStatus} = route.params || {};
   const isRequestConfirmationReservation =
-    receiptContext?.reservationPolicy?.mode === 'REQUEST_CONFIRMATION';
+    reservationStatus === 'PENDING' || approvalStatus === 'WAITING_HOST' ||
+    (reservationStatus == null && receiptContext?.reservationPolicy?.mode === 'REQUEST_CONFIRMATION');
   const successMessage = isRequestConfirmationReservation
     ? t(
         'guesthouse.reservationRequestCompleteYourReservationWillBeFinalizedAfterHost',

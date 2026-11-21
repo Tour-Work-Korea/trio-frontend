@@ -1,5 +1,7 @@
+import reservationPaymentApi from '@utils/api/reservationPaymentApi';
+import SkeletonLayout, {Line} from '@screens/_components/SkeletonLayout';
 import {useTranslation} from 'react-i18next';
-import React from 'react';
+import React, {useRef} from 'react';
 import {Alert, Linking, Platform} from 'react-native';
 import {WebView} from 'react-native-webview';
 import {useNavigation} from '@react-navigation/native';
@@ -9,6 +11,7 @@ import {WEB_BASE_URL} from '@env';
 const MeetPayment = ({route}) => {
   const {t} = useTranslation();
   const navigation = useNavigation();
+  const completingRef = useRef(false);
   const {
     reservationId,
     amount,
@@ -19,6 +22,7 @@ const MeetPayment = ({route}) => {
     thumbnailUrl,
     userCouponId,
     pointUsed,
+    paymentChannel = 'DOMESTIC',
   } = route.params || {};
   const reservationType = 'PARTY';
 
@@ -42,20 +46,40 @@ const MeetPayment = ({route}) => {
     return null;
   }
 
-  const handleMessage = event => {
+  const handleMessage = async event => {
     try {
       const data = JSON.parse(event.nativeEvent.data);
 
       if (data.type === 'PAYMENT_SUCCESS') {
-        navigation.replace('MeetPaymentSuccess', {
-          reservationId,
-          amount,
-          partyTitle,
-          partyStartDateTime,
-          partyStartTime,
-          partyEndTime,
-          thumbnailUrl,
-        });
+        if (completingRef.current ||
+            (data.reservationId != null && String(data.reservationId) !== String(reservationId)) ||
+            (data.reservationType && data.reservationType !== reservationType)) return;
+        completingRef.current = true;
+        try {
+          const response = await reservationPaymentApi.getPartyReservationDetail(reservationId);
+          const latest = response?.data;
+          if (!latest || ['CANCELLED', 'CANCELED'].includes(latest.reservationStatus)) {
+            completingRef.current = false;
+            return;
+          }
+
+          navigation.replace('MeetPaymentSuccess', {
+            reservationId,
+            reservationStatus: latest.reservationStatus,
+            approvalStatus: latest.approvalStatus ?? data.approvalStatus,
+            amount,
+            partyTitle,
+            partyStartDateTime,
+            partyStartTime,
+            partyEndTime,
+            thumbnailUrl,
+          });
+        } catch {
+          completingRef.current = false;
+          Alert.alert(t('common.paymentError'), t('payment.confirmingPaymentCompletion'), [
+            {text: t('common.confirm'), onPress: () => handleMessage(event)},
+          ]);
+        }
         return;
       }
 
@@ -74,6 +98,7 @@ const MeetPayment = ({route}) => {
   const paymentQuery = new URLSearchParams({
     reservationId: String(reservationId),
     reservationType,
+    paymentChannel,
   });
 
   if (userCouponId) {
@@ -88,7 +113,7 @@ const MeetPayment = ({route}) => {
     const {url} = request;
 
     const showExternalPaymentAppError = error => {
-      console.warn('Failed to open external payment app', {url, error});
+      console.warn('Failed to open external payment app');
       Alert.alert(
         t('common.notification'),
         t('common.theAppIsNotInstalled'),
@@ -156,14 +181,19 @@ const MeetPayment = ({route}) => {
       onMessage={handleMessage}
       onShouldStartLoadWithRequest={onShouldStartLoadWithRequest}
       startInLoadingState
+      renderLoading={() => (
+        <SkeletonLayout style={{padding: 20, gap: 20}}>
+          <Line width="65%" height={24} />
+          <Line width="100%" height={140} />
+          <Line width="100%" height={56} />
+          <Line width="100%" height={56} />
+        </SkeletonLayout>
+      )}
       javaScriptCanOpenWindowsAutomatically
       setSupportMultipleWindows
       sharedCookiesEnabled
       thirdPartyCookiesEnabled
-      onError={e => console.log('WebView onError', e.nativeEvent)}
-      onHttpError={e => console.log('WebView onHttpError', e.nativeEvent)}
-      onLoadStart={e => console.log('WebView onLoadStart', e.nativeEvent.url)}
-      onLoadEnd={e => console.log('WebView onLoadEnd', e.nativeEvent.url)}
+
     />
   );
 };
