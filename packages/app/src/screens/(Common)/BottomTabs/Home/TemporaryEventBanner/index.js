@@ -1,7 +1,7 @@
 import ko from '@trio/app/src/locales/ko.json';
 import {useTranslation} from 'react-i18next';
-import React, {useCallback, useMemo, useState} from 'react';
-import {Image, View, Linking, Platform} from 'react-native';
+import React, {useCallback, useEffect, useMemo, useRef, useState} from 'react';
+import {ActivityIndicator, Image, View, Linking, Platform} from 'react-native';
 import {useNavigation, useRoute} from '@react-navigation/native';
 import {WebView} from 'react-native-webview';
 
@@ -15,6 +15,8 @@ import userMyApi from '@utils/api/userMyApi';
 import {showErrorModal} from '@utils/loginModalHub';
 import {replaceWebPath} from '@web/navigation';
 import {WEB_ROUTES} from '@web/routes';
+import adminApi from '@utils/api/adminApi';
+import {getWebDeviceType} from '@utils/webOpenApp';
 
 // Legacy name matching must use the server's canonical name, independent of UI language.
 const TARGET_COUPON_NAME = ko['common.20DiscountCouponForNewMembersOnly'];
@@ -24,6 +26,18 @@ const couponEventImageUri =
   typeof Image.resolveAssetSource === 'function'
     ? Image.resolveAssetSource(couponEventImage)?.uri
     : couponEventImage;
+const CONTENT_LINK_ACTION = 'CONTENT_LINK';
+const CONTENT_LINK_FALLBACK_DELAY_MS = 1400;
+
+const isSafeWebUrl = value =>
+  typeof value === 'string' && /^https:\/\/[^\s]+$/i.test(value.trim());
+
+const isValidPartyId = value =>
+  Number.isSafeInteger(Number(value)) && Number(value) > 0;
+
+const isSafePartyDeepLink = (value, partyId) =>
+  typeof value === 'string' &&
+  value.trim() === `ddakji://party/${Number(partyId)}`;
 const createHtmlDocument = (
   fragment,
   language,
@@ -194,10 +208,14 @@ const TemporaryEventBanner = () => {
   const navigation = useNavigation();
   const route = useRoute();
   const {bannerHtml, banner} = route.params ?? {};
+  const webFallbackCleanupRef = useRef(null);
+  const openingContentRef = useRef(false);
   const couponTemplateId = banner?.couponTemplateId;
+  const isContentLink = banner?.actionButtonType === CONTENT_LINK_ACTION;
   const userRole = useUserStore(state => state.userRole);
   const accessToken = useUserStore(state => state.accessToken);
   const [issuing, setIssuing] = useState(false);
+  const [openingContent, setOpeningContent] = useState(false);
   const [alertState, setAlertState] = useState({
     visible: false,
     message: '',
@@ -232,7 +250,7 @@ const TemporaryEventBanner = () => {
   }, [bannerHtml, t, i18n.resolvedLanguage]);
 
   const injectedJs = useMemo(() => {
-    const hasLink = !!(
+    const hasLink = isContentLink || !!(
       banner?.link &&
       typeof banner.link === 'string' &&
       /^https?:\/\//i.test(banner.link.trim())
@@ -274,7 +292,11 @@ const TemporaryEventBanner = () => {
       `;
     }
     return '';
-  }, [banner?.link, t]);
+  }, [banner?.link, isContentLink, t]);
+
+  useEffect(() => () => {
+    webFallbackCleanupRef.current?.();
+  }, []);
 
   const closeAlert = useCallback(() => {
     const shouldNavigate = alertState.navigateOnConfirm;
@@ -380,6 +402,139 @@ const TemporaryEventBanner = () => {
     t,
   ]);
 
+  const openContentOnMobileWeb = useCallback((appDeepLink, webUrl) => {
+    webFallbackCleanupRef.current?.();
+
+    let appOpened = false;
+    let fallbackTimer;
+    const cleanup = () => {
+      window.clearTimeout(fallbackTimer);
+      document.removeEventListener('visibilitychange', onVisibilityChange);
+      window.removeEventListener('pagehide', stopFallback);
+      window.removeEventListener('blur', pauseFallback);
+      window.removeEventListener('focus', scheduleFallback);
+      if (webFallbackCleanupRef.current === cleanup) {
+        webFallbackCleanupRef.current = null;
+      }
+    };
+    const stopFallback = () => {
+      appOpened = true;
+      cleanup();
+    };
+    const onVisibilityChange = () => {
+      if (document.visibilityState === 'hidden') {
+        stopFallback();
+      }
+    };
+    const pauseFallback = () => window.clearTimeout(fallbackTimer);
+    const scheduleFallback = () => {
+      pauseFallback();
+      if (appOpened) {
+        return;
+      }
+      const scheduledAt = Date.now();
+      fallbackTimer = window.setTimeout(() => {
+        if (
+          Date.now() - scheduledAt > CONTENT_LINK_FALLBACK_DELAY_MS + 300
+        ) {
+          scheduleFallback();
+          return;
+        }
+        cleanup();
+        if (!appOpened && document.visibilityState !== 'hidden') {
+          window.location.assign(webUrl);
+        }
+      }, CONTENT_LINK_FALLBACK_DELAY_MS);
+    };
+
+    document.addEventListener('visibilitychange', onVisibilityChange);
+    window.addEventListener('pagehide', stopFallback);
+    window.addEventListener('blur', pauseFallback);
+    window.addEventListener('focus', scheduleFallback);
+    webFallbackCleanupRef.current = cleanup;
+    scheduleFallback();
+    window.location.href = appDeepLink;
+  }, []);
+
+  const handleOpenContent = useCallback(async () => {
+    if (openingContentRef.current) {
+      return;
+    }
+
+    const bannerId = Number(banner?.id);
+    if (!Number.isSafeInteger(bannerId) || bannerId <= 0) {
+      showCouponAlert(t('events.contentUnavailable'));
+      return;
+    }
+
+    openingContentRef.current = true;
+    setOpeningContent(true);
+    try {
+      const {data: target} = await adminApi.getMainBannerContentTarget(bannerId);
+
+      if (target?.status === 'NO_UPCOMING_PARTY') {
+        showCouponAlert(
+          typeof target.message === 'string' && target.message.trim()
+            ? target.message
+            : t('events.noUpcomingContent'),
+        );
+        return;
+      }
+
+      if (target?.status === 'UNAVAILABLE') {
+        showCouponAlert(
+          typeof target.message === 'string' && target.message.trim()
+            ? target.message
+            : t('events.contentUnavailable'),
+        );
+        return;
+      }
+
+      const partyId = Number(target?.partyId);
+      if (
+        target?.status !== 'AVAILABLE' ||
+        !isValidPartyId(partyId) ||
+        !isSafeWebUrl(target?.webUrl)
+      ) {
+        showCouponAlert(t('events.contentLinkFailed'));
+        return;
+      }
+
+      const webUrl = target.webUrl.trim();
+      if (Platform.OS !== 'web') {
+        navigation.navigate('MeetDetail', {partyId});
+        return;
+      }
+
+      if (getWebDeviceType() === 'desktop') {
+        window.location.assign(webUrl);
+        return;
+      }
+
+      if (!isSafePartyDeepLink(target?.appDeepLink, partyId)) {
+        window.location.assign(webUrl);
+        return;
+      }
+
+      openContentOnMobileWeb(target.appDeepLink.trim(), webUrl);
+    } catch (error) {
+      const message =
+        error?.response?.status === 404
+          ? t('events.contentUnavailable')
+          : t('events.contentLinkFailed');
+      showCouponAlert(message);
+    } finally {
+      openingContentRef.current = false;
+      setOpeningContent(false);
+    }
+  }, [
+    banner?.id,
+    navigation,
+    openContentOnMobileWeb,
+    showCouponAlert,
+    t,
+  ]);
+
   const handleMessage = event => {
     const message = event.nativeEvent.data;
 
@@ -395,6 +550,11 @@ const TemporaryEventBanner = () => {
     }
 
     if (message === 'coupon') {
+      if (isContentLink) {
+        handleOpenContent();
+        return;
+      }
+
       const link = banner?.link;
       if (link && typeof link === 'string') {
         const safeUrl = link.trim();
@@ -423,6 +583,12 @@ const TemporaryEventBanner = () => {
         bounces={false}
         mixedContentMode="always"
       />
+
+      {openingContent ? (
+        <View style={styles.actionLoading} pointerEvents="auto">
+          <ActivityIndicator size="small" color={COLORS.primary_orange} />
+        </View>
+      ) : null}
 
       <AlertModal
         visible={alertState.visible}
