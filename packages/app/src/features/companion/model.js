@@ -2,7 +2,16 @@ import {formatDate, formatNumber} from '@utils/localeFormat';
 
 // Provisional codes: no server-maintained activity/region catalog exists yet.
 export const ACTIVITIES = ['WALK', 'FOOD', 'PHOTO', 'SWIM', 'OTHER'];
-export const REGIONS = ['JEJU_NORTH', 'JEJU_SOUTH', 'JEJU_EAST', 'JEJU_WEST'];
+export const REGIONS = [
+  'JEJU_NORTH',
+  'JEJU_SOUTH',
+  'JEJU_EAST',
+  'JEJU_WEST',
+  'BUSAN',
+  'SEOUL',
+  'GANGNEUNG',
+  'SOKCHO',
+];
 export const dateKey = date => {
   const parts = new Intl.DateTimeFormat('en-CA', {
     timeZone: 'Asia/Seoul',

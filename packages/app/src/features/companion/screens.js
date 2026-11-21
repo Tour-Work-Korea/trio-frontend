@@ -368,10 +368,13 @@ export function CompanionDetail({navigation: screenNavigation, route}) {
 }
 
 // Local form styling: preserve shared fields used by the other companion screens.
-function CompanionWriteField({label, style, ...props}) {
+function CompanionWriteField({label, labelRight, style, ...props}) {
   return (
     <View style={{gap: 10}}>
-      <Txt style={FONTS.fs_14_regular}>{label}</Txt>
+      <View style={s.between}>
+        <Txt style={FONTS.fs_14_regular}>{label}</Txt>
+        {labelRight ? <Txt style={s.small}>{labelRight}</Txt> : null}
+      </View>
       <TextInput
         {...props}
         accessibilityLabel={label}
@@ -875,7 +878,7 @@ export function CompanionWrite({navigation: screenNavigation, route}) {
                       ))}
                     </View>
                     <Txt>{t('companion.regionLabel')}</Txt>
-                    <View style={{position: 'relative', zIndex: 1}}>
+                    <View style={{gap: 10}}>
                       <TouchableOpacity
                         accessibilityRole="button"
                         accessibilityLabel={t('companion.regionLabel')}
@@ -908,10 +911,6 @@ export function CompanionWrite({navigation: screenNavigation, route}) {
                       {regionOpen && (
                         <View
                           style={{
-                            position: 'absolute',
-                            top: 52,
-                            left: 0,
-                            right: 0,
                             backgroundColor: C.grayscale_0,
                             borderWidth: 1,
                             borderColor: C.grayscale_200,
@@ -1069,6 +1068,9 @@ export function CompanionWrite({navigation: screenNavigation, route}) {
                       onFocus={focusInput}
                       style={{height: 180, minHeight: 180, borderRadius: 24}}
                       label={t('companion.descriptionLabel')}
+                      labelRight={t('companion.descriptionCharacterCount', {
+                        count: draft.description.length,
+                      })}
                       placeholder={t('companion.descriptionPlaceholder')}
                       value={draft.description}
                       onChangeText={value => set('description', value)}
@@ -1076,7 +1078,13 @@ export function CompanionWrite({navigation: screenNavigation, route}) {
                       multiline
                       editable={!task.busy && !transaction.current}
                     />
-                    <Txt style={s.small}>{t('companion.descriptionHelp')}</Txt>
+                    {draft.description.trim().length < 10 && (
+                      <Txt
+                        accessibilityLiveRegion="polite"
+                        style={[s.small, s.error]}>
+                        {t('companion.descriptionTooShort')}
+                      </Txt>
+                    )}
                     <Txt>{t('companion.photosLabel')}</Txt>
                     <View style={s.wrap}>
                       {images.map((image, index) => (
