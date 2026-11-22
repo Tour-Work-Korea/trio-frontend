@@ -39,6 +39,31 @@ export const isCompanionNotification = notification =>
 const idValue = value =>
   /^[1-9]\d*$/.test(String(value || '')) ? String(value) : null;
 
+const companionIdFromRoom = room =>
+  idValue(room?.companionId) || idValue(room?.contextId);
+
+const findNotificationRoom = async roomId => {
+  try {
+    const {data} = await chatApi.detail(roomId);
+    const companionId = companionIdFromRoom(data);
+    if (companionId) {
+      return companionId;
+    }
+  } catch {}
+
+  // NotificationResponse intentionally exposes roomId without companionId.
+  // If the room detail is temporarily unavailable, the inbox response can
+  // still provide the companion context required by CompanionChat.
+  try {
+    const {data} = await chatApi.list();
+    const rooms = Array.isArray(data) ? data : data?.content;
+    const room = rooms?.find(item => String(item.roomId) === String(roomId));
+    return companionIdFromRoom(room);
+  } catch {
+    return null;
+  }
+};
+
 // Accept only the companion/chat routes; leave all existing deeplink families
 // to the existing router. Never treat a notification ID as a room ID.
 export function companionLinkTarget(url) {
@@ -93,12 +118,7 @@ export async function resolveCompanionNotification(notification) {
     return {name: 'CompanionChatAccess', params: {companionId}};
   }
   if (roomId) {
-    try {
-      companionId =
-        idValue((await chatApi.detail(roomId)).data.companionId) || companionId;
-    } catch {
-      return {name: 'CompanionInbox'};
-    }
+    companionId = (await findNotificationRoom(roomId)) || companionId;
   }
   if (companionId && currentGroup) {
     return {name: 'CompanionChatAccess', params: {companionId}};

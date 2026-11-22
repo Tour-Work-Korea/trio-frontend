@@ -29,7 +29,7 @@ export const pushWebPath = (path, state = {}) => {
     return;
   }
 
-  window.history.replaceState(state, '', path);
+  window.history.pushState(state, '', path);
 };
 
 export const replaceWebPath = (path, state = {}) => {
