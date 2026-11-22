@@ -539,9 +539,9 @@ const TemporaryEventBanner = () => {
     const message = event.nativeEvent.data;
 
     if (message === 'back') {
-      if (Platform.OS === 'web') {
+      if (Platform.OS === 'web' && !navigation.canGoBack()) {
         replaceWebPath(WEB_ROUTES.HOME);
-        navigation.navigate('HomeMain');
+        navigation.replace('HomeMain');
         return;
       }
 

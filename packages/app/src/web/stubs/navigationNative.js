@@ -653,6 +653,30 @@ function parseRouteFromUrl() {
     };
   }
 
+  if (staticScreen === 'MeetSearch') {
+    return {
+      name: 'MainTabs',
+      params: getNestedStackParams('콘텐츠', 'MeetSearch', extraParams),
+    };
+  }
+
+  if (staticScreen === 'UserFavorite') {
+    return {
+      name: 'MainTabs',
+      params: getNestedStackParams('마이', 'UserFavorite', extraParams),
+    };
+  }
+
+  if (staticScreen === 'FindId') {
+    return {
+      name: 'Login',
+      params: {
+        screen: 'FindId',
+        params: extraParams,
+      },
+    };
+  }
+
   if (staticScreen) {
     return {
       name: staticScreen,
@@ -838,6 +862,7 @@ function writeBrowserHistory(route, mode = 'replace') {
   window.history[method](
     {
       __trioNavigation: true,
+      __trioCanGoBack: mode === 'push',
       route: {
         name: route.name,
         params: route.params,
@@ -878,10 +903,16 @@ export function createNavigatorFactory(defaultKind = 'stack') {
     const [route, setRoute] = React.useState(() =>
       getInitialRoute(childScreens, firstScreen, parentRoute?.params),
     );
+    const [focusedChildRouteName, setFocusedChildRouteName] =
+      React.useState(null);
     const historyRef = useRef([]);
     const routeRef = useRef(route);
 
     routeRef.current = route;
+
+    useEffect(() => {
+      parentNavigation?.__setFocusedChildRoute?.(route.name);
+    }, [parentNavigation, route.name]);
 
     useEffect(() => {
       const nestedRoute = getNestedRoute(childScreens, parentRoute?.params);
@@ -891,7 +922,11 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       }
 
       setRoute(nestedRoute);
-    }, [childScreens, parentRoute?.params]);
+      // Parent params represent an explicit nested-navigation request. Do not
+      // replay them merely because this navigator re-rendered, or a newly
+      // selected tab would be overwritten by the previous parent route.
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [parentRoute?.params]);
 
     useEffect(() => {
       if (!canUseBrowserHistory) {
@@ -960,7 +995,38 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       [childScreens, parentNavigation],
     );
 
+    const replace = useCallback(
+      (nameOrOptions, params) => {
+        const next = normalizeNavigateArgs(nameOrOptions, params);
+        if (!next.name) {
+          return;
+        }
+
+        const ownsRoute = childScreens.some(
+          child => child.props.name === next.name,
+        );
+        if (!ownsRoute) {
+          if (typeof parentNavigation?.replace === 'function') {
+            parentNavigation.replace(next.name, next.params);
+          } else {
+            parentNavigation?.navigate?.(next.name, next.params);
+          }
+          return;
+        }
+
+        const nextRoute = {name: next.name, params: next.params};
+        setRoute(nextRoute);
+        replaceBrowserHistory(nextRoute);
+      },
+      [childScreens, parentNavigation],
+    );
+
     const goBack = useCallback(() => {
+      if (canUseBrowserHistory && window.history.state?.__trioCanGoBack) {
+        window.history.back();
+        return;
+      }
+
       const webBackRoute = getWebBackRoute(routeRef.current?.params);
 
       if (webBackRoute?.name) {
@@ -1018,33 +1084,61 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       [childScreens, parentNavigation],
     );
 
+    const popToTop = useCallback(() => {
+      historyRef.current = [];
+      if (!firstScreen) {
+        return;
+      }
+
+      const nextRoute = {
+        name: firstScreen.props.name,
+        params: firstScreen.props.initialParams,
+      };
+      setRoute(nextRoute);
+      replaceBrowserHistory(nextRoute);
+    }, [firstScreen]);
+
     const navigation = useMemo(
       () => ({
         navigate,
         push: navigate,
-        replace: navigate,
+        replace,
         goBack,
         canGoBack: () =>
+          Boolean(
+            canUseBrowserHistory && window.history.state?.__trioCanGoBack,
+          ) ||
           historyRef.current.length > 0 ||
           Boolean(getWebBackRoute(routeRef.current?.params)?.name) ||
           Boolean(parentNavigation?.canGoBack?.()),
         reset,
         pop: goBack,
-        popToTop: () => {
-          historyRef.current = [];
-          if (firstScreen) {
-            setRoute({
-              name: firstScreen.props.name,
-              params: firstScreen.props.initialParams,
-            });
-          }
-        },
+        popToTop,
         dispatch: action => {
           const payload = action?.payload;
           if (action?.type === 'SET_PARAMS') {
             setParams(payload?.params);
           } else if (action?.type === 'RESET') {
             reset(payload);
+          } else if (action?.type === 'REPLACE') {
+            replace(payload?.name, payload?.params);
+          } else if (action?.type === 'POP') {
+            goBack();
+          } else if (action?.type === 'POP_TO_TOP') {
+            popToTop();
+          } else if (action?.type === 'POP_TO' && payload?.name) {
+            const targetIndex = historyRef.current
+              .map(historyRoute => historyRoute.name)
+              .lastIndexOf(payload.name);
+
+            if (targetIndex >= 0) {
+              historyRef.current = historyRef.current.slice(0, targetIndex);
+              const nextRoute = {name: payload.name, params: payload.params};
+              setRoute(nextRoute);
+              replaceBrowserHistory(nextRoute);
+            } else {
+              replace(payload.name, payload.params);
+            }
           } else if (payload?.name) {
             navigate(payload.name, payload.params);
           } else if (payload?.routes?.length) {
@@ -1055,10 +1149,20 @@ export function createNavigatorFactory(defaultKind = 'stack') {
         },
         setParams,
         setOptions: () => {},
+        __setFocusedChildRoute: setFocusedChildRouteName,
         getParent: () => parentNavigation ?? null,
         isFocused: () => true,
       }),
-      [firstScreen, goBack, navigate, parentNavigation, reset, setParams],
+      [
+        firstScreen,
+        goBack,
+        navigate,
+        parentNavigation,
+        popToTop,
+        replace,
+        reset,
+        setParams,
+      ],
     );
 
     const activeScreen =
@@ -1070,7 +1174,16 @@ export function createNavigatorFactory(defaultKind = 'stack') {
       return null;
     }
 
-    const routeValue = {name: activeScreen.props.name, params: route.params};
+    const routeValue = {
+      name: activeScreen.props.name,
+      params: route.params,
+      state: focusedChildRouteName
+        ? {
+            index: 0,
+            routes: [{name: focusedChildRouteName}],
+          }
+        : undefined,
+    };
     const routeKey =
       defaultKind === 'bottom-tabs'
         ? routeValue.name
