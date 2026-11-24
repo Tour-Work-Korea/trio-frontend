@@ -32,15 +32,23 @@ import {getDefaultGuesthouseListParams} from '@constants/guesthouseDefaults';
 import {FONTS} from '@constants/fonts';
 import Header from '@components/Header';
 import ScreenSkeleton from './LoadingSkeleton';
+import {
+  SkeletonBlock,
+  SkeletonPulse,
+} from '../../../../_components/ContentSkeleton';
 import {prefetchImageUrls} from '@components/AppImage';
 import useUserStore from '@stores/userStore';
 import notificationApi from '@utils/api/notificationApi';
 import {subscribeForegroundNotification} from '@utils/notifications';
 import {isNotificationCenterItem} from '../../../../(User)/UserMyPage/NotificationCenter/notificationVisibility';
+import {chatApi, companionEnabled} from '../../../../../features/companion/api';
+import {isCompanionNotification} from '../../../../../features/companion/notificationRouting';
+import {formatNumber} from '@utils/localeFormat';
 // import {trimJejuPrefix} from '@utils/formatAddress';
 
 import SearchIcon from '@assets/images/search_gray.svg';
 import BellIcon from '@assets/images/bell_gray.svg';
+import ChatIcon from '@assets/images/chat_bubbles_gray400.svg';
 import CategoryFood from '@assets/images/category_food.svg';
 import CategoryReading from '@assets/images/category_reading.svg';
 import CategoryDinnerParty from '@assets/images/category_dinner_party.svg';
@@ -129,6 +137,7 @@ const HomeMain = () => {
   const [bannerList, setBannerList] = useState([]);
   const [recentGuesthouseList, setRecentGuesthouseList] = useState([]);
   const [unreadCount, setUnreadCount] = useState(0);
+  const [chatUnreadCount, setChatUnreadCount] = useState(null);
 
   const [isGHLoading, setIsGHLoading] = useState(true);
   const [isBannerLoading, setIsBannerLoading] = useState(true);
@@ -251,10 +260,13 @@ const HomeMain = () => {
 
       if (!accessToken) {
         setUnreadCount(0);
+        setChatUnreadCount(0);
         return () => {
           isActive = false;
         };
       }
+
+      setChatUnreadCount(null);
 
       const fetchUnreadCount = async () => {
         try {
@@ -275,10 +287,40 @@ const HomeMain = () => {
         }
       };
 
+      const fetchChatUnreadCount = async () => {
+        if (!companionEnabled) {
+          setChatUnreadCount(0);
+          return;
+        }
+
+        try {
+          const {data} = await chatApi.list();
+          if (isActive) {
+            setChatUnreadCount(
+              (Array.isArray(data) ? data : []).reduce((total, room) => {
+                const count = Number(room.unreadCount);
+                return (
+                  total +
+                  (Number.isFinite(count) ? Math.max(0, count) : 0)
+                );
+              }, 0),
+            );
+          }
+        } catch {
+          if (isActive) {
+            setChatUnreadCount(0);
+          }
+        }
+      };
+
       fetchUnreadCount();
+      fetchChatUnreadCount();
       const unsubscribe = subscribeForegroundNotification(message => {
         if (isNotificationCenterItem(message?.data)) {
           fetchUnreadCount();
+        }
+        if (isCompanionNotification(message?.data)) {
+          fetchChatUnreadCount();
         }
       });
 
@@ -422,21 +464,54 @@ const HomeMain = () => {
       <Header
         rightComponent={
           accessToken ? (
-            <TouchableOpacity
-              activeOpacity={1}
-              accessibilityRole="button"
-              accessibilityLabel={t('common.notificationBox')}
-              style={styles.notificationButton}
-              onPress={() => navigation.navigate('NotificationCenter')}>
-              <BellIcon width={18} height={18} />
-              {unreadCount > 0 ? (
-                <View style={styles.unreadBadge}>
-                  <Text style={styles.unreadBadgeText}>
-                    {unreadCount > 99 ? '99+' : unreadCount}
-                  </Text>
-                </View>
+            <View style={styles.headerActions}>
+              {companionEnabled ? (
+                <TouchableOpacity
+                  activeOpacity={1}
+                  accessibilityRole="button"
+                  accessibilityLabel={
+                    chatUnreadCount > 0
+                      ? t('companion.inbox.unreadLabel', {
+                          value: formatNumber(chatUnreadCount),
+                        })
+                      : t('companion.inbox')
+                  }
+                  style={styles.notificationButton}
+                  onPress={() => navigation.navigate('CompanionInbox')}>
+                  <ChatIcon width={24} height={24} />
+                  {chatUnreadCount === null ? (
+                    <SkeletonPulse decorative style={styles.badgeSkeleton}>
+                      <SkeletonBlock style={styles.badgeSkeletonBlock} />
+                    </SkeletonPulse>
+                  ) : chatUnreadCount > 0 ? (
+                    <View pointerEvents="none" style={styles.unreadBadge}>
+                      <Text style={styles.unreadBadgeText}>
+                        {chatUnreadCount > 99
+                          ? t('companion.inbox.countOverflow', {
+                              value: formatNumber(99),
+                            })
+                          : formatNumber(chatUnreadCount)}
+                      </Text>
+                    </View>
+                  ) : null}
+                </TouchableOpacity>
               ) : null}
-            </TouchableOpacity>
+              <TouchableOpacity
+                activeOpacity={1}
+                accessibilityRole="button"
+                accessibilityLabel={t('common.notificationBox')}
+                style={styles.notificationButton}
+                onPress={() => navigation.navigate('NotificationCenter')}>
+                <BellIcon width={18} height={18} />
+                {unreadCount > 0 ? (
+                  <View style={styles.unreadBadge}>
+                    <Text style={styles.unreadBadgeText}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </Text>
+                  </View>
+                ) : null}
+              </TouchableOpacity>
+            </View>
           ) : null
         }
       />

@@ -6,6 +6,7 @@ import { log } from '@utils/logger';
 import notificationApi from '@utils/api/notificationApi';
 
 const DEVICE_ID_KEY = 'device_id_key';
+let fcmSyncPromise = null;
 
 export const getDeviceId = async () => {
   try {
@@ -65,7 +66,7 @@ export const requestUserPermission = async () => {
   }
 };
 
-export const syncFcmToken = async () => {
+const performFcmTokenSync = async () => {
   try {
     const hasPermission = await requestUserPermission();
     if (!hasPermission) return;
@@ -86,6 +87,18 @@ export const syncFcmToken = async () => {
   } catch (error) {
     log.error('FCM sync error:', error);
   }
+};
+
+export const syncFcmToken = () => {
+  if (fcmSyncPromise) {
+    return fcmSyncPromise;
+  }
+
+  fcmSyncPromise = performFcmTokenSync().finally(() => {
+    fcmSyncPromise = null;
+  });
+
+  return fcmSyncPromise;
 };
 
 export const setupTokenRefreshListener = () => {

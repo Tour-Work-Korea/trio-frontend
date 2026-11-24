@@ -319,12 +319,7 @@ const UserMyPage = () => {
                   />
                 </SkeletonPulse>
               ) : chatUnreadCount > 0 ? (
-                <View
-                  pointerEvents="none"
-                  style={[
-                    styles.unreadBadge,
-                    {width: undefined, minWidth: 18, paddingHorizontal: 3},
-                  ]}>
+                <View pointerEvents="none" style={styles.unreadBadge}>
                   <Text style={styles.unreadBadgeText}>
                     {chatUnreadCount > 99
                       ? t('companion.inbox.countOverflow', {

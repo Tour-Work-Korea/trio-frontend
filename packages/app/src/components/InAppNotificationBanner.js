@@ -6,6 +6,13 @@ import {useSafeAreaInsets} from 'react-native-safe-area-context';
 
 import {COLORS} from '@constants/colors';
 import {FONTS} from '@constants/fonts';
+import ChatIcon from '@assets/images/chat_bubbles_orange.svg';
+import CommentIcon from '@assets/images/noti_comment.svg';
+import GuesthouseCancelledIcon from '@assets/images/noti_guesthouse_cancelled.svg';
+import GuesthouseConfirmedIcon from '@assets/images/noti_guesthouse_confirmed.svg';
+import NoticeIcon from '@assets/images/notice_bubble_orange.svg';
+import PartyCancelledIcon from '@assets/images/noti_party_cancelled.svg';
+import PartyConfirmedIcon from '@assets/images/noti_party_confirmed.svg';
 import {
   isCompanionNotification,
   companionNotificationValue,
@@ -16,7 +23,7 @@ import {
   subscribeForegroundNotification,
 } from '@utils/notifications';
 
-const AUTO_HIDE_MS = 3200;
+const AUTO_HIDE_MS = 4500;
 
 const normalizeType = data => {
   if (isCompanionNotification(data)) {
@@ -40,18 +47,29 @@ const normalizeType = data => {
 };
 
 const normalizeStatus = data => {
-  const rawStatus = String(data?.status || data?.eventType || '').toUpperCase();
+  const rawStatus = String(
+    data?.status ||
+      companionNotificationValue(data, 'type') ||
+      data?.eventType ||
+      '',
+  ).toUpperCase();
 
-  if (rawStatus.includes('CANCEL')) {
+  if (rawStatus.includes('CANCEL') || rawStatus.includes('REJECT')) {
     return 'cancelled';
   }
 
   return 'confirmed';
 };
 
-const mapRemoteMessage = remoteMessage => {
+export const mapRemoteMessage = remoteMessage => {
   const data = remoteMessage?.data ?? {};
   const type = normalizeType(data);
+  const rawType = String(
+    companionNotificationValue(data, 'type') ||
+      data.type ||
+      data.targetType ||
+      '',
+  ).toUpperCase();
   const title =
     remoteMessage?.notification?.title ||
     data.title ||
@@ -74,13 +92,14 @@ const mapRemoteMessage = remoteMessage => {
       ? lines
       : [i18n.t('notification.pleaseCheckTheNotificationCenterForMoreDetails')],
     type,
+    rawType,
     status: normalizeStatus(data),
     timestamp:
       data.sentAt || data.createdAt || i18n.t('notification.justArrived'),
   };
 };
 
-const BannerBadge = ({type, status}) => {
+const BannerMeta = ({type, status}) => {
   const {t} = useTranslation();
   const isNotice = type === 'notice';
   const isCancelled = status === 'cancelled';
@@ -100,21 +119,38 @@ const BannerBadge = ({type, status}) => {
       ? t('common.cancel')
       : t('common.reservation');
 
-  const badgeStyle = isNotice
-    ? styles.noticeBadge
-    : isCancelled
-    ? styles.cancelledBadge
-    : styles.confirmedBadge;
+  return (
+    <Text style={[FONTS.fs_12_semibold, styles.metaLabel]} numberOfLines={1}>
+      {label}
+    </Text>
+  );
+};
 
-  const textStyle = isNotice
-    ? styles.noticeBadgeText
-    : isCancelled
-    ? styles.cancelledBadgeText
-    : styles.confirmedBadgeText;
+const BannerIcon = ({type, rawType, status}) => {
+  const isCancelled = status === 'cancelled';
+  const Icon =
+    type === 'companion'
+      ? rawType === 'COMPANION_CHAT_NOTICE'
+        ? NoticeIcon
+        : ChatIcon
+      : type === 'notice'
+      ? NoticeIcon
+      : type === 'community'
+      ? CommentIcon
+      : type === 'partyReservation'
+      ? isCancelled
+        ? PartyCancelledIcon
+        : PartyConfirmedIcon
+      : isCancelled
+      ? GuesthouseCancelledIcon
+      : GuesthouseConfirmedIcon;
 
   return (
-    <View style={[styles.badge, badgeStyle]}>
-      <Text style={[FONTS.fs_12_semibold, textStyle]}>{label}</Text>
+    <View style={styles.iconWrap}>
+      <Icon
+        width={Icon === NoticeIcon ? 20 : 18}
+        height={Icon === NoticeIcon ? 20 : 18}
+      />
     </View>
   );
 };
@@ -148,8 +184,9 @@ export default function InAppNotificationBanner() {
     const unsubscribe = subscribeForegroundNotification(remoteMessage => {
       const currentRoute = navigationRef.getCurrentRoute();
       if (
-        companionNotificationValue(remoteMessage?.data, 'type') ===
-          'COMPANION_CHAT_MESSAGE' &&
+        String(
+          companionNotificationValue(remoteMessage?.data, 'type') || '',
+        ).toUpperCase() === 'COMPANION_CHAT_MESSAGE' &&
         currentRoute?.name === 'CompanionChat' &&
         String(currentRoute.params?.roomId) ===
           String(companionNotificationValue(remoteMessage.data, 'roomId'))
@@ -192,6 +229,8 @@ export default function InAppNotificationBanner() {
       style={[styles.overlay, {top: topOffset, transform: [{translateY}]}]}>
       <Pressable
         style={styles.card}
+        accessibilityRole="button"
+        accessibilityLabel={`${content.title}. ${content.lines.join(' ')}`}
         onPress={() => {
           const remoteMessage = message?.remoteMessage;
           hideBanner();
@@ -201,10 +240,22 @@ export default function InAppNotificationBanner() {
             });
           });
         }}>
-        <BannerBadge type={content.type} status={content.status} />
+        <BannerIcon
+          type={content.type}
+          rawType={content.rawType}
+          status={content.status}
+        />
 
         <View style={styles.content}>
-          <Text style={[FONTS.fs_16_semibold, styles.title]} numberOfLines={1}>
+          <View style={styles.metaRow}>
+            <BannerMeta type={content.type} status={content.status} />
+            <View style={styles.metaDot} />
+            <Text style={[FONTS.fs_12_medium, styles.date]} numberOfLines={1}>
+              {content.timestamp}
+            </Text>
+          </View>
+
+          <Text style={[FONTS.fs_16_semibold, styles.title]} numberOfLines={2}>
             {content.title}
           </Text>
 
@@ -218,14 +269,10 @@ export default function InAppNotificationBanner() {
                 styles.line,
                 content.type === 'notice' && styles.noticeLine,
               ]}
-              numberOfLines={1}>
+              numberOfLines={2}>
               {line}
             </Text>
           ))}
-
-          <Text style={[FONTS.fs_12_medium, styles.date]} numberOfLines={1}>
-            {content.timestamp}
-          </Text>
         </View>
       </Pressable>
     </Animated.View>
@@ -241,58 +288,57 @@ const styles = StyleSheet.create({
   },
   card: {
     backgroundColor: COLORS.grayscale_0,
-    borderRadius: 16,
-    paddingHorizontal: 16,
-    paddingVertical: 13,
+    borderRadius: 20,
+    paddingHorizontal: 14,
+    paddingVertical: 14,
     flexDirection: 'row',
     alignItems: 'flex-start',
     shadowColor: COLORS.grayscale_900,
-    shadowOpacity: 0.08,
-    shadowRadius: 14,
-    shadowOffset: {width: 0, height: 8},
-    elevation: 10,
+    shadowOpacity: 0.12,
+    shadowRadius: 18,
+    shadowOffset: {width: 0, height: 10},
+    elevation: 12,
     borderWidth: 1,
-    borderColor: COLORS.grayscale_200,
+    borderColor: COLORS.grayscale_100,
   },
-  badge: {
-    minWidth: 42,
-    height: 24,
-    marginRight: 12,
-    paddingHorizontal: 8,
-    borderRadius: 999,
+  iconWrap: {
+    width: 32,
+    height: 32,
+    borderRadius: 10,
+    marginRight: 10,
     alignItems: 'center',
     justifyContent: 'center',
-    marginTop: 1,
-  },
-  confirmedBadge: {
-    backgroundColor: COLORS.secondary_blue,
-  },
-  confirmedBadgeText: {
-    color: COLORS.semantic_blue,
-  },
-  cancelledBadge: {
-    backgroundColor: COLORS.secondary_red,
-  },
-  cancelledBadgeText: {
-    color: COLORS.semantic_red,
-  },
-  noticeBadge: {
-    backgroundColor: COLORS.grayscale_200,
-  },
-  noticeBadgeText: {
-    color: COLORS.grayscale_700,
+    backgroundColor: COLORS.grayscale_100,
   },
   content: {
     flex: 1,
-    paddingTop: 1,
+    minWidth: 0,
+  },
+  metaRow: {
+    minHeight: 17,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 3,
+  },
+  metaLabel: {
+    flexShrink: 1,
+    color: COLORS.primary_orange,
+    lineHeight: 16,
+  },
+  metaDot: {
+    width: 3,
+    height: 3,
+    borderRadius: 2,
+    marginHorizontal: 7,
+    backgroundColor: COLORS.grayscale_300,
   },
   title: {
     color: COLORS.grayscale_800,
     lineHeight: 22,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   line: {
-    color: COLORS.grayscale_700,
+    color: COLORS.grayscale_600,
     lineHeight: 20,
   },
   noticeLine: {
@@ -300,8 +346,8 @@ const styles = StyleSheet.create({
     lineHeight: 18,
   },
   date: {
+    flexShrink: 1,
     color: COLORS.grayscale_500,
     lineHeight: 16,
-    marginTop: 4,
   },
 });

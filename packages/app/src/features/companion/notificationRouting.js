@@ -12,35 +12,60 @@ export const COMPANION_NOTIFICATION_TYPES = new Set([
   'COMPANION_CHAT_SYSTEM',
 ]);
 
+const NOTIFICATION_KEY_ALIASES = {
+  type: ['type', 'targetType', 'notificationType', 'eventType'],
+  roomId: ['roomId', 'chatRoomId', 'room_id', 'chat_room_id'],
+  companionId: ['companionId', 'contextId', 'companion_id', 'context_id'],
+};
+
+const objectValue = value => {
+  if (!value || typeof value !== 'string') {
+    return value;
+  }
+  try {
+    const parsed = JSON.parse(value);
+    return parsed && typeof parsed === 'object' ? parsed : value;
+  } catch {
+    return value;
+  }
+};
+
 export const companionNotificationValue = (notification, key) => {
+  const aliases = NOTIFICATION_KEY_ALIASES[key] || [key];
   for (const source of [
     notification,
     notification?.data,
     notification?.payload,
     notification?.metadata,
     notification?.target,
-  ]) {
-    if (source?.[key] != null && source[key] !== '') {
-      return source[key];
+  ].map(objectValue)) {
+    for (const alias of aliases) {
+      if (source?.[alias] != null && source[alias] !== '') {
+        return source[alias];
+      }
     }
   }
   return null;
 };
 
-export const isCompanionNotification = notification =>
-  COMPANION_NOTIFICATION_TYPES.has(
-    String(
-      companionNotificationValue(notification, 'type') ||
-        companionNotificationValue(notification, 'targetType') ||
-        '',
-    ).toUpperCase(),
-  );
-
 const idValue = value =>
   /^[1-9]\d*$/.test(String(value || '')) ? String(value) : null;
 
+export const isCompanionNotification = notification => {
+  const type = String(
+    companionNotificationValue(notification, 'type') || '',
+  ).toUpperCase();
+
+  return (
+    COMPANION_NOTIFICATION_TYPES.has(type) ||
+    Boolean(idValue(companionNotificationValue(notification, 'roomId')))
+  );
+};
+
 const companionIdFromRoom = room =>
-  idValue(room?.companionId) || idValue(room?.contextId);
+  idValue(room?.companionId) ||
+  idValue(room?.contextId) ||
+  idValue(room?.companion?.id);
 
 const findNotificationRoom = async roomId => {
   try {
@@ -98,9 +123,7 @@ export function companionLinkTarget(url) {
 
 export async function resolveCompanionNotification(notification) {
   const type = String(
-    companionNotificationValue(notification, 'type') ||
-      companionNotificationValue(notification, 'targetType') ||
-      '',
+    companionNotificationValue(notification, 'type') || '',
   ).toUpperCase();
   const roomId = idValue(companionNotificationValue(notification, 'roomId'));
   let companionId = idValue(

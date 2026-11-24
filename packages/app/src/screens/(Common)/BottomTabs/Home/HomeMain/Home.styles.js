@@ -16,6 +16,11 @@ export default StyleSheet.create({
       },
     }),
   },
+  headerActions: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
   notificationButton: {
     width: 32,
     height: 32,
@@ -42,6 +47,16 @@ export default StyleSheet.create({
     includeFontPadding: false,
     textAlign: 'center',
     textAlignVertical: 'center',
+  },
+  badgeSkeleton: {
+    position: 'absolute',
+    top: -2,
+    right: -2,
+  },
+  badgeSkeletonBlock: {
+    width: 16,
+    height: 16,
+    borderRadius: 9,
   },
   horizontalList: {
     ...Platform.select({
