@@ -7,7 +7,7 @@ export function WorkationStory({trip}) {
       <h2 id="workation-hosts">함께하는 사람들</h2>
       <p className="wk-people-copy">
         게딱지 운영자와 리그라운드 대표, 디자이너와 기획자가 함께해요. 밥을 먹고
-        걸으며 서로의 일과 쉼을 이야기해요.
+        걸으며 서로의 이야기와 취향을 나눠요.
       </p>
       <img
         className="wk-people-image"
@@ -27,6 +27,7 @@ export function WorkationStory({trip}) {
           <li>퇴사·이직 후 다음을 고민하는 분</li>
           <li>새로운 사람과 관점을 만나고 싶은 분</li>
           <li>그냥 제주에서 쉬어가고 싶은 분</li>
+          <li>그냥 제주에서 신나게 놀고 싶은 분</li>
         </ul>
       </div>
     </section>

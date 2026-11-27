@@ -32,39 +32,46 @@ test('travel routes do not capture the shared app, KODA or similarly named paths
 });
 
 test('program links select the requested final schedule and invalid days fall back safely', () => {
-  const days = trips[0].days;
-  assert.equal(days[scheduleDayIndex(days, '?day=02')].isoDate, '2026-12-04');
-  const saturday = days[scheduleDayIndex(days, '?day=03')];
-  assert.equal(saturday.events[0].title, 'SOLV 바레');
-  assert.equal(saturday.events[0].time, '08:00–09:00');
-  for (const search of ['', '?day=99', '?day=-1', '?day=NaN']) {
-    assert.equal(scheduleDayIndex(days, search), 0);
-  }
-  assert.deepEqual(
-    days.map(day => new Date(`${day.isoDate}T00:00:00Z`).getUTCDay()),
-    [4, 5, 6],
+  const [thuSat, friSun] = trips[0].scheduleOptions;
+  assert.equal(
+    thuSat.days[scheduleDayIndex(thuSat.days, '?day=02')].isoDate,
+    '2026-12-04',
   );
+  assert.equal(
+    friSun.days[scheduleDayIndex(friSun.days, '?day=03')].isoDate,
+    '2026-12-06',
+  );
+  for (const option of [thuSat, friSun]) {
+    for (const search of ['', '?day=99', '?day=-1', '?day=NaN']) {
+      assert.equal(scheduleDayIndex(option.days, search), 0);
+    }
+    assert.deepEqual(
+      option.days.map(day => new Date(`${day.isoDate}T00:00:00Z`).getUTCDay()),
+      option === thuSat ? [4, 5, 6] : [5, 6, 0]
+    );
+  }
 });
 
-test('the current single trip option resolves its live price', () => {
+test('each trip date option resolves its own live price', () => {
   const trip = trips[0];
   const sale = publicSale(
     {
       partyId: trip.partyId,
       priceOptions: [
-        {
-          id: 1846,
-          optionName: '얼리버드 - 2박 3일 · 전체 프로그램',
-          amount: 159000,
-        },
+        {id: 3861, optionName: '목·금·토', amount: 179000},
+        {id: 4617, optionName: '금·토·일', amount: 189000},
       ],
     },
     trip.partyId,
   );
-  assert.equal(trip.priceOptions.length, 1);
+  assert.equal(trip.priceOptions.length, 2);
   assert.equal(
     optionPrice(sale, trip.priceOptions[0].id, trip.priceOptions[0].amount),
-    159000,
+    179000,
+  );
+  assert.equal(
+    optionPrice(sale, trip.priceOptions[1].id, trip.priceOptions[1].amount),
+    189000,
   );
 });
 

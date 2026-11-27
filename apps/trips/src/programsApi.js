@@ -138,7 +138,6 @@ export function eventCards(events, programs) {
       new Date(`${displayDate}T00:00:00Z`).getUTCDay()
     ];
     const date = `${displayDate.slice(5).replace('-', '.')} ${weekday}요일`;
-    const sameTripDate = trip?.startDate.slice(0, 10) === event.date;
     const sameClassDate = classInfo?.isoDate === event.date;
     const closed =
       event.isApplyOpen === false ||
@@ -154,7 +153,7 @@ export function eventCards(events, programs) {
       image: trip?.hero ?? event.image,
       alt: trip?.heroAlt ?? event.partyTitle,
       contain: trip ? !trip.heroIsPhoto : classInfo?.imageFit === 'contain',
-      date: sameTripDate ? `${trip.year}. ${trip.datesShort}` : date,
+      date: trip ? `${trip.year}. ${trip.datesShort}` : date,
       // Keep the user-confirmed text schedule where API time fields conflict.
       time:
         partyInfo?.confirmedTime ??
@@ -170,7 +169,11 @@ export function eventCards(events, programs) {
         : classInfo
         ? classInfo.url
         : `https://ddakji.kr/contents/${event.partyId}`,
-      price: event.amount === 0 ? '무료' : formatPrice(event.amount),
+      price: trip
+        ? `${formatPrice(trip.priceOptions[0].amount)}부터`
+        : event.amount === 0
+        ? '무료'
+        : formatPrice(event.amount),
       note: closed
         ? '모집 상태는 상세 안내에서 확인해주세요.'
         : trip

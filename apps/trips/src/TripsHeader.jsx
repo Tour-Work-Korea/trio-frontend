@@ -20,7 +20,7 @@ export default function TripsHeader({detail = false, programs = false}) {
         <a
           className="nm-header-side"
           href="/trips/"
-          aria-label="워케이션 메인으로 돌아가기">
+          aria-label="트립 메인으로 돌아가기">
           <span aria-hidden="true">←</span> 홈
         </a>
       ) : (

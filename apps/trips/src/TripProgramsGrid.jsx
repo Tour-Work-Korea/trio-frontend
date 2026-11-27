@@ -83,7 +83,7 @@ export default function TripProgramsGrid({
         <div className="pg-optional-heading">
           <h2>클래스와 연말파티는 선택이에요</h2>
           <p>
-            워케이션 참가비에 포함되지 않아요.
+            트립 참가비에 포함되지 않아요.
             <br />
             참여하고 싶은 분만 별도로 신청·결제해주세요.
           </p>

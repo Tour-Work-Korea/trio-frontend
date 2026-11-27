@@ -1,12 +1,7 @@
 import React, {useEffect, useRef, useState} from 'react';
 import {ApplyLink} from './ApplyLink.jsx';
 import {TRIPS_API_BASE} from './programsApi.js';
-import {
-  formatPrice,
-  optionPrice,
-  publicSale,
-  scheduleDayIndex,
-} from './model.js';
+import {formatPrice, publicSale, scheduleDayIndex} from './model.js';
 const Arrow = () => <span aria-hidden="true">↗</span>;
 
 export function useSales(trip) {
@@ -15,9 +10,13 @@ export function useSales(trip) {
     if (!trip) return;
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
-    const ids = [trip.partyId, ...trip.classes.map(item => item.partyId)];
+    const ids = new Set([
+      trip.partyId,
+      ...(trip.priceOptions || []).map(item => item.partyId).filter(Boolean),
+      ...trip.classes.map(item => item.partyId),
+    ]);
     Promise.allSettled(
-      ids.map(async id => {
+      [...ids].map(async id => {
         // Public, read-only production listings match the supplied booking URLs.
         const response = await fetch(`${TRIPS_API_BASE}/user/parties/${id}`, {
           credentials: 'omit',
@@ -48,18 +47,28 @@ export function SectionTitle({title, subtitle}) {
 }
 
 export function Schedule({trip, compact = false}) {
+  const scheduleOptions = trip.scheduleOptions || [];
+  const [activeScheduleId, setActiveScheduleId] = useState(
+    scheduleOptions[0]?.id,
+  );
+  const activeSchedule = scheduleOptions.find(
+    option => option.id === activeScheduleId,
+  );
+  const defaultDays = scheduleOptions[0]?.days || trip.days;
+  const days = activeSchedule?.days?.length ? activeSchedule.days : defaultDays;
   const [active, setActive] = useState(() =>
-    scheduleDayIndex(trip.days, window.location.search),
+    scheduleDayIndex(defaultDays, window.location.search),
   );
   const buttons = useRef([]);
-  const day = trip.days[active];
+  const day = days[active];
+  const scheduleImage = activeSchedule?.scheduleImages?.[active < 2 ? 0 : 1];
   function onKey(event, index) {
     let next;
-    if (event.key === 'ArrowRight') next = (index + 1) % trip.days.length;
+    if (event.key === 'ArrowRight') next = (index + 1) % days.length;
     if (event.key === 'ArrowLeft')
-      next = (index - 1 + trip.days.length) % trip.days.length;
+      next = (index - 1 + days.length) % days.length;
     if (event.key === 'Home') next = 0;
-    if (event.key === 'End') next = trip.days.length - 1;
+    if (event.key === 'End') next = days.length - 1;
     if (next !== undefined) {
       event.preventDefault();
       setActive(next);
@@ -69,11 +78,31 @@ export function Schedule({trip, compact = false}) {
   return (
     <section id="schedule" className="nm-section nm-schedule">
       <SectionTitle
-        title={`${trip.days.length}일간의 일정`}
-        subtitle="날짜별로 함께할 시간을 확인해보세요."
+        title="2박 3일간의 일정"
+        subtitle="원하는 날짜를 선택해 함께할 시간을 확인해보세요."
       />
+      {scheduleOptions.length > 1 && (
+        <div
+          className="nm-day-tabs nm-schedule-options"
+          role="group"
+          aria-label="여행 날짜 선택">
+          {scheduleOptions.map(option => (
+            <button
+              key={option.id}
+              type="button"
+              aria-pressed={activeScheduleId === option.id}
+              onClick={() => {
+                setActiveScheduleId(option.id);
+                setActive(0);
+              }}>
+              <span>{option.label}</span>
+              <small>{option.dates}</small>
+            </button>
+          ))}
+        </div>
+      )}
       <div className="nm-day-tabs" role="tablist" aria-label="날짜별 여행 일정">
-        {trip.days.map((item, index) => (
+        {days.map((item, index) => (
           <button
             key={item.day}
             id={`day-tab-${index}`}
@@ -97,71 +126,81 @@ export function Schedule({trip, compact = false}) {
         role="tabpanel"
         aria-labelledby={`day-tab-${active}`}
         tabIndex={0}>
-        <div className="nm-timeline">
-          {day.events.map((event, index) => (
-            <div className="nm-timeline-row" key={`${active}-${index}`}>
-              <time>{event.time}</time>
-              <div>
-                <h4>
-                  {event.classId &&
-                  trip.classes.some(item => item.partyId === event.classId) ? (
-                    <a
-                      className="nm-schedule-class-link"
-                      href={`#class-${event.classId}`}>
-                      {event.title}
-                      <span className="nm-optional">별도 신청 ↗</span>
-                    </a>
-                  ) : (
-                    <>
-                      {event.title}
-                      {event.optional && (
-                        <span className="nm-optional">별도 신청</span>
-                      )}
-                    </>
+        {activeSchedule?.scheduleImages ? (
+          <div className="nm-schedule-images">
+            <img
+              src={scheduleImage.src}
+              alt={scheduleImage.alt}
+              loading="lazy"
+            />
+          </div>
+        ) : (
+          <div className="nm-timeline">
+            {day.events.map((event, index) => (
+              <div className="nm-timeline-row" key={`${active}-${index}`}>
+                {event.time ? (
+                  <time>{event.time}</time>
+                ) : (
+                  <span aria-hidden="true" />
+                )}
+                <div>
+                  <h4>
+                    {event.classId &&
+                    trip.classes.some(
+                      item => item.partyId === event.classId,
+                    ) ? (
+                      <a
+                        className="nm-schedule-class-link"
+                        href={`#class-${event.classId}`}>
+                        {event.title}
+                        <span className="nm-optional">별도 신청 ↗</span>
+                      </a>
+                    ) : (
+                      <>
+                        {event.title}
+                        {event.optional && (
+                          <span className="nm-optional">별도 신청</span>
+                        )}
+                      </>
+                    )}
+                  </h4>
+                  {(!compact || event.overview) && event.description && (
+                    <p>{event.description}</p>
                   )}
-                </h4>
-                {(!compact || event.overview) && event.description && (
-                  <p>{event.description}</p>
-                )}
-                {event.image && (
-                  <img
-                    className="nm-schedule-photo"
-                    src={event.image}
-                    alt={event.imageAlt || ''}
-                    loading="lazy"
-                  />
-                )}
+                  {event.image && (
+                    <img
+                      className="nm-schedule-photo"
+                      src={event.image}
+                      alt={event.imageAlt || ''}
+                      loading="lazy"
+                    />
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
-          {day.notes.map(note => (
-            <p className="nm-note" key={note}>
-              ※ {note}
-            </p>
-          ))}
-        </div>
+            ))}
+            {day.notes.map(note => (
+              <p className="nm-note" key={note}>
+                ※ {note}
+              </p>
+            ))}
+          </div>
+        )}
       </div>
     </section>
   );
 }
 
-export function Booking({trip, sale}) {
+export function Booking({trip, sales = {}}) {
   return (
     <section id="booking" className="nm-section nm-booking">
-      <SectionTitle
-        title="참가비와 신청"
-        subtitle="2박 3일 워케이션 참가비예요."
-      />
+      <SectionTitle title="참가비와 신청" subtitle="2박 3일 트립 참가비예요." />
       <p className="nm-price-caption">
-        <span>얼리버드 · 11월 19일까지</span>
+        <span>일정별 참가비</span>
         <small>1인 기준</small>
       </p>
       <div className="nm-price-grid">
         {trip.priceOptions.map(option => {
-          const price = optionPrice(sale, option.id, option.amount, trip.priceOptions.length === 1);
-          const discount = Number.isFinite(price)
-            ? Math.max(0, option.regularAmount - price)
-            : 0;
+          const price = option.amount;
           return (
             <article className="nm-price-option" key={option.id}>
               <div className="nm-price-top">
@@ -169,15 +208,15 @@ export function Booking({trip, sale}) {
                 <p className="nm-option-date">{option.dates}</p>
               </div>
               <div className="nm-price-bottom">
-                {discount > 0 && (
-                  <span className="nm-price-discount">
-                    <del>{formatPrice(option.regularAmount)}</del>
-                    <small>{formatPrice(discount)} 할인</small>
-                  </span>
-                )}
                 <strong className="nm-option-price">
                   {formatPrice(price)}
                 </strong>
+                <ApplyLink className="nm-option-apply" id={option.partyId}>
+                  {sales[option.partyId]?.isApplyOpen === false
+                    ? '모집 상태 확인'
+                    : '이 일정 신청'}{' '}
+                  <Arrow />
+                </ApplyLink>
               </div>
             </article>
           );
@@ -201,12 +240,6 @@ export function Booking({trip, sale}) {
           </ul>
         </div>
       </div>
-      <ApplyLink className="nm-button" id={trip.partyId}>
-        {sale?.isApplyOpen === false
-          ? '현재 모집 상태 확인'
-          : '2박 3일 신청하기'}{' '}
-        <Arrow />
-      </ApplyLink>
     </section>
   );
 }

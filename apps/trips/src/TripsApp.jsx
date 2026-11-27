@@ -223,13 +223,10 @@ function ClassCard({item, sale, onOpen}) {
 function Detail({trip}) {
   const sales = useSales(trip);
   const [photo, setPhoto] = useState(null);
-  const sale = sales[trip.partyId];
-  const fullPrice = optionPrice(
-    sale,
-    trip.priceOptions[0].id,
-    trip.priceOptions[0].amount,
-    trip.priceOptions.length === 1,
+  const allOptionsClosed = trip.priceOptions.every(
+    option => sales[option.partyId]?.isApplyOpen === false,
   );
+  const startingPrice = trip.priceOptions[0].amount;
   const ended = Date.now() > new Date(trip.endDate).getTime();
   useEffect(() => {
     document.title = `${trip.title} | 낭만모드 by 게딱지`;
@@ -284,8 +281,10 @@ function Detail({trip}) {
             <div>
               <dt>참가비</dt>
               <dd>
-                {formatPrice(fullPrice)}
-                <small>{trip.duration} · 1인 얼리버드</small>
+                {trip.priceOptions
+                  .map(option => formatPrice(option.amount))
+                  .join('–')}
+                <small>{trip.duration} · 일정별 1인 참가비</small>
               </dd>
             </div>
           </dl>
@@ -300,11 +299,11 @@ function Detail({trip}) {
           <WorkationStory trip={trip} />
         </div>
         <Schedule trip={trip} />
-        <Booking trip={trip} sale={sale} />
+        <Booking trip={trip} sales={sales} />
         <section id="classes" className="nm-section nm-classes">
           <SectionTitle
             title="원할 때만, 클래스와 파티"
-            subtitle="워케이션에 포함되지 않는 선택 프로그램이에요. 원하는 것만 별도 신청·결제해요."
+            subtitle="트립에 포함되지 않는 선택 프로그램이에요. 원하는 것만 별도 신청·결제해요."
           />
           <div className="nm-classes-grid">
             {trip.classes.map(item => (
@@ -326,7 +325,7 @@ function Detail({trip}) {
             <p>
               {trip.optionalParty.date} · 호스트 {trip.optionalParty.hosts}
             </p>
-            <p>체크아웃 이후, 더 함께하고 싶은 분만 참여해요.</p>
+            <p>일정 중 더 함께하고 싶은 분은 별도로 신청해 참여할 수 있어요.</p>
             <a className="nm-text-link" href={trip.optionalParty.url}>
               연말파티 자세히 보기 <Arrow />
             </a>
@@ -367,13 +366,13 @@ function Detail({trip}) {
       <Footer />
       <aside className="nm-booking-bar" aria-label="트립 신청">
         <div>
-          <span>{trip.duration} · 얼리버드 11.19까지</span>
-          <strong>{formatPrice(fullPrice)}</strong>
+          <span>{trip.duration} · 최저 참가비</span>
+          <strong>{formatPrice(startingPrice)}부터</strong>
         </div>
         <a className="nm-button" href={ended ? trip.contentUrl : '#booking'}>
           {ended
             ? '지난 여행 보기'
-            : sale?.isApplyOpen === false
+            : allOptionsClosed
             ? '모집 상태 확인'
             : '참가비 보기'}{' '}
           <Arrow />

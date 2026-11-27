@@ -140,7 +140,7 @@ test('category overrides distinguish the three existing PROGRAM events; new titl
   );
 });
 
-test('cards use workation branding for the curated trip, live class data and independent optional dates', () => {
+test('cards use slow dopamine branding for the curated trip, live class data and independent optional dates', () => {
   const events = [
     row(),
     row({partyId: 4133, eventDate: '2026-12-04', amount: 85000}),
@@ -153,7 +153,7 @@ test('cards use workation branding for the curated trip, live class data and ind
     ),
     [1, 2, 0],
   );
-  assert.equal(cards[0].title, '제주 워케이션');
+  assert.equal(cards[0].title, '제주 슬로우 도파민 트립');
   assert.equal(cards[0].image, trips[0].hero);
   assert.equal(cards[1].price, '85,000원');
   assert.equal(cards[1].title, events[1].partyTitle);

@@ -10,7 +10,7 @@ export default function TripExtras({trip}) {
       <span className="te-kicker">더 하고 싶다면</span>
       <h2 id="trip-extras-title">클래스와 연말파티</h2>
       <p>
-        워케이션에 참여하면서
+        트립에 참여하면서
         <br />
         클래스와 연말파티도 별도로 신청할 수 있어요.
       </p>

@@ -473,9 +473,39 @@ html[data-trips] #root {
   line-height: 1.6;
 }
 .nm-day-tabs button[aria-selected='true'] {
+  background: #fff;
+  border: 1px solid var(--nm-line);
+  box-shadow: inset 0 -4px 0 var(--nm-orange);
+  color: var(--nm-ink);
+}
+.nm-schedule-options {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+.nm-schedule-options button {
+  min-height: 70px;
+  border-radius: 14px;
+  background: #f7f8f5;
+}
+.nm-schedule-options button[aria-pressed='true'] {
   background: var(--nm-mint);
   border-color: #252525;
   color: var(--nm-ink);
+}
+.nm-schedule-options small {
+  font-size: 12px;
+}
+.nm-schedule-images {
+  display: grid;
+  gap: 16px;
+  margin-top: 14px;
+}
+.nm-schedule-images img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: 12px;
 }
 .nm-day-tabs button > span {
   display: block;
@@ -795,6 +825,18 @@ html[data-trips] #root {
   font-size: 19px;
   line-height: 1.35;
   letter-spacing: -0.5px;
+  white-space: nowrap;
+}
+.nm-option-apply {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 8px 12px;
+  border: 1px solid #252525;
+  border-radius: 22px;
+  background: var(--nm-mint);
+  font-size: 12px;
+  font-weight: 600;
   white-space: nowrap;
 }
 .nm-price-option .nm-option-date {

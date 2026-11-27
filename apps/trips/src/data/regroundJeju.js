@@ -1,15 +1,14 @@
-// Workation copy and core schedule: user-supplied revision, 2026-11-15.
-// Keep booking IDs/routes stable. Workation cover supplied by user on 2026-11-15.
+// Reground Jeju slow dopamine trip details and date options.
 export const regroundJeju = {
   slug: 'reground-jeju',
   issue: '01',
   region: 'JEJU',
   location: '제주 서귀포 · 덕수리',
   collaboration: '리그라운드 제주 × 게딱지',
-  title: '제주 워케이션',
-  titleEnglish: 'Work & Rest',
-  headline: ['이번엔,', '제주에서.'],
-  subtitle: '제주에서 일하고, 쉬고, 잘 노는 2박 3일',
+  title: '제주 슬로우 도파민 트립',
+  titleEnglish: 'Slow Dopamine',
+  headline: ['제주에서,', '천천히.'],
+  subtitle: '일하고, 쉬고, 취향을 찾는 2박 3일',
   duration: '2박 3일',
   durationEnglish: '2 NIGHTS · 3 DAYS',
   year: '2026',
@@ -20,20 +19,20 @@ export const regroundJeju = {
   bookingSubtitle:
     '가능한 만큼 머물러도 좋아요. 나에게 맞는 여정을 골라보세요.',
   closing: '제주에서 함께하기',
-  dates: '2026. 12. 03 — 12. 05',
-  datesShort: '12.03 목 — 12.05 토',
+  dates: '2026. 12. 03 — 12. 05 · 12. 04 — 12. 06',
+  datesShort: '12.03 목–12.05 토 · 12.04 금–12.06 일',
   startDate: '2026-12-03T17:00:00+09:00',
-  endDate: '2026-12-05T11:00:00+09:00',
+  endDate: '2026-12-06T11:00:00+09:00',
   partyId: 3861,
   contentUrl: 'https://ddakji.kr/contents/3861',
-  hero: '/trips-assets/workation-poster.png',
+  hero: '/trips-assets/slow-dopamine-all-dates.png',
   heroAlt:
-    '리그라운드 제주 × 게딱지 WORK & REST 워케이션 포스터. 2026년 12월 3일부터 5일까지, 제주에서 일하고 쉬고 잘 노는 2박 3일',
+    '리그라운드 제주 × 게딱지 슬로우 도파민 소셜 트립. 2026년 12월 3일부터 5일, 12월 4일부터 6일까지 두 일정 안내',
   heroIsPhoto: false,
   teamImage: '/trips-assets/workation-team.jpeg',
-  introduction: ['일할 땐 각자의 일에,', '함께할 땐 서로의 이야기에.'],
+  introduction: ['일상에서 한 걸음 느리게,', '제주에서 나에게 몰입해요.'],
   description:
-    '하던 일도, 시작해보고 싶은 일도 가져오세요. 낮에는 내 작업에 집중하고, 저녁에는 공간 운영자·디자이너·기획자와 일과 삶의 이야기를 나눠요. 제주에서 잠시 환경을 바꾸고, 나의 다음을 생각하는 워케이션이에요.',
+    '제주에서 사람들과 별별 이야기를 나누고, 몸을 깨우고, 나에게 몰입하는 2박 3일. 함께하는 시간과 나만의 시간 사이에서 천천히 취향과 다음 계절을 찾아봐요.',
   keywords: ['자율 업무', '일과 삶의 대화', '제주에서의 쉼'],
   audience: [
     {
@@ -90,11 +89,11 @@ export const regroundJeju = {
     {
       title: '내 일에 집중하는 오후',
       description:
-        '금요일 13:00–18:30은 자율 업무 시간. 하던 일이나 개인 프로젝트를 이어가요.',
+        '자율 업무 시간에는 워크스페이스에서 하던 일이나 개인 프로젝트를 이어가요.',
     },
     {
-      title: '같은 식탁에서 만나는 사람들',
-      description: '포틀럭 저녁과 리그라운드 나잇에서 서로의 이야기를 나눠요.',
+      title: '서로의 이야기를 나눠요',
+      description: '질문테이블과 리그라운드 나잇에서 서로를 알아가요.',
     },
   ],
   snapshots: [
@@ -117,118 +116,65 @@ export const regroundJeju = {
       note: 'feel at home',
     },
   ],
-  days: [
+  scheduleOptions: [
     {
-      day: '01',
-      isoDate: '2026-12-03',
-      date: '12.03 목요일',
-      title: '처음 만나, 같은 식탁에.',
-      label: '체크인 & 웰컴 리추얼',
-      description:
-        '짐을 풀고, 서로의 이름을 알아가는 저녁. 포틀럭 식탁에서 우리의 여행이 시작됩니다.',
-      events: [
+      id: 3861,
+      label: '목·금·토',
+      dates: '12.03 목 — 12.05 토',
+      scheduleImages: [
         {
-          time: '17:00–19:00',
-          title: '체크인 & 웰컴키트',
-          description: '리그라운드 제주에 도착해 짐을 풀어요.',
+          src: '/trips-assets/slow-dopamine-thu-sat-days-1-2.jpeg',
+          alt: '목요일과 금요일 프로그램 일정표',
         },
         {
-          time: '19:00–21:00',
-          title: '포틀럭 저녁 & 질문 나누기',
-          description: '같은 식탁에 둘러앉아 서로를 알아가요.',
-          overview: true,
-          image: '/trips-assets/workation-potluck.png',
-          imageAlt: '리그라운드 제주에서 함께 식사하며 이야기 나누는 모습',
-        },
-        {
-          time: '21:00–',
-          title: '휴식 및 자유시간',
-          description: '각자의 속도로 첫날 밤을 마무리해요.',
+          src: '/trips-assets/slow-dopamine-thu-sat-day-3.jpeg',
+          alt: '토요일 프로그램 일정표',
         },
       ],
-      notes: [],
+      days: [
+        {day: '01', isoDate: '2026-12-03', date: '12.03 목요일'},
+        {day: '02', isoDate: '2026-12-04', date: '12.04 금요일'},
+        {day: '03', isoDate: '2026-12-05', date: '12.05 토요일'},
+      ],
     },
     {
-      day: '02',
-      isoDate: '2026-12-04',
-      date: '12.04 금요일',
-      title: '걷고, 몰입하고, 나누고.',
-      label: '걷고, 일하고, 이야기 나누기',
-      description:
-        '송악산에서 만나는 제주의 색. 일도 쉼도, 오늘은 나의 리듬에 맞춰요.',
-      events: [
+      id: 4617,
+      label: '금·토·일',
+      dates: '12.04 금 — 12.06 일',
+      scheduleImages: [
         {
-          time: '08:00–10:00',
-          title: '모닝 웰니스 & 아침 식사',
-          description: '명상·요가·싱잉볼 중 최종 프로그램 추후 안내.',
+          src: '/trips-assets/slow-dopamine-weekend-days-1-2.jpeg',
+          alt: '금요일과 토요일 프로그램 일정표',
         },
         {
-          time: '10:00–11:30',
-          title: '송악산 컬러워크',
-          description: '걸으며 마음에 드는 색을 사진으로 담아요.',
-          overview: true,
-        },
-        {time: '11:30–13:00', title: '자유 점심'},
-        {
-          time: '13:00–18:30',
-          title: '자율 업무 시간',
-          description: '워크스페이스에서 내 일이나 프로젝트를 해요.',
-          overview: true,
-        },
-        {
-          time: '18:30–19:30',
-          title: '함께하는 저녁 식사',
-          description: '제공되는 저녁을 다 같이 먹어요.',
-          overview: true,
-        },
-        {
-          id: 'reground-night',
-          time: '19:30–21:30',
-          title: '리그라운드 나잇 · 이야기 나누기',
-          description: '호스트와 서로의 일과 고민을 나눠요.',
-          overview: true,
+          src: '/trips-assets/slow-dopamine-weekend-day-3.jpeg',
+          alt: '일요일 프로그램 및 참가 안내 일정표',
         },
       ],
-      notes: [],
-    },
-    {
-      day: '03',
-      isoDate: '2026-12-05',
-      date: '12.05 토요일',
-      title: '우리의 다음을 적어요.',
-      label: '기록 & 다음을 위한 시간',
-      description:
-        '몸을 깨우고, 마음에 남은 것들을 기록해요. 체크아웃 후의 제주는 자유롭게.',
-      events: [
+      days: [
         {
-          time: '08:00–09:00',
-          title: 'SOLV 바레',
-          description: '발레 동작을 응용한 운동으로 몸을 깨워요.',
-          overview: true,
-          image: '/trips-assets/workation-barre.jpg',
-          imageAlt: '제주 바다 앞에서 함께 바레 운동을 하는 모습',
+          day: '01',
+          isoDate: '2026-12-04',
+          date: '12.04 금요일',
         },
         {
-          time: '09:00–10:30',
-          title: '아침 식사 · 모닝페이지 / 새해 기록',
-          description: '떠오르는 생각과 새해의 바람을 적어요.',
-          overview: true,
+          day: '02',
+          isoDate: '2026-12-05',
+          date: '12.05 토요일',
         },
-        {time: '11:00', title: '체크아웃 & 굿바이 키트'},
         {
-          time: '11:00 이후',
-          title: '자유시간',
-          description: '제주 여행, 개인 작업, 휴식.',
+          day: '03',
+          isoDate: '2026-12-06',
+          date: '12.06 일요일',
         },
       ],
-      notes: [],
     },
   ],
   stay: {
     name: '리그라운드 제주',
     english: 'RE:GROUND JEJU',
     description:
-      '산방산을 바라보며 조용히 쉬고, 각자의 작업을 이어가는 제주 덕수리의 워케이션 커뮤니티 하우스. 함께 머물며 새로운 연결을 만들어가는 공간입니다.',
+      '산방산을 바라보며 조용히 쉬고, 함께 머물며 새로운 연결을 만들어가는 제주 덕수리의 커뮤니티 하우스입니다.',
     address: '제주특별자치도 서귀포시 안덕면 덕수회관로 107 나동',
     images: [
       {src: '/trips-assets/lounge.jpg', alt: '리그라운드 공용 라운지'},
@@ -296,20 +242,26 @@ export const regroundJeju = {
   ],
   priceOptions: [
     {
-      id: 1846,
-      name: '2박 3일',
+      id: 3861,
+      partyId: 3861,
+      name: '목·금·토',
       dates: '12.03 목 — 12.05 토',
-      description: '느린 사흘을 온전히 함께',
-      amount: 159000,
-      regularAmount: 179000,
-      label: '얼리버드 · 2박 3일 워케이션',
+      amount: 179000,
+    },
+    {
+      id: 4617,
+      partyId: 4617,
+      name: '금·토·일',
+      dates: '12.04 금 — 12.06 일',
+      amount: 189000,
     },
   ],
   inclusions: [
-    '2박 숙박 · 아침 식사 · 2일차 저녁',
-    '모닝 웰니스 · SOLV 바레 · 송악산 컬러워크',
-    '질문 테이블 · 리그라운드 나잇 · 모닝페이지',
-    '워크스페이스 · 로컬 추천 지도 · 웰컴/굿바이 키트',
+    '리그라운드 2박 3일 숙소',
+    '식사 제공: 전체 아침 식사 · 금요일 저녁 (목·금·토 일정 2일차 / 금·토·일 일정 1일차)',
+    '웰니스 프로그램: 모닝 웰니스 · SOLV 바레 · 송악산 컬러워크',
+    '질문테이블 · 리그라운드 나잇 · 모닝페이지 · 자율작업시간',
+    '워크스페이스 이용권 · 주변 명소와 맛집이 담긴 로컬 지도 · 웰컴키트',
   ],
   exclusions: [
     '항공권, 개인 교통비 및 개인 여행 경비',
